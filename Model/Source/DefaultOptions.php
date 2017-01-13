@@ -16,11 +16,11 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Model\Source;
+namespace MyParcelNL\Magento\Model\Source;
 
 
 use Magento\Sales\Model\Order;
-use MyParcel\Magento\Helper\Data;
+use MyParcelNL\Magento\Helper\Data;
 
 class DefaultOptions
 {

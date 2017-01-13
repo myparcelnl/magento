@@ -14,7 +14,7 @@
                         <item name="type" xsi:type="string">download_myparcel_a6_label</item>
                         <item name="id" xsi:type="string">download_myparcel_a6_label</item>
                         <item name="label" xsi:type="string" translate="true">MyParcel A6 label</item>
-                        <item name="url" xsi:type="url" path="myparcel/order/MassTrackTraceLabel"/>
+                        <item name="url" xsi:type="url" path="myparcelnl/order/MassTrackTraceLabel"/>
                         <item name="confirm" xsi:type="array">
                             <item name="title" xsi:type="string" translate="true">Delete Order(s)</item>
                             <item name="message" xsi:type="string" translate="true">
@@ -36,28 +36,28 @@
                     <item name="0" xsi:type="array">
                         <item name="type" xsi:type="string">0</item>
                         <item name="label" xsi:type="string" translate="true">From top left</item>
-                        <item name="url" xsi:type="url" path="myparcel/order/MassTrackTraceLabel">
+                        <item name="url" xsi:type="url" path="myparcelnl/order/MassTrackTraceLabel">
                             <param name="download_myparcel_a4_label">1</param>
                         </item>
                     </item>
                     <item name="1" xsi:type="array">
                         <item name="type" xsi:type="string">1</item>
                         <item name="label" xsi:type="string" translate="true">From top right</item>
-                        <item name="url" xsi:type="url" path="myparcel/order/MassTrackTraceLabel">
+                        <item name="url" xsi:type="url" path="myparcelnl/order/MassTrackTraceLabel">
                             <param name="download_myparcel_a4_label">2</param>
                         </item>
                     </item>
                     <item name="2" xsi:type="array">
                         <item name="type" xsi:type="string">2</item>
                         <item name="label" xsi:type="string" translate="true">From bottom left</item>
-                        <item name="url" xsi:type="url" path="myparcel/order/MassTrackTraceLabel">
+                        <item name="url" xsi:type="url" path="myparcelnl/order/MassTrackTraceLabel">
                             <param name="download_myparcel_a4_label">3</param>
                         </item>
                     </item>
                     <item name="3" xsi:type="array">
                         <item name="type" xsi:type="string">3</item>
                         <item name="label" xsi:type="string" translate="true">From bottom right</item>
-                        <item name="url" xsi:type="url" path="myparcel/order/MassTrackTraceLabel">
+                        <item name="url" xsi:type="url" path="myparcelnl/order/MassTrackTraceLabel">
                             <param name="download_myparcel_a4_label">4</param>
                         </item>
                     </item>
@@ -66,7 +66,7 @@
         </massaction>
     </listingToolbar>
     <columns name="sales_order_columns">
-        <column name="track_status" class="MyParcel\Magento\Ui\Component\Listing\Column\TrackStatus">
+        <column name="track_status" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackStatus">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="visible" xsi:type="boolean">true</item>
@@ -78,7 +78,7 @@
                 </item>
             </argument>
         </column>
-        <column name="track_number" class="MyParcel\Magento\Ui\Component\Listing\Column\TrackNumber">
+        <column name="track_number" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackNumber">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="visible" xsi:type="boolean">true</item>
@@ -91,7 +91,7 @@
             </argument>
         </column>
         <!-- Action column -->
-        <actionsColumn name="track_actions" class="MyParcel\Magento\Ui\Component\Listing\Column\TrackActions">
+        <actionsColumn name="track_actions" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackActions">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="label" xsi:type="string" translate="true">Track action</item>

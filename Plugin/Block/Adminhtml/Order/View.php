@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Plugin\Block\Adminhtml\Order;
+namespace MyParcelNL\Magento\Plugin\Block\Adminhtml\Order;
 
 
 class View
@@ -28,10 +28,10 @@ class View
 
 
         $view->addButton(
-            'myparcel_print_label',
+            'myparcelnl_print_label',
             [
                 'label' => __('Print label'),
-                'class' => 'myparcel_print_label',
+                'class' => 'myparcelnl_print_label',
                 'onclick' => "confirmSetLocation('{$message}', '{$url}')"
             ]
         );
@@ -46,7 +46,7 @@ class View
      */
     public function getPrintLabelUrl(\Magento\Sales\Block\Adminhtml\Order\View $view)
     {
-        return $view->getUrl('myparcel/order/MassTrackTraceLabel', [
+        return $view->getUrl('myparcelnl/order/MassTrackTraceLabel', [
             'selected_ids' => $view->getOrderId()
         ]);
     }

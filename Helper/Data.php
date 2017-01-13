@@ -15,7 +15,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Helper;
+namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Store\Model\StoreManagerInterface;
@@ -28,8 +28,8 @@ class Data extends AbstractHelper
     protected $storeManager;
     protected $objectManager;
 
-    const XML_PATH_GENERAL = 'myparcel_magento_general/';
-    const XML_PATH_STANDARD = 'myparcel_magento_standard/';
+    const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
+    const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
 
 
 

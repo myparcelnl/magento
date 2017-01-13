@@ -9,7 +9,7 @@
         </arguments>
     </virtualType>
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
-        <plugin name="addMyButton" type="MyParcel\Magento\Plugin\Block\Adminhtml\Order\View"/>
+        <plugin name="addMyButton" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>
     </type>
 </config>
 

@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Ui\Component\MassAction\Label;
+namespace MyParcelNL\Magento\Ui\Component\MassAction\Label;
 
 use Magento\Framework\UrlInterface;
 use Magento\Customer\Model\ResourceModel\Group\CollectionFactory;

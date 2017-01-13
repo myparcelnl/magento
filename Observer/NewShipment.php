@@ -16,13 +16,13 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Observer;
+namespace MyParcelNL\Magento\Observer;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use MyParcelNL\Sdk\src\Helper\MyParcelAPI;
-use MyParcel\Magento\Model\Sales\MyParcelTrackTrace;
+use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 class NewShipment implements ObserverInterface
 {
@@ -47,7 +47,7 @@ class NewShipment implements ObserverInterface
     protected $api;
 
     /**
-     * @var \MyParcel\Magento\Helper\Data
+     * @var \MyParcelNL\Magento\Helper\Data
      */
     protected $helper;
 
@@ -59,7 +59,7 @@ class NewShipment implements ObserverInterface
         $this->objectManager = ObjectManager::getInstance();
         $this->request = $this->objectManager->get('Magento\Framework\App\RequestInterface');
         $this->api = new MyParcelAPI();
-        $this->helper = $this->objectManager->get('MyParcel\Magento\Helper\Data');
+        $this->helper = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }
 

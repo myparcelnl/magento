@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Block\Sales;
+namespace MyParcelNL\Magento\Block\Sales;
 
 
 
@@ -33,7 +33,7 @@ class View extends Template
     protected $_objectManager;
 
     /**
-     * @var \MyParcel\Magento\Helper\Data
+     * @var \MyParcelNL\Magento\Helper\Data
      */
     protected $_helper;
 
@@ -44,12 +44,12 @@ class View extends Template
     public function __construct(Context $context, array $data = [])
     {
         $this->_objectManager = ObjectManager::getInstance();
-        $this->_helper = $this->_objectManager->get('\MyParcel\Magento\Helper\Data');
+        $this->_helper = $this->_objectManager->get('\MyParcelNL\Magento\Helper\Data');
         parent::__construct($context, $data);
     }
     public function getAjaxUrl()
     {
-        return $this->_urlBuilder->getUrl('myparcel/order/MassTrackTraceLabel');
+        return $this->_urlBuilder->getUrl('myparcelnl/order/MassTrackTraceLabel');
     }
 
     public function getSettings()

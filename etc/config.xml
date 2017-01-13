@@ -7,7 +7,7 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <myparcel_magento_standard>
+        <myparcelnl_magento_standard>
             <print>
                 <paper_type>A4</paper_type>
             </print>
@@ -27,6 +27,6 @@
                 <insurance_500_active>0</insurance_500_active>
                 <insurance_500_from_price>1</insurance_500_from_price>
             </options>
-        </myparcel_magento_standard>
+        </myparcelnl_magento_standard>
     </default>
 </config>

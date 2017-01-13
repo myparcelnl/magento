@@ -7,16 +7,16 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcel
+ * https://github.com/myparcelnl
  *
  * @author      Reindert Vetter <reindert@myparcel.nl>
  * @copyright   2010-2016 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcel/sdk
+ * @link        https://github.com/myparcelnl/sdk
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Model\Source;
+namespace MyParcelNL\Magento\Model\Source;
 
 
 use Magento\Framework\Option\ArrayInterface;

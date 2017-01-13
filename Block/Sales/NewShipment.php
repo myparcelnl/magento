@@ -16,14 +16,14 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Block\Sales;
+namespace MyParcelNL\Magento\Block\Sales;
 
 
 
 
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use Magento\Sales\Model\Order;
-use MyParcel\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use Magento\Framework\App\ObjectManager;
 
 class NewShipment extends AbstractItems
@@ -66,7 +66,7 @@ class NewShipment extends AbstractItems
 
         $this->defaultOptions = new DefaultOptions(
             $this->modelOrder->load($orderId),
-            $this->_objectManager->get('\MyParcel\Magento\Helper\Data')
+            $this->_objectManager->get('\MyParcelNL\Magento\Helper\Data')
         );
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);

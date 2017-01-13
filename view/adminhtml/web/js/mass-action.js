@@ -1,7 +1,7 @@
 define([
     'jquery',
     'Magento_Ui/js/modal/confirm',
-    'text!MyParcel_Magento/template/grid/order_massaction.html',
+    'text!MyParcelNL_Magento/template/grid/order_massaction.html',
     'Magento_Ui/js/modal/alert'
 ], function ($, confirmation, template, alert) {
     'use strict';

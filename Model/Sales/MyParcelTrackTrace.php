@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Model\Sales;
+namespace MyParcelNL\Magento\Model\Sales;
 
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -25,7 +25,7 @@ use Magento\Framework\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
-use MyParcel\Magento\Helper\Data;
+use MyParcelNL\Magento\Helper\Data;
 
 class MyParcelTrackTrace extends MyParcelConsignmentRepository
 {
@@ -39,7 +39,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      * Track title showing in Magento
      */
     const POSTNL_TRACK_TITLE = 'MyParcel';
-    const POSTNL_CARRIER_CODE = 'myparcel';
+    const POSTNL_CARRIER_CODE = 'myparcelnl';
 
     /**
      * @var ScopeConfigInterface

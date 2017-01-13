@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcel\Magento\Controller\Adminhtml\Order;
+namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResponseInterface;
@@ -12,8 +12,8 @@ use Magento\Ui\Component\MassAction\Filter;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Magento\Sales\Api\OrderManagementInterface;
 use MyParcelNL\Sdk\src\Helper\MyParcelAPI;
-use MyParcel\Magento\Helper\Data;
-use MyParcel\Magento\Model\Sales\MyParcelTrackTrace;
+use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 /**
  * Class MassDelete
@@ -70,7 +70,7 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
 
         parent::__construct($context);
         $this->api = new MyParcelAPI();
-        $this->helper = $this->_objectManager->create('MyParcel\Magento\Helper\Data');
+        $this->helper = $this->_objectManager->create('MyParcelNL\Magento\Helper\Data');
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
 
         $this->modelOrder = $this->_objectManager->create('Magento\Sales\Model\Order');

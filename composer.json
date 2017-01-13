@@ -1,5 +1,5 @@
 {
-    "name": "MyParcel/Magento",
+    "name": "MyParcelNL/Magento",
     "homepage": "https://www.myparcel.nl",
     "tags": ["MyParcel", "My Parcel", "Post NL", "PostNL"],
     "license": "CC BY-NC-ND 3.0 NL",
@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-4" : {
-            "MyParcel\\Magento\\" : ["src/"]
+            "MyParcelNL\\Magento\\" : ["src/"]
         }
     }
 }

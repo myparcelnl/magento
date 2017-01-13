@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcel\Magento\Ui\Component\Listing\Column;
+namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
@@ -77,7 +77,7 @@ class TrackActions extends Column
                 }
                 $item[$this->getData('name')]['action-download_package_label'] = [
                     'href' => $this->urlBuilder->getUrl(
-                        'myparcel/order/MassTrackTraceLabel',
+                        'myparcelnl/order/MassTrackTraceLabel',
                         [
                             'selected_ids' => $item['entity_id'],
                             'mypa_package_type' => 1,
@@ -89,7 +89,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-download_mailbox_label'] = [
                     'href' => $this->urlBuilder->getUrl(
-                        'myparcel/order/MassTrackTraceLabel',
+                        'myparcelnl/order/MassTrackTraceLabel',
                         [
                             'selected_ids' => $item['entity_id'],
                             'mypa_package_type' => 2,
@@ -101,7 +101,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-download_letter_label'] = [
                     'href' => $this->urlBuilder->getUrl(
-                        'myparcel/order/MassTrackTraceLabel',
+                        'myparcelnl/order/MassTrackTraceLabel',
                         [
                             'selected_ids' => $item['entity_id'],
                             'mypa_package_type' => 3,
@@ -113,7 +113,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-create_concept'] = [
                     'href' => $this->urlBuilder->getUrl(
-                        'myparcel/order/MassTrackTraceLabel',
+                        'myparcelnl/order/MassTrackTraceLabel',
                         [
                             'selected_ids' => $item['entity_id'],
                             'mypa_request_type' => 'concept'
