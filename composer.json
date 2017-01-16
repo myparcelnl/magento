@@ -21,6 +21,7 @@
         "phpunit/phpunit": "^4.8"
     },
     "autoload": {
+        "files": [ "registration.php" ],
         "psr-4" : {
             "MyParcelNL\\Magento\\" : ["src/"]
         }
