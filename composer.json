@@ -1,5 +1,6 @@
 {
     "name": "myparcelnl/magento",
+    "type": "magento2-module",
     "version": "0.1.0",
     "homepage": "https://www.myparcel.nl",
     "tags": ["MyParcel", "My Parcel", "Post NL", "PostNL"],
