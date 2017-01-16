@@ -18,30 +18,17 @@
 namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
 {
-    protected $storeManager;
-    protected $objectManager;
-
     const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
     const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
 
-
-
-    public function __construct(Context $context) {
-        parent::__construct($context);
-    }
-
     public function getConfigValue($field, $storeId = null)
     {
-        return $this->scopeConfig->getValue(
-            $field, ScopeInterface::SCOPE_STORE, $storeId
-        );
+        return $this->scopeConfig->getValue($field, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
 
@@ -54,6 +41,4 @@ class Data extends AbstractHelper
     {
         return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);
     }
-
-
 }

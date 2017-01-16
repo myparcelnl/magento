@@ -27,32 +27,6 @@ use \Magento\Framework\Api\SearchCriteriaBuilder;
 
 class TrackStatus extends Column
 {
-    protected $_orderRepository;
-    protected $_searchCriteria;
-
-    /**
-     * TrackStatus constructor.
-     *
-     * @param ContextInterface         $context
-     * @param UiComponentFactory       $uiComponentFactory
-     * @param OrderRepositoryInterface $orderRepository
-     * @param SearchCriteriaBuilder    $criteria
-     * @param array                    $components
-     * @param array                    $data
-     */
-    public function __construct(
-        ContextInterface $context,
-        UiComponentFactory $uiComponentFactory,
-        OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $criteria,
-        array $components = [],
-        array $data = [])
-    {
-        $this->_orderRepository = $orderRepository;
-        $this->_searchCriteria = $criteria;
-        parent::__construct($context, $uiComponentFactory, $components, $data);
-    }
-
     /**
      * @param array $dataSource
      *
@@ -61,7 +35,7 @@ class TrackStatus extends Column
     public function prepareDataSource(array $dataSource)
     {
         /**
-         * @var Order $order
+         * @var Order                  $order
          * @var Order\Shipment\Track[] $tracks
          */
         if (isset($dataSource['data']['items'])) {

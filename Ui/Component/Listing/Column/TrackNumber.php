@@ -27,32 +27,6 @@ use \Magento\Framework\Api\SearchCriteriaBuilder;
 
 class TrackNumber extends Column
 {
-    protected $_orderRepository;
-    protected $_searchCriteria;
-
-    /**
-     * TrackNumber constructor.
-     *
-     * @param ContextInterface         $context
-     * @param UiComponentFactory       $uiComponentFactory
-     * @param OrderRepositoryInterface $orderRepository
-     * @param SearchCriteriaBuilder    $criteria
-     * @param array                    $components
-     * @param array                    $data
-     */
-    public function __construct(
-        ContextInterface $context,
-        UiComponentFactory $uiComponentFactory,
-        OrderRepositoryInterface $orderRepository,
-        SearchCriteriaBuilder $criteria,
-        array $components = [],
-        array $data = [])
-    {
-        $this->_orderRepository = $orderRepository;
-        $this->_searchCriteria = $criteria;
-        parent::__construct($context, $uiComponentFactory, $components, $data);
-    }
-
     /**
      * @param array $dataSource
      *
@@ -66,8 +40,9 @@ class TrackNumber extends Column
          */
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                if (isset($item['track_number']))
+                if (key_exists('track_number', $item)) {
                     $item[$this->getData('name')] = $item['track_number'];
+                }
             }
         }
 

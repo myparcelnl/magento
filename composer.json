@@ -1,15 +1,19 @@
 {
     "name": "myparcelnl/magento",
+    "version": "0.1.0",
     "homepage": "https://www.myparcel.nl",
     "tags": ["MyParcel", "My Parcel", "Post NL", "PostNL"],
     "license": "CC BY-NC-ND 3.0 NL",
     "authors": [
         {
             "name": "Reindert Vetter",
-            "email": "reindert@myparcel.nl"
+            "email": "reindert@myparcel.nl",
+            "homepage": "https://www.myparcel.nl",
+            "role": "Developer"
         }
     ],
     "require": {
+        "php": "~5.6.5",
         "myparcelnl/sdk": "^0.1"
     },
     "require-dev": {

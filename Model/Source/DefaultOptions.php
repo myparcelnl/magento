@@ -18,7 +18,6 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
 
@@ -27,12 +26,12 @@ class DefaultOptions
     /**
      * @var Data
      */
-    static protected $_helper;
+    static private $helper;
 
     /**
      * @var Order
      */
-    static private $_order;
+    static private $order;
 
     /**
      * Insurance constructor.
@@ -42,8 +41,8 @@ class DefaultOptions
      */
     public function __construct(Order $order, Data $helper)
     {
-        self::$_helper = $helper;
-        self::$_order = $order;
+        self::$helper = $helper;
+        self::$order = $order;
     }
 
     /**
@@ -55,8 +54,8 @@ class DefaultOptions
      */
     public function getDefault($option)
     {
-        $total = self::$_order->getGrandTotal();
-        $settings = self::$_helper->getStandardConfig('options');
+        $total = self::$order->getGrandTotal();
+        $settings = self::$helper->getStandardConfig('options');
 
         if ($settings[$option . '_active'] == '1') {
             if ($total > (int)$settings[$option . '_from_price']) {
@@ -65,6 +64,7 @@ class DefaultOptions
                 return false;
             }
         }
+
         return false;
     }
 
@@ -78,9 +78,11 @@ class DefaultOptions
         if ($this->getDefault('insurance_500')) {
             return 500;
         }
+
         if ($this->getDefault('insurance_250')) {
             return 250;
         }
+
         if ($this->getDefault('insurance_50')) {
             return 50;
         }

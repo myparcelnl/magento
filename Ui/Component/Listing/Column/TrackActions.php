@@ -31,7 +31,7 @@ class TrackActions extends Column
     /**
      * @var UrlInterface
      */
-    protected $urlBuilder;
+    private $urlBuilder;
 
     /**
      * @param ContextInterface   $context
@@ -46,8 +46,7 @@ class TrackActions extends Column
         UrlInterface $urlBuilder,
         array $components = [],
         array $data = []
-    )
-    {
+    ) {
         $this->urlBuilder = $urlBuilder;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
@@ -63,7 +62,7 @@ class TrackActions extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-                if($item['track_status'] == null) {
+                if ($item['track_status'] == null) {
                     $item[$this->getData('name')]['action-ship_direct'] = [
                         'href' => $this->urlBuilder->getUrl(
                             'adminhtml/order_shipment/start',
@@ -124,7 +123,6 @@ class TrackActions extends Column
                 ];
                 if ($item['track_number'] !== null) {
                     foreach (explode(PHP_EOL, $item['track_number']) as $trackNumber) {
-
                         $url = 'https://mijnpakket.postnl.nl/Inbox/Search?&b=' . $trackNumber . '&p=2231JE';
                         $item[$this->getData('name')]['action-track-' . $trackNumber] = [
                             'href' => $url,
@@ -133,7 +131,6 @@ class TrackActions extends Column
                         ];
                     }
                 }
-
             }
         }
 

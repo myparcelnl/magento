@@ -18,7 +18,6 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-
 use Magento\Framework\Option\ArrayInterface;
 
 class PaperType implements ArrayInterface

@@ -18,9 +18,6 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-
-
-
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -31,12 +28,12 @@ class NewShipment extends AbstractItems
     /**
      * @var \Magento\Framework\ObjectManagerInterface
      */
-    protected $_objectManager;
+    private $objectManager;
 
     /**
      * @var Order
      */
-    protected $modelOrder;
+    private $modelOrder;
 
     private $defaultOptions;
 
@@ -47,7 +44,7 @@ class NewShipment extends AbstractItems
      * @param \Magento\Framework\Registry                               $registry
      * @param array                                                     $data
      *
-     * @throws \Exception
+     * @throws \LogicException
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
@@ -56,17 +53,17 @@ class NewShipment extends AbstractItems
         \Magento\Framework\Registry $registry,
         array $data = []
     ) {
-        $this->_objectManager = ObjectManager::getInstance();
-        $this->modelOrder = $this->_objectManager->create('Magento\Sales\Model\Order');
+        $this->objectManager = ObjectManager::getInstance();
+        $this->modelOrder = $this->objectManager->create('Magento\Sales\Model\Order');
 
         $orderId = $context->getRequest()->getParam('order_id', null);
         if ($orderId == null) {
-            throw new \Exception('No order id found');
+            throw new \LogicException('No order id found');
         }
 
         $this->defaultOptions = new DefaultOptions(
             $this->modelOrder->load($orderId),
-            $this->_objectManager->get('\MyParcelNL\Magento\Helper\Data')
+            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
         );
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);

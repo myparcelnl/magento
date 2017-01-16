@@ -18,9 +18,6 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-
-
-
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
@@ -30,12 +27,12 @@ class View extends Template
     /**
      * @var \Magento\Framework\ObjectManagerInterface
      */
-    protected $_objectManager;
+    private $objectManager;
 
     /**
      * @var \MyParcelNL\Magento\Helper\Data
      */
-    protected $_helper;
+    private $helper;
 
     /**
      * @param Context $context
@@ -43,8 +40,8 @@ class View extends Template
      */
     public function __construct(Context $context, array $data = [])
     {
-        $this->_objectManager = ObjectManager::getInstance();
-        $this->_helper = $this->_objectManager->get('\MyParcelNL\Magento\Helper\Data');
+        $this->objectManager = ObjectManager::getInstance();
+        $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Data');
         parent::__construct($context, $data);
     }
     public function getAjaxUrl()
@@ -54,7 +51,7 @@ class View extends Template
 
     public function getSettings()
     {
-        $settings = $this->_helper->getStandardConfig('print');
+        $settings = $this->helper->getStandardConfig('print');
         return json_encode($settings);
     }
 }

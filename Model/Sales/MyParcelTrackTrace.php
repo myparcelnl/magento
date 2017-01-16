@@ -18,7 +18,6 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManager;
@@ -42,19 +41,14 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     const POSTNL_CARRIER_CODE = 'myparcelnl';
 
     /**
-     * @var ScopeConfigInterface
-     */
-    protected $scopeConfig;
-
-    /**
      * @var ObjectManagerInterface
      */
-    protected $objectManager;
+    private $objectManager;
 
     /**
      * @var Data
      */
-    protected $helper;
+    private $helper;
 
     /**
      * @var Order\Shipment\Track
@@ -70,8 +64,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     public function __construct(
         ObjectManagerInterface $objectManager,
         Data $helper
-    )
-    {
+    ) {
         $this->objectManager = $objectManager;
         $this->helper = $helper;
     }
@@ -113,8 +106,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setTitle(self::POSTNL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber('concept')
-            ->save()
-        ;
+            ->save();
     }
 
     public function convertDataFromMagentoToApi()
@@ -132,8 +124,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($this->mageTrack->getShipment()->getOrderId())
-        ;
+            ->setLabelDescription($this->mageTrack->getShipment()->getOrderId());
     }
 
     /**
@@ -152,7 +143,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         $shipment = $convertOrder->toShipment($order);
 
         // Loop through order items
-        foreach ($order->getAllItems() AS $orderItem) {
+        foreach ($order->getAllItems() as $orderItem) {
             // Check if order item has qty to ship or is virtual
             if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                 continue;
@@ -179,8 +170,6 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             // Send email
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
                 ->notify($shipment);
-
-            //$shipment->save();
 
             return $shipment;
         } catch (\Exception $e) {

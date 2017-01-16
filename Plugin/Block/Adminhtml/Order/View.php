@@ -18,14 +18,12 @@
 
 namespace MyParcelNL\Magento\Plugin\Block\Adminhtml\Order;
 
-
 class View
 {
     public function beforeSetLayout(\Magento\Sales\Block\Adminhtml\Order\View $view)
     {
-        $message ='Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam?';
+        $message = 'Print labels';
         $url = $this->getPrintLabelUrl($view);
-
 
         $view->addButton(
             'myparcelnl_print_label',
@@ -47,7 +45,7 @@ class View
     public function getPrintLabelUrl(\Magento\Sales\Block\Adminhtml\Order\View $view)
     {
         return $view->getUrl('myparcelnl/order/MassTrackTraceLabel', [
-            'selected_ids' => $view->getOrderId()
+                'selected_ids' => $view->getOrderId()
         ]);
     }
 }

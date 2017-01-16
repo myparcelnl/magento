@@ -1,14 +1,11 @@
 <?php
 /**
  * Set MyParcel options to new track
- *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
- *
  * @author      Reindert Vetter <reindert@myparcel.nl>
  * @copyright   2010-2017 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
@@ -29,27 +26,27 @@ class NewShipment implements ObserverInterface
     /**
      * @var \Magento\Framework\App\ObjectManager
      */
-    protected $objectManager;
+    private $objectManager;
 
     /**
      * @var \Magento\Framework\App\RequestInterface
      */
-    protected $request;
+    private $request;
 
     /**
      * @var \Magento\Sales\Model\Order\Shipment\Track
      */
-    protected $modelTrack;
+    private $modelTrack;
 
     /**
      * @var MyParcelAPI
      */
-    protected $api;
+    private $api;
 
     /**
      * @var \MyParcelNL\Magento\Helper\Data
      */
-    protected $helper;
+    private $helper;
 
     /**
      * NewShipment constructor.
@@ -64,8 +61,8 @@ class NewShipment implements ObserverInterface
     }
 
     /**
-     *
      * @param Observer $observer
+     *
      * @return $this
      */
     public function execute(Observer $observer)
@@ -74,6 +71,11 @@ class NewShipment implements ObserverInterface
         $this->setMagentoAndMyParcelTrack($shipment);
     }
 
+    /**
+     * @param $shipment
+     *
+     * @throws \Exception
+     */
     private function setMagentoAndMyParcelTrack($shipment)
     {
         $options = $this->request->getParam('mypa', []);
@@ -87,14 +89,12 @@ class NewShipment implements ObserverInterface
             ->setSignature((bool)isset($options['signature']))
             ->setReturn((bool)isset($options['return']))
             ->setLargeFormat((bool)isset($options['large_format']))
-            ->setInsurance((int)isset($options['insurance']) ? $options['insurance'] : false)
-        ;
+            ->setInsurance((int)isset($options['insurance']) ? $options['insurance'] : false);
         $this->api->addConsignment($postNLTrack);
         $this->api->createConcepts();
         $this->api->setLatestData();
         $this->updateMagentoTrack();
     }
-
 
     /**
      * Update all the tracks that made created via the API
@@ -133,12 +133,11 @@ class NewShipment implements ObserverInterface
      */
     private function getHtmlForGridColumns($order)
     {
-        $data = ['track_status' => [], 'track_number' =>[]];
+        $data = ['track_status' => [], 'track_number' => []];
         $columnHtml = ['track_status' => '', 'track_number' => ''];
 
         /** @var $shipment \Magento\Sales\Model\Order\Shipment */
         foreach ($order->getShipmentsCollection() as $shipment) {
-
             // Set all track data in array
             foreach ($shipment->getTracks() as $track) {
                 $data['track_status'][] = __('status_' . $track->getData('api_status'));
