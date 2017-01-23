@@ -6,20 +6,17 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Sdk\src\Helper\MyParcelAPI;
+use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 /**
  * Short_description
- *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
- *
  * @package   MyParcelNL\Magento
  * @author    Reindert Vetter <reindert@myparcel.nl>
  * @copyright 2010-2016 MyParcel
@@ -42,7 +39,7 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
     private $helper;
 
     /**
-     * @var MyParcelAPI
+     * @var MyParcelCollection
      */
     private $api;
 
@@ -69,23 +66,24 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
     public function __construct(Context $context)
     {
         parent::__construct($context);
-        $this->api = new MyParcelAPI();
-        $this->helper = $this->objectManager->create(PATH_HELPER_DATA);
+
+        $this->api = new MyParcelCollection();
+        $this->helper = $context->getObjectManager()->create(self::PATH_HELPER_DATA);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
 
-        $this->modelOrder = $this->objectManager->create(self::PATH_MODEL_ORDER);
-        $this->modelTrack = $this->objectManager->create(self::PATH_ORDER_TRACK);
+        $this->modelOrder = $context->getObjectManager()->create(self::PATH_MODEL_ORDER);
+        $this->modelTrack = $context->getObjectManager()->create(self::PATH_ORDER_TRACK);
     }
 
     /**
      * Dispatch request
-     *
      * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
      * @throws \Magento\Framework\Exception\NotFoundException
      */
     public function execute()
     {
         $this->massAction();
+
         return $this->resultRedirectFactory->create()->setPath(self::REDIRECT_URL);
     }
 
@@ -94,15 +92,24 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
      */
     private function massAction()
     {
-        $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
+        if ($this->getRequest()->getParam('selected_ids')) {
+            $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
+        } else {
+            $orderIds = null;
+        }
+
         $downloadLabel = $this->getRequest()->getParam('mypa_request_type', 'download') == 'download';
         $packageType = (int)$this->getRequest()->getParam('mypa_package_type', 1);
 
         if ($this->getRequest()->getParam('paper_size', null) == 'A4') {
             $positions = $this->getRequest()->getParam('mypa_positions', null);
-        } else {
+        }
+        else {
             $positions = null;
         }
+
+        if (empty($orderIds))
+            throw new \Exception('No items selected');
 
         $this->setMagentoAndMyParcelTrack($orderIds, $downloadLabel, $packageType);
 
@@ -110,7 +117,8 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
             $this->api->setPdfOfLabels($positions);
             $this->updateMagentoTrack();
             $this->api->downloadPdfOfLabels();
-        } else {
+        }
+        else {
             $this->api->createConcepts();
             $this->updateMagentoTrack();
         }
@@ -119,12 +127,14 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
     /**
      * Set existing or create new Magento track and set API consignment to collection     *
      *
-     * @param $orderIds    int[]
+     * @param $orderIds      int[]
      * @param $downloadLabel bool
-     * @param $packageType int
+     * @param $packageType   int
      *
      * @throws \Exception
      * @throws \Magento\Framework\Exception\LocalizedException on
+     *
+     * @todo; move to model
      */
     private function setMagentoAndMyParcelTrack($orderIds, $downloadLabel, $packageType)
     {
@@ -142,13 +152,13 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
                 foreach ($magentoOrder->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() ==
                         MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
-                        $magentoTrack->getData('api_id')
+                        $magentoTrack->getData('myparcel_consignment_id')
                     ) {
                         $postNLTrack = new MyParcelTrackTrace($this->_objectManager, $this->helper);
 
                         $postNLTrack
                             ->setApiKey($this->helper->getGeneralConfig('api/key'))
-                            ->setApiId($magentoTrack->getData('api_id'))
+                            ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
                             ->setReferenceId($magentoTrack->getEntityId())
                             ->setPackageType($packageType);
                         $this->api->addConsignment($postNLTrack);
@@ -169,6 +179,8 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
 
     /**
      * Update all the tracks that made created via the API
+     *
+     * @todo; move to model
      */
     private function updateMagentoTrack()
     {
@@ -176,7 +188,7 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
         foreach ($this->api->getConsignments() as $postNLTrack) {
             $magentoTrack = $this->modelTrack->load($postNLTrack->getReferenceId());
 
-            $magentoTrack->setData('api_id', $postNLTrack->getApiId());
+            $magentoTrack->setData('myparcel_consignment_id', $postNLTrack->getMyParcelConsignmentId());
             $magentoTrack->setData('api_status', $postNLTrack->getStatus());
 
             if ($postNLTrack->getBarcode()) {
@@ -191,6 +203,8 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
 
     /**
      * Update column track_status in sales_order_grid
+     *
+     * @todo; move to model
      */
     private function updateOrderGrid()
     {
@@ -210,11 +224,13 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
     /**
      * @param $order Order
      *
+     * @todo; move to model
+     *
      * @return array
      */
     private function getHtmlForGridColumns($order)
     {
-        $data = ['track_status' => [], 'track_number' =>[]];
+        $data = ['track_status' => [], 'track_number' => []];
         $columnHtml = ['track_status' => '', 'track_number' => ''];
 
         /** @var $shipment Order\Shipment */

@@ -84,6 +84,7 @@ define(
                                 title: 'MyParcel options',
                                 content: template,
                                 focus: function () {
+                                    $('#selected_ids').val(parentThis.selectedIds.join(','));
                                     parentThis
                                         ._setMyParcelMassActionObserver()
                                         ._setDefaultSettings();
@@ -178,7 +179,6 @@ define(
                             parentThis.selectedIds.push($(this).attr('value'));
                         }
                     );
-                    $('#selected_ids').val(this.selectedIds.join(','));
                     return this;
                 },
 

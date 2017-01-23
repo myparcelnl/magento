@@ -18,7 +18,7 @@ namespace MyParcelNL\Magento\Observer;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use MyParcelNL\Sdk\src\Helper\MyParcelAPI;
+use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 class NewShipment implements ObserverInterface
@@ -39,7 +39,7 @@ class NewShipment implements ObserverInterface
     private $modelTrack;
 
     /**
-     * @var MyParcelAPI
+     * @var MyParcelCollection
      */
     private $api;
 
@@ -55,7 +55,7 @@ class NewShipment implements ObserverInterface
     {
         $this->objectManager = ObjectManager::getInstance();
         $this->request = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->api = new MyParcelAPI();
+        $this->api = new MyParcelCollection();
         $this->helper = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }
@@ -104,7 +104,7 @@ class NewShipment implements ObserverInterface
         /** @var $magentoTrack \Magento\Sales\Model\Order\Shipment\Track */
         foreach ($this->api->getConsignments() as $postNLTrack) {
             $magentoTrack = $this->modelTrack->load($postNLTrack->getReferenceId());
-            $magentoTrack->setData('api_id', $postNLTrack->getApiId());
+            $magentoTrack->setData('myparcel_consignment_id', $postNLTrack->getMyParcelConsignmentId());
             $magentoTrack->setData('api_status', $postNLTrack->getStatus());
             $magentoTrack->save();
         }

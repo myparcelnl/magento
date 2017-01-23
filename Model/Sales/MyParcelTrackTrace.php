@@ -112,10 +112,11 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     public function convertDataFromMagentoToApi()
     {
         $address = $this->mageTrack->getShipment()->getShippingAddress();
+
         $this
             ->setApiKey($this->helper->getGeneralConfig('api/key'))
             ->setReferenceId($this->mageTrack->getEntityId())
-            ->setApiId($this->mageTrack->getData('api_id'))
+            ->setMyParcelConsignmentId($this->mageTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
             ->setCompany($address->getCompany())
             ->setPerson($address->getName())

@@ -38,7 +38,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             if ($setup->getConnection()->isTableExists($tableName) == true) {
                 $setup->getConnection()->addColumn(
                     $tableName,
-                    'api_id',
+                    'myparcel_consignment_id',
                     [
                         'type' => Table::TYPE_INTEGER,
                         'comment' => 'MyParcel id',

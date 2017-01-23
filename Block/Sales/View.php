@@ -44,6 +44,7 @@ class View extends Template
         $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Data');
         parent::__construct($context, $data);
     }
+
     public function getAjaxUrl()
     {
         return $this->_urlBuilder->getUrl('myparcelnl/order/MassTrackTraceLabel');
