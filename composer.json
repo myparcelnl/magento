@@ -2,7 +2,7 @@
     "name": "myparcelnl/magento",
     "description": "A Magento 2 module that creates MyParcel labels",
     "type": "magento2-module",
-    "version": "v0.1.1-alpha",
+    "version": "v0.1.1-alpha.2",
     "homepage": "https://www.myparcel.nl",
     "tags": ["MyParcel", "My Parcel", "Post NL", "PostNL"],
     "license": "CC BY-NC-ND 3.0 NL",
@@ -25,7 +25,7 @@
     "autoload": {
         "files": [ "registration.php" ],
         "psr-4" : {
-            "MyParcelNL\\Magento\\" : ["src/"]
+            "MyParcelNL\\Magento\\" : ""
         }
     }
 }
