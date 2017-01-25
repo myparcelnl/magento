@@ -62,18 +62,6 @@ class TrackActions extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-                if ($item['track_status'] == null) {
-                    $item[$this->getData('name')]['action-ship_direct'] = [
-                        'href' => $this->urlBuilder->getUrl(
-                            'adminhtml/order_shipment/start',
-                            [
-                                'order_id' => $item['entity_id']
-                            ]
-                        ),
-                        'label' => __('Ship'),
-                        'hidden' => false,
-                    ];
-                }
                 $item[$this->getData('name')]['action-download_package_label'] = [
                     'href' => $this->urlBuilder->getUrl(
                         'myparcelnl/order/MassTrackTraceLabel',
@@ -118,22 +106,33 @@ class TrackActions extends Column
                             'mypa_request_type' => 'concept'
                         ]
                     ),
-                    'label' => __('Create concept'),
+                    'label' => __('Create new concept'),
                     'hidden' => false,
                 ];
+                if ($item['track_status'] == null) {
+                    $item[$this->getData('name')]['action-ship_direct'] = [
+                        'href' => $this->urlBuilder->getUrl(
+                            'adminhtml/order_shipment/start',
+                            [
+                                'order_id' => $item['entity_id']
+                            ]
+                        ),
+                        'label' => __('Ship'),
+                        'hidden' => false,
+                    ];
+                }
                 /**
                  * @todo; save link in table (set new zip)
                  */
-                if ($item['track_number'] !== null) {
-                    foreach (explode(PHP_EOL, $item['track_number']) as $trackNumber) {
-                        $url = 'https://mijnpakket.postnl.nl/Inbox/Search?&b=' . $trackNumber . '&p=2231JE';
+                /*if ($item['track_number'] !== null) {
+                    foreach (explode('<br>', $item['track_number']) as $trackNumber) {
                         $item[$this->getData('name')]['action-track-' . $trackNumber] = [
-                            'href' => $url,
+                            'href' => $trackNumber,
                             'label' => $trackNumber,
                             'hidden' => false,
                         ];
                     }
-                }
+                }*/
             }
         }
 

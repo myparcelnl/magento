@@ -31,7 +31,8 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
     const PATH_ORDER_GRID = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
     const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
 
-    const REDIRECT_URL = 'sales/order/index';
+    const URL_REDIRECT = 'sales/order/index';
+    const URL_SHOW_MIJNPAKKET_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
 
     /**
      * @var Data
@@ -77,6 +78,7 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
 
     /**
      * Dispatch request
+     *
      * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
      * @throws \Magento\Framework\Exception\NotFoundException
      */
@@ -84,7 +86,7 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
     {
         $this->massAction();
 
-        return $this->resultRedirectFactory->create()->setPath(self::REDIRECT_URL);
+        return $this->resultRedirectFactory->create()->setPath(self::URL_REDIRECT);
     }
 
     /**
@@ -189,7 +191,7 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
             $magentoTrack = $this->modelTrack->load($postNLTrack->getReferenceId());
 
             $magentoTrack->setData('myparcel_consignment_id', $postNLTrack->getMyParcelConsignmentId());
-            $magentoTrack->setData('api_status', $postNLTrack->getStatus());
+            $magentoTrack->setData('myparcel_status', $postNLTrack->getStatus());
 
             if ($postNLTrack->getBarcode()) {
                 $magentoTrack->setTrackNumber($postNLTrack->getBarcode());
@@ -208,7 +210,6 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
      */
     private function updateOrderGrid()
     {
-
         foreach ($this->orders as $orderId => &$order) {
             $aHtml = $this->getHtmlForGridColumns($order);
             if ($aHtml['track_status']) {
@@ -237,23 +238,46 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
         foreach ($order->getShipmentsCollection() as $shipment) {
             // Set all track data in array
             foreach ($shipment->getTracks() as $track) {
-                if ($track->getData('api_status')) {
-                    $data['track_status'][] = __('status_' . $track->getData('api_status'));
+                if ($track->getData('myparcel_status')) {
+                    $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
                 }
                 if ($track->getData('track_number')) {
-                    $data['track_number'][] = $track->getData('track_number');
+                    $data['track_number'][] = $this->getTrackUrl($shipment, $track->getData('track_number'));
                 }
             }
         }
 
         // Create html
         if ($data['track_status']) {
-            $columnHtml['track_status'] = implode(PHP_EOL, $data['track_status']);
+            $columnHtml['track_status'] = implode('<br>', $data['track_status']);
         }
         if ($data['track_number']) {
-            $columnHtml['track_number'] = implode(PHP_EOL, $data['track_number']);
+            $columnHtml['track_number'] = implode('<br>', $data['track_number']);
         }
 
         return $columnHtml;
+    }
+
+    /**
+     * @param $shipment Order\Shipment
+     * @param $trackNumber string
+     *
+     * @return string
+     */
+    private function getTrackUrl($shipment, $trackNumber)
+    {
+        $address = $shipment->getShippingAddress();
+
+        if ($address->getCountryId() != 'NL' || $trackNumber == 'concept') {
+            return $trackNumber;
+        }
+
+        $url =
+            self::URL_SHOW_MIJNPAKKET_STATUS .
+            '?b=' . $trackNumber .
+            '&p=' . $address->getPostcode();
+        $link = '<a onclick="window.open(\'' . $url . '\', \'_blank\');">' . $trackNumber . "</a>";
+
+        return $link;
     }
 }

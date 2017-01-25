@@ -105,7 +105,7 @@ class NewShipment implements ObserverInterface
         foreach ($this->api->getConsignments() as $postNLTrack) {
             $magentoTrack = $this->modelTrack->load($postNLTrack->getReferenceId());
             $magentoTrack->setData('myparcel_consignment_id', $postNLTrack->getMyParcelConsignmentId());
-            $magentoTrack->setData('api_status', $postNLTrack->getStatus());
+            $magentoTrack->setData('myparcel_status', $postNLTrack->getStatus());
             $magentoTrack->save();
         }
 
@@ -140,7 +140,7 @@ class NewShipment implements ObserverInterface
         foreach ($order->getShipmentsCollection() as $shipment) {
             // Set all track data in array
             foreach ($shipment->getTracks() as $track) {
-                $data['track_status'][] = __('status_' . $track->getData('api_status'));
+                $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
                 $data['track_number'][] = $track->getData('track_number');
             }
         }

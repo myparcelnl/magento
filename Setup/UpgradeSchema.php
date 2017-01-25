@@ -46,7 +46,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 );
                 $setup->getConnection()->addColumn(
                     $tableName,
-                    'api_status',
+                    'myparcel_status',
                     [
                         'type' => Table::TYPE_INTEGER,
                         'comment' => 'MyParcel status',
