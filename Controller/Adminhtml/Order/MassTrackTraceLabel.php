@@ -6,9 +6,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
+use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
 
 /**
  * Short_description
@@ -26,38 +24,18 @@ use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
  */
 class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
 {
-    const PATH_HELPER_DATA = 'MyParcelNL\Magento\Helper\Data';
     const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
-    const PATH_ORDER_GRID = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
-    const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
-
     const URL_REDIRECT = 'sales/order/index';
-    const URL_SHOW_MIJNPAKKET_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
 
     /**
-     * @var Data
+     * @var MagentoOrderCollection
      */
-    private $helper;
-
-    /**
-     * @var MyParcelCollection
-     */
-    private $api;
+    private $orderCollection;
 
     /**
      * @var Order
      */
     private $modelOrder;
-
-    /**
-     * @var Order\Shipment\Track
-     */
-    private $modelTrack;
-
-    /**
-     * @var Order[]
-     */
-    private $orders;
 
     /**
      * MassTrackTraceLabel constructor.
@@ -68,12 +46,9 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
     {
         parent::__construct($context);
 
-        $this->api = new MyParcelCollection();
-        $this->helper = $context->getObjectManager()->create(self::PATH_HELPER_DATA);
-        $this->resultRedirectFactory = $context->getResultRedirectFactory();
-
         $this->modelOrder = $context->getObjectManager()->create(self::PATH_MODEL_ORDER);
-        $this->modelTrack = $context->getObjectManager()->create(self::PATH_ORDER_TRACK);
+        $this->resultRedirectFactory = $context->getResultRedirectFactory();
+        $this->orderCollection = new MagentoOrderCollection($context->getObjectManager());
     }
 
     /**
@@ -113,171 +88,30 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
         if (empty($orderIds))
             throw new \Exception('No items selected');
 
-        $this->setMagentoAndMyParcelTrack($orderIds, $downloadLabel, $packageType);
+        $this->addOrdersToCollection($orderIds);
+        $this->orderCollection->setMagentoAndMyParcelTrack($downloadLabel, $packageType);
 
         if ($downloadLabel) {
-            $this->api->setPdfOfLabels($positions);
-            $this->updateMagentoTrack();
-            $this->api->downloadPdfOfLabels();
+            $this->orderCollection->getMyparcelCollection()->setPdfOfLabels($positions);
+            $this->orderCollection->updateMagentoTrack();
+            $this->orderCollection->getMyparcelCollection()->downloadPdfOfLabels();
         }
         else {
-            $this->api->createConcepts();
-            $this->updateMagentoTrack();
+            $this->orderCollection->getMyparcelCollection()->createConcepts();
+            $this->orderCollection->updateMagentoTrack();
         }
     }
 
     /**
-     * Set existing or create new Magento track and set API consignment to collection     *
-     *
-     * @param $orderIds      int[]
-     * @param $downloadLabel bool
-     * @param $packageType   int
-     *
-     * @throws \Exception
-     * @throws \Magento\Framework\Exception\LocalizedException on
-     *
-     * @todo; move to model
+     * @param $orderIds int[]
      */
-    private function setMagentoAndMyParcelTrack($orderIds, $downloadLabel, $packageType)
+    private function addOrdersToCollection($orderIds)
     {
-        /** @var $magentoTrack Order\Shipment\Track */
         foreach ($orderIds as $orderId) {
             if (!$orderId) {
                 continue;
             }
-
-            $postNLTrack = null;
-            $this->orders[$orderId] = $magentoOrder = $this->modelOrder->load($orderId);
-
-            if ($downloadLabel && !empty($magentoOrder->getTracksCollection())) {
-                // Use existing track
-                foreach ($magentoOrder->getTracksCollection() as $magentoTrack) {
-                    if ($magentoTrack->getCarrierCode() ==
-                        MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
-                        $magentoTrack->getData('myparcel_consignment_id')
-                    ) {
-                        $postNLTrack = new MyParcelTrackTrace($this->_objectManager, $this->helper);
-
-                        $postNLTrack
-                            ->setApiKey($this->helper->getGeneralConfig('api/key'))
-                            ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
-                            ->setReferenceId($magentoTrack->getEntityId())
-                            ->setPackageType($packageType);
-                        $this->api->addConsignment($postNLTrack);
-                    }
-                }
-            }
-
-            if ($postNLTrack == null) {
-                // Create new API consignment
-                $postNLTrack = new MyParcelTrackTrace($this->_objectManager, $this->helper);
-                $postNLTrack->createTrackTraceFromOrder($magentoOrder);
-                $postNLTrack->convertDataFromMagentoToApi();
-                $postNLTrack->setPackageType($packageType);
-                $this->api->addConsignment($postNLTrack);
-            }
+            $this->orderCollection->addOrder($this->modelOrder->load($orderId));
         }
-    }
-
-    /**
-     * Update all the tracks that made created via the API
-     *
-     * @todo; move to model
-     */
-    private function updateMagentoTrack()
-    {
-        /** @var $magentoTrack Order\Shipment\Track */
-        foreach ($this->api->getConsignments() as $postNLTrack) {
-            $magentoTrack = $this->modelTrack->load($postNLTrack->getReferenceId());
-
-            $magentoTrack->setData('myparcel_consignment_id', $postNLTrack->getMyParcelConsignmentId());
-            $magentoTrack->setData('myparcel_status', $postNLTrack->getStatus());
-
-            if ($postNLTrack->getBarcode()) {
-                $magentoTrack->setTrackNumber($postNLTrack->getBarcode());
-            }
-
-            $magentoTrack->save();
-        }
-
-        $this->updateOrderGrid();
-    }
-
-    /**
-     * Update column track_status in sales_order_grid
-     *
-     * @todo; move to model
-     */
-    private function updateOrderGrid()
-    {
-        foreach ($this->orders as $orderId => &$order) {
-            $aHtml = $this->getHtmlForGridColumns($order);
-            if ($aHtml['track_status']) {
-                $order->setData('track_status', $aHtml['track_status']);
-            }
-            if ($aHtml['track_number']) {
-                $order->setData('track_number', $aHtml['track_number']);
-            }
-            $order->save();
-        }
-    }
-
-    /**
-     * @param $order Order
-     *
-     * @todo; move to model
-     *
-     * @return array
-     */
-    private function getHtmlForGridColumns($order)
-    {
-        $data = ['track_status' => [], 'track_number' => []];
-        $columnHtml = ['track_status' => '', 'track_number' => ''];
-
-        /** @var $shipment Order\Shipment */
-        foreach ($order->getShipmentsCollection() as $shipment) {
-            // Set all track data in array
-            foreach ($shipment->getTracks() as $track) {
-                if ($track->getData('myparcel_status')) {
-                    $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
-                }
-                if ($track->getData('track_number')) {
-                    $data['track_number'][] = $this->getTrackUrl($shipment, $track->getData('track_number'));
-                }
-            }
-        }
-
-        // Create html
-        if ($data['track_status']) {
-            $columnHtml['track_status'] = implode('<br>', $data['track_status']);
-        }
-        if ($data['track_number']) {
-            $columnHtml['track_number'] = implode('<br>', $data['track_number']);
-        }
-
-        return $columnHtml;
-    }
-
-    /**
-     * @param $shipment Order\Shipment
-     * @param $trackNumber string
-     *
-     * @return string
-     */
-    private function getTrackUrl($shipment, $trackNumber)
-    {
-        $address = $shipment->getShippingAddress();
-
-        if ($address->getCountryId() != 'NL' || $trackNumber == 'concept') {
-            return $trackNumber;
-        }
-
-        $url =
-            self::URL_SHOW_MIJNPAKKET_STATUS .
-            '?b=' . $trackNumber .
-            '&p=' . $address->getPostcode();
-        $link = '<a onclick="window.open(\'' . $url . '\', \'_blank\');">' . $trackNumber . "</a>";
-
-        return $link;
     }
 }
