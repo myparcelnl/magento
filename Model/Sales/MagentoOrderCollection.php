@@ -102,7 +102,6 @@ class MagentoOrderCollection
     {
         /** @var $magentoTrack Order\Shipment\Track */
         foreach ($this->orders as $order) {
-
             $postNLTrack = null;
 
             if ($downloadLabel && !empty($order->getTracksCollection())) {
@@ -112,9 +111,7 @@ class MagentoOrderCollection
                         MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
                         $magentoTrack->getData('myparcel_consignment_id')
                     ) {
-                        $postNLTrack = new MyParcelTrackTrace($this->_objectManager, $this->helper);
-
-                        $postNLTrack
+                        $postNLTrack = (new MyParcelTrackTrace($this->_objectManager, $this->helper))
                             ->setApiKey($this->helper->getGeneralConfig('api/key'))
                             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
                             ->setReferenceId($magentoTrack->getEntityId())
@@ -126,10 +123,10 @@ class MagentoOrderCollection
 
             if ($postNLTrack == null) {
                 // Create new API consignment
-                $postNLTrack = new MyParcelTrackTrace($this->_objectManager, $this->helper);
-                $postNLTrack->createTrackTraceFromOrder($order);
-                $postNLTrack->convertDataFromMagentoToApi();
-                $postNLTrack->setPackageType($packageType);
+                $postNLTrack = (new MyParcelTrackTrace($this->_objectManager, $this->helper))
+                    ->createTrackTraceFromOrder($order)
+                    ->convertDataFromMagentoToApi()
+                    ->setPackageType($packageType);
                 $this->myparcel_collection->addConsignment($postNLTrack);
             }
         }

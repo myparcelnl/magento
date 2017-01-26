@@ -72,6 +72,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     /**
      * @param Order $order
      *
+     * @return $this
      * @throws LocalizedException
      */
     public function createTrackTraceFromOrder(Order $order)
@@ -91,6 +92,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
                 __('Error 500; Can\'t create shipment in ' . __CLASS__ . ':' . __LINE__)
             );
         }
+
+        return $this;
     }
 
     /**
@@ -109,6 +112,11 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->save();
     }
 
+    /**
+     * @return $this
+     * @throws \Exception
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
     public function convertDataFromMagentoToApi()
     {
         $address = $this->mageTrack->getShipment()->getShippingAddress();
@@ -126,6 +134,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($this->mageTrack->getShipment()->getOrderId());
+
+        return $this;
     }
 
     /**
