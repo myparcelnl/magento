@@ -18,7 +18,8 @@ namespace MyParcelNL\Magento\Observer;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
+use Magento\Sales\Model\Order\Shipment;
+use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 class NewShipment implements ObserverInterface
@@ -39,9 +40,9 @@ class NewShipment implements ObserverInterface
     private $modelTrack;
 
     /**
-     * @var MyParcelCollection
+     * @var MagentoOrderCollection
      */
-    private $api;
+    private $orderCollection;
 
     /**
      * @var \MyParcelNL\Magento\Helper\Data
@@ -54,8 +55,8 @@ class NewShipment implements ObserverInterface
     public function __construct()
     {
         $this->objectManager = ObjectManager::getInstance();
+        $this->orderCollection = new MagentoOrderCollection(ObjectManager::getInstance());
         $this->request = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->api = new MyParcelCollection();
         $this->helper = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }
@@ -72,83 +73,34 @@ class NewShipment implements ObserverInterface
     }
 
     /**
-     * @param $shipment
+     * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
      * @throws \Exception
      */
-    private function setMagentoAndMyParcelTrack($shipment)
+    private function setMagentoAndMyParcelTrack(Shipment $shipment)
     {
         $options = $this->request->getParam('mypa', []);
 
-        $postNLTrack = new MyParcelTrackTrace($this->objectManager, $this->helper);
-        $postNLTrack->createTrackTraceFromShipment($shipment);
-        $postNLTrack->convertDataFromMagentoToApi();
-        $postNLTrack
+        // Set MyParcel options
+        $postNLTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
+            ->createTrackTraceFromShipment($shipment)
+            ->convertDataFromMagentoToApi()
             ->setPackageType((int)isset($options['package_type']) ? (int)$options['package_type'] : 1)
             ->setOnlyRecipient((bool)isset($options['only_recipient']))
             ->setSignature((bool)isset($options['signature']))
             ->setReturn((bool)isset($options['return']))
             ->setLargeFormat((bool)isset($options['large_format']))
             ->setInsurance((int)isset($options['insurance']) ? $options['insurance'] : false);
-        $this->api->addConsignment($postNLTrack);
-        $this->api->createConcepts();
-        $this->api->setLatestData();
-        $this->updateMagentoTrack();
-    }
 
-    /**
-     * Update all the tracks that made created via the API
-     */
-    private function updateMagentoTrack()
-    {
-        /** @var $magentoTrack \Magento\Sales\Model\Order\Shipment\Track */
-        foreach ($this->api->getConsignments() as $postNLTrack) {
-            $magentoTrack = $this->modelTrack->load($postNLTrack->getReferenceId());
-            $magentoTrack->setData('myparcel_consignment_id', $postNLTrack->getMyParcelConsignmentId());
-            $magentoTrack->setData('myparcel_status', $postNLTrack->getStatus());
-            $magentoTrack->save();
-        }
+        // Do the request
+        $this->orderCollection->getMyparcelCollection()
+            ->addConsignment($postNLTrack)
+            ->createConcepts()
+            ->setLatestData();
 
-        $this->updateOrderGrid($magentoTrack);
-    }
-
-    /**
-     * Update column track_status in sales_order_grid
-     *
-     * @param $magentoTrack \Magento\Sales\Model\Order\Shipment\Track
-     */
-    private function updateOrderGrid($magentoTrack)
-    {
-        $order = $magentoTrack->getShipment()->getOrder();
-        $aHtml = $this->getHtmlForGridColumns($order);
-        $order->setData('track_status', $aHtml['track_status']);
-        $order->setData('track_number', $aHtml['track_number']);
-        $order->save();
-    }
-
-    /**
-     * @param $order Order
-     *
-     * @return array
-     */
-    private function getHtmlForGridColumns($order)
-    {
-        $data = ['track_status' => [], 'track_number' => []];
-        $columnHtml = ['track_status' => '', 'track_number' => ''];
-
-        /** @var $shipment \Magento\Sales\Model\Order\Shipment */
-        foreach ($order->getShipmentsCollection() as $shipment) {
-            // Set all track data in array
-            foreach ($shipment->getTracks() as $track) {
-                $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
-                $data['track_number'][] = $track->getData('track_number');
-            }
-        }
-
-        // Create html
-        $columnHtml['track_status'] = implode(' \r\n ', $data['track_status']);
-        $columnHtml['track_number'] = implode(' \r\n ', $data['track_number']);
-
-        return $columnHtml;
+        // Update Magento track
+        $this->orderCollection
+            ->addOrder($shipment->getOrder())
+            ->updateMagentoTrack();
     }
 }

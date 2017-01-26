@@ -83,10 +83,14 @@ class MagentoOrderCollection
 
     /**
      * @param $order Order
+     *
+     * @return $this
      */
     public function addOrder($order)
     {
         $this->orders[$order->getId()] = $order;
+
+        return $this;
     }
 
     /**

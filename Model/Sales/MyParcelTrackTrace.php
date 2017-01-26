@@ -98,6 +98,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
 
     /**
      * @param Order\Shipment $shipment
+     *
+     * @return $this
      */
     public function createTrackTraceFromShipment(Order\Shipment $shipment)
     {
@@ -110,6 +112,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber('concept')
             ->save();
+
+        return $this;
     }
 
     /**
