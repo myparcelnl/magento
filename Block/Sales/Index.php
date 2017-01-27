@@ -22,7 +22,7 @@ use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
 
-class View extends Template
+class Index extends Template
 {
     /**
      * @var \Magento\Framework\ObjectManagerInterface
@@ -45,4 +45,14 @@ class View extends Template
         parent::__construct($context, $data);
     }
 
+    public function getAjaxUrl()
+    {
+        return $this->_urlBuilder->getUrl('myparcelnl/order/MassTrackTraceLabel');
+    }
+
+    public function getSettings()
+    {
+        $settings = $this->helper->getStandardConfig('print');
+        return json_encode($settings);
+    }
 }

@@ -26,15 +26,13 @@ use Magento\Framework\App\ObjectManager;
 class NewShipment extends AbstractItems
 {
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
      * @var Order
      */
-    private $modelOrder;
+    private $order;
 
+    /**
+     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     */
     private $defaultOptions;
 
     /**
@@ -42,28 +40,21 @@ class NewShipment extends AbstractItems
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface      $stockRegistry
      * @param \Magento\CatalogInventory\Api\StockConfigurationInterface $stockConfiguration
      * @param \Magento\Framework\Registry                               $registry
-     * @param array                                                     $data
-     *
-     * @throws \LogicException
+     * @param \Magento\Framework\ObjectManagerInterface                 $objectManager
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Magento\CatalogInventory\Api\StockConfigurationInterface $stockConfiguration,
         \Magento\Framework\Registry $registry,
-        array $data = []
+        \Magento\Framework\ObjectManagerInterface $objectManager
     ) {
-        $this->objectManager = ObjectManager::getInstance();
-        $this->modelOrder = $this->objectManager->create('Magento\Sales\Model\Order');
-
-        $orderId = $context->getRequest()->getParam('order_id', null);
-        if ($orderId == null) {
-            throw new \LogicException('No order id found');
-        }
+        // Set order
+        $this->order = $registry->registry('current_shipment')->getOrder();
 
         $this->defaultOptions = new DefaultOptions(
-            $this->modelOrder->load($orderId),
-            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
+            $this->order,
+            $objectManager->get('\MyParcelNL\Magento\Helper\Data')
         );
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
@@ -76,8 +67,7 @@ class NewShipment extends AbstractItems
      */
     public function getDefaultOption($option)
     {
-        return $this->defaultOptions
-            ->getDefault($option);
+        return $this->defaultOptions->getDefault($option);
     }
 
     /**
@@ -87,7 +77,15 @@ class NewShipment extends AbstractItems
      */
     public function getDefaultInsurance()
     {
-        return $this->defaultOptions
-            ->getDefaultInsurance();
+        return $this->defaultOptions->getDefaultInsurance();
+    }
+
+    /**
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getCountry()
+    {
+        return $this->order->getShippingAddress()->getCountryId();
     }
 }

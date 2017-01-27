@@ -2,7 +2,7 @@ define(
     ['jquery'],
     function ($) {
         'use strict';
-        console.info('myparcel options load');
+        console.info('boe');
 
         return function NewShipment(options, element)
         {
@@ -29,7 +29,7 @@ define(
                 _setOptionsObserver: function () {
                     var parentThis = this;
 
-                    $("input[name='paper_size']").on(
+                    /*$("input[name='paper_size']").on(
                         "change",
                         function () {
                             if ($('#paper_size-A4').prop('checked')) {
@@ -39,17 +39,18 @@ define(
                             }
                         }
                     );
-
-                    $("input[name='mypa_request_type']").on(
+*/
+                    $("input[name='mypa[package_type]']").on(
                         "change",
                         function () {
-                            if ($('#mypa_request_type-download').prop('checked')) {
-                                $('.mypa_position_container').show();
+                            if ($('#mypa_package_type-package').prop('checked')) {
+                                $('.mypa_package-toggle').show();
                             } else {
-                                $('.mypa_position_container').hide();
+                                $('.mypa_package-toggle').hide();
                             }
                         }
                     );
+
                     return this;
                 },
             };
