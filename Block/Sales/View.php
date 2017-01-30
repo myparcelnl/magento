@@ -18,31 +18,7 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-use Magento\Backend\Block\Template;
-use Magento\Backend\Block\Template\Context;
-use Magento\Framework\App\ObjectManager;
-
-class View extends Template
+class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
 {
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
-     * @var \MyParcelNL\Magento\Helper\Data
-     */
-    private $helper;
-
-    /**
-     * @param Context $context
-     * @param array $data
-     */
-    public function __construct(Context $context, array $data = [])
-    {
-        $this->objectManager = ObjectManager::getInstance();
-        $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Data');
-        parent::__construct($context, $data);
-    }
 
 }
