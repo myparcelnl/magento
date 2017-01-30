@@ -1,6 +1,6 @@
 <?php
 /**
- * Short_description
+ * Show MyParcel options in order detailpage
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
