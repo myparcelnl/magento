@@ -1,7 +1,7 @@
 <?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */ ?>
-<?php if ($block->getCountry() == 'NL'): ?>
+
     <!-- MyParcel options -->
-    <div class="admin__field field-mypa_package_type mypa_nl-toggle">
+    <div class="admin__field field-mypa_package_type">
         <label class="admin__field-label">
             <span>MyParcel options</span>
         </label>
@@ -10,16 +10,19 @@
                 <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa[package_type]" value="1" checked="checked">
                 <label class="admin__field-label" for="mypa_package_type-package">Package</label>
             </div>
-            <div class="admin__field admin__field-option">
-                <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa[package_type]" value="2">
-                <label class="admin__field-label" for="mypa_package_type-mailbox">Mailbox</label>
-            </div>
+            <?php if ($block->getCountry() == 'NL'): ?>
+                <div class="admin__field admin__field-option">
+                    <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa[package_type]" value="2">
+                    <label class="admin__field-label" for="mypa_package_type-mailbox">Mailbox</label>
+                </div>
+            <?php endif;?>
             <div class="admin__field admin__field-option">
                 <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa[package_type]" value="3">
                 <label class="admin__field-label" for="mypa_package_type-letter">Letter</label>
             </div>
         </div>
     </div>
+<?php if ($block->getCountry() == 'NL'): ?>
     <div class="field choice admin__field admin__field-option field-mypa_only_recipient mypa_package-toggle">
         <input id="mypa_only_recipient"
                class="admin__control-checkbox"
