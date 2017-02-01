@@ -23,6 +23,34 @@ status_38,Inactief - Zending afgehaald op afhaallocatie
 status_39,Inactief - Retourzending afgeleverd
 status_40,Inactief - Retourzending op afhaallocactie
 status_99,Inactief - Onbekende status
+General settings,Algemene instellingen
+API settings,API instellingen
+To get your personal API credentials you should contact MyParcel.,Neem contact op met MyParcel om de API gegevens te ontvangen.
+The API Key given by MyParcel,Stel hier de API key in die is ontvangen vanuit MyParcel
+Default settings,Standaard instellingen
+Print settings,Print instellingen
+Paper type,Print oriëntatie
+Select a standard orientation for printing labels.,Selecteer een standaard print ori&euml;ntatie voor het printen van labels.
+Default shipping options,Standaard verzendinstellingen
+"Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Vul hier uw standaard voorkeuren in voor uw verzendopties. Deze instellingen worden als default op al uw zendingen toegepast, indien van toepassing. Deze opties zijn later, per zending, uiteraard nog wel aan te passen tijdens het verwerken."
+Automate 'Home address only',Automatiseer 'Alleen huisadres'
+'Home address only' operates above a certain order total amount,'Alleen huisadres' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
+Automate 'Signature on receipt',Automatiseer 'Handtekening voor ontvangst'
+'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
+Automate 'Return if no answer',Automatiseer 'Retour bij niet aanwezig'
+'Return if no answer' operates above a certain order total amount,'Retour bij niet aanwezig' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
+Automate 'Large format',Automatiseer 'Groot pakket'
+'Large format' operates above a certain order total amount,'Groot pakket' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
+Automate 'Insurance € 50',Automatiseer 'Verzekerd tot € 50'
+"'Insurance € 50' operates above a certain order total amount. Only for dutch shipments.","'Verzekerd tot € 50' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen."
+Automate 'Insurance € 250',Automatiseer 'Verzekerd tot € 250'
+"'Insurance € 250' operates above a certain order total amount. Only for dutch shipments, shipments to outside of the EU are standard ensured up to € 200.","'Verzekerd tot € 250' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen, zendingen naar landen buiten de EU zijn standaard verzekerd tot € 200."
+Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
+"'Insurance € 500' operates above a certain order total amount. For NL shipping only, shipments inside the EU insured default is € 500.","'Verzekerd tot € 500' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen, zendingen naar landen binnen de EU zijn standaard verzekerd tot € 500."
+From price,Vanaf prijs
+Track number,Track nummer
+Track status,Track status
+Track action,Track actie
 MyParcel options, MyParcel opties
 Package,Pakket
 Mailbox,Brievenbuspakje
