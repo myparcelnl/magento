@@ -23,3 +23,12 @@ status_38,Inactief - Zending afgehaald op afhaallocatie
 status_39,Inactief - Retourzending afgeleverd
 status_40,Inactief - Retourzending op afhaallocactie
 status_99,Inactief - Onbekende status
+MyParcel options, MyParcel opties
+Package,Pakket
+Mailbox,Brievenbuspakje
+Letter,Ongefrankeerd
+Home address only,Alleen huisadres
+Signature on receipt,Handtekening voor ontvangst
+Return if no answer,Retour bij niet aanwezig
+Large package,Groot pakket
+Insured up to:,Verzekeren tot:

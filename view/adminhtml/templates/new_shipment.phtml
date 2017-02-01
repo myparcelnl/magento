@@ -3,22 +3,22 @@
     <!-- MyParcel options -->
     <div class="admin__field field-mypa_package_type">
         <label class="admin__field-label">
-            <span>MyParcel options</span>
+            <span><?php echo __('MyParcel options');?></span>
         </label>
         <div class="admin__field-control">
             <div class="admin__field admin__field-option">
                 <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa[package_type]" value="1" checked="checked">
-                <label class="admin__field-label" for="mypa_package_type-package">Package</label>
+                <label class="admin__field-label" for="mypa_package_type-package"><?php echo __('Package');?></label>
             </div>
             <?php if ($block->getCountry() == 'NL'): ?>
                 <div class="admin__field admin__field-option">
                     <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa[package_type]" value="2">
-                    <label class="admin__field-label" for="mypa_package_type-mailbox">Mailbox</label>
+                    <label class="admin__field-label" for="mypa_package_type-mailbox"><?php echo __('Mailbox');?></label>
                 </div>
             <?php endif;?>
             <div class="admin__field admin__field-option">
                 <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa[package_type]" value="3">
-                <label class="admin__field-label" for="mypa_package_type-letter">Letter</label>
+                <label class="admin__field-label" for="mypa_package_type-letter"><?php echo __('Letter');?></label>
             </div>
         </div>
     </div>
@@ -72,6 +72,9 @@
             <span><?php /* @escapeNotVerified */ echo __('Large package') ?></span></label>
     </div>
     <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle">
+        <label class="admin__field-label"
+               for="mypa_insurance" style="display: block">
+            <span><?php /* @escapeNotVerified */ echo __('Insured up to:') ?></span></label>
         <?php $defaultInsurance = $block->getDefaultInsurance();?>
         <select name="mypa[insurance]" id="mypa_insurance" class="required product-custom-option admin__control-select" title="" >
             <option value="0" ><?php echo __('No insurance') ?></option>
