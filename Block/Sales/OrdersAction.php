@@ -1,6 +1,6 @@
 <?php
 /**
- * Short_description
+ * Block for order actions (multiple orders action and one order action)
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -22,7 +22,7 @@ use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
 
-class Index extends Template
+class OrdersAction extends Template
 {
     /**
      * @var \Magento\Framework\ObjectManagerInterface

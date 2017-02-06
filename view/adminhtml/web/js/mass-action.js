@@ -8,9 +8,6 @@ define(
     ],
     function ($, confirmation, template, alert) {
         'use strict';
-        console.info('myparcel mass action load');
-        //console.info(options);
-        //console.info(element);
 
         return function MassAction(
             options,
@@ -41,26 +38,35 @@ define(
                     var massSelectorLoadInterval;
                     var parentThis = this;
 
-                    massSelectorLoadInterval = setInterval(
-                        function () {
-                            console.info('interval mass   myparcel');
-                            var actionSelector = $('.action-select-wrap .action-menu');
-                            if (actionSelector.length) {
-                                clearInterval(massSelectorLoadInterval);
-                                actionSelector.append(
-                                    '<li><span class="action-menu-item action-myparcel">Print MyParcel labels</span></li>'
-                                );
-
-                                $('.action-myparcel').on(
-                                    "click",
-                                    function () {
-                                        parentThis._showMyParcelOptions();
-                                    }
-                                );
+                    if (this.options['button_present']) {
+                        $('.action-myparcel').on(
+                            "click",
+                            function () {
+                                parentThis._showMyParcelModal();
                             }
-                        },
-                        1000
-                    );
+                        );
+                    } else {
+                        // In order grid, button don't exist. Append a button
+                        massSelectorLoadInterval = setInterval(
+                            function () {
+                                var actionSelector = $('.action-select-wrap .action-menu');
+                                if (actionSelector.length) {
+                                    clearInterval(massSelectorLoadInterval);
+                                    actionSelector.append(
+                                        '<li><span class="action-menu-item action-myparcel">Print MyParcel labels</span></li>'
+                                    );
+
+                                    $('.action-myparcel').on(
+                                        "click",
+                                        function () {
+                                            parentThis._showMyParcelModal();
+                                        }
+                                    );
+                                }
+                            },
+                            1000
+                        );
+                    }
                 },
 
                 /**
@@ -68,7 +74,7 @@ define(
                  *
                  * @protected
                  */
-                _showMyParcelOptions: function () {
+                _showMyParcelModal: function () {
                     var parentThis = this;
                     parentThis
                         ._setSelectedIds();
@@ -87,18 +93,38 @@ define(
                                     $('#selected_ids').val(parentThis.selectedIds.join(','));
                                     parentThis
                                         ._setMyParcelMassActionObserver()
-                                        ._setDefaultSettings();
+                                        ._setActions()
+                                        ._setDefaultSettings()
+                                        ._showMyParcelOptions();
                                 },
                                 actions: {
                                     confirm: function () {
                                         parentThis
-                                            ._startLoading
+                                            ._startLoading()
                                             ._createConsignment();
                                     }
                                 }
                             }
                         );
                     }
+                },
+
+                /**
+                 * Set actions
+                 *
+                 * @protected
+                 */
+                _setActions: function () {
+                    var parentThis = this;
+                    var actionOptions = ["request_type", "package_type", "package_type-mailbox", "print_position"];
+
+                    actionOptions.forEach(function(option) {
+                        if (!(option in parentThis.options['action_options']) || (parentThis.options['action_options'][option] == false)) {
+                            $('#mypa_container-' + option).hide();
+                        }
+                    });
+
+                    return this;
                 },
 
                 /**
@@ -130,6 +156,17 @@ define(
                             $('#mypa_postition-4').prop('checked', true);
                         }
                     }
+
+                    return this;
+                },
+
+                /**
+                 * Show options
+                 *
+                 * @protected
+                 */
+                _showMyParcelOptions: function () {
+                    $('div#mypa-options').addClass('_active');
 
                     return this;
                 },
@@ -171,13 +208,17 @@ define(
                  */
                 _setSelectedIds: function () {
                     var parentThis = this;
+                    var oneOrderIdSelector = $('input[name="order_id"]');
                     this.selectedIds = [];
-
-                    $('.data-grid-checkbox-cell-inner input.admin__control-checkbox:checked').each(
-                        function () {
-                            parentThis.selectedIds.push($(this).attr('value'));
-                        }
-                    );
+                    if (oneOrderIdSelector.length) {
+                        parentThis.selectedIds.push(oneOrderIdSelector.attr('value'));
+                    } else {
+                        $('.data-grid-checkbox-cell-inner input.admin__control-checkbox:checked').each(
+                            function () {
+                                parentThis.selectedIds.push($(this).attr('value'));
+                            }
+                        );
+                    }
                     return this;
                 },
 

@@ -1,4 +1,5 @@
 div#mypa-options {
+    display: none;
     list-style: none;
     text-align: left;
 }

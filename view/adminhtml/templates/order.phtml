@@ -3,7 +3,14 @@
        ".page-footer": {
            "myparcelnl_massaction": {
                 "url": "<?= $block->getAjaxUrl(); ?>",
-                "settings": <?= $block->getSettings(); ?>
+                "settings": <?= $block->getSettings(); ?>,
+                "button_present": false,
+                "action_options": {
+                    "request_type": true,
+                    "package_type": true,
+                    "package_type-mailbox": true,
+                    "print_position": true
+                }
            }
         }
    }

@@ -1,9 +1,26 @@
+<?php /** @var $block \MyParcelNL\Magento\Block\Sales\OrderAction */ ?>
 <script type="text/x-magento-init">
    {
        ".page-footer": {
            "myparcelnl_massaction": {
                 "url": "<?= $block->getAjaxUrl(); ?>",
-                "settings": <?= $block->getSettings(); ?>
+                "settings": <?= $block->getSettings(); ?>,
+                "button_present": true,
+                <?php if ($block->canShip()): ?>
+                    "action_options": {
+                        "request_type": true,
+                        "package_type": true,
+                        "package_type-mailbox": <?= $block->getCountry() == 'NL' ? 'true' : 'false'; ?>,
+                        "print_position": <?=$block->isCdCountry() == true ? 'false' : 'true'; ;?>
+                    }
+                <?php else: ?>
+                    "action_options": {
+                        "request_type": false,
+                        "package_type": false,
+                        "package_type-mailbox": true,
+                        "print_position": true
+                    }
+                <?php endif; ?>
            }
         }
    }

@@ -1,7 +1,7 @@
-<div id="mypa-options" class="_active">
+<div id="mypa-options">
     <form id="mypa-options-form">
         <input id="selected_ids" name="selected_ids" type="hidden">
-        <div class="mypa__field__container">
+        <div class="mypa__field__container" id="mypa_container-request_type">
             <div class="admin__field">
                 <label class="admin__field-label">
                     <span>Action type</span>
@@ -20,7 +20,7 @@
                 </div>
             </div>
         </div>
-        <div class="mypa__field__container">
+        <div class="mypa__field__container" id="mypa_container-package_type">
             <div class="admin__field">
                 <label class="admin__field-label">
                     <span>Package Type</span>
@@ -31,7 +31,7 @@
                                name="mypa_package_type" value="1">
                         <label class="admin__field-label" for="mypa_package_type-package">Package</label>
                     </div>
-                    <div class="admin__field admin__field-option">
+                    <div class="admin__field admin__field-option" id="mypa_container-package_type-mailbox">
                         <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox"
                                name="mypa_package_type" value="2">
                         <label class="admin__field-label" for="mypa_package_type-mailbox">Mailbox</label>
@@ -44,7 +44,7 @@
                 </div>
             </div>
         </div>
-        <div class="mypa__field__container">
+        <div class="mypa__field__container" id="mypa_container-print_position">
             <div class="admin__field mypa_position_container">
                 <label class="admin__field-label">
                     <span>Print postition</span>

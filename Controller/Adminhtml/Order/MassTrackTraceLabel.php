@@ -25,7 +25,7 @@ use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
 class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
 {
     const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
-    const URL_REDIRECT = 'sales/order/index';
+    const PATH_URI_ORDER_INDEX= 'sales/order/index';
 
     /**
      * @var MagentoOrderCollection
@@ -61,7 +61,7 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
     {
         $this->massAction();
 
-        return $this->resultRedirectFactory->create()->setPath(self::URL_REDIRECT);
+        return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
     }
 
     /**
@@ -75,6 +75,9 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
             $orderIds = null;
         }
 
+        if (empty($orderIds))
+            throw new \Exception('No items selected');
+
         $downloadLabel = $this->getRequest()->getParam('mypa_request_type', 'download') == 'download';
         $packageType = (int)$this->getRequest()->getParam('mypa_package_type', 1);
 
@@ -84,9 +87,6 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
         else {
             $positions = null;
         }
-
-        if (empty($orderIds))
-            throw new \Exception('No items selected');
 
         $this->addOrdersToCollection($orderIds);
         $this->orderCollection->setMagentoAndMyParcelTrack($downloadLabel, $packageType);

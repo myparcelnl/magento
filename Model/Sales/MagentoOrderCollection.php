@@ -189,7 +189,6 @@ class MagentoOrderCollection
      */
     private function updateOrderGrid()
     {
-
         if (empty($this->orders)){
             throw new \Exception('MagentoOrderCollection::order array is empty');
         }
@@ -202,6 +201,7 @@ class MagentoOrderCollection
             if ($aHtml['track_number']) {
                 $order->setData('track_number', $aHtml['track_number']);
             }
+
             $order->save();
         }
     }
@@ -210,6 +210,7 @@ class MagentoOrderCollection
      * @param $order Order
      *
      * @return array
+     * @throws \Exception
      */
     private function getHtmlForGridColumns($order)
     {
@@ -220,19 +221,21 @@ class MagentoOrderCollection
             $areaObject->load(\Magento\Framework\App\Area::PART_TRANSLATE);
         }
 
+        if ($order->getTracksCollection()->count() == 0){
+            throw new \Exception('Tracks collection is empty');
+        }
+
         $data = ['track_status' => [], 'track_number' => []];
         $columnHtml = ['track_status' => '', 'track_number' => ''];
 
-        /** @var $shipment Order\Shipment */
-        foreach ($order->getShipmentsCollection() as $shipment) {
+        /** @var $track Order\Shipment\Track */
+        foreach ($order->getTracksCollection() as $track) {
             // Set all track data in array
-            foreach ($shipment->getTracks() as $track) {
-                if ($track->getData('myparcel_status')) {
-                    $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
-                }
-                if ($track->getData('track_number')) {
-                    $data['track_number'][] = $this->getTrackUrl($shipment, $track->getData('track_number'));
-                }
+            if ($track->getData('myparcel_status')) {
+                $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
+            }
+            if ($track->getData('track_number')) {
+                $data['track_number'][] = $this->getTrackUrl($track->getShipment(), $track->getData('track_number'));
             }
         }
 

@@ -22,30 +22,12 @@ class View
 {
     public function beforeSetLayout(\Magento\Sales\Block\Adminhtml\Order\View $view)
     {
-        $message = 'Print labels';
-        $url = $this->getPrintLabelUrl($view);
-
         $view->addButton(
             'myparcelnl_print_label',
             [
                 'label' => __('Print label'),
-                'class' => 'myparcelnl_print_label',
-                'onclick' => "confirmSetLocation('{$message}', '{$url}')"
+                'class' => 'action-myparcel',
             ]
         );
-    }
-
-    /**
-     * Print label URL getter
-     *
-     * @param \Magento\Sales\Block\Adminhtml\Order\View $view
-     *
-     * @return string
-     */
-    public function getPrintLabelUrl(\Magento\Sales\Block\Adminhtml\Order\View $view)
-    {
-        return $view->getUrl('myparcelnl/order/MassTrackTraceLabel', [
-                'selected_ids' => $view->getOrderId()
-        ]);
     }
 }
