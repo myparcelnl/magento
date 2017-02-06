@@ -92,12 +92,12 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
         $this->orderCollection->setMagentoAndMyParcelTrack($downloadLabel, $packageType);
 
         if ($downloadLabel) {
-            $this->orderCollection->getMyparcelCollection()->setPdfOfLabels($positions);
+            $this->orderCollection->myParcelCollection->setPdfOfLabels($positions);
             $this->orderCollection->updateMagentoTrack();
-            $this->orderCollection->getMyparcelCollection()->downloadPdfOfLabels();
+            $this->orderCollection->myParcelCollection->downloadPdfOfLabels();
         }
         else {
-            $this->orderCollection->getMyparcelCollection()->createConcepts();
+            $this->orderCollection->myParcelCollection->createConcepts();
             $this->orderCollection->updateMagentoTrack();
         }
     }

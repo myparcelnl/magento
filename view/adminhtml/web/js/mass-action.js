@@ -3,7 +3,8 @@ define(
         'jquery',
         'Magento_Ui/js/modal/confirm',
         'text!MyParcelNL_Magento/template/grid/order_massaction.html',
-        'Magento_Ui/js/modal/alert'
+        'Magento_Ui/js/modal/alert',
+        'loadingPopup'
     ],
     function ($, confirmation, template, alert) {
         'use strict';
@@ -44,11 +45,10 @@ define(
                         function () {
                             console.info('interval mass   myparcel');
                             var actionSelector = $('.action-select-wrap .action-menu');
-                            var actionOptions = $('body');
                             if (actionSelector.length) {
                                 clearInterval(massSelectorLoadInterval);
                                 actionSelector.append(
-                                    '<li><span class="action-menu-item action-myparcel">MyParcel labels</span></li>'
+                                    '<li><span class="action-menu-item action-myparcel">Print MyParcel labels</span></li>'
                                 );
 
                                 $('.action-myparcel').on(
@@ -92,6 +92,7 @@ define(
                                 actions: {
                                     confirm: function () {
                                         parentThis
+                                            ._startLoading
                                             ._createConsignment();
                                     }
                                 }
@@ -139,8 +140,6 @@ define(
                  * @protected
                  */
                 _setMyParcelMassActionObserver: function () {
-                    var parentThis = this;
-
                     $("input[name='paper_size']").on(
                         "change",
                         function () {
@@ -189,6 +188,11 @@ define(
                  */
                 _createConsignment: function () {
                     window.location.href = this.options.url + '?' + $("#mypa-options-form").serialize();
+                },
+
+                _startLoading: function () {
+                    $('body').loadingPopup();
+                    return this;
                 }
             };
 

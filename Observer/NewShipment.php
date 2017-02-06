@@ -93,7 +93,7 @@ class NewShipment implements ObserverInterface
             ->setInsurance((int)isset($options['insurance']) ? $options['insurance'] : false);
 
         // Do the request
-        $this->orderCollection->getMyparcelCollection()
+        $this->orderCollection->myParcelCollection
             ->addConsignment($postNLTrack)
             ->createConcepts()
             ->setLatestData();

@@ -13,14 +13,8 @@
                     <item name="config" xsi:type="array">
                         <item name="type" xsi:type="string">download_myparcel_a6_label</item>
                         <item name="id" xsi:type="string">download_myparcel_a6_label</item>
-                        <item name="label" xsi:type="string" translate="true">MyParcel A6 label</item>
+                        <item name="label" xsi:type="string" translate="true">Print MyParcel A6 label</item>
                         <item name="url" xsi:type="url" path="myparcelnl/order/MassTrackTraceLabel"/>
-                        <item name="confirm" xsi:type="array">
-                            <item name="title" xsi:type="string" translate="true">Delete Order(s)</item>
-                            <item name="message" xsi:type="string" translate="true">
-                                Wil je dit echt wel?
-                            </item>
-                        </item>
                     </item>
                 </argument>
             </action>

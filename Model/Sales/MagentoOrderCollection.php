@@ -34,19 +34,19 @@ class MagentoOrderCollection
     const URL_SHOW_POSTNL_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
 
     /**
+     * @var MyParcelCollection
+     */
+    public $myParcelCollection;
+
+    /**
      * @var ObjectManagerInterface
      */
     private $_objectManager;
 
     /**
-     * @var MyParcelCollection
-     */
-    private $myparcel_collection;
-
-    /**
      * @var Order[]
      */
-    private $orders;
+    private $orders = [];
 
     /**
      * @var Data
@@ -59,26 +59,40 @@ class MagentoOrderCollection
     private $modelTrack;
 
     /**
+     * @var \Magento\Framework\App\AreaList
+     */
+    private $areaList;
+
+    /**
      * MassTrackTraceLabel constructor.
      *
      * @param ObjectManagerInterface $objectManagerInterface
+     * @param null                   $areaList
      */
-    public function __construct(ObjectManagerInterface $objectManagerInterface)
+    public function __construct(ObjectManagerInterface $objectManagerInterface, $areaList = null)
     {
+        // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
+        if ($areaList)
+            $this->areaList = $areaList;
 
         $this->_objectManager = $objectManagerInterface;
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
-        $this->myparcel_collection = new MyParcelCollection();
+        $this->myParcelCollection = new MyParcelCollection();
     }
 
     /**
-     * @return MyParcelCollection
+     * @param $myParcelConsignment MyParcelConsignmentRepository
+     *
+     * @return $this
+     * @throws \Exception
      */
-    public function getMyparcelCollection()
+    public function addMyParcelConsignment($myParcelConsignment)
     {
-        return $this->myparcel_collection;
+        $this->myParcelCollection->addConsignment($myParcelConsignment);
+
+        return $this;
     }
 
     /**
@@ -94,44 +108,56 @@ class MagentoOrderCollection
     }
 
     /**
+     * @param $orderCollection \Magento\Sales\Model\ResourceModel\Order\Collection
+     *
+     * @return $this
+     */
+    public function setOrderCollection($orderCollection)
+    {
+        $this->orders = $orderCollection;
+
+        return $this;
+    }
+
+    /**
      * Set existing or create new Magento track and set API consignment to collection
      *
      * @param $downloadLabel bool
      * @param $packageType   int
      *
      * @throws \Exception
-     * @throws \Magento\Framework\Exception\LocalizedException on
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function setMagentoAndMyParcelTrack($downloadLabel, $packageType)
     {
         /** @var $magentoTrack Order\Shipment\Track */
         foreach ($this->orders as $order) {
-            $postNLTrack = null;
+            $myParcelTrack = null;
 
             if ($downloadLabel && !empty($order->getTracksCollection())) {
                 // Use existing track
                 foreach ($order->getTracksCollection() as $magentoTrack) {
-                    if ($magentoTrack->getCarrierCode() ==
-                        MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
+                    if (
+                        $magentoTrack->getCarrierCode() == MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
                         $magentoTrack->getData('myparcel_consignment_id')
                     ) {
-                        $postNLTrack = (new MyParcelTrackTrace($this->_objectManager, $this->helper))
+                        $myParcelTrack = (new MyParcelTrackTrace($this->_objectManager, $this->helper))
                             ->setApiKey($this->helper->getGeneralConfig('api/key'))
                             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
                             ->setReferenceId($magentoTrack->getEntityId())
                             ->setPackageType($packageType);
-                        $this->myparcel_collection->addConsignment($postNLTrack);
+                        $this->myParcelCollection->addConsignment($myParcelTrack);
                     }
                 }
             }
 
-            if ($postNLTrack == null) {
+            if ($myParcelTrack == null) {
                 // Create new API consignment
-                $postNLTrack = (new MyParcelTrackTrace($this->_objectManager, $this->helper))
+                $myParcelTrack = (new MyParcelTrackTrace($this->_objectManager, $this->helper))
                     ->createTrackTraceFromOrder($order)
                     ->convertDataFromMagentoToApi()
                     ->setPackageType($packageType);
-                $this->myparcel_collection->addConsignment($postNLTrack);
+                $this->myParcelCollection->addConsignment($myParcelTrack);
             }
         }
     }
@@ -142,14 +168,14 @@ class MagentoOrderCollection
     public function updateMagentoTrack()
     {
         /** @var $magentoTrack Order\Shipment\Track */
-        foreach ($this->myparcel_collection->getConsignments() as $postNLTrack) {
-            $magentoTrack = $this->modelTrack->load($postNLTrack->getReferenceId());
+        foreach ($this->myParcelCollection->getConsignments() as $myParcelTrack) {
+            $magentoTrack = $this->modelTrack->load($myParcelTrack->getReferenceId());
 
-            $magentoTrack->setData('myparcel_consignment_id', $postNLTrack->getMyParcelConsignmentId());
-            $magentoTrack->setData('myparcel_status', $postNLTrack->getStatus());
+            $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId());
+            $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
 
-            if ($postNLTrack->getBarcode()) {
-                $magentoTrack->setTrackNumber($postNLTrack->getBarcode());
+            if ($myParcelTrack->getBarcode()) {
+                $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
             }
 
             $magentoTrack->save();
@@ -163,6 +189,11 @@ class MagentoOrderCollection
      */
     private function updateOrderGrid()
     {
+
+        if (empty($this->orders)){
+            throw new \Exception('MagentoOrderCollection::order array is empty');
+        }
+
         foreach ($this->orders as $orderId => &$order) {
             $aHtml = $this->getHtmlForGridColumns($order);
             if ($aHtml['track_status']) {
@@ -182,6 +213,13 @@ class MagentoOrderCollection
      */
     private function getHtmlForGridColumns($order)
     {
+        // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
+        // Temporarily fix to translate in cronjob
+        if (!empty($this->areaList)) {
+            $areaObject = $this->areaList->getArea(\Magento\Framework\App\Area::AREA_ADMINHTML);
+            $areaObject->load(\Magento\Framework\App\Area::PART_TRANSLATE);
+        }
+
         $data = ['track_status' => [], 'track_number' => []];
         $columnHtml = ['track_status' => '', 'track_number' => ''];
 
