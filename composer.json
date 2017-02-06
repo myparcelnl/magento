@@ -4,7 +4,7 @@
     "type": "magento2-module",
     "version": "v0.1.4",
     "homepage": "https://www.myparcel.nl",
-    "tags": ["MyParcel", "My Parcel", "Post NL", "PostNL"],
+    "tags": ["MyParcel", "Magento 2", "My Parcel", "Post NL", "PostNL"],
     "license": "CC BY-NC-ND 3.0 NL",
     "authors": [
         {
