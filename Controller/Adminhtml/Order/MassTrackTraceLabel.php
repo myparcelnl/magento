@@ -5,6 +5,7 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
 
@@ -25,7 +26,7 @@ use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
 class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
 {
     const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
-    const PATH_URI_ORDER_INDEX= 'sales/order/index';
+    const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
     /**
      * @var MagentoOrderCollection
@@ -53,7 +54,6 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
 
     /**
      * Dispatch request
-     *
      * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
      * @throws \Magento\Framework\Exception\NotFoundException
      */
@@ -75,16 +75,16 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
             $orderIds = null;
         }
 
-        if (empty($orderIds))
-            throw new \Exception('No items selected');
+        if (empty($orderIds)) {
+            throw new LocalizedException('No items selected');
+        }
 
         $downloadLabel = $this->getRequest()->getParam('mypa_request_type', 'download') == 'download';
         $packageType = (int)$this->getRequest()->getParam('mypa_package_type', 1);
 
         if ($this->getRequest()->getParam('paper_size', null) == 'A4') {
             $positions = $this->getRequest()->getParam('mypa_positions', null);
-        }
-        else {
+        } else {
             $positions = null;
         }
 
@@ -95,8 +95,7 @@ class MassTrackTraceLabel extends \Magento\Framework\App\Action\Action
             $this->orderCollection->myParcelCollection->setPdfOfLabels($positions);
             $this->orderCollection->updateMagentoTrack();
             $this->orderCollection->myParcelCollection->downloadPdfOfLabels();
-        }
-        else {
+        } else {
             $this->orderCollection->myParcelCollection->createConcepts();
             $this->orderCollection->updateMagentoTrack();
         }

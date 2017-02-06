@@ -1,13 +1,11 @@
 <?php
 /**
  * Update MyParcel data
- *
  * Trigger actions:
  * - Update status in Track
  * - Update barcode in Track
  * - Update html status in order
  * - Update html barcode in order
- *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
@@ -26,7 +24,6 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
-
 
 class UpdateStatus
 {
@@ -50,7 +47,8 @@ class UpdateStatus
      *
      * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
      */
-    public function __construct(\Magento\Framework\App\AreaList $areaList) {
+    public function __construct(\Magento\Framework\App\AreaList $areaList)
+    {
         $this->objectManager = ObjectManager::getInstance();
         $this->orderCollection = new MagentoOrderCollection($this->objectManager, $areaList);
         $this->helper = $this->objectManager->create(MagentoOrderCollection::PATH_HELPER_DATA);
@@ -58,10 +56,10 @@ class UpdateStatus
 
     /**
      * Run the cron job
-     *
      * @return $this
      */
-    public function execute() {
+    public function execute()
+    {
         $this->setOrdersToUpdate();
         $this->orderCollection->myParcelCollection->setLatestData();
         $this->orderCollection->updateMagentoTrack();
@@ -71,20 +69,19 @@ class UpdateStatus
 
     /**
      * Get all order to update the data
-     *
      * @throws \Magento\Framework\Exception\LocalizedException
      * @todo; Filter max date in the past
      */
-    private function setOrdersToUpdate (){
+    private function setOrdersToUpdate()
+    {
         /**
-         * @var $magentoTrack Order\Shipment\Track
+         * @var                                                                    $magentoTrack Order\Shipment\Track
          * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection $trackCollection
          */
         $trackCollection = $this->objectManager->get(self::PATH_MODEL_ORDER_TRACK);
         $trackCollection->addAttributeToFilter('myparcel_status', [0, 1, 2, 3, 4, 5, 6,]);
         foreach ($trackCollection as $magentoTrack) {
-            if (
-                $magentoTrack->getCarrierCode() == MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
+            if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
                 $magentoTrack->getData('myparcel_consignment_id')
             ) {
                 $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))

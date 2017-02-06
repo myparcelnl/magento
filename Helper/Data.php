@@ -25,17 +25,34 @@ class Data extends AbstractHelper
     const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
     const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
 
+    /**
+     * @param      $field
+     * @param null $storeId
+     *
+     * @return mixed
+     */
     public function getConfigValue($field, $storeId = null)
     {
         return $this->scopeConfig->getValue($field, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
-
+    /**
+     * @param string $code
+     * @param null   $storeId
+     *
+     * @return mixed
+     */
     public function getGeneralConfig($code = '', $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_GENERAL . $code, $storeId);
     }
 
+    /**
+     * @param string $code
+     * @param null   $storeId
+     *
+     * @return mixed
+     */
     public function getStandardConfig($code = '', $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);

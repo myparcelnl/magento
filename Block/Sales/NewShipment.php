@@ -1,14 +1,11 @@
 <?php
 /**
  * The class to provide functions for new_shipment.phtml
- *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
- *
  * @author      Reindert Vetter <reindert@myparcel.nl>
  * @copyright   2010-2017 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
@@ -37,7 +34,7 @@ class NewShipment extends AbstractItems
     /**
      * @var \Magento\Framework\ObjectManagerInterface
      */
-    private $_objectManager;
+    private $objectManager;
 
     /**
      * @param \Magento\Backend\Block\Template\Context                   $context
@@ -55,11 +52,11 @@ class NewShipment extends AbstractItems
     ) {
         // Set order
         $this->order = $registry->registry('current_shipment')->getOrder();
-        $this->_objectManager = $objectManager;
+        $this->objectManager = $objectManager;
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,
-            $this->_objectManager->get('\MyParcelNL\Magento\Helper\Data')
+            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
         );
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
@@ -77,7 +74,6 @@ class NewShipment extends AbstractItems
 
     /**
      * Get default value of insurance based on order grand total
-     *
      * @return int
      */
     public function getDefaultInsurance()

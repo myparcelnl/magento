@@ -16,11 +16,11 @@
 namespace MyParcelNL\magento\Model\Sales;
 
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Magento\Helper\Data;
-
 
 /**
  * Class MagentoOrderCollection
@@ -41,7 +41,7 @@ class MagentoOrderCollection
     /**
      * @var ObjectManagerInterface
      */
-    private $_objectManager;
+    private $objectManager;
 
     /**
      * @var Order[]
@@ -72,10 +72,11 @@ class MagentoOrderCollection
     public function __construct(ObjectManagerInterface $objectManagerInterface, $areaList = null)
     {
         // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
-        if ($areaList)
+        if ($areaList) {
             $this->areaList = $areaList;
+        }
 
-        $this->_objectManager = $objectManagerInterface;
+        $this->objectManager = $objectManagerInterface;
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
@@ -126,7 +127,7 @@ class MagentoOrderCollection
      * @param $packageType   int
      *
      * @throws \Exception
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function setMagentoAndMyParcelTrack($downloadLabel, $packageType)
     {
@@ -137,11 +138,10 @@ class MagentoOrderCollection
             if ($downloadLabel && !empty($order->getTracksCollection())) {
                 // Use existing track
                 foreach ($order->getTracksCollection() as $magentoTrack) {
-                    if (
-                        $magentoTrack->getCarrierCode() == MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
+                    if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
                         $magentoTrack->getData('myparcel_consignment_id')
                     ) {
-                        $myParcelTrack = (new MyParcelTrackTrace($this->_objectManager, $this->helper))
+                        $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
                             ->setApiKey($this->helper->getGeneralConfig('api/key'))
                             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
                             ->setReferenceId($magentoTrack->getEntityId())
@@ -153,7 +153,7 @@ class MagentoOrderCollection
 
             if ($myParcelTrack == null) {
                 // Create new API consignment
-                $myParcelTrack = (new MyParcelTrackTrace($this->_objectManager, $this->helper))
+                $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
                     ->createTrackTraceFromOrder($order)
                     ->convertDataFromMagentoToApi()
                     ->setPackageType($packageType);
@@ -189,8 +189,8 @@ class MagentoOrderCollection
      */
     private function updateOrderGrid()
     {
-        if (empty($this->orders)){
-            throw new \Exception('MagentoOrderCollection::order array is empty');
+        if (empty($this->orders)) {
+            throw new LocalizedException('MagentoOrderCollection::order array is empty');
         }
 
         foreach ($this->orders as $orderId => &$order) {
@@ -214,15 +214,17 @@ class MagentoOrderCollection
      */
     private function getHtmlForGridColumns($order)
     {
-        // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
+        /**
+         * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
+         */
         // Temporarily fix to translate in cronjob
         if (!empty($this->areaList)) {
             $areaObject = $this->areaList->getArea(\Magento\Framework\App\Area::AREA_ADMINHTML);
             $areaObject->load(\Magento\Framework\App\Area::PART_TRANSLATE);
         }
 
-        if ($order->getTracksCollection()->count() == 0){
-            throw new \Exception('Tracks collection is empty');
+        if ($order->getTracksCollection()->getSize() == 0) {
+            throw new LocalizedException('Tracks collection is empty');
         }
 
         $data = ['track_status' => [], 'track_number' => []];
@@ -251,7 +253,7 @@ class MagentoOrderCollection
     }
 
     /**
-     * @param $shipment Order\Shipment
+     * @param $shipment    Order\Shipment
      * @param $trackNumber string
      *
      * @return string

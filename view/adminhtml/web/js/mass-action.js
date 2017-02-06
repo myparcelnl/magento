@@ -118,7 +118,7 @@ define(
                     var parentThis = this;
                     var actionOptions = ["request_type", "package_type", "package_type-mailbox", "print_position"];
 
-                    actionOptions.forEach(function(option) {
+                    actionOptions.forEach(function (option) {
                         if (!(option in parentThis.options['action_options']) || (parentThis.options['action_options'][option] == false)) {
                             $('#mypa_container-' + option).hide();
                         }
