@@ -59,8 +59,3 @@ input[type=checkbox]:checked + label.mypa_position_selector-item:after {
 input[type=checkbox]:not(:checked) + label.mypa_position_selector-item:after {
     content: '\e632';
 }
-
-footer.mypa-options-footer {
-    padding-top: 2.6rem;
-    text-align: right;
-}

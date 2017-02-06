@@ -26,8 +26,6 @@ define(
                  * @protected
                  */
                 _setOptionsObserver: function () {
-                    var parentThis = this;
-
                     $("input[name='mypa[package_type]']").on(
                         "change",
                         function () {

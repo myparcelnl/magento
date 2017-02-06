@@ -47,25 +47,25 @@ define(
                         );
                     } else {
                         // In order grid, button don't exist. Append a button
-                        massSelectorLoadInterval = setInterval(
-                            function () {
-                                var actionSelector = $('.action-select-wrap .action-menu');
-                                if (actionSelector.length) {
-                                    clearInterval(massSelectorLoadInterval);
-                                    actionSelector.append(
-                                        '<li><span class="action-menu-item action-myparcel">Print MyParcel labels</span></li>'
-                                    );
+                    massSelectorLoadInterval = setInterval(
+                        function () {
+                            var actionSelector = $('.action-select-wrap .action-menu');
+                            if (actionSelector.length) {
+                                clearInterval(massSelectorLoadInterval);
+                                actionSelector.append(
+                                    '<li><span class="action-menu-item action-myparcel">Print MyParcel labels</span></li>'
+                                );
 
-                                    $('.action-myparcel').on(
-                                        "click",
-                                        function () {
+                                $('.action-myparcel').on(
+                                    "click",
+                                    function () {
                                             parentThis._showMyParcelModal();
-                                        }
-                                    );
-                                }
-                            },
-                            1000
-                        );
+                                    }
+                                );
+                            }
+                        },
+                        1000
+                    );
                     }
                 },
 
@@ -141,19 +141,19 @@ define(
 
                     if (selectAmount != 0) {
                         if (selectAmount >= 1) {
-                            $('#mypa_postition-1').prop('checked', true);
+                            $('#mypa_position-1').prop('checked', true);
                         }
 
                         if (selectAmount >= 2) {
-                            $('#mypa_postition-2').prop('checked', true);
+                            $('#mypa_position-2').prop('checked', true);
                         }
 
                         if (selectAmount >= 3) {
-                            $('#mypa_postition-3').prop('checked', true);
+                            $('#mypa_position-3').prop('checked', true);
                         }
 
                         if (selectAmount >= 4) {
-                            $('#mypa_postition-4').prop('checked', true);
+                            $('#mypa_position-4').prop('checked', true);
                         }
                     }
 
@@ -213,11 +213,11 @@ define(
                     if (oneOrderIdSelector.length) {
                         parentThis.selectedIds.push(oneOrderIdSelector.attr('value'));
                     } else {
-                        $('.data-grid-checkbox-cell-inner input.admin__control-checkbox:checked').each(
-                            function () {
-                                parentThis.selectedIds.push($(this).attr('value'));
-                            }
-                        );
+                    $('.data-grid-checkbox-cell-inner input.admin__control-checkbox:checked').each(
+                        function () {
+                            parentThis.selectedIds.push($(this).attr('value'));
+                        }
+                    );
                     }
                     return this;
                 },
