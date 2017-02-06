@@ -2,10 +2,6 @@
 /**
  * Set the label print button in order view
  *
- * LICENSE: This source file is subject to the Creative Commons License.
- * It is available through the world-wide-web at this URL:
- * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *

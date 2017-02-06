@@ -2,10 +2,6 @@
 /**
  * Block for order actions (multiple orders action and one order action)
  *
- * LICENSE: This source file is subject to the Creative Commons License.
- * It is available through the world-wide-web at this URL:
- * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
@@ -47,7 +43,7 @@ class OrdersAction extends Template
 
     public function getAjaxUrl()
     {
-        return $this->_urlBuilder->getUrl('myparcelnl/order/MassTrackTraceLabel');
+        return $this->_urlBuilder->getUrl('myparcelnl/order/CreateAndPrintMyParcelTrack');
     }
 
     public function getSettings()

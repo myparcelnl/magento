@@ -2,15 +2,11 @@
 /**
  * Show the actions of the track
  *
- * LICENSE: This source file is subject to the Creative Commons License.
- * It is available through the world-wide-web at this URL:
- * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
  * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2016 MyParcel
+ * @copyright   2010-2017 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
@@ -64,7 +60,7 @@ class TrackActions extends Column
             foreach ($dataSource['data']['items'] as &$item) {
                 $item[$this->getData('name')]['action-download_package_label'] = [
                     'href' => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/MassTrackTraceLabel',
+                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids' => $item['entity_id'],
                             'mypa_package_type' => 1,
@@ -76,7 +72,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-download_mailbox_label'] = [
                     'href' => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/MassTrackTraceLabel',
+                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids' => $item['entity_id'],
                             'mypa_package_type' => 2,
@@ -88,7 +84,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-download_letter_label'] = [
                     'href' => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/MassTrackTraceLabel',
+                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids' => $item['entity_id'],
                             'mypa_package_type' => 3,
@@ -100,7 +96,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-create_concept'] = [
                     'href' => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/MassTrackTraceLabel',
+                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids' => $item['entity_id'],
                             'mypa_request_type' => 'concept'
