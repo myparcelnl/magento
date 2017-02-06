@@ -34,6 +34,10 @@ class NewShipment extends AbstractItems
      * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
     private $defaultOptions;
+    /**
+     * @var \Magento\Framework\ObjectManagerInterface
+     */
+    private $_objectManager;
 
     /**
      * @param \Magento\Backend\Block\Template\Context                   $context
@@ -51,10 +55,11 @@ class NewShipment extends AbstractItems
     ) {
         // Set order
         $this->order = $registry->registry('current_shipment')->getOrder();
+        $this->_objectManager = $objectManager;
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,
-            $objectManager->get('\MyParcelNL\Magento\Helper\Data')
+            $this->_objectManager->get('\MyParcelNL\Magento\Helper\Data')
         );
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
