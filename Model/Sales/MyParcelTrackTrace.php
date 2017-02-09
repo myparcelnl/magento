@@ -149,9 +149,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setSignature(self::$defaultOptions->getDefault('signature'))
             ->setReturn(self::$defaultOptions->getDefault('return'))
             ->setLargeFormat(self::$defaultOptions->getDefault('large_format'))
-            ->setInsurance(self::$defaultOptions->getDefaultInsurance())
-        ;
-
+            ->setInsurance(self::$defaultOptions->getDefaultInsurance());
 
         return $this;
     }
