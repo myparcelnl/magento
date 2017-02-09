@@ -19,6 +19,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 use MyParcelNL\Magento\Helper\Data;
 
@@ -40,6 +41,11 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      * @var ObjectManagerInterface
      */
     private $objectManager;
+
+    /**
+     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     */
+    private static $defaultOptions;
 
     /**
      * @var Data
@@ -73,6 +79,11 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      */
     public function createTrackTraceFromOrder(Order $order)
     {
+        self::$defaultOptions = new DefaultOptions(
+            $order,
+            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
+        );
+
         if ($order->hasShipments()) {
             // Set new track and trace to first shipment
             foreach ($order->getShipmentsCollection() as $shipment) {
@@ -133,7 +144,14 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($this->mageTrack->getShipment()->getOrderId());
+            ->setLabelDescription($this->mageTrack->getShipment()->getOrderId())
+            ->setOnlyRecipient(self::$defaultOptions->getDefault('only_recipient'))
+            ->setSignature(self::$defaultOptions->getDefault('signature'))
+            ->setReturn(self::$defaultOptions->getDefault('return'))
+            ->setLargeFormat(self::$defaultOptions->getDefault('large_format'))
+            ->setInsurance(self::$defaultOptions->getDefaultInsurance())
+        ;
+
 
         return $this;
     }

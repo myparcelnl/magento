@@ -27,13 +27,14 @@ class NewShipment extends AbstractItems
     private $order;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
-     */
-    private $defaultOptions;
-    /**
      * @var \Magento\Framework\ObjectManagerInterface
      */
     private $objectManager;
+
+    /**
+     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     */
+    private $defaultOptions;
 
     /**
      * @param \Magento\Backend\Block\Template\Context                   $context
