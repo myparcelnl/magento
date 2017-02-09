@@ -7,7 +7,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
-use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
  * Action to create and print MyParcel Track
@@ -70,11 +70,11 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         if ($this->getRequest()->getParam('selected_ids')) {
             $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
-            $orderIds = null;
+            $orderIds = $this->getRequest()->getParam('selected');
         }
 
         if (empty($orderIds)) {
-            throw new LocalizedException('No items selected');
+            throw new LocalizedException(__('No items selected'));
         }
 
         $downloadLabel = $this->getRequest()->getParam('mypa_request_type', 'download') == 'download';

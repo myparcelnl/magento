@@ -188,7 +188,7 @@ class MagentoOrderCollection
     private function updateOrderGrid()
     {
         if (empty($this->orders)) {
-            throw new LocalizedException('MagentoOrderCollection::order array is empty');
+            throw new LocalizedException(__('MagentoOrderCollection::order array is empty'));
         }
 
         foreach ($this->orders as $orderId => &$order) {
@@ -222,7 +222,7 @@ class MagentoOrderCollection
         }
 
         if ($order->getTracksCollection()->getSize() == 0) {
-            throw new LocalizedException('Tracks collection is empty');
+            throw new LocalizedException(__('Tracks collection is empty'));
         }
 
         $data = ['track_status' => [], 'track_number' => []];
