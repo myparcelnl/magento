@@ -205,4 +205,21 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             );
         }
     }
+
+    /**
+     * Override to check if key isset
+     *
+     * @param string $apiKey
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function setApiKey($apiKey)
+    {
+        if ($apiKey == null) {
+            throw new LocalizedException(__('API key is not known. Go to the settings in the back office of MyParcel to create an API key. Fill the API key in the settings.'));
+        }
+        parent::setApiKey($apiKey);
+        return $this;
+    }
 }
