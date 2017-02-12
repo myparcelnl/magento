@@ -50,6 +50,15 @@ class OrderAction extends OrdersAction
     }
 
     /**
+     * Get number of print positions. Always more than one
+     */
+    public function getNumberOfPrintPositions()
+    {
+        $numberOfTracks = $this->order->getTracksCollection()->count();
+        return $numberOfTracks > 0 ? $numberOfTracks : 1;
+    }
+
+    /**
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
      */

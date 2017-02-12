@@ -133,7 +133,13 @@ define(
                  * @protected
                  */
                 _setDefaultSettings: function () {
-                    var selectAmount = this.selectedIds.length;
+                    var selectAmount;
+
+                    if ('number_of_positions' in this.options) {
+                        selectAmount = this.options['number_of_positions'];
+                    } else {
+                        selectAmount = this.selectedIds.length;
+                    }
 
                     $('#mypa_request_type-download').prop('checked', true).trigger('change');
                     $('#mypa_package_type-package').prop('checked', true).trigger('change');
