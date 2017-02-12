@@ -12,7 +12,7 @@
     </head>
     <body>
         <referenceBlock name="order_tab_info">
-            <block class="\Magento\Sales\Block\Adminhtml\Order\AbstractOrder" name="order_shipping_view" template="order_view.phtml"/>
+            <block class="MyParcelNL\Magento\Block\Sales\View" name="order_shipping_view" template="order_view.phtml"/>
         </referenceBlock>
         <referenceContainer name="content">
             <block class="MyParcelNL\Magento\Block\Sales\OrderAction" name="myparcelnl.order" template="order_view_action.phtml" after="-" />
