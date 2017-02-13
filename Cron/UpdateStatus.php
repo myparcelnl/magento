@@ -17,11 +17,11 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\magento\Cron;
+namespace MyParcelNL\Magento\Cron;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
-use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 class UpdateStatus

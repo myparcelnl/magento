@@ -18,7 +18,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order\Shipment;
-use MyParcelNL\magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 class NewShipment implements ObserverInterface

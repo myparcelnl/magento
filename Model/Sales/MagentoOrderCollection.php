@@ -10,7 +10,7 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\magento\Model\Sales;
+namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
@@ -22,7 +22,7 @@ use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 
 /**
  * Class MagentoOrderCollection
- * @package MyParcelNL\magento\Model\Sales
+ * @package MyParcelNL\Magento\Model\Sales
  */
 class MagentoOrderCollection
 {
