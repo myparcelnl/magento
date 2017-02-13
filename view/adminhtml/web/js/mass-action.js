@@ -78,35 +78,40 @@ define(
                     var parentThis = this;
                     parentThis
                         ._setSelectedIds();
+
                     if (this.selectedIds.length == 0) {
-                        alert(
-                            {
-                                title: 'Please select an item from the list'
-                            }
-                        );
-                    } else {
-                        confirmation(
-                            {
-                                title: 'MyParcel options',
-                                content: template,
-                                focus: function () {
-                                    $('#selected_ids').val(parentThis.selectedIds.join(','));
+                        alert({title: 'Please select an item from the list'});
+
+                        return this;
+                    }
+
+                    if (('has_api_key' in this.options) && (this.options['has_api_key'] == false)) {
+                        alert({title: 'No key found. Go to Configuration and then to MyParcel to enter the key.'});
+
+                        return this;
+                    }
+
+                    confirmation(
+                        {
+                            title: 'MyParcel options',
+                            content: template,
+                            focus: function () {
+                                $('#selected_ids').val(parentThis.selectedIds.join(','));
+                                parentThis
+                                    ._setMyParcelMassActionObserver()
+                                    ._setActions()
+                                    ._setDefaultSettings()
+                                    ._showMyParcelOptions();
+                            },
+                            actions: {
+                                confirm: function () {
                                     parentThis
-                                        ._setMyParcelMassActionObserver()
-                                        ._setActions()
-                                        ._setDefaultSettings()
-                                        ._showMyParcelOptions();
-                                },
-                                actions: {
-                                    confirm: function () {
-                                        parentThis
-                                            ._startLoading()
-                                            ._createConsignment();
-                                    }
+                                        ._startLoading()
+                                        ._createConsignment();
                                 }
                             }
-                        );
-                    }
+                        }
+                    );
                 },
 
                 /**

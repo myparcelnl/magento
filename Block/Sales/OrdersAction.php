@@ -34,12 +34,24 @@ class OrdersAction extends Template
      * @param Context $context
      * @param array $data
      */
-    public function __construct(Context $context, array $data = [])
+    public function __construct(
+        Context $context,
+        array $data = [])
     {
         $this->objectManager = ObjectManager::getInstance();
         $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Data');
         parent::__construct($context, $data);
     }
+
+    /**
+     * @return bool
+     */
+    public function hasApiKey()
+    {
+        $apiKey = $this->helper->getGeneralConfig('api/key');
+        return $apiKey == '' ? 'false' : 'true';
+    }
+
 
     public function getAjaxUrl()
     {

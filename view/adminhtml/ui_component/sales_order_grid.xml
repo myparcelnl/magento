@@ -13,7 +13,7 @@
                     <item name="config" xsi:type="array">
                         <item name="type" xsi:type="string">download_myparcel_a6_label</item>
                         <item name="id" xsi:type="string">download_myparcel_a6_label</item>
-                        <item name="label" xsi:type="string" translate="true">Print MyParcel A6 label</item>
+                        <item name="label" xsi:type="string" translate="true">Print MyParcel A6 labels</item>
                         <item name="url" xsi:type="url" path="myparcelnl/order/CreateAndPrintMyParcelTrack"/>
                     </item>
                 </argument>
