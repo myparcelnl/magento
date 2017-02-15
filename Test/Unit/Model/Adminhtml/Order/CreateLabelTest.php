@@ -1,6 +1,6 @@
 <?php
 /**
- * Test to check if order can create
+ * Test to check if label can create and track is up to date
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -22,8 +22,14 @@ include_once ('../../../Constants.php');
 
 use MyParcelNL\magento\Test\Unit\Constants;
 
-class CreateOrderTest extends Constants
+class CreateLabelTest extends Constants
 {
+
+    /**
+     * @var \Magento\Framework\ObjectManagerInterface|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $objectManager;
+
     protected function setUp()
     {
         parent::setUp();
@@ -32,7 +38,11 @@ class CreateOrderTest extends Constants
 
     public function testExecute()
     {
-        $orderId = $this->setOrder();
-        $this->assertEquals(true, is_numeric($orderId));
+
+        $order = $this->setOrder();
+        var_dump($order);
+
+        exit('test2345');
     }
+
 }
