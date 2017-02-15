@@ -136,7 +136,7 @@ class MagentoOrderCollection
             if ($downloadLabel && !empty($order->getTracksCollection())) {
                 // Use existing track
                 foreach ($order->getTracksCollection() as $magentoTrack) {
-                    if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
+                    if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE &&
                         $magentoTrack->getData('myparcel_consignment_id')
                     ) {
                         $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))

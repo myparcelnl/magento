@@ -20,6 +20,7 @@
 namespace MyParcelNL\Magento\Cron;
 
 use Magento\Framework\App\ObjectManager;
+use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
@@ -78,19 +79,18 @@ class UpdateStatus
          * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection $trackCollection
          */
         $trackCollection = $this->objectManager->get(self::PATH_MODEL_ORDER_TRACK);
-        $trackCollection->addAttributeToFilter('myparcel_status', [0, 1, 2, 3, 4, 5, 6,]);
+        $trackCollection
+            ->addAttributeToFilter('myparcel_status', [0, 1, 2, 3, 4, 5, 6,])
+            ->addAttributeToFilter('myparcel_consignment_id', array('notnull' => true))
+            ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, MyParcelTrackTrace::MYPARCEL_CARRIER_CODE);
         foreach ($trackCollection as $magentoTrack) {
-            if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::POSTNL_CARRIER_CODE &&
-                $magentoTrack->getData('myparcel_consignment_id')
-            ) {
-                $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
-                    ->setApiKey($this->helper->getGeneralConfig('api/key'))
-                    ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
-                    ->setReferenceId($magentoTrack->getEntityId());
-                $this
-                    ->orderCollection->addOrder($magentoTrack->getShipment()->getOrder())
-                    ->addMyParcelConsignment($myParcelTrack);
-            }
+            $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
+                ->setApiKey($this->helper->getGeneralConfig('api/key'))
+                ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
+                ->setReferenceId($magentoTrack->getEntityId());
+            $this
+                ->orderCollection->addOrder($magentoTrack->getShipment()->getOrder())
+                ->addMyParcelConsignment($myParcelTrack);
         }
 
         return $this;

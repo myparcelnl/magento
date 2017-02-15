@@ -34,8 +34,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     /**
      * Track title showing in Magento
      */
-    const POSTNL_TRACK_TITLE = 'MyParcel';
-    const POSTNL_CARRIER_CODE = 'myparcelnl';
+    const MYPARCEL_TRACK_TITLE = 'MyParcel';
+    const MYPARCEL_CARRIER_CODE = 'myparcelnl';
 
     /**
      * @var ObjectManagerInterface
@@ -87,13 +87,13 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         if ($order->hasShipments()) {
             // Set new track and trace to first shipment
             foreach ($order->getShipmentsCollection() as $shipment) {
-                $this->createTrackTraceFromShipment($shipment);
+                return $this->createTrackTraceFromShipment($shipment);
                 break;
             }
         } elseif ($order->canShip()) {
             // Create shipment
             $shipment = $this->createShipment($order);
-            $this->createTrackTraceFromShipment($shipment);
+            return $this->createTrackTraceFromShipment($shipment);
         } else {
             throw new LocalizedException(
                 __('Error 500; Can\'t create shipment in ' . __CLASS__ . ':' . __LINE__)
@@ -114,8 +114,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         $this->mageTrack
             ->setOrderId($shipment->getOrderId())
             ->setShipment($shipment)
-            ->setCarrierCode(self::POSTNL_CARRIER_CODE)
-            ->setTitle(self::POSTNL_TRACK_TITLE)
+            ->setCarrierCode(self::MYPARCEL_CARRIER_CODE)
+            ->setTitle(self::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber('concept')
             ->save();
