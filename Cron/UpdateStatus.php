@@ -28,7 +28,6 @@ use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 class UpdateStatus
 {
     const PATH_MODEL_ORDER_TRACK = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
 
     /**
      * @var ObjectManager

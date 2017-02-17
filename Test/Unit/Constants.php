@@ -21,6 +21,8 @@ namespace MyParcelNL\magento\Test\Unit;
 
 class Constants extends \PHPUnit_Framework_TestCase
 {
+    const BASE_URL = "http://127.0.0.1/magento2/index.php/";
+    const API_PREFIX = "rest/V1/";
 
     private $token = '';
 
@@ -29,10 +31,44 @@ class Constants extends \PHPUnit_Framework_TestCase
         $this->setToken();
     }
 
+    public function sendGetRequest($uri)
+    {
+        $ch = curl_init(self::BASE_URL . $uri);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token)]);
+
+        $result = curl_exec($ch);
+
+        return $result;
+    }
+
+    public function sendPostRequest($uri, $body = '')
+    {
+        $ch = curl_init(self::BASE_URL . $uri);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token), "Content-Lenght: " . strlen($body)]);
+
+        return curl_exec($ch);
+    }
+
+    public function sendPutRequest($uri, $body = '')
+    {
+        $ch = curl_init(self::BASE_URL . $uri);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token), "Content-Lenght: " . strlen($body)]);
+
+        return curl_exec($ch);
+    }
+
     protected function setToken()
     {
         $userData = ["username" => "admin", "password" => "sd46g1mo"];
-        $result = $this->sendPostRequest('integration/admin/token', json_encode($userData));
+        $result = $this->sendPostRequest(self::API_PREFIX . 'integration/admin/token', json_encode($userData));
 
         $this->token = $result;
 
@@ -51,7 +87,7 @@ class Constants extends \PHPUnit_Framework_TestCase
 
     protected function getProduct($productAlias = 'test')
     {
-        $product = $this->sendGetRequest('products/' . $productAlias);
+        $product = $this->sendGetRequest(self::API_PREFIX . 'products/' . $productAlias);
         $product = json_decode($product);
 
         return $product;
@@ -67,7 +103,7 @@ class Constants extends \PHPUnit_Framework_TestCase
     protected function createCard()
     {
 
-        $cardId = $this->sendPostRequest('guest-carts');
+        $cardId = $this->sendPostRequest(self::API_PREFIX . 'guest-carts');
 
         return $cardId;
     }
@@ -78,12 +114,11 @@ class Constants extends \PHPUnit_Framework_TestCase
             "cartItem" => [
                 "quote_id" => $cardId,
                 "sku" => $sku,
-                "qty" => 10,
+                "qty" => 1,
             ],
-            "message" => '',
         ];
 
-        return $this->sendPostRequest('guest-carts/' . $cardId . '/items', json_encode($data));
+        return $this->sendPostRequest(self::API_PREFIX . 'guest-carts/' . $cardId . '/items', json_encode($data));
     }
 
     private function addBillingAddress($cardId)
@@ -95,8 +130,7 @@ class Constants extends \PHPUnit_Framework_TestCase
                 "regionId" => "0",
                 "region" => "",
                 "street" => [
-                    "Siriusdreef",
-                    "55",
+                    "Siriusdreef 55",
                 ],
                 "company" => "MyParcel",
                 "telephone" => "123456",
@@ -110,8 +144,7 @@ class Constants extends \PHPUnit_Framework_TestCase
                 "regionId" => "0",
                 "region" => "",
                 "street" => [
-                    "Siriusdreef",
-                    "55",
+                    "Siriusdreef 55",
                 ],
                 "company" => "MyParcel",
                 "telephone" => "123456",
@@ -125,7 +158,7 @@ class Constants extends \PHPUnit_Framework_TestCase
             "shipping_carrier_code" => "flatrate",
         ]];
 
-        return $this->sendPostRequest('guest-carts/' . $cardId . '/shipping-information', json_encode($data));
+        return $this->sendPostRequest(self::API_PREFIX . 'guest-carts/' . $cardId . '/shipping-information', json_encode($data));
     }
 
     private function convertToOrder($cardId)
@@ -137,41 +170,16 @@ class Constants extends \PHPUnit_Framework_TestCase
             ],
         ]);
 
-        return $this->sendPutRequest('guest-carts/' . $cardId . '/order', $data);
+        return $this->sendPutRequest(self::API_PREFIX . 'guest-carts/' . $cardId . '/order', $data);
     }
 
-    private function sendGetRequest($uri)
+    /**
+     * Get controller url
+     *
+     * @return string
+     */
+    protected function getCreateLabelUrl()
     {
-        $ch = curl_init("http://127.0.0.1/magento2/index.php/rest/V1/" . $uri);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token)]);
-
-        $result = curl_exec($ch);
-
-        return $result;
+        return 'admin/myparcelnl/order/CreateAndPrintMyParcelTrack/';
     }
-
-    private function sendPostRequest($uri, $body = '')
-    {
-        $ch = curl_init("http://127.0.0.1/magento2/index.php/rest/V1/" . $uri);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token), "Content-Lenght: " . strlen($body)]);
-
-        return curl_exec($ch);
-    }
-
-    private function sendPutRequest($uri, $body = '')
-    {
-        $ch = curl_init("http://127.0.0.1/magento2/index.php/rest/V1/" . $uri);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token), "Content-Lenght: " . strlen($body)]);
-
-        return curl_exec($ch);
-    }
-
 }

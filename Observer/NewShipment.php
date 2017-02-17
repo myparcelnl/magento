@@ -54,7 +54,7 @@ class NewShipment implements ObserverInterface
     public function __construct()
     {
         $this->objectManager = ObjectManager::getInstance();
-        $this->orderCollection = new MagentoOrderCollection(ObjectManager::getInstance());
+        $this->orderCollection = new MagentoOrderCollection($this->objectManager);
         $this->request = $this->objectManager->get('Magento\Framework\App\RequestInterface');
         $this->helper = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
@@ -68,6 +68,7 @@ class NewShipment implements ObserverInterface
     public function execute(Observer $observer)
     {
         $shipment = $observer->getEvent()->getShipment();
+        var_dump('new shipment id: ' . $shipment->getId());
         $this->setMagentoAndMyParcelTrack($shipment);
     }
 
@@ -81,7 +82,7 @@ class NewShipment implements ObserverInterface
         $options = $this->request->getParam('mypa', []);
 
         // Set MyParcel options
-        $postNLTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
+        $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
             ->createTrackTraceFromShipment($shipment)
             ->convertDataFromMagentoToApi()
             ->setPackageType((int)isset($options['package_type']) ? (int)$options['package_type'] : 1)
@@ -93,13 +94,39 @@ class NewShipment implements ObserverInterface
 
         // Do the request
         $this->orderCollection->myParcelCollection
-            ->addConsignment($postNLTrack)
+            ->addConsignment($myParcelTrack)
             ->createConcepts()
             ->setLatestData();
 
-        // Update Magento track
-        $this->orderCollection
-            ->addOrder($shipment->getOrder())
-            ->updateMagentoTrack();
+        $consignmentId = $this
+            ->orderCollection
+            ->myParcelCollection
+            ->getConsignmentByReferenceId($myParcelTrack->mageTrack->getId())
+            ->getMyParcelConsignmentId();
+
+        $myParcelTrack->mageTrack->setData(
+            'myparcel_consignment_id',
+            $consignmentId
+        )->save();
+
+        /*
+        * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+        */
+        $this->addOrdersToCollection([$shipment->getOrderId()]);
+
+        $this->orderCollection->updateMagentoTrack();
+    }
+
+    /**
+     * @param $orderIds int[]
+     */
+    private function addOrdersToCollection($orderIds)
+    {
+        /**
+         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+         */
+        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
+        $this->orderCollection->setOrderCollection($collection);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * Test to check if label can create
+ * Create MyParcel concept and check if track exist in Magento
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -21,22 +21,26 @@ namespace MyParcelNL\magento\Test\Unit\Model\Adminhtml\Order;
 include_once('../../../Constants.php');
 
 use MyParcelNL\magento\Test\Unit\Constants;
+use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 
-class CreateLabelTest extends Constants
+class CreateConceptTest extends Constants
 {
     protected function setUp()
     {
         parent::setUp();
-
     }
 
 
     public function testExecute()
     {
-        $orderId = $this->setOrder();
-        $response = $this->createLabel($orderId);
+         $orderId = $this->setOrder();
+        $response = $this->createConcept($orderId);
 
-        $this->equalTo(true, preg_match("/^%PDF-1./", $response));
+        // Check if track has consignment id
+        $order = $this->sendGetRequest(self::API_PREFIX . 'orders/' . $orderId);
+        $response = json_decode($order, true);
+
+        $this->assertEquals(true, key_exists('shipping', $response['extension_attributes']['shipping_assignments'][0]));
     }
 
     /**
@@ -44,13 +48,11 @@ class CreateLabelTest extends Constants
      *
      * @return mixed
      */
-    private function createLabel($orderId)
+    private function createConcept($orderId)
     {
         $data = [
             'selected_ids' => $orderId,
-            'mypa_request_type' => 'download',
-            'paper_size' => 'A4',
-            'mypa_positions' => '1',
+            'mypa_request_type' => 'concept',
         ];
         $response = $this->sendGetRequest($this->getCreateLabelUrl() . '?' . http_build_query($data));
 

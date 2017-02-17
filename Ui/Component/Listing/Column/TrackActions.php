@@ -120,7 +120,7 @@ class TrackActions extends Column
                 /**
                  * @todo; save link in table (set new zip)
                  */
-                if ($item['track_number'] !== null) {
+                /*if ($item['track_number'] !== null) {
                     foreach (explode('<br>', $item['track_number']) as $trackNumber) {
                         $item[$this->getData('name')]['action-track-' . $trackNumber] = [
                             'href' => $trackNumber,
@@ -128,7 +128,7 @@ class TrackActions extends Column
                             'hidden' => false,
                         ];
                     }
-                }
+                }*/
             }
         }
 

@@ -60,8 +60,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     /**
      * MyParcelTrackTrace constructor.
      *
-     * @param ObjectManagerInterface      $objectManager
-     * @param Data $helper
+     * @param ObjectManagerInterface $objectManager
+     * @param Data                   $helper
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
@@ -77,12 +77,10 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      * @return $this
      * @throws LocalizedException
      */
-    public function createTrackTraceFromOrder(Order $order)
+    public function createTrackTraceFromOrder(Order &$order)
     {
-        self::$defaultOptions = new DefaultOptions(
-            $order,
-            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
-        );
+        /* @todo; create track from order */
+        /*
 
         if ($order->hasShipments()) {
             // Set new track and trace to first shipment
@@ -98,7 +96,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             throw new LocalizedException(
                 __('Error 500; Can\'t create shipment in ' . __CLASS__ . ':' . __LINE__)
             );
-        }
+        }*/
 
         return $this;
     }
@@ -110,6 +108,10 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      */
     public function createTrackTraceFromShipment(Order\Shipment $shipment)
     {
+        self::$defaultOptions = new DefaultOptions(
+            $shipment->getOrder(),
+            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
+        );
         $this->mageTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
         $this->mageTrack
             ->setOrderId($shipment->getOrderId())
@@ -155,58 +157,6 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
-     * @param Order $order
-     *
-     * @return Order\Shipment
-     * @throws LocalizedException
-     */
-    private function createShipment(Order $order)
-    {
-        /**
-         * @var Order\Shipment $shipment
-         */
-        // Initialize the order shipment object
-        $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
-        $shipment = $convertOrder->toShipment($order);
-
-        // Loop through order items
-        foreach ($order->getAllItems() as $orderItem) {
-            // Check if order item has qty to ship or is virtual
-            if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
-                continue;
-            }
-
-            $qtyShipped = $orderItem->getQtyToShip();
-
-            // Create shipment item with qty
-            $shipmentItem = $convertOrder->itemToShipmentItem($orderItem)->setQty($qtyShipped);
-
-            // Add shipment item to shipment
-            $shipment->addItem($shipmentItem);
-        }
-
-        // Register shipment
-        $shipment->register();
-
-        $shipment->getOrder()->setIsInProcess(true);
-
-        try {
-            // Save created shipment and order
-            $shipment->save();
-
-            // Send email
-            $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
-                ->notify($shipment);
-
-            return $shipment;
-        } catch (\Exception $e) {
-            throw new LocalizedException(
-                __($e->getMessage())
-            );
-        }
-    }
-
-    /**
      * Override to check if key isset
      *
      * @param string $apiKey
@@ -220,6 +170,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             throw new LocalizedException(__('API key is not known. Go to the settings in the back office of MyParcel to create an API key. Fill the API key in the settings.'));
         }
         parent::setApiKey($apiKey);
+
         return $this;
     }
 }

@@ -22,7 +22,7 @@ include_once ('../../../Constants.php');
 
 use MyParcelNL\magento\Test\Unit\Constants;
 
-class CreateOrderTest extends Constants
+class CreateOrdersTest extends Constants
 {
     protected function setUp()
     {
@@ -31,6 +31,9 @@ class CreateOrderTest extends Constants
 
     public function testExecute()
     {
+        $this->setOrder();
+        $this->setOrder();
+        $this->setOrder();
         $orderId = $this->setOrder();
         $this->assertEquals(true, is_numeric($orderId));
     }

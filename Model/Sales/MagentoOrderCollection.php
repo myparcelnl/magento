@@ -27,6 +27,7 @@ use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 class MagentoOrderCollection
 {
     const PATH_HELPER_DATA = 'MyParcelNL\Magento\Helper\Data';
+    const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
     const PATH_ORDER_GRID = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
     const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
     const URL_SHOW_POSTNL_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
@@ -37,14 +38,14 @@ class MagentoOrderCollection
     public $myParcelCollection;
 
     /**
+     * @var \Magento\Sales\Model\ResourceModel\Order\Collection
+     */
+    private $orders;
+
+    /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
-
-    /**
-     * @var Order[]
-     */
-    private $orders = [];
 
     /**
      * @var Data
@@ -95,15 +96,11 @@ class MagentoOrderCollection
     }
 
     /**
-     * @param $order Order
-     *
-     * @return $this
+     * @return \Magento\Sales\Model\ResourceModel\Order\Collection
      */
-    public function addOrder($order)
+    public function getOrders()
     {
-        $this->orders[$order->getId()] = $order;
-
-        return $this;
+        return $this->orders;
     }
 
     /**
@@ -121,19 +118,22 @@ class MagentoOrderCollection
     /**
      * Set existing or create new Magento track and set API consignment to collection
      *
-     * @param $downloadLabel bool
+     * @param $requestType   string
      * @param $packageType   int
      *
      * @throws \Exception
      * @throws LocalizedException
      */
-    public function setMagentoAndMyParcelTrack($downloadLabel, $packageType)
+    public function setMagentoAndMyParcelTrack($requestType, $packageType)
     {
-        /** @var $magentoTrack Order\Shipment\Track */
-        foreach ($this->orders as $order) {
-            $myParcelTrack = null;
+        /** @var $order Order */
+        foreach ($this->getOrders() as $order) {
 
-            if ($downloadLabel && !empty($order->getTracksCollection())) {
+            if ($order->canShip()) {
+                $this->createShipment($order);
+            }
+
+            /*if ($requestType && !empty($order->getTracksCollection())) {
                 // Use existing track
                 foreach ($order->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE &&
@@ -147,15 +147,85 @@ class MagentoOrderCollection
                         $this->myParcelCollection->addConsignment($myParcelTrack);
                     }
                 }
+            }*/
+
+            // Create new API consignment
+            /*$myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
+                ->createTrackTraceFromOrder($order)
+                ->convertDataFromMagentoToApi()
+                ->setPackageType($packageType);
+            $this->myParcelCollection->addConsignment($myParcelTrack);
+            */
+        }
+    }
+
+    /**
+     * This create a shipment. Obsserver/NewShipment() create Magento and MyParcel Track
+     *
+     * @param Order $order
+     *
+     * @return $this
+     * @throws LocalizedException
+     */
+    private function createShipment(Order $order)
+    {
+        /**
+         * @var Order\Shipment $shipment
+         */
+        // Initialize the order shipment object
+        $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
+        $shipment = $convertOrder->toShipment($order);
+
+        // Loop through order items
+        foreach ($order->getAllItems() as $orderItem) {
+            // Check if order item has qty to ship or is virtual
+            if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
+                continue;
             }
 
-            if ($myParcelTrack == null) {
-                // Create new API consignment
-                $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
-                    ->createTrackTraceFromOrder($order)
-                    ->convertDataFromMagentoToApi()
-                    ->setPackageType($packageType);
-                $this->myParcelCollection->addConsignment($myParcelTrack);
+            $qtyShipped = $orderItem->getQtyToShip();
+
+            // Create shipment item with qty
+            $shipmentItem = $convertOrder->itemToShipmentItem($orderItem)->setQty($qtyShipped);
+
+            // Add shipment item to shipment
+            $shipment->addItem($shipmentItem);
+        }
+
+        // Register shipment
+        $shipment->register();
+
+        $shipment->getOrder()->setIsInProcess(true);
+
+        try {
+            // Save created shipment and order
+            $shipment->save();
+
+            // Send email
+            $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
+                ->notify($shipment);
+
+        } catch (\Exception $e) {
+            throw new LocalizedException(
+                __($e->getMessage())
+            );
+        }
+        return $this;
+    }
+
+    public function updateMyParcelTrackFromMagentoOrder()
+    {
+        /**
+         * @var Order $order
+         * @var Order\Shipment\Track $track
+         */
+        foreach ($this->getOrders() as $order) {
+            foreach ($order->getTracksCollection() as $track) {
+                $consignment = (new MyParcelConsignmentRepository())
+                    ->setApiKey($this->helper->getGeneralConfig('api/key'))
+                    ->setMyParcelConsignmentId($track->getData('myparcel_consignment_id'))
+                    ->setReferenceId($track->getId());
+                $this->myParcelCollection->addConsignment($consignment);
             }
         }
     }
@@ -165,18 +235,21 @@ class MagentoOrderCollection
      */
     public function updateMagentoTrack()
     {
-        /** @var $magentoTrack Order\Shipment\Track */
-        foreach ($this->myParcelCollection->getConsignments() as $myParcelTrack) {
-            $magentoTrack = $this->modelTrack->load($myParcelTrack->getReferenceId());
+        /**
+         * @var $order Order
+         * @var $magentoTrack Order\Shipment\Track
+         */
+        foreach ($this->getOrders() as &$order) {
+            var_dump('test2: ' . $order->getTracksCollection()->getSize());
+            foreach ($order->getTracksCollection() as &$magentoTrack) {
+                $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId($magentoTrack->getData('myparcel_consignment_id'));
 
-            $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId());
-            $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
+                $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
 
-            if ($myParcelTrack->getBarcode()) {
-                $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
+                if ($myParcelTrack->getBarcode()) {
+                    $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
+                }
             }
-
-            $magentoTrack->save();
         }
 
         $this->updateOrderGrid();
@@ -191,7 +264,7 @@ class MagentoOrderCollection
             throw new LocalizedException(__('MagentoOrderCollection::order array is empty'));
         }
 
-        foreach ($this->orders as $orderId => &$order) {
+        foreach ($this->orders as $orderId => $order) {
             $aHtml = $this->getHtmlForGridColumns($order);
             if ($aHtml['track_status']) {
                 $order->setData('track_status', $aHtml['track_status']);
@@ -222,7 +295,9 @@ class MagentoOrderCollection
         }
 
         if ($order->getTracksCollection()->getSize() == 0) {
-            throw new LocalizedException(__('Tracks collection is empty'));
+            throw new LocalizedException(__('Tracks collection is empty. Order id:' . $order->getId()));
+        } else {
+            var_dump('order id: ' . $order->getId());
         }
 
         $data = ['track_status' => [], 'track_number' => []];

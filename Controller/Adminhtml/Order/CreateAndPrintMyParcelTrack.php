@@ -8,6 +8,7 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 /**
  * Action to create and print MyParcel Track
@@ -77,7 +78,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             throw new LocalizedException(__('No items selected'));
         }
 
-        $downloadLabel = $this->getRequest()->getParam('mypa_request_type', 'download') == 'download';
+        $requestType = $this->getRequest()->getParam('mypa_request_type', 'download');
         $packageType = (int)$this->getRequest()->getParam('mypa_package_type', 1);
 
         if ($this->getRequest()->getParam('paper_size', null) == 'A4') {
@@ -87,9 +88,14 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         }
 
         $this->addOrdersToCollection($orderIds);
-        $this->orderCollection->setMagentoAndMyParcelTrack($downloadLabel, $packageType);
+        $this->orderCollection->setMagentoAndMyParcelTrack($requestType, $packageType);
 
-        if ($downloadLabel) {
+        if ($requestType == 'only_shipment') {
+            return;
+        }
+
+        $this->orderCollection->updateMyParcelTrackFromMagentoOrder();
+        if ($requestType == 'download') {
             $this->orderCollection->myParcelCollection->setPdfOfLabels($positions);
             $this->orderCollection->updateMagentoTrack();
             $this->orderCollection->myParcelCollection->downloadPdfOfLabels();
@@ -104,11 +110,11 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     private function addOrdersToCollection($orderIds)
     {
-        foreach ($orderIds as $orderId) {
-            if (!$orderId) {
-                continue;
-            }
-            $this->orderCollection->addOrder($this->modelOrder->load($orderId));
-        }
+        /**
+         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+         */
+        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection->addAttributeToFilter('entity_id', array('in' => $orderIds));
+        $this->orderCollection->setOrderCollection($collection);
     }
 }

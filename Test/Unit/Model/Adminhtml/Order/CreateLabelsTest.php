@@ -1,6 +1,6 @@
 <?php
 /**
- * Test to check if order can create
+ * Test to check if labels can create
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -18,20 +18,43 @@
 
 namespace MyParcelNL\magento\Test\Unit\Model\Adminhtml\Order;
 
-include_once ('../../../Constants.php');
+include_once('../../../Constants.php');
 
 use MyParcelNL\magento\Test\Unit\Constants;
 
-class CreateOrderTest extends Constants
+class CreateLabelsTest extends Constants
 {
     protected function setUp()
     {
         parent::setUp();
+
     }
+
 
     public function testExecute()
     {
-        $orderId = $this->setOrder();
-        $this->assertEquals(true, is_numeric($orderId));
+        $order1Id = $this->setOrder();
+        $order2Id = $this->setOrder();
+        $response = $this->createLabel($order1Id . ',' . $order2Id);
+
+        $this->equalTo(true, preg_match("/^%PDF-1./", $response));
+    }
+
+    /**
+     * @param $orderId
+     *
+     * @return mixed
+     */
+    private function createLabel($orderId)
+    {
+        $data = [
+            'selected_ids' => $orderId,
+            'mypa_request_type' => 'download',
+            'paper_size' => 'A4',
+            'mypa_positions' => '1',
+        ];
+        $response = $this->sendGetRequest($this->getCreateLabelUrl() . '?' . http_build_query($data));
+
+        return $response;
     }
 }
