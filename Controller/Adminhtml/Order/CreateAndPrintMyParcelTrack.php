@@ -8,7 +8,6 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
 
 /**
  * Action to create and print MyParcel Track
@@ -88,20 +87,23 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         }
 
         $this->addOrdersToCollection($orderIds);
-        $this->orderCollection->setMagentoAndMyParcelTrack($requestType, $packageType);
+        $this->orderCollection
+            ->setMagentoShipment()
+            ->setMagentoTrack()
+            ->setMyParcelTrack()
+            ->createMyParcelConcepts()
+            ->updateOrderGrid();
 
-        if ($requestType == 'only_shipment') {
+//        exit('end hier');
+        /*if ($requestType == 'only_shipment') {
             return;
-        }
+        }*/
 
-        $this->orderCollection->updateMyParcelTrackFromMagentoOrder();
+//        $this->orderCollection->updateMyParcelTrackFromMagentoOrder();
         if ($requestType == 'download') {
             $this->orderCollection->myParcelCollection->setPdfOfLabels($positions);
             $this->orderCollection->updateMagentoTrack();
             $this->orderCollection->myParcelCollection->downloadPdfOfLabels();
-        } else {
-            $this->orderCollection->myParcelCollection->createConcepts();
-            $this->orderCollection->updateMagentoTrack();
         }
     }
 

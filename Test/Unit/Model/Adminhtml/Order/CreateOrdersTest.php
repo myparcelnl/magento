@@ -34,6 +34,12 @@ class CreateOrdersTest extends Constants
         $this->setOrder();
         $this->setOrder();
         $this->setOrder();
+        $this->setOrder();
+        $this->setOrder();
+        $this->setOrder();
+        $this->setOrder();
+        $this->setOrder();
+        $this->setOrder();
         $orderId = $this->setOrder();
         $this->assertEquals(true, is_numeric($orderId));
     }
