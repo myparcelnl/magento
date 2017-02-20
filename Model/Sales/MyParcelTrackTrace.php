@@ -119,7 +119,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($magentoTrack->getOrderId())
+            ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
             ->setPackageType((int)$options['package_type'] == null ? 1 : (int)$options['package_type'])
             ->setOnlyRecipient($this->getOption('only_recipient'))
             ->setSignature($this->getOption('signature'))

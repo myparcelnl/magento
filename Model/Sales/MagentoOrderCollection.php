@@ -227,6 +227,7 @@ class MagentoOrderCollection
     {
         /**
          * \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection $collection
+         * @var Order\Shipment $shipment
          */
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_ORDER_TRACK_COLLECTION);
         $collection->addAttributeToFilter('parent_id', $shipment->getId());
@@ -284,9 +285,6 @@ class MagentoOrderCollection
             }
         }
 
-//        $this->getOrders()->save();
-//        exit('mu;st save');
-
         return $this;
     }
 
@@ -330,8 +328,8 @@ class MagentoOrderCollection
                         ->myParcelCollection->getConsignmentByReferenceId($track->getId());
                     $track
                         ->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId())
-                        ->setData('myparcel_status', $myParcelTrack->getStatus());
-                    $track->save();
+                        ->setData('myparcel_status', $myParcelTrack->getStatus())
+                        ->save(); // must
                 }
             }
         }
