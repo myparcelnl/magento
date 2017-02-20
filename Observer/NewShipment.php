@@ -105,17 +105,16 @@ class NewShipment implements ObserverInterface
         $shipment->addTrack($myParcelTrack->mageTrack);
 
         $this->updateOrderGrid($myParcelTrack, $shipment);
-
-
     }
 
-
-
+    /**
+     * @param MyParcelTrackTrace                  $myParcelTrack
+     * @param \Magento\Sales\Model\Order\Shipment $shipment
+     */
     private function updateOrderGrid($myParcelTrack, $shipment)
     {
         $shipment->getOrder()
             ->setData('track_status', __('status_' . $myParcelTrack->mageTrack->getData('myparcel_status')))
-            ->setData('track_number', $myParcelTrack->mageTrack->getData('track_number'))
-            ->save();
+            ->setData('track_number', $myParcelTrack->mageTrack->getData('track_number'));
     }
 }
