@@ -129,6 +129,10 @@ class MagentoOrderCollection
             $this->options['positions'] = null;
         }
 
+        if ($this->request->getParam('mypa_request_type') == null) {
+            $this->options['request_type'] = 'download';
+        }
+
         if ($this->request->getParam('mypa_request_type') != 'concept') {
             $this->options['create_track_if_one_already_exist'] = false;
         }
@@ -214,7 +218,6 @@ class MagentoOrderCollection
      * @param bool $createIfOneAlreadyExists Create track if one already exists
      *
      * @return $this
-     * @todo; add filter can ship
      */
     public function setMagentoTrack()
     {
