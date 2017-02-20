@@ -253,9 +253,11 @@ class MagentoOrderCollection
          * @var Order\Shipment $shipment
          */
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_ORDER_TRACK_COLLECTION);
-        $collection->addAttributeToFilter('parent_id', $shipment->getId());
+        $collection
+            ->clear()
+            ->addAttributeToFilter('parent_id', $shipment->getId());
 
-        return $collection->getSize() == 0 ? false : true;
+        return $collection->count() == 0 ? false : true;
     }
 
     /**
