@@ -26,18 +26,35 @@ define(
                  * @protected
                  */
                 _setOptionsObserver: function () {
-                    $("input[name='mypa[package_type]']").on(
+                    var parentThis = this;
+                    $("input[name='mypa_create_from_observer']").on(
                         "change",
                         function () {
-                            if ($('#mypa_package_type-package').prop('checked')) {
-                                $('.mypa_package-toggle').show();
+                            if ($('#mypa_create_from_observer').prop('checked')) {
+                                $('.mypa-option-toggle').slideDown();
+                                parentThis._checkPackageField();
                             } else {
-                                $('.mypa_package-toggle').hide();
+                                $('.mypa-option-toggle').slideUp();
                             }
                         }
                     );
 
+                    $("input[name='mypa_package_type']").on(
+                        "change",
+                        function () {
+                            parentThis._checkPackageField();
+                        }
+                    );
+
                     return this;
+                },
+
+                _checkPackageField: function () {
+                    if ($('#mypa_package_type-package').prop('checked')) {
+                        $('.mypa_package-toggle').show();
+                    } else {
+                        $('.mypa_package-toggle').hide();
+                    }
                 }
             };
 

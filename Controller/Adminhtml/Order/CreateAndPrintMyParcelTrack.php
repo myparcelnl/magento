@@ -78,9 +78,9 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             throw new LocalizedException(__('No items selected'));
         }
 
-        $this->orderCollection->setOptionsFromParameters();
         $this->addOrdersToCollection($orderIds);
         $this->orderCollection
+            ->setOptionsFromParameters()
             ->setMagentoShipment()
             ->setMagentoTrack()
             ->setMyParcelTrack()

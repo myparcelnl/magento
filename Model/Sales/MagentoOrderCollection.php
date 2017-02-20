@@ -108,9 +108,20 @@ class MagentoOrderCollection
      */
     public function setOptionsFromParameters()
     {
-//        var_dump($this->request->getParams());
+        // If options isset
         foreach (array_keys($this->options) as $option) {
-            $this->options[$option] = $this->request->getParam('mypa_' . $option) ?: $this->options[$option];
+            if ($this->request->getParam('mypa_' . $option) === null) {
+
+                if ($this->request->getParam('mypa_extra_options_checkboxes_in_form') === null) {
+                    // Use default options
+                    $this->options[$option] = null;
+                } else {
+                    // Checkbox isset but false
+                    $this->options[$option] = false;
+                }
+            } else {
+                $this->options[$option] = $this->request->getParam('mypa_' . $option);
+            }
         }
 
         // Remove position if paper size == A6
@@ -123,6 +134,14 @@ class MagentoOrderCollection
         }
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
     }
 
     /**
@@ -227,6 +246,7 @@ class MagentoOrderCollection
     {
         /**
          * \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection $collection
+         *
          * @var Order\Shipment $shipment
          */
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_ORDER_TRACK_COLLECTION);
@@ -326,6 +346,7 @@ class MagentoOrderCollection
                 foreach ($shipment->getTracksCollection() as $track) {
                     $myParcelTrack = $this
                         ->myParcelCollection->getConsignmentByReferenceId($track->getId());
+
                     $track
                         ->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId())
                         ->setData('myparcel_status', $myParcelTrack->getStatus())
@@ -465,10 +486,10 @@ class MagentoOrderCollection
         if (empty($this->getOrders())) {
             throw new LocalizedException(__('MagentoOrderCollection::order array is empty'));
         }
+
         /**
          * @var Order $order
          */
-
         foreach ($this->getOrders() as $order) {
             $aHtml = $this->getHtmlForGridColumns($order);
             if ($aHtml['track_status']) {
@@ -511,11 +532,11 @@ class MagentoOrderCollection
         foreach ($order->getShipmentsCollection() as $shipment) {
             foreach ($shipment->getTracksCollection() as $track) {
                 // Set all track data in array
-                if ($track->getData('myparcel_status')) {
+                if ($track->getData('myparcel_status') !== null) {
                     $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
                 }
                 if ($track->getData('track_number')) {
-                    $data['track_number'][] = $this->getTrackUrl($track->getShipment(), $track->getData('track_number'));
+                    $data['track_number'][] = $track->getData('track_number');
                 }
             }
         }
@@ -529,28 +550,5 @@ class MagentoOrderCollection
         }
 
         return $columnHtml;
-    }
-
-    /**
-     * @param $shipment    Order\Shipment
-     * @param $trackNumber string
-     *
-     * @return string
-     */
-    private function getTrackUrl($shipment, $trackNumber)
-    {
-        $address = $shipment->getShippingAddress();
-
-        if ($address->getCountryId() != 'NL' || $trackNumber == 'concept') {
-            return $trackNumber;
-        }
-
-        $url =
-            self::URL_SHOW_POSTNL_STATUS .
-            '?b=' . $trackNumber .
-            '&p=' . $address->getPostcode();
-        $link = '<a onclick="window.open(\'' . $url . '\', \'_blank\');">' . $trackNumber . "</a>";
-
-        return $link;
     }
 }

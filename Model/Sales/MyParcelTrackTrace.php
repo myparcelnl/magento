@@ -81,7 +81,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      *
      * @return $this
      */
-    public function createTrackTraceFromShipment(Order\Shipment $shipment)
+    public function createTrackTraceFromShipment(Order\Shipment &$shipment)
     {
         $this->mageTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
         $this->mageTrack
@@ -90,8 +90,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setCarrierCode(self::MYPARCEL_CARRIER_CODE)
             ->setTitle(self::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber('concept')
-            ->save();
+            ->setTrackNumber('concept');
+
 
         return $this;
     }
@@ -104,7 +104,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      * @throws \Exception
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function convertDataFromMagentoToApi($magentoTrack, $options = [])
+    public function convertDataFromMagentoToApi($magentoTrack, $options)
     {
         $address = $magentoTrack->getShipment()->getShippingAddress();
         $this
@@ -121,11 +121,11 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setEmail($address->getEmail())
             ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
             ->setPackageType((int)$options['package_type'] == null ? 1 : (int)$options['package_type'])
-            ->setOnlyRecipient($this->getOption('only_recipient'))
-            ->setSignature($this->getOption('signature'))
-            ->setReturn($this->getOption('return'))
-            ->setLargeFormat($this->getOption('large_format'))
-            ->setInsurance($options['insurance'] !== null ?: self::$defaultOptions->getDefaultInsurance());
+            ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
+            ->setSignature($this->getValueOfOption($options, 'signature'))
+            ->setReturn($this->getValueOfOption($options, 'return'))
+            ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
+            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance());
 
         return $this;
     }
@@ -149,16 +149,19 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
-     * @param $option
+     * @param $options[]
+     * @param $optionKey
      *
      * @return bool
+     * @internal param $option
+     *
      */
-    private function getOption($option)
+    private function getValueOfOption($options, $optionKey)
     {
-        if ($option === null) {
-            return (bool)self::$defaultOptions->getDefault($option);
+        if ($options[$optionKey] === null) {
+            return (bool)self::$defaultOptions->getDefault($optionKey);
         } else {
-            return (bool)$option;
+            return (bool)$options[$optionKey];
         }
     }
 }
