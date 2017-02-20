@@ -22,6 +22,7 @@ use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 
 /**
  * Class MagentoOrderCollection
+ *
  * @package MyParcelNL\Magento\Model\Sales
  */
 class MagentoOrderCollection
@@ -30,12 +31,18 @@ class MagentoOrderCollection
     const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
     const PATH_ORDER_GRID = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
     const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
+    const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
     const URL_SHOW_POSTNL_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
 
     /**
      * @var MyParcelCollection
      */
     public $myParcelCollection;
+
+    /**
+     * @var \Magento\Framework\App\RequestInterface
+     */
+    public $request = null;
 
     /**
      * @var \Magento\Sales\Model\ResourceModel\Order\Collection
@@ -62,13 +69,26 @@ class MagentoOrderCollection
      */
     private $areaList;
 
+    private $options = [
+        'create_track_if_one_already_exist' => true,
+        'request_type' => 'download',
+        'package_type' => 1,
+        'positions' => null,
+        'only_recipient' => null,
+        'signature' => null,
+        'return' => null,
+        'large_format' => null,
+        'insurance' => null,
+    ];
+
     /**
      * CreateAndPrintMyParcelTrack constructor.
      *
-     * @param ObjectManagerInterface $objectManagerInterface
-     * @param null                   $areaList
+     * @param ObjectManagerInterface                  $objectManagerInterface
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param null                                    $areaList
      */
-    public function __construct(ObjectManagerInterface $objectManagerInterface, $areaList = null)
+    public function __construct(ObjectManagerInterface $objectManagerInterface, $request = null, $areaList = null)
     {
         // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
         if ($areaList) {
@@ -76,10 +96,62 @@ class MagentoOrderCollection
         }
 
         $this->objectManager = $objectManagerInterface;
+        $this->request = $request;
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
         $this->myParcelCollection = new MyParcelCollection();
+    }
+
+    /**
+     * @return $this
+     */
+    public function setOptionsFromParameters()
+    {
+        // If options isset
+        foreach (array_keys($this->options) as $option) {
+            if ($this->request->getParam('mypa_' . $option) === null) {
+
+                if ($this->request->getParam('mypa_extra_options_checkboxes_in_form') === null) {
+                    // Use default options
+                    $this->options[$option] = null;
+                } else {
+                    // Checkbox isset but false
+                    $this->options[$option] = false;
+                }
+            } else {
+                $this->options[$option] = $this->request->getParam('mypa_' . $option);
+            }
+        }
+
+        // Remove position if paper size == A6
+        if ($this->request->getParam('mypa_paper_size', 'A6') != 'A4') {
+            $this->options['positions'] = null;
+        }
+
+        if ($this->request->getParam('mypa_request_type') != 'concept') {
+            $this->options['create_track_if_one_already_exist'] = false;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+
+    /**
+     * @param $option
+     *
+     * @return mixed
+     */
+    public function getOption($option)
+    {
+        return $this->options[$option];
     }
 
     /**
@@ -118,59 +190,215 @@ class MagentoOrderCollection
     /**
      * Set existing or create new Magento track and set API consignment to collection
      *
-     * @param $requestType   string
-     * @param $packageType   int
-     *
      * @throws \Exception
      * @throws LocalizedException
      */
-    public function setMagentoAndMyParcelTrack($requestType, $packageType)
+    public function setMagentoShipment()
     {
         /** @var $order Order */
-        foreach ($this->getOrders() as $order) {
-
+        /** @var Order\Shipment $shipment */
+        foreach ($this->getOrders() as &$order) {
             if ($order->canShip()) {
                 $this->createShipment($order);
+                $order->save();
+                $this->getOrders()->removeItemByKey($order->getId())->addItem($order)->save();
             }
-
-            /*if ($requestType && !empty($order->getTracksCollection())) {
-                // Use existing track
-                foreach ($order->getTracksCollection() as $magentoTrack) {
-                    if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE &&
-                        $magentoTrack->getData('myparcel_consignment_id')
-                    ) {
-                        $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
-                            ->setApiKey($this->helper->getGeneralConfig('api/key'))
-                            ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
-                            ->setReferenceId($magentoTrack->getEntityId())
-                            ->setPackageType($packageType);
-                        $this->myParcelCollection->addConsignment($myParcelTrack);
-                    }
-                }
-            }*/
-
-            // Create new API consignment
-            /*$myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
-                ->createTrackTraceFromOrder($order)
-                ->convertDataFromMagentoToApi()
-                ->setPackageType($packageType);
-            $this->myParcelCollection->addConsignment($myParcelTrack);
-            */
         }
+
+        $this->getOrders()->save();
+
+        return $this;
     }
 
     /**
-     * This create a shipment. Obsserver/NewShipment() create Magento and MyParcel Track
+     * @param bool $createIfOneAlreadyExists Create track if one already exists
+     *
+     * @return $this
+     * @todo; add filter can ship
+     */
+    public function setMagentoTrack()
+    {
+        /**
+         * @var Order          $order
+         * @var Order\Shipment $shipment
+         */
+        foreach ($this->getOrders() as &$order) {
+            foreach ($order->getShipmentsCollection() as &$shipment) {
+                if ($this->shipmentHasTrack($shipment) == false ||
+                    $this->getOption('create_track_if_one_already_exist')
+                ) {
+                    $this->setNewMagentoTrack($shipment);
+                }
+            }
+        }
+
+        $this->getOrders()->save();
+
+        return $this;
+    }
+
+    /**
+     * @param $shipment
+     *
+     * @return bool
+     */
+    private function shipmentHasTrack($shipment)
+    {
+        /**
+         * \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection $collection
+         *
+         * @var Order\Shipment $shipment
+         */
+        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_ORDER_TRACK_COLLECTION);
+        $collection->addAttributeToFilter('parent_id', $shipment->getId());
+
+        return $collection->getSize() == 0 ? false : true;
+    }
+
+    /**
+     * @param Order\Shipment $shipment
+     *
+     * @return mixed
+     */
+    private function setNewMagentoTrack(&$shipment)
+    {
+        /** @var \Magento\Sales\Model\Order\Shipment\Track $track */
+        /*$track = $this->objectManager->get(
+            'Magento\Sales\Model\Order\Shipment\TrackFactory'
+        )->create();*/
+        $track = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
+        $track
+            ->setOrderId($shipment->getOrderId())
+            ->setShipment($shipment)
+            ->setCarrierCode(MyParcelTrackTrace::MYPARCEL_CARRIER_CODE)
+            ->setTitle(MyParcelTrackTrace::MYPARCEL_TRACK_TITLE)
+            ->setQty($shipment->getTotalQty())
+            ->setTrackNumber('Concept')
+            ->save();
+
+        $shipment->addTrack($track);
+        $shipment->getOrder()->save();
+
+        return $track;
+    }
+
+    /**
+     * @return $this
+     * @throws \Exception
+     *
+     * @todo; add filter carrier code
+     */
+    public function setMyParcelTrack()
+    {
+        /**
+         * @var Order                $order
+         * @var Order\Shipment       $shipment
+         * @var Order\Shipment\Track $magentoTrack
+         */
+        foreach ($this->getOrders() as $order) {
+            foreach ($order->getShipmentsCollection() as $shipment) {
+                foreach ($shipment->getTracksCollection() as $magentoTrack) {
+                    if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE) {
+                        $this->myParcelCollection->addConsignment($this->getMyParcelTrack($magentoTrack));
+                    }
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setPdfOfLabels()
+    {
+        $this->myParcelCollection->setPdfOfLabels($this->options['positions']);
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     * @throws \Exception
+     */
+    public function downloadPdfOfLabels()
+    {
+        $this->myParcelCollection->downloadPdfOfLabels();
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function createMyParcelConcepts()
+    {
+        $this->myParcelCollection->createConcepts()->setLatestData();
+
+        /**
+         * @var Order                $order
+         * @var Order\Shipment       $shipment
+         * @var Order\Shipment\Track $track
+         */
+        foreach ($this->getOrders() as $order) {
+            foreach ($order->getShipmentsCollection() as $shipment) {
+                foreach ($shipment->getTracksCollection() as $track) {
+                    $myParcelTrack = $this
+                        ->myParcelCollection->getConsignmentByReferenceId($track->getId());
+
+                    $track
+                        ->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId())
+                        ->setData('myparcel_status', $myParcelTrack->getStatus())
+                        ->save(); // must
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function setLatestData()
+    {
+        $this->myParcelCollection->setLatestData();
+
+        return $this;
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
+     *
+     * @return MyParcelTrackTrace $myParcelTrack
+     */
+    private function getMyParcelTrack($magentoTrack)
+    {
+        $myParcelTrack = new MyParcelTrackTrace(
+            $this->objectManager,
+            $this->helper,
+            $magentoTrack->getShipment()->getOrder()
+        );
+        $myParcelTrack->convertDataFromMagentoToApi($magentoTrack, $this->options);
+
+        return $myParcelTrack;
+    }
+
+
+    /**
+     * This create a shipment. Observer/NewShipment() create Magento and MyParcel Track
      *
      * @param Order $order
      *
      * @return $this
      * @throws LocalizedException
      */
-    private function createShipment(Order $order)
+    private function createShipment(Order &$order)
     {
         /**
-         * @var Order\Shipment $shipment
+         * @var Order\Shipment                     $shipment
+         * @var \Magento\Sales\Model\Convert\Order $convertOrder
          */
         // Initialize the order shipment object
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
@@ -194,13 +422,17 @@ class MagentoOrderCollection
 
         // Register shipment
         $shipment->register();
-
         $shipment->getOrder()->setIsInProcess(true);
 
+        $transaction = $this->objectManager->create('Magento\Framework\DB\Transaction');
+        $transaction->addObject($shipment)->addObject($shipment->getOrder())->save();
         try {
             // Save created shipment and order
-            $shipment->save();
+//            $shipment->save();
 
+//            $order->getShipmentsCollection()->addItem($shipment);
+            $order->getCollection()->save();
+            $shipment->getOrder()->getCollection()->save();
             // Send email
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
                 ->notify($shipment);
@@ -210,24 +442,8 @@ class MagentoOrderCollection
                 __($e->getMessage())
             );
         }
-        return $this;
-    }
 
-    public function updateMyParcelTrackFromMagentoOrder()
-    {
-        /**
-         * @var Order $order
-         * @var Order\Shipment\Track $track
-         */
-        foreach ($this->getOrders() as $order) {
-            foreach ($order->getTracksCollection() as $track) {
-                $consignment = (new MyParcelConsignmentRepository())
-                    ->setApiKey($this->helper->getGeneralConfig('api/key'))
-                    ->setMyParcelConsignmentId($track->getData('myparcel_consignment_id'))
-                    ->setReferenceId($track->getId());
-                $this->myParcelCollection->addConsignment($consignment);
-            }
-        }
+        return $shipment;
     }
 
     /**
@@ -236,35 +452,45 @@ class MagentoOrderCollection
     public function updateMagentoTrack()
     {
         /**
-         * @var $order Order
+         * @var $order        Order
+         * @var $shipment     Order\Shipment
          * @var $magentoTrack Order\Shipment\Track
          */
         foreach ($this->getOrders() as &$order) {
-            var_dump('test2: ' . $order->getTracksCollection()->getSize());
-            foreach ($order->getTracksCollection() as &$magentoTrack) {
-                $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId($magentoTrack->getData('myparcel_consignment_id'));
+            foreach ($order->getShipmentsCollection() as &$shipment) {
+                foreach ($shipment->getTracksCollection() as &$magentoTrack) {
+                    $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId($magentoTrack->getData('myparcel_consignment_id'));
 
-                $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
+                    $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
 
-                if ($myParcelTrack->getBarcode()) {
-                    $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
+                    if ($myParcelTrack->getBarcode()) {
+                        $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
+                    }
+                    $magentoTrack->save();
                 }
             }
         }
 
+        $this->getOrders()->save();
+
         $this->updateOrderGrid();
+
+        return $this;
     }
 
     /**
      * Update column track_status in sales_order_grid
      */
-    private function updateOrderGrid()
+    public function updateOrderGrid()
     {
-        if (empty($this->orders)) {
+        if (empty($this->getOrders())) {
             throw new LocalizedException(__('MagentoOrderCollection::order array is empty'));
         }
 
-        foreach ($this->orders as $orderId => $order) {
+        /**
+         * @var Order $order
+         */
+        foreach ($this->getOrders() as $order) {
             $aHtml = $this->getHtmlForGridColumns($order);
             if ($aHtml['track_status']) {
                 $order->setData('track_status', $aHtml['track_status']);
@@ -272,9 +498,10 @@ class MagentoOrderCollection
             if ($aHtml['track_number']) {
                 $order->setData('track_number', $aHtml['track_number']);
             }
-
-            $order->save();
         }
+        $this->getOrders()->save();
+
+        return $this;
     }
 
     /**
@@ -294,23 +521,23 @@ class MagentoOrderCollection
             $areaObject->load(\Magento\Framework\App\Area::PART_TRANSLATE);
         }
 
-        if ($order->getTracksCollection()->getSize() == 0) {
-            throw new LocalizedException(__('Tracks collection is empty. Order id:' . $order->getId()));
-        } else {
-            var_dump('order id: ' . $order->getId());
-        }
-
         $data = ['track_status' => [], 'track_number' => []];
         $columnHtml = ['track_status' => '', 'track_number' => ''];
 
-        /** @var $track Order\Shipment\Track */
-        foreach ($order->getTracksCollection() as $track) {
-            // Set all track data in array
-            if ($track->getData('myparcel_status')) {
-                $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
-            }
-            if ($track->getData('track_number')) {
-                $data['track_number'][] = $this->getTrackUrl($track->getShipment(), $track->getData('track_number'));
+
+        /**
+         * @var Order\Shipment       $shipment
+         * @var Order\Shipment\Track $track
+         */
+        foreach ($order->getShipmentsCollection() as $shipment) {
+            foreach ($shipment->getTracksCollection() as $track) {
+                // Set all track data in array
+                if ($track->getData('myparcel_status') !== null) {
+                    $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
+                }
+                if ($track->getData('track_number')) {
+                    $data['track_number'][] = $track->getData('track_number');
+                }
             }
         }
 
@@ -323,28 +550,5 @@ class MagentoOrderCollection
         }
 
         return $columnHtml;
-    }
-
-    /**
-     * @param $shipment    Order\Shipment
-     * @param $trackNumber string
-     *
-     * @return string
-     */
-    private function getTrackUrl($shipment, $trackNumber)
-    {
-        $address = $shipment->getShippingAddress();
-
-        if ($address->getCountryId() != 'NL' || $trackNumber == 'concept') {
-            return $trackNumber;
-        }
-
-        $url =
-            self::URL_SHOW_POSTNL_STATUS .
-            '?b=' . $trackNumber .
-            '&p=' . $address->getPostcode();
-        $link = '<a onclick="window.open(\'' . $url . '\', \'_blank\');">' . $trackNumber . "</a>";
-
-        return $link;
     }
 }

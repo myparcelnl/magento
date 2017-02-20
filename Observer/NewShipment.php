@@ -54,8 +54,8 @@ class NewShipment implements ObserverInterface
     public function __construct()
     {
         $this->objectManager = ObjectManager::getInstance();
-        $this->orderCollection = new MagentoOrderCollection($this->objectManager);
         $this->request = $this->objectManager->get('Magento\Framework\App\RequestInterface');
+        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
         $this->helper = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }
@@ -67,9 +67,10 @@ class NewShipment implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $shipment = $observer->getEvent()->getShipment();
-        var_dump('new shipment id: ' . $shipment->getId());
-        $this->setMagentoAndMyParcelTrack($shipment);
+        if ($this->request->getParam('mypa_create_from_observer')) {
+            $shipment = $observer->getEvent()->getShipment();
+            $this->setMagentoAndMyParcelTrack($shipment);
+        }
     }
 
     /**
@@ -79,18 +80,12 @@ class NewShipment implements ObserverInterface
      */
     private function setMagentoAndMyParcelTrack(Shipment $shipment)
     {
-        $options = $this->request->getParam('mypa', []);
+        $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
 
         // Set MyParcel options
-        $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper))
-            ->createTrackTraceFromShipment($shipment)
-            ->convertDataFromMagentoToApi()
-            ->setPackageType((int)isset($options['package_type']) ? (int)$options['package_type'] : 1)
-            ->setOnlyRecipient((bool)isset($options['only_recipient']))
-            ->setSignature((bool)isset($options['signature']))
-            ->setReturn((bool)isset($options['return']))
-            ->setLargeFormat((bool)isset($options['large_format']))
-            ->setInsurance((int)isset($options['insurance']) ? $options['insurance'] : false);
+        $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper, $shipment->getOrder()))
+            ->createTrackTraceFromShipment($shipment);
+        $myParcelTrack->convertDataFromMagentoToApi($myParcelTrack->mageTrack, $options);
 
         // Do the request
         $this->orderCollection->myParcelCollection
@@ -104,29 +99,23 @@ class NewShipment implements ObserverInterface
             ->getConsignmentByReferenceId($myParcelTrack->mageTrack->getId())
             ->getMyParcelConsignmentId();
 
-        $myParcelTrack->mageTrack->setData(
-            'myparcel_consignment_id',
-            $consignmentId
-        )->save();
+        $myParcelTrack->mageTrack
+            ->setData('myparcel_consignment_id', $consignmentId)
+            ->setData('myparcel_status', 1);
+        $shipment->addTrack($myParcelTrack->mageTrack);
 
-        /*
-        * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
-        */
-        $this->addOrdersToCollection([$shipment->getOrderId()]);
+        $this->updateOrderGrid($myParcelTrack, $shipment);
 
-        $this->orderCollection->updateMagentoTrack();
+
     }
 
-    /**
-     * @param $orderIds int[]
-     */
-    private function addOrdersToCollection($orderIds)
+
+
+    private function updateOrderGrid($myParcelTrack, $shipment)
     {
-        /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
-         */
-        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
-        $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
-        $this->orderCollection->setOrderCollection($collection);
+        $shipment->getOrder()
+            ->setData('track_status', __('status_' . $myParcelTrack->mageTrack->getData('myparcel_status')))
+            ->setData('track_number', $myParcelTrack->mageTrack->getData('track_number'))
+            ->save();
     }
 }
