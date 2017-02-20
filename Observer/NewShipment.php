@@ -67,9 +67,11 @@ class NewShipment implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        $shipment = $observer->getEvent()->getShipment();
+        /*$shipment = $observer->getEvent()->getShipments();
+        var_dump($shipment);
+        exit('mass action? new shipments');
         var_dump('new shipment id: ' . $shipment->getId());
-        $this->setMagentoAndMyParcelTrack($shipment);
+        $this->setMagentoAndMyParcelTrack($shipment);*/
     }
 
     /**

@@ -47,11 +47,12 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         $this->modelOrder = $context->getObjectManager()->create(self::PATH_MODEL_ORDER);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection = new MagentoOrderCollection($context->getObjectManager());
+        $this->orderCollection = new MagentoOrderCollection($context->getObjectManager(), $this->getRequest());
     }
 
     /**
      * Dispatch request
+     *
      * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
      * @throws \Magento\Framework\Exception\NotFoundException
      */
@@ -77,15 +78,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             throw new LocalizedException(__('No items selected'));
         }
 
-        $requestType = $this->getRequest()->getParam('mypa_request_type', 'download');
-        $packageType = (int)$this->getRequest()->getParam('mypa_package_type', 1);
-
-        if ($this->getRequest()->getParam('paper_size', null) == 'A4') {
-            $positions = $this->getRequest()->getParam('mypa_positions', null);
-        } else {
-            $positions = null;
-        }
-
+        $this->orderCollection->setOptionsFromParameters();
         $this->addOrdersToCollection($orderIds);
         $this->orderCollection
             ->setMagentoShipment()
@@ -99,11 +92,11 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             return;
         }*/
 
-//        $this->orderCollection->updateMyParcelTrackFromMagentoOrder();
-        if ($requestType == 'download') {
-            $this->orderCollection->myParcelCollection->setPdfOfLabels($positions);
-            $this->orderCollection->updateMagentoTrack();
-            $this->orderCollection->myParcelCollection->downloadPdfOfLabels();
+        if ($this->orderCollection->getOption('request_type') == 'download') {
+            $this->orderCollection
+                ->setPdfOfLabels()
+                ->updateMagentoTrack()
+                ->downloadPdfOfLabels();
         }
     }
 
@@ -116,7 +109,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
         $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
-        $collection->addAttributeToFilter('entity_id', array('in' => $orderIds));
+        $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
     }
 }

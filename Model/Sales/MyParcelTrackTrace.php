@@ -98,15 +98,15 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
 
     /**
      * @param Order\Shipment\Track $magentoTrack
+     * @param array                $options
      *
      * @return $this
      * @throws \Exception
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function convertDataFromMagentoToApi($magentoTrack)
+    public function convertDataFromMagentoToApi($magentoTrack, $options = [])
     {
         $address = $magentoTrack->getShipment()->getShippingAddress();
-
         $this
             ->setApiKey($this->helper->getGeneralConfig('api/key'))
             ->setReferenceId($magentoTrack->getEntityId())
@@ -119,12 +119,13 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($magentoTrack->getShipment()->getOrderId())
-            ->setOnlyRecipient(self::$defaultOptions->getDefault('only_recipient'))
-            ->setSignature(self::$defaultOptions->getDefault('signature'))
-            ->setReturn(self::$defaultOptions->getDefault('return'))
-            ->setLargeFormat(self::$defaultOptions->getDefault('large_format'))
-            ->setInsurance(self::$defaultOptions->getDefaultInsurance());
+            ->setLabelDescription($magentoTrack->getOrderId())
+            ->setPackageType((int)$options['package_type'] == null ? 1 : (int)$options['package_type'])
+            ->setOnlyRecipient($this->getOption('only_recipient'))
+            ->setSignature($this->getOption('signature'))
+            ->setReturn($this->getOption('return'))
+            ->setLargeFormat($this->getOption('large_format'))
+            ->setInsurance($options['insurance'] !== null ?: self::$defaultOptions->getDefaultInsurance());
 
         return $this;
     }
@@ -145,5 +146,19 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         parent::setApiKey($apiKey);
 
         return $this;
+    }
+
+    /**
+     * @param $option
+     *
+     * @return bool
+     */
+    private function getOption($option)
+    {
+        if ($option === null) {
+            return (bool)self::$defaultOptions->getDefault($option);
+        } else {
+            return (bool)$option;
+        }
     }
 }
