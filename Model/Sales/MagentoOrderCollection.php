@@ -451,7 +451,8 @@ class MagentoOrderCollection
          */
         foreach ($this->getOrders() as $order) {
             foreach ($order->getShipmentsCollection() as $shipment) {
-                foreach ($shipment->getTracksCollection() as $magentoTrack) {
+                $trackCollection = $shipment->getTracksCollection();
+                foreach ($trackCollection as $magentoTrack) {
                     $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId($magentoTrack->getData('myparcel_consignment_id'));
 
                     $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
@@ -460,6 +461,7 @@ class MagentoOrderCollection
                         $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
                     }
                 }
+                $trackCollection->save();
             }
         }
 
@@ -489,6 +491,7 @@ class MagentoOrderCollection
                 $order->setData('track_number', $aHtml['track_number']);
             }
         }
+
         $this->getOrders()->save();
 
         return $this;

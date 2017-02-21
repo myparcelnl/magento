@@ -85,7 +85,7 @@ class UpdateStatus
     /**
      * @return array
      *
-     * @todo; Filter max 3 weeks old
+     * @todo; Support more than 30 orders
      */
     private function getOrderIdFromTrackToUpdate()
     {
@@ -98,7 +98,9 @@ class UpdateStatus
             ->addFieldToSelect('order_id')
             ->addAttributeToFilter('myparcel_status', [0, 1, 2, 3, 4, 5, 6,])
             ->addAttributeToFilter('myparcel_consignment_id', array('notnull' => true))
-            ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, MyParcelTrackTrace::MYPARCEL_CARRIER_CODE);
+            ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, MyParcelTrackTrace::MYPARCEL_CARRIER_CODE)
+            ->setPageSize(30)
+            ->setOrder('order_id', 'DESC');
 
         return array_unique(array_column($trackCollection->getData(), 'order_id'));
     }
@@ -111,8 +113,11 @@ class UpdateStatus
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
+        $now = new \DateTime('now -14 day');
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
-        $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
+        $collection
+            ->addAttributeToFilter('entity_id', ['in' => $orderIds])
+            ->addFieldToFilter('created_at', ['gteq' => $now->format('Y-m-d H:i:s')]);
         $this->orderCollection->setOrderCollection($collection);
     }
 }
