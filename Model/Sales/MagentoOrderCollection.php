@@ -201,7 +201,7 @@ class MagentoOrderCollection
     {
         /** @var $order Order */
         /** @var Order\Shipment $shipment */
-        foreach ($this->getOrders() as &$order) {
+        foreach ($this->getOrders() as $order) {
             if ($order->canShip()) {
                 $this->createShipment($order);
             }
@@ -223,8 +223,8 @@ class MagentoOrderCollection
          * @var Order          $order
          * @var Order\Shipment $shipment
          */
-        foreach ($this->getOrders() as &$order) {
-            foreach ($order->getShipmentsCollection() as &$shipment) {
+        foreach ($this->getOrders() as $order) {
+            foreach ($order->getShipmentsCollection() as $shipment) {
                 if ($this->shipmentHasTrack($shipment) == false ||
                     $this->getOption('create_track_if_one_already_exist')
                 ) {
@@ -263,7 +263,7 @@ class MagentoOrderCollection
      *
      * @return mixed
      */
-    private function setNewMagentoTrack(&$shipment)
+    private function setNewMagentoTrack($shipment)
     {
         /** @var \Magento\Sales\Model\Order\Shipment\Track $track */
         $track = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
@@ -391,7 +391,7 @@ class MagentoOrderCollection
      * @return $this
      * @throws LocalizedException
      */
-    private function createShipment(Order &$order)
+    private function createShipment(Order $order)
     {
         /**
          * @var Order\Shipment                     $shipment
@@ -449,9 +449,9 @@ class MagentoOrderCollection
          * @var $shipment     Order\Shipment
          * @var $magentoTrack Order\Shipment\Track
          */
-        foreach ($this->getOrders() as &$order) {
-            foreach ($order->getShipmentsCollection() as &$shipment) {
-                foreach ($shipment->getTracksCollection() as &$magentoTrack) {
+        foreach ($this->getOrders() as $order) {
+            foreach ($order->getShipmentsCollection() as $shipment) {
+                foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId($magentoTrack->getData('myparcel_consignment_id'));
 
                     $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
