@@ -188,7 +188,7 @@ define(
                  * @protected
                  */
                 _setMyParcelMassActionObserver: function () {
-                    $("input[name='paper_size']").on(
+                    $("input[name='mypa_paper_size']").on(
                         "change",
                         function () {
                             if ($('#paper_size-A4').prop('checked')) {

@@ -1,82 +1,94 @@
 <?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */ ?>
-
+    <input name="mypa_extra_options_checkboxes_in_form"
+           value="1"
+           type="hidden"
+    />
     <!-- MyParcel options -->
-    <div class="admin__field field-mypa_package_type">
-        <label class="admin__field-label">
-            <span><?php echo __('MyParcel options');?></span>
-        </label>
+    <div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
+        <input id="mypa_create_from_observer"
+               class="admin__control-checkbox"
+               name="mypa_create_from_observer"
+               value="1"
+               type="checkbox"
+               checked="checked"
+        />
+        <label class="admin__field-label"
+               for="mypa_create_from_observer">
+            <span><?php echo __('Create MyParcel consignment') ?></span></label>
+    </div>
+    <div class="field field-mypa_package_type mypa-option-toggle" style="margin-top: 10px;">
         <div class="admin__field-control">
             <div class="admin__field admin__field-option">
-                <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa[package_type]" value="1" checked="checked">
+                <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa_package_type" value="1" checked="checked">
                 <label class="admin__field-label" for="mypa_package_type-package"><?php echo __('Package');?></label>
             </div>
             <?php if ($block->getCountry() == 'NL'): ?>
                 <div class="admin__field admin__field-option">
-                    <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa[package_type]" value="2">
+                    <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="2">
                     <label class="admin__field-label" for="mypa_package_type-mailbox"><?php echo __('Mailbox');?></label>
                 </div>
             <?php endif;?>
             <div class="admin__field admin__field-option">
-                <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa[package_type]" value="3">
+                <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa_package_type" value="3">
                 <label class="admin__field-label" for="mypa_package_type-letter"><?php echo __('Letter');?></label>
             </div>
         </div>
     </div>
 <?php if ($block->getCountry() == 'NL'): ?>
-    <div class="field choice admin__field admin__field-option field-mypa_only_recipient mypa_package-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_only_recipient mypa_package-toggle mypa-option-toggle">
         <input id="mypa_only_recipient"
                class="admin__control-checkbox"
-               name="mypa[only_recipient]"
+               name="mypa_only_recipient"
                value="1"
                type="checkbox"
                 <?= $block->getDefaultOption('only_recipient') == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label"
                for="mypa_only_recipient">
-            <span><?php /* @escapeNotVerified */ echo __('Home address only') ?></span></label>
+            <span><?php echo __('Home address only') ?></span></label>
     </div>
-    <div class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle">
         <input id="mypa_signature"
                class="admin__control-checkbox"
-               name="mypa[signature]"
+               name="mypa_signature"
                value="1"
                type="checkbox"
                <?= $block->getDefaultOption('signature') == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label"
                for="mypa_signature">
-            <span><?php /* @escapeNotVerified */ echo __('Signature on receipt') ?></span></label>
+            <span><?php echo __('Signature on receipt') ?></span></label>
     </div>
-    <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle mypa-option-toggle">
         <input id="mypa_return"
                class="admin__control-checkbox"
-               name="mypa[return]"
+               name="mypa_return"
                value="1"
                type="checkbox"
                <?= $block->getDefaultOption('return') == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label"
                for="mypa_return">
-            <span><?php /* @escapeNotVerified */ echo __('Return if no answer') ?></span></label>
+            <span><?php echo __('Return if no answer') ?></span></label>
     </div>
-    <div class="field choice admin__field admin__field-option field-mypa_large_format mypa_package-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_large_format mypa_package-toggle mypa-option-toggle">
         <input id="mypa_large_format"
                class="admin__control-checkbox"
-               name="mypa[large_format]"
+               name="mypa_large_format"
                value="1"
                type="checkbox"
                <?= $block->getDefaultOption('large_format') == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label"
                for="mypa_large_format">
-            <span><?php /* @escapeNotVerified */ echo __('Large package') ?></span></label>
+            <span><?php echo __('Large package') ?></span></label>
     </div>
-    <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle">
         <label class="admin__field-label"
                for="mypa_insurance" style="display: block">
-            <span><?php /* @escapeNotVerified */ echo __('Insured up to:') ?></span></label>
+            <span><?php echo __('Insured up to:') ?></span></label>
         <?php $defaultInsurance = $block->getDefaultInsurance();?>
-        <select name="mypa[insurance]" id="mypa_insurance" class="required product-custom-option admin__control-select" title="" >
+        <select name="mypa_insurance" id="mypa_insurance" class="required product-custom-option admin__control-select" title="" >
             <option value="0" ><?php echo __('No insurance') ?></option>
             <option value="50" <?= $defaultInsurance == 50 ? 'selected="selected"' : '';?> >€ 50</option>
             <option value="250" <?= $defaultInsurance == 250 ? 'selected="selected"' : '';?> >€ 250</option>
