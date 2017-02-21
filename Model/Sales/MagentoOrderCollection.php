@@ -204,8 +204,6 @@ class MagentoOrderCollection
         foreach ($this->getOrders() as &$order) {
             if ($order->canShip()) {
                 $this->createShipment($order);
-                $order->save();
-                $this->getOrders()->removeItemByKey($order->getId())->addItem($order)->save();
             }
         }
 
@@ -429,15 +427,11 @@ class MagentoOrderCollection
         $shipment->register();
         $shipment->getOrder()->setIsInProcess(true);
 
-        $transaction = $this->objectManager->create('Magento\Framework\DB\Transaction');
-        $transaction->addObject($shipment)->addObject($shipment->getOrder())->save();
         try {
             // Save created shipment and order
-//            $shipment->save();
+            $transaction = $this->objectManager->create('Magento\Framework\DB\Transaction');
+            $transaction->addObject($shipment)->addObject($shipment->getOrder())->save();
 
-//            $order->getShipmentsCollection()->addItem($shipment);
-            $order->getCollection()->save();
-            $shipment->getOrder()->getCollection()->save();
             // Send email
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
                 ->notify($shipment);
