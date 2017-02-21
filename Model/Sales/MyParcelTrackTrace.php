@@ -14,7 +14,6 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
@@ -60,45 +59,21 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     /**
      * MyParcelTrackTrace constructor.
      *
-     * @param ObjectManagerInterface $objectManager
-     * @param Data                   $helper
+     * @param ObjectManagerInterface     $objectManager
+     * @param Data                       $helper
+     * @param \Magento\Sales\Model\Order $order
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
-        Data $helper
+        Data $helper,
+        Order $order
     ) {
         $this->objectManager = $objectManager;
         $this->helper = $helper;
-    }
-
-    /**
-     * @param Order $order
-     *
-     * @return $this
-     * @throws LocalizedException
-     */
-    public function createTrackTraceFromOrder(Order &$order)
-    {
-        /* @todo; create track from order */
-        /*
-
-        if ($order->hasShipments()) {
-            // Set new track and trace to first shipment
-            foreach ($order->getShipmentsCollection() as $shipment) {
-                return $this->createTrackTraceFromShipment($shipment);
-                break;
-            }
-        } elseif ($order->canShip()) {
-            // Create shipment
-            $shipment = $this->createShipment($order);
-            return $this->createTrackTraceFromShipment($shipment);
-        } else {
-            throw new LocalizedException(
-                __('Error 500; Can\'t create shipment in ' . __CLASS__ . ':' . __LINE__)
-            );
-        }*/
-
-        return $this;
+        self::$defaultOptions = new DefaultOptions(
+            $order,
+            $this->helper
+        );
     }
 
     /**
@@ -106,12 +81,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      *
      * @return $this
      */
-    public function createTrackTraceFromShipment(Order\Shipment $shipment)
+    public function createTrackTraceFromShipment(Order\Shipment &$shipment)
     {
-        self::$defaultOptions = new DefaultOptions(
-            $shipment->getOrder(),
-            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
-        );
         $this->mageTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
         $this->mageTrack
             ->setOrderId($shipment->getOrderId())
@@ -119,25 +90,27 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setCarrierCode(self::MYPARCEL_CARRIER_CODE)
             ->setTitle(self::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber('concept')
-            ->save();
+            ->setTrackNumber('concept');
+
 
         return $this;
     }
 
     /**
+     * @param Order\Shipment\Track $magentoTrack
+     * @param array                $options
+     *
      * @return $this
      * @throws \Exception
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function convertDataFromMagentoToApi()
+    public function convertDataFromMagentoToApi($magentoTrack, $options)
     {
-        $address = $this->mageTrack->getShipment()->getShippingAddress();
-
+        $address = $magentoTrack->getShipment()->getShippingAddress();
         $this
             ->setApiKey($this->helper->getGeneralConfig('api/key'))
-            ->setReferenceId($this->mageTrack->getEntityId())
-            ->setMyParcelConsignmentId($this->mageTrack->getData('myparcel_consignment_id'))
+            ->setReferenceId($magentoTrack->getEntityId())
+            ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
             ->setCompany($address->getCompany())
             ->setPerson($address->getName())
@@ -146,12 +119,13 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($this->mageTrack->getShipment()->getOrderId())
-            ->setOnlyRecipient(self::$defaultOptions->getDefault('only_recipient'))
-            ->setSignature(self::$defaultOptions->getDefault('signature'))
-            ->setReturn(self::$defaultOptions->getDefault('return'))
-            ->setLargeFormat(self::$defaultOptions->getDefault('large_format'))
-            ->setInsurance(self::$defaultOptions->getDefaultInsurance());
+            ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
+            ->setPackageType((int)$options['package_type'] == null ? 1 : (int)$options['package_type'])
+            ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
+            ->setSignature($this->getValueOfOption($options, 'signature'))
+            ->setReturn($this->getValueOfOption($options, 'return'))
+            ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
+            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance());
 
         return $this;
     }
@@ -172,5 +146,22 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         parent::setApiKey($apiKey);
 
         return $this;
+    }
+
+    /**
+     * @param $options[]
+     * @param $optionKey
+     *
+     * @return bool
+     * @internal param $option
+     *
+     */
+    private function getValueOfOption($options, $optionKey)
+    {
+        if ($options[$optionKey] === null) {
+            return (bool)self::$defaultOptions->getDefault($optionKey);
+        } else {
+            return (bool)$options[$optionKey];
+        }
     }
 }

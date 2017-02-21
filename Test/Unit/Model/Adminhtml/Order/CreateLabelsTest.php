@@ -33,9 +33,14 @@ class CreateLabelsTest extends Constants
 
     public function testExecute()
     {
-        $order1Id = $this->setOrder();
-        $order2Id = $this->setOrder();
-        $response = $this->createLabel($order1Id . ',' . $order2Id);
+        $numberOfOrders = 1;
+        $orders = [];
+        while($numberOfOrders <= 30) {
+            $orders[] = $this->setOrder();
+            $numberOfOrders++;
+        }
+
+        $response = $this->createLabel(implode(',', $orders));
 
         $this->equalTo(true, preg_match("/^%PDF-1./", $response));
     }
