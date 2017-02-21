@@ -266,9 +266,6 @@ class MagentoOrderCollection
     private function setNewMagentoTrack(&$shipment)
     {
         /** @var \Magento\Sales\Model\Order\Shipment\Track $track */
-        /*$track = $this->objectManager->get(
-            'Magento\Sales\Model\Order\Shipment\TrackFactory'
-        )->create();*/
         $track = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
         $track
             ->setOrderId($shipment->getOrderId())
@@ -278,9 +275,6 @@ class MagentoOrderCollection
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber('Concept')
             ->save();
-
-        $shipment->addTrack($track);
-        $shipment->getOrder()->save();
 
         return $track;
     }
@@ -465,12 +459,9 @@ class MagentoOrderCollection
                     if ($myParcelTrack->getBarcode()) {
                         $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
                     }
-                    $magentoTrack->save();
                 }
             }
         }
-
-        $this->getOrders()->save();
 
         $this->updateOrderGrid();
 
