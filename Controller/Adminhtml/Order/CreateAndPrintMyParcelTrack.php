@@ -87,10 +87,9 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             ->createMyParcelConcepts()
             ->updateOrderGrid();
 
-//        exit('end hier');
-        /*if ($requestType == 'only_shipment') {
+        if ($this->orderCollection->getOption('request_type') == 'only_shipment') {
             return;
-        }*/
+        }
 
         if ($this->orderCollection->getOption('request_type') == 'download') {
             $this->orderCollection
