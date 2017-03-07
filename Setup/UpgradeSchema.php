@@ -27,7 +27,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
     ) {
         $setup->startSetup();
 
-        if (version_compare($context->getVersion(), '0.0.1') < 0) {
+        if (version_compare($context->getVersion(), '0.1.11') < 0) {
             // Add column to track table
             $tableName = $setup->getTable('sales_shipment_track');
             // Check if the table already exists
