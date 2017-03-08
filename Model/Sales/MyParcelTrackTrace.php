@@ -24,12 +24,6 @@ use MyParcelNL\Magento\Helper\Data;
 
 class MyParcelTrackTrace extends MyParcelConsignmentRepository
 {
-
-    /**
-     * Recipient email config path
-     */
-    const CONFIG_PATH_BASE_API_KEY = 'basic_settings/print/paper_type';
-
     /**
      * Track title showing in Magento
      */

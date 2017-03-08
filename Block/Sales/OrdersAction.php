@@ -58,9 +58,9 @@ class OrdersAction extends Template
         return $this->_urlBuilder->getUrl('myparcelnl/order/CreateAndPrintMyParcelTrack');
     }
 
-    public function getSettings()
+    public function getPrintSettings()
     {
-        $settings = $this->helper->getStandardConfig('print');
+        $settings = $this->helper->getGeneralConfig('print');
         return json_encode($settings);
     }
 }
