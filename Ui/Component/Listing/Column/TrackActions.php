@@ -58,54 +58,55 @@ class TrackActions extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-                $item[$this->getData('name')]['action-download_package_label'] = [
-                    'href' => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
-                        [
-                            'selected_ids' => $item['entity_id'],
-                            'mypa_package_type' => 1,
-                            'mypa_request_type' => 'download'
-                        ]
-                    ),
-                    'label' => __('Download package label'),
-                    'hidden' => false,
-                ];
-                $item[$this->getData('name')]['action-download_mailbox_label'] = [
-                    'href' => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
-                        [
-                            'selected_ids' => $item['entity_id'],
-                            'mypa_package_type' => 2,
-                            'mypa_request_type' => 'download'
-                        ]
-                    ),
-                    'label' => __('Download mailbox label'),
-                    'hidden' => false,
-                ];
-                $item[$this->getData('name')]['action-download_letter_label'] = [
-                    'href' => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
-                        [
-                            'selected_ids' => $item['entity_id'],
-                            'mypa_package_type' => 3,
-                            'mypa_request_type' => 'download'
-                        ]
-                    ),
-                    'label' => __('Download letter label'),
-                    'hidden' => false,
-                ];
-                $item[$this->getData('name')]['action-create_concept'] = [
-                    'href' => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
-                        [
-                            'selected_ids' => $item['entity_id'],
-                            'mypa_request_type' => 'concept'
-                        ]
-                    ),
-                    'label' => __('Create new concept'),
-                    'hidden' => false,
-                ];
+
                 if ($item['track_status'] == null) {
+                    $item[$this->getData('name')]['action-download_package_label'] = [
+                        'href' => $this->urlBuilder->getUrl(
+                            'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                            [
+                                'selected_ids' => $item['entity_id'],
+                                'mypa_package_type' => 1,
+                                'mypa_request_type' => 'download'
+                            ]
+                        ),
+                        'label' => __('Download package label'),
+                        'hidden' => false,
+                    ];
+                    $item[$this->getData('name')]['action-download_mailbox_label'] = [
+                        'href' => $this->urlBuilder->getUrl(
+                            'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                            [
+                                'selected_ids' => $item['entity_id'],
+                                'mypa_package_type' => 2,
+                                'mypa_request_type' => 'download'
+                            ]
+                        ),
+                        'label' => __('Download mailbox label'),
+                        'hidden' => false,
+                    ];
+                    $item[$this->getData('name')]['action-download_letter_label'] = [
+                        'href' => $this->urlBuilder->getUrl(
+                            'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                            [
+                                'selected_ids' => $item['entity_id'],
+                                'mypa_package_type' => 3,
+                                'mypa_request_type' => 'download'
+                            ]
+                        ),
+                        'label' => __('Download letter label'),
+                        'hidden' => false,
+                    ];
+                    $item[$this->getData('name')]['action-create_concept'] = [
+                        'href' => $this->urlBuilder->getUrl(
+                            'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                            [
+                                'selected_ids' => $item['entity_id'],
+                                'mypa_request_type' => 'concept'
+                            ]
+                        ),
+                        'label' => __('Create new concept'),
+                        'hidden' => false,
+                    ];
                     $item[$this->getData('name')]['action-ship_direct'] = [
                         'href' => $this->urlBuilder->getUrl(
                             'adminhtml/order_shipment/start',
@@ -116,7 +117,21 @@ class TrackActions extends Column
                         'label' => __('Ship'),
                         'hidden' => false,
                     ];
+                } else {
+                    $item[$this->getData('name')]['action-download_package_label'] = [
+                        'href' => $this->urlBuilder->getUrl(
+                            'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                            [
+                                'selected_ids' => $item['entity_id'],
+                                'mypa_package_type' => 1,
+                                'mypa_request_type' => 'download'
+                            ]
+                        ),
+                        'label' => __('Download label'),
+                        'hidden' => false,
+                    ];
                 }
+
                 /**
                  * @todo; save link in table (set new zip)
                  */
