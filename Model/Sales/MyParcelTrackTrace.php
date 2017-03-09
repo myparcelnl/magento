@@ -101,6 +101,11 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     public function convertDataFromMagentoToApi($magentoTrack, $options)
     {
         $address = $magentoTrack->getShipment()->getShippingAddress();
+
+        if ($address->getCountryId() != 'NL' && (int)$options['package_type'] == 2) {
+            $options['package_type'] = 1;
+        }
+
         $this
             ->setApiKey($this->helper->getGeneralConfig('api/key'))
             ->setReferenceId($magentoTrack->getEntityId())
