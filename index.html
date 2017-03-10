@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Magento 2 MyParcel Gebruikershandleiding</title>
+    <meta name="description" content="Installatie- gebruikershandleiding voor de Magento MyParcel plug-in">
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <link rel="shortcut icon" href="https://backoffice.myparcel.nl/images/favicon/favicon.ico">
+    <link href="css/normalize.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700" rel="stylesheet" type="text/css"/>
+    <link href="css/stylesheet.css" media="screen" rel="stylesheet" type="text/css"/>
+    <link href="css/github-light.css" media="screen" rel="stylesheet" type="text/css"/>
+    <script src="js/jquery-3.0.0.min.js"></script>
+    <script src="js/auto_menu.js"></script>
+</head>
+<body>
+<section class="page-header">
+    <p>
+        <img alt="" src="media/logo_myparcel.png"/>
+        <img height="185" src="media/logo_magento.png" style="margin-left: -90px;"/></p>
+    <h1 class="project-name">
+        Gebruikershandleiding
+    </h1>
+    <h2 class="project-tagline">
+        MyParcel  Magento 2 extensie
+    </h2>
+    <a target="_blank" class="btn" href="https://github.com/myparcelnl/magento">GitHub</a>
+</section>
+<section class="main-content">
+    <h1>Inleiding</h1>
+    <p>
+        Deze handleiding beschrijft de functionaliteiten van de MyParcel extensie voor Magento 2.
+    </p>
+
+    <p>
+        Met deze Magento 2 extensie kun je drie soorten MyParcel zendingen aanmaken:
+    </p>
+    <ol>
+        <li>
+            Normaal (gewone Nederlandse pakketten)
+        </li>
+        <li>Pakketten naar buitenland, alleen EU.</li>
+        <li>
+            Brievenbuspakje
+        </li>
+        <li>
+            Ongefrankeerd label
+        </li>
+    </ol>
+
+    <h1>Inhoud</h1>
+    <div class="menu"></div>
+    <div>
+
+        <h1 id="1">1 Technische vereisten</h1>
+        <p>
+          De MyParcel Magento 2 extensie is te downloaden via de Magento Extensions Store.<br></br>
+
+          Deze is ook te verkrijgen via de terminal, raadpleeg uw webbeheerder.
+        </p>
+
+        <h2 id="1_1">1.1 Technische vereisten</h2>
+        <p>
+            Om de MyParcel Magento 2 extensie te gebruiken dient uw server aan de onderstaande vereisten te voldoen:
+        </p>
+        <ul>
+            <li>Minimaal PHP versie 5.6</li>
+
+        </ul>
+        <p>
+            De onderstaande Magento versie wordt ondersteund:<br>
+
+            Community  2.1
+        </p>
+
+        <h1 id="2">2 Configuratie</h1>
+        <p>
+
+            Ga naar het menu <span class="nice">Stores → Configuration → MyParcel</span> om de MyParcel extensie te
+            configureren.<br>
+
+        </p>
+        <img src="media/config.png">
+        <p>Verder zie je 2 tabbladen om uit te kiezen. Op het tabblad 'Algemene instellingen' kun je je API key invoeren en jouw printvoorkeur
+          instellen. Op het tabblad ' Standaard verzendinstellingen' kun je de default voorkeuren voor de MyParcel verzendopties aangeven.
+        </p>
+
+        <h2 id="2_1">2.1 Algemene instellingen</h2>
+
+            <h3 id="2_1_1">2.1.1 API key instellen</h3>
+
+            <p>Hier kun je jouw API Key invullen. Deze zijn nodig om de zendingen door te kunnen zetten naar MyParcel.<br>
+            Deze gegevens kun je vinden in jouw MyParcel account op <a href="https://backoffice.myparcel.nl" target="_blank">backoffice.myparcel.nl</a>  en ga vervolgens naar <span class="nice">Instellingen -> Algemeen</p>
+            <img src="media/api_key.png">
+
+            <h3 id="2_1_2">2.1.2 Print oriëntatie</h3>
+            <p>
+
+                Kies de <span class="nice">Print oriëntatie</span>. Als je kiest voor A4 formaat zullen vier verzendlabels per A4 vel geprint
+                worden. Als je kiest voor A6 formaat zijn de verzendlabels geschikt voor het printen met een speciale
+                labelprinter zoals een Zebra of Dymo 4XL.<br></br>
+                  <img src="media/print_opties.png">
+
+        <h2 id="2_2">2.2 Standaard verzendinstellingen</h2>
+            <p> Bij <span class="nice">Standaard verzendinstellingen</span> kun je configureren hoe je wil dat jouw zending standaard verwerkt worden wanneer
+            je de MyParcel extensie voor Magento 2 gebruikt.
+
+
+
+          <img src="media/standaard_verzend.png">
+
+        <h3 id="2_2_1">2.2.1 Standaard  verzendopties</h3>
+        <p>
+            Op basis van de ingevulde orderwaarde worden de onderstaande opties geactiveerd. Voorbeeld: Indien je bij
+            <span class="nice">Verzekerd tot € 250</span> bijvoorbeeld de waarde 100 invult, worden orders met een verkoopwaarde boven de € 100
+            automatisch verzekerd tot een waarde van € 250. Deze logica is voor alle onderstaande opties in te stellen:
+        </p>
+        <ul>
+            <li>Alleen huisadres</li>
+            <li>Handtekening bij ontvangst</li>
+            <li>Retour bij niet aanwezig</li>
+            <li>Groot pakket</li>
+            <li>Verzekerd tot € 50</li>
+            <li>Verzekerd tot € 250</li>
+            <li>Verzekerd tot € 500</li>
+        </ul>
+        <p>
+            Let op: Op het moment dat <span class="nice">No</span> ingevuld staat, is de optie niet geactiveerd. Bij invullen van <span class="nice">Yes</span>staat de optie actief.
+
+        </p>
+
+        <h1 id="3">3 Backend functionaliteiten</h1>
+        <p>
+            Om de backend functionaliteiten te kunnen gebruiken moet de MyParcel Magento 2 extensie ingeschakeld zijn.
+        </p>
+
+        <h2 id="3_1">3.1 Verzending aanmaken</h2>
+        <p>
+            Een MyParcel zending aanmaken kan op twee manieren:
+        </p>
+
+        <h4>1. Batch methode in het bestellingenoverzicht.</h4>
+        <ol>
+            <li>Selecteer de orders die je wilt exporteren naar MyParcel.</li><br></br>
+            <img src="media/action_balk.png"><br></br>
+            <li>Kies in de actie balk <span class="nice">Print MyParcel labels</span></li><br>
+            <img src="media/action_balk_2.png"><br></br>
+            <li>Kies voor de juiste printpositie, indien je voor A4 hebt gekozen.</li>
+            <img src="media/print_position.png"><br></br>
+            <li>Het PDF verschijnt op je computer en is klaar om te printen.</li><br>
+            <li>Wanneer je de instellingen in stap 3 wil overslaan, bijvoorbeeld omdat je via de ‘standaard verzendinstellingen’
+            al de juiste verzendopties aan jouw bestellingen hebt meegegeven, dan kan je via ‘Print MyParcel labels direct’
+            je labels direct downloaden.</li><br></br>
+            <img src="media/action_balk_3.png">
+          </ol><br></br>
+
+
+        <h4>2. Per bestelling als je een Magento zending aanmaakt.</h4>
+        <ol>
+            <li>Klik op de desbetreffende order.</li><br>
+            <img src="media/order.png"><br></br>
+            <li>Kies rechtsboven voor de knop <span class="nice">ship</span>.</li>
+            <img src="media/ship.png"><br></br>
+            <li>Rechts onderin verschijnt een vak. Hier kan je zowel het verzendtype aanpassen als de beschikbare verzendopties per verzendtype.</li><br></br>
+            <img src="media/ship_options.png"><br></br>
+            <li>Verstuur zending naar MyParcel via 'Submit Shipment'.</li>
+        </ol><br></br>
+
+        <h2 id="3_2">3.2 Orderoverzicht</h2>
+        <p>
+          Om je altijd inzicht te bieden in de status van jouw zendingen zijn er 3 nieuwe kolommen automatisch toegevoegd aan het orderoverzicht nadat de MyParcel plugin is geïnstalleerd.
+        </p>
+            <img src="media/track_track_track.png"><br><br/>
+            <ul>
+                <li>Track status : Hier kun je de status van de zending zien, deze wordt altijd up to date gehouden.</li><br>
+                <li>Track number : Hier vind je de barcode van je zending.</li><br>
+                <li>Track action : Wanneer de order nog niet verzonden is en je klikt op 'Select', dan verschijnt er een pop-up met download opties voor
+                  verzendlabels. Mocht je order al verzonden zijn, dan kan je hier het label nogmaals downloaden.</li><br><br/>
+            </ul>
+              <img src="media/popup.png">
+      </div>
+
+    <footer class="site-footer">
+        <p>
+            <span class="site-footer-owner">MyParcel</span>
+        </p>
+        <p>
+        <span class="site-footer-credits">
+            <strong>Adres </strong>Hoofdweg 679, 2131 BC Hoofddorp&nbsp;
+            <strong>Telefoon </strong>023 30 30 315&nbsp;
+            <strong>E-mail</strong> &nbsp;info@myparcel.nl<br/>
+            <strong>Website </strong>www.myparcel.nl&nbsp;
+            <strong>IBAN </strong>NL48ABNA0447850539&nbsp;
+            <strong>KvK </strong>Amsterdam 34 09 97 58 <br/>
+            <strong>BTW-nr. </strong>NL8045.33.258.B01
+        </span>
+            <br/>
+            &nbsp;
+        </p>
+    </footer>
+</section>
+</body>
+</html>
