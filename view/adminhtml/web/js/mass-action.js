@@ -84,7 +84,7 @@ define(
 
                         return this;
                     }
-
+                     
                     if (('has_api_key' in this.options) && (this.options['has_api_key'] == false)) {
                         alert({title: 'No key found. Go to Configuration and then to MyParcel to enter the key.'});
 
