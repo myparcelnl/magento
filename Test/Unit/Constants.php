@@ -163,7 +163,6 @@ class Constants extends \PHPUnit_Framework_TestCase
 
     private function convertToOrder($cardId)
     {
-        $data = '{"paymentMethod":{"method":"checkmo"}}';
         $data = json_encode([
             "paymentMethod" => [
                 "method" => 'checkmo',
