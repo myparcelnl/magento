@@ -71,7 +71,6 @@ class UpdateStatus
     /**
      * Get all order to update the data
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @todo; Filter max date in the past
      */
     private function setOrdersToUpdate()
     {
