@@ -45,6 +45,11 @@ class MagentoOrderCollection
     public $request = null;
 
     /**
+     * @var \Magento\Framework\Mail\Template\TransportBuilder
+     */
+    private $transportBuilder;
+
+    /**
      * @var \Magento\Sales\Model\ResourceModel\Order\Collection
      */
     private $orders;
@@ -84,9 +89,9 @@ class MagentoOrderCollection
     /**
      * CreateAndPrintMyParcelTrack constructor.
      *
-     * @param ObjectManagerInterface                  $objectManagerInterface
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param null                                    $areaList
+     * @param ObjectManagerInterface                            $objectManagerInterface
+     * @param \Magento\Framework\App\RequestInterface           $request
+     * @param null                                              $areaList
      */
     public function __construct(ObjectManagerInterface $objectManagerInterface, $request = null, $areaList = null)
     {
@@ -97,6 +102,7 @@ class MagentoOrderCollection
 
         $this->objectManager = $objectManagerInterface;
         $this->request = $request;
+        $this->transportBuilder = $this->objectManager->get('\Magento\Framework\Mail\Template\TransportBuilder');
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
@@ -363,6 +369,55 @@ class MagentoOrderCollection
         $this->myParcelCollection->setLatestData();
 
         return $this;
+    }
+
+    /**
+     * Send multiple emails with track and trace variable
+     *
+     * @return $this
+     */
+    public function sendTrackEmails()
+    {
+
+        foreach ($this->getOrders() as $order) {
+            $this->sendTrackEmailFromOrder($order);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     *
+     * @todo fill PostObject with more details from the order
+     */
+    private function sendTrackEmailFromOrder(Order $order)
+    {
+
+        $postObject = [
+            'order' => $order,/*
+            'shipment' => $shipment,*/
+            'barcode' => 'test12345barcode'
+        ];
+        $sender = [
+            'name' => 'Reindert',
+            'email' => 'reindert@myparcel.nl',
+        ];
+
+        $transport = $this->transportBuilder
+            ->setTemplateIdentifier('sales_email_track_template')
+            ->setTemplateOptions(
+                [
+                    'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
+                    'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
+                ]
+            )
+            ->setTemplateVars($postObject)
+            ->setFrom($sender)
+            ->addTo('reindert@myparcel.nl')
+            ->getTransport();
+
+        $transport->sendMessage();
     }
 
     /**

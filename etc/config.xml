@@ -30,7 +30,7 @@
                 <insurance_500_from_price>1</insurance_500_from_price>
             </options>
         </myparcelnl_magento_standard>
-        <sales_email>
+        <!--<sales_email>
             <track>
                 <enabled>1</enabled>
                 <template>sales_email_track_template</template>
@@ -38,6 +38,6 @@
                 <identity>sales</identity>
                 <copy_method>bcc</copy_method>
             </track>
-        </sales_email>
+        </sales_email>-->
     </default>
 </config>

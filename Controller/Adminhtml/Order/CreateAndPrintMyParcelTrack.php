@@ -47,7 +47,11 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         $this->modelOrder = $context->getObjectManager()->create(self::PATH_MODEL_ORDER);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection = new MagentoOrderCollection($context->getObjectManager(), $this->getRequest());
+        $this->orderCollection = new MagentoOrderCollection(
+            $context->getObjectManager(),
+            $this->getRequest(),
+            null
+        );
     }
 
     /**
@@ -95,6 +99,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             $this->orderCollection
                 ->setPdfOfLabels()
                 ->updateMagentoTrack()
+                ->sendTrackEmails()
                 ->downloadPdfOfLabels();
         }
     }

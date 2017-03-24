@@ -6,6 +6,6 @@
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Email:etc/email_templates.xsd">
-    <template id="sales_email_track_template" label="New Track" file="shipment_new.html" type="html" module="Magento_Sales" area="frontend"/>
-    <template id="sales_email_track_guest_template" label="New Track for Guest" file="shipment_new_guest.html" type="html" module="Magento_Sales" area="frontend"/>
+    <template id="sales_email_track_template" label="New Track" file="myemail.html" type="html" module="MyParcelNL_Magento" area="frontend"/>
+    <template id="sales_email_track_guest_template" label="New Track for Guest" file="myemail.html" type="html" module="MyParcelNL_Magento" area="frontend"/>
 </config>
