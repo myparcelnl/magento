@@ -12,10 +12,12 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
@@ -43,6 +45,11 @@ class MagentoOrderCollection
      * @var \Magento\Framework\App\RequestInterface
      */
     public $request = null;
+
+    /**
+     * @var TrackSender
+     */
+    private $trackSender;
 
     /**
      * @var \Magento\Sales\Model\ResourceModel\Order\Collection
@@ -84,9 +91,9 @@ class MagentoOrderCollection
     /**
      * CreateAndPrintMyParcelTrack constructor.
      *
-     * @param ObjectManagerInterface                  $objectManagerInterface
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param null                                    $areaList
+     * @param ObjectManagerInterface                            $objectManagerInterface
+     * @param \Magento\Framework\App\RequestInterface           $request
+     * @param null                                              $areaList
      */
     public function __construct(ObjectManagerInterface $objectManagerInterface, $request = null, $areaList = null)
     {
@@ -97,6 +104,7 @@ class MagentoOrderCollection
 
         $this->objectManager = $objectManagerInterface;
         $this->request = $request;
+        $this->trackSender = $this->objectManager->get('MyParcelNL\magento\Model\Order\Email\Sender\TrackSender');
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
@@ -363,6 +371,40 @@ class MagentoOrderCollection
         $this->myParcelCollection->setLatestData();
 
         return $this;
+    }
+
+    /**
+     * Send multiple emails with track and trace variable
+     *
+     * @return $this
+     */
+    public function sendTrackEmails()
+    {
+
+        foreach ($this->getOrders() as $order) {
+            $this->sendTrackEmailFromOrder($order);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Magento\Sales\Model\Order $order
+     *
+     * @todo fill PostObject with more details from the order
+     */
+    private function sendTrackEmailFromOrder(Order $order)
+    {
+        /**
+         * @var \Magento\Sales\Model\Order\Shipment $shipment
+         */
+        if ($this->trackSender->isEnabled()) {
+            foreach ($order->getShipmentsCollection() as $shipment) {
+                if ($shipment->getEmailSent() == null) {
+                    $this->trackSender->send($shipment);
+                }
+            }
+        }
     }
 
     /**

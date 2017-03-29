@@ -31,23 +31,14 @@ class CreateOrdersTest extends Constants
 
     public function testExecute()
     {
-        $this->setOrder();
-        sleep(0.5);
-        $this->setOrder();
-        sleep(0.5);
-        $this->setOrder();
-        sleep(0.5);
-        $this->setOrder();
-        sleep(0.5);
-        $this->setOrder();
-        sleep(0.5);
-        $this->setOrder();
-        sleep(0.5);
-        $this->setOrder();
-        sleep(0.5);
-        $this->setOrder();
-        sleep(0.5);
-        $this->setOrder();
+        $x = 1;
+
+        while($x <= 50) {
+            $this->setOrder();
+            sleep(0.1);
+            $x++;
+        }
+
         $orderId = $this->setOrder();
         $this->assertEquals(true, is_numeric($orderId));
     }
