@@ -32,11 +32,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     private $orderCollection;
 
     /**
-     * @var Order
-     */
-    private $modelOrder;
-
-    /**
      * CreateAndPrintMyParcelTrack constructor.
      *
      * @param Context $context
@@ -45,7 +40,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     {
         parent::__construct($context);
 
-        $this->modelOrder = $context->getObjectManager()->create(self::PATH_MODEL_ORDER);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->orderCollection = new MagentoOrderCollection(
             $context->getObjectManager(),
@@ -81,6 +75,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         if (empty($orderIds)) {
             throw new LocalizedException(__('No items selected'));
         }
+
+        $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
         $this->addOrdersToCollection($orderIds);
         $this->orderCollection

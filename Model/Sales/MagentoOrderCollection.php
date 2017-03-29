@@ -12,10 +12,12 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
@@ -45,9 +47,9 @@ class MagentoOrderCollection
     public $request = null;
 
     /**
-     * @var \Magento\Framework\Mail\Template\TransportBuilder
+     * @var TrackSender
      */
-    private $transportBuilder;
+    private $trackSender;
 
     /**
      * @var \Magento\Sales\Model\ResourceModel\Order\Collection
@@ -102,7 +104,7 @@ class MagentoOrderCollection
 
         $this->objectManager = $objectManagerInterface;
         $this->request = $request;
-        $this->transportBuilder = $this->objectManager->get('\Magento\Framework\Mail\Template\TransportBuilder');
+        $this->trackSender = $this->objectManager->get('MyParcelNL\magento\Model\Order\Email\Sender\TrackSender');
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
@@ -393,31 +395,16 @@ class MagentoOrderCollection
      */
     private function sendTrackEmailFromOrder(Order $order)
     {
-
-        $postObject = [
-            'order' => $order,/*
-            'shipment' => $shipment,*/
-            'barcode' => 'test12345barcode'
-        ];
-        $sender = [
-            'name' => 'Reindert',
-            'email' => 'reindert@myparcel.nl',
-        ];
-
-        $transport = $this->transportBuilder
-            ->setTemplateIdentifier('sales_email_track_template')
-            ->setTemplateOptions(
-                [
-                    'area' => \Magento\Framework\App\Area::AREA_FRONTEND,
-                    'store' => \Magento\Store\Model\Store::DEFAULT_STORE_ID,
-                ]
-            )
-            ->setTemplateVars($postObject)
-            ->setFrom($sender)
-            ->addTo('reindert@myparcel.nl')
-            ->getTransport();
-
-        $transport->sendMessage();
+        /**
+         * @var \Magento\Sales\Model\Order\Shipment $shipment
+         */
+        if ($this->trackSender->isEnabled()) {
+            foreach ($order->getShipmentsCollection() as $shipment) {
+                if ($shipment->getEmailSent() == null) {
+                    $this->trackSender->send($shipment);
+                }
+            }
+        }
     }
 
     /**
