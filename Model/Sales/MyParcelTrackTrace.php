@@ -107,7 +107,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         }
 
         $this
-            ->setApiKey($this->helper->getGeneralConfig('api/key'))
+            ->setApiKey($this->helper->getGeneralConfig('api/key', $magentoTrack->getShipment()->getOrder()->getStoreId()))
             ->setReferenceId($magentoTrack->getEntityId())
             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
