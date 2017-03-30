@@ -104,7 +104,7 @@ class MagentoOrderCollection
 
         $this->objectManager = $objectManagerInterface;
         $this->request = $request;
-        $this->trackSender = $this->objectManager->get('MyParcelNL\magento\Model\Order\Email\Sender\TrackSender');
+        $this->trackSender = $this->objectManager->get('MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender');
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
