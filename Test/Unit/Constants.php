@@ -125,7 +125,7 @@ class Constants extends \PHPUnit_Framework_TestCase
     {
         $data = ["addressInformation" => [
             "shipping_address" => [
-                "email" => "reindert-test@myparcel.nl",
+                "email" => "reindert@myparcel.nl",
                 "countryId" => "NL",
                 "regionId" => "0",
                 "region" => "",
@@ -163,7 +163,6 @@ class Constants extends \PHPUnit_Framework_TestCase
 
     private function convertToOrder($cardId)
     {
-        $data = '{"paymentMethod":{"method":"checkmo"}}';
         $data = json_encode([
             "paymentMethod" => [
                 "method" => 'checkmo',

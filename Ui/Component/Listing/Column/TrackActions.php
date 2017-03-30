@@ -58,7 +58,6 @@ class TrackActions extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-
                 if ($item['track_status'] == null) {
                     $item[$this->getData('name')]['action-download_package_label'] = [
                         'href' => $this->urlBuilder->getUrl(
@@ -114,7 +113,7 @@ class TrackActions extends Column
                                 'order_id' => $item['entity_id']
                             ]
                         ),
-                        'label' => __('Ship'),
+                        'label' => __('Create shipment'),
                         'hidden' => false,
                     ];
                 } else {

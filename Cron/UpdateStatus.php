@@ -71,7 +71,6 @@ class UpdateStatus
     /**
      * Get all order to update the data
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @todo; Filter max date in the past
      */
     private function setOrdersToUpdate()
     {
@@ -84,8 +83,6 @@ class UpdateStatus
 
     /**
      * @return array
-     *
-     * @todo; Support more than 30 orders
      */
     private function getOrderIdFromTrackToUpdate()
     {
@@ -99,7 +96,7 @@ class UpdateStatus
             ->addAttributeToFilter('myparcel_status', [0, 1, 2, 3, 4, 5, 6,])
             ->addAttributeToFilter('myparcel_consignment_id', array('notnull' => true))
             ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, MyParcelTrackTrace::MYPARCEL_CARRIER_CODE)
-            ->setPageSize(30)
+            ->setPageSize(300)
             ->setOrder('order_id', 'DESC');
 
         return array_unique(array_column($trackCollection->getData(), 'order_id'));

@@ -38,7 +38,7 @@ class Data extends AbstractHelper
 
     /**
      * @param string $code
-     * @param null   $storeId
+     * @param int    $storeId
      *
      * @return mixed
      */
