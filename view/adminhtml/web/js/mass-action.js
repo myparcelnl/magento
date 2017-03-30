@@ -152,19 +152,19 @@ define(
 
                     if (selectAmount != 0) {
                         if (selectAmount >= 1) {
-                            $('#mypa_position-1').prop('checked', true);
-                        }
-
-                        if (selectAmount >= 2) {
                             $('#mypa_position-2').prop('checked', true);
                         }
 
+                        if (selectAmount >= 2) {
+                            $('#mypa_position-4').prop('checked', true);
+                        }
+
                         if (selectAmount >= 3) {
-                            $('#mypa_position-3').prop('checked', true);
+                            $('#mypa_position-1').prop('checked', true);
                         }
 
                         if (selectAmount >= 4) {
-                            $('#mypa_position-4').prop('checked', true);
+                            $('#mypa_position-3').prop('checked', true);
                         }
                     }
 
