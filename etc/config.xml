@@ -33,8 +33,6 @@
         <sales_email>
             <track>
                 <enabled>1</enabled>
-                <template>sales_email_shipment_template</template>
-                <guest_template>sales_email_shipment_guest_template</guest_template>
                 <identity>sales</identity>
                 <copy_method>bcc</copy_method>
             </track>
