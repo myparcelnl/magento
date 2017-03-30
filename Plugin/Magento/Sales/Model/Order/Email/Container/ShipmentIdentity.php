@@ -21,7 +21,6 @@ use Magento\Framework\App\ObjectManager;
 
 class ShipmentIdentity
 {
-
     public function afterIsEnabled(
         \Magento\Sales\Model\Order\Email\Container\ShipmentIdentity $subject,
         $result
