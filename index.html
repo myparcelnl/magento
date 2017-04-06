@@ -52,27 +52,40 @@
     <div class="menu"></div>
     <div>
 
-        <h1 id="1">1 Technische vereisten</h1>
-        <p>
-          De MyParcel Magento 2 extensie is nog niet te downloaden via de Magento Extensions Store.<br></br>
-
-          Deze is te verkrijgen via de terminal, raadpleeg jouw webbeheerder.<br>
-          Jouw webbeheerder kan het volgende commando uitvoeren:<br>
-          <span class="nice">composer require myparcelnl/magento</span>
-        </p>
+        <h1 id="1">1 Installatie en update</h1>
 
         <h2 id="1_1">1.1 Technische vereisten</h2>
         <p>
-            Om de MyParcel Magento 2 extensie te gebruiken dient uw server aan de onderstaande vereisten te voldoen:
+            Om de MyParcel Magento 2 extensie te gebruiken dient uw server aan één van de volgende onderstaande vereisten te voldoen:
         </p>
         <ul>
-            <li>Minimaal PHP versie 5.6</li>
-
+            <li>PHP versie 5.6</li>
+            <li>PHP versie 7 of hoger</li>
         </ul>
         <p>
-            De onderstaande Magento versie wordt ondersteund:<br>
+            De onderstaande Magento versie wordt ondersteund:
+        </p>
+        <ul>
+            <li>Community  2.1</li>
+        </ul>
 
-            Community  2.1
+        <h2 id="1_2">1.2 Installatie</h2>
+        <p>
+          De MyParcel Magento 2 extensie is niet te downloaden via de Magento Marketplace.<br></br>
+
+          Voor het installeren adviseren wij om een backup te maken van jouw Magento omgeving. De extensie is te verkrijgen via de terminal, raadpleeg jouw webbeheerder. Jouw webbeheerder kan het volgende commando uitvoeren om de MyParcel extensie te installeren:<br>
+          <span class="nice">composer require myparcelnl/magento</span><br>
+          <br>
+          Om de cache te legen en andere benodigde acties van Magento 2 uit te voeren gebruik het volgende commando:
+          <span class="nice">rm -rf pub/static/* && rm -rf var/cache/* && rm -rf var/pagecache/* && rm -rf var/generation/* && rm -rf var/dir/* && rm -rf var/view_preprocessed/* && bin/magento cache:flush && bin/magento setup:upgrade && bin/magento setup:static-content:deploy && bin/magento indexer:reindex</span>
+        </p>
+        <h2 id="1_3">1.3 Update</h2>
+        <p>
+          Om een update uit te voeren kun je het volgende commando gebruiken:<br>
+          <span class="nice">composer update myparcelnl/magento</span><br>
+          <br>
+          Om de cache te legen en andere benodigde acties van Magento 2 uit te voeren gebruik het volgende commando:
+          <span class="nice">rm -rf pub/static/* && rm -rf var/cache/* && rm -rf var/pagecache/* && rm -rf var/generation/* && rm -rf var/dir/* && rm -rf var/view_preprocessed/* && bin/magento cache:flush && bin/magento setup:upgrade && bin/magento setup:static-content:deploy && bin/magento indexer:reindex</span>
         </p>
 
         <h1 id="2">2 Configuratie</h1>
@@ -182,6 +195,13 @@
                   verzendlabels. Mocht je order al verzonden zijn, dan kan je hier het label nogmaals downloaden.</li><br><br/>
             </ul>
               <img src="media/popup.png">
+
+              <h2 id="3_3">3.3 Track&Trace e-mail template</h2>
+          <p>
+              Wanneer er een orderbevestigingsmail naar de klant gestuurd wordt vanuit Magento neemt deze de barcode van de zending automatisch mee.
+               Dit hoeft nu niet apart ingesteld te worden.
+          </p>
+
       </div>
 
     <footer class="site-footer">
