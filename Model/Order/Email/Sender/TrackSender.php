@@ -27,7 +27,6 @@ use Magento\Sales\Model\Order\Address\Renderer;
 use Magento\Framework\Event\ManagerInterface;
 use MyParcelNL\Magento\Model\Order\Email\Container\TrackIdentity;
 
-
 class TrackSender extends Sender
 {
     /**

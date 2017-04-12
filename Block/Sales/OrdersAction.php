@@ -32,12 +32,12 @@ class OrdersAction extends Template
 
     /**
      * @param Context $context
-     * @param array $data
+     * @param array   $data
      */
     public function __construct(
         Context $context,
-        array $data = [])
-    {
+        array $data = []
+    ) {
         $this->objectManager = ObjectManager::getInstance();
         $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Data');
         parent::__construct($context, $data);
@@ -49,6 +49,7 @@ class OrdersAction extends Template
     public function hasApiKey()
     {
         $apiKey = $this->helper->getGeneralConfig('api/key');
+
         return $apiKey == '' ? 'false' : 'true';
     }
 
@@ -61,6 +62,7 @@ class OrdersAction extends Template
     public function getPrintSettings()
     {
         $settings = $this->helper->getGeneralConfig('print');
+
         return json_encode($settings);
     }
 }
