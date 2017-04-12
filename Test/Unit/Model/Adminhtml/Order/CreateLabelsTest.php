@@ -35,7 +35,7 @@ class CreateLabelsTest extends Constants
     {
         $numberOfOrders = 1;
         $orders = [];
-        while($numberOfOrders <= 30) {
+        while ($numberOfOrders <= 30) {
             $orders[] = $this->setOrder();
             $numberOfOrders++;
         }

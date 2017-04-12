@@ -36,7 +36,9 @@ class Constants extends \PHPUnit_Framework_TestCase
         $ch = curl_init(self::BASE_URL . $uri);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token)]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token)
+        ]);
 
         $result = curl_exec($ch);
 
@@ -49,7 +51,10 @@ class Constants extends \PHPUnit_Framework_TestCase
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token), "Content-Lenght: " . strlen($body)]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token),
+            "Content-Lenght: " . strlen($body)
+        ]);
 
         return curl_exec($ch);
     }
@@ -60,7 +65,10 @@ class Constants extends \PHPUnit_Framework_TestCase
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
         curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ["Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token), "Content-Lenght: " . strlen($body)]);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json", "Authorization: Bearer " . json_decode($this->token),
+            "Content-Lenght: " . strlen($body)
+        ]);
 
         return curl_exec($ch);
     }
@@ -82,6 +90,7 @@ class Constants extends \PHPUnit_Framework_TestCase
         $this->addBillingAddress($cardId);
         $result = $this->convertToOrder($cardId);
         $orderId = json_decode($result);
+
         return $orderId;
     }
 
@@ -158,7 +167,10 @@ class Constants extends \PHPUnit_Framework_TestCase
             "shipping_carrier_code" => "flatrate",
         ]];
 
-        return $this->sendPostRequest(self::API_PREFIX . 'guest-carts/' . $cardId . '/shipping-information', json_encode($data));
+        return $this->sendPostRequest(
+            self::API_PREFIX . 'guest-carts/' . $cardId . '/shipping-information',
+            json_encode($data)
+        );
     }
 
     private function convertToOrder($cardId)

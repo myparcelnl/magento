@@ -106,8 +106,17 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             $options['package_type'] = 1;
         }
 
+        if ($options['insurance'] !== null) {
+            $insurance = $options['insurance'];
+        } else {
+            $insurance = self::$defaultOptions->getDefaultInsurance();
+        }
+
         $this
-            ->setApiKey($this->helper->getGeneralConfig('api/key', $magentoTrack->getShipment()->getOrder()->getStoreId()))
+            ->setApiKey($this->helper->getGeneralConfig(
+                'api/key',
+                $magentoTrack->getShipment()->getOrder()->getStoreId()
+            ))
             ->setReferenceId($magentoTrack->getEntityId())
             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
@@ -124,7 +133,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
-            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance());
+            ->setInsurance($insurance);
 
         return $this;
     }
