@@ -84,6 +84,8 @@ class UpdateStatus
     }
 
     /**
+     * Get all ids from orders that need to be updated
+     *
      * @return array
      */
     private function getOrderIdFromTrackToUpdate()
@@ -105,6 +107,8 @@ class UpdateStatus
     }
 
     /**
+     * Get collection from order ids
+     *
      * @param $orderIds int[]
      */
     private function addOrdersToCollection($orderIds)

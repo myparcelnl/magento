@@ -48,7 +48,7 @@ class TrackActions extends Column
     }
 
     /**
-     * Prepare Data Source
+     * Set MyParcel order grid actions
      *
      * @param array $dataSource
      *

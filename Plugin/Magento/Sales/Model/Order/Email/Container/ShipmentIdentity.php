@@ -21,6 +21,16 @@ use Magento\Framework\App\ObjectManager;
 
 class ShipmentIdentity
 {
+    /**
+     * Avoid default email is sent.
+     *
+     * With a MyParcel shipment, the mail should be sent only if the barcode exists.
+     *
+     * @param \Magento\Sales\Model\Order\Email\Container\ShipmentIdentity $subject
+     * @param                                                             $result
+     *
+     * @return bool
+     */
     public function afterIsEnabled(
         \Magento\Sales\Model\Order\Email\Container\ShipmentIdentity $subject,
         $result

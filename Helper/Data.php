@@ -26,6 +26,8 @@ class Data extends AbstractHelper
     const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
 
     /**
+     * Get settings by field
+     *
      * @param      $field
      * @param null $storeId
      *
@@ -37,6 +39,8 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Get general settings
+     *
      * @param string $code
      * @param int    $storeId
      *
@@ -48,6 +52,8 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Get default settings
+     *
      * @param string $code
      * @param null   $storeId
      *

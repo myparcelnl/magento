@@ -112,6 +112,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Set options from POST or GET variables
+     *
      * @return $this
      */
     public function setOptionsFromParameters()
@@ -149,6 +151,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Get all options
+     *
      * @return array
      */
     public function getOptions()
@@ -157,6 +161,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Get option by key
+     *
      * @param $option
      *
      * @return mixed
@@ -167,6 +173,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Add MyParcel consignment to collection
+     *
      * @param $myParcelConsignment MyParcelConsignmentRepository
      *
      * @return $this
@@ -180,6 +188,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Get all Magento orders
+     *
      * @return \Magento\Sales\Model\ResourceModel\Order\Collection
      */
     public function getOrders()
@@ -188,6 +198,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Set Magento collection
+     *
      * @param $orderCollection \Magento\Sales\Model\ResourceModel\Order\Collection
      *
      * @return $this
@@ -200,7 +212,7 @@ class MagentoOrderCollection
     }
 
     /**
-     * Set existing or create new Magento track and set API consignment to collection
+     * Set existing or create new Magento Track and set API consignment to collection
      *
      * @throws \Exception
      * @throws LocalizedException
@@ -221,7 +233,7 @@ class MagentoOrderCollection
     }
 
     /**
-     * @param bool $createIfOneAlreadyExists Create track if one already exists
+     * Create new Magento Track and save order
      *
      * @return $this
      */
@@ -247,6 +259,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Check if shipment already exists
+     *
      * @param $shipment
      *
      * @return bool
@@ -267,6 +281,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Create new Magento Track
+     *
      * @param Order\Shipment $shipment
      *
      * @return mixed
@@ -288,6 +304,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Add MyParcel Track from Magento Track
+     *
      * @return $this
      * @throws \Exception
      *
@@ -314,6 +332,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Set PDF content and convert status 'Concept' to 'Registered'
+     *
      * @return $this
      */
     public function setPdfOfLabels()
@@ -324,6 +344,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Download PDF directly
+     *
      * @return $this
      * @throws \Exception
      */
@@ -335,6 +357,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Create MyParcel concepts and update Magento Track
+     *
      * @return $this
      */
     public function createMyParcelConcepts()
@@ -364,6 +388,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Update MyParcel collection
+     *
      * @return $this
      */
     public function setLatestData()
@@ -374,7 +400,7 @@ class MagentoOrderCollection
     }
 
     /**
-     * Send multiple emails with track and trace variable
+     * Send multiple shipment emails with Track and trace variable
      *
      * @return $this
      */
@@ -389,9 +415,9 @@ class MagentoOrderCollection
     }
 
     /**
-     * @param \Magento\Sales\Model\Order $order
+     * Send shipment email with Track and trace variable
      *
-     * @todo fill PostObject with more details from the order
+     * @param \Magento\Sales\Model\Order $order
      */
     private function sendTrackEmailFromOrder(Order $order)
     {
@@ -408,6 +434,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Get MyParcel Track from Magento Track
+     *
      * @param Order\Shipment\Track $magentoTrack
      *
      * @return MyParcelTrackTrace $myParcelTrack
@@ -483,6 +511,9 @@ class MagentoOrderCollection
 
     /**
      * Update all the tracks that made created via the API
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function updateMagentoTrack()
     {
@@ -514,6 +545,9 @@ class MagentoOrderCollection
 
     /**
      * Update column track_status in sales_order_grid
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function updateOrderGrid()
     {
@@ -540,6 +574,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Update sales_order table
+     *
      * @param $order Order
      *
      * @return array
@@ -566,7 +602,7 @@ class MagentoOrderCollection
          */
         foreach ($order->getShipmentsCollection() as $shipment) {
             foreach ($shipment->getTracksCollection() as $track) {
-                // Set all track data in array
+                // Set all Track data in array
                 if ($track->getData('myparcel_status') !== null) {
                     $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
                 }
