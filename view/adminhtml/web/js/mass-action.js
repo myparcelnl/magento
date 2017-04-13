@@ -120,7 +120,9 @@ define(
                  * Translate html templates
                  **/
                 _translateTemplate: function () {
-                    /* Magento only index these variables in js-translation if you define */
+                    /*
+                    Magento only index these variables in js-translation if you define
+                    $.mage.__('Action type');
                     $.mage.__('Download label');
                     $.mage.__('Concept');
                     $.mage.__('Package Type');
@@ -128,6 +130,7 @@ define(
                     $.mage.__('Mailbox');
                     $.mage.__('Letter');
                     $.mage.__('Print position');
+                    */
 
                     $($.parseHTML(template)).find("[trans]").each(function( index ) {
                         var oldElement = $(this).get(0).outerHTML;
