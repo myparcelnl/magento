@@ -11,7 +11,24 @@
     <link href="css/stylesheet.css" media="screen" rel="stylesheet" type="text/css"/>
     <link href="css/github-light.css" media="screen" rel="stylesheet" type="text/css"/>
     <script src="js/jquery-3.0.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
     <script src="js/auto_menu.js"></script>
+    <script>
+      $( function() {
+        $( ".accordion" ).accordion({
+          collapsible: true,
+          active: false
+        });
+      } );
+    </script>
+    <style>
+      .accordion {
+        border-radius: 5px;
+        border: solid #dd5735 1px;
+        display: inline-block;
+        padding: 15px;
+      }
+    </style>
 </head>
 <body>
 <section class="page-header">
@@ -73,8 +90,22 @@
         <p>
           De MyParcel Magento 2 extensie is niet te downloaden via de Magento Marketplace.<br></br>
 
-          Voor het installeren adviseren wij om een backup te maken van jouw Magento omgeving. De extensie is te verkrijgen via de terminal, raadpleeg jouw webbeheerder. Jouw webbeheerder kan het volgende commando uitvoeren om de MyParcel extensie te installeren:<br>
+          Voor het installeren adviseren wij om een backup te maken van jouw Magento omgeving. De extensie is te verkrijgen via de terminal, raadpleeg jouw webbeheerder. Jouw webbeheerder kan het volgende commando in de root van de website (in bv. public_html) uitvoeren om de MyParcel extensie te installeren:<br>
           <span class="nice">composer require myparcelnl/magento</span><br>
+          <br>
+
+          <div class="accordion">
+            <a style="cursor:pointer; outline: none;"><img src="media/icons/ic_arrow_drop_down_black_24dp_1x.png" style="margin-bottom: -5px;"> Installeer je voor het eerst een extensie in jouw Magento omgeving?</a>
+            <div style="margin-top:10px">
+              Dan bestaat de kans dat je de volgende melding krijgt:<br><br>
+              <img src="media/composerupdate.png"><br><br>
+              Om de Username en Password te verkrijgen ga je naar <a href="https://marketplace.magento.com" target="_blank">https://marketplace.magento.com</a>. Hier kun je een account aanmaken en inloggen. Ga daarna in <span class="nice">My Account</span> naar <span class="nice">Marketplace</span>. Klik vervolgens op <span class="nice">My Access Keys</span> en op <span class="nice">Magento 2</span>.
+              <img src="media/magento_marketplace_start.png"><br><br>
+              Hier zie je public key en een private key. De public key kan je in de terminal gebruiken als username en de private key kan je gebruiken als Password. Zie je de keys nog niet? Klik dan op Create A New Access Key.<br><br>
+              <img src="media/marketplace_key.png">
+            </div>
+          </div>
+          <br>
           <br>
           Om de cache te legen en andere benodigde acties van Magento 2 uit te voeren gebruik het volgende commando:
           <span class="nice">rm -rf pub/static/* && rm -rf var/cache/* && rm -rf var/pagecache/* && rm -rf var/generation/* && rm -rf var/dir/* && rm -rf var/view_preprocessed/* && bin/magento cache:flush && bin/magento setup:upgrade && bin/magento setup:static-content:deploy && bin/magento indexer:reindex</span>
