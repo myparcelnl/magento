@@ -1,6 +1,6 @@
 <?php
 /**
- * Render support tab block
+ * Show MyParcel options in config support tab
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -18,24 +18,12 @@
 
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
-use Magento\Framework\Data\Form\Element\AbstractElement;
-
-class SupportTab extends \Magento\Backend\Block\AbstractBlock implements
-    \Magento\Framework\Data\Form\Element\Renderer\RendererInterface
+class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
 {
-    /**
-     * Render fieldset html
-     *
-     * @param AbstractElement $element
-     * @return string
-     */
-    public function render(AbstractElement $element)
+    public function getCssUrl()
     {
-        $template = $this->getLayout()
-            ->createBlock('MyParcelNL\Magento\Block\System\Config\Form\SupportTabRepository')
-            ->setTemplate('MyParcelNL_Magento::support_tab.phtml')
-            ->toHtml();
+        $cssUrl = $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/support_tab/style.css')->getUrl();
 
-        return $template;
+        return $cssUrl;
     }
 }
