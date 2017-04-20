@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\magento\Block\System\Config\Form;
+namespace MyParcelNL\Magento\Block\System\Config\Form;
 
 use Magento\Framework\Data\Form\Element\AbstractElement;
 
