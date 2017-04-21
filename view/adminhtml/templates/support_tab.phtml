@@ -1,9 +1,114 @@
 <?php
 /** @var $block \MyParcelNL\Magento\Block\System\Config\Form\SupportTabRepository */
-        ?>
+?>
+
 <link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css" />
 
 <div class="version_support">
-    <h2><?= __('Version and support');?></h2>
+    <table cellspacing="0" class="form-list">
+        <tbody>
+            <tr>
+                <td>
+                    <h2><?= __('Version and support');?></h2>
+
+                    <h2>MyParcel version <?= $block->getVersion(); ?></h2>
+                    <table id="supportWrap" cellpadding="0" cellspacing="0">
+                        <tbody><tr>
+                            <td colspan="3">
+                                <div class="myparcel_instructions">
+                                    To read the instructions for the MyParcel Magento extension, click <a target="_blank" href="https://myparcelnl.github.io/magento/">here</a>.
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td class="col-left">
+                                <div class="text-box myparcel_instructions">
+                                    <h3>When using the extension please note:</h3>
+                                    <ol>
+                                        <li>To be able to configure the extension you need to possess and use an active MyParcel account.</li>
+                                        <li>During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.</li>
+                                    </ol>
+                                </div>
+                                <div class="text-box myparcel_instructions">
+                                    <h3>Magento &amp; 3rd party version compatibility</h3>
+                                    <p>We cannot guarantee perfect functionality of the MyParcel extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact MyParcel.</p>
+
+                                </div>
+                            </td>
+
+                            <td class="col-faux"></td>
+
+                            <td class="col-right myparcel_instructions myparcel_support">
+                                <div class="text-box">
+                                    <h3>Support</h3>
+                                    <h4>Questions and information about your MyParcel account</h4>
+                                    <p>For questions related to your MyParcel account, configuration problems, extension conflicts and bugs, please contact MyParcel.</p>
+                                    <table class="support_contact">
+                                        <tbody><tr>
+                                            <td class="version_contact_first">MyParcel:</td>
+                                            <td class="last">
+                                                <a target="_blank" href="http://www.myparcel.nl">www.myparcel.nl</a>
+                                            </td>
+                                            <td rowspan="3">
+                                                <a class="logo_image" href="http://www.myparcel.nl" target="_blank">
+                                                    <img src="http://192.168.16.81/magento/skin/adminhtml/default/default/images/TIG/MyParcel2014/logo_myparcel.png" alt="">
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="version_contact_first">Phone:</td>
+                                            <td class="last">023 - 30 30 315</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="version_contact_first">Email:</td>
+                                            <td class="last"><a href="mailto:info@myparcel.nl">info@myparcel.nl</a></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                    <h3 class="support">Documents</h3>
+                                    <ul>
+                                        <li>
+                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases/latest">
+                                                Latest stable release
+                                            </a>  <span id="current_version"></span>
+                                            <script>
+                                                require(['jquery'], function($){
+                                                    $.get('https://api.github.com/repos/myparcelnl/magento/releases/latest', function (data) {
+                                                        $('#current_version').html('(' + data.name + ')');
+                                                    });
+                                                });
+                                            </script>
+                                        </li>
+                                        <li>
+                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases" title="Full changelog">Full changelog</a>
+                                        </li>
+                                        <li>
+                                            <a class="link" target="_blank" href="https://myparcelnl.github.io/magento/" title="Installation and configuration instructions">Installation and configuration instructions</a>
+                                        </li>
+                                        <li>
+                                            <a class="link" target="_blank" href="https://myparcelnl.github.io/magento/#6" title="View all articles in the knowledgebase">View all articles in the knowledgebase</a>
+                                        </li>
+                                        <li>
+                                            <a class="link" target="_blank" href="https://backoffice.myparcel.nl/settings" title="MyParcel backoffice"> MyParcel backoffice</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <div class="mypa_columns"></div>
 </div>
 
+<script type="text/x-magento-init">
+   {
+       ".mypa_columns": {
+           "myparcelnl_supporttab": {}
+        }
+   }
+</script>
