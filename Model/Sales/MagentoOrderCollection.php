@@ -33,6 +33,7 @@ class MagentoOrderCollection
     const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
     const PATH_ORDER_GRID = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
     const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
+    const PATH_MANAGER_INTERFACE = '\Magento\Framework\Message\ManagerInterface';
     const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
     const URL_SHOW_POSTNL_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
 
@@ -76,6 +77,11 @@ class MagentoOrderCollection
      */
     private $areaList;
 
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface $messageManager
+     */
+    private $messageManager;
+
     private $options = [
         'create_track_if_one_already_exist' => true,
         'request_type' => 'download',
@@ -108,6 +114,7 @@ class MagentoOrderCollection
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
+        $this->messageManager = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = new MyParcelCollection();
     }
 
@@ -319,6 +326,9 @@ class MagentoOrderCollection
          * @var Order\Shipment\Track $magentoTrack
          */
         foreach ($this->getOrders() as $order) {
+            if ($order->getShipmentsCollection()->getSize() == 0) {
+                $this->messageManager->addError('This order does not contain any shipment, and no shipment can be made with this order.');
+            }
             foreach ($order->getShipmentsCollection() as $shipment) {
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE) {
