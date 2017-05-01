@@ -33,8 +33,10 @@ class MagentoOrderCollection
     const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
     const PATH_ORDER_GRID = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
     const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
+    const PATH_MANAGER_INTERFACE = '\Magento\Framework\Message\ManagerInterface';
     const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
     const URL_SHOW_POSTNL_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
+    const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
 
     /**
      * @var MyParcelCollection
@@ -76,6 +78,11 @@ class MagentoOrderCollection
      */
     private $areaList;
 
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface $messageManager
+     */
+    private $messageManager;
+
     private $options = [
         'create_track_if_one_already_exist' => true,
         'request_type' => 'download',
@@ -91,9 +98,9 @@ class MagentoOrderCollection
     /**
      * CreateAndPrintMyParcelTrack constructor.
      *
-     * @param ObjectManagerInterface                            $objectManagerInterface
-     * @param \Magento\Framework\App\RequestInterface           $request
-     * @param null                                              $areaList
+     * @param ObjectManagerInterface                  $objectManagerInterface
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param null                                    $areaList
      */
     public function __construct(ObjectManagerInterface $objectManagerInterface, $request = null, $areaList = null)
     {
@@ -108,6 +115,7 @@ class MagentoOrderCollection
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
+        $this->messageManager = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = new MyParcelCollection();
     }
 
@@ -233,6 +241,24 @@ class MagentoOrderCollection
     }
 
     /**
+     * Check if there is 1 shipment in all orders
+     *
+     * @return bool
+     */
+    public function hasShipment()
+    {
+        /** @var $order Order */
+        /** @var Order\Shipment $shipment */
+        foreach ($this->getOrders() as $order) {
+            if ($order->hasShipments()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Create new Magento Track and save order
      *
      * @return $this
@@ -319,6 +345,9 @@ class MagentoOrderCollection
          * @var Order\Shipment\Track $magentoTrack
          */
         foreach ($this->getOrders() as $order) {
+            if ($order->getShipmentsCollection()->getSize() == 0) {
+                $this->messageManager->addError(self::ERROR_ORDER_HAS_NO_SHIPMENT);
+            }
             foreach ($order->getShipmentsCollection() as $shipment) {
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE) {
@@ -526,7 +555,9 @@ class MagentoOrderCollection
             foreach ($order->getShipmentsCollection() as $shipment) {
                 $trackCollection = $shipment->getTracksCollection();
                 foreach ($trackCollection as $magentoTrack) {
-                    $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId($magentoTrack->getData('myparcel_consignment_id'));
+                    $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
+                        $magentoTrack->getData('myparcel_consignment_id')
+                    );
 
                     $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
 
