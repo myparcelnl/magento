@@ -61,6 +61,8 @@ class NewShipment implements ObserverInterface
     }
 
     /**
+     * Create MyParcel concept
+     *
      * @param Observer $observer
      *
      * @return $this
@@ -75,6 +77,8 @@ class NewShipment implements ObserverInterface
     }
 
     /**
+     * Set MyParcel Tracks and update order grid
+     *
      * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
      * @throws \Exception
@@ -109,6 +113,10 @@ class NewShipment implements ObserverInterface
     }
 
     /**
+     * Update sales_order
+     *
+     * Magento puts our two columns sales_order automatically to sales_order_grid
+     *
      * @param MyParcelTrackTrace                  $myParcelTrack
      * @param \Magento\Sales\Model\Order\Shipment $shipment
      */

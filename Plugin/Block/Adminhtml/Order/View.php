@@ -16,6 +16,11 @@ namespace MyParcelNL\Magento\Plugin\Block\Adminhtml\Order;
 
 class View
 {
+    /**
+     * Add MyParcel label print button to order detail page
+     *
+     * @param \Magento\Sales\Block\Adminhtml\Order\View $view
+     */
     public function beforeSetLayout(\Magento\Sales\Block\Adminhtml\Order\View $view)
     {
         $view->addButton(

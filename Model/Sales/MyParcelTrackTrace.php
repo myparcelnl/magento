@@ -71,6 +71,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Create Magento Track from Magento shipment
+     *
      * @param Order\Shipment $shipment
      *
      * @return $this
@@ -91,6 +93,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Set all data to MyParcel object
+     *
      * @param Order\Shipment\Track $magentoTrack
      * @param array                $options
      *
@@ -157,6 +161,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Get default value if option === null
+     *
      * @param $options[]
      * @param $optionKey
      *
