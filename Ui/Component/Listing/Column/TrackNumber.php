@@ -24,6 +24,8 @@ use \Magento\Framework\Api\SearchCriteriaBuilder;
 class TrackNumber extends Column
 {
     /**
+     * Set column MyParcel barcode to order grid
+     *
      * @param array $dataSource
      *
      * @return array

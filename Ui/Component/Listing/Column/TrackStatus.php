@@ -24,6 +24,8 @@ use \Magento\Framework\Api\SearchCriteriaBuilder;
 class TrackStatus extends Column
 {
     /**
+     * Set column MyParcel track status to order grid
+     *
      * @param array $dataSource
      *
      * @return array

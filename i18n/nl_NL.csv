@@ -52,7 +52,7 @@ From price,Vanaf prijs
 Track number,Track nummer
 Track status,Track status
 Track action,Track actie
-MyParcel options, MyParcel opties
+MyParcel options,MyParcel opties
 Package,Pakket
 Mailbox,Brievenbuspakje
 Letter,Ongefrankeerd
@@ -67,9 +67,15 @@ Download letter label,Download ongefankeerd label
 Create new concept,Creëer nieuw concept
 Create shipment,Zending aanmaken
 Please select an item from the list,Selecteer eerst een order uit de lijst
+No key found. Go to Configuration and then to MyParcel to enter the key.,Geen API key gevonden. Ga naar Configuratie en vervolgens naar MyParcel om de API key in te voeren.
+"No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.","Er kan geen zending met deze bestelling gemaakt worden. Zendingen kunnen niet worden aangemaakt als de status 'Wordt vastgehouden' is of als het product digitaal is."
 MyParcel Track,MyParcel barcode
 Use Shipment template,Gebruik Verzending template
 Enable this option to add the MyParcel barcode in the email.,Activeer deze optie om de MyParcel barcode toe te voegen in de email.
 MyParcel Shipment Email Template,Sjabloon e-mail voor een MyParcel zending
 MyParcel Shipment Email Template for Guest,Sjabloon e-mail voor een MyParcel zending voor gast
 Use Shipment email template when "Default" option is selected.,Gebruik Verzending template als er gekozen is voor "Gebruik systeemwaarde".
+Action type,Actie
+Download label,Download label
+Package Type,Pakkettype
+Print position,Printpositie
