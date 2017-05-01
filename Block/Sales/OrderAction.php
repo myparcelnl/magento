@@ -42,6 +42,11 @@ class OrderAction extends OrdersAction
     }
 
     /**
+     * Check if Magento can create shipment
+     *
+     * Magento shipment contains one or more products. Magento shipments can never make more shipments than the number
+     * of products.
+     *
      * @return bool
      */
     public function canShip()

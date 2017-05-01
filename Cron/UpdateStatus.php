@@ -55,6 +55,7 @@ class UpdateStatus
 
     /**
      * Run the cron job
+     *
      * @return $this
      */
     public function execute()
@@ -70,8 +71,8 @@ class UpdateStatus
 
     /**
      * Get all order to update the data
+     *
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @todo; Filter max date in the past
      */
     private function setOrdersToUpdate()
     {
@@ -83,9 +84,9 @@ class UpdateStatus
     }
 
     /**
-     * @return array
+     * Get all ids from orders that need to be updated
      *
-     * @todo; Support more than 30 orders
+     * @return array
      */
     private function getOrderIdFromTrackToUpdate()
     {
@@ -96,16 +97,18 @@ class UpdateStatus
         $trackCollection = $this->objectManager->get(self::PATH_MODEL_ORDER_TRACK);
         $trackCollection
             ->addFieldToSelect('order_id')
-            ->addAttributeToFilter('myparcel_status', [0, 1, 2, 3, 4, 5, 6,])
-            ->addAttributeToFilter('myparcel_consignment_id', array('notnull' => true))
+            ->addAttributeToFilter('myparcel_status', [0, 1, 2, 3, 4, 5, 6])
+            ->addAttributeToFilter('myparcel_consignment_id', ['notnull' => true])
             ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, MyParcelTrackTrace::MYPARCEL_CARRIER_CODE)
-            ->setPageSize(30)
+            ->setPageSize(300)
             ->setOrder('order_id', 'DESC');
 
         return array_unique(array_column($trackCollection->getData(), 'order_id'));
     }
 
     /**
+     * Get collection from order ids
+     *
      * @param $orderIds int[]
      */
     private function addOrdersToCollection($orderIds)

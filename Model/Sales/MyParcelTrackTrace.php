@@ -71,6 +71,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Create Magento Track from Magento shipment
+     *
      * @param Order\Shipment $shipment
      *
      * @return $this
@@ -91,6 +93,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Set all data to MyParcel object
+     *
      * @param Order\Shipment\Track $magentoTrack
      * @param array                $options
      *
@@ -106,8 +110,17 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             $options['package_type'] = 1;
         }
 
+        if ($options['insurance'] !== null) {
+            $insurance = $options['insurance'];
+        } else {
+            $insurance = self::$defaultOptions->getDefaultInsurance();
+        }
+
         $this
-            ->setApiKey($this->helper->getGeneralConfig('api/key', $magentoTrack->getShipment()->getOrder()->getStoreId()))
+            ->setApiKey(
+                $this->helper->getGeneralConfig('api/key',
+                    $magentoTrack->getShipment()->getOrder()->getStoreId()
+                ))
             ->setReferenceId($magentoTrack->getEntityId())
             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
@@ -148,6 +161,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Get default value if option === null
+     *
      * @param $options[]
      * @param $optionKey
      *

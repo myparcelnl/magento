@@ -61,6 +61,8 @@ class NewShipment implements ObserverInterface
     }
 
     /**
+     * Create MyParcel concept
+     *
      * @param Observer $observer
      *
      * @return $this
@@ -68,12 +70,15 @@ class NewShipment implements ObserverInterface
     public function execute(Observer $observer)
     {
         if ($this->request->getParam('mypa_create_from_observer')) {
+            $this->request->setParams(['myparcel_track_email' => true]);
             $shipment = $observer->getEvent()->getShipment();
             $this->setMagentoAndMyParcelTrack($shipment);
         }
     }
 
     /**
+     * Set MyParcel Tracks and update order grid
+     *
      * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
      * @throws \Exception
@@ -108,6 +113,10 @@ class NewShipment implements ObserverInterface
     }
 
     /**
+     * Update sales_order
+     *
+     * Magento puts our two columns sales_order automatically to sales_order_grid
+     *
      * @param MyParcelTrackTrace                  $myParcelTrack
      * @param \Magento\Sales\Model\Order\Shipment $shipment
      */

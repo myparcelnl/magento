@@ -32,35 +32,48 @@ class OrdersAction extends Template
 
     /**
      * @param Context $context
-     * @param array $data
+     * @param array   $data
      */
     public function __construct(
         Context $context,
-        array $data = [])
-    {
+        array $data = []
+    ) {
         $this->objectManager = ObjectManager::getInstance();
         $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Data');
         parent::__construct($context, $data);
     }
 
     /**
+     * Check if global API Key isset
+     *
      * @return bool
      */
     public function hasApiKey()
     {
         $apiKey = $this->helper->getGeneralConfig('api/key');
+
         return $apiKey == '' ? 'false' : 'true';
     }
 
-
+    /**
+     * Get url to create and print MyParcel track
+     *
+     * @return string
+     */
     public function getAjaxUrl()
     {
         return $this->_urlBuilder->getUrl('myparcelnl/order/CreateAndPrintMyParcelTrack');
     }
 
+    /**
+     * Get print settings
+     *
+     * @return string
+     */
     public function getPrintSettings()
     {
         $settings = $this->helper->getGeneralConfig('print');
+
         return json_encode($settings);
     }
 }

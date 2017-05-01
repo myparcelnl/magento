@@ -1,6 +1,6 @@
 <?php
 /**
- * Show MyParcel options in order detailpage
+ * Short_description
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -16,9 +16,23 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Block\Sales;
+namespace MyParcelNL\magento\Block\System\Config\Form;
 
-class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
+use Magento\Framework\Data\Form\Element\AbstractElement;
+
+class SupportTab extends \Magento\Backend\Block\AbstractBlock implements
+    \Magento\Framework\Data\Form\Element\Renderer\RendererInterface
 {
+    /**
+     * Render fieldset html
+     *
+     * @param AbstractElement $element
+     * @return string
+     */
+    public function render(AbstractElement $element)
+    {
+        $this->setElement($element);
 
+        return 'hoi';
+    }
 }

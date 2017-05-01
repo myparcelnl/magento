@@ -32,11 +32,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     private $orderCollection;
 
     /**
-     * @var Order
-     */
-    private $modelOrder;
-
-    /**
      * CreateAndPrintMyParcelTrack constructor.
      *
      * @param Context $context
@@ -45,9 +40,12 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     {
         parent::__construct($context);
 
-        $this->modelOrder = $context->getObjectManager()->create(self::PATH_MODEL_ORDER);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection = new MagentoOrderCollection($context->getObjectManager(), $this->getRequest());
+        $this->orderCollection = new MagentoOrderCollection(
+            $context->getObjectManager(),
+            $this->getRequest(),
+            null
+        );
     }
 
     /**
@@ -78,11 +76,19 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             throw new LocalizedException(__('No items selected'));
         }
 
+        $this->getRequest()->setParams(['myparcel_track_email' => true]);
+
         $this->addOrdersToCollection($orderIds);
         $this->orderCollection
             ->setOptionsFromParameters()
-            ->setMagentoShipment()
-            ->setMagentoTrack()
+            ->setMagentoShipment();
+
+        if (!$this->orderCollection->hasShipment()) {
+            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
+            return;
+        }
+
+        $this->orderCollection->setMagentoTrack()
             ->setMyParcelTrack()
             ->createMyParcelConcepts()
             ->updateOrderGrid();
@@ -95,6 +101,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             $this->orderCollection
                 ->setPdfOfLabels()
                 ->updateMagentoTrack()
+                ->sendTrackEmails()
                 ->downloadPdfOfLabels();
         }
     }
