@@ -12,7 +12,7 @@
  * @author      Richard Perdaan <richard@myparcel.nl>
  * @author 		Reindert Vetter <reindert@myparcel.nl>
  * @copyright   2017 MyParcel
- * @link        https://github.com/myparcelnl/github-projects
+ * @link        https://github.com/myparcelnl/magento
  */
 
 require(['jquery'], function($){
@@ -52,7 +52,7 @@ require(['jquery'], function($){
         };
 
         appendColumn = function (column) {
-            $('.mypa_columns').append('<div class="column"><h2 class="column_titel">' + column.title + '</h2><div class="cards" id="label-' + column.alias + '"></div></div>');
+            $('.mypa_columns').append('<div class="myparcel_column"><h2 class="myparcel_progress_column_titel">' + column.title + '</h2><div id="label-' + column.alias + '"></div></div>');
             appendCards(column)
         };
 
@@ -62,7 +62,7 @@ require(['jquery'], function($){
                 url: "https://api.github.com/repos/myparcelnl/magento/issues?labels=" + column.alias + "&sort=updated-asc",
                 success : function(issues) {
                     $.each(issues, function(key, issue) {
-                        $('#label-' + column.alias).append('<div class="card"><a href="' + issue.html_url + '" target="_blank" class="card_url"><h3 class="card_url_color">' + issue.title + '</h3></a></div>');
+                        $('#label-' + column.alias).append('<a href="' + issue.html_url + '" target="_blank"><div class="card_item_style card_item"><h3>' + issue.title + '</h3></div></a>');
                     });
                 }
             });

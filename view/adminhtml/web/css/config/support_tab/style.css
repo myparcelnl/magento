@@ -2,78 +2,81 @@
     color: #0a0a0a;
     font-size: 17px;
     font-weight: 600;
-    padding: 1.9rem 0rem 1.9rem
+    padding: 1.9rem 0rem 1.9rem;
 
 }
 .myparcel_container .myparcel_instructions{
     border: 1px solid;
     border-color:rgb(225, 228, 232);
     padding: 10px;
+    margin-right: 5px;
+    margin-bottom: 5px;
 }
 
-/* Projects columns */
-.myparcel_container .mainClass{
-    padding: 0;
-    margin:0;
-    width: 100%;
+.myparcel_instructions ol{
+    padding-left: 20px;
+}
+.myparcel_instructions li{
+    padding-left: 5px;
 }
 
-.myparcel_container .container_columns {
+.myparcel_instructions .text-box ul{
+    padding-left: 20px;
+}
+.myparcel_extentsion{
+    padding:0px !important;
+    float: none !important;
+    padding-top: 2.2rem !important;
+}
+.myparcel_support{
+    padding-right: 0px !important;;
+}
+.support_contact td{
+    padding: 0px !important;
+}
+.support_tab{
+    padding-left: 20px;
+}
+.myparcel_documents{
+    margin-top: 20px;
+}
+.myparcel_column {
+    width: 32.5%;
+    float: left;
+    margin: 2px;
+}
+.myparcel_column h2{
+    padding: 10px !important;
+    margin-bottom: 0px;
+}
+.myparcel_column h3{
+    margin-bottom: 0px !important;
+    padding: 10px !important;
+}
+.card_item{
+    padding: 0px !important;
+    margin:0px !important;
+}
+.card_item:hover{
+    background: #f1f1f1 !important;
+    text-decoration: none !important;
+    text-underline: none !important;
+}
+
+.myparcel_progress_column_titel{
+    border: 1px solid rgb(225, 228, 232);
+}
+.myparcel_column a:hover{
+    text-decoration: none !important;
+}
+.card_item_style{
+    border: 1px solid #e3e3e3;
+    border-top: none;
+    color: #303030;
     display: block;
-}
-
-.myparcel_container .column{
-    float:left;
-    margin-bottom: 10px;
-    margin-right: 10px;
-    border-radius: 2px;
-    border-color: #fafbfc;
-    background-color: #ffffff;
-    border: 1px solid;
-    border-color:rgb(225, 228, 232);
-    width: 300px;
-    max-width: 100%;
-    padding-top: 10px;
-}
-
-.myparcel_container .column_titel {
-    color: #01bbc5;
-}
-
-.myparcel_container .cards{
-    color: #01bbc5;
-}
-
-.myparcel_container .myparcel_container h2{
-    margin:10px;
-    color:#01bbc5;
-}
-
-.myparcel_container .card{
-    border-top: 1px solid;
-    border-color:rgb(225, 228, 232);
-    padding: 10px;
-}
-
-.myparcel_container .card_url{
-    text-decoration: none;
-    color: #333352;
-}
-
-.myparcel_container .card_url:hover {
-    color: #333352;
-    text-decoration: underline;
-    -moz-text-decoration-color: #333352;
-    text-decoration-color: #333352;
-}
-
-.myparcel_container .mypa_columns{
-    display: table;
-    margin: 0 auto;
-}
-
-@media (max-width: 951px) {
-    .myparcel_container .column{
-        width: 100%;
-    }
+    font-size: 1.4rem;
+    line-height: 1.2;
+    margin: 0 0 -1px;
+    padding: 1.8rem 1.5rem;
+    position: relative;
 }
