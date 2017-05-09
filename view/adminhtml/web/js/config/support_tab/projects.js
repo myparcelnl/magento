@@ -62,7 +62,7 @@ require(['jquery'], function($){
                 url: "https://api.github.com/repos/myparcelnl/magento/issues?labels=" + column.alias + "&sort=updated-asc",
                 success : function(issues) {
                     $.each(issues, function(key, issue) {
-                        $('#label-' + column.alias).append('<a href="' + issue.html_url + '" target="_blank"><div class="card_item_style card_item"><h3>' + issue.title + '</h3></div></a>');
+                        $('#label-' + column.alias).append('<a href="' + issue.html_url + '" target="_blank"><div class="card_item"><h3>' + issue.title + '</h3></div></a>');
                     });
                 }
             });
