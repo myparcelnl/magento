@@ -22,36 +22,36 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    MyParcel version <?= $block->getVersion(); ?>
+                                                    <?= __('MyParcel version')." ". $block->getVersion(); ?>
                                                 </div>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    To read the instructions for the MyParcel Magento extension, click <a target="_blank" href="https://myparcelnl.github.io/magento/">here</a>.
+                                                    <?= __('To read the instructions for the MyParcel Magento extension, click <a target="_blank" href="https://myparcelnl.github.io/magento/">here</a>.');?>
                                                 </div>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td colspan="2">
                                                 <div class="text-box instructions">
-                                                    <h3>When using the extension please note:</h3>
+                                                    <h3><?= __('When using the extension please note:');?></h3>
                                                     <ol>
-                                                        <li>To be able to configure the extension you need to possess and use an active MyParcel account.</li>
-                                                        <li>During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.</li>
+                                                        <li><?= __('To be able to configure the extension you need to possess and use an active MyParcel account.');?></li>
+                                                        <li><?= __('During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.');?></li>
                                                     </ol>
                                                 </div>
                                                 <div class="text-box instructions">
-                                                    <h3>Magento &amp; 3rd party version compatibility</h3>
-                                                    <p>We cannot guarantee perfect functionality of the MyParcel extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact MyParcel.</p>
+                                                    <h3><?= __('Magento &amp; 3rd party version compatibility');?></h3>
+                                                    <p><?= __('Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento, of als u de extensie wilt gebruiken samen met een 3rd party extensie die niet ondersteund wordt, kunnen wij niet garanderen dat de MyParcel extensie feilloos zal functioneren. Voor vragen kunt u contact opnemen met MyParcel.');?></p>
 
                                                 </div>
                                             </td>
                                             <td class="myparcel_support">
                                                 <div class="text-box instructions">
-                                                    <h3>Questions and information about your MyParcel account</h3>
-                                                    <p>For questions related to your MyParcel account, configuration problems, extension conflicts and bugs, please contact MyParcel.</p>
+                                                    <h3><?= __('Questions and information about your MyParcel account');?></h3>
+                                                    <p><?= __('For questions related to your MyParcel account, configuration problems, extension conflicts and bugs, please contact MyParcel.');?></p>
 
                                                     <table class="support_contact">
                                                         <tbody>
@@ -62,21 +62,21 @@
                                                                 </td>
                                                             </tr>
                                                             <tr>
-                                                                <td class="version_contact_first">Phone:</td>
+                                                                <td class="version_contact_first"><?= __('Phone:');?></td>
                                                                 <td class="last">023 - 30 30 315</td>
                                                             </tr>
                                                             <tr>
-                                                                <td class="version_contact_first">Email:</td>
+                                                                <td class="version_contact_first"><?= __('Email');?></td>
                                                                 <td class="last"><a href="mailto:info@myparcel.nl">info@myparcel.nl</a></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
 
-                                                    <h3 class="myparcel_documents">Documents</h3>
+                                                    <h3 class="myparcel_documents"><?= __('Documents');?></h3>
                                                     <ul class="support_tab">
                                                         <li>
                                                             <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases/latest">
-                                                                Latest stable release
+                                                                <?= __('Latest stable release');?>
                                                             </a>  <span id="current_version"></span>
                                                             <script>
                                                                 require(['jquery'], function($){
@@ -87,10 +87,10 @@
                                                             </script>
                                                         </li>
                                                         <li>
-                                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases" title="Full changelog">Full changelog</a>
+                                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases" title="Full changelog"><?= __('Full changelog');?></a>
                                                         </li>
                                                         <li>
-                                                            <a class="link" target="_blank" href="https://myparcelnl.github.io/magento/" title="Installation and configuration instructions">Installation and configuration instructions</a>
+                                                            <a class="link" target="_blank" href="https://myparcelnl.github.io/magento/#2" title="Installation and configuration instructions"><?= __('Full changelog');?></a>
                                                         </li>
                                                         <li>
                                                             <a class="link" target="_blank" href="https://backoffice.myparcel.nl/settings" title="MyParcel backoffice"> MyParcel backoffice</a>
@@ -113,7 +113,7 @@
         </div>
         <div class="section-config active">
             <div class="entry-edit-head admin__collapsible-block">
-                <a id="myparcelnl_magento_progress-head" href="#myparcelnl_magento_progress-link" onclick="Fieldset.toggleCollapse('myparcelnl_magento_progress'); return false;" class="open">MyParcel progress</a>
+                <a id="myparcelnl_magento_progress-head" href="#myparcelnl_magento_progress-link" onclick="Fieldset.toggleCollapse('myparcelnl_magento_progress'); return false;" class="open"><?= __('MyParcel progress');?></a>
             </div>
             <input id="myparcelnl_magento_progress-state" name="config_state[myparcelnl_magento_progress]" type="hidden" value="1">
             <fieldset class="config admin__collapsible-block" id="myparcelnl_magento_progress">
