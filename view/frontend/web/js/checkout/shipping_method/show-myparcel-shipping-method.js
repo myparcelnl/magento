@@ -48,7 +48,7 @@ define(
                 jQuery("input[name='delivery_options']").val('').change();
             });
             jQuery("input[name='delivery_options']").on('change', function (event) {
-
+                console.log('delivery options')
             });
         }
 
@@ -94,7 +94,7 @@ define(
         }
 
         function _setShippingRate() {
-            originalContainer = jQuery('#label_carrier_freeshipping_freeshipping').parent().find('td');
+            originalContainer = jQuery('#label_carrier_flatrate_flatrate').parent().find('td');
             shippingRateTr = originalContainer.parent();
         }
     }
