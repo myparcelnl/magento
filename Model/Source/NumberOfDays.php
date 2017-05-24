@@ -1,6 +1,6 @@
 <?php
 /**
- * Get paper types for MyParcel system settings
+ * Get number of days (to show in the checkout) for MyParcel system settings
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -16,7 +16,7 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Option\ArrayInterface;
 
-class PaperType implements ArrayInterface
+class NumberOfDays implements ArrayInterface
 {
     /**
      * Options getter
@@ -25,7 +25,16 @@ class PaperType implements ArrayInterface
      */
     public function toOptionArray()
     {
-        return [['value' => 'A4', 'label' => __('A4')], ['value' => 'A6', 'label' => __('A6')]];
+        $array = [];
+
+        foreach ($this->toArray() as $key => $day) {
+            $array[] = [
+                'value' => $key,
+                'label' => $day,
+            ];
+        }
+
+        return $array;
     }
 
     /**
@@ -35,6 +44,17 @@ class PaperType implements ArrayInterface
      */
     public function toArray()
     {
-        return ['A4' => __('A4'), 'A6' => __('A6')];
+        $array = [
+            'hide' => __('Hide days'),
+            1 => '1 ' . __('day'),
+        ];
+
+        $x = 2;
+        while ($x <= 14) {
+            $array[$x] = $x . ' ' . __('days');
+            $x++;
+        }
+
+        return $array;
     }
 }

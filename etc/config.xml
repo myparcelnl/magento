@@ -5,7 +5,8 @@
  * See COPYING.txt for license details.
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <myparcelnl_magento_general>
             <print>
@@ -47,5 +48,19 @@
                 <copy_method>bcc</copy_method>
             </track>
         </sales_email>
+    </default>
+    <default>
+        <carriers>
+            <wkcustomshipping>
+                <active>1</active>
+                <allowed_methods>delivery</allowed_methods>
+                <methods>delivery</methods>
+                <sallowspecific>0</sallowspecific>
+                <model>MyParcelNL\Magento\Model\Checkout\Carrier</model>
+                <name>Webkul custom Shipping</name>
+                <title>Webkul custom Shipping</title>
+                <handling_type>F</handling_type>
+            </wkcustomshipping>
+        </carriers>
     </default>
 </config>

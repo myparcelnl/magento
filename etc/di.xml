@@ -13,9 +13,13 @@
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
         <plugin name="mypa-massaction-button" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>
     </type>
-    <!-- Avoid default email is sent. With a MyParcel shipment, the mail should be sent only if the barcode exists. -->
+    <!-- Avoid default email is sent. With a MyParcel shipment, the mail should be sent only after the barcode exists. -->
     <type name="Magento\Sales\Model\Order\Email\Container\ShipmentIdentity">
         <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Model_Order_Email_Container_ShipmentIdentity" sortOrder="10" type="MyParcelNL\Magento\Plugin\Magento\Sales\Model\Order\Email\Container\ShipmentIdentity"/>
+    </type>
+    <!-- Save address information in checkout -->
+    <type name="Magento\Checkout\Model\ShippingInformationManagement">
+        <plugin name="save-in-quote" type="MyParcelNL\Magento\Model\Checkout\ShippingInformationManagementPlugin" sortOrder="10"/>
     </type>
 </config>
 

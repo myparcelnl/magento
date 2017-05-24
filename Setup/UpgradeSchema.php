@@ -93,6 +93,28 @@ class UpgradeSchema implements UpgradeSchemaInterface
             }
         }
 
+        if (version_compare($context->getVersion(), '1.0.6') < 0) {
+            $setup->getConnection()->addColumn(
+                $setup->getTable('quote'),
+                'delivery_options',
+                [
+                    'type' => 'text',
+                    'nullable' => true,
+                    'comment' => 'MyParcel delivery options',
+                ]
+            );
+
+            $setup->getConnection()->addColumn(
+                $setup->getTable('sales_order'),
+                'delivery_options',
+                [
+                    'type' => 'text',
+                    'nullable' => true,
+                    'comment' => 'MyParcel delivery options',
+                ]
+            );
+        }
+
         $setup->endSetup();
     }
 }
