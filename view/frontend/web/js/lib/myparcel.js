@@ -72,6 +72,7 @@
             }
             this.render();
             this.expose(this.updatePage, 'updatePage');
+            this.expose(this.optionsHaveBeenModified, 'optionsHaveBeenModified');
             this.expose(this, 'activeInstance');
         }
 
@@ -194,6 +195,15 @@
                 success: renderPage
             };
             return externalJQuery.ajax(options);
+        };
+
+        /*
+         * optionsHaveBeenModified
+         */
+        Application.prototype.optionsHaveBeenModified = function() {
+            externalJQuery("input[name='delivery_options']").change();
+
+            return this;
         };
 
         return Application;
@@ -623,18 +633,18 @@
         var jsonData;
 
         stringData = $('input[name=mypa-delivery-time]:checked').val();
-        console.log(stringData);
+        if (typeof stringData !== 'undefined') {
+            jsonData = JSON.parse(stringData);
+            jsonData.options = {};
+            jsonData.options.signature = $('#mypa-signed').prop('checked');
+            jsonData.options.only_recipient = $('#mypa-only-recipient').prop('checked');
 
-        jsonData = JSON.parse(stringData);
-        jsonData.options = {};
-        jsonData.options.signature = $('#mypa-signed').prop('checked');
-        jsonData.options.only_recipient = $('#mypa-only-recipient').prop('checked');
+            stringData = JSON.stringify(jsonData);
 
-        stringData = JSON.stringify(jsonData);
-
-        if (externalJQuery('input[name=delivery_options]').val() !== stringData) {
-            externalJQuery('input[name=delivery_options]').val(stringData);
-            document.getElementsByName('delivery_options')[0].dispatchEvent(new Event('change'));
+            if (externalJQuery('input[name=delivery_options]').val() !== stringData) {
+                externalJQuery('input[name=delivery_options]').val(stringData);
+                document.getElementsByName('delivery_options')[0].dispatchEvent(new Event('change'));
+            }
         }
     };
 

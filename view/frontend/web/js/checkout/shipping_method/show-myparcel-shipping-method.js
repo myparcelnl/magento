@@ -11,7 +11,7 @@ define(
     function(uiComponent, jQuery, quote, optionHtml) {
         'use strict';
 
-        var shippingRateTr, originalContainer, optionsContainer, timeoutLoadMyParcelOnce;
+        var  originalShippingRate, optionsContainer, timeoutLoadMyParcelOnce, myparcel;
 
         return {
             loadOptions: loadOptions,
@@ -22,40 +22,36 @@ define(
         function loadOptions() {
             timeoutLoadMyParcelOnce = setTimeout(function(){
                 clearTimeout(timeoutLoadMyParcelOnce);
+                console.log(timeoutLoadMyParcelOnce);
+                console.log('test234');
                 _appendTemplate();
-
-                jQuery(document).ready(function(){
-                    _retrieveOptions();
-                    showOptions();
-                    _observeFields();
-                })
-            }, 10);
+                _retrieveOptions();
+                showOptions();
+                _observeFields();
+            }, 3000);
         }
 
         function showOptions() {
-            //originalContainer.hide();
+            //originalShippingRate.hide();
             optionsContainer.show();
         }
 
         function hideOptions() {
-            originalContainer.show();
+            originalShippingRate.show();
             //optionsContainer.hide();
         }
 
         function _observeFields() {
-            console.log('load');
-            jQuery("input[id^='s_method']").parent().on('click', function (event) {
-                jQuery("input[name='delivery_options']").val('').change();
-            });
-            jQuery("input[name='delivery_options']").on('change', function (event) {
-                console.log('delivery options')
+            jQuery("input[id^='s_method']").parent().on('change', function (event) {
+                jQuery("input[name='delivery_options']").val('');
+                myparcel.optionsHaveBeenModified();
             });
         }
 
         function _retrieveOptions() {
             window.mypa = {};
             _setParameters();
-            var myparcel = new MyParcel();
+            myparcel = new MyParcel()
             myparcel.updatePage();
         }
 
@@ -87,15 +83,9 @@ define(
         }
 
         function _appendTemplate() {
-            _setShippingRate();
-            shippingRateTr.append('<td colspan="4" id="myparcel_options_td" style="display:none"></td>');
-            optionsContainer = jQuery('#myparcel_options_td');
+            originalShippingRate = jQuery('#label_carrier_flatrate_flatrate').parent().find('td');
+            optionsContainer = originalShippingRate.parent().parent().prepend('<tr><td colspan="4" id="myparcel_options_td" style="display:none"></td></tr>').find('#myparcel_options_td');
             optionsContainer.html(optionHtml);
-        }
-
-        function _setShippingRate() {
-            originalContainer = jQuery('#label_carrier_flatrate_flatrate').parent().find('td');
-            shippingRateTr = originalContainer.parent();
         }
     }
 );

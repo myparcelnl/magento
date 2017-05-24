@@ -29,7 +29,7 @@ use Magento\Framework\Xml\Security;
 
 class Carrier extends AbstractCarrierOnline implements CarrierInterface
 {
-    const CODE = 'wkcustomshipping';
+    const CODE = 'myparcel_options';
     protected $_code = self::CODE;
     protected $_request;
     protected $_result;
@@ -86,28 +86,69 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     {
     }
 
-    public function getAllowedMethods()
-    {
-    }
-
     public function collectRates(RateRequest $request)
     {
         $result = $this->_rateFactory->create();
-
-        /*store shipping in session*/
-        $method = $this->_rateMethodFactory->create();
-        $method->setCarrier($this->_code);
-        $method->setCarrierTitle('Webkul custom Shipping');
-        /* Use method name */
-        $method->setMethod($this->_code);
-        $method->setMethodTitle('Webkul Custom Shipping');
-        $method->setCost(10);
-        $method->setPrice(10);
-        $result->append($method);
+        $result = $this->addShippingMethods($result);
         return $result;
     }
 
     public function proccessAdditionalValidation(\Magento\Framework\DataObject $request) {
         return true;
+    }
+
+    /**
+     * Get allowed shipping methods
+     *
+     * @return array
+     */
+    public function getAllowedMethods()
+    {
+        $deliveryTitle = 'delivery_title';
+        $onlyRecipientTitle = 'only_recipient_title';
+        $signatureTitle = 'signature_title';
+        $methods = [
+            'delivery_signature',
+            'delivery_only_recipient',
+            'delivery_signature_and_only_recipient_fee',
+            'morning',
+            'morning_signature',
+            'evening',
+            'evening_signature',
+            'pickup',
+            'pickup_express',
+            'mailbox'
+        ];
+
+        return $methods;
+    }
+
+    private function addShippingMethods($result)
+    {
+        foreach ($this->getAllowedMethods() as $alias) {
+            $method = $this->getShippingMethod($alias);
+            $result->append($method);
+        }
+
+        return $result;
+    }
+
+
+    /**
+     * @param $alias
+     *
+     * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
+     */
+    private function getShippingMethod($alias)
+    {
+        /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
+        $method = $this->_rateMethodFactory->create();
+        $method->setCarrier($this->_code);
+        $method->setCarrierTitle('MyParcel options');
+        $method->setMethod($alias);
+        $method->setMethodTitle($alias);
+        $method->setPrice(0);
+
+        return $method;
     }
 }

@@ -48,19 +48,17 @@
                 <copy_method>bcc</copy_method>
             </track>
         </sales_email>
-    </default>
-    <default>
         <carriers>
-            <wkcustomshipping>
+            <myparcel_options>
                 <active>1</active>
                 <allowed_methods>delivery</allowed_methods>
                 <methods>delivery</methods>
                 <sallowspecific>0</sallowspecific>
                 <model>MyParcelNL\Magento\Model\Checkout\Carrier</model>
-                <name>Webkul custom Shipping</name>
-                <title>Webkul custom Shipping</title>
+                <name>MyParcel extra options</name>
+                <title>MyParcel extra options</title>
                 <handling_type>F</handling_type>
-            </wkcustomshipping>
+            </myparcel_options>
         </carriers>
     </default>
 </config>
