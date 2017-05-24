@@ -22,7 +22,7 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    <?= __('MyParcel version')." ". $block->getVersion(); ?>
+                                                    De <?= __('MyParcel version')."<b> ". $block->getVersion(). "</b>"; ?> extensie is geïnstalleerd op jouw webshop. Doordat MyParcel bezig is met nieuwe ontwikkelingen op het gebied van Magento zullen er updates beschikbaar zijn. Momenteel zitten wij op versie <b><a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases/latest"><span class="current_version"></span></a></b>. Wij adviseren altijd de nieuwste versie te installeren in jouw magento omgeving.
                                                 </div>
                                             </td>
                                         </tr>
@@ -77,11 +77,11 @@
                                                         <li>
                                                             <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases/latest">
                                                                 <?= __('Latest stable release');?>
-                                                            </a>  <span id="current_version"></span>
+                                                            </a>  (<span class="current_version"></span>)
                                                             <script>
                                                                 require(['jquery'], function($){
                                                                     $.get('https://api.github.com/repos/myparcelnl/magento/releases/latest', function (data) {
-                                                                        $('#current_version').html('(' + data.name + ')');
+                                                                        $('.current_version').html('' + data.name + '');
                                                                     });
                                                                 });
                                                             </script>
