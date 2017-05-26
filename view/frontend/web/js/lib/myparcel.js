@@ -73,6 +73,8 @@
             this.render();
             this.expose(this.updatePage, 'updatePage');
             this.expose(this.optionsHaveBeenModified, 'optionsHaveBeenModified');
+            this.expose(this.showDays, 'showDays');
+            this.expose(this.hideDays, 'hideDays');
             this.expose(this, 'activeInstance');
         }
 
@@ -204,6 +206,20 @@
             externalJQuery("input[name='delivery_options']").change();
 
             return this;
+        };
+
+
+
+        Application.prototype.showDays = function() {
+            if (window.mypa.settings.deliverydays_window > 1) {
+                $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').show();
+            }
+        };
+
+        Application.prototype.hideDays = function() {
+            if (window.mypa.settings.deliverydays_window > 1) {
+                $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').hide();
+            }
         };
 
         return Application;
