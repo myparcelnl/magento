@@ -287,7 +287,7 @@
                 $tabs.bind('click', updateDelivery);
                 $tabs[0].click();
             }
-            $("#mypa-tabs").attr('style', "width:" + (this.deliveryDays.length * 105) + "px");
+
             this.makeSlider();
         }
 
@@ -302,7 +302,6 @@
             this.slider.tabWidth = $('.mypa-tab')[0].offsetWidth + 5;
             this.slider.tabsPerBar = Math.floor($('#mypa-tabs-container')[0].offsetWidth / this.slider.tabWidth);
             this.slider.bars = window.mypa.deliveryDays / this.slider.tabsPerBar;
-            $('mypa-tabs').attr('style', "width:" + (window.mypa.deliveryDays * 105) + "px;");
             $('#mypa-date-slider-right').removeClass('mypa-slider-disabled');
             $('#mypa-date-slider-left').unbind().bind('click', this.slideLeft);
             return $('#mypa-date-slider-right').unbind().bind('click', this.slideRight);
@@ -325,9 +324,8 @@
             }
             $('#mypa-date-slider-right').removeClass('mypa-slider-disabled');
             slider.currentBar--;
-            $el = $('#mypa-tabs');
-            left = this.slider.currentBar * this.slider.tabsPerBar * this.slider.tabWidth * -1 + 5 * this.slider.currentBar;
-            return $el.attr('style', "left:" + left + "px; width:" + (window.mypa.deliveryDays * this.slider.tabWidth) + "px");
+
+            return true;
         };
 
 
@@ -347,9 +345,8 @@
             }
             $('#mypa-date-slider-left').removeClass('mypa-slider-disabled');
             slider.currentBar++;
-            $el = $('#mypa-tabs');
-            left = this.slider.currentBar * this.slider.tabsPerBar * this.slider.tabWidth * -1 + 5 * this.slider.currentBar;
-            return $el.attr('style', "left:" + left + "px; width:" + (window.mypa.deliveryDays * this.slider.tabWidth) + "px");
+
+            return true;
         };
 
 
@@ -422,6 +419,9 @@
             var date;
             date = $('input[name=date]:checked').val();
             renderDeliveryOptions(date);
+            return updateInputField();
+        });
+        $('#mypa-mailbox-options-title').on('click', function() {
             return updateInputField();
         });
         $('#mypa-pickup-options-title').on('click', function() {
@@ -637,6 +637,11 @@
         if (combine) {
             html += "</div>";
         }
+
+        $('#mypa-mailbox-location').on('change', function () {
+            externalJQuery('input[name=delivery_options]').val('{"time":[{"price_comment":"mailbox","type":6}]}').trigger('change');
+        });
+
         $('#mypa-delivery-options').html(html);
         $('.mypa-combination-price label').on('click', checkCombination);
         $('#mypa-delivery-options label.mypa-row-subitem input[name=mypa-delivery-time]').on('change', function(e) {
