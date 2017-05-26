@@ -5,7 +5,7 @@
  */
 
 (function() {
-    var $, AO_DEFAULT_TEXT, Application, CARRIER, DAYS_OF_THE_WEEK, DAYS_OF_THE_WEEK_TRANSLATED, DEFAULT_DELIVERY, DISABLED, EVENING_DELIVERY, HVO_DEFAULT_TEXT, MORNING_DELIVERY, MORNING_PICKUP, NATIONAL, NORMAL_PICKUP, PICKUP, PICKUP_EXPRESS, PICKUP_TIMES, POST_NL_TRANSLATION, Slider, checkCombination, displayOtherTab, externalJQuery, obj1, orderOpeningHours, preparePickup, renderDeliveryOptions, renderExpressPickup, renderPage, renderPickup, renderPickupLocation, showDefaultPickupLocation, sortLocationsOnDistance, updateDelivery, updateInputField,
+    var $, AO_DEFAULT_TEXT, Application, CARRIER, DAYS_OF_THE_WEEK, DAYS_OF_THE_WEEK_TRANSLATED, DEFAULT_DELIVERY, DISABLED, EVENING_DELIVERY, HVO_DEFAULT_TEXT, MORNING_DELIVERY, MORNING_PICKUP, NATIONAL, NORMAL_PICKUP, PICKUP, PICKUP_EXPRESS, PICKUP_TIMES, POST_NL_TRANSLATION, Slider, checkCombination, displayOtherTab, externalJQuery, obj1, orderOpeningHours, preparePickup, renderDeliveryOptions, renderExpressPickup, renderPage, renderPickup, renderPickupLocation, showDefaultPickupLocation, sortLocationsOnDistance, updateDelivery, updateInputField, hideMyParcelOptions,
         bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
     DISABLED = 'disabled';
@@ -65,7 +65,19 @@
             if ((base = window.mypa.settings).base_url == null) {
                 base.base_url = "//localhost:8080/api/delivery_options";
             }
+
+
+            /** fix ipad */
+            var isload = false;
+            setTimeout(function () {
+                if(isload != true){
+                    hideMyParcelOptions();
+                }
+            }, 1000);
+
             this.el = document.getElementById('myparcel');
+            isload = true;
+
             this.$el = externalJQuery('myparcel');
             if (this.shadow == null) {
                 this.shadow = this.el.createShadowRoot();
@@ -152,7 +164,7 @@
          */
 
         Application.prototype.updatePage = function(postal_code, number, street) {
-            var item, key, options, ref, settings, urlBase;
+            var item, key, options, ref, settings, urlBase, current_date, monday_delivery, cutoff_time;
             ref = window.mypa.settings.price;
             for (key in ref) {
                 item = ref[key];
@@ -162,6 +174,7 @@
             }
             settings = window.mypa.settings;
             urlBase = settings.base_url;
+            current_date = new Date();
             if (number == null) {
                 number = settings.number;
             }
@@ -176,9 +189,21 @@
                 $('.mypa-overlay').removeClass('mypa-hidden');
                 return;
             }
+            /* Check if Monday delivery is active */
+            if (settings.monday_delivery == true) {
+                monday_delivery = 1;
+            } else {
+                monday_delivery = void 0;
+            }
+            /* Use saturday_cutoff_time for cutoff_time if Monday delivery is active and current day is Saturday */
+            if (settings.monday_delivery == true && current_date.getDay() == 6) {
+                cutoff_time = settings.saturday_cutoff_time;
+            } else {
+                cutoff_time = settings.cutoff_time != null ? settings.cutoff_time : void 0
+            }
             $('#mypa-no-options').html('Bezig met laden...');
             $('.mypa-overlay').removeClass('mypa-hidden');
-            $('.mypa-location').html(street + " " + number);
+            $('.mypa-location').html(street);
             options = {
                 url: urlBase,
                 data: {
@@ -188,13 +213,15 @@
                     postal_code: postal_code,
                     delivery_time: settings.delivery_time != null ? settings.delivery_time : void 0,
                     delivery_date: settings.delivery_date != null ? settings.delivery_date : void 0,
-                    cutoff_time: settings.cutoff_time != null ? settings.cutoff_time : void 0,
+                    cutoff_time: cutoff_time,
                     dropoff_days: settings.dropoff_days != null ? settings.dropoff_days : void 0,
+                    monday_delivery: monday_delivery,
                     dropoff_delay: settings.dropoff_delay != null ? settings.dropoff_delay : void 0,
                     deliverydays_window: settings.deliverydays_window != null ? settings.deliverydays_window : void 0,
                     exclude_delivery_type: settings.exclude_delivery_type != null ? settings.exclude_delivery_type : void 0
                 },
-                success: renderPage
+                success: renderPage,
+                error: hideMyParcelOptions
             };
             return externalJQuery.ajax(options);
         };
@@ -251,7 +278,7 @@
                 delivery = ref[i];
                 deliveryTimes[delivery.date] = delivery.time;
                 date = moment(delivery.date);
-                html = "<input type=\"radio\" id=\"mypa-date-" + index + "\" class=\"mypa-date\" name=\"date\" checked value=\"" + delivery.date + "\">\n<label for='mypa-date-" + index + "' class='mypa-tab active'>\n  <span class='day-of-the-week'>" + (date.format('dddd')) + "</span>\n  <br>\n  <span class='date'>" + (date.format('DD MMMM')) + "</span>\n</label>";
+                html = "<input type=\"radio\" id=\"mypa-date-" + index + "\" class=\"mypa-date\" name=\"date\" checked value=\"" + delivery.date + "\">\n<label for='mypa-date-" + index + "' class='mypa-tab active'>\n  <span class='day-of-the-week'>" + (date.format('dddd')) + "</span>\n <span class='date'>" + (date.format('DD MMMM')) + "</span>\n</label>";
                 $el.append(html);
                 index++;
             }
@@ -372,8 +399,17 @@
 
     renderPage = function(response) {
         if (response.data.message === 'No results') {
-            $('#mypa-no-options').html('Geen bezorgopties gevonden voor het opgegeven adres.');
+            /* Show input field for housenumber */
+            $('#mypa-no-options').html('Het opgegeven huisnummer in combinatie met postcode ' + window.mypa.settings.postal_code + ' wordt niet herkend. Vul hier opnieuw uw huisnummer zonder toevoeging in.<br><br><input id="mypa-new-number" type="number" /><submit id="mypa-new-number-submit">Verstuur</submit>');
             $('.mypa-overlay').removeClass('mypa-hidden');
+            externalJQuery('.myparcel_base_method').prop("checked", false).prop('disabled', true);
+
+            $('#mypa-new-number-submit').click(function () {
+                var houseNumber = $('#mypa-new-number').val();
+                window.mypa.fn.updatePage(window.mypa.settings.postal_code, houseNumber);
+                /** @todo uncheck options */
+            });
+
             return;
         }
         $('.mypa-overlay').addClass('mypa-hidden');
@@ -427,7 +463,9 @@
             });
         }
         showDefaultPickupLocation('#mypa-pickup-address', filter[PICKUP_TIMES[NORMAL_PICKUP]][0]);
-        showDefaultPickupLocation('#mypa-pickup-express-address', filter[PICKUP_TIMES[MORNING_PICKUP]][0]);
+        if(MORNING_PICKUP && PICKUP_TIMES[MORNING_PICKUP] && filter[PICKUP_TIMES[MORNING_PICKUP]]){
+            showDefaultPickupLocation('#mypa-pickup-express-address', filter[PICKUP_TIMES[MORNING_PICKUP]][0]);
+        }
         $('#mypa-pickup-address').off().bind('click', renderPickup);
         $('#mypa-pickup-express-address').off().bind('click', renderExpressPickup);
         return $('.mypa-pickup-selector').on('click', updateInputField);
@@ -451,7 +489,7 @@
 
     showDefaultPickupLocation = function(selector, item) {
         var html;
-        html = " - " + item.location + ", " + item.street + " " + item.number;
+        html = ' - <span class="edit-location">Aanpassen</span><span class="text-location">' + item.location + ", " + item.street + " " + item.number + ", " + item.city + '</span>';
         $(selector).html(html);
         $(selector).parent().find('input').val(JSON.stringify(item));
         return updateInputField();
@@ -508,7 +546,7 @@
                 }
                 openingHoursHtml += '</div></div>';
             }
-            html = "<div for='mypa-pickup-location-" + index + "' class=\"mypa-row-lg afhalen-row\">\n  <div class=\"afhalen-right\">\n    <i class='mypa-info'>\n    </i>\n  </div>\n  <div class='mypa-opening-hours'>\n    " + openingHoursHtml + "\n  </div>\n  <label for='mypa-pickup-location-" + index + "' class=\"afhalen-left\">\n    <div class=\"afhalen-check\">\n      <input id=\"mypa-pickup-location-" + index + "\" type=\"radio\" name=\"mypa-pickup-option\" value='" + (JSON.stringify(location)) + "'>\n      <label for='mypa-pickup-location-" + index + "' class='mypa-row-title'>\n        <div class=\"mypa-checkmark mypa-main\">\n          <div class=\"mypa-circle\"></div>\n          <div class=\"mypa-checkmark-stem\"></div>\n          <div class=\"mypa-checkmark-kick\"></div>\n        </div>\n      </label>\n    </div>\n    <div class='afhalen-tekst'>\n      <span class=\"mypa-highlight mypa-inline-block\">" + location.location + ", <b class='mypa-inline-block'>" + location.street + " " + location.number + "</b>,\n      <i class='mypa-inline-block'>" + (String(Math.round(location.distance / 100) / 10).replace('.', ',')) + " Km</i></span>\n    </div>\n  </label>\n</div>";
+            html = "<div for='mypa-pickup-location-" + index + "' class=\"mypa-row-lg afhalen-row\">\n  <div class=\"afhalen-right\">\n    <i class='mypa-info'>\n    </i>\n  </div>\n  <div class='mypa-opening-hours'>\n    " + openingHoursHtml + "\n  </div>\n  <label for='mypa-pickup-location-" + index + "' class=\"afhalen-left\">\n    <div class=\"afhalen-check\">\n      <input id=\"mypa-pickup-location-" + index + "\" type=\"radio\" name=\"mypa-pickup-option\" value='" + (JSON.stringify(location)) + "'>\n      <label for='mypa-pickup-location-" + index + "' class='mypa-row-title'>\n        <div class=\"mypa-checkmark mypa-main\">\n          <div class=\"mypa-circle\"></div>\n          <div class=\"mypa-checkmark-stem\"></div>\n          <div class=\"mypa-checkmark-kick\"></div>\n        </div>\n      </label>\n    </div>\n    <div class='afhalen-tekst'>\n      <span class=\"mypa-highlight mypa-inline-block\">" + location.location + ", <b class='mypa-inline-block'>" + location.street + " " + location.number + ", " + location.city + "</b>,\n      <i class='mypa-inline-block'>" + (String(Math.round(location.distance / 100) / 10).replace('.', ',')) + " Km</i></span>\n    </div>\n  </label>\n</div>";
             $('#mypa-location-container').append(html);
         }
         return $('input[name=mypa-pickup-option]').bind('click', function(e) {
@@ -583,18 +621,18 @@
             html += "<div class='mypa-combination-price'><span class='mypa-price mypa-hidden'>" + combinatedPrice + "</span>";
         }
         if (onlyRecipientPrice !== DISABLED) {
-            html += "<label for=\"mypa-only-recipient\" class='mypa-row-subitem'>\n  <input type=\"checkbox\" name=\"mypa-only-recipient\" class=\"mypa-onoffswitch-checkbox\" id=\"mypa-only-recipient\">\n  <div class=\"mypa-switch-container\">\n    <div class=\"mypa-onoffswitch\">\n      <label class=\"mypa-onoffswitch-label\" for=\"mypa-only-recipient\">\n        <span class=\"mypa-onoffswitch-inner\"></span>\n        <span class=\"mypa-onoffswitch-switch\"></span>\n      </label>\n    </div>\n  </div>\n  <span>" + onlyRecipientText;
+            html += "<label for=\"mypa-only-recipient\" class='mypa-row-subitem'>\n  <input type=\"checkbox\" name=\"mypa-only-recipient\" class=\"mypa-onoffswitch-checkbox\" id=\"mypa-only-recipient\">\n  <div class=\"mypa-switch-container\">\n    <div class=\"mypa-onoffswitch\">\n      <label class=\"mypa-onoffswitch-label\" for=\"mypa-only-recipient\">\n        <span class=\"mypa-onoffswitch-inner\"></span>\n        <span class=\"mypa-onoffswitch-switch\"></span>\n      </label>\n    </div>\n  </div>\n  <span>";
             if (onlyRecipientPrice != null) {
                 html += "<span class='mypa-price'>" + onlyRecipientPrice + "</span>";
             }
-            html += "</span></label>";
+            html +=  onlyRecipientText + "</span></label>";
         }
         if (hvoPrice !== DISABLED) {
-            html += "<label for=\"mypa-signed\" class='mypa-row-subitem'>\n  <input type=\"checkbox\" name=\"mypa-signed\" class=\"mypa-onoffswitch-checkbox\" id=\"mypa-signed\">\n  <div class=\"mypa-switch-container\">\n    <div class=\"mypa-onoffswitch\">\n      <label class=\"mypa-onoffswitch-label\" for=\"mypa-signed\">\n        <span class=\"mypa-onoffswitch-inner\"></span>\n      <span class=\"mypa-onoffswitch-switch\"></span>\n      </label>\n    </div>\n  </div>\n  <span>" + hvoText;
+            html += "<label for=\"mypa-signed\" class='mypa-row-subitem'>\n  <input type=\"checkbox\" name=\"mypa-signed\" class=\"mypa-onoffswitch-checkbox\" id=\"mypa-signed\">\n  <div class=\"mypa-switch-container\">\n    <div class=\"mypa-onoffswitch\">\n      <label class=\"mypa-onoffswitch-label\" for=\"mypa-signed\">\n        <span class=\"mypa-onoffswitch-inner\"></span>\n      <span class=\"mypa-onoffswitch-switch\"></span>\n      </label>\n    </div>\n  </div>\n  <span>";
             if (hvoPrice) {
                 html += "<span class='mypa-price'>" + hvoPrice + "</span>";
             }
-            html += "</span></label>";
+            html += "<span style=''>" + hvoText  + "</span>" + "</span></label>";
         }
         if (combine) {
             html += "</div>";
@@ -643,7 +681,6 @@
     /*
      * Sets the json to the selected input field to be with the form
      */
-
     updateInputField = function() {
         var stringData;
         var jsonData;
@@ -662,6 +699,13 @@
                 document.getElementsByName('delivery_options')[0].dispatchEvent(new Event('change'));
             }
         }
+    };
+
+    /*
+     * Hide MyParcel options
+     */
+    hideMyParcelOptions = function() {
+        console.error('todo hide myparcel options');
     };
 
 }).call(this);
