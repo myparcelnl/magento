@@ -81,8 +81,14 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $this->addOrdersToCollection($orderIds);
         $this->orderCollection
             ->setOptionsFromParameters()
-            ->setMagentoShipment()
-            ->setMagentoTrack()
+            ->setMagentoShipment();
+
+        if (!$this->orderCollection->hasShipment()) {
+            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
+            return;
+        }
+
+        $this->orderCollection->setMagentoTrack()
             ->setMyParcelTrack()
             ->createMyParcelConcepts()
             ->updateOrderGrid();
