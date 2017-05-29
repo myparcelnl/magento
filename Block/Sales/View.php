@@ -74,10 +74,10 @@ class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
             if(is_array($data) && key_exists('date', $data)){
 
                 $dateTime = date('d-m-Y H:i', strtotime($data['date']. ' ' . $data['time'][0]['start']));
-                $html .= __('deliver:') .' ' . $dateTime;
+                $html .= __('Deliver:') .' ' . $dateTime;
 
                 if($data['time'][0]['price_comment'] != 'standard')
-                    $html .=  ', ' . __('TYPE_' . $data['time'][0]['price_comment']);
+                    $html .=  ', ' . __($data['time'][0]['price_comment']);
 
                 if (key_exists('options', $data)) {
                     if(key_exists('only_recipient', $data['options']) && $data['options']['only_recipient'])

@@ -49,7 +49,7 @@
             </track>
         </sales_email>
         <carriers>
-            <myparcel_options>
+            <mypa>
                 <active>1</active>
                 <allowed_methods>delivery</allowed_methods>
                 <methods>delivery</methods>
@@ -58,7 +58,7 @@
                 <name>MyParcel extra options</name>
                 <title>MyParcel extra options</title>
                 <handling_type>F</handling_type>
-            </myparcel_options>
+            </mypa>
         </carriers>
     </default>
 </config>

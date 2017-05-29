@@ -29,27 +29,7 @@ class Order extends AbstractHelper
      */
     public function isPickupLocation($method)
     {
-        if ($method == 'myparcel_options_pickup_express' || $method == 'myparcel_options_pickup') {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Checks if the given shipping method has extra options
-     *
-     * @param $method
-     *
-     * @return bool
-     */
-    public function hasExtraOptions($method)
-    {
-        $options = [
-
-        ];
-
-        if ($method == 'myparcel_options_pickup_express' || $method == 'myparcel_options_pickup') {
+        if ($method == 'mypa_pickup_express' || $method == 'mypa_pickup') {
             return true;
         }
 

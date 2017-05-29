@@ -29,7 +29,7 @@ use Magento\Framework\Xml\Security;
 
 class Carrier extends AbstractCarrierOnline implements CarrierInterface
 {
-    const CODE = 'myparcel_options';
+    const CODE = 'mypa';
     protected $_code = self::CODE;
     protected $_request;
     protected $_result;
@@ -104,13 +104,10 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     public function getAllowedMethods()
     {
-        $deliveryTitle = 'delivery_title';
-        $onlyRecipientTitle = 'only_recipient_title';
-        $signatureTitle = 'signature_title';
         $methods = [
-            'delivery_signature',
-            'delivery_only_recipient',
-            'delivery_signature_and_only_reci',
+            'signature',
+            'only_recipient',
+            'signature_only_recip',
             'morning',
             'morning_signature',
             'evening',

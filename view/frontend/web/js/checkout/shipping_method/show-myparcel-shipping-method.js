@@ -51,7 +51,7 @@ define(
             delivery_options_input = jQuery("input[name='delivery_options']");
 
             /** todo add standard method to myparcel_method */
-            myparcel_method = "input[id^='s_method_myparcel_options_']";
+            myparcel_method = "input[id^='s_method_mypa_']";
 
             /*jQuery("input[id^='s_method']").parent().on('change', function (event) {
                 console.log(jQuery(myparcel_method + ':checked'));
@@ -100,7 +100,7 @@ define(
 
         function _appendTemplate() {
             originalShippingRate = jQuery('#label_carrier_flatrate_flatrate').parent().find('td');
-            optionsContainer = originalShippingRate.parent().parent().prepend('<tr><td colspan="4" id="myparcel_options_td" style="display:none"></td></tr>').find('#myparcel_options_td');
+            optionsContainer = originalShippingRate.parent().parent().prepend('<tr><td colspan="4" id="myparcel_td" style="display:none"></td></tr>').find('#myparcel_td');
             optionsContainer.html(optionHtml);
         }
 
@@ -123,21 +123,21 @@ define(
             switch (type) {
                 case "morning":
                     if (json.options.signature) {
-                        _checkMethod('#s_method_myparcel_options_morning_signature');
+                        _checkMethod('#s_method_mypa_morning_signature');
                     } else {
-                        _checkMethod('#s_method_myparcel_options_morning');
+                        _checkMethod('#s_method_mypa_morning');
                     }
                     myparcel.showDays();
                     break;
                 case "standard":
                     console.log(json.options);
                     if (json.options.signature && json.options.only_recipient) {
-                        _checkMethod('#s_method_myparcel_options_delivery_signature_and_only_reci');
+                        _checkMethod('#s_method_mypa_signature_only_recip');
                     } else {
                         if (json.options.signature) {
-                            _checkMethod('#s_method_myparcel_options_delivery_signature');
+                            _checkMethod('#s_method_mypa_signature');
                         } else if (json.options.only_recipient) {
-                            _checkMethod('#s_method_myparcel_options_delivery_only_recipient');
+                            _checkMethod('#s_method_mypa_only_recipient');
                         } else {
                             _checkMethod('#s_method_flatrate_flatrate');
                         }
@@ -145,25 +145,23 @@ define(
                     myparcel.showDays();
                     break;
                 case "night":
-                    console.log('night');
-                    console.log(json.options.signature);
                     if (json.options.signature) {
-                        _checkMethod('#s_method_myparcel_options_evening_signature');
+                        _checkMethod('#s_method_mypa_evening_signature');
                     } else {
-                        _checkMethod('#s_method_myparcel_options_evening');
+                        _checkMethod('#s_method_mypa_evening');
                     }
                     myparcel.showDays();
                     break;
                 case "retail":
-                    _checkMethod('#s_method_myparcel_options_pickup');
+                    _checkMethod('#s_method_mypa_pickup');
                     myparcel.hideDays();
                     break;
                 case "retailexpress":
-                    _checkMethod('#s_method_myparcel_options_pickup_express');
+                    _checkMethod('#s_method_mypa_pickup_express');
                     myparcel.hideDays();
                     break;
                 case "mailbox":
-                    _checkMethod('#s_method_myparcel_options_mailbox');
+                    _checkMethod('#s_method_mypa_mailbox');
                     myparcel.hideDays();
                     break;
             }
