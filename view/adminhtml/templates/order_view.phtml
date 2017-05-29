@@ -5,7 +5,7 @@
  */
 // @codingStandardsIgnoreFile
 ?>
-<?php /** @var $block \Magento\Shipping\Block\Adminhtml\View */ ?>
+<?php /** @var $block \MyParcelNL\Magento\Block\Sales\View */ ?>
 <?php /** @var $order Magento\Sales\Model\Order */ ?>
 <?php $order = $block->getOrder() ?>
 <?php if ($order->getIsVirtual()) : return '';endif; ?>
@@ -33,6 +33,9 @@
         <?php else: ?>
             <?php /* @escapeNotVerified */ echo __('No shipping information available'); ?>
         <?php endif; ?>
+    </div>
+    <div class="admin__page-section-item-content">
+        <?= $block->getCheckoutOptionsHtml();?>
     </div>
     <div class="admin__page-section-item-content">
         <div style="float: left; margin-right: 10px;">

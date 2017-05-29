@@ -110,7 +110,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         $methods = [
             'delivery_signature',
             'delivery_only_recipient',
-            'delivery_signature_and_only_recipient_fee',
+            'delivery_signature_and_only_reci',
             'morning',
             'morning_signature',
             'evening',

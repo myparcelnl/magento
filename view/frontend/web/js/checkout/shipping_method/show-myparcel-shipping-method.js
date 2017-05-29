@@ -132,7 +132,7 @@ define(
                 case "standard":
                     console.log(json.options);
                     if (json.options.signature && json.options.only_recipient) {
-                        _checkMethod('#s_method_myparcel_options_delivery_signature_and_only_recipient_fee');
+                        _checkMethod('#s_method_myparcel_options_delivery_signature_and_only_reci');
                     } else {
                         if (json.options.signature) {
                             _checkMethod('#s_method_myparcel_options_delivery_signature');
@@ -171,7 +171,7 @@ define(
 
         function _checkMethod(selector) {
             jQuery("input[id^='s_method']").prop("checked", false).change();
-            jQuery(selector).prop("checked", true).change();
+            jQuery(selector).prop("checked", true).change().trigger('click');
         }
     }
 );
