@@ -45,11 +45,16 @@ class DefaultOptions
      * Get default of the option
      *
      * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param $chosenOptions array
      *
      * @return bool
      */
-    public function getDefault($option)
+    public function getDefault($option, $chosenOptions = null)
     {
+        if (is_array($chosenOptions) && $chosenOptions['options'][$option] == true) {
+            return true;
+        }
+
         $total = self::$order->getGrandTotal();
         $settings = self::$helper->getStandardConfig('options');
 

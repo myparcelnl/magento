@@ -64,12 +64,13 @@ class NewShipment extends AbstractItems
 
     /**
      * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param $chosenOptions array
      *
      * @return bool
      */
-    public function getDefaultOption($option)
+    public function getDefaultOption($option, $chosenOptions = null)
     {
-        return $this->defaultOptions->getDefault($option);
+        return $this->defaultOptions->getDefault($option, $chosenOptions);
     }
 
     /**
@@ -88,5 +89,10 @@ class NewShipment extends AbstractItems
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
+    }
+
+    public function getChosenOptions()
+    {
+        return json_decode($this->order->getData('delivery_options'));
     }
 }

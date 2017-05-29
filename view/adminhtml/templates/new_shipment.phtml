@@ -41,7 +41,7 @@
                name="mypa_only_recipient"
                value="1"
                type="checkbox"
-                <?= $block->getDefaultOption('only_recipient') == true ? 'checked="checked"' : '';?>
+                <?= $block->getDefaultOption('only_recipient', $block->getChosenOptions()) == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label"
                for="mypa_only_recipient">
@@ -53,7 +53,7 @@
                name="mypa_signature"
                value="1"
                type="checkbox"
-               <?= $block->getDefaultOption('signature') == true ? 'checked="checked"' : '';?>
+               <?= $block->getDefaultOption('signature', $block->getChosenOptions()) == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label"
                for="mypa_signature">
