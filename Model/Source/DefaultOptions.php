@@ -51,6 +51,7 @@ class DefaultOptions
      */
     public function getDefault($option, $chosenOptions = null)
     {
+        // Check that the customer has already chosen this option in the checkout
         if (is_array($chosenOptions) && $chosenOptions['options'][$option] == true) {
             return true;
         }
