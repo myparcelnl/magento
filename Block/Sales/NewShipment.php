@@ -22,7 +22,7 @@ use Magento\Framework\App\ObjectManager;
 class NewShipment extends AbstractItems
 {
     /**
-     * @var Order
+     * @var \Magento\Sales\Model\Order
      */
     private $order;
 
@@ -64,13 +64,12 @@ class NewShipment extends AbstractItems
 
     /**
      * @param $option 'only_recipient'|'signature'|'return'|'large_format'
-     * @param $chosenOptions array
      *
      * @return bool
      */
-    public function getDefaultOption($option, $chosenOptions = null)
+    public function getDefaultOption($option)
     {
-        return $this->defaultOptions->getDefault($option, $chosenOptions);
+        return $this->defaultOptions->getDefault($option);
     }
 
     /**
@@ -80,6 +79,14 @@ class NewShipment extends AbstractItems
     public function getDefaultInsurance()
     {
         return $this->defaultOptions->getDefaultInsurance();
+    }
+
+    /**
+     * Get package type
+     */
+    public function getPackageType()
+    {
+        return $this->defaultOptions->getPackageType();
     }
 
     /**

@@ -30,6 +30,11 @@ class DefaultOptions
     static private $order;
 
     /**
+     * @var array
+     */
+    static private $chosenOptions;
+
+    /**
      * Insurance constructor.
      *
      * @param $order Order
@@ -39,20 +44,21 @@ class DefaultOptions
     {
         self::$helper = $helper;
         self::$order = $order;
+
+        self::$chosenOptions = json_decode(self::$order->getData('delivery_options'), true);
     }
 
     /**
      * Get default of the option
      *
      * @param $option 'only_recipient'|'signature'|'return'|'large_format'
-     * @param $chosenOptions array
      *
      * @return bool
      */
-    public function getDefault($option, $chosenOptions = null)
+    public function getDefault($option)
     {
         // Check that the customer has already chosen this option in the checkout
-        if (is_array($chosenOptions) && $chosenOptions['options'][$option] == true) {
+        if (is_array(self::$chosenOptions) && key_exists('options', self::$chosenOptions) && self::$chosenOptions['options'][$option] == true) {
             return true;
         }
 
@@ -90,5 +96,44 @@ class DefaultOptions
         }
 
         return 0;
+    }
+
+    /**
+     * Get package type
+     *
+     * @return int
+     */
+    public function getPackageType()
+    {
+        if ($this->isMailBox() === true) {
+            return 2;
+        }
+
+        return 1;
+    }
+
+    private function isMailBox() {
+        /** @todo get mailbox config */
+        $mailboxActive = true;
+
+        if ($mailboxActive !== true) {
+            return false;
+        }
+
+        $country = self::$order->getShippingAddress()->getCountryId();
+        if ($country != 'NL') {
+            return false;
+        }
+
+        if (
+            is_array(self::$chosenOptions) &&
+            key_exists('time', self::$chosenOptions) &&
+            is_array(self::$chosenOptions['time']) &&
+            self::$chosenOptions['time'][0]['price_comment'] == 'mailbox'
+        ) {
+            return true;
+        }
+
+        /** @todo; check if mailbox fit in box */
     }
 }
