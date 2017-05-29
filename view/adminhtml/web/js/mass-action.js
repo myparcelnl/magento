@@ -126,6 +126,7 @@ define(
                     $.mage.__('Download label');
                     $.mage.__('Concept');
                     $.mage.__('Package Type');
+                    $.mage.__('Default');
                     $.mage.__('Package');
                     $.mage.__('Mailbox');
                     $.mage.__('Letter');
@@ -172,7 +173,7 @@ define(
                     }
 
                     $('#mypa_request_type-download').prop('checked', true).trigger('change');
-                    $('#mypa_package_type-package').prop('checked', true).trigger('change');
+                    $('#mypa_package_type-default').prop('checked', true).trigger('change');
                     $('#paper_size-' + this.options.settings['paper_type']).prop('checked', true).trigger('change');
 
                     if (selectAmount != 0) {

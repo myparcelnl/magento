@@ -86,7 +86,7 @@ class MagentoOrderCollection
     private $options = [
         'create_track_if_one_already_exist' => true,
         'request_type' => 'download',
-        'package_type' => 1,
+        'package_type' => 'default',
         'positions' => null,
         'only_recipient' => null,
         'signature' => null,

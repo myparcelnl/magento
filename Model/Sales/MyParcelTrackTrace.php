@@ -110,12 +110,6 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             $options['package_type'] = 1;
         }
 
-        if ($options['insurance'] !== null) {
-            $insurance = $options['insurance'];
-        } else {
-            $insurance = self::$defaultOptions->getDefaultInsurance();
-        }
-
         $this
             ->setApiKey(
                 $this->helper->getGeneralConfig('api/key',
@@ -132,7 +126,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
-            ->setPackageType((int)$options['package_type'] == null ? 1 : (int)$options['package_type'])
+            ->setPackageType($options['package_type'] === 'default' ? self::$defaultOptions->getPackageType() : (int)$options['package_type'])
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))

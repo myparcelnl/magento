@@ -15,7 +15,6 @@
 namespace MyParcelNL\Magento\Block\Sales;
 
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
-use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use Magento\Framework\App\ObjectManager;
 
@@ -98,6 +97,11 @@ class NewShipment extends AbstractItems
         return $this->order->getShippingAddress()->getCountryId();
     }
 
+    /**
+     * Get all chosen options
+     *
+     * @return array
+     */
     public function getChosenOptions()
     {
         return json_decode($this->order->getData('delivery_options'), true);

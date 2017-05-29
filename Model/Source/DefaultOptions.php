@@ -58,7 +58,11 @@ class DefaultOptions
     public function getDefault($option)
     {
         // Check that the customer has already chosen this option in the checkout
-        if (is_array(self::$chosenOptions) && key_exists('options', self::$chosenOptions) && self::$chosenOptions['options'][$option] == true) {
+        if (is_array(self::$chosenOptions) &&
+            key_exists('options', self::$chosenOptions) &&
+            key_exists($option, self::$chosenOptions['options']) &&
+            self::$chosenOptions['options'][$option] == true
+        ) {
             return true;
         }
 
@@ -101,7 +105,7 @@ class DefaultOptions
     /**
      * Get package type
      *
-     * @return int
+     * @return int 1|2|3
      */
     public function getPackageType()
     {
