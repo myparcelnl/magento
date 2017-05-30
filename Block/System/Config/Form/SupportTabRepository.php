@@ -28,7 +28,7 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
     protected $moduleList;
 
     /**
-     * @todo add description
+     * MyParcelSupportTab constructor.
      *
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry $registry
@@ -43,14 +43,13 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
         \Magento\Framework\Module\ModuleListInterface $moduleList,
         array $data = []
     ) {
-        $this->moduleList = $moduleList;
 
         parent::__construct($context, $registry, $adminHelper, $data);
         $this->moduleList = $moduleList;
     }
 
     /**
-     * @todo add description
+     * Get the url of the stylesheet
      *
      * @return string
      */
@@ -62,7 +61,7 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
     }
 
     /**
-     * @todo add description
+     * Get the version number of the installed module
      *
      * @return string
      */
