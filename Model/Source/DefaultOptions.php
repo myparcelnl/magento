@@ -133,11 +133,14 @@ class DefaultOptions
             is_array(self::$chosenOptions) &&
             key_exists('time', self::$chosenOptions) &&
             is_array(self::$chosenOptions['time']) &&
+            key_exists('price_comment', self::$chosenOptions['time'][0]) &&
             self::$chosenOptions['time'][0]['price_comment'] == 'mailbox'
         ) {
             return true;
         }
 
         /** @todo; check if mailbox fit in box */
+        
+        return false;
     }
 }

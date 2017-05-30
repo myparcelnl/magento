@@ -105,6 +105,13 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     public function convertDataFromMagentoToApi($magentoTrack, $options)
     {
         $address = $magentoTrack->getShipment()->getShippingAddress();
+        $checkoutData = $magentoTrack->getShipment()->getOrder()->getData('delivery_options');
+        $deliveryType = $this->getDeliveryTypeFromCheckout($checkoutData);
+        if ($options['package_type'] === 'default') {
+            $packageType = self::$defaultOptions->getPackageType();
+        } else {
+            $packageType = (int)$options['package_type'] ?: 1;
+        }
 
         if ($address->getCountryId() != 'NL' && (int)$options['package_type'] == 2) {
             $options['package_type'] = 1;
@@ -126,7 +133,10 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
-            ->setPackageType($options['package_type'] === 'default' ? self::$defaultOptions->getPackageType() : (int)$options['package_type'])
+            ->setDeliveryType($deliveryType)
+            ->setDeliveryDateFromCheckout($checkoutData)
+            ->setPickupAddressFromCheckout($checkoutData)
+            ->setPackageType($packageType)
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
