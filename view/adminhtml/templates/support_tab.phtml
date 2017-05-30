@@ -22,14 +22,14 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    <?= __('The MyParcel extension version <b>%1</b> Is installed on your webshop. Because MyParcel is busy with new developments in Magento, updates will be available. At this time we are on version <b><a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases/latest"><span class= "current_version"></span></a></b>. We always recommend installing the latest version in your Magento environment.', $block->getVersion());?>
+                                                    <?= __('The MyParcel extension version %1 Is installed on your webshop. Because MyParcel is busy with new developments in Magento, updates will be available. At this time we are on version %2. We always recommend installing the latest version in your Magento environment.', '<b>'.$block->getVersion().'</b>',"<b><a class=\"link\" target=\"_blank\" href=\"https://github.com/myparcelnl/magento/releases/latest\"><span class= \"current_version\"></span></a></b>");?>
                                                 </div>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    <?= __('To read the instructions for the MyParcel Magento extension, click <a target="_blank" href="https://myparcelnl.github.io/magento/">here</a>.');?>
+                                                    <?= __('To read the instructions for the MyParcel Magento extension, click %1','<a target="_blank" href="https://myparcelnl.github.io/magento/">here</a>.');?>
                                                 </div>
                                             </td>
                                         </tr>
