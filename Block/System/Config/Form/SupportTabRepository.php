@@ -28,7 +28,7 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
     protected $moduleList;
 
     /**
-     * MyParcelSupportTab constructor.
+     * MyParcelSupportTab constructor
      *
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry $registry
