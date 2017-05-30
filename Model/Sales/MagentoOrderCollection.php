@@ -129,7 +129,6 @@ class MagentoOrderCollection
         // If options isset
         foreach (array_keys($this->options) as $option) {
             if ($this->request->getParam('mypa_' . $option) === null) {
-
                 if ($this->request->getParam('mypa_extra_options_checkboxes_in_form') === null) {
                     // Use default options
                     $this->options[$option] = null;
