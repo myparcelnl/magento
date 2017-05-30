@@ -81,7 +81,8 @@ Download label,Download label
 Package Type,Pakkettype
 Print position,Printpositie
 MyParcel version,MyParcel versie
-"To read the instructions for the MyParcel Magento extension, click <a target="_blank" href='https://myparcelnl.github.io/magento/'>here</a>.","Klik <a target="_blank" href="https://myparcelnl.github.io/magento/">hier</a> om de handleiding van de MyParcel Magento extensie te bekijken."
+"The MyParcel extension version %1 Is installed on your webshop. Because MyParcel is busy with new developments in Magento, updates will be available. At this time we are on version %2. We always recommend installing the latest version in your Magento environment.","De MyParcel extensie versie %1 is geïnstalleerd op jouw webshop. Doordat MyParcel bezig is met nieuwe ontwikkelingen op het gebied van Magento zullen er updates beschikbaar zijn. Momenteel zitten wij op versie %2. Wij adviseren altijd de nieuwste versie te installeren in jouw magento omgeving."
+"To read the instructions for the MyParcel Magento extension, click %1 here %2.","Klik %1 hier %2 om de handleiding van de MyParcel Magento extensie te bekijken."
 When using the extension please note:,Aandachtspunten bij het gebruik van deze extensie:
 To be able to configure the extension you need to possess and use an active MyParcel account.,U dient een actief MyParcel account te hebben om de extensie te kunnen configureren.
 During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.,Indien u de oude MyParcel extensie gebruikt kan deze actief blijven in de overgangsfase. Wel dient u PakjeGemak in de oude MyParcel extensie uit te schakelen.
@@ -89,6 +90,9 @@ Magento &amp; 3rd party version compatibility,Magento & derde partijen ondersteu
 We cannot guarantee perfect functionality of the MyParcel extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact MyParcel.,Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento, of als u de extensie wilt gebruiken samen met een 3rd party extensie die niet ondersteund wordt, kunnen wij niet garanderen dat de MyParcel extensie feilloos zal functioneren. Voor vragen kunt u contact opnemen met MyParcel.
 Questions and information about your MyParcel account,MyParcel account vragen en informatie
 "For questions related to your MyParcel account, configuration problems, extension conflicts and bugs, please contact MyParcel.","Voor vragen gerelateerd aan uw MyParcel account, configuratie problemen, extensie conflicten en bugs, neemt u contact op met MyParcel."
+MyParcel:,MyParcel:
+www.myparcel.nl,www.myparcel.nl
+info@myparcel.nl,info@myparcel.nl
 Phone:,Telefoon
 Email,E-mail
 Documents,Documenten
@@ -97,3 +101,4 @@ Installation and configuration manual,Installatie en configuratie handleiding
 Full changelog,Volledige release notes
 Installation and configuration instructions,Installatie en configuratie handleiding
 MyParcel progress, MyParcel vooruitgang
+MyParcel backoffice,MyParcel backoffice

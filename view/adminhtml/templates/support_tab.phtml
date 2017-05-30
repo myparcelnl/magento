@@ -22,14 +22,14 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    De MyParcel extensie versie <?="<b> ". $block->getVersion(). "</b>"; ?> is geïnstalleerd op jouw webshop. Doordat MyParcel bezig is met nieuwe ontwikkelingen op het gebied van Magento zullen er updates beschikbaar zijn. Momenteel zitten wij op versie <b><a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases/latest"><span class="current_version"></span></a></b>. Wij adviseren altijd de nieuwste versie te installeren in jouw magento omgeving.
+                                                    <?= __('The MyParcel extension version %1 Is installed on your webshop. Because MyParcel is busy with new developments in Magento, updates will be available. At this time we are on version %2. We always recommend installing the latest version in your Magento environment.', '<b>'.$block->getVersion().'</b>',"<b><a class=\"link\" target=\"_blank\" href=\"https://github.com/myparcelnl/magento/releases/latest\"><span class= \"current_version\"></span></a></b>");?>
                                                 </div>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    <?= __('To read the instructions for the MyParcel Magento extension, click <a target="_blank" href="https://myparcelnl.github.io/magento/">here</a>.');?>
+                                                    <?= __('To read the instructions for the MyParcel Magento extension, click %1 here%2.','<a target="_blank" href="https://myparcelnl.github.io/magento/">','</a>');?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -44,7 +44,7 @@
                                                 </div>
                                                 <div class="text-box instructions">
                                                     <h3><?= __('Magento &amp; 3rd party version compatibility');?></h3>
-                                                    <p><?= __('Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento, of als u de extensie wilt gebruiken samen met een 3rd party extensie die niet ondersteund wordt, kunnen wij niet garanderen dat de MyParcel extensie feilloos zal functioneren. Voor vragen kunt u contact opnemen met MyParcel.');?></p>
+                                                    <p><?= __('We cannot guarantee perfect functionality of the MyParcel extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact MyParcel.');?></p>
 
                                                 </div>
                                             </td>
@@ -56,9 +56,9 @@
                                                     <table class="support_contact">
                                                         <tbody>
                                                             <tr>
-                                                                <td class="version_contact_first">MyParcel:</td>
+                                                                <td class="version_contact_first"><?= __('MyParcel:');?></td>
                                                                 <td class="last">
-                                                                    <a target="_blank" href="http://www.myparcel.nl">www.myparcel.nl</a>
+                                                                    <a target="_blank" href="http://www.myparcel.nl"><?= __('www.myparcel.nl');?></a>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -67,7 +67,7 @@
                                                             </tr>
                                                             <tr>
                                                                 <td class="version_contact_first"><?= __('Email');?></td>
-                                                                <td class="last"><a href="mailto:info@myparcel.nl">info@myparcel.nl</a></td>
+                                                                <td class="last"><a href="mailto:info@myparcel.nl"><?= __('info@myparcel.nl');?></a></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
@@ -87,13 +87,13 @@
                                                             </script>
                                                         </li>
                                                         <li>
-                                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases" title="Full changelog"><?= __('Full changelog');?></a>
+                                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases" title="<?= __('Full changelog');?>"><?= __('Full changelog');?></a>
                                                         </li>
                                                         <li>
-                                                            <a class="link" target="_blank" href="https://myparcelnl.github.io/magento/#2" title="Installation and configuration instructions"><?= __('Installation and configuration manual');?></a>
+                                                            <a class="link" target="_blank" href="https://myparcelnl.github.io/magento/#2" title="<?= __('Installation and configuration manual');?>"><?= __('Installation and configuration manual');?></a>
                                                         </li>
                                                         <li>
-                                                            <a class="link" target="_blank" href="https://backoffice.myparcel.nl/settings" title="MyParcel backoffice"> MyParcel backoffice</a>
+                                                            <a class="link" target="_blank" href="https://backoffice.myparcel.nl/settings" title="<?= __('MyParcel backoffice');?>"> <?= __('MyParcel backoffice');?></a>
                                                         </li>
                                                     </ul>
                                                 </div>
