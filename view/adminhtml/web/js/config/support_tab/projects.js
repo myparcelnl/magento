@@ -17,16 +17,13 @@
 
 require(['jquery'], function($){
 
-    if(window.mypa == null || window.mypa == undefined){
+    if(typeof window.mypa === 'undefined' || window.mypa === null) {
         window.mypa = {};
-    }
-    if(window.mypa.fn == null || window.mypa.fn == undefined){
-        window.mypa.fn = {};
     }
 
     (function () {
 
-        var getColumns, appendColumns,appendCards, getUrlParameter;
+        var getColumns, appendCards, appendColumn;
         window.mypa.load = function () {
             var columns = getColumns();
             $.each(columns, function(key, value) {
