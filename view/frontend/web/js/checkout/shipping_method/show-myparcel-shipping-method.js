@@ -21,8 +21,6 @@ define(
         };
 
         function loadOptions() {
-            console.log(optionsCss);
-
             if (typeof window.mypa === 'undefined') {
                 window.mypa = {isLoaded: false};
             }
@@ -107,7 +105,7 @@ define(
             optionsHtml = optionsHtml.replace('<to_replace/>', optionsCss);
 
             originalShippingRate = jQuery('#label_carrier_flatrate_flatrate').parent().find('td');
-            optionsContainer = originalShippingRate.parent().parent().prepend('<tr><td colspan="4" id="myparcel_td" style="display:none"></td></tr>').find('#myparcel_td');
+            optionsContainer = originalShippingRate.parent().parent().prepend('<tr><td colspan="4" id="myparcel_td" style="display:none;"></td></tr>').find('#myparcel_td');
             optionsContainer.html(optionsHtml);
         }
 
@@ -137,7 +135,6 @@ define(
                     myparcel.showDays();
                     break;
                 case "standard":
-                    console.log(json.options);
                     if (json.options.signature && json.options.only_recipient) {
                         _checkMethod('#s_method_mypa_signature_only_recip');
                     } else {

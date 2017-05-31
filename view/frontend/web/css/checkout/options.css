@@ -47,6 +47,7 @@ input[name=mypa-pickup-option] {
     padding: 5px 10px 5px 10px;
     display: inline-block;
     text-align: center;
+    width: 80px;
     min-height: 34px;
     opacity: .5;
     cursor: pointer;
@@ -275,6 +276,7 @@ input:checked ~ label.mypa-row-title span.mypa-highlight {
     display: inline-block;
     top: 13px;
     font-size: 22px;
+    cursor:pointer;
 }
 #mypa-date-slider-left {
     left: 19px;

@@ -288,6 +288,8 @@
                 $tabs[0].click();
             }
 
+            $("#mypa-tabs-container").attr('style', "width:" + ($("#mypa-tabs-container").width()) + "px");
+            $("#mypa-tabs").attr('style', "width:" + (this.deliveryDays.length * 105) + "px");
             this.makeSlider();
         }
 
@@ -325,7 +327,9 @@
             $('#mypa-date-slider-right').removeClass('mypa-slider-disabled');
             slider.currentBar--;
 
-            return true;
+            $el = $('#mypa-tabs');
+            left = this.slider.currentBar * this.slider.tabsPerBar * this.slider.tabWidth * -1 + 5 * this.slider.currentBar;
+            return $el.attr('style', "left:" + left + "px; width:" + (window.mypa.deliveryDays * this.slider.tabWidth) + "px");
         };
 
 
@@ -346,7 +350,9 @@
             $('#mypa-date-slider-left').removeClass('mypa-slider-disabled');
             slider.currentBar++;
 
-            return true;
+            $el = $('#mypa-tabs');
+            left = this.slider.currentBar * this.slider.tabsPerBar * this.slider.tabWidth * -1 + 5 * this.slider.currentBar;
+            return $el.attr('style', "left:" + left + "px; width:" + (window.mypa.deliveryDays * this.slider.tabWidth) + "px");
         };
 
 
