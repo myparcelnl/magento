@@ -1,0 +1,70 @@
+.myparcel_container h2 {
+    color: #0a0a0a;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 1.9rem 0rem 1.9rem;
+
+}
+.myparcel_container .instructions {
+    border: 1px solid;
+    border-color:rgb(225, 228, 232);
+    padding: 10px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.myparcel_container .instructions ol {
+    padding-left: 20px;
+}
+.myparcel_container .instructions li {
+    padding-left: 5px;
+}
+
+.myparcel_container .instructions .text-box ul {
+    padding-left: 20px;
+}
+.myparcel_container .myparcel_support, .myparcel_container .support_contact td {
+    padding: 0 !important;
+}
+.myparcel_container .support_tab {
+    padding-left: 20px;
+}
+.myparcel_container .myparcel_documents {
+    margin-top: 20px;
+}
+
+.myparcel_column  {
+    width: 32.5%;
+    float: left;
+    margin: 2px;
+}
+.myparcel_column h2 {
+    padding: 10px;
+    margin-bottom: 0;
+}
+.myparcel_column h3 {
+    margin-bottom: 0;
+    padding: 10px;
+}
+.card_item {
+    border: 1px solid #e3e3e3;
+    border-top: none;
+    color: #303030;
+    display: block;
+    font-size: 1.4rem;
+    line-height: 1.2;
+    position: relative;
+    cursor: pointer;
+    padding: 0;
+    margin:0;
+}
+.card_item:hover {
+    background: #f1f1f1;
+    text-decoration: none;
+}
+.myparcel_progress_column_titel {
+    border: 1px solid rgb(225, 228, 232);
+}
+.myparcel_column a:hover {
+    text-decoration: none;
+}
