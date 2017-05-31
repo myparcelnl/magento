@@ -7,7 +7,8 @@ var config = {
             'myparcelnl_lib_moment': 'MyParcelNL_Magento/js/lib/moment.min',
             'myparcelnl_lib_webcomponents': 'MyParcelNL_Magento/js/lib/webcomponents.min',
             'myparcelnl_lib_myparcel': 'MyParcelNL_Magento/js/lib/myparcel',
-            'myparcelnl_options_template': 'text!MyParcelNL_Magento/template/checkout/options.html'
+            'myparcelnl_options_template': 'text!MyParcelNL_Magento/template/checkout/options.html',
+            'myparcelnl_options_css': 'text!MyParcelNL_Magento/css/checkout/options.css'
         }
     }
 };

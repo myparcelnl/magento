@@ -4,11 +4,12 @@ define(
         'jquery',
         'Magento_Checkout/js/model/quote',
         'myparcelnl_options_template',
+        'myparcelnl_options_css',
         'myparcelnl_lib_myparcel',
         'myparcelnl_lib_moment',
         'myparcelnl_lib_webcomponents'
     ],
-    function(uiComponent, jQuery, quote, optionHtml) {
+    function(uiComponent, jQuery, quote, optionsHtml, optionsCss) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoaded, myparcel, delivery_options_input, myparcel_method;
@@ -20,6 +21,7 @@ define(
         };
 
         function loadOptions() {
+            console.log(optionsCss);
 
             if (typeof window.mypa === 'undefined') {
                 window.mypa = {isLoaded: false};
@@ -99,9 +101,11 @@ define(
         }
 
         function _appendTemplate() {
+            optionsHtml = optionsHtml.replace('<to_replace/>', optionsCss);
+
             originalShippingRate = jQuery('#label_carrier_flatrate_flatrate').parent().find('td');
             optionsContainer = originalShippingRate.parent().parent().prepend('<tr><td colspan="4" id="myparcel_td" style="display:none"></td></tr>').find('#myparcel_td');
-            optionsContainer.html(optionHtml);
+            optionsContainer.html(optionsHtml);
         }
 
         function _checkShippingMethod() {
