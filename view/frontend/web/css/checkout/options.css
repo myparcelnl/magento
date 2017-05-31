@@ -43,17 +43,23 @@ input[name=mypa-pickup-option] {
 }
 .mypa-tab {
     transition: background-color 0.4s;
-    background: #75D3D8;
+    background: _base_color_;
     padding: 5px 10px 5px 10px;
     display: inline-block;
     text-align: center;
     min-height: 34px;
+    opacity: .5;
+    cursor: pointer;
+}
+.mypa-delivery-header, .mypa-date:checked+label, .mypa-tab:hover{
+    background: _select_color_;
+    opacity: 1;
 }
 .mypa-date {
     display: none;
 }
 .mypa-date:checked + label, .mypa-tab:hover {
-    background: #01bbc5;
+    background: _base_color_;
 }
 .mypa-content-lg {
     transition: max-height 0.4s ease-out 0s;
@@ -68,7 +74,7 @@ input[name=mypa-pickup-option] {
 .mypa-delivery-header {
     padding: 10px;
     font-size: 120%;
-    background: #ff5501;
+    background: _base_color_;
     text-align: center;
 }
 .mypa-header-title {
@@ -98,12 +104,12 @@ input[name=mypa-pickup-option] {
     z-index: 1;
 }
 .mypa-circle:hover, label.mypa-row-subitem:hover .mypa-circle {
-    background-color: #ff8c00;
+    background-color: _select_color_;
 }
 input:checked + label.mypa-checkmark div.mypa-circle,
 input[name=mypa-delivery-type]:checked + label div.mypa-main div.mypa-circle,
 input[name=mypa-pickup-option]:checked + label div.mypa-main div.mypa-circle {
-    background-color: #ff8c00;
+    background-color: _select_color_;
     z-index: 0;
 }
 input[name=mypa-delivery-type] ~ div.mypa-content-lg {
@@ -219,7 +225,7 @@ input[name=mypa-delivery-type]:checked ~ div.mypa-content-lg {
 }
 input:checked ~ .mypa-highlight,
 input:checked ~ label.mypa-row-title span.mypa-highlight {
-    color: #FF8C00
+    color: _select_color_
 }
 #mypa-back-arrow {
     cursor: pointer;
@@ -247,11 +253,11 @@ input:checked ~ label.mypa-row-title span.mypa-highlight {
     margin-right: 0.5em;
 }
 .mypa-arrow-clickable:hover::before {
-    border-left: 0.2em solid #ff8c00;
-    border-bottom: 0.2em solid #ff8c00;
+    border-left: 0.2em solid _select_color_;
+    border-bottom: 0.2em solid _select_color_;
 }
 .mypa-arrow-clickable:hover {
-    color: #ff8c00;
+    color: _select_color_;
 }
 #mypa-date-slider-left::before, #mypa-date-slider-right::before {
     border-color: #A0A0A0;
@@ -308,7 +314,7 @@ input:checked ~ .mypa-price,
 input:checked ~ label span.mypa-price,
 input:checked ~ span span.mypa-price,
 .mypa-price-active {
-    background: #ff8c00
+    background: _select_color_
 }
 #mypa-mailbox-options-title {
     width: 100%;
@@ -395,7 +401,7 @@ div.afhalen-right:hover + .mypa-opening-hours {
     color: white;
     position: relative;
     z-index: 12;
-    background: #01bbc5;
+    background: _base_color_;
     padding: 20px 20px;
     margin: 0 auto;
     top: 13%;
@@ -407,10 +413,10 @@ div.afhalen-right:hover + .mypa-opening-hours {
     margin-left: 10px;
 }
 .mypa-pickup-selector input:checked ~ .mypa-highlight {
-    color:black;
+    color:_select_color_;
 }
 .mypa-address {
-    color: darkorange;
+    color: _base_color_;
     cursor: pointer;
 }
 .mypa-address:hover {
@@ -421,7 +427,7 @@ div.afhalen-right:hover + .mypa-opening-hours {
     font-style: italic;
 }
 .edit-location {
-    color: black;
+    color: _select_color_;
 }
 .mypa-inline-block {
     display: inline-block;

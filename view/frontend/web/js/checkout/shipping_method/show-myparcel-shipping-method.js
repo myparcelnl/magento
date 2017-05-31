@@ -101,6 +101,9 @@ define(
         }
 
         function _appendTemplate() {
+            var baseColor = '#848484';
+            var selectColor = '#001fff';
+            optionsCss = optionsCss.replace(/_base_color_/g, baseColor).replace(/_select_color_/g, selectColor);
             optionsHtml = optionsHtml.replace('<to_replace/>', optionsCss);
 
             originalShippingRate = jQuery('#label_carrier_flatrate_flatrate').parent().find('td');
