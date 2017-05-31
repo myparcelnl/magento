@@ -38,15 +38,15 @@ require(['jquery'], function($){
             return [
                 {
                     alias: "todo",
-                    title: "Nog te maken"
+                    title: "To do"
                 },
                 {
                     alias: "in-progress",
-                    title: "Momenteel mee bezig"
+                    title: "Binnenkort"
                 },
                 {
                     alias: "done",
-                    title: "Gemaakt"
+                    title: "Nieuw"
                 }
             ];
         };
