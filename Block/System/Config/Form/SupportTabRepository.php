@@ -19,13 +19,14 @@
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
 class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
-{
-    const MODULE_NAME = 'MyParcelNL_Magento';
-
-    /**
+{/**
      * @var \Magento\Framework\Module\ModuleListInterface
      */
     protected $moduleList;
+    /**
+     * @var \MyParcelNL\Magento\Helper\Data
+     */
+    private $helper;
 
     /**
      * MyParcelSupportTab constructor
@@ -33,19 +34,17 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Sales\Helper\Admin $adminHelper
-     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
      * @param array $data
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Sales\Helper\Admin $adminHelper,
-        \Magento\Framework\Module\ModuleListInterface $moduleList,
+        \MyParcelNL\Magento\Helper\Data $helper,
         array $data = []
     ) {
-
         parent::__construct($context, $registry, $adminHelper, $data);
-        $this->moduleList = $moduleList;
+        $this->helper = $helper;
     }
 
     /**
@@ -67,9 +66,6 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      */
     public function getVersion()
     {
-        $moduleCode = self::MODULE_NAME;
-        $moduleInfo = $this->moduleList->getOne($moduleCode);
-
-        return (string)$moduleInfo['setup_version'];
+        return $this->helper->getVersion();
     }
 }

@@ -19,16 +19,28 @@
 namespace MyParcelNL\Magento\Model\Checkout;
 
 
+use MyParcelNL\Magento\Model\Quote\Checkout;
+
 class LayoutProcessorPlugin
 {
+    /**
+     * @var \MyParcelNL\Magento\Model\Quote\Checkout
+     */
+    private $settings;
 
+    /**
+     * @param Checkout $settings
+     */
+    public function __construct(Checkout $settings)
+    {
+        $this->settings = $settings;
+    }
     /**
      * @param \Magento\Checkout\Block\Checkout\LayoutProcessor $subject
      * @param array                                            $jsLayout
      *
      * @return array
      */
-
     public function afterProcess(
         \Magento\Checkout\Block\Checkout\LayoutProcessor $subject,
         array  $jsLayout
@@ -55,6 +67,21 @@ class LayoutProcessorPlugin
                         'validation' => [],
                         'sortOrder' => 200,
                         'id' => 'delivery-options',
+                    ],
+                    'delivery_settings' => [
+                        'component' => 'Magento_Ui/js/form/element/abstract',
+                        'config' => [
+                            'customScope' => 'shippingAddress',
+                            'template' => 'ui/form/field',
+                            'elementTmpl' => 'ui/form/element/input',
+                            'options' => [],
+                            'id' => 'delivery-settings',
+                        ],
+                        'dataScope' => 'shippingAddress.delivery_settings',
+                        'provider' => 'checkoutProvider',
+                        'visible' => true,
+                        'value' => json_encode($this->settings->getCheckoutSettings(12)),
+                        'id' => 'delivery-settings',
                     ],
                 ]
             );

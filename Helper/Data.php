@@ -22,8 +22,24 @@ use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
 {
+    const MODULE_NAME = 'MyParcelNL_Magento';
     const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
     const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
+    const XML_PATH_CHECKOUT = 'myparcelnl_magento_checkout/';
+    /**
+     * @var \Magento\Framework\Module\ModuleListInterface
+     */
+    private $moduleList;
+
+    /**
+     * @param Context $context
+     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
+     */
+    public function __construct(Context $context, \Magento\Framework\Module\ModuleListInterface $moduleList)
+    {
+        parent::__construct($context);
+        $this->moduleList = $moduleList;
+    }
 
     /**
      * Get settings by field
@@ -62,5 +78,18 @@ class Data extends AbstractHelper
     public function getStandardConfig($code = '', $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);
+    }
+
+    /**
+     * Get the version number of the installed module
+     *
+     * @return string
+     */
+    public function getVersion()
+    {
+        $moduleCode = self::MODULE_NAME;
+        $moduleInfo = $this->moduleList->getOne($moduleCode);
+
+        return (string)$moduleInfo['setup_version'];
     }
 }

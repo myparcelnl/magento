@@ -26,6 +26,7 @@ define(
             }
             if (window.mypa.isLoaded === false) {
                 window.mypa.isLoaded = true;
+                console.log(quote);
                 isLoaded = setTimeout(function(){
                     window.mypa.isLoaded = false;
                     clearTimeout(isLoaded);

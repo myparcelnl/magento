@@ -32,14 +32,14 @@
             </options>
         </myparcelnl_magento_standard>
         <myparcelnl_magento_checkout>
-            <checkout_basic>
+            <general>
                 <deliverydays_window>5</deliverydays_window>
                 <cutoff_time>15,30,00</cutoff_time>
                 <dropoff_days>1,2,3,4,5</dropoff_days>
                 <dropoff_delay>0</dropoff_delay>
                 <base_color>01bbc5</base_color>
                 <select_color>3399cc</select_color>
-            </checkout_basic>
+            </general>
         </myparcelnl_magento_checkout>
         <sales_email>
             <track>
