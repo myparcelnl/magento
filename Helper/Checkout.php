@@ -39,6 +39,30 @@ class Checkout extends Data
     }
 
     /**
+     * Set shipping base price
+     *
+     * @param \Magento\Quote\Model\Quote $quote
+     *
+     * @return Checkout
+     */
+    public function setBasePriceFromQuote($quote)
+    {
+
+        $address = $quote->getShippingAddress();
+        $address->requestShippingRates();
+        $rates = $address->getShippingRatesCollection();
+
+        foreach ($rates as $rate) {
+            if (key_exists('code', $rate->getData()) && $rate->getData('code') === 'flatrate_flatrate') {
+                $this->setBasePrice((int)$rate->getPrice());
+                break;
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Get extra price. Check if total shipping price is not below 0 euro
      *
      * @param $extraPrice
