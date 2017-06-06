@@ -58,10 +58,10 @@ class Checkout
             'pickupExpress' => $this->getPickupExpressData(),
         ];
 
-        return [
+        return ['data' => [
             'version' => (string)$this->helper->getVersion(),
             'data' => (array)$this->data
-        ];
+        ]];
     }
 
     /**
