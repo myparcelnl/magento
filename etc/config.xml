@@ -43,19 +43,19 @@
                 <select_color>3399cc</select_color>
             </general>
             <delivery>
-                <title>Thuis of op het werk bezorgd</title>
-                <home_address_only_active>1</home_address_only_active>
-                <home_address_only_titel>Niet bij de buren bezorgen</home_address_only_titel>
-                <home_address_only_fee>0.33</home_address_only_fee>
-                <signature_on_receipt_active>1</signature_on_receipt_active>
-                <signature_receipt_titel>Handtekening voor ontvangst</signature_receipt_titel>
-                <signature_receipt_fee>0.42</signature_receipt_fee>
+                <delivery_title>Thuis of op het werk bezorgd</delivery_title>
+                <only_recipient_active>1</only_recipient_active>
+                <only_recipient_title>Niet bij de buren bezorgen</only_recipient_title>
+                <only_recipient_fee>0.33</only_recipient_fee>
+                <signature_active>1</signature_active>
+                <signature_title>Handtekening voor ontvangst</signature_title>
+                <signature_fee>0.42</signature_fee>
                 <signature_and_only_receipt_fee>0.51</signature_and_only_receipt_fee>
             </delivery>
             <mailbox>
                 <active>0</active>
                 <other_options>1</other_options>
-                <titel>Brievenbuspakje</titel>
+                <title>Brievenbuspakje</title>
                 <weight>2000</weight>
                 <fee>3.50</fee>
             </mailbox>
@@ -67,11 +67,11 @@
                 <active>1</active>
                 <fee>1.25</fee>
             </evening>
-            <pickup_location>
+            <pickup>
                 <active>1</active>
-                <titel>Ophalen bij een PostNL locatie</titel>
+                <title>Ophalen bij een PostNL locatie</title>
                 <fee>0</fee>
-            </pickup_location>
+            </pickup>
             <pickup_express>
                 <active>1</active>
                 <fee>1.25</fee>

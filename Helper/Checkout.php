@@ -20,6 +20,8 @@ class Checkout extends Data
 {
     private $base_price = 0;
 
+    private $tmp_scope;
+
     /**
      * @return int
      */
@@ -65,6 +67,29 @@ class Checkout extends Data
         return (float)Mage::helper('tax')->getShippingPrice($price, $flag, $quote->getShippingAddress());
     }*/
 
+    /**
+     * @return mixed
+     */
+    public function getTmpScope()
+    {
+        return $this->tmp_scope;
+    }
+
+    /**
+     * @param mixed $tmp_scope
+     */
+    public function setTmpScope($tmp_scope)
+    {
+        $this->tmp_scope = $this->getConfigValue(self::XML_PATH_CHECKOUT . $tmp_scope);
+        if (!is_array($this->tmp_scope)) {
+            var_dump(self::XML_PATH_CHECKOUT . $tmp_scope);
+            exit('help');
+        }
+        /*if ($tmp_scope == 'delivery') {
+            var_dump(self::XML_PATH_CHECKOUT . $tmp_scope);
+            exit('good');
+        }*/
+    }
 
     /**
      * Get checkout setting
@@ -74,22 +99,35 @@ class Checkout extends Data
      *
      * @return mixed
      */
-    public function getCheckoutConfig($code = '', $storeId = null)
+    public function getCheckoutConfig($code, $storeId = null)
     {
-        return $this->getConfigValue(self::XML_PATH_CHECKOUT . $code, $storeId);
+        $settings = $this->getTmpScope();
+
+        /** @todo throw exception */
+        if (!is_array($settings)) {
+            var_dump($settings);
+            var_dump($code);
+            exit('tesfd');
+        }
+
+        if (!key_exists($code, $settings)) {
+            var_dump($settings);
+            var_dump($code);
+            exit('tesfd');
+        }
+        return $settings[$code];
     }
 
     /**
      * Get bool of setting
      *
-     * @param string $code
-     * @param null   $storeId
+     * @param string $key
      *
      * @return bool
      */
-    public function getBoolConfig($code = '', $storeId = null)
+    public function getBoolConfig($key)
     {
-        return $this->getConfigValue(self::XML_PATH_CHECKOUT . $code, $storeId) == "1" ? true : false;
+        return $this->getCheckoutConfig($key) == "1" ? true : false;
     }
 
     /**

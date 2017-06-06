@@ -64,6 +64,8 @@ class Checkout
      */
     private function getGeneralData()
     {
+        $this->helper->setTmpScope('general');
+
         return (object)[
             'base_price' => $this->helper->getBasePrice(),
             'cutoff_time' => $this->helper->getTimeConfig('cutoff_time'),
@@ -84,6 +86,8 @@ class Checkout
      */
     private function getDeliveryData()
     {
+        $this->helper->setTmpScope('delivery');
+
         return (object)[
             'delivery_title' => $this->helper->getCheckoutConfig('delivery_title'),
             'only_recipient_active' => $this->helper->getBoolConfig('only_recipient_active'),
@@ -103,9 +107,11 @@ class Checkout
      */
     private function getMorningData()
     {
+        $this->helper->setTmpScope('morning');
+
         return (object)[
-            'active' => $this->helper->getBoolConfig('morningdelivery_active'),
-            'fee' => $this->helper->getExtraPrice('morningdelivery_fee'),
+            'active' => $this->helper->getBoolConfig('active'),
+            'fee' => $this->helper->getExtraPrice('fee'),
         ];
     }
 
@@ -116,9 +122,11 @@ class Checkout
      */
     private function getEveningData()
     {
+        $this->helper->setTmpScope('evening');
+
         return (object)[
-            'active' => $this->helper->getBoolConfig('eveningdelivery_active'),
-            'fee' => $this->helper->getExtraPrice('eveningdelivery_fee'),
+            'active' => $this->helper->getBoolConfig('active'),
+            'fee' => $this->helper->getExtraPrice('fee'),
         ];
     }
 
@@ -129,10 +137,12 @@ class Checkout
      */
     private function getPickupData()
     {
+        $this->helper->setTmpScope('pickup');
+
         return (object)[
-            'active' => $this->helper->getBoolConfig('pickup_active'),
-            'title' => $this->helper->getCheckoutConfig('pickup_title'),
-            'fee' => $this->helper->getExtraPrice('pickup_fee'),
+            'active' => $this->helper->getBoolConfig('active'),
+            'title' => $this->helper->getCheckoutConfig('title'),
+            'fee' => $this->helper->getExtraPrice('fee'),
         ];
     }
 
@@ -143,9 +153,11 @@ class Checkout
      */
     private function getPickupExpressData()
     {
+        $this->helper->setTmpScope('pickup_express');
+
         return (object)[
-            'active' => $this->helper->getCheckoutConfig('pickup_express_active'),
-            'fee' => $this->helper->getExtraPrice('pickup_express_fee'),
+            'active' => $this->helper->getCheckoutConfig('active'),
+            'fee' => $this->helper->getExtraPrice('fee'),
         ];
     }
 }
