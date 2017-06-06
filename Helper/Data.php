@@ -30,15 +30,25 @@ class Data extends AbstractHelper
      * @var \Magento\Framework\Module\ModuleListInterface
      */
     private $moduleList;
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    public $logger;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Module\ModuleListInterface $moduleList
+     * @param \Psr\Log\LoggerInterface $logger
      */
-    public function __construct(Context $context, \Magento\Framework\Module\ModuleListInterface $moduleList)
+    public function __construct(
+        Context $context,
+        \Magento\Framework\Module\ModuleListInterface $moduleList,
+        \Psr\Log\LoggerInterface $logger
+    )
     {
         parent::__construct($context);
         $this->moduleList = $moduleList;
+        $this->logger = $logger;
     }
 
     /**

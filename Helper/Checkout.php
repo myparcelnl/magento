@@ -82,13 +82,8 @@ class Checkout extends Data
     {
         $this->tmp_scope = $this->getConfigValue(self::XML_PATH_CHECKOUT . $tmp_scope);
         if (!is_array($this->tmp_scope)) {
-            var_dump(self::XML_PATH_CHECKOUT . $tmp_scope);
-            exit('help');
+            $this->logger->critical('Can\'t get settings with path:' . self::XML_PATH_CHECKOUT . $tmp_scope);
         }
-        /*if ($tmp_scope == 'delivery') {
-            var_dump(self::XML_PATH_CHECKOUT . $tmp_scope);
-            exit('good');
-        }*/
     }
 
     /**
@@ -103,18 +98,14 @@ class Checkout extends Data
     {
         $settings = $this->getTmpScope();
 
-        /** @todo throw exception */
         if (!is_array($settings)) {
-            var_dump($settings);
-            var_dump($code);
-            exit('tesfd');
+            $this->logger->critical('No data in settings array');
         }
 
         if (!key_exists($code, $settings)) {
-            var_dump($settings);
-            var_dump($code);
-            exit('tesfd');
+            $this->logger->critical('Can\'t get setting ' . $code);
         }
+
         return $settings[$code];
     }
 
