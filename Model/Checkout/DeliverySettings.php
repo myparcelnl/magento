@@ -37,7 +37,6 @@ class DeliverySettings implements DeliverySettingsInterface
 
     public function get()
     {
-//        header('Content-Type: application/json');
         return $this->settings->getCheckoutSettings();
     }
 }

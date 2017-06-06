@@ -81,8 +81,8 @@ class Checkout
             'monday_delivery_active' => $this->helper->getBoolConfig('monday_delivery_active'),
             'saturday_cutoff_time' => $this->helper->getTimeConfig('saturday_cutoff_time'),
             'dropoff_delay' => $this->helper->getIntergerConfig('dropoff_delay'),
-            'base_color' => $this->helper->getCheckoutConfig('base_color'),
-            'select_color' => $this->helper->getCheckoutConfig('select_color'),
+            'color_base' => $this->helper->getCheckoutConfig('color_base'),
+            'color_select' => $this->helper->getCheckoutConfig('color_select'),
         ];
     }
 

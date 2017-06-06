@@ -65,15 +65,18 @@ class Checkout extends Data
     /**
      * Get extra price. Check if total shipping price is not below 0 euro
      *
-     * @param $extraPrice
+     * @param string $key
      *
      * @return float
      */
-    public function getExtraPrice($extraPrice)
+    public function getExtraPrice($key)
     {
+        $extraPrice = $this->getCheckoutConfig($key);
+
         if ($this->getBasePrice() + $extraPrice < 0) {
             return 0;
         }
+
         return (float)$this->getBasePrice() + $extraPrice;
     }
 

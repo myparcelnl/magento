@@ -39,8 +39,8 @@
                 <saturday_cutoff_time>14,30,00</saturday_cutoff_time>
                 <dropoff_days>1,2,3,4,5</dropoff_days>
                 <dropoff_delay>0</dropoff_delay>
-                <base_color>01bbc5</base_color>
-                <select_color>3399cc</select_color>
+                <color_base>01bbc5</color_base>
+                <color_select>3399cc</color_select>
             </general>
             <delivery>
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
@@ -50,7 +50,7 @@
                 <signature_active>1</signature_active>
                 <signature_title>Handtekening voor ontvangst</signature_title>
                 <signature_fee>0.42</signature_fee>
-                <signature_and_only_receipt_fee>0.51</signature_and_only_receipt_fee>
+                <signature_and_only_recipient_fee>0.51</signature_and_only_recipient_fee>
             </delivery>
             <mailbox>
                 <active>0</active>
