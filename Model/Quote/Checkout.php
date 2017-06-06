@@ -60,20 +60,20 @@ class Checkout
 
         return [
             'version' => (string)$this->helper->getVersion(),
-            'data' => (object)$this->data
+            'data' => (array)$this->data
         ];
     }
 
     /**
      * Get general data
      *
-     * @return object
+     * @return array)
      */
     private function getGeneralData()
     {
         $this->helper->setTmpScope('general');
 
-        return (object)[
+        return (array)[
             'base_price' => $this->helper->getBasePrice(),
             'cutoff_time' => $this->helper->getTimeConfig('cutoff_time'),
             'deliverydays_window' => $this->helper->getIntergerConfig('deliverydays_window'),
@@ -89,13 +89,13 @@ class Checkout
     /**
      * Get delivery data
      *
-     * @return object
+     * @return array)
      */
     private function getDeliveryData()
     {
         $this->helper->setTmpScope('delivery');
 
-        return (object)[
+        return (array)[
             'delivery_title' => $this->helper->getCheckoutConfig('delivery_title'),
             'only_recipient_active' => $this->helper->getBoolConfig('only_recipient_active'),
             'only_recipient_title' => $this->helper->getCheckoutConfig('only_recipient_title'),
@@ -110,13 +110,13 @@ class Checkout
     /**
      * Get morning data
      *
-     * @return object
+     * @return array)
      */
     private function getMorningData()
     {
         $this->helper->setTmpScope('morning');
 
-        return (object)[
+        return (array)[
             'active' => $this->helper->getBoolConfig('active'),
             'fee' => $this->helper->getExtraPrice('fee'),
         ];
@@ -125,13 +125,13 @@ class Checkout
     /**
      * Get evening data
      *
-     * @return object
+     * @return array)
      */
     private function getEveningData()
     {
         $this->helper->setTmpScope('evening');
 
-        return (object)[
+        return (array)[
             'active' => $this->helper->getBoolConfig('active'),
             'fee' => $this->helper->getExtraPrice('fee'),
         ];
@@ -140,13 +140,13 @@ class Checkout
     /**
      * Get pickup data
      *
-     * @return object
+     * @return array)
      */
     private function getPickupData()
     {
         $this->helper->setTmpScope('pickup');
 
-        return (object)[
+        return (array)[
             'active' => $this->helper->getBoolConfig('active'),
             'title' => $this->helper->getCheckoutConfig('title'),
             'fee' => $this->helper->getExtraPrice('fee'),
@@ -156,13 +156,13 @@ class Checkout
     /**
      * Get pickup express data
      *
-     * @return object
+     * @return array)
      */
     private function getPickupExpressData()
     {
         $this->helper->setTmpScope('pickup_express');
 
-        return (object)[
+        return (array)[
             'active' => $this->helper->getCheckoutConfig('active'),
             'fee' => $this->helper->getExtraPrice('fee'),
         ];
