@@ -9,6 +9,9 @@
             </argument>
         </arguments>
     </virtualType>
+    <!-- API delivery settings -->
+    <preference for="MyParcelNL\Magento\Api\DeliverySettingsInterface"
+                type="MyParcelNL\Magento\Model\Checkout\DeliverySettings" />
     <!-- Add print label button -->
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
         <plugin name="mypa-massaction-button" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>

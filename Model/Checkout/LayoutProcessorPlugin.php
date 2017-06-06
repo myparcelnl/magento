@@ -68,21 +68,6 @@ class LayoutProcessorPlugin
                         'sortOrder' => 200,
                         'id' => 'delivery-options',
                     ],
-                    'delivery_settings' => [
-                        'component' => 'Magento_Ui/js/form/element/abstract',
-                        'config' => [
-                            'customScope' => 'shippingAddress',
-                            'template' => 'ui/form/field',
-                            'elementTmpl' => 'ui/form/element/input',
-                            'options' => [],
-                            'id' => 'delivery-settings',
-                        ],
-                        'dataScope' => 'shippingAddress.delivery_settings',
-                        'provider' => 'checkoutProvider',
-                        'visible' => true,
-                        'value' => json_encode($this->settings->getCheckoutSettings(12)),
-                        'id' => 'delivery-settings',
-                    ],
                 ]
             );
 

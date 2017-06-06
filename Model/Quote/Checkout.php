@@ -22,25 +22,32 @@ class Checkout
     private $helper;
 
     /**
+     * @var \Magento\Quote\Model\Quote
+     */
+    private $quote;
+
+    /**
      * Checkout constructor.
+     * @param \Magento\Checkout\Model\Session $session
      * @param \MyParcelNL\Magento\Helper\Checkout $helper
      */
-    public function __construct(\MyParcelNL\Magento\Helper\Checkout $helper)
-    {
+    public function __construct(
+        \Magento\Checkout\Model\Session $session,
+        \MyParcelNL\Magento\Helper\Checkout $helper
+    ) {
         $this->helper = $helper;
+        $this->quote = $session->getQuote();
     }
-
 
     /**
      * Get settings for MyParcel checkout
      *
-     * @param double $basePrice
-     *
      * @return array
      */
-    public function getCheckoutSettings($basePrice)
+    public function getCheckoutSettings()
     {
-        $this->helper->setBasePrice($basePrice);
+
+        $this->helper->setBasePriceFromQuote($this->quote);
 
         $this->data = [
             'general' => $this->getGeneralData(),
