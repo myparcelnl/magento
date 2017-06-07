@@ -18,7 +18,9 @@ namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
+use Psr\Log\LoggerInterface;
 
 class Data extends AbstractHelper
 {
@@ -27,23 +29,23 @@ class Data extends AbstractHelper
     const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
     const XML_PATH_CHECKOUT = 'myparcelnl_magento_checkout/';
     /**
-     * @var \Magento\Framework\Module\ModuleListInterface
+     * @var ModuleListInterface
      */
     private $moduleList;
     /**
-     * @var \Psr\Log\LoggerInterface
+     * @var LoggerInterface
      */
     public $logger;
 
     /**
      * @param Context $context
-     * @param \Magento\Framework\Module\ModuleListInterface $moduleList
-     * @param \Psr\Log\LoggerInterface $logger
+     * @param ModuleListInterface $moduleList
+     * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
-        \Magento\Framework\Module\ModuleListInterface $moduleList,
-        \Psr\Log\LoggerInterface $logger
+        ModuleListInterface $moduleList,
+        LoggerInterface $logger
     )
     {
         parent::__construct($context);
@@ -88,6 +90,38 @@ class Data extends AbstractHelper
     public function getStandardConfig($code = '', $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);
+    }
+
+
+    /**
+     * Get checkout setting
+     *
+     * @param string $code
+     * @param null   $storeId
+     *
+     * @return mixed
+     */
+    public function getCheckoutConfig($code, $storeId = null)
+    {
+        $settings = $this->getTmpScope();
+        if ($settings == null) {
+            $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
+            if ($value != null) {
+                return $value;
+            } else {
+                $this->logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+            }
+        }
+
+        if (!is_array($settings)) {
+            $this->logger->critical('No data in settings array');
+        }
+
+        if (!key_exists($code, $settings)) {
+            $this->logger->critical('Can\'t get setting ' . $code);
+        }
+
+        return $settings[$code];
     }
 
     /**

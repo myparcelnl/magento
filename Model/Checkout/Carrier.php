@@ -121,6 +121,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     {
         $result = $this->_rateFactory->create();
         $result = $this->addShippingMethods($result);
+
         return $result;
     }
 
