@@ -129,8 +129,7 @@ class Checkout extends Data
             if ($value != null) {
                 return $value;
             } else {
-                return 1234;
-//                $this->logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+                $this->logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
             }
         }
 
