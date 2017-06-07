@@ -39,8 +39,8 @@
                 <saturday_cutoff_time>14,30,00</saturday_cutoff_time>
                 <dropoff_days>1,2,3,4,5</dropoff_days>
                 <dropoff_delay>0</dropoff_delay>
-                <color_base>01bbc5</color_base>
-                <color_select>3399cc</color_select>
+                <color_base>#01bbc5</color_base>
+                <color_select>#3399cc</color_select>
             </general>
             <delivery>
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
