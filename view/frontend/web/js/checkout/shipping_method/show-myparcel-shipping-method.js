@@ -1,15 +1,15 @@
 define(
     [
+        'mage/url',
         'uiComponent',
         'jquery',
-        'Magento_Checkout/js/model/quote',
         'myparcelnl_options_template',
         'myparcelnl_options_css',
         'myparcelnl_lib_myparcel',
         'myparcelnl_lib_moment',
         'myparcelnl_lib_webcomponents'
     ],
-    function(uiComponent, jQuery, quote, optionsHtml, optionsCss) {
+    function(mageUrl, uiComponent, jQuery, optionsHtml, optionsCss) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoaded, myparcel, delivery_options_input, myparcel_method;
@@ -26,7 +26,6 @@ define(
             }
             if (window.mypa.isLoaded === false) {
                 window.mypa.isLoaded = true;
-                console.log(quote);
                 isLoaded = setTimeout(function(){
                     window.mypa.isLoaded = false;
                     clearTimeout(isLoaded);
@@ -70,33 +69,45 @@ define(
 
         function _retrieveOptions() {
             _setParameters();
-            myparcel = new MyParcel();
-            myparcel.updatePage();
         }
 
         function _setParameters() {
-            window.mypa.settings = {
-                deliverydays_window: 10,
-                number: '55',
-                street: 'Street name',
-                postal_code: '2231je',
-                price: {
-                    morning: '&#8364; 12,00',
-                    default: '&#8364; 12,00',
-                    night: '&#8364; 12,00',
-                    pickup: '&#8364; 12,00',
-                    pickup_express: '&#8364; 12,00',
-                    signed: '&#8364; 12,00',
-                    only_recipient: '&#8364; 12,00',
-                    combi_options: '&#8364; 12,00'
-                },
-                base_url: 'https://api.myparcel.nl/delivery_options',
-                text:
-                {
-                    /*signed: 'Text show instead of default text',
-                    only_recipient: 'Text show instead of default text'*/
-                }
-            };
+            jQuery.ajax({
+                url: mageUrl.build('rest/V1/delivery_settings/get'),
+                type: "GET",
+                dataType: 'json'
+            }).done(function (response) {
+
+                var data = response[0].data;
+                // console.log(data);
+                // console.log(data.morning.fee);
+                window.mypa.settings = {
+                    deliverydays_window: 10,
+                    number: '55',
+                    street: 'Street name',
+                    postal_code: '2231je',
+                    price: {
+                        morning: data.morning.fee,
+                        default: data.general.base_price,
+                        night: data.evening.fee,
+                        pickup: data.pickup.fee,
+                        pickup_express: data.pickupExpress.fee,
+                        signed: data.delivery.signature_fee,
+                        only_recipient: data.delivery.only_recipient_fee,
+                        combi_options: data.delivery.signature_and_only_recipient_fee
+                    },
+                    base_url: 'https://api.myparcel.nl/delivery_options',
+                    text:
+                        {
+                            signed: data.delivery.signature_title,
+                            only_recipient: data.delivery.only_recipient_title
+                        }
+                };
+
+                myparcel = new MyParcel();
+                myparcel.updatePage();
+            });
+
         }
 
         function _appendTemplate() {

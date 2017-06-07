@@ -63,21 +63,60 @@ class Checkout extends Data
     }
 
     /**
-     * Get extra price. Check if total shipping price is not below 0 euro
+     * Get MyParcel method/option price.
+     * Check if total shipping price is not below 0 euro
      *
      * @param string $key
+     * @param bool $addBasePrice
      *
      * @return float
      */
-    public function getExtraPrice($key)
+    public function getMethodPrice($key, $addBasePrice = true)
     {
-        $extraPrice = $this->getCheckoutConfig($key);
+        $value = $this->getCheckoutConfig($key);
 
-        if ($this->getBasePrice() + $extraPrice < 0) {
-            return 0;
+        if ($addBasePrice) {
+            if ($this->getBasePrice() + $value < 0) {
+                return (float)0;
+            }
+
+            // Calculate value
+            $value = $this->getBasePrice() + $value;
         }
 
-        return (float)$this->getBasePrice() + $extraPrice;
+        return (float)$value;
+    }
+
+    /**
+     * Get MyParcel method/option price with EU format
+     *
+     * @param string $key
+     * @param bool $addBasePrice
+     * @param string $prefix
+     *
+     * @return string
+     */
+    public function getMethodPriceFormat($key, $addBasePrice = true, $prefix = '')
+    {
+        $value = $this->getMethodPrice($key, $addBasePrice);
+        $value = $this->getMoneyFormat($value);
+        $value = $prefix . $value;
+
+        return $value;
+    }
+
+    /**
+     * Get price in EU format
+     *
+     * @param float $value
+     *
+     * @return string
+     */
+    public function getMoneyFormat($value) {
+        $value = number_format($value, 2, ',', '.');
+        $value = '&#8364; ' . (string)$value;
+
+        return $value;
     }
 
     /**

@@ -177,9 +177,9 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
         $method = $this->_rateMethodFactory->create();
         $method->setCarrier($this->_code);
-        $method->setCarrierTitle($title);
+        $method->setCarrierTitle($alias);
         $method->setMethod($alias);
-        $method->setMethodTitle($alias);
+        $method->setMethodTitle($title);
         $method->setPrice($price);
 
         return $method;
@@ -213,11 +213,11 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     private function createPrice($alias, $settingPath) {
         if ($alias == 'morning_signature') {
-            $price = $this->myParcelHelper->getExtraPrice('morning/fee') + $this->myParcelHelper->getExtraPrice('delivery/signature_fee');
+            $price = $this->myParcelHelper->getMethodPrice('morning/fee') + $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
         } else if ($alias == 'evening_signature') {
-            $price = $this->myParcelHelper->getExtraPrice('evening/fee') + $this->myParcelHelper->getExtraPrice('delivery/signature_fee');
+            $price = $this->myParcelHelper->getMethodPrice('evening/fee') + $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
         } else {
-            $price = $this->myParcelHelper->getExtraPrice($settingPath . 'fee');
+            $price = $this->myParcelHelper->getMethodPrice($settingPath . 'fee');
         }
 
         return $price;

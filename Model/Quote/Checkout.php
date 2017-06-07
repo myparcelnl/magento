@@ -74,7 +74,7 @@ class Checkout
         $this->helper->setTmpScope('general');
 
         return (array)[
-            'base_price' => $this->helper->getBasePrice(),
+            'base_price' => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
             'cutoff_time' => $this->helper->getTimeConfig('cutoff_time'),
             'deliverydays_window' => $this->helper->getIntergerConfig('deliverydays_window'),
             'dropoff_days' => $this->helper->getArrayConfig('dropoff_days'),
@@ -99,11 +99,11 @@ class Checkout
             'delivery_title' => $this->helper->getCheckoutConfig('delivery_title'),
             'only_recipient_active' => $this->helper->getBoolConfig('only_recipient_active'),
             'only_recipient_title' => $this->helper->getCheckoutConfig('only_recipient_title'),
-            'only_recipient_fee' => $this->helper->getExtraPrice('only_recipient_fee'),
+            'only_recipient_fee' => $this->helper->getMethodPriceFormat('only_recipient_fee', false, '+ '),
             'signature_active' => $this->helper->getBoolConfig('signature_active'),
             'signature_title' => $this->helper->getCheckoutConfig('signature_title'),
-            'signature_fee' => $this->helper->getExtraPrice('signature_fee'),
-            'signature_and_only_recipient_fee' => $this->helper->getExtraPrice('signature_and_only_recipient_fee'),
+            'signature_fee' => $this->helper->getMethodPriceFormat('signature_fee', false, '+ '),
+            'signature_and_only_recipient_fee' => $this->helper->getMethodPriceFormat('signature_and_only_recipient_fee', false, '+ '),
         ];
     }
 
@@ -118,7 +118,7 @@ class Checkout
 
         return (array)[
             'active' => $this->helper->getBoolConfig('active'),
-            'fee' => $this->helper->getExtraPrice('fee'),
+            'fee' => $this->helper->getMethodPriceFormat('fee'),
         ];
     }
 
@@ -133,7 +133,7 @@ class Checkout
 
         return (array)[
             'active' => $this->helper->getBoolConfig('active'),
-            'fee' => $this->helper->getExtraPrice('fee'),
+            'fee' => $this->helper->getMethodPriceFormat('fee'),
         ];
     }
 
@@ -149,7 +149,7 @@ class Checkout
         return (array)[
             'active' => $this->helper->getBoolConfig('active'),
             'title' => $this->helper->getCheckoutConfig('title'),
-            'fee' => $this->helper->getExtraPrice('fee'),
+            'fee' => $this->helper->getMethodPriceFormat('fee'),
         ];
     }
 
@@ -164,7 +164,7 @@ class Checkout
 
         return (array)[
             'active' => $this->helper->getCheckoutConfig('active'),
-            'fee' => $this->helper->getExtraPrice('fee'),
+            'fee' => $this->helper->getMethodPriceFormat('fee'),
         ];
     }
 }
