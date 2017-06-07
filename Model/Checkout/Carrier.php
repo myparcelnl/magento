@@ -1,6 +1,6 @@
 <?php
 /**
- * Short_description
+ * Set MyParcel Shipping methods
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -26,6 +26,9 @@ use Magento\Shipping\Model\Rate\Result;
 use Magento\Shipping\Model\Simplexml\Element;
 use Magento\Ups\Helper\Config;
 use Magento\Framework\Xml\Security;
+use MyParcelNL\Magento\Helper\{
+    Checkout, Data
+};
 
 class Carrier extends AbstractCarrierOnline implements CarrierInterface
 {
@@ -40,7 +43,33 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     protected $configHelper;
     protected $_errors = [];
     protected $_isFixed = true;
+    /**
+     * @var Checkout
+     */
+    private $myParcelHelper;
 
+    /**
+     * Carrier constructor.
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     * @param \Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory $rateErrorFactory
+     * @param \Psr\Log\LoggerInterface $logger
+     * @param Security $xmlSecurity
+     * @param \Magento\Shipping\Model\Simplexml\ElementFactory $xmlElFactory
+     * @param \Magento\Shipping\Model\Rate\ResultFactory $rateFactory
+     * @param \Magento\Quote\Model\Quote\Address\RateResult\MethodFactory $rateMethodFactory
+     * @param \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory
+     * @param \Magento\Shipping\Model\Tracking\Result\ErrorFactory $trackErrorFactory
+     * @param \Magento\Shipping\Model\Tracking\Result\StatusFactory $trackStatusFactory
+     * @param \Magento\Directory\Model\RegionFactory $regionFactory
+     * @param \Magento\Directory\Model\CountryFactory $countryFactory
+     * @param \Magento\Directory\Model\CurrencyFactory $currencyFactory
+     * @param \Magento\Directory\Helper\Data $directoryData
+     * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
+     * @param \Magento\Framework\Locale\FormatInterface $localeFormat
+     * @param Config $configHelper
+     * @param Checkout $myParcelHelper
+     * @param array $data
+     */
     public function __construct(
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory $rateErrorFactory,
@@ -59,10 +88,12 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Magento\Framework\Locale\FormatInterface $localeFormat,
         Config $configHelper,
+        Checkout $myParcelHelper,
         array $data = []
     ) {
         $this->_localeFormat = $localeFormat;
         $this->configHelper = $configHelper;
+        $this->myParcelHelper = $myParcelHelper;
         parent::__construct(
             $scopeConfig,
             $rateErrorFactory,
@@ -105,16 +136,16 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     public function getAllowedMethods()
     {
         $methods = [
-            'signature',
-            'only_recipient',
-            'signature_only_recip',
-            'morning',
-            'morning_signature',
-            'evening',
-            'evening_signature',
-            'pickup',
-            'pickup_express',
-            'mailbox'
+            'signature' => 'delivery/signature_',
+            'only_recipient' => 'delivery/only_recipient_',
+            'signature_only_recip' => 'delivery/signature_and_only_recipient_',
+            'morning' => 'morning/',
+            'morning_signature' => 'morning_signature/',
+            'evening' => 'evening/',
+            'evening_signature' => 'evening_signature/',
+            'pickup' => 'pickup/',
+            'pickup_express' => 'pickup_express/',
+            'mailbox' => 'mailbox/',
         ];
 
         return $methods;
@@ -122,8 +153,8 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
 
     private function addShippingMethods($result)
     {
-        foreach ($this->getAllowedMethods() as $alias) {
-            $method = $this->getShippingMethod($alias);
+        foreach ($this->getAllowedMethods() as $alias => $settingPath) {
+            $method = $this->getShippingMethod($alias, $settingPath);
             $result->append($method);
         }
 
@@ -133,19 +164,62 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
 
     /**
      * @param $alias
+     * @param string $settingPath
      *
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
-    private function getShippingMethod($alias)
+    private function getShippingMethod($alias, $settingPath)
     {
+
+        $title = $this->createTitle($settingPath);
+        $price = $this->createPrice($alias, $settingPath);
+
         /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
         $method = $this->_rateMethodFactory->create();
         $method->setCarrier($this->_code);
-        $method->setCarrierTitle('MyParcel options');
+        $method->setCarrierTitle($title);
         $method->setMethod($alias);
         $method->setMethodTitle($alias);
-        $method->setPrice(0);
+        $method->setPrice($price);
 
         return $method;
+    }
+
+    /**
+     * Create title for method
+     * If no title isset in config, get title from translation
+     *
+     * @param $settingPath
+     * @return \Magento\Framework\Phrase|mixed
+     */
+    private function createTitle($settingPath)
+    {
+        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'title');
+
+        if ($title === null) {
+            $title = __($settingPath . 'title');
+        }
+
+        return $title;
+    }
+
+    /**
+     * Create price
+     * Calculate price if multiple options are chosen
+     *
+     * @param $alias
+     * @param $settingPath
+     * @return float
+     */
+    private function createPrice($alias, $settingPath) {
+        if ($alias == 'morning_signature') {
+            $price = $this->myParcelHelper->getExtraPrice('morning/fee') + $this->myParcelHelper->getExtraPrice('delivery/signature_fee');
+        } else if ($alias == 'evening_signature') {
+            $price = $this->myParcelHelper->getExtraPrice('evening/fee') + $this->myParcelHelper->getExtraPrice('delivery/signature_fee');
+        } else {
+            $price = $this->myParcelHelper->getExtraPrice($settingPath . 'fee');
+        }
+
+        return $price;
     }
 }

@@ -20,7 +20,7 @@ class Checkout extends Data
 {
     private $base_price = 0;
 
-    private $tmp_scope;
+    private $tmp_scope = null;
 
     /**
      * @return int
@@ -124,6 +124,15 @@ class Checkout extends Data
     public function getCheckoutConfig($code, $storeId = null)
     {
         $settings = $this->getTmpScope();
+        if ($settings == null) {
+            $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
+            if ($value != null) {
+                return $value;
+            } else {
+                return 1234;
+//                $this->logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+            }
+        }
 
         if (!is_array($settings)) {
             $this->logger->critical('No data in settings array');

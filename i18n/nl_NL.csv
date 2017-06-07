@@ -102,3 +102,9 @@ Full changelog,Volledige release notes
 Installation and configuration instructions,Installatie en configuratie handleiding
 MyParcel progress, MyParcel vooruitgang
 MyParcel backoffice,MyParcel backoffice
+delivery/signature_and_only_recipient_title,Niet bij de buren bezorgen + handtekening voor ontvangst
+morning/title,Ochtendlevering
+morning_signature/title,Ochtendlevering + handtekening voor ontvangst
+pickup_express/title,Ophalen bij een PostNL locatie (extra vroeg ophalen)
+evening_signature/title,Avondlevering + handtekening voor ontvangst
+evening/title,Avondlevering
