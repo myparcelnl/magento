@@ -92,6 +92,7 @@ define(
                     signed: data.delivery.signature_fee,
                     only_recipient: data.delivery.only_recipient_fee,
                     combi_options: data.delivery.signature_and_only_recipient_fee,
+                    mailbox: data.mailbox.fee,
                     exclude_delivery_type: data.general.exclude_delivery_types
                 },
                 base_url: 'https://api.myparcel.nl/delivery_options',
