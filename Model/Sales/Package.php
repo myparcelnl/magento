@@ -16,7 +16,7 @@
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelNL\Magento\Sales;
+namespace MyParcelNL\Magento\Model\Sales;
 
 
 use Magento\Framework\Module\ModuleListInterface;
@@ -43,7 +43,7 @@ class Package extends Data
     /**
      * @var bool
      */
-    private $mailbox_is_active = false;
+    private $mailbox_active = false;
 
     /**
      * @var bool
@@ -55,6 +55,9 @@ class Package extends Data
      */
     private $title;
 
+    /**
+     * @var string
+     */
     private $current_country = 'NL';
 
     /**
@@ -105,20 +108,17 @@ class Package extends Data
     /**
      * @return bool
      */
-    public function mailboxIsActive(): bool
+    public function isMailboxActive(): bool
     {
-        return $this->mailbox_is_active;
+        return $this->mailbox_active;
     }
 
     /**
-     * @param bool $mailbox_is_active
-     * @return $this
+     * @param bool $mailbox_active
      */
-    public function setMailboxIsActive(bool $mailbox_is_active)
+    public function setMailboxActive(bool $mailbox_active)
     {
-        $this->mailbox_is_active = $mailbox_is_active;
-
-        return $this;
+        $this->mailbox_active = $mailbox_active;
     }
 
     /**
@@ -229,8 +229,8 @@ class Package extends Data
             $this->logger->critical('Can\'t get mailbox setting active');
         }
 
-        $this->setActive($settings['active']);
-        if ($this->mailboxIsActive() === true) {
+        $this->setMailboxActive($settings['active']);
+        if ($this->isMailboxActive() === true) {
             $this
                 ->setTitle($settings['title'])
                 ->setShowMailboxWithOtherOptions($settings['show_mailbox_with_other_options'])

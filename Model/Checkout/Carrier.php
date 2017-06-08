@@ -29,6 +29,7 @@ use Magento\Framework\Xml\Security;
 use MyParcelNL\Magento\Helper\{
     Checkout, Data
 };
+use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 
 class Carrier extends AbstractCarrierOnline implements CarrierInterface
 {
@@ -43,10 +44,16 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     protected $configHelper;
     protected $_errors = [];
     protected $_isFixed = true;
+
     /**
      * @var Checkout
      */
     private $myParcelHelper;
+
+    /**
+     * @var PackageRepository
+     */
+    private $package;
 
     /**
      * Carrier constructor.
@@ -68,6 +75,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      * @param \Magento\Framework\Locale\FormatInterface $localeFormat
      * @param Config $configHelper
      * @param Checkout $myParcelHelper
+     * @param PackageRepository $package
      * @param array $data
      */
     public function __construct(
@@ -89,11 +97,14 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         \Magento\Framework\Locale\FormatInterface $localeFormat,
         Config $configHelper,
         Checkout $myParcelHelper,
+        PackageRepository $package,
         array $data = []
     ) {
         $this->_localeFormat = $localeFormat;
         $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
+        $this->package = $package;
+
         parent::__construct(
             $scopeConfig,
             $rateErrorFactory,
@@ -134,7 +145,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      *
      * @return array
      */
-    public function getAllowedMethods()
+    public function getMethods()
     {
         $methods = [
             'signature' => 'delivery/signature_',
@@ -148,6 +159,23 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             'pickup_express' => 'pickup_express/',
             'mailbox' => 'mailbox/',
         ];
+
+        return $methods;
+    }
+
+    /**
+     * Get allowed shipping methods
+     *
+     * @return array
+     */
+    public function getAllowedMethods()
+    {
+        $methods = $this->getMethods();
+        $this->package->setCurrentCountry('NL');
+
+        if (!$this->package->fitInMailbox()) {
+            unset($methods['mailbox']);
+        }
 
         return $methods;
     }

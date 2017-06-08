@@ -16,10 +16,10 @@
  * @since       File available since Release 2.0.0
  */
 
-namespace Model\Sales\Repository;
+namespace MyParcelNL\Magento\Model\Sales\Repository;
 
 
-use MyParcelNL\Magento\Sales\Package;
+use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {
@@ -34,15 +34,12 @@ class PackageRepository extends Package
     public function getPackageType(): int
     {
         // return type if type is set
-        if ($this->getPackageType() !== null) {
+        if (parent::getPackageType() !== null) {
             return parent::getPackageType();
         }
 
         // Set Mailbox if possible
-        if ($this->getCurrentCountry() == 'NL' &&
-            $this->mailboxIsActive() === true &&
-            $this->fitInMailbox() === true
-        ) {
+        if ($this->fitInMailbox() === true) {
             $this->setPackageType(self::PACKAGE_TYPE_MAILBOX);
         }
 
@@ -55,6 +52,10 @@ class PackageRepository extends Package
      */
     public function fitInMailbox(): bool
     {
-        return true;
+        if ($this->getCurrentCountry() === 'NL' && $this->isMailboxActive() === true) {
+            return true;
+        }
+
+        return false;
     }
 }
