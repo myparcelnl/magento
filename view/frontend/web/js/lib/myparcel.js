@@ -162,7 +162,6 @@
         /*
          * Fetches devliery options and an overall page update.
          */
-
         Application.prototype.updatePage = function(postal_code, number, street) {
             var item, key, options, ref, settings, urlBase, current_date, monday_delivery, cutoff_time;
             ref = window.mypa.settings.price;

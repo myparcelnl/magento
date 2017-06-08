@@ -171,7 +171,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     public function getAllowedMethods()
     {
         $methods = $this->getMethods();
-        $this->package->setCurrentCountry('NL');
 
         if (!$this->package->fitInMailbox()) {
             unset($methods['mailbox']);
@@ -183,8 +182,12 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     private function addShippingMethods($result)
     {
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-            $method = $this->getShippingMethod($alias, $settingPath);
-            $result->append($method);
+
+            $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active') === '1';
+            if ($active) {
+                $method = $this->getShippingMethod($alias, $settingPath);
+                $result->append($method);
+            }
         }
 
         return $result;

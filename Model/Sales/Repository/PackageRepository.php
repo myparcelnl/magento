@@ -48,14 +48,43 @@ class PackageRepository extends Package
 
     /**
      * @return bool
-     * @todo check if products fit in mailbox
      */
     public function fitInMailbox(): bool
     {
-        if ($this->getCurrentCountry() === 'NL' && $this->isMailboxActive() === true) {
-            return true;
+        if ($this->getCurrentCountry() !== 'NL') {
+            return false;
         }
 
-        return false;
+        if ($this->isMailboxActive() === false) {
+            return false;
+        }
+
+        if ($this->isAllProductsFit() === false) {
+            return false;
+        }
+
+        if ($this->getWeight() > $this->getMaxWeight()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote\Item[] $products
+     *
+     * @return $this
+     */
+    public function setWeightFromQuoteProducts($products)
+    {
+        foreach ($products as $product) {
+            if ($product->getWeight() > 0) {
+                $this->addWeight($product->getWeight());
+            } else {
+                $this->setAllProductsFit(false);
+            }
+        }
+
+        return $this;
     }
 }

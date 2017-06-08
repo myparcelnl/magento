@@ -64,7 +64,8 @@ class Checkout extends Data
 
     /**
      * Get MyParcel method/option price.
-     * Check if total shipping price is not below 0 euro
+     *
+     *Check if total shipping price is not below 0 euro
      *
      * @param string $key
      * @param bool $addBasePrice

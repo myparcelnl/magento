@@ -48,12 +48,12 @@ class Package extends Data
     /**
      * @var bool
      */
-    private $show_mailbox_with_other_options = true;
+    private $all_products_fit = true;
 
     /**
-     * @var string
+     * @var bool
      */
-    private $title;
+    private $show_mailbox_with_other_options = true;
 
     /**
      * @var string
@@ -88,13 +88,11 @@ class Package extends Data
     }
 
     /**
-     * @return $this
+     * @param $weight
      */
-    public function setWeight()
+    public function setWeight($weight)
     {
-        /** @todo; loop all products */
-
-        return $this;
+        $this->weight = $weight;
     }
 
     /**
@@ -124,6 +122,24 @@ class Package extends Data
     /**
      * @return bool
      */
+    public function isAllProductsFit(): bool
+    {
+        return $this->all_products_fit;
+    }
+
+    /**
+     * @param bool $all_products_fit
+     */
+    public function setAllProductsFit(bool $all_products_fit)
+    {
+        if ($all_products_fit === true) {
+            $this->all_products_fit = $all_products_fit;
+        }
+    }
+
+    /**
+     * @return bool
+     */
     public function isShowMailboxWithOtherOptions(): bool
     {
         return $this->show_mailbox_with_other_options;
@@ -136,25 +152,6 @@ class Package extends Data
     public function setShowMailboxWithOtherOptions(bool $show_mailbox_with_other_options)
     {
         $this->show_mailbox_with_other_options = $show_mailbox_with_other_options;
-
-        return $this;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
-    /**
-     * @param mixed $title
-     * @return $this
-     */
-    public function setTitle($title)
-    {
-        $this->title = $title;
 
         return $this;
     }
@@ -231,10 +228,8 @@ class Package extends Data
 
         $this->setMailboxActive($settings['active']);
         if ($this->isMailboxActive() === true) {
-            $this
-                ->setTitle($settings['title'])
-                ->setShowMailboxWithOtherOptions($settings['show_mailbox_with_other_options'])
-                ->setWeight();
+            $this->setShowMailboxWithOtherOptions($settings['other_options']);
+            $this->setMaxWeight($settings['max_weight']);
         }
     }
 }

@@ -88,10 +88,11 @@ define(
                     default: data.general.base_price,
                     night: data.evening.fee,
                     pickup: data.pickup.fee,
-                    pickup_express: data.pickupExpress.fee,
+                    pickup_express: data.pickup_express.fee,
                     signed: data.delivery.signature_fee,
                     only_recipient: data.delivery.only_recipient_fee,
-                    combi_options: data.delivery.signature_and_only_recipient_fee
+                    combi_options: data.delivery.signature_and_only_recipient_fee,
+                    exclude_delivery_type: data.general.exclude_delivery_types
                 },
                 base_url: 'https://api.myparcel.nl/delivery_options',
                 text:

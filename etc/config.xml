@@ -53,10 +53,11 @@
                 <signature_and_only_recipient_fee>0.51</signature_and_only_recipient_fee>
             </delivery>
             <mailbox>
-                <active>0</active>
+                <!--<active>0</active>-->
+                <active>1</active>
                 <other_options>1</other_options>
                 <title>Brievenbuspakje</title>
-                <weight>2000</weight>
+                <max_weight>2000</max_weight>
                 <fee>3.50</fee>
             </mailbox>
             <morning>

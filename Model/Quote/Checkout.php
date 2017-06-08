@@ -9,6 +9,8 @@
 namespace MyParcelNL\Magento\Model\Quote;
 
 
+use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+
 class Checkout
 {
     /**
@@ -25,18 +27,25 @@ class Checkout
      * @var \Magento\Quote\Model\Quote
      */
     private $quote;
+    /**
+     * @var PackageRepository
+     */
+    private $package;
 
     /**
      * Checkout constructor.
      * @param \Magento\Checkout\Model\Session $session
      * @param \MyParcelNL\Magento\Helper\Checkout $helper
+     * @param PackageRepository $package
      */
     public function __construct(
         \Magento\Checkout\Model\Session $session,
-        \MyParcelNL\Magento\Helper\Checkout $helper
+        \MyParcelNL\Magento\Helper\Checkout $helper,
+        PackageRepository $package
     ) {
         $this->helper = $helper;
         $this->quote = $session->getQuote();
+        $this->package = $package;
     }
 
     /**
@@ -54,11 +63,15 @@ class Checkout
             'delivery' => $this->getDeliveryData(),
             'morning' => $this->getMorningData(),
             'evening' => $this->getEveningData(),
+            'mailbox' => $this->getMailboxData(),
             'pickup' => $this->getPickupData(),
-            'pickupExpress' => $this->getPickupExpressData(),
+            'pickup_express' => $this->getPickupExpressData(),
         ];
 
-        return ['data' => [
+        $this
+            ->setExcludeDeliveryTypes();
+
+        return ['root' => [
             'version' => (string)$this->helper->getVersion(),
             'data' => (array)$this->data
         ]];
@@ -95,7 +108,7 @@ class Checkout
     {
         $this->helper->setTmpScope('delivery');
 
-        return (array)[
+        $deliveryData = (array)[
             'delivery_title' => $this->helper->getCheckoutConfig('delivery_title'),
             'only_recipient_active' => $this->helper->getBoolConfig('only_recipient_active'),
             'only_recipient_title' => $this->helper->getCheckoutConfig('only_recipient_title'),
@@ -105,6 +118,16 @@ class Checkout
             'signature_fee' => $this->helper->getMethodPriceFormat('signature_fee', false, '+ '),
             'signature_and_only_recipient_fee' => $this->helper->getMethodPriceFormat('signature_and_only_recipient_fee', false, '+ '),
         ];
+
+        if ($deliveryData['signature_active'] === false) {
+            $deliveryData['signature_fee'] = 'disabled';
+        }
+
+        if ($deliveryData['only_recipient_active'] === false) {
+            $deliveryData['only_recipient_fee'] = 'disabled';
+        }
+
+        return $deliveryData;
     }
 
     /**
@@ -166,5 +189,64 @@ class Checkout
             'active' => $this->helper->getCheckoutConfig('active'),
             'fee' => $this->helper->getMethodPriceFormat('fee'),
         ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getMailboxData()
+    {
+        /** @var \Magento\Quote\Model\Quote\Item[] $products */
+        $this->helper->setTmpScope('mailbox');
+        $products = $this->quote->getAllItems();
+
+        if (count($products) > 0){
+            $this->package->setWeightFromQuoteProducts($products);
+        }
+
+        /** check if mailbox is active */
+        $mailboxData = (array)[
+            'active' => $this->package->fitInMailbox(),
+            'title' => $this->helper->getCheckoutConfig('title'),
+            'fee' => $this->helper->getMethodPriceFormat('fee'),
+        ];
+
+        if ($mailboxData['active'] === false) {
+            $mailboxData['fee'] = 'disabled';
+        }
+
+        return $mailboxData;
+    }
+
+    /**
+     * This options allows the Merchant to exclude delivery types
+     *
+     * @return $this
+     */
+    private function setExcludeDeliveryTypes()
+    {
+        $excludeDeliveryTypes = [];
+
+        if ($this->data['morning']['active'] == false) {
+            $excludeDeliveryTypes[] = '1';
+        }
+
+        if ($this->data['evening']['active'] == false) {
+            $excludeDeliveryTypes[] = '3';
+        }
+
+        if ($this->data['pickup']['active'] == false) {
+            $excludeDeliveryTypes[] = '4';
+        }
+
+        if ($this->data['pickup_express']['active'] == false) {
+            $excludeDeliveryTypes[] = '5';
+        }
+
+        $result = implode(';', $excludeDeliveryTypes);
+
+        $this->data['general']['exclude_delivery_types'] = $result;
+
+        return $this;
     }
 }
