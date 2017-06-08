@@ -29,10 +29,19 @@ define(
                 isLoaded = setTimeout(function(){
                     window.mypa.isLoaded = false;
                     clearTimeout(isLoaded);
-                    _appendTemplate();
-                    _retrieveOptions();
-                    showOptions();
-                    _observeFields();
+
+                    jQuery.ajax({
+                        url: mageUrl.build('rest/V1/delivery_settings/get'),
+                        type: "GET",
+                        dataType: 'json'
+                    }).done(function (response) {
+                        window.mypa.data = response[0].data;
+                        _appendTemplate();
+                        _setParameters();
+                        showOptions();
+                        _observeFields();
+                    });
+
                 }, 50);
             }
         }
@@ -67,54 +76,42 @@ define(
             });
         }
 
-        function _retrieveOptions() {
-            _setParameters();
-        }
-
         function _setParameters() {
-            jQuery.ajax({
-                url: mageUrl.build('rest/V1/delivery_settings/get'),
-                type: "GET",
-                dataType: 'json'
-            }).done(function (response) {
+            var data = window.mypa.data;
+            window.mypa.settings = {
+                deliverydays_window: 10,
+                number: '55',
+                street: 'Street name',
+                postal_code: '2231je',
+                price: {
+                    morning: data.morning.fee,
+                    default: data.general.base_price,
+                    night: data.evening.fee,
+                    pickup: data.pickup.fee,
+                    pickup_express: data.pickupExpress.fee,
+                    signed: data.delivery.signature_fee,
+                    only_recipient: data.delivery.only_recipient_fee,
+                    combi_options: data.delivery.signature_and_only_recipient_fee
+                },
+                base_url: 'https://api.myparcel.nl/delivery_options',
+                text:
+                    {
+                        signed: data.delivery.signature_title,
+                        only_recipient: data.delivery.only_recipient_title
+                    }
+            };
 
-                var data = response[0].data;
-                // console.log(data);
-                // console.log(data.morning.fee);
-                window.mypa.settings = {
-                    deliverydays_window: 10,
-                    number: '55',
-                    street: 'Street name',
-                    postal_code: '2231je',
-                    price: {
-                        morning: data.morning.fee,
-                        default: data.general.base_price,
-                        night: data.evening.fee,
-                        pickup: data.pickup.fee,
-                        pickup_express: data.pickupExpress.fee,
-                        signed: data.delivery.signature_fee,
-                        only_recipient: data.delivery.only_recipient_fee,
-                        combi_options: data.delivery.signature_and_only_recipient_fee
-                    },
-                    base_url: 'https://api.myparcel.nl/delivery_options',
-                    text:
-                        {
-                            signed: data.delivery.signature_title,
-                            only_recipient: data.delivery.only_recipient_title
-                        }
-                };
-
-                myparcel = new MyParcel();
-                myparcel.updatePage();
-            });
-
+            myparcel = new MyParcel();
+            myparcel.updatePage();
         }
 
         function _appendTemplate() {
-            var baseColor = '#848484';
-            var selectColor = '#001fff';
+            var data = window.mypa.data;
+            console.log(data);
+            var baseColor = data.general.color_base;
+            var selectColor = data.general.color_select;
             optionsCss = optionsCss.replace(/_base_color_/g, baseColor).replace(/_select_color_/g, selectColor);
-            optionsHtml = optionsHtml.replace('<to_replace/>', optionsCss);
+            optionsHtml = optionsHtml.replace('<css/>', optionsCss);
 
             originalShippingRate = jQuery('#label_carrier_flatrate_flatrate').parent().find('td');
             optionsContainer = originalShippingRate.parent().parent().prepend('<tr><td colspan="4" id="myparcel_td" style="display:none;"></td></tr>').find('#myparcel_td');
