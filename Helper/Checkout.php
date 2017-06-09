@@ -47,17 +47,11 @@ class Checkout extends Data
      */
     public function setBasePriceFromQuote($quote)
     {
-
         $address = $quote->getShippingAddress();
-        $address->requestShippingRates();
-        $rates = $address->getShippingRatesCollection();
 
-        foreach ($rates as $rate) {
-            if (key_exists('code', $rate->getData()) && $rate->getData('code') === 'flatrate_flatrate') {
-                $this->setBasePrice((int)$rate->getPrice());
-                break;
-            }
-        }
+        $address->requestShippingRates();
+        $rate = $address->getShippingRateByCode('flatrate_flatrate');
+        $this->setBasePrice((int)$rate->getPrice());
 
         return $this;
     }
