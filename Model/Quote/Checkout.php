@@ -46,6 +46,7 @@ class Checkout
         $this->helper = $helper;
         $this->quote = $session->getQuote();
         $this->package = $package;
+        $this->package->setMailboxSettings();
     }
 
     /**

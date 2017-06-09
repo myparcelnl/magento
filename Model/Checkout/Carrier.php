@@ -46,6 +46,11 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     protected $_isFixed = true;
 
     /**
+     * @var \Magento\Quote\Model\Quote
+     */
+    private $quote;
+
+    /**
      * @var Checkout
      */
     private $myParcelHelper;
@@ -95,16 +100,12 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         \Magento\Directory\Helper\Data $directoryData,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Magento\Framework\Locale\FormatInterface $localeFormat,
+        \Magento\Checkout\Model\Session $session,
         Config $configHelper,
         Checkout $myParcelHelper,
         PackageRepository $package,
         array $data = []
     ) {
-        $this->_localeFormat = $localeFormat;
-        $this->configHelper = $configHelper;
-        $this->myParcelHelper = $myParcelHelper;
-        $this->package = $package;
-
         parent::__construct(
             $scopeConfig,
             $rateErrorFactory,
@@ -123,6 +124,17 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             $stockRegistry,
             $data
         );
+
+        $this->_localeFormat = $localeFormat;
+        $this->quote = $session->getQuote();
+        $this->configHelper = $configHelper;
+        $this->myParcelHelper = $myParcelHelper;
+        $this->package = $package;
+        $products = $this->quote->getAllItems();
+        if (count($products) > 0){
+            $this->package->setWeightFromQuoteProducts($products);
+        }
+        $this->package->setMailboxSettings();
     }
     protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
     {
@@ -172,7 +184,9 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     {
         $methods = $this->getMethods();
 
-        if (!$this->package->fitInMailbox()) {
+        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
+            $methods = ['mailbox' => 'mailbox/'];
+        } else if (!$this->package->fitInMailbox()) {
             unset($methods['mailbox']);
         }
 

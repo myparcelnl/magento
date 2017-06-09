@@ -66,20 +66,6 @@ class Package extends Data
     private $package_type = null;
 
     /**
-     * Mailbox constructor
-     *
-     * @param Context $context
-     * @param ModuleListInterface $moduleList
-     * @param LoggerInterface $logger
-     */
-    public function __construct(Context $context, ModuleListInterface $moduleList, LoggerInterface $logger)
-    {
-        parent::__construct($context, $moduleList, $logger);
-
-        $this->setMailboxSettings();
-    }
-
-    /**
      * @return int
      */
     public function getWeight(): int
@@ -132,7 +118,7 @@ class Package extends Data
      */
     public function setAllProductsFit(bool $all_products_fit)
     {
-        if ($all_products_fit === true) {
+        if ($all_products_fit === false) {
             $this->all_products_fit = $all_products_fit;
         }
     }
@@ -209,27 +195,5 @@ class Package extends Data
         $this->current_country = $current_country;
 
         return $this;
-    }
-
-    /**
-     * Init all mailbox settings
-     */
-    private function setMailboxSettings()
-    {
-        $settings = $this->getConfigValue(self::XML_PATH_CHECKOUT . 'mailbox');
-
-        if ($settings === null) {
-            $this->logger->critical('Can\'t set settings with path:' . self::XML_PATH_CHECKOUT . 'mailbox');
-        }
-
-        if (!key_exists('active', $settings)) {
-            $this->logger->critical('Can\'t get mailbox setting active');
-        }
-
-        $this->setMailboxActive($settings['active']);
-        if ($this->isMailboxActive() === true) {
-            $this->setShowMailboxWithOtherOptions($settings['other_options']);
-            $this->setMaxWeight($settings['max_weight']);
-        }
     }
 }

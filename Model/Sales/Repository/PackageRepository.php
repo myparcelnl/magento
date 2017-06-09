@@ -87,4 +87,30 @@ class PackageRepository extends Package
 
         return $this;
     }
+
+    /**
+     * Init all mailbox settings
+     *
+     * @return $this
+     */
+    public function setMailboxSettings()
+    {
+        $settings = $this->getConfigValue(self::XML_PATH_CHECKOUT . 'mailbox');
+
+        if ($settings === null) {
+            $this->logger->critical('Can\'t set settings with path:' . self::XML_PATH_CHECKOUT . 'mailbox');
+        }
+
+        if (!key_exists('active', $settings)) {
+            $this->logger->critical('Can\'t get mailbox setting active');
+        }
+
+        $this->setMailboxActive($settings['active']);
+        if ($this->isMailboxActive() === true) {
+            $this->setShowMailboxWithOtherOptions($settings['other_options']);
+            $this->setMaxWeight($settings['max_weight']);
+        }
+
+        return $this;
+    }
 }
