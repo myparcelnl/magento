@@ -58,9 +58,9 @@ class ShippingMethods implements \Magento\Framework\Option\ArrayInterface
         $aMethods = [];
 
         /** @var \Magento\OfflineShipping\Model\Carrier\Flatrate $method */
-        /*foreach ($methods as $code => $method) {
-            $aMethods[$code] = $code;
-        }*/
+        foreach ($methods as $code => $method) {
+            $aMethods[] = ['value' => $code, 'label' => $code];
+        }
 
         return $aMethods;
     }

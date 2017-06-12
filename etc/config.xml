@@ -41,6 +41,7 @@
                 <dropoff_delay>0</dropoff_delay>
                 <color_base>#01bbc5</color_base>
                 <color_select>#3399cc</color_select>
+                <shipping_methods>flatrate,tablerate</shipping_methods>
             </general>
             <delivery>
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
@@ -85,17 +86,5 @@
                 <copy_method>bcc</copy_method>
             </track>
         </sales_email>
-        <!--<carriers>
-            <mypa>
-                <active>1</active>
-                <allowed_methods>delivery</allowed_methods>
-                <methods>delivery</methods>
-                <sallowspecific>0</sallowspecific>
-                <model>MyParcelNL\Magento\Model\Checkout\Carrier</model>
-                <name>MyParcel extra options</name>
-                <title>MyParcel extra options</title>
-                <handling_type>F</handling_type>
-            </mypa>
-        </carriers>-->
     </default>
 </config>
