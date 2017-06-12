@@ -24,5 +24,10 @@
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="save-in-quote" type="MyParcelNL\Magento\Model\Checkout\ShippingInformationManagementPlugin" sortOrder="10"/>
     </type>
+    <!-- Get all Rates -->
+    <!--<type name="Magento\Shipping\Model\Rate\Result">
+        <plugin name="myparcel-get-all-rates" type="MyParcelNL\Magento\Model\Rate\Result" sortOrder="10"/>
+    </type>-->
+    <preference for="Magento\Shipping\Model\Rate\Result" type="MyParcelNL\Magento\Model\Rate\Result" />
 </config>
 

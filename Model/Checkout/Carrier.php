@@ -35,14 +35,8 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
 {
     const CODE = 'mypa';
     protected $_code = self::CODE;
-    protected $_request;
-    protected $_result;
-    protected $_baseCurrencyRate;
-    protected $_xmlAccessRequest;
     protected $_localeFormat;
-    protected $_logger;
     protected $configHelper;
-    protected $_errors = [];
     protected $_isFixed = true;
 
     /**
@@ -130,11 +124,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
-        $products = $this->quote->getAllItems();
-        if (count($products) > 0){
-            $this->package->setWeightFromQuoteProducts($products);
-        }
-        $this->package->setMailboxSettings();
     }
     protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
     {
@@ -142,6 +131,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
 
     public function collectRates(RateRequest $request)
     {
+        /** @var \Magento\Quote\Model\Quote\Address\RateRequest $result */
         $result = $this->_rateFactory->create();
         $result = $this->addShippingMethods($result);
 
@@ -193,8 +183,20 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         return $methods;
     }
 
+    /**
+     * @param \Magento\Quote\Model\Quote\Address\RateRequest $result
+     * @return mixed
+     */
     private function addShippingMethods($result)
     {
+//        $this->myParcelHelper->setBasePriceFromQuote($this->quote);
+        $price = $this->getBasePriceFromFactory($result);
+        $products = $this->quote->getAllItems($result);
+        if (count($products) > 0){
+            $this->package->setWeightFromQuoteProducts($products);
+        }
+        $this->package->setMailboxSettings();
+
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
 
             $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active') === '1';
@@ -207,6 +209,24 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         return $result;
     }
 
+    /**
+     * @param \Magento\Quote\Model\Quote\Address\RateRequest $result
+     * @return mixed
+     */
+    private function getBasePriceFromFactory($result)
+    {
+//        $quot1 = $this->quote->getShippingAddress()->getDataUsingMethod();
+//        $test345 = $result->getAllRates();
+//        $price = $this->myParcelHelper->getBasePrice();
+        /*$factory = $this->_rateMethodFactory;
+        $address = $this->quote->getShippingAddress();
+        $testdata = $address->getData();
+        $rate = $address->getShippingRateByCode('flatrate_flatrate');
+//        $rate = $result->getAllRates();*/
+
+
+        return 'test';
+    }
 
     /**
      * @param $alias
@@ -258,12 +278,19 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      * @return float
      */
     private function createPrice($alias, $settingPath) {
+        $price = 0;
         if ($alias == 'morning_signature') {
-            $price = $this->myParcelHelper->getMethodPrice('morning/fee') + $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
+            $price += $this->myParcelHelper->getMethodPrice('morning/fee');
+            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
         } else if ($alias == 'evening_signature') {
-            $price = $this->myParcelHelper->getMethodPrice('evening/fee') + $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
+            $price += $this->myParcelHelper->getMethodPrice('evening/fee');
+            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
         } else {
-            $price = $this->myParcelHelper->getMethodPrice($settingPath . 'fee');
+            $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee');
+        }
+
+        if ($alias != 'mailbox') {
+            $price += $this->myParcelHelper->getBasePrice();
         }
 
         return $price;

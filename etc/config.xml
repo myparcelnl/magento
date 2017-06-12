@@ -85,7 +85,7 @@
                 <copy_method>bcc</copy_method>
             </track>
         </sales_email>
-        <carriers>
+        <!--<carriers>
             <mypa>
                 <active>1</active>
                 <allowed_methods>delivery</allowed_methods>
@@ -96,6 +96,6 @@
                 <title>MyParcel extra options</title>
                 <handling_type>F</handling_type>
             </mypa>
-        </carriers>
+        </carriers>-->
     </default>
 </config>
