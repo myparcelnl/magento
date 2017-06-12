@@ -26,10 +26,6 @@ use MyParcelNL\Magento\Helper\{
 
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
-    protected $_localeFormat;
-    protected $configHelper;
-    protected $_isFixed = true;
-
     /**
      * @var \Magento\Quote\Model\Quote
      */
@@ -45,27 +41,35 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private $package;
 
-    private $parentRate;
+    /**
+     * @var array
+     */
+    private $myParcelMethods = [];
+
+    /**
+     * @var bool
+     */
+    private $myParcelRatesAlreadyAdded = false;
 
     /**
      * Result constructor.
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Checkout\Model\Session $session
-     * @param Config $configHelper
      * @param Checkout $myParcelHelper
      * @param PackageRepository $package
      */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Checkout\Model\Session $session,
-        Config $configHelper,
         Checkout $myParcelHelper,
         PackageRepository $package)
     {
         parent::__construct($storeManager);
+
         $this->quote = $session->getQuote();
-        $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
+        $this->myParcelMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods'));
     }
 
     /**
@@ -86,12 +90,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             $rates = $result->getAllRates();
             foreach ($rates as $rate) {
                 $this->append($rate);
-
-                $currentCarrier = $rate->getData('carrier');
-                if ($currentCarrier == 'flatrate') {
-                    $this->parentRate = $rate;
-                    $this->addShippingRates();
-                }
+                $this->addMyParcelRates($rate);
             }
 
         }
@@ -104,7 +103,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return array
      */
-    public function getMethods()
+    private function getMethods()
     {
         $methods = [
             'signature' => 'delivery/signature_',
@@ -127,7 +126,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return array
      */
-    public function getAllowedMethods()
+    private function getAllowedMethods()
     {
         $methods = $this->getMethods();
 
@@ -142,10 +141,19 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
     /**
      * Add Myparcel shipping rates
+     *
+     * @param $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
-    private function addShippingRates()
+    private function addMyParcelRates($parentRate)
     {
-        $price = 20;
+        if ($this->myParcelRatesAlreadyAdded) {
+            return;
+        }
+
+        $currentCarrier = $parentRate->getData('carrier');
+        if (!in_array($currentCarrier, $this->myParcelMethods)) {
+            return;
+        }
 
         $products = $this->quote->getAllItems();
         if (count($products) > 0){
@@ -157,24 +165,25 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
             $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active') === '1';
             if ($active) {
-                $method = $this->getShippingMethod($alias, $settingPath);
+                $method = $this->getShippingMethod($alias, $settingPath, $parentRate);
                 $this->append($method);
             }
         }
+
+        $this->myParcelRatesAlreadyAdded = true;
     }
 
     /**
      * @param $alias
      * @param string $settingPath
+     * @param $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
      *
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
-    private function getShippingMethod($alias, $settingPath)
+    private function getShippingMethod($alias, $settingPath, $parentRate)
     {
-
-        /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
-        $method = clone $this->parentRate;
-        $this->myParcelHelper->setBasePrice($this->parentRate->getPrice());
+        $method = clone $parentRate;
+        $this->myParcelHelper->setBasePrice($parentRate->getPrice());
 
         $title = $this->createTitle($settingPath);
         $price = $this->createPrice($alias, $settingPath);
