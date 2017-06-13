@@ -64,7 +64,7 @@ class Checkout extends Data
     public function getParentRateFromQuote($quote)
     {
         $parentMethods = explode(',', $this->getCheckoutConfig('shipping_methods'));
-        foreach ($quote->getShippingAddress()->getShippingRatesCollection() as $rate) {
+        foreach ($quote->getShippingAddress()->getAllShippingRates() as $rate) {
             if (in_array($rate->getData('carrier'), $parentMethods)) {
                 return $rate->getData('carrier');
             }

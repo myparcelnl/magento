@@ -36,6 +36,9 @@ define(
                         dataType: 'json'
                     }).done(function (response) {
                         window.mypa.data = response[0].data;
+                        if (window.mypa.data.general.parent_method === null) {
+                            return void 0;
+                        }
                         _appendTemplate();
                         _setParameters();
                         showOptions();
