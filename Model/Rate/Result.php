@@ -162,7 +162,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->package->setMailboxSettings();
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-            $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active') === '1';
+            $settingActive = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active');
+            $active = $settingActive === '1' || $settingActive === null;
             if ($active) {
                 $method = $this->getShippingMethod($alias, $settingPath, $parentRate);
                 $this->append($method);
