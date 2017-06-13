@@ -79,24 +79,30 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
         $this->addOrdersToCollection($orderIds);
-        $this->orderCollection
-            ->setOptionsFromParameters()
-            ->setMagentoShipment()
-            ->setMagentoTrack()
-            ->setMyParcelTrack()
-            ->createMyParcelConcepts()
-            ->updateOrderGrid();
 
-        if ($this->orderCollection->getOption('request_type') == 'only_shipment') {
-            return;
-        }
-
-        if ($this->orderCollection->getOption('request_type') == 'download') {
+        try {
             $this->orderCollection
-                ->setPdfOfLabels()
-                ->updateMagentoTrack()
-                ->sendTrackEmails()
-                ->downloadPdfOfLabels();
+                ->setOptionsFromParameters()
+                ->setMagentoShipment()
+                ->setMagentoTrack()
+                ->setMyParcelTrack()
+                ->createMyParcelConcepts()
+                ->updateOrderGrid();
+
+            if ($this->orderCollection->getOption('request_type') == 'only_shipment') {
+                return;
+            }
+
+            if ($this->orderCollection->getOption('request_type') == 'download') {
+                $this->orderCollection
+                    ->setPdfOfLabels()
+                    ->updateMagentoTrack()
+                    ->sendTrackEmails()
+                    ->downloadPdfOfLabels();
+            }
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage(__('API key is not good. To get your personal API credentials you should contact MyParcel.'));
+            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
         }
     }
 
