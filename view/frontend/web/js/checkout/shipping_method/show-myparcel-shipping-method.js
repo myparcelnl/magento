@@ -39,6 +39,8 @@ define(
                         if ((myparcel_method_alias = window.mypa.data.general.parent_method) === null) {
                             return void 0;
                         }
+                        myparcel_method_element = "input[id^='s_method_" + myparcel_method_alias + "_']";
+                        _hideRadios();
                         _appendTemplate();
                         _setParameters();
                         showOptions();
@@ -50,18 +52,21 @@ define(
         }
 
         function showOptions() {
-            //originalShippingRate.hide();
+            originalShippingRate.hide();
             optionsContainer.show();
         }
 
         function hideOptions() {
             originalShippingRate.show();
-            //optionsContainer.hide();
+            optionsContainer.hide();
+        }
+
+        function _hideRadios() {
+            jQuery(myparcel_method_element).parent().parent().hide();
         }
 
         function _observeFields() {
             delivery_options_input = jQuery("input[name='delivery_options']");
-            myparcel_method_element = "input[id^='s_method_" + myparcel_method_alias + "_']";
 
             jQuery("input[id^='s_method']").parent().on('change', function (event) {
                 setTimeout(function(){

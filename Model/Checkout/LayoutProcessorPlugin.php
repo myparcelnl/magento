@@ -63,7 +63,7 @@ class LayoutProcessorPlugin
                         'dataScope' => 'shippingAddress.delivery_options',
                         'label' => 'Delivery Options',
                         'provider' => 'checkoutProvider',
-                        'visible' => true,
+                        'visible' => false,
                         'validation' => [],
                         'sortOrder' => 200,
                         'id' => 'delivery-options',

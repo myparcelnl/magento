@@ -189,8 +189,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     private function addShippingMethods($result)
     {
-//        $this->myParcelHelper->setBasePriceFromQuote($this->quote);
-        $price = $this->getBasePriceFromFactory($result);
         $products = $this->quote->getAllItems($result);
         if (count($products) > 0){
             $this->package->setWeightFromQuoteProducts($products);
@@ -207,25 +205,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         }
 
         return $result;
-    }
-
-    /**
-     * @param \Magento\Quote\Model\Quote\Address\RateRequest $result
-     * @return mixed
-     */
-    private function getBasePriceFromFactory($result)
-    {
-//        $quot1 = $this->quote->getShippingAddress()->getDataUsingMethod();
-//        $test345 = $result->getAllRates();
-//        $price = $this->myParcelHelper->getBasePrice();
-        /*$factory = $this->_rateMethodFactory;
-        $address = $this->quote->getShippingAddress();
-        $testdata = $address->getData();
-        $rate = $address->getShippingRateByCode('flatrate_flatrate');
-//        $rate = $result->getAllRates();*/
-
-
-        return 'test';
     }
 
     /**
