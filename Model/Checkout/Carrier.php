@@ -37,7 +37,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     protected $_code = self::CODE;
     protected $_localeFormat;
     protected $configHelper;
-    protected $_isFixed = true;
 
     /**
      * @var \Magento\Quote\Model\Quote
@@ -71,7 +70,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      * @param \Magento\Directory\Model\CurrencyFactory $currencyFactory
      * @param \Magento\Directory\Helper\Data $directoryData
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry
-     * @param \Magento\Framework\Locale\FormatInterface $localeFormat
+     * @param \Magento\Checkout\Model\Session $session
      * @param Config $configHelper
      * @param Checkout $myParcelHelper
      * @param PackageRepository $package
@@ -93,7 +92,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         \Magento\Directory\Model\CurrencyFactory $currencyFactory,
         \Magento\Directory\Helper\Data $directoryData,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
-        \Magento\Framework\Locale\FormatInterface $localeFormat,
         \Magento\Checkout\Model\Session $session,
         Config $configHelper,
         Checkout $myParcelHelper,
@@ -118,13 +116,12 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             $stockRegistry,
             $data
         );
-
-        $this->_localeFormat = $localeFormat;
         $this->quote = $session->getQuote();
         $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
     }
+
     protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
     {
     }
