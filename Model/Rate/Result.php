@@ -44,7 +44,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * @var array
      */
-    private $myParcelMethods = [];
+    private $parentMethods = [];
 
     /**
      * @var bool
@@ -69,7 +69,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->quote = $session->getQuote();
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
-        $this->myParcelMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods'));
+        $this->parentMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods'));
     }
 
     /**
@@ -151,7 +151,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         $currentCarrier = $parentRate->getData('carrier');
-        if (!in_array($currentCarrier, $this->myParcelMethods)) {
+        if (!in_array($currentCarrier, $this->parentMethods)) {
             return;
         }
 
@@ -162,7 +162,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->package->setMailboxSettings();
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-
             $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active') === '1';
             if ($active) {
                 $method = $this->getShippingMethod($alias, $settingPath, $parentRate);

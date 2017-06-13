@@ -57,6 +57,23 @@ class Checkout extends Data
     }
 
     /**
+     * @param \Magento\Quote\Model\Quote $quote
+     *
+     * @return string
+     */
+    public function getParentRateFromQuote($quote)
+    {
+        $parentMethods = explode(',', $this->getCheckoutConfig('shipping_methods'));
+        foreach ($quote->getShippingAddress()->getShippingRatesCollection() as $rate) {
+            if (in_array($rate->getData('carrier'), $parentMethods)) {
+                return $rate->getData('carrier');
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Get MyParcel method/option price.
      *
      *Check if total shipping price is not below 0 euro
