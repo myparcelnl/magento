@@ -722,7 +722,12 @@
      * Hide MyParcel options
      */
     hideMyParcelOptions = function() {
-        console.error('todo hide myparcel options');
+        console.log('hideoptions myparcel.js');
+        console.log(window.mypa.fn);
+        if (typeof window.mypa.fn.hideOptions !== 'undefined') {
+            console.log('hideoptions fn');
+            window.mypa.fn.hideOptions();
+        }
     };
 
 }).call(this);

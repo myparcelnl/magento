@@ -22,8 +22,10 @@ define(
 
         function loadOptions() {
             if (typeof window.mypa === 'undefined') {
-                window.mypa = {isLoading: false};
+                window.mypa = {isLoading: false, fn: {}};
             }
+            window.mypa.fn.hideOptions = hideOptions;
+
             if (window.mypa.isLoading === false) {
                 window.mypa.isLoading = true;
                 isLoading = setTimeout(function(){
@@ -61,6 +63,7 @@ define(
             window.mypa.address.street1 = jQuery("input[name='street[1]']").val();
             window.mypa.address.street2 = jQuery("input[name='street[2]']").val();
             window.mypa.address.postcode = jQuery("input[name='postcode']").val();
+            /* @todo if address == '' get from address from quote */
 
             _hideRadios();
             _appendTemplate();
@@ -69,8 +72,6 @@ define(
             if (myParcelOptionsActive()) {
                 showOptions();
             } else {
-                console.log('hideoptions');
-                console.log(window.mypa.address.cc);
                 jQuery(myparcel_method_element + ":first").parent().parent().show();
                 hideOptions();
             }
@@ -82,8 +83,8 @@ define(
         }
 
         function hideOptions() {
-            originalShippingRate.show();
             optionsContainer.hide();
+            jQuery(myparcel_method_element + ':first').parent().parent().show();
         }
 
         function _hideRadios() {
@@ -101,8 +102,11 @@ define(
         function _getHouseNumber() {
             console.log(window.mypa.address);
             var fullStreet = (window.mypa.address.street0 + ' ' + window.mypa.address.street1 + ' ' + window.mypa.address.street2).trim();
-            var arr = fullStreet.match(/(.*?)([0-9]{1,4})(.*?)/);
-            console.log(arr);
+            var arr = fullStreet.match(/([a-zA-Z\s]*?)([0-9]{1,4})(.*?)/);
+            /* @todo if null split street with big regex */
+            if (arr == null) {
+                return '';
+            }
 
             return arr[3];
         }
@@ -164,8 +168,8 @@ define(
                 optionsHtml = optionsHtml.replace('<css/>', optionsCss);
 
                 console.log(myparcel_method_alias);
-                originalShippingRate = jQuery("td[id^='label_carrier_" + myparcel_method_alias + "_']").parent().find('td');
-                optionsContainer = originalShippingRate.parent().parent().prepend('<tr><td colspan="4" id="myparcel_td" style="display:none;"></td></tr>').find('#myparcel_td');
+                originalShippingRate = jQuery("td[id^='label_carrier_" + myparcel_method_alias + "_']").parent();
+                optionsContainer = originalShippingRate.parent().prepend('<tr><td colspan="4" id="myparcel_td" style="display:none;"></td></tr>').find('#myparcel_td');
                 optionsContainer.html(optionsHtml);
 
                 _observeFields();
