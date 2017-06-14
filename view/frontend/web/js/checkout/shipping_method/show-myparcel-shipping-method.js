@@ -57,11 +57,19 @@ define(
         }
 
         function checkAddress() {
+
+            var street0 = jQuery("input[name='street[0]']").val();
+            if (typeof street0 === 'undefined') street0 = '';
+            var street1 = jQuery("input[name='street[1]']").val();
+            if (typeof street1 === 'undefined') street1 = '';
+            var street2 = jQuery("input[name='street[2]']").val();
+            if (typeof street2 === 'undefined') street2 = '';
+
             window.mypa.address = [];
             window.mypa.address.cc = jQuery("select[name='country_id']").val();
-            window.mypa.address.street0 = jQuery("input[name='street[0]']").val();
-            window.mypa.address.street1 = jQuery("input[name='street[1]']").val();
-            window.mypa.address.street2 = jQuery("input[name='street[2]']").val();
+            window.mypa.address.street0 = street0;
+            window.mypa.address.street1 = street1;
+            window.mypa.address.street2 = street2;
             window.mypa.address.postcode = jQuery("input[name='postcode']").val();
             /* @todo if address == '' get from address from quote */
 
@@ -100,15 +108,14 @@ define(
         }
 
         function _getHouseNumber() {
-            console.log(window.mypa.address);
             var fullStreet = (window.mypa.address.street0 + ' ' + window.mypa.address.street1 + ' ' + window.mypa.address.street2).trim();
-            var arr = fullStreet.match(/([a-zA-Z\s]*?)([0-9]{1,4})(.*?)/);
-            /* @todo if null split street with big regex */
+            var arr = fullStreet.match(/[^\d]+([0-9]{1,4})[^\d]*/);
             if (arr == null) {
+                /* @todo if null split street with big regex */
                 return '';
             }
 
-            return arr[3];
+            return arr[1];
         }
 
         function _observeFields() {
