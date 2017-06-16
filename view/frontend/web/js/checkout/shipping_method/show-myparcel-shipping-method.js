@@ -29,6 +29,7 @@ define(
             window.mypa.fn.hideOptions = hideOptions;
 
             if (window.mypa.isLoading === false) {
+                jQuery('.table-checkout-shipping-method').hide();
                 window.mypa.isLoading = true;
                 isLoading = setTimeout(function(){
                     clearTimeout(isLoading);
@@ -68,6 +69,8 @@ define(
                 _setParameters();
 
                 if (myParcelOptionsActive() && _getHouseNumber() !== '') {
+                    console.log('number:');
+                    console.log(_getHouseNumber());
                     showOptions();
                 } else {
                     jQuery(myparcel_method_element + ":first").parent().parent().show();
@@ -121,6 +124,7 @@ define(
 
         function _hideRadios() {
             jQuery(myparcel_method_element).parent().parent().hide();
+            jQuery('.table-checkout-shipping-method').show();
         }
 
         function myParcelOptionsActive() {
