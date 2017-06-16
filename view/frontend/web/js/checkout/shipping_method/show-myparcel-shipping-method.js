@@ -14,7 +14,7 @@ define(
     function(mageUrl, uiComponent, quote, customer, jQuery, optionsHtml, optionsCss) {
         'use strict';
 
-        var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element;
+        var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
 
         return {
             loadOptions: loadOptions,
@@ -59,17 +59,21 @@ define(
         }
 
         function checkAddress() {
-            _setAddress();
-            _hideRadios();
-            _appendTemplate();
-            _setParameters();
+            isLoadingAddress = setTimeout(function(){
+                console.log('checkAddress');
+                clearTimeout(isLoadingAddress);
+                _setAddress();
+                _hideRadios();
+                _appendTemplate();
+                _setParameters();
 
-            if (myParcelOptionsActive()) {
-                showOptions();
-            } else {
-                jQuery(myparcel_method_element + ":first").parent().parent().show();
-                hideOptions();
-            }
+                if (myParcelOptionsActive() && _getHouseNumber() !== '') {
+                    showOptions();
+                } else {
+                    jQuery(myparcel_method_element + ":first").parent().parent().show();
+                    hideOptions();
+                }
+            }, 50);
         }
 
         function _setAddress() {
@@ -154,7 +158,7 @@ define(
                 }, 50);
             });
 
-            jQuery("input[name='street[0]']").on('change', function (event) {
+            jQuery("input[name^='street'],input[name='postcode']").on('change', function (event) {
                 checkAddress();
             });
 
