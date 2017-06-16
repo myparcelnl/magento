@@ -4,6 +4,7 @@ define(
         'uiComponent',
         'Magento_Checkout/js/model/quote',
         'Magento_Customer/js/model/customer',
+        'Magento_Checkout/js/checkout-data',
         'jquery',
         'myparcelnl_options_template',
         'myparcelnl_options_css',
@@ -11,7 +12,7 @@ define(
         'myparcelnl_lib_moment',
         'myparcelnl_lib_webcomponents'
     ],
-    function(mageUrl, uiComponent, quote, customer, jQuery, optionsHtml, optionsCss) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, optionsCss) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
@@ -37,7 +38,8 @@ define(
                     jQuery.ajax({
                         url: mageUrl.build('rest/V1/delivery_settings/get'),
                         type: "GET",
-                        dataType: 'json'
+                        dataType: 'json',
+                        showLoader: true
                     }).done(function (response) {
                         window.mypa.data = response[0].data;
                         init();
@@ -61,7 +63,6 @@ define(
 
         function checkAddress() {
             isLoadingAddress = setTimeout(function(){
-                console.log('checkAddress');
                 clearTimeout(isLoadingAddress);
                 _setAddress();
                 _hideRadios();
@@ -141,13 +142,13 @@ define(
 
         function _getHouseNumber() {
             var fullStreet = _getFullStreet();
-            var arr = fullStreet.match(/[^\d]+([0-9]{1,4})[^\d]*/);
-            if (arr == null) {
-                /* @todo if null split street with big regex */
-                return '';
+            var streetParts = fullStreet.match(/[^\d]+([0-9]{1,4})[^\d]*/);
+            if (streetParts !== null) {
+                return streetParts[1];
+            } else {
+                var streetParts = fullStreet.match(/(.*?)\s?(([\d]+)[\s|-]?([a-zA-Z/\s]{0,5}$|[0-9/]{0,5}$|\s[a-zA-Z]{1}[0-9]{0,3}$|\s[0-9]{2}[a-zA-Z]{0,3}$))$/);
+                return streetParts[3];
             }
-
-            return arr[1];
         }
 
         function _observeFields() {
