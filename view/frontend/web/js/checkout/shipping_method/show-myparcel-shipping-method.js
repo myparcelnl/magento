@@ -67,17 +67,15 @@ define(
                 _setAddress();
                 _hideRadios();
                 _appendTemplate();
-                _setParameters();
 
-                if (myParcelOptionsActive() && _getHouseNumber() !== '') {
-                    console.log('number:');
-                    console.log(_getHouseNumber());
+                if (myParcelOptionsActive() && _getHouseNumber() !== null) {
+                    _setParameters();
                     showOptions();
                 } else {
                     jQuery(myparcel_method_element + ":first").parent().parent().show();
                     hideOptions();
                 }
-            }, 50);
+            }, 1000);
         }
 
         function _setAddress() {
@@ -147,7 +145,7 @@ define(
                 return streetParts[1];
             } else {
                 var streetParts = fullStreet.match(/(.*?)\s?(([\d]+)[\s|-]?([a-zA-Z/\s]{0,5}$|[0-9/]{0,5}$|\s[a-zA-Z]{1}[0-9]{0,3}$|\s[0-9]{2}[a-zA-Z]{0,3}$))$/);
-                return streetParts[3];
+                return streetParts !== null ? streetParts[3] : null;
             }
         }
 
