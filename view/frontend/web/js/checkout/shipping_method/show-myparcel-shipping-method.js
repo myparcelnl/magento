@@ -2,6 +2,8 @@ define(
     [
         'mage/url',
         'uiComponent',
+        'Magento_Checkout/js/model/quote',
+        'Magento_Customer/js/model/customer',
         'jquery',
         'myparcelnl_options_template',
         'myparcelnl_options_css',
@@ -9,7 +11,7 @@ define(
         'myparcelnl_lib_moment',
         'myparcelnl_lib_webcomponents'
     ],
-    function(mageUrl, uiComponent, jQuery, optionsHtml, optionsCss) {
+    function(mageUrl, uiComponent, quote, customer, jQuery, optionsHtml, optionsCss) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element;
@@ -57,22 +59,7 @@ define(
         }
 
         function checkAddress() {
-
-            var street0 = jQuery("input[name='street[0]']").val();
-            if (typeof street0 === 'undefined') street0 = '';
-            var street1 = jQuery("input[name='street[1]']").val();
-            if (typeof street1 === 'undefined') street1 = '';
-            var street2 = jQuery("input[name='street[2]']").val();
-            if (typeof street2 === 'undefined') street2 = '';
-
-            window.mypa.address = [];
-            window.mypa.address.cc = jQuery("select[name='country_id']").val();
-            window.mypa.address.street0 = street0;
-            window.mypa.address.street1 = street1;
-            window.mypa.address.street2 = street2;
-            window.mypa.address.postcode = jQuery("input[name='postcode']").val();
-            /* @todo if address == '' get from address from quote */
-
+            _setAddress();
             _hideRadios();
             _appendTemplate();
             _setParameters();
@@ -83,6 +70,39 @@ define(
                 jQuery(myparcel_method_element + ":first").parent().parent().show();
                 hideOptions();
             }
+        }
+
+        function _setAddress() {
+            if (customer.isLoggedIn()) {
+                var street0 = quote.shippingAddress._latestValue.street[0];
+                if (typeof street0 === 'undefined') street0 = '';
+                var street1 = quote.shippingAddress._latestValue.street[1];
+                if (typeof street1 === 'undefined') street1 = '';
+                var street2 = quote.shippingAddress._latestValue.street[2];
+                if (typeof street2 === 'undefined') street2 = '';
+                var country = quote.shippingAddress._latestValue.countryId;
+                if (typeof country === 'undefined') country = '';
+                var postcode = quote.shippingAddress._latestValue.postcode;
+                if (typeof postcode === 'undefined') postcode = '';
+            } else {
+                var street0 = jQuery("input[name='street[0]']").val();
+                if (typeof street0 === 'undefined') street0 = '';
+                var street1 = jQuery("input[name='street[1]']").val();
+                if (typeof street1 === 'undefined') street1 = '';
+                var street2 = jQuery("input[name='street[2]']").val();
+                if (typeof street2 === 'undefined') street2 = '';
+                var country = jQuery("select[name='country_id']").val();
+                if (typeof country === 'undefined') country = '';
+                var postcode = jQuery("input[name='postcode']").val();
+                if (typeof postcode === 'undefined') postcode = '';
+            }
+
+            window.mypa.address = [];
+            window.mypa.address.street0 = street0;
+            window.mypa.address.street1 = street1;
+            window.mypa.address.street2 = street2;
+            window.mypa.address.cc = country;
+            window.mypa.address.postcode = postcode;
         }
 
         function showOptions() {
@@ -107,8 +127,12 @@ define(
             return true;
         }
 
+        function _getFullStreet() {
+           return (window.mypa.address.street0 + ' ' + window.mypa.address.street1 + ' ' + window.mypa.address.street2).trim();
+        }
+
         function _getHouseNumber() {
-            var fullStreet = (window.mypa.address.street0 + ' ' + window.mypa.address.street1 + ' ' + window.mypa.address.street2).trim();
+            var fullStreet = _getFullStreet();
             var arr = fullStreet.match(/[^\d]+([0-9]{1,4})[^\d]*/);
             if (arr == null) {
                 /* @todo if null split street with big regex */
@@ -130,6 +154,10 @@ define(
                 }, 50);
             });
 
+            jQuery("input[name='street[0]']").on('change', function (event) {
+                checkAddress();
+            });
+
             delivery_options_input.on('change', function (event) {
                 _checkShippingMethod();
             });
@@ -140,7 +168,7 @@ define(
             window.mypa.settings = {
                 deliverydays_window: 10,
                 number: _getHouseNumber(),
-                street: window.mypa.address.postcode,
+                street: _getFullStreet(),
                 postal_code: window.mypa.address.postcode,
                 price: {
                     morning: data.morning.fee,
