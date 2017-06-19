@@ -50,8 +50,8 @@ class Checkout extends Data
         $address = $quote->getShippingAddress();
 
         $address->requestShippingRates();
-        $rate = $address->getShippingRateByCode('flatrate_flatrate');
-        $this->setBasePrice((int)$rate->getPrice());
+        $price = (float)$address->getShippingRateByCode($this->getParentRatePriceFromQuote($quote));
+        $this->setBasePrice($price);
 
         return $this;
     }
@@ -61,12 +61,57 @@ class Checkout extends Data
      *
      * @return string
      */
+    public function getParentRatePriceFromQuote($quote)
+    {
+        $rate = $this->getParentRateFromQuote($quote);
+        if ($rate === null) {
+            return null;
+        }
+
+        return $rate->getData('price');
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote $quote
+     *
+     * @return string
+     */
+    public function getParentMethodNameFromQuote($quote)
+    {
+        $rate = $this->getParentRateFromQuote($quote);
+        if ($rate === null) {
+            return null;
+        }
+
+        return $rate->getData('method');
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote $quote
+     *
+     * @return string
+     */
+    public function getParentCarrierNameFromQuote($quote)
+    {
+        $rate = $this->getParentRateFromQuote($quote);
+        if ($rate === null) {
+            return null;
+        }
+
+        return $rate->getData('carrier');
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote $quote
+     * @return \Magento\Shipping\Model\Rate\Result $rate
+     */
     public function getParentRateFromQuote($quote)
     {
+        $this->setTmpScope('general');
         $parentMethods = explode(',', $this->getCheckoutConfig('shipping_methods'));
         foreach ($quote->getShippingAddress()->getAllShippingRates() as $rate) {
             if (in_array($rate->getData('carrier'), $parentMethods)) {
-                return $rate->getData('carrier');
+                return $rate;
             }
         }
 

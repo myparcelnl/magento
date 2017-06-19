@@ -97,7 +97,8 @@ class Checkout
             'dropoff_delay' => $this->helper->getIntergerConfig('dropoff_delay'),
             'color_base' => $this->helper->getCheckoutConfig('color_base'),
             'color_select' => $this->helper->getCheckoutConfig('color_select'),
-            'parent_method' => $this->helper->getParentRateFromQuote($this->quote),
+            'parent_carrier' => $this->helper->getParentCarrierNameFromQuote($this->quote),
+            'parent_method' => $this->helper->getParentMethodNameFromQuote($this->quote),
         ];
     }
 

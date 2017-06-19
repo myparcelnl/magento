@@ -51,7 +51,7 @@ define(
         }
 
         function init() {
-            if ((myparcel_method_alias = window.mypa.data.general.parent_method) === null) {
+            if ((myparcel_method_alias = window.mypa.data.general.parent_carrier) === null) {
                 hideOptions();
                 return void 0;
             }
@@ -135,7 +135,7 @@ define(
         }
 
         function _getFullStreet() {
-           return (window.mypa.address.street0 + ' ' + window.mypa.address.street1 + ' ' + window.mypa.address.street2).trim();
+            return (window.mypa.address.street0 + ' ' + window.mypa.address.street1 + ' ' + window.mypa.address.street2).trim();
         }
 
         function _getHouseNumber() {
@@ -161,7 +161,7 @@ define(
                 }, 50);
             });
 
-            jQuery("input[name^='street'],input[name='postcode']").on('change', function (event) {
+            jQuery("input[name^='street'],input[name='postcode'],input[name^='pc_postcode'],select[name^='pc_postcode']").on('change', function (event) {
                 checkAddress();
             });
 
@@ -209,9 +209,8 @@ define(
                 optionsCss = optionsCss.replace(/_base_color_/g, baseColor).replace(/_select_color_/g, selectColor);
                 optionsHtml = optionsHtml.replace('<css/>', optionsCss);
 
-                console.log(myparcel_method_alias);
-                originalShippingRate = jQuery("td[id^='label_carrier_" + myparcel_method_alias + "_']").parent();
-                optionsContainer = originalShippingRate.parent().prepend('<tr><td colspan="4" id="myparcel_td" style="display:none;"></td></tr>').find('#myparcel_td');
+                originalShippingRate = jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent();
+                optionsContainer = originalShippingRate.parent().prepend('<tr><td colspan="5" id="myparcel_td" style="display:none;"></td></tr>').find('#myparcel_td');
                 optionsContainer.html(optionsHtml);
 
                 _observeFields();
@@ -252,7 +251,7 @@ define(
                         } else if (json.options.only_recipient) {
                             _checkMethod('#s_method_' + myparcel_method_alias + '_only_recipient');
                         } else {
-                            _checkMethod('#s_method_flatrate_flatrate');
+                            _checkMethod('#s_method_' + myparcel_method_alias + '_' + window.mypa.data.general.parent_method);
                         }
                     }
                     myparcel.showDays();
