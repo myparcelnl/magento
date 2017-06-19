@@ -27,7 +27,7 @@ use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
  *
  * @package MyParcelNL\Magento\Model\Sales
  */
-class MagentoOrderCollection
+class MagentoOrderCollection implements MagentoOrderCollectionInterface
 {
     const PATH_HELPER_DATA = 'MyParcelNL\Magento\Helper\Data';
     const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
