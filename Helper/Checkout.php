@@ -23,17 +23,17 @@ class Checkout extends Data
     private $tmp_scope = null;
 
     /**
-     * @return int
+     * @return float
      */
-    public function getBasePrice(): int
+    public function getBasePrice(): float
     {
         return $this->base_price;
     }
 
     /**
-     * @param int $base_price
+     * @param float $base_price
      */
-    public function setBasePrice(int $base_price)
+    public function setBasePrice(float $base_price)
     {
         $this->base_price = $base_price;
     }
@@ -50,8 +50,8 @@ class Checkout extends Data
         $address = $quote->getShippingAddress();
 
         $address->requestShippingRates();
-        $price = (float)$address->getShippingRateByCode($this->getParentRatePriceFromQuote($quote));
-        $this->setBasePrice($price);
+        $price = $this->getParentRatePriceFromQuote($quote);
+        $this->setBasePrice((double)$price);
 
         return $this;
     }
