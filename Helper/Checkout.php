@@ -288,4 +288,3 @@ class Checkout extends Data
         return (float)$this->getCheckoutConfig($key);
     }
 }
-
