@@ -32,25 +32,18 @@ class Data extends AbstractHelper
      * @var ModuleListInterface
      */
     private $moduleList;
-    /**
-     * @var LoggerInterface
-     */
-    public $logger;
 
     /**
      * @param Context $context
      * @param ModuleListInterface $moduleList
-     * @param LoggerInterface $logger
      */
     public function __construct(
         Context $context,
-        ModuleListInterface $moduleList,
-        LoggerInterface $logger
+        ModuleListInterface $moduleList
     )
     {
         parent::__construct($context);
         $this->moduleList = $moduleList;
-        $this->logger = $logger;
     }
 
     /**
@@ -109,16 +102,16 @@ class Data extends AbstractHelper
             if ($value != null) {
                 return $value;
             } else {
-                $this->logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
             }
         }
 
         if (!is_array($settings)) {
-            $this->logger->critical('No data in settings array');
+            $this->_logger->critical('No data in settings array');
         }
 
         if (!key_exists($code, $settings)) {
-            $this->logger->critical('Can\'t get setting ' . $code);
+            $this->_logger->critical('Can\'t get setting ' . $code);
         }
 
         return $settings[$code];
