@@ -22,10 +22,25 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 
 use Magento\Framework\Event\ObserverInterface;
+use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 {
     const DELIVERY_OPTIONS_FIELD = 'delivery_options';
+    const DROP_OFF_DAY_FIELD = 'drop_off_day';
+    /**
+     * @var DeliveryRepository
+     */
+    private $delivery;
+
+    /**
+     * SaveOrderBeforeSalesModelQuoteObserver constructor.
+     * @param DeliveryRepository $delivery
+     */
+    public function __construct(DeliveryRepository $delivery)
+    {
+        $this->delivery = $delivery;
+    }
 
     /**
      *
@@ -40,7 +55,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $order = $observer->getEvent()->getData('order');
 
         if ($quote->hasData(self::DELIVERY_OPTIONS_FIELD)) {
-            $order->setData(self::DELIVERY_OPTIONS_FIELD, $quote->getData(self::DELIVERY_OPTIONS_FIELD));
+            $jsonDeliveryOptions = $quote->getData(self::DELIVERY_OPTIONS_FIELD);
+            $order->setData(self::DELIVERY_OPTIONS_FIELD, $jsonDeliveryOptions);
+
+            $dropOffDay = $this->delivery->getDropOffDayFromJson($jsonDeliveryOptions);
+            $order->setData(self::DROP_OFF_DAY_FIELD, $dropOffDay);
         }
 
         return $this;

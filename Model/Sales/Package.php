@@ -24,7 +24,7 @@ use MyParcelNL\Magento\Helper\Data;
 use Magento\Framework\App\Helper\Context;
 use Psr\Log\LoggerInterface;
 
-class Package extends Data
+class Package extends Data implements PackageInterface
 {
     const PACKAGE_TYPE_NORMAL = 1;
     const PACKAGE_TYPE_MAILBOX = 2;

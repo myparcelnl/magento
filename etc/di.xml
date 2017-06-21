@@ -6,6 +6,7 @@
             <argument name="columns" xsi:type="array">
                 <item name="track_status" xsi:type="string">sales_order.track_status</item>
                 <item name="track_number" xsi:type="string">sales_order.track_number</item>
+                <item name="drop_off_day" xsi:type="string">sales_order.drop_off_day</item>
             </argument>
         </arguments>
     </virtualType>
@@ -25,9 +26,5 @@
         <plugin name="save-in-quote" type="MyParcelNL\Magento\Model\Checkout\ShippingInformationManagementPlugin" sortOrder="10"/>
     </type>
     <!-- Get all Rates -->
-    <!--<type name="Magento\Shipping\Model\Rate\Result">
-        <plugin name="myparcel-get-all-rates" type="MyParcelNL\Magento\Model\Rate\Result" sortOrder="10"/>
-    </type>-->
     <preference for="Magento\Shipping\Model\Rate\Result" type="MyParcelNL\Magento\Model\Rate\Result" />
 </config>
-
