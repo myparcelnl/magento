@@ -177,6 +177,12 @@ define(
                 number: _getHouseNumber(),
                 street: _getFullStreet(),
                 postal_code: window.mypa.address.postcode,
+                cutoff_time: data.general.cutoff_time,
+                dropoff_days: data.general.dropoff_days,
+                monday_delivery: data.general.monday_delivery_active,
+                saturday_cutoff_time: data.general.saturday_cutoff_time,
+                dropoff_delay: data.general.dropoff_delay,
+                exclude_delivery_type: data.general.exclude_delivery_types,
                 price: {
                     morning: data.morning.fee,
                     default: data.general.base_price,
@@ -187,7 +193,6 @@ define(
                     only_recipient: data.delivery.only_recipient_fee,
                     combi_options: data.delivery.signature_and_only_recipient_fee,
                     mailbox: data.mailbox.fee,
-                    exclude_delivery_type: data.general.exclude_delivery_types
                 },
                 base_url: 'https://api.myparcel.nl/delivery_options',
                 text:
@@ -196,6 +201,7 @@ define(
                         only_recipient: data.delivery.only_recipient_title
                     }
             };
+            console.log(window.mypa.settings);
 
             myparcel = new MyParcel();
             myparcel.updatePage();
