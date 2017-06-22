@@ -85,7 +85,6 @@ class Data extends AbstractHelper
         return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);
     }
 
-
     /**
      * Get checkout setting
      *
