@@ -24,7 +24,7 @@ interface PackageInterface
     /**
      * @return int
      */
-    public function getWeight(): int;
+    public function getWeight();
     /**
      * @param $weight
      */
@@ -36,7 +36,7 @@ interface PackageInterface
     /**
      * @return bool
      */
-    public function isMailboxActive(): bool;
+    public function isMailboxActive();
     /**
      * @param bool $mailbox_active
      */
@@ -44,7 +44,7 @@ interface PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFit(): bool;
+    public function isAllProductsFit();
     /**
      * @param bool $all_products_fit
      */
@@ -52,7 +52,7 @@ interface PackageInterface
     /**
      * @return bool
      */
-    public function isShowMailboxWithOtherOptions(): bool;
+    public function isShowMailboxWithOtherOptions();
     /**
      * @param bool $show_mailbox_with_other_options
      * @return $this
@@ -61,7 +61,7 @@ interface PackageInterface
     /**
      * @return int
      */
-    public function getMaxWeight(): int;
+    public function getMaxWeight();
     /**
      * @param int $max_mailbox_weight
      */
@@ -71,7 +71,7 @@ interface PackageInterface
      *
      * @return int
      */
-    public function getPackageType(): int;
+    public function getPackageType();
     /**
      * package = 1, mailbox = 2, letter = 3
      *
@@ -81,10 +81,10 @@ interface PackageInterface
     /**
      * @return string
      */
-    public function getCurrentCountry(): string;
+    public function getCurrentCountry();
     /**
      * @param string $current_country
      * @return Package
      */
-    public function setCurrentCountry(string $current_country): Package;
+    public function setCurrentCountry(string $current_country);
 }

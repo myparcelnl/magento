@@ -31,7 +31,7 @@ class PackageRepository extends Package
      *
      * @return int 1|2|3
      */
-    public function getPackageType(): int
+    public function getPackageType()
     {
         // return type if type is set
         if (parent::getPackageType() !== null) {
@@ -49,7 +49,7 @@ class PackageRepository extends Package
     /**
      * @return bool
      */
-    public function fitInMailbox(): bool
+    public function fitInMailbox()
     {
         if ($this->getCurrentCountry() !== 'NL') {
             return false;

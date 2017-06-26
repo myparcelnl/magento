@@ -68,7 +68,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return int
      */
-    public function getWeight(): int
+    public function getWeight()
     {
         return $this->weight;
     }
@@ -92,7 +92,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isMailboxActive(): bool
+    public function isMailboxActive()
     {
         return $this->mailbox_active;
     }
@@ -108,7 +108,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFit(): bool
+    public function isAllProductsFit()
     {
         return $this->all_products_fit;
     }
@@ -126,7 +126,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isShowMailboxWithOtherOptions(): bool
+    public function isShowMailboxWithOtherOptions()
     {
         return $this->show_mailbox_with_other_options;
     }
@@ -145,7 +145,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return int
      */
-    public function getMaxWeight(): int
+    public function getMaxWeight()
     {
         return $this->max_mailbox_weight;
     }
@@ -163,7 +163,7 @@ class Package extends Data implements PackageInterface
      *
      * @return int
      */
-    public function getPackageType(): int
+    public function getPackageType()
     {
         return $this->package_type;
     }
@@ -181,7 +181,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return string
      */
-    public function getCurrentCountry(): string
+    public function getCurrentCountry()
     {
         return $this->current_country;
     }
@@ -190,7 +190,7 @@ class Package extends Data implements PackageInterface
      * @param string $current_country
      * @return Package
      */
-    public function setCurrentCountry(string $current_country): Package
+    public function setCurrentCountry(string $current_country)
     {
         $this->current_country = $current_country;
 

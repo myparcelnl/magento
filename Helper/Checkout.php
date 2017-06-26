@@ -25,7 +25,7 @@ class Checkout extends Data
     /**
      * @return float
      */
-    public function getBasePrice(): float
+    public function getBasePrice()
     {
         return $this->base_price;
     }

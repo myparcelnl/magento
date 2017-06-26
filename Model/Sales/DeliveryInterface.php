@@ -24,7 +24,7 @@ interface DeliveryInterface
     /**
      * @return int
      */
-    public function getDeliveryDateTime(): int;
+    public function getDeliveryDateTime();
 
     /**
      * @param int $deliveryDateTime

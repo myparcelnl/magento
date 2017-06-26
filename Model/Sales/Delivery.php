@@ -34,7 +34,7 @@ class Delivery extends Data implements DeliveryInterface
     /**
      * @return int
      */
-    public function getDeliveryDateTime(): int
+    public function getDeliveryDateTime()
     {
         return $this->deliveryDateTime;
     }
