@@ -29,7 +29,7 @@ class Order extends AbstractHelper
      */
     public function isPickupLocation($method)
     {
-        if ($method == 'mypa_pickup_express' || $method == 'mypa_pickup') {
+        if (strpos($method, 'pickup') !== false) {
             return true;
         }
 
