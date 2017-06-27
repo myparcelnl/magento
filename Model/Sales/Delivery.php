@@ -43,7 +43,7 @@ class Delivery extends Data implements DeliveryInterface
      * @param int $deliveryDateTime
      * @return int
      */
-    public function setDeliveryDateTime(int $deliveryDateTime)
+    public function setDeliveryDateTime($deliveryDateTime)
     {
         $this->deliveryDateTime = $deliveryDateTime;
     }

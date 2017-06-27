@@ -33,7 +33,7 @@ class Checkout extends Data
     /**
      * @param float $base_price
      */
-    public function setBasePrice(float $base_price)
+    public function setBasePrice($base_price)
     {
         $this->base_price = $base_price;
     }

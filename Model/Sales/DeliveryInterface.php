@@ -30,5 +30,5 @@ interface DeliveryInterface
      * @param int $deliveryDateTime
      * @return int
      */
-    public function setDeliveryDateTime(int $deliveryDateTime);
+    public function setDeliveryDateTime($deliveryDateTime);
 }
