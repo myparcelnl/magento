@@ -122,7 +122,8 @@ Dropoff-delay,Vertraging
 "This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.","Stel hier het aantal dagen in die je nodig hebt om het product (te ontvangen,) te verpakken en aan te bieden bij PostNL, vanaf het moment dat de bestelling is geplaatst".
 Base color,Basis kleur
 Color for selected items,Kleur voor geselecteerde items
-Methods,Verzendmethodes
+Methods,Verzendmethode
+The extra myparcel options are added to this shipping method,De extra myparcel opties worden bij deze verdendmethode toegevoegd.
 Delivery titel,Bezorg titel
 Home address only, Alleen huisadres
 Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
