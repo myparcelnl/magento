@@ -93,7 +93,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
             }
         }
 
-        if (version_compare($context->getVersion(), '1.0.6') < 0) {
+        if (version_compare($context->getVersion(), '2.1.10', '<=')) {
             $setup->getConnection()->addColumn(
                 $setup->getTable('quote'),
                 'delivery_options',
@@ -113,9 +113,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'comment' => 'MyParcel delivery options',
                 ]
             );
-        }
 
-        if (version_compare($context->getVersion(), '2.1.4') < 0) {
             $setup->getConnection()->addColumn(
                 $setup->getTable('sales_order'),
                 'drop_off_day',
