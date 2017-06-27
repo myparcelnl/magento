@@ -18,11 +18,9 @@
 
 namespace MyParcelNL\Magento\Model\Rate;
 
-use Magento\Ups\Helper\Config;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
-use MyParcelNL\Magento\Helper\{
-    Checkout, Data
-};
+use MyParcelNL\Magento\Helper\Checkout;
+use MyParcelNL\Magento\Helper\Data;
 
 class Result extends \Magento\Shipping\Model\Rate\Result
 {

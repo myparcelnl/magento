@@ -26,9 +26,8 @@ use Magento\Shipping\Model\Rate\Result;
 use Magento\Shipping\Model\Simplexml\Element;
 use Magento\Ups\Helper\Config;
 use Magento\Framework\Xml\Security;
-use MyParcelNL\Magento\Helper\{
-    Checkout, Data
-};
+use MyParcelNL\Magento\Helper\Checkout;
+use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 
 class Carrier extends AbstractCarrierOnline implements CarrierInterface
