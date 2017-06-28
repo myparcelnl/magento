@@ -65,8 +65,7 @@
             if ((base = window.mypa.settings).base_url == null) {
                 base.base_url = "//localhost:8080/api/delivery_options";
             }
-
-
+            
             /** fix ipad */
             var isload = false;
             setTimeout(function () {
@@ -79,9 +78,7 @@
             isload = true;
 
             this.$el = externalJQuery('myparcel');
-            if (this.shadow == null) {
-                this.shadow = this.el.createShadowRoot();
-            }
+
             this.render();
             this.expose(this.updatePage, 'updatePage');
             this.expose(this.optionsHaveBeenModified, 'optionsHaveBeenModified');
@@ -96,15 +93,7 @@
          */
 
         Application.prototype.render = function() {
-            var error, ref;
-            this.shadow.innerHTML = document.getElementById('myparcel-template').innerHTML;
-            try {
-                if ((ref = WebComponents.ShadowCSS) != null) {
-                    ref.shimStyling(shadow, 'myparcel');
-                }
-            } catch (error) {
-                console.log('Cannot shim CSS');
-            }
+
             return this.bindInputListeners();
         };
 
@@ -386,9 +375,7 @@
         externalJQuery = jQuery;
     }
 
-    $ = function(selector) {
-        return externalJQuery(document.getElementById('myparcel').shadowRoot.children).find(selector);
-    };
+    $ = externalJQuery;
 
     displayOtherTab = function() {
         return $('.mypa-tab-container').toggleClass('mypa-slider-pos-1').toggleClass('mypa-slider-pos-0');

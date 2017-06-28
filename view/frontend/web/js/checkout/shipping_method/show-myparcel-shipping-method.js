@@ -8,9 +8,7 @@ define(
         'jquery',
         'myparcelnl_options_template',
         'myparcelnl_options_css',
-        'myparcelnl_lib_myparcel',
-        'myparcelnl_lib_moment',
-        'myparcelnl_lib_webcomponents'
+        'myparcelnl_lib_myparcel'
     ],
     function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, optionsCss) {
         'use strict';
