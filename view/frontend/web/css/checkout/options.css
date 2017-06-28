@@ -8,6 +8,7 @@ input[name=mypa-pickup-option] {
 }
 #mypa-slider {
     width: 204%;
+    max-height: 435px;
 }
 .mypa-slider-pos-0 {
     left: 0;
@@ -43,7 +44,7 @@ input[name=mypa-pickup-option] {
 }
 .mypa-tab {
     transition: background-color 0.4s;
-    background: _base_color_;
+    background: black;
     padding: 5px 10px 5px 10px;
     display: inline-block;
     text-align: center;
@@ -53,14 +54,14 @@ input[name=mypa-pickup-option] {
     cursor: pointer;
 }
 .mypa-delivery-header, .mypa-date:checked+label, .mypa-tab:hover{
-    background: _select_color_;
+    background: gray;
     opacity: 1;
 }
 .mypa-date {
     display: none;
 }
 .mypa-date:checked + label, .mypa-tab:hover {
-    background: _base_color_;
+    background: black;
 }
 .mypa-content-lg {
     transition: max-height 0.4s ease-out 0s;
@@ -75,7 +76,7 @@ input[name=mypa-pickup-option] {
 .mypa-delivery-header {
     padding: 10px;
     font-size: 120%;
-    background: _base_color_;
+    background: black;
     text-align: center;
 }
 .mypa-header-title {
@@ -105,12 +106,12 @@ input[name=mypa-pickup-option] {
     z-index: 1;
 }
 .mypa-circle:hover, label.mypa-row-subitem:hover .mypa-circle {
-    background-color: _select_color_;
+    background-color: gray;
 }
 input:checked + label.mypa-checkmark div.mypa-circle,
 input[name=mypa-delivery-type]:checked + label div.mypa-main div.mypa-circle,
 input[name=mypa-pickup-option]:checked + label div.mypa-main div.mypa-circle {
-    background-color: _select_color_;
+    background-color: gray;
     z-index: 0;
 }
 input[name=mypa-delivery-type] ~ div.mypa-content-lg {
@@ -226,7 +227,7 @@ input[name=mypa-delivery-type]:checked ~ div.mypa-content-lg {
 }
 input:checked ~ .mypa-highlight,
 input:checked ~ label.mypa-row-title span.mypa-highlight {
-    color: _select_color_
+    color: gray
 }
 #mypa-back-arrow {
     cursor: pointer;
@@ -254,11 +255,11 @@ input:checked ~ label.mypa-row-title span.mypa-highlight {
     margin-right: 0.5em;
 }
 .mypa-arrow-clickable:hover::before {
-    border-left: 0.2em solid _select_color_;
-    border-bottom: 0.2em solid _select_color_;
+    border-left: 0.2em solid gray;
+    border-bottom: 0.2em solid gray;
 }
 .mypa-arrow-clickable:hover {
-    color: _select_color_;
+    color: gray;
 }
 #mypa-date-slider-left::before, #mypa-date-slider-right::before {
     border-color: #A0A0A0;
@@ -291,8 +292,9 @@ input:checked ~ label.mypa-row-title span.mypa-highlight {
     overflow: hidden;
 }
 #mypa-location-container {
-    overflow: scroll;
-    max-height: 100%
+    overflow-x: auto;
+    max-height: 270px;
+    margin-right: 4px;
 }
 .mypa-price {
     position: relative;
@@ -316,7 +318,7 @@ input:checked ~ .mypa-price,
 input:checked ~ label span.mypa-price,
 input:checked ~ span span.mypa-price,
 .mypa-price-active {
-    background: _select_color_
+    background: gray
 }
 #mypa-mailbox-options-title {
     width: 100%;
@@ -403,7 +405,7 @@ div.afhalen-right:hover + .mypa-opening-hours {
     color: white;
     position: relative;
     z-index: 12;
-    background: _base_color_;
+    background: black;
     padding: 20px 20px;
     margin: 0 auto;
     top: 13%;
@@ -415,51 +417,39 @@ div.afhalen-right:hover + .mypa-opening-hours {
     margin-left: 10px;
 }
 .mypa-pickup-selector input:checked ~ .mypa-highlight {
-    color:_select_color_;
+    color:gray;
 }
 .mypa-address {
-    color: _base_color_;
+    color: black;
     cursor: pointer;
 }
 .mypa-address:hover {
     text-decoration: underline;
 }
-.text-location {
+.mypa-text-location {
     display: block;
     font-style: italic;
 }
-.edit-location {
-    color: _select_color_;
+.mypa-edit-location {
+    color: gray;
 }
 .mypa-inline-block {
     display: inline-block;
 }
-.afhalen-right {
+.mypa-afhalen-right {
     float: right;
     margin: 9px 4px 0 0;
 }
-.afhalen-check {
+.mypa-afhalen-check {
     float: left;
 }
-.afhalen-tekst {
+.mypa-afhalen-tekst {
     margin: 0px 38px 10px 57px;
     padding-top: 18px;
 }
-.afhalen-row {
-    min-height: 46px;
-}
-/* Magento css */
-#mypa-slider {
-    max-height: 435px;
-}
-#mypa-location-container {
-    overflow-x: auto;
-    max-height: 270px;
-    margin-right: 4px;
-}
-.afhalen-row {
+.mypa-afhalen-row {
     min-height: 53px;
 }
-.day-of-the-week {
+.mypa-day-of-the-week-item {
     display: block;
 }

@@ -8,9 +8,10 @@ define(
         'jquery',
         'myparcelnl_options_template',
         'myparcelnl_options_css',
+        'text!MyParcelNL_Magento/css/checkout/options-dynamic.css',
         'myparcelnl_lib_myparcel'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, optionsCss) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, optionsCss, optionsCssDynamic) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
@@ -210,11 +211,12 @@ define(
                 var data = window.mypa.data;
                 var baseColor = data.general.color_base;
                 var selectColor = data.general.color_select;
-                optionsCss = optionsCss.replace(/_base_color_/g, baseColor).replace(/_select_color_/g, selectColor);
-                optionsHtml = optionsHtml.replace('<css/>', optionsCss);
+                optionsCssDynamic = optionsCssDynamic.replace(/_base_color_/g, baseColor).replace(/_select_color_/g, selectColor);
+                optionsHtml = optionsHtml.replace('<css-dynamic/>', optionsCss + optionsCssDynamic);
 
                 originalShippingRate = jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent();
-                optionsContainer = originalShippingRate.parent().prepend('<tr><td colspan="5" id="myparcel_td" style="display:none;"></td></tr>').find('#myparcel_td');
+                optionsContainer = originalShippingRate.parent().prepend('<tr><td colspan="5" id="myparcel_td" >Bezig met laden...</td></tr>').find('#myparcel_td');
+
                 optionsContainer.html(optionsHtml);
 
                 _observeFields();
