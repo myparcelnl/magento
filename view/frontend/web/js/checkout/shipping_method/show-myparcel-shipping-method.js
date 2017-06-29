@@ -199,7 +199,6 @@ define(
                         only_recipient: data.delivery.only_recipient_title
                     }
             };
-            console.log(window.mypa.settings);
 
             myparcel = new MyParcel();
             myparcel.updatePage();
