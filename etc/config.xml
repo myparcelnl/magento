@@ -41,7 +41,7 @@
                 <dropoff_delay>0</dropoff_delay>
                 <color_base>#01bbc5</color_base>
                 <color_select>#3399cc</color_select>
-                <shipping_methods>flatrate,tablerate</shipping_methods>
+                <shipping_methods>tablerate</shipping_methods>
             </general>
             <delivery>
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
