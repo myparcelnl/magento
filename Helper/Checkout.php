@@ -108,7 +108,7 @@ class Checkout extends Data
     public function getParentRateFromQuote($quote)
     {
         $this->setTmpScope('general');
-        $parentMethods = explode(',', $this->getCheckoutConfig('shipping_methods'));
+        $parentMethods = explode(',', $this->getCheckoutConfig('shipping_methods'), true);
         foreach ($quote->getShippingAddress()->getAllShippingRates() as $rate) {
             if (in_array($rate->getData('carrier'), $parentMethods)) {
                 return $rate;
@@ -205,7 +205,7 @@ class Checkout extends Data
     {
         $this->tmp_scope = $this->getConfigValue(self::XML_PATH_CHECKOUT . $tmp_scope);
         if (!is_array($this->tmp_scope)) {
-            $this->logger->critical('Can\'t get settings with path:' . self::XML_PATH_CHECKOUT . $tmp_scope);
+            $this->_logger->critical('Can\'t get settings with path:' . self::XML_PATH_CHECKOUT . $tmp_scope);
         }
     }
 
@@ -213,28 +213,26 @@ class Checkout extends Data
      * Get checkout setting
      *
      * @param string $code
-     * @param null   $storeId
+     * @param bool $canBeNull
      *
      * @return mixed
      */
-    public function getCheckoutConfig($code, $storeId = null)
+    public function getCheckoutConfig($code, $canBeNull = false)
     {
         $settings = $this->getTmpScope();
         if ($settings == null) {
             $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
-            if ($value != null) {
+            if ($value != null || $canBeNull) {
                 return $value;
             } else {
-                $this->logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
             }
         }
 
         if (!is_array($settings)) {
-            $this->logger->critical('No data in settings array');
-        }
-
-        if (!key_exists($code, $settings)) {
-            $this->logger->critical('Can\'t get setting ' . $code);
+            $this->_logger->critical('No data in settings array');
+        } else if (!key_exists($code, $settings)) {
+            $this->_logger->critical('Can\'t get setting ' . $code);
         }
 
         return $settings[$code];
