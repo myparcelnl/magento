@@ -50,7 +50,7 @@ define(
 
         function init() {
             if ((myparcel_method_alias = window.mypa.data.general.parent_carrier) === null) {
-                hideOptions();
+                jQuery('.table-checkout-shipping-method').show();
                 return void 0;
             }
 
