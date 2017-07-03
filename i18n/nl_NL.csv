@@ -111,6 +111,9 @@ evening/title,Avondlevering
 Basic settings,Basis instellingen
 Delivery settings,Bezorging
 Numbers of days,Aantal dagen vooruit
+day,dag
+days,dagen
+Hide days,Dagen verbergen
 Cut-off time,Het laatste bestelmoment
 "If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Als een bestelling tussen vrijdag na, en maandag voor, het opgegeven bestelmoment wordt gedaan dan zal dinsdag worden getoond als eerstvolgende afleverdag."
 Drop-off days,Verzenddagen
@@ -119,6 +122,7 @@ Note: Monday delivery is only possible when the package is delivered before 15.0
 Monday delivery cut-off time,Laatste bestelmoment voor maandaglevering.
 "If a request is made before this time on Saturday, Monday will be shown as the next possible delivery date.","Als een bestelling voor dit tijdstip op zaterdag wordt gedaan zal maandag als eerstvolgende afleverdag worden getoond."
 Dropoff-delay,Vertraging
+No delay,Geen vertraging
 "This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.","Stel hier het aantal dagen in die je nodig hebt om het product (te ontvangen,) te verpakken en aan te bieden bij PostNL, vanaf het moment dat de bestelling is geplaatst".
 Base color,Basis kleur
 Color for selected items,Kleur voor geselecteerde items

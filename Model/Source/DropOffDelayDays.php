@@ -19,21 +19,8 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 
-class DropOffDays implements \Magento\Framework\Option\ArrayInterface
+class DropOffDelayDays implements \Magento\Framework\Option\ArrayInterface
 {
-    /**
-     * @var \Magento\Framework\Locale\ListsInterface
-     */
-    protected $_localeLists;
-
-    /**
-     * @param \Magento\Framework\Locale\ListsInterface $localeLists
-     */
-    public function __construct(\Magento\Framework\Locale\ListsInterface $localeLists)
-    {
-        $this->_localeLists = $localeLists;
-    }
-
     /**
      * Get all Drop off days
      *
@@ -41,9 +28,26 @@ class DropOffDays implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        $weekdays = $this->_localeLists->getOptionWeekdays();
-        unset($weekdays[0]);
+        $array = [
+            [
+                'value' => 0,
+                'label' => __('No delay'),
+            ],
+            [
+                'value' => 1,
+                'label' => 1 . ' ' . __('day'),
+            ],
+        ];
 
-        return $weekdays;
+        $x = 2;
+        while($x <= 14) {
+            $array[] = [
+                'value' => $x,
+                'label' => $x . ' ' . __('days')
+            ];
+            $x++;
+        }
+
+        return $array;
     }
 }
