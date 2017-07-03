@@ -56,7 +56,6 @@
          */
         function Application(options) {
             var base;
-            moment.locale(NATIONAL);
             if (window.mypa == null) {
                 window.mypa = {
                     settings: {}
@@ -245,6 +244,8 @@
          * Renders the available days for delivery
          */
         function Slider(deliveryDays) {
+            moment = window.mypa.moment;
+            moment.locale(NATIONAL);
             this.slideRight = bind(this.slideRight, this);
             this.slideLeft = bind(this.slideLeft, this);
             var $el, $tabs, date, delivery, deliveryTimes, html, i, index, len, ref;
