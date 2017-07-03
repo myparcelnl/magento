@@ -64,7 +64,7 @@ Large package,Groot pakket
 Insured up to:,Verzekeren tot:
 Download package label,Download pakket label
 Download mailbox label,Download brievenbuspakje label
-Download letter label,Download ongefankeerd label
+Download letter label,Download ongefrankeerd label
 Create new concept,Creëer nieuw concept
 Create shipment,Zending aanmaken
 Please select an item from the list,Selecteer eerst een order uit de lijst
@@ -136,7 +136,7 @@ Signature on receipt fee, Handtekening voor ontvangst prijs
 This will be added to the regular shipping price, Dit zal bij de normale verzendkosten worden opgeteld
 Home address only and signature on receipt together fee,De prijs van handtekening voor ontvangst en alleen huisadres samen
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
-Mailbox settings,Mailbox instellingen
+Mailbox settings,Brievenbuspakje instellingen
 Automate mailbox,Brievenbuspakje automatiseren
 Mailbox with other options,Brievenbuspakje tonen met andere opties
 Mailbox titel,Brievenbuspakje titel
@@ -160,8 +160,8 @@ Pickup Express at PostNL location,Extra vroeg ophalen bij PostNL locatie
 Pickup Express active,Extra vroeg ophalen actief
 Pickup Express fee,Extra vroeg ophalen prijs
 Drop off day,Verzenddagen
-
-
+Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
+Set the number of days to let the customer make an order on a different day than to deliver the first one.,Stel hier het aantal dagen in om de klant de keuze te laten maken een bestelling op een andere dag dan de eerst volgende te laten bezorgen.
 
 
 
