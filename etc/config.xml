@@ -57,7 +57,7 @@
                 <active>0</active>
                 <other_options>1</other_options>
                 <title>Brievenbuspakje</title>
-                <max_weight>2000</max_weight>
+                <weight>2000</weight>
                 <fee>3.50</fee>
             </mailbox>
             <morning>

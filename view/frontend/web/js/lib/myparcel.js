@@ -191,6 +191,8 @@
             $('#mypa-no-options').html('Bezig met laden...');
             $('.mypa-overlay').removeClass('mypa-hidden');
             $('.mypa-location').html(street);
+
+            var deliverydays_window = settings.deliverydays_window === 0 ? 1 : settings.deliverydays_window;
             options = {
                 url: urlBase,
                 data: {
@@ -204,7 +206,7 @@
                     dropoff_days: settings.dropoff_days != null ? settings.dropoff_days : void 0,
                     monday_delivery: monday_delivery,
                     dropoff_delay: settings.dropoff_delay != null ? settings.dropoff_delay : void 0,
-                    deliverydays_window: settings.deliverydays_window != null ? settings.deliverydays_window : void 0,
+                    deliverydays_window: deliverydays_window != null ? deliverydays_window : void 0,
                     exclude_delivery_type: settings.exclude_delivery_type != null ? settings.exclude_delivery_type : void 0
                 },
                 success: renderPage,
@@ -223,15 +225,15 @@
         };
 
         Application.prototype.showDays = function() {
-            if (window.mypa.settings.deliverydays_window > 1) {
+            if (window.mypa.settings.deliverydays_window >= 1) {
                 $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').show();
+            } else {
+                $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').hide();
             }
         };
 
         Application.prototype.hideDays = function() {
-            if (window.mypa.settings.deliverydays_window > 1) {
-                $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').hide();
-            }
+            $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').hide();
         };
 
         return Application;
@@ -278,6 +280,10 @@
             $("#mypa-tabs-container").attr('style', "width:" + ($("#mypa-tabs-container").width()) + "px");
             $("#mypa-tabs").attr('style', "width:" + (this.deliveryDays.length * 105) + "px");
             this.makeSlider();
+
+            if (window.mypa.settings.deliverydays_window === 0) {
+                Application.prototype.hideDays();
+            }
         }
 
 
