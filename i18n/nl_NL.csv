@@ -81,7 +81,7 @@ Download label,Download label
 Package Type,Pakkettype
 Print position,Printpositie
 MyParcel version,MyParcel versie
-"The MyParcel extension version %1 Is installed on your webshop. Because MyParcel is busy with new developments in Magento, updates will be available. At this time we are on version %2. We always recommend installing the latest version in your Magento environment.","De MyParcel extensie versie %1 is geïnstalleerd op jouw webshop. Doordat MyParcel bezig is met nieuwe ontwikkelingen op het gebied van Magento zullen er updates beschikbaar zijn. Momenteel zitten wij op versie %2. Wij adviseren altijd de nieuwste versie te installeren in jouw magento omgeving."
+"The MyParcel extension version %1 is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","De MyParcel extensie versie %1 is geïnstalleerd in jouw webshop. Momenteel is de laatste stabiele versie %2. Als je enige problemen ervaart adviseren wij altijd de laatste stabiele versie te installeren in jouw magento omgeving."
 "To read the instructions for the MyParcel Magento extension, click %1 here %2.","Klik %1 hier %2 om de handleiding van de MyParcel Magento extensie te bekijken."
 When using the extension please note:,Aandachtspunten bij het gebruik van deze extensie:
 To be able to configure the extension you need to possess and use an active MyParcel account.,U dient een actief MyParcel account te hebben om de extensie te kunnen configureren.
