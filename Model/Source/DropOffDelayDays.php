@@ -50,4 +50,20 @@ class DropOffDelayDays implements \Magento\Framework\Option\ArrayInterface
 
         return $array;
     }
+
+    /**
+     * Get options in "key-value" format
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        $array = [];
+
+        foreach ($this->toOptionArray() as $option) {
+            $array[] = $option['label'];
+        }
+
+        return $array;
+    }
 }
