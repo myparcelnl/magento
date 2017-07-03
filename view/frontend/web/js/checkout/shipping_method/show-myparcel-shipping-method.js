@@ -11,7 +11,7 @@ define(
         'MyParcelNL_Magento/js/lib/moment.min',
         'myparcelnl_lib_myparcel'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
@@ -27,6 +27,7 @@ define(
                 window.mypa = {isLoading: false, fn: {}};
             }
             window.mypa.fn.hideOptions = hideOptions;
+            window.mypa.moment = moment;
 
             if (window.mypa.isLoading === false) {
                 jQuery('.table-checkout-shipping-method').hide();
