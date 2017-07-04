@@ -6,6 +6,9 @@ input[name=mypa-delivery-time],
 input[name=mypa-pickup-option] {
     display: none;
 }
+#myparcel_td {
+    width:100%;
+}
 #mypa-slider {
     width: 204%;
     max-height: 435px;
@@ -31,7 +34,7 @@ input[name=mypa-pickup-option] {
     overflow: hidden;
     font-weight: 400;
     width: 100%;
-    min-height: 200px;
+    min-height: 275px;
 }
 .mypa-delivery-header, .mypa-tab {
     color: #fff;
