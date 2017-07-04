@@ -149,9 +149,9 @@ Mailbox weight,Brievenbuspakje gewicht
 "Besides assigning weights to all products, you can also specify a volume of each product.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten."
 Mailbox fee,Brievenbuspakje prijs
 Enter a basic price for a mailbox. The regular price will not affect this price.,Vul een basis prijs in voor een brievenbuspakje. De huidige prijs heeft geen invloed op deze prijs.
-Morning delivery,Maandagbezorging
-Morning delivery active,Maandagbezorging actief
-Morning delivery fee, Maandagbezorging prijs
+Morning delivery,Ochtendlevering
+Morning delivery active,Ochtendlevering actief
+Morning delivery fee, Ochtendlevering prijs
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Evening delivery,Avondlevering
 Evening delivery active,Avondlevering actief
