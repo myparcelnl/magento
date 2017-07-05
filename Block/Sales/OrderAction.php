@@ -17,7 +17,7 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
-use myparcelnl\sdk\src\Model\MyParcelClassConstants;
+use MyParcelNL\Sdk\src\Model\MyParcelClassConstants;
 
 class OrderAction extends OrdersAction
 {
