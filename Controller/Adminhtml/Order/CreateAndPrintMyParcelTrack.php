@@ -101,8 +101,10 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                     ->downloadPdfOfLabels();
             }
         } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage(__('API key is not good. To get your personal API credentials you should contact MyParcel.'));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+            if (count($this->messageManager->getMessages()) == 0) {
+                $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));
+                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+            }
         }
     }
 
