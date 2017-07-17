@@ -63,9 +63,20 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
     /**
      * Get selected items and process them
+     *
+     * @return $this
+     * @throws LocalizedException
      */
     private function massAction()
     {
+        if ($this->orderCollection->apiKeyIsCorrect() !== true) {
+            $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
+            $this->messageManager->addErrorMessage(__($message));
+            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
+
+            return $this;
+        }
+
         if ($this->getRequest()->getParam('selected_ids')) {
             $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
@@ -90,7 +101,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                 ->updateOrderGrid();
 
             if ($this->orderCollection->getOption('request_type') == 'only_shipment') {
-                return;
+                return $this;
             }
 
             if ($this->orderCollection->getOption('request_type') == 'download') {
@@ -106,6 +117,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                 $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
             }
         }
+
+        return $this;
     }
 
     /**

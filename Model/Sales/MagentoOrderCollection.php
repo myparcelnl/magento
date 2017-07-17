@@ -539,6 +539,11 @@ class MagentoOrderCollection
         return $this;
     }
 
+    public function apiKeyIsCorrect()
+    {
+        return $this->helper->apiKeyIsCorrect();
+    }
+
     /**
      * @param $order Order
      *

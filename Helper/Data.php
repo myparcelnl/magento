@@ -19,6 +19,7 @@ namespace MyParcelNL\Magento\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
@@ -26,6 +27,26 @@ class Data extends AbstractHelper
     const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
 
     /**
+     * @var CheckApiKeyService
+     */
+    private $checkApiKeyService;
+
+    /**
+     * @param Context $context
+     * @param CheckApiKeyService $checkApiKeyService
+     */
+    public function __construct(
+        Context $context,
+        CheckApiKeyService $checkApiKeyService
+    )
+    {
+        parent::__construct($context);
+        $this->checkApiKeyService = $checkApiKeyService;
+    }
+
+    /**
+     * Get settings by field
+     *
      * @param      $field
      * @param null $storeId
      *
@@ -56,5 +77,16 @@ class Data extends AbstractHelper
     public function getStandardConfig($code = '', $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);
+    }
+
+    /**
+     * Check if api key is correct
+     */
+    public function apiKeyIsCorrect()
+    {
+        $defaultApiKey = $this->getGeneralConfig('api/key');
+        $keyIsCorrect = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
+
+        return $keyIsCorrect;
     }
 }
