@@ -105,10 +105,10 @@ class PackageRepository extends Package
             $this->logger->critical('Can\'t get mailbox setting active');
         }
 
-        $this->setMailboxActive($settings['active']);
+        $this->setMailboxActive($settings['active'] === '1');
         if ($this->isMailboxActive() === true) {
-            $this->setShowMailboxWithOtherOptions($settings['other_options']);
-            $this->setMaxWeight($settings['max_weight']);
+            $this->setShowMailboxWithOtherOptions($settings['other_options'] === '1');
+            $this->setMaxWeight((int)$settings['weight']);
         }
 
         return $this;
