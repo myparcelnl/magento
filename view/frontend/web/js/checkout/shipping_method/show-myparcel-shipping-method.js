@@ -162,7 +162,9 @@ define(
             });
 
             jQuery("input[name^='street'],input[name='postcode'],input[name^='pc_postcode'],select[name^='pc_postcode']").on('change', function (event) {
-                checkAddress();
+                setTimeout(function(){
+                    checkAddress();
+                }, 100);
             });
 
             delivery_options_input.on('change', function (event) {
