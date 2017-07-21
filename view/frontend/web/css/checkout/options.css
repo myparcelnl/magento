@@ -456,3 +456,7 @@ div.afhalen-right:hover + .mypa-opening-hours {
 .mypa-day-of-the-week-item {
     display: block;
 }
+/* hide shipping block in card */
+div#block-shipping {
+    display: none;
+}
