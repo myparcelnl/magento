@@ -16,11 +16,43 @@
 
 namespace MyParcelNL\Magento\Helper;
 
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
+use Magento\Quote\Model\ShippingMethodManagement;
+
 class Checkout extends Data
 {
     private $base_price = 0;
 
     private $tmp_scope = null;
+
+    /**
+     * @var ShippingMethodManagement
+     */
+    private $shippingMethodManagement;
+    /**
+     * @var EstimateAddressInterfaceFactory
+     */
+    private $estimatedAddressFactory;
+
+    /**
+     * @param Context $context
+     * @param ModuleListInterface $moduleList
+     * @param EstimateAddressInterfaceFactory $estimatedAddressFactory
+     * @param ShippingMethodManagement $shippingMethodManagement
+     */
+    public function __construct(
+        Context $context,
+        ModuleListInterface $moduleList,
+        EstimateAddressInterfaceFactory $estimatedAddressFactory,
+        ShippingMethodManagement $shippingMethodManagement
+    )
+    {
+        parent::__construct($context, $moduleList);
+        $this->shippingMethodManagement = $shippingMethodManagement;
+        $this->estimatedAddressFactory = $estimatedAddressFactory;
+    }
 
     /**
      * @return float
@@ -47,9 +79,6 @@ class Checkout extends Data
      */
     public function setBasePriceFromQuote($quote)
     {
-        $address = $quote->getShippingAddress();
-
-        $address->requestShippingRates();
         $price = $this->getParentRatePriceFromQuote($quote);
         $this->setBasePrice((double)$price);
 
@@ -63,12 +92,12 @@ class Checkout extends Data
      */
     public function getParentRatePriceFromQuote($quote)
     {
-        $rate = $this->getParentRateFromQuote($quote);
-        if ($rate === null) {
+        $method = $this->getParentRateFromQuote($quote);
+        if ($method === null) {
             return null;
         }
 
-        return $rate->getData('price');
+        return $method->getPriceInclTax();
     }
 
     /**
@@ -78,12 +107,12 @@ class Checkout extends Data
      */
     public function getParentMethodNameFromQuote($quote)
     {
-        $rate = $this->getParentRateFromQuote($quote);
-        if ($rate === null) {
+        $method = $this->getParentRateFromQuote($quote);
+        if ($method === null) {
             return null;
         }
 
-        return $rate->getData('method');
+        return $method->getMethodCode();
     }
 
     /**
@@ -93,25 +122,38 @@ class Checkout extends Data
      */
     public function getParentCarrierNameFromQuote($quote)
     {
-        $rate = $this->getParentRateFromQuote($quote);
-        if ($rate === null) {
+        $method = $this->getParentRateFromQuote($quote);
+        if ($method === null) {
             return null;
         }
 
-        return $rate->getData('carrier');
+        return $method->getCarrierCode();
     }
 
     /**
      * @param \Magento\Quote\Model\Quote $quote
-     * @return \Magento\Shipping\Model\Rate\Result $rate
+     *
+     * @return \Magento\Quote\Model\Cart\ShippingMethod $methods
      */
     public function getParentRateFromQuote($quote)
     {
-        $this->setTmpScope('general');
-        $parentMethods = explode(',', $this->getCheckoutConfig('shipping_methods'));
-        foreach ($quote->getShippingAddress()->getAllShippingRates() as $rate) {
-            if (in_array($rate->getData('carrier'), $parentMethods)) {
-                return $rate;
+        $this->setTmpScope('');
+        $parentMethods = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
+
+        /**
+         * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
+         * @var \Magento\Quote\Model\Cart\ShippingMethod[] $methods
+         */
+        $estimatedAddress = $this->estimatedAddressFactory->create();
+        $estimatedAddress->setCountryId('NL');
+        $estimatedAddress->setPostcode('');
+        $estimatedAddress->setRegion('');
+        $estimatedAddress->setRegionId('');
+        $methods = $this->shippingMethodManagement->estimateByAddress($quote->getId(), $estimatedAddress);
+
+        foreach ($methods as $method) {
+            if (in_array($method->getCarrierCode(), $parentMethods)) {
+                return $method;
             }
         }
 
