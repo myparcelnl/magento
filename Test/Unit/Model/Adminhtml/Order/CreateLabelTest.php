@@ -27,9 +27,7 @@ class CreateLabelTest extends Constants
     protected function setUp()
     {
         parent::setUp();
-
     }
-
 
     public function testExecute()
     {
