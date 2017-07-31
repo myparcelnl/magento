@@ -63,9 +63,20 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
     /**
      * Get selected items and process them
+     *
+     * @return $this
+     * @throws LocalizedException
      */
     private function massAction()
     {
+        if ($this->orderCollection->apiKeyIsCorrect() !== true) {
+            $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
+            $this->messageManager->addErrorMessage(__($message));
+            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
+
+            return $this;
+        }
+
         if ($this->getRequest()->getParam('selected_ids')) {
             $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
@@ -79,31 +90,48 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
         $this->addOrdersToCollection($orderIds);
-        $this->orderCollection
-            ->setOptionsFromParameters()
-            ->setMagentoShipment();
+
+        try {
+            $this->orderCollection
+                ->setOptionsFromParameters()
+                ->setMagentoShipment();
+        } catch (\Exception $e) {
+            if (count($this->messageManager->getMessages()) == 0) {
+                $this->messageManager->addErrorMessage(__('An error has occurred while creating a Magento shipment. Please check the order and contact MyParcel'));
+                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+            }
+        }
 
         if (!$this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
             return;
         }
 
-        $this->orderCollection->setMagentoTrack()
-            ->setMyParcelTrack()
-            ->createMyParcelConcepts()
-            ->updateOrderGrid();
+        try {
+            $this->orderCollection->setMagentoTrack()
+                ->setMyParcelTrack()
+                ->createMyParcelConcepts()
+                ->updateOrderGrid();
 
-        if ($this->orderCollection->getOption('request_type') == 'only_shipment') {
-            return;
+            if ($this->orderCollection->getOption('request_type') == 'only_shipment') {
+                return $this;
+            }
+
+            if ($this->orderCollection->getOption('request_type') == 'download') {
+                $this->orderCollection
+                    ->setPdfOfLabels()
+                    ->updateMagentoTrack()
+                    ->sendTrackEmails()
+                    ->downloadPdfOfLabels();
+            }
+        } catch (\Exception $e) {
+            if (count($this->messageManager->getMessages()) == 0) {
+                $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));
+                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+            }
         }
 
-        if ($this->orderCollection->getOption('request_type') == 'download') {
-            $this->orderCollection
-                ->setPdfOfLabels()
-                ->updateMagentoTrack()
-                ->sendTrackEmails()
-                ->downloadPdfOfLabels();
-        }
+        return $this;
     }
 
     /**

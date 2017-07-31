@@ -20,6 +20,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 use Psr\Log\LoggerInterface;
 
 class Data extends AbstractHelper
@@ -38,19 +39,29 @@ class Data extends AbstractHelper
     public $logger;
 
     /**
+     * @var CheckApiKeyService
+     */
+    private $checkApiKeyService;
+
+    /**
+     * Get settings by field
+     *
      * @param Context $context
      * @param ModuleListInterface $moduleList
      * @param LoggerInterface $logger
+     * @param CheckApiKeyService $checkApiKeyService
      */
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        CheckApiKeyService $checkApiKeyService
     )
     {
         parent::__construct($context);
         $this->moduleList = $moduleList;
         $this->logger = $logger;
+        $this->checkApiKeyService = $checkApiKeyService;
     }
 
     /**
@@ -135,5 +146,16 @@ class Data extends AbstractHelper
         $moduleInfo = $this->moduleList->getOne($moduleCode);
 
         return (string)$moduleInfo['setup_version'];
+    }
+
+    /**
+     * Check if api key is correct
+     */
+    public function apiKeyIsCorrect()
+    {
+        $defaultApiKey = $this->getGeneralConfig('api/key');
+        $keyIsCorrect = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
+
+        return $keyIsCorrect;
     }
 }
