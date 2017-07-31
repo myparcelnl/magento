@@ -1,5 +1,5 @@
-body {
-    word-wrap: break-word;
+.table-checkout-shipping-method > thead {
+    display: none;
 }
 input[name=mypa-delivery-type],
 input[name=mypa-delivery-time],
@@ -51,7 +51,7 @@ input[name=mypa-pickup-option] {
     padding: 5px 10px 5px 10px;
     display: inline-block;
     text-align: center;
-    width: 80px;
+    width: 100px;
     min-height: 34px;
     opacity: .5;
     cursor: pointer;

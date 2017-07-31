@@ -137,6 +137,10 @@ class Checkout extends Data
      */
     public function getParentRateFromQuote($quote)
     {
+        if ($quote->getId() == null) {
+            return null;
+        }
+
         $this->setTmpScope('');
         $parentMethods = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
 
