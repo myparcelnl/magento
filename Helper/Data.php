@@ -20,6 +20,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 use Psr\Log\LoggerInterface;
 
 class Data extends AbstractHelper
@@ -32,18 +33,35 @@ class Data extends AbstractHelper
      * @var ModuleListInterface
      */
     private $moduleList;
+    /**
+     * @var LoggerInterface
+     */
+    public $logger;
 
     /**
+     * @var CheckApiKeyService
+     */
+    private $checkApiKeyService;
+
+    /**
+     * Get settings by field
+     *
      * @param Context $context
      * @param ModuleListInterface $moduleList
+     * @param LoggerInterface $logger
+     * @param CheckApiKeyService $checkApiKeyService
      */
     public function __construct(
         Context $context,
-        ModuleListInterface $moduleList
+        ModuleListInterface $moduleList,
+        LoggerInterface $logger,
+        CheckApiKeyService $checkApiKeyService
     )
     {
         parent::__construct($context);
         $this->moduleList = $moduleList;
+        $this->logger = $logger;
+        $this->checkApiKeyService = $checkApiKeyService;
     }
 
     /**
@@ -101,16 +119,16 @@ class Data extends AbstractHelper
             if ($value != null) {
                 return $value;
             } else {
-                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+                $this->logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
             }
         }
 
         if (!is_array($settings)) {
-            $this->_logger->critical('No data in settings array');
+            $this->logger->critical('No data in settings array');
         }
 
         if (!key_exists($code, $settings)) {
-            $this->_logger->critical('Can\'t get setting ' . $code);
+            $this->logger->critical('Can\'t get setting ' . $code);
         }
 
         return $settings[$code];
@@ -127,5 +145,16 @@ class Data extends AbstractHelper
         $moduleInfo = $this->moduleList->getOne($moduleCode);
 
         return (string)$moduleInfo['setup_version'];
+    }
+
+    /**
+     * Check if api key is correct
+     */
+    public function apiKeyIsCorrect()
+    {
+        $defaultApiKey = $this->getGeneralConfig('api/key');
+        $keyIsCorrect = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
+
+        return $keyIsCorrect;
     }
 }

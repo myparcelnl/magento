@@ -600,6 +600,11 @@ class MagentoOrderCollection implements MagentoOrderCollectionInterface
         return $this;
     }
 
+    public function apiKeyIsCorrect()
+    {
+        return $this->helper->apiKeyIsCorrect();
+    }
+
     /**
      * Update sales_order table
      *

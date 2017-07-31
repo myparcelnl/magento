@@ -36,6 +36,11 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     private $objectManager;
 
     /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
      * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
     private static $defaultOptions;
@@ -64,6 +69,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     ) {
         $this->objectManager = $objectManager;
         $this->helper = $helper;
+        $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');;
         self::$defaultOptions = new DefaultOptions(
             $order,
             $this->helper
@@ -126,8 +132,17 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
             ->setCompany($address->getCompany())
-            ->setPerson($address->getName())
-            ->setFullStreet($address->getData('street'))
+            ->setPerson($address->getName());
+
+        try {
+            $this->setFullStreet($address->getData('street'));
+        } catch (\Exception $e) {
+            $errorHuman = 'An error has occurred while validating the address: ' . $address->getData('street') . '. Check number and number suffix.';
+            $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
+            $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman . '-' . $e);
+        }
+
+        $this
             ->setPostalCode($address->getPostcode())
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
