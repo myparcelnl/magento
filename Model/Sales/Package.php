@@ -24,7 +24,7 @@ use MyParcelNL\Magento\Helper\Data;
 use Magento\Framework\App\Helper\Context;
 use Psr\Log\LoggerInterface;
 
-class Package extends Data
+class Package extends Data implements PackageInterface
 {
     const PACKAGE_TYPE_NORMAL = 1;
     const PACKAGE_TYPE_MAILBOX = 2;
@@ -68,7 +68,7 @@ class Package extends Data
     /**
      * @return int
      */
-    public function getWeight(): int
+    public function getWeight()
     {
         return $this->weight;
     }
@@ -84,7 +84,7 @@ class Package extends Data
     /**
      * @param int $weight
      */
-    public function addWeight(int $weight)
+    public function addWeight($weight)
     {
         $this->weight += $weight;
     }
@@ -92,7 +92,7 @@ class Package extends Data
     /**
      * @return bool
      */
-    public function isMailboxActive(): bool
+    public function isMailboxActive()
     {
         return $this->mailbox_active;
     }
@@ -100,7 +100,7 @@ class Package extends Data
     /**
      * @param bool $mailbox_active
      */
-    public function setMailboxActive(bool $mailbox_active)
+    public function setMailboxActive($mailbox_active)
     {
         $this->mailbox_active = $mailbox_active;
     }
@@ -108,7 +108,7 @@ class Package extends Data
     /**
      * @return bool
      */
-    public function isAllProductsFit(): bool
+    public function isAllProductsFit()
     {
         return $this->all_products_fit;
     }
@@ -116,7 +116,7 @@ class Package extends Data
     /**
      * @param bool $all_products_fit
      */
-    public function setAllProductsFit(bool $all_products_fit)
+    public function setAllProductsFit($all_products_fit)
     {
         if ($all_products_fit === false) {
             $this->all_products_fit = $all_products_fit;
@@ -126,7 +126,7 @@ class Package extends Data
     /**
      * @return bool
      */
-    public function isShowMailboxWithOtherOptions(): bool
+    public function isShowMailboxWithOtherOptions()
     {
         return $this->show_mailbox_with_other_options;
     }
@@ -135,7 +135,7 @@ class Package extends Data
      * @param bool $show_mailbox_with_other_options
      * @return $this
      */
-    public function setShowMailboxWithOtherOptions(bool $show_mailbox_with_other_options)
+    public function setShowMailboxWithOtherOptions($show_mailbox_with_other_options)
     {
         $this->show_mailbox_with_other_options = $show_mailbox_with_other_options;
 
@@ -145,7 +145,7 @@ class Package extends Data
     /**
      * @return int
      */
-    public function getMaxWeight(): int
+    public function getMaxWeight()
     {
         return $this->max_mailbox_weight;
     }
@@ -153,7 +153,7 @@ class Package extends Data
     /**
      * @param int $max_mailbox_weight
      */
-    public function setMaxWeight(int $max_mailbox_weight)
+    public function setMaxWeight($max_mailbox_weight)
     {
         $this->max_mailbox_weight = $max_mailbox_weight;
     }
@@ -163,7 +163,7 @@ class Package extends Data
      *
      * @return int
      */
-    public function getPackageType(): int
+    public function getPackageType()
     {
         return $this->package_type;
     }
@@ -173,7 +173,7 @@ class Package extends Data
      *
      * @param int $package_type
      */
-    public function setPackageType(int $package_type)
+    public function setPackageType($package_type)
     {
         $this->package_type = $package_type;
     }
@@ -181,7 +181,7 @@ class Package extends Data
     /**
      * @return string
      */
-    public function getCurrentCountry(): string
+    public function getCurrentCountry()
     {
         return $this->current_country;
     }
@@ -190,7 +190,7 @@ class Package extends Data
      * @param string $current_country
      * @return Package
      */
-    public function setCurrentCountry(string $current_country): Package
+    public function setCurrentCountry($current_country)
     {
         $this->current_country = $current_country;
 

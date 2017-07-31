@@ -93,12 +93,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
             }
         }
 
-        if (version_compare($context->getVersion(), '1.0.6') < 0) {
+        if (version_compare($context->getVersion(), '2.1.10', '<=')) {
             $setup->getConnection()->addColumn(
                 $setup->getTable('quote'),
                 'delivery_options',
                 [
-                    'type' => 'text',
+                    'type' => Table::TYPE_TEXT,
                     'nullable' => true,
                     'comment' => 'MyParcel delivery options',
                 ]
@@ -108,9 +108,28 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 $setup->getTable('sales_order'),
                 'delivery_options',
                 [
-                    'type' => 'text',
+                    'type' => Table::TYPE_TEXT,
                     'nullable' => true,
                     'comment' => 'MyParcel delivery options',
+                ]
+            );
+
+            $setup->getConnection()->addColumn(
+                $setup->getTable('sales_order'),
+                'drop_off_day',
+                [
+                    'type' => Table::TYPE_DATE,
+                    'nullable' => true,
+                    'comment' => 'MyParcel drop off day',
+                ]
+            );
+            $setup->getConnection()->addColumn(
+                $setup->getTable('sales_order_grid'),
+                'drop_off_day',
+                [
+                    'type' => Table::TYPE_DATE,
+                    'nullable' => true,
+                    'comment' => 'MyParcel drop off day',
                 ]
             );
         }

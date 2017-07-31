@@ -41,7 +41,7 @@
                 <dropoff_delay>0</dropoff_delay>
                 <color_base>#01bbc5</color_base>
                 <color_select>#3399cc</color_select>
-                <shipping_methods>flatrate,tablerate</shipping_methods>
+                <shipping_methods>tablerate</shipping_methods>
             </general>
             <delivery>
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
@@ -54,11 +54,10 @@
                 <signature_and_only_recipient_fee>0.51</signature_and_only_recipient_fee>
             </delivery>
             <mailbox>
-                <!--<active>0</active>-->
-                <active>1</active>
+                <active>0</active>
                 <other_options>1</other_options>
                 <title>Brievenbuspakje</title>
-                <max_weight>2000</max_weight>
+                <weight>2000</weight>
                 <fee>3.50</fee>
             </mailbox>
             <morning>

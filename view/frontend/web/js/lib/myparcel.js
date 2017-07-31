@@ -56,7 +56,6 @@
          */
         function Application(options) {
             var base;
-            moment.locale(NATIONAL);
             if (window.mypa == null) {
                 window.mypa = {
                     settings: {}
@@ -65,7 +64,6 @@
             if ((base = window.mypa.settings).base_url == null) {
                 base.base_url = "//localhost:8080/api/delivery_options";
             }
-
 
             /** fix ipad */
             var isload = false;
@@ -79,9 +77,7 @@
             isload = true;
 
             this.$el = externalJQuery('myparcel');
-            if (this.shadow == null) {
-                this.shadow = this.el.createShadowRoot();
-            }
+
             this.render();
             this.expose(this.updatePage, 'updatePage');
             this.expose(this.optionsHaveBeenModified, 'optionsHaveBeenModified');
@@ -96,15 +92,7 @@
          */
 
         Application.prototype.render = function() {
-            var error, ref;
-            this.shadow.innerHTML = document.getElementById('myparcel-template').innerHTML;
-            try {
-                if ((ref = WebComponents.ShadowCSS) != null) {
-                    ref.shimStyling(shadow, 'myparcel');
-                }
-            } catch (error) {
-                console.log('Cannot shim CSS');
-            }
+
             return this.bindInputListeners();
         };
 
@@ -203,6 +191,8 @@
             $('#mypa-no-options').html('Bezig met laden...');
             $('.mypa-overlay').removeClass('mypa-hidden');
             $('.mypa-location').html(street);
+
+            var deliverydays_window = settings.deliverydays_window === 0 ? 1 : settings.deliverydays_window;
             options = {
                 url: urlBase,
                 data: {
@@ -216,7 +206,7 @@
                     dropoff_days: settings.dropoff_days != null ? settings.dropoff_days : void 0,
                     monday_delivery: monday_delivery,
                     dropoff_delay: settings.dropoff_delay != null ? settings.dropoff_delay : void 0,
-                    deliverydays_window: settings.deliverydays_window != null ? settings.deliverydays_window : void 0,
+                    deliverydays_window: deliverydays_window != null ? deliverydays_window : void 0,
                     exclude_delivery_type: settings.exclude_delivery_type != null ? settings.exclude_delivery_type : void 0
                 },
                 success: renderPage,
@@ -234,18 +224,16 @@
             return this;
         };
 
-
-
         Application.prototype.showDays = function() {
-            if (window.mypa.settings.deliverydays_window > 1) {
+            if (window.mypa.settings.deliverydays_window >= 1) {
                 $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').show();
+            } else {
+                $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').hide();
             }
         };
 
         Application.prototype.hideDays = function() {
-            if (window.mypa.settings.deliverydays_window > 1) {
-                $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').hide();
-            }
+            $('#mypa-date-slider-left, #mypa-date-slider-right, #mypa-tabs-container').hide();
         };
 
         return Application;
@@ -258,6 +246,8 @@
          * Renders the available days for delivery
          */
         function Slider(deliveryDays) {
+            moment = window.mypa.moment;
+            moment.locale(NATIONAL);
             this.slideRight = bind(this.slideRight, this);
             this.slideLeft = bind(this.slideLeft, this);
             var $el, $tabs, date, delivery, deliveryTimes, html, i, index, len, ref;
@@ -277,7 +267,7 @@
                 delivery = ref[i];
                 deliveryTimes[delivery.date] = delivery.time;
                 date = moment(delivery.date);
-                html = "<input type=\"radio\" id=\"mypa-date-" + index + "\" class=\"mypa-date\" name=\"date\" checked value=\"" + delivery.date + "\">\n<label for='mypa-date-" + index + "' class='mypa-tab active'>\n  <span class='day-of-the-week'>" + (date.format('dddd')) + "</span>\n <span class='date'>" + (date.format('DD MMMM')) + "</span>\n</label>";
+                html = "<input type=\"radio\" id=\"mypa-date-" + index + "\" class=\"mypa-date\" name=\"date\" checked value=\"" + delivery.date + "\">\n<label for='mypa-date-" + index + "' class='mypa-tab active'>\n  <span class='mypa-day-of-the-week-item'>" + (date.format('dddd')) + "</span>\n <span class='date'>" + (date.format('DD MMMM')) + "</span>\n</label>";
                 $el.append(html);
                 index++;
             }
@@ -290,6 +280,10 @@
             $("#mypa-tabs-container").attr('style', "width:" + ($("#mypa-tabs-container").width()) + "px");
             $("#mypa-tabs").attr('style', "width:" + (this.deliveryDays.length * 105) + "px");
             this.makeSlider();
+
+            if (window.mypa.settings.deliverydays_window === 0) {
+                Application.prototype.hideDays();
+            }
         }
 
 
@@ -386,9 +380,7 @@
         externalJQuery = jQuery;
     }
 
-    $ = function(selector) {
-        return externalJQuery(document.getElementById('myparcel').shadowRoot.children).find(selector);
-    };
+    $ = externalJQuery;
 
     displayOtherTab = function() {
         return $('.mypa-tab-container').toggleClass('mypa-slider-pos-1').toggleClass('mypa-slider-pos-0');
@@ -494,7 +486,7 @@
 
     showDefaultPickupLocation = function(selector, item) {
         var html;
-        html = ' - <span class="edit-location">Aanpassen</span><span class="text-location">' + item.location + ", " + item.street + " " + item.number + ", " + item.city + '</span>';
+        html = ' - <span class="mypa-edit-location">Aanpassen</span><span class="mypa-text-location">' + item.location + ", " + item.street + " " + item.number + ", " + item.city + '</span>';
         $(selector).html(html);
         $(selector).parent().find('input').val(JSON.stringify(item));
         return updateInputField();
@@ -551,7 +543,7 @@
                 }
                 openingHoursHtml += '</div></div>';
             }
-            html = "<div for='mypa-pickup-location-" + index + "' class=\"mypa-row-lg afhalen-row\">\n  <div class=\"afhalen-right\">\n    <i class='mypa-info'>\n    </i>\n  </div>\n  <div class='mypa-opening-hours'>\n    " + openingHoursHtml + "\n  </div>\n  <label for='mypa-pickup-location-" + index + "' class=\"afhalen-left\">\n    <div class=\"afhalen-check\">\n      <input id=\"mypa-pickup-location-" + index + "\" type=\"radio\" name=\"mypa-pickup-option\" value='" + (JSON.stringify(location)) + "'>\n      <label for='mypa-pickup-location-" + index + "' class='mypa-row-title'>\n        <div class=\"mypa-checkmark mypa-main\">\n          <div class=\"mypa-circle\"></div>\n          <div class=\"mypa-checkmark-stem\"></div>\n          <div class=\"mypa-checkmark-kick\"></div>\n        </div>\n      </label>\n    </div>\n    <div class='afhalen-tekst'>\n      <span class=\"mypa-highlight mypa-inline-block\">" + location.location + ", <b class='mypa-inline-block'>" + location.street + " " + location.number + ", " + location.city + "</b>,\n      <i class='mypa-inline-block'>" + (String(Math.round(location.distance / 100) / 10).replace('.', ',')) + " Km</i></span>\n    </div>\n  </label>\n</div>";
+            html = "<div for='mypa-pickup-location-" + index + "' class=\"mypa-row-lg mypa-afhalen-row\">\n  <div class=\"mypa-afhalen-right\">\n    <i class='mypa-info'>\n    </i>\n  </div>\n  <div class='mypa-opening-hours'>\n    " + openingHoursHtml + "\n  </div>\n  <label for='mypa-pickup-location-" + index + "' class=\"afhalen-left\">\n    <div class=\"mypa-afhalen-check\">\n      <input id=\"mypa-pickup-location-" + index + "\" type=\"radio\" name=\"mypa-pickup-option\" value='" + (JSON.stringify(location)) + "'>\n      <label for='mypa-pickup-location-" + index + "' class='mypa-row-title'>\n        <div class=\"mypa-checkmark mypa-main\">\n          <div class=\"mypa-circle\"></div>\n          <div class=\"mypa-checkmark-stem\"></div>\n          <div class=\"mypa-checkmark-kick\"></div>\n        </div>\n      </label>\n    </div>\n    <div class='mypa-afhalen-tekst'>\n      <span class=\"mypa-highlight mypa-inline-block\">" + location.location + ", <b class='mypa-inline-block'>" + location.street + " " + location.number + ", " + location.city + "</b>,\n      <i class='mypa-inline-block'>" + (String(Math.round(location.distance / 100) / 10).replace('.', ',')) + " Km</i></span>\n    </div>\n  </label>\n</div>";
             $('#mypa-location-container').append(html);
         }
         return $('input[name=mypa-pickup-option]').bind('click', function(e) {
@@ -722,10 +714,7 @@
      * Hide MyParcel options
      */
     hideMyParcelOptions = function() {
-        console.log('hideoptions myparcel.js');
-        console.log(window.mypa.fn);
         if (typeof window.mypa.fn.hideOptions !== 'undefined') {
-            console.log('hideoptions fn');
             window.mypa.fn.hideOptions();
         }
     };

@@ -7,12 +7,11 @@ define(
         'Magento_Checkout/js/checkout-data',
         'jquery',
         'myparcelnl_options_template',
-        'myparcelnl_options_css',
-        'myparcelnl_lib_myparcel',
-        'myparcelnl_lib_moment',
-        'myparcelnl_lib_webcomponents'
+        'myparcelnl_options_css-dynamic',
+        'MyParcelNL_Magento/js/lib/moment.min',
+        'myparcelnl_lib_myparcel'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, optionsCss) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
@@ -28,6 +27,7 @@ define(
                 window.mypa = {isLoading: false, fn: {}};
             }
             window.mypa.fn.hideOptions = hideOptions;
+            window.mypa.moment = moment;
 
             if (window.mypa.isLoading === false) {
                 jQuery('.table-checkout-shipping-method').hide();
@@ -52,7 +52,7 @@ define(
 
         function init() {
             if ((myparcel_method_alias = window.mypa.data.general.parent_carrier) === null) {
-                hideOptions();
+                jQuery('.table-checkout-shipping-method').show();
                 return void 0;
             }
 
@@ -162,7 +162,9 @@ define(
             });
 
             jQuery("input[name^='street'],input[name='postcode'],input[name^='pc_postcode'],select[name^='pc_postcode']").on('change', function (event) {
-                checkAddress();
+                setTimeout(function(){
+                    checkAddress();
+                }, 100);
             });
 
             delivery_options_input.on('change', function (event) {
@@ -177,6 +179,12 @@ define(
                 number: _getHouseNumber(),
                 street: _getFullStreet(),
                 postal_code: window.mypa.address.postcode,
+                cutoff_time: data.general.cutoff_time,
+                dropoff_days: data.general.dropoff_days,
+                monday_delivery: data.general.monday_delivery_active,
+                saturday_cutoff_time: data.general.saturday_cutoff_time,
+                dropoff_delay: data.general.dropoff_delay,
+                exclude_delivery_type: data.general.exclude_delivery_types,
                 price: {
                     morning: data.morning.fee,
                     default: data.general.base_price,
@@ -187,7 +195,6 @@ define(
                     only_recipient: data.delivery.only_recipient_fee,
                     combi_options: data.delivery.signature_and_only_recipient_fee,
                     mailbox: data.mailbox.fee,
-                    exclude_delivery_type: data.general.exclude_delivery_types
                 },
                 base_url: 'https://api.myparcel.nl/delivery_options',
                 text:
@@ -206,11 +213,12 @@ define(
                 var data = window.mypa.data;
                 var baseColor = data.general.color_base;
                 var selectColor = data.general.color_select;
-                optionsCss = optionsCss.replace(/_base_color_/g, baseColor).replace(/_select_color_/g, selectColor);
-                optionsHtml = optionsHtml.replace('<css/>', optionsCss);
+                cssDynamic = cssDynamic.replace(/_base_color_/g, baseColor).replace(/_select_color_/g, selectColor);
+                optionsHtml = optionsHtml.replace('<css-dynamic/>', cssDynamic);
 
                 originalShippingRate = jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent();
-                optionsContainer = originalShippingRate.parent().prepend('<tr><td colspan="5" id="myparcel_td" style="display:none;"></td></tr>').find('#myparcel_td');
+                optionsContainer = originalShippingRate.parent().prepend('<tr><td colspan="5" id="myparcel_td" >Bezig met laden...</td></tr>').find('#myparcel_td');
+
                 optionsContainer.html(optionsHtml);
 
                 _observeFields();

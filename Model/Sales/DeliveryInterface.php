@@ -1,6 +1,6 @@
 <?php
 /**
- * ${CARET}
+ * Interface of Delivery
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -19,17 +19,16 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 
-interface MagentoOrderCollectionInterface
+interface DeliveryInterface
 {
-    public function setOptionsFromParameters();
+    /**
+     * @return int
+     */
+    public function getDeliveryDateTime();
 
-    public function setOrderCollection($orderCollection);
-
-    public function getOptions();
-
-    public function getOption($option);
-
-    public function hasShipment();
-
-    public function setMagentoTrack();
+    /**
+     * @param int $deliveryDateTime
+     * @return int
+     */
+    public function setDeliveryDateTime($deliveryDateTime);
 }

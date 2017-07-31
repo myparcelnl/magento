@@ -12,14 +12,11 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use Magento\Payment\Helper\Data as PaymentHelper;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 
 /**
@@ -64,11 +61,6 @@ class MagentoOrderCollection implements MagentoOrderCollectionInterface
     private $objectManager;
 
     /**
-     * @var Data
-     */
-    private $helper;
-
-    /**
      * @var Order\Shipment\Track
      */
     private $modelTrack;
@@ -82,6 +74,11 @@ class MagentoOrderCollection implements MagentoOrderCollectionInterface
      * @var \Magento\Framework\Message\ManagerInterface $messageManager
      */
     private $messageManager;
+
+    /**
+     * @var \MyParcelNL\Magento\Helper\Data
+     */
+    private $helper;
 
     private $options = [
         'create_track_if_one_already_exist' => true,
@@ -98,9 +95,9 @@ class MagentoOrderCollection implements MagentoOrderCollectionInterface
     /**
      * CreateAndPrintMyParcelTrack constructor.
      *
-     * @param ObjectManagerInterface                  $objectManagerInterface
+     * @param ObjectManagerInterface $objectManagerInterface
      * @param \Magento\Framework\App\RequestInterface $request
-     * @param null                                    $areaList
+     * @param null $areaList
      */
     public function __construct(ObjectManagerInterface $objectManagerInterface, $request = null, $areaList = null)
     {
@@ -116,7 +113,7 @@ class MagentoOrderCollection implements MagentoOrderCollectionInterface
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
         $this->messageManager = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
-        $this->myParcelCollection = new MyParcelCollection();
+        $this->myParcelCollection = (new MyParcelCollection())->setUserAgent('Magento2', $this->helper->getVersion());
     }
 
     /**

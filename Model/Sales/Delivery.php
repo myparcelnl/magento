@@ -1,6 +1,6 @@
 <?php
 /**
- * ${CARET}
+ * This class contain all methods to check the type of package
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -19,17 +19,32 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 
-interface MagentoOrderCollectionInterface
+use Magento\Framework\Module\ModuleListInterface;
+use MyParcelNL\Magento\Helper\Data;
+use Magento\Framework\App\Helper\Context;
+use Psr\Log\LoggerInterface;
+
+class Delivery extends Data implements DeliveryInterface
 {
-    public function setOptionsFromParameters();
+    /**
+     * @var int
+     */
+    private $deliveryDateTime;
 
-    public function setOrderCollection($orderCollection);
+    /**
+     * @return int
+     */
+    public function getDeliveryDateTime()
+    {
+        return $this->deliveryDateTime;
+    }
 
-    public function getOptions();
-
-    public function getOption($option);
-
-    public function hasShipment();
-
-    public function setMagentoTrack();
+    /**
+     * @param int $deliveryDateTime
+     * @return int
+     */
+    public function setDeliveryDateTime($deliveryDateTime)
+    {
+        $this->deliveryDateTime = $deliveryDateTime;
+    }
 }

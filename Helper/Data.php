@@ -29,14 +29,11 @@ class Data extends AbstractHelper
     const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
     const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
     const XML_PATH_CHECKOUT = 'myparcelnl_magento_checkout/';
+
     /**
      * @var ModuleListInterface
      */
     private $moduleList;
-    /**
-     * @var LoggerInterface
-     */
-    public $logger;
 
     /**
      * @var CheckApiKeyService
@@ -48,19 +45,16 @@ class Data extends AbstractHelper
      *
      * @param Context $context
      * @param ModuleListInterface $moduleList
-     * @param LoggerInterface $logger
      * @param CheckApiKeyService $checkApiKeyService
      */
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
-        LoggerInterface $logger,
         CheckApiKeyService $checkApiKeyService
     )
     {
         parent::__construct($context);
         $this->moduleList = $moduleList;
-        $this->logger = $logger;
         $this->checkApiKeyService = $checkApiKeyService;
     }
 
@@ -103,7 +97,6 @@ class Data extends AbstractHelper
         return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);
     }
 
-
     /**
      * Get checkout setting
      *
@@ -120,16 +113,16 @@ class Data extends AbstractHelper
             if ($value != null) {
                 return $value;
             } else {
-                $this->logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
             }
         }
 
         if (!is_array($settings)) {
-            $this->logger->critical('No data in settings array');
+            $this->_logger->critical('No data in settings array');
         }
 
         if (!key_exists($code, $settings)) {
-            $this->logger->critical('Can\'t get setting ' . $code);
+            $this->_logger->critical('Can\'t get setting ' . $code);
         }
 
         return $settings[$code];

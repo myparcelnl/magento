@@ -1,6 +1,6 @@
 <?php
 /**
- * Show the status of the track
+ * Show send date column
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -21,10 +21,10 @@ use Magento\Sales\Model\Order;
 use \Magento\Ui\Component\Listing\Columns\Column;
 use \Magento\Framework\Api\SearchCriteriaBuilder;
 
-class TrackNumber extends Column
+class DropOffDay extends Column
 {
     /**
-     * Set column MyParcel barcode to order grid
+     * Set column MyParcel delivery date to order grid
      *
      * @param array $dataSource
      *
@@ -33,13 +33,13 @@ class TrackNumber extends Column
     public function prepareDataSource(array $dataSource)
     {
         /**
-         * @var Order $order
+         * @var Order                  $order
          * @var Order\Shipment\Track[] $tracks
          */
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                if (key_exists('track_number', $item)) {
-                    $item[$this->getData('name')] = $item['track_number'];
+                if (isset($item['drop_off_day'])) {
+                    $item[$this->getData('name')] = $item['drop_off_day'];
                 }
             }
         }

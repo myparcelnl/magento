@@ -31,7 +31,7 @@ class PackageRepository extends Package
      *
      * @return int 1|2|3
      */
-    public function getPackageType(): int
+    public function getPackageType()
     {
         // return type if type is set
         if (parent::getPackageType() !== null) {
@@ -49,7 +49,7 @@ class PackageRepository extends Package
     /**
      * @return bool
      */
-    public function fitInMailbox(): bool
+    public function fitInMailbox()
     {
         if ($this->getCurrentCountry() !== 'NL') {
             return false;
@@ -105,10 +105,10 @@ class PackageRepository extends Package
             $this->logger->critical('Can\'t get mailbox setting active');
         }
 
-        $this->setMailboxActive($settings['active']);
+        $this->setMailboxActive($settings['active'] === '1');
         if ($this->isMailboxActive() === true) {
-            $this->setShowMailboxWithOtherOptions($settings['other_options']);
-            $this->setMaxWeight($settings['max_weight']);
+            $this->setShowMailboxWithOtherOptions($settings['other_options'] === '1');
+            $this->setMaxWeight((int)$settings['weight']);
         }
 
         return $this;

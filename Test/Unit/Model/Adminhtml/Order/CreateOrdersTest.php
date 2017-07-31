@@ -33,7 +33,7 @@ class CreateOrdersTest extends Constants
     {
         $x = 1;
 
-        while($x <= 50) {
+        while ($x <= 50) {
             $this->setOrder();
             sleep(0.1);
             $x++;

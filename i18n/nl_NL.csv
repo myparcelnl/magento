@@ -64,7 +64,7 @@ Large package,Groot pakket
 Insured up to:,Verzekeren tot:
 Download package label,Download pakket label
 Download mailbox label,Download brievenbuspakje label
-Download letter label,Download ongefankeerd label
+Download letter label,Download ongefrankeerd label
 Create new concept,Creëer nieuw concept
 Create shipment,Zending aanmaken
 Please select an item from the list,Selecteer eerst een order uit de lijst
@@ -81,7 +81,7 @@ Download label,Download label
 Package Type,Pakkettype
 Print position,Printpositie
 MyParcel version,MyParcel versie
-"The MyParcel extension version %1 Is installed on your webshop. Because MyParcel is busy with new developments in Magento, updates will be available. At this time we are on version %2. We always recommend installing the latest version in your Magento environment.","De MyParcel extensie versie %1 is geïnstalleerd op jouw webshop. Doordat MyParcel bezig is met nieuwe ontwikkelingen op het gebied van Magento zullen er updates beschikbaar zijn. Momenteel zitten wij op versie %2. Wij adviseren altijd de nieuwste versie te installeren in jouw magento omgeving."
+"The MyParcel extension version %1 is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","De MyParcel extensie versie %1 is geïnstalleerd in jouw webshop. Momenteel is de laatste stabiele versie %2. Als je enige problemen ervaart adviseren wij altijd de laatste stabiele versie te installeren in jouw magento omgeving."
 "To read the instructions for the MyParcel Magento extension, click %1 here %2.","Klik %1 hier %2 om de handleiding van de MyParcel Magento extensie te bekijken."
 When using the extension please note:,Aandachtspunten bij het gebruik van deze extensie:
 To be able to configure the extension you need to possess and use an active MyParcel account.,U dient een actief MyParcel account te hebben om de extensie te kunnen configureren.
@@ -108,3 +108,65 @@ morning_signature/title,Ochtendlevering + handtekening voor ontvangst
 pickup_express/title,Ophalen bij een PostNL locatie (extra vroeg ophalen)
 evening_signature/title,Avondlevering + handtekening voor ontvangst
 evening/title,Avondlevering
+Basic settings,Basis instellingen
+Delivery settings,Bezorging
+Numbers of days,Aantal dagen vooruit
+day,dag
+days,dagen
+Hide days,Dagen verbergen
+Cut-off time,Het laatste bestelmoment
+"If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Als een bestelling tussen vrijdag na, en maandag voor, het opgegeven bestelmoment wordt gedaan dan zal dinsdag worden getoond als eerstvolgende afleverdag."
+Drop-off days,Verzenddagen
+Monday delivery,Maandagbezorging
+Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations. Click <a href="https://blog.myparcel.nl/maandagbezorging" target="_blank">here</a> for more information concerning Monday delivery and the locations.,Let op: Maandaglevering is alleen mogelijk wanneer zaterdag het pakket voor 15.00 wordt geleverd bij één van de hiervoor bestemde PostNL locaties. Klik <a href="https://blog.myparcel.nl/maandagbezorging" target="_blank">hier</a> voor de locaties en meer informatie omtrent de maandaglevering.
+Monday delivery cut-off time,Laatste bestelmoment voor maandaglevering.
+"If a request is made before this time on Saturday, Monday will be shown as the next possible delivery date.","Als een bestelling voor dit tijdstip op zaterdag wordt gedaan zal maandag als eerstvolgende afleverdag worden getoond."
+Dropoff-delay,Vertraging
+No delay,Geen vertraging
+"This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.","Stel hier het aantal dagen in die je nodig hebt om het product (te ontvangen,) te verpakken en aan te bieden bij PostNL, vanaf het moment dat de bestelling is geplaatst".
+Base color,Basis kleur
+Color for selected items,Kleur voor geselecteerde items
+Methods,Verzendmethode
+The extra myparcel options are added to this shipping method,De extra myparcel opties worden bij deze verzendmethode toegevoegd.
+Delivery titel,Bezorg titel
+Home address only, Alleen huisadres
+Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
+Home address only titel,Alleen huisadres titel
+Home address only fee,Alleen huisadres prijs
+This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
+Signature on receipt,Handtekening voor ontvangst
+Signature on receipt title, Handtekening voor ontvangst titel
+Signature on receipt fee, Handtekening voor ontvangst prijs
+This will be added to the regular shipping price, Dit zal bij de normale verzendkosten worden opgeteld
+Home address only and signature on receipt together fee,De prijs van handtekening voor ontvangst en alleen huisadres samen
+If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
+Mailbox settings,Brievenbuspakje instellingen
+Automate mailbox,Brievenbuspakje automatiseren
+Mailbox with other options,Brievenbuspakje tonen met andere opties
+Mailbox titel,Brievenbuspakje titel
+Leave blank to automate mailbox packets only in the backend,Laat leeg om brievenbuspakjes alleen in de backend te automatiseren
+Mailbox weight,Brievenbuspakje gewicht
+"Besides assigning weights to all products, you can also specify a volume of each product.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten."
+Mailbox fee,Brievenbuspakje prijs
+Enter a basic price for a mailbox. The regular price will not affect this price.,Vul een basis prijs in voor een brievenbuspakje. De huidige prijs heeft geen invloed op deze prijs.
+Morning delivery,Ochtendlevering
+Morning delivery active,Ochtendlevering actief
+Morning delivery fee, Ochtendlevering prijs
+This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
+Evening delivery,Avondlevering
+Evening delivery active,Avondlevering actief
+Evening delivery fee,Avondlevering prijs
+Pickup at PostNL location,Ophalen bij een PostNL locatie
+Pickup active,Ophalen actief
+Pickup titel,Ophalen titel
+Pickup fee,Ophalen prijs
+Pickup Express at PostNL location,Extra vroeg ophalen bij PostNL locatie
+Pickup Express active,Extra vroeg ophalen actief
+Pickup Express fee,Extra vroeg ophalen prijs
+Drop off day,Verzenddagen
+Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
+Set the number of days to let the customer make an order on a different day than to deliver the first one.,Stel hier het aantal dagen in om de klant de keuze te laten maken een bestelling op een andere dag dan de eerst volgende te laten bezorgen.
+
+
+
+
