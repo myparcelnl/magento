@@ -40,7 +40,7 @@
         Gebruikershandleiding
     </h1>
     <h2 class="project-tagline">
-        MyParcel  Magento 2 extensie
+        MyParcel  Magento 2.1 extensie
     </h2>
     <a target="_blank" class="btn" href="https://github.com/myparcelnl/magento">GitHub</a>
   </section>
@@ -107,24 +107,24 @@
           <br>
           <br>
           Om de cache te legen en andere benodigde acties van Magento 2 uit te voeren gebruik het volgende commando:
-          <span class="nice">rm -rf pub/static/*; rm -rf var/cache/*; rm -rf var/pagecache/*; rm -rf var/generation/*; rm -rf var/dir/*; rm -rf var/view_preprocessed/*; php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento setup:static-content:deploy nl_NL && php bin/magento indexer:reindex</span>
+          <span class="nice">rm -rf pub/static/*; rm -rf var/cache/*; rm -rf var/pagecache/*; rm -rf var/generation/*; rm -rf var/dir/*; rm -rf var/view_preprocessed/*; php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento indexer:reindex</span>
         </p>
         <h2 id="1_3">1.3 Update</h2>
         <p>Om een update uit te voeren kun je het volgende commando gebruiken:<br>
           <span class="nice">composer update myparcelnl/magento</span><br>
           <br>
           Om de cache te legen en andere benodigde acties van Magento 2 uit te voeren gebruik het volgende commando:
-          <span class="nice">rm -rf pub/static/*; rm -rf var/cache/*; rm -rf var/pagecache/*; rm -rf var/generation/*; rm -rf var/dir/*; rm -rf var/view_preprocessed/*; php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento setup:static-content:deploy nl_NL && php bin/magento indexer:reindex</span>
+          <span class="nice">rm -rf pub/static/*; rm -rf var/cache/*; rm -rf var/pagecache/*; rm -rf var/generation/*; rm -rf var/dir/*; rm -rf var/view_preprocessed/*; php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento indexer:reindex</span>
         </p>
 
         <h1 id="2">2 Configuratie</h1>
-        <p>Ga naar het menu <span class="nice">Winkels → Configuratie → MyParcel</span> om de MyParcel extensie te
+        <p>Ga naar het menu <span class="nice">Stores → Configuration → MyParcel</span> om de MyParcel extensie te
             configureren.<br>
 
         </p>
         <img src="media/config.png">
-        <p>Verder zie je 2 tabbladen om uit te kiezen. Op het tabblad 'Algemene instellingen' kun je de API key invoeren en jouw printvoorkeur
-          instellen. Op het tabblad ' Standaard verzendinstellingen' kun je de standaard voorkeuren voor de MyParcel verzendopties aangeven.
+        <p>Verder zie je 4 tabbladen om uit te kiezen. Op het tabblad 'versie' kun jij zien welke versie jij van de plugin hebt geinstalleerd. Op het tabblad 'Algemene instellingen' kun je je API key invoeren en jouw printvoorkeur
+          instellen. Op het tabblad 'Standaard verzendinstellingen' kun je de default voorkeuren voor de MyParcel verzendopties aangeven. Op het tabblad 'checkout instellingen' kun jij aanvullende verzendopties instellen waaruit jouw klant in de winkelwagen kan kiezen.
         </p>
 
         <h2 id="2_1">2.1 Algemene instellingen</h2>
@@ -134,13 +134,14 @@
             <img src="media/api_key.png">
 
             <h3 id="2_1_2">2.1.2 Print oriëntatie</h3><p>
-                Kies de <span class="nice">Print oriëntatie</span>. Als je kiest voor A4 formaat zullen er vier verzendlabels per A4 vel geprint
+                Kies de <span class="nice">Print oriëntatie</span>. Als je kiest voor A4 formaat zullen vier verzendlabels per A4 vel geprint
                 worden. Als je kiest voor A6 formaat zijn de verzendlabels geschikt voor het printen met een speciale
                 labelprinter zoals een Zebra of Dymo 4XL.<br></br>
                   <img src="media/print_opties.png">
 
         <h2 id="2_2">2.2 Standaard verzendinstellingen</h2>
-            <p> Bij <span class="nice">Standaard verzendinstellingen</span> kun je configureren hoe je wil dat jouw zending standaard verwerkt worden wanneer je de MyParcel extensie voor Magento 2 gebruikt.
+            <p> Bij <span class="nice">Standaard verzendinstellingen</span> kun je configureren hoe je wil dat jouw zending standaard verwerkt worden wanneer
+            je de MyParcel extensie voor Magento 2 gebruikt.
           <img src="media/MA2_standaard_verzendinstellingen.png">
 
         <h3 id="2_2_1">2.2.1 Standaard  verzendopties</h3><p>
