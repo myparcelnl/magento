@@ -30,9 +30,9 @@
         padding: 15px;
       }
     </style>
-</head>
-<body>
-<section class="page-header">
+  </head>
+  <body>
+  <section class="page-header">
     <p>
         <img alt="" src="media/logo_myparcel.png"/>
         <img height="185" src="media/logo_magento.png" style="margin-left: -90px;"/></p>
@@ -43,8 +43,8 @@
         MyParcel  Magento 2 extensie
     </h2>
     <a target="_blank" class="btn" href="https://github.com/myparcelnl/magento">GitHub</a>
-</section>
-<section class="main-content">
+  </section>
+  <section class="main-content">
     <h1>Inleiding</h1>
     <p>
         Deze handleiding beschrijft de functionaliteiten van de MyParcel extensie voor Magento 2.
@@ -55,11 +55,11 @@
     </p>
     <ol>
         <li>
-            Normaal (gewone Nederlandse pakketten)
+            Normaal (Binnen Nederland met uitgebreide bezorgmoment opties en verzendmoment opties)
         </li>
-        <li>Pakketten naar buitenland, alleen EU.</li>
+        <li>Pakketten naar buitenland, alleen voor de EU.</li>
         <li>
-            Brievenbuspakje
+            Brievenbuspakje binnen Nederland
         </li>
         <li>
             Ongefrankeerd label
@@ -69,7 +69,6 @@
     <h1>Inhoud</h1>
     <div class="menu"></div>
     <div>
-
         <h1 id="1">1 Installatie en update</h1>
 
         <h2 id="1_1">1.1 Technische vereisten</h2>
@@ -88,10 +87,9 @@
         </ul>
 
         <h2 id="1_2">1.2 Installatie</h2>
-        <p>
-          De MyParcel Magento 2 extensie is niet te downloaden via de Magento Marketplace.<br></br>
+        <p>De MyParcel Magento 2 extensie is niet te downloaden via de Magento Marketplace.<br></br>
 
-          Voor het installeren adviseren wij om een backup te maken van jouw Magento omgeving. De extensie is te verkrijgen via de terminal, raadpleeg jouw webbeheerder. Jouw webbeheerder kan het volgende commando in de root van de website (in bv. public_html) uitvoeren om de MyParcel extensie te installeren:<br>
+          Voor het installeren adviseren wij om een backup te maken van jouw Magento 2 omgeving. De extensie is te verkrijgen via de terminal, raadpleeg jouw webbeheerder. Jouw webbeheerder kan het volgende commando in de root van de website (in bv. public_html) uitvoeren om de MyParcel extensie te installeren:<br>
           <span class="nice">composer require myparcelnl/magento</span><br>
           <br>
 
@@ -109,55 +107,43 @@
           <br>
           <br>
           Om de cache te legen en andere benodigde acties van Magento 2 uit te voeren gebruik het volgende commando:
-          <span class="nice">rm -rf pub/static/* && rm -rf var/cache/* && rm -rf var/pagecache/* && rm -rf var/generation/* && rm -rf var/dir/* && rm -rf var/view_preprocessed/* && php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento indexer:reindex</span>
+          <span class="nice">rm -rf pub/static/*; rm -rf var/cache/*; rm -rf var/pagecache/*; rm -rf var/generation/*; rm -rf var/dir/*; rm -rf var/view_preprocessed/*; php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento setup:static-content:deploy nl_NL && php bin/magento indexer:reindex</span>
         </p>
         <h2 id="1_3">1.3 Update</h2>
-        <p>
-          Om een update uit te voeren kun je het volgende commando gebruiken:<br>
+        <p>Om een update uit te voeren kun je het volgende commando gebruiken:<br>
           <span class="nice">composer update myparcelnl/magento</span><br>
           <br>
           Om de cache te legen en andere benodigde acties van Magento 2 uit te voeren gebruik het volgende commando:
-          <span class="nice">rm -rf pub/static/* && rm -rf var/cache/* && rm -rf var/pagecache/* && rm -rf var/generation/* && rm -rf var/dir/* && rm -rf var/view_preprocessed/* && php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento indexer:reindex</span>
+          <span class="nice">rm -rf pub/static/*; rm -rf var/cache/*; rm -rf var/pagecache/*; rm -rf var/generation/*; rm -rf var/dir/*; rm -rf var/view_preprocessed/*; php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento setup:static-content:deploy nl_NL && php bin/magento indexer:reindex</span>
         </p>
 
         <h1 id="2">2 Configuratie</h1>
-        <p>
-
-            Ga naar het menu <span class="nice">Stores → Configuration → MyParcel</span> om de MyParcel extensie te
+        <p>Ga naar het menu <span class="nice">Winkels → Configuratie → MyParcel</span> om de MyParcel extensie te
             configureren.<br>
 
         </p>
         <img src="media/config.png">
-        <p>Verder zie je 2 tabbladen om uit te kiezen. Op het tabblad 'Algemene instellingen' kun je je API key invoeren en jouw printvoorkeur
-          instellen. Op het tabblad ' Standaard verzendinstellingen' kun je de default voorkeuren voor de MyParcel verzendopties aangeven.
+        <p>Verder zie je 2 tabbladen om uit te kiezen. Op het tabblad 'Algemene instellingen' kun je de API key invoeren en jouw printvoorkeur
+          instellen. Op het tabblad ' Standaard verzendinstellingen' kun je de standaard voorkeuren voor de MyParcel verzendopties aangeven.
         </p>
 
         <h2 id="2_1">2.1 Algemene instellingen</h2>
-
             <h3 id="2_1_1">2.1.1 API key instellen</h3>
-
             <p>Hier kun je jouw API Key invullen. Deze zijn nodig om de zendingen door te kunnen zetten naar MyParcel.
               Deze gegevens kun je vinden in jouw MyParcel account op <a href="https://backoffice.myparcel.nl/settings" target="_blank">backoffice.myparcel.nl</a>  en ga vervolgens naar <span class="nice">Instellingen -> Algemeen</p>
             <img src="media/api_key.png">
 
-            <h3 id="2_1_2">2.1.2 Print oriëntatie</h3>
-            <p>
-
-                Kies de <span class="nice">Print oriëntatie</span>. Als je kiest voor A4 formaat zullen vier verzendlabels per A4 vel geprint
+            <h3 id="2_1_2">2.1.2 Print oriëntatie</h3><p>
+                Kies de <span class="nice">Print oriëntatie</span>. Als je kiest voor A4 formaat zullen er vier verzendlabels per A4 vel geprint
                 worden. Als je kiest voor A6 formaat zijn de verzendlabels geschikt voor het printen met een speciale
                 labelprinter zoals een Zebra of Dymo 4XL.<br></br>
                   <img src="media/print_opties.png">
 
         <h2 id="2_2">2.2 Standaard verzendinstellingen</h2>
-            <p> Bij <span class="nice">Standaard verzendinstellingen</span> kun je configureren hoe je wil dat jouw zending standaard verwerkt worden wanneer
-            je de MyParcel extensie voor Magento 2 gebruikt.
+            <p> Bij <span class="nice">Standaard verzendinstellingen</span> kun je configureren hoe je wil dat jouw zending standaard verwerkt worden wanneer je de MyParcel extensie voor Magento 2 gebruikt.
+          <img src="media/MA2_standaard_verzendinstellingen.png">
 
-
-
-          <img src="media/standaard_verzend.png">
-
-        <h3 id="2_2_1">2.2.1 Standaard  verzendopties</h3>
-        <p>
+        <h3 id="2_2_1">2.2.1 Standaard  verzendopties</h3><p>
             Op basis van de ingevulde orderwaarde worden de onderstaande opties geactiveerd. Voorbeeld: Indien je bij
             <span class="nice">Verzekerd tot € 250</span> bijvoorbeeld de waarde 100 invult, worden orders met een verkoopwaarde boven de € 100
             automatisch verzekerd tot een waarde van € 250. Deze logica is voor alle onderstaande opties in te stellen:
@@ -172,71 +158,171 @@
             <li>Verzekerd tot € 500</li>
         </ul>
         <p>
-            Let op: Op het moment dat <span class="nice">No</span> ingevuld staat, is de optie niet geactiveerd. Bij invullen van <span class="nice">Yes</span> staat de optie actief.
+            Let op: Op het moment dat <span class="nice">Nee</span> ingevuld staat, is de optie niet geactiveerd. Bij invullen van <span class="nice">Ja</span> staat de optie actief.
             Wanneer er bij 'Vanaf prijs' een 0 wordt ingevuld zal de optie ook actief zijn.
         </p>
 
         <h1 id="3">3 Backend functionaliteiten</h1>
-        <p>
-            Om de backend functionaliteiten te kunnen gebruiken moet de MyParcel Magento 2 extensie ingeschakeld zijn.
-        </p>
 
         <h2 id="3_1">3.1 Verzending aanmaken</h2>
         <p>
             Een MyParcel zending aanmaken kan op twee manieren:
         </p>
 
-        <h4>1. Batch methode in het bestellingenoverzicht.</h4>
-        <ol>
+        <h4>1. Batch methode in het bestellingenoverzicht.</h4>        <ol>
             <li>Selecteer de orders die je wilt exporteren naar MyParcel.</li><br></br>
-            <img src="media/action_balk.png"><br></br>
+            <img src="media/MA2_bestelling_overzicht.png"><br></br>
             <li>Kies in de actie balk <span class="nice">Print MyParcel labels</span></li><br>
-            <img src="media/action_balk_2.png"><br></br>
+            <img src="media/MA2_actiemenu_bestellingen.png"><br></br>
             <li>Kies voor de juiste printpositie, indien je voor A4 hebt gekozen.</li>
             <img src="media/print_position.png"><br></br>
             <li>Het PDF verschijnt op je computer en is klaar om te printen.</li><br>
             <li>Wanneer je de instellingen in stap 3 wil overslaan, bijvoorbeeld omdat je via de ‘standaard verzendinstellingen’
             al de juiste verzendopties aan jouw bestellingen hebt meegegeven, dan kan je via ‘Print MyParcel labels direct’
             je labels direct downloaden.</li><br></br>
-            <img src="media/action_balk_3.png">
-          </ol><br></br>
+            <img src="media/MA2_actiemenu_bestellingen_2.png">
+          </ol><br>
 
 
-        <h4>2. Per bestelling als je een Magento zending aanmaakt.</h4>
-        <ol>
+        <h4>2. Per bestelling als je een Magento zending aanmaakt.</h4>        <ol>
             <li>Klik op de desbetreffende order.</li><br>
-            <img src="media/order.png"><br></br>
-            <li>Kies rechtsboven voor de knop <span class="nice">ship</span>.</li>
-            <img src="media/ship.png"><br></br>
+            <img src="media/MA2_order.png"><br></br>
+            <li>Kies rechtsboven voor de knop <span class="nice">Verzenden</span>.</li>
+            <img src="media/MA2_order_detail.png"><br></br>
             <li>Rechts onderin verschijnt een vak. Hier kan je zowel het verzendtype aanpassen als de beschikbare verzendopties per verzendtype.</li><br></br>
-            <img src="media/ship_options.png"><br></br>
-            <li>Verstuur zending naar MyParcel via 'Submit Shipment'.</li><br>
-            <li>Vervolgens kun je meteen het label printen in de order door rechtsboven op de knop 'Print label' te klikken.</li><br>
-            <img src="media/print_label_order.png"><br></br>
-        </ol><br></br>
+            <img src="media/MA2_aanpassing_verzendmethode_opties.png"><br></br>
+            <li>Verstuur zending naar MyParcel via <span class="nice">Verzending Inboeken</span>Dit zorgt ervoor dat er een concept verzending wordt aangemaakt.</li><br>
+            <li>Vervolgens kun je meteen het label printen in de order door rechtsboven op de knop <span class="nice">Print Label</span> te klikken.</li><br>
+            <img src="media/MA2_printlabel.png"><br></br>
+          </ol>
 
-        <h2 id="3_2">3.2 Orderoverzicht</h2>
-        <p>
+          <h2 id="3_2">3.2 Orderoverzicht</h2>        <p>
           Om je altijd inzicht te bieden in de status van jouw zendingen zijn er 3 nieuwe kolommen automatisch toegevoegd aan het orderoverzicht nadat de MyParcel plugin is geïnstalleerd.
-        </p>
-            <img src="media/track_track_track.png"><br><br/>
+          </p>
+            <img src="media/MA_trackstatus_tracknummer_actie.png"><br><br/>
             <ul>
                 <li>Track status : Hier kun je de status van de zending zien, deze wordt altijd up to date gehouden.</li><br>
-                <li>Track number : Hier vind je de barcode van je zending.</li><br>
-                <li>Track action : Wanneer de order nog niet verzonden is en je klikt op 'Select', dan verschijnt er een pop-up met download opties voor
+                <li>Track nummer : Hier vind je de barcode van je zending.</li><br>
+                <li>Track actie : Wanneer de order nog niet verzonden is en je klikt op 'Select', dan verschijnt er een pop-up met download opties voor
                   verzendlabels. Mocht je order al verzonden zijn, dan kan je hier het label nogmaals downloaden.</li><br><br/>
             </ul>
-              <img src="media/popup.png">
+              <img src="media/MA2_besteloverzicht_label_genereren.png">
 
-              <h2 id="3_3">3.3 Track&Trace e-mail template</h2>
-          <p>
+              <h2 id="3_3">3.3 Track&Trace e-mail template</h2>          <p>
               Wanneer er een orderbevestigingsmail naar de klant gestuurd wordt vanuit Magento neemt deze de barcode van de zending automatisch mee.
-               Dit hoeft nu niet apart ingesteld te worden. Mocht je nu toch een een andere Track & Trace email willen willen versturen naar de klant vanuit Magento 2, ga dan naar
+               Dit hoeft nu niet apart ingesteld te worden. Mocht je nu toch een andere Track & Trace email willen willen versturen naar de klant vanuit Magento 2, ga dan naar
                <span class="nice">'Winkels' → 'Verkopen' → 'E-mails voor verkoop' → 'MyParcel barcode'</span> en stel hier je eigen template naar wens in.
 
           </p>
+        </div>
 
-      </div>
+        <h1 id="4">4 Checkout instellingen</h2>        <p>
+            Op het tabblad 'Checkout instellingen' kun je alle gewenste instellingen toepassen die zichtbaar zijn in de checkout. Dit tabblad wordt onderverdeeld in 'Basis instellingen' , 'Bezorging', 'Brievenbuspakje' , 'Ochtendlevering', 'Avondlevering' , 'Ophalen' en 'Extra vroeg ophalen'
+          </p>
+
+          <h2 id="4_1">4.1 Basis instellingen</h2>
+          <img src="media/MA2_basisinstellingen_checkout.png">
+            <h3 id="4_1_1">4.1.1 Aantal dagen vooruit</h3>
+            <p> Met de functie 'aantal dagen vooruit' kun je aangeven hoeveel dagen vooruit jouw klant een levermoment kan kiezen. Wanneer je kiest voor 7 dagen is laatste keuzemogelijkheid precies 7 dagen later. De dagen waarop er geen leveringen mogelijk zijn, worden niet weergegeven in de checkout. (zondag en maandag)</p>
+                <img src="media/MA2_aantal_dagen_vooruit.png">
+                <p>In de afbeelding hierboven kun je zien dat er is gekozen om 3 dagen vooruit te laten zien. In de afbeelding hieronder kun je zien hoe jouw klant dit te zien krijgt in de checkout. </p><br><br>
+                <img src="media/MA2_checkout_verzend_opties_1.png">
+
+            <h3 id="4_1_2">4.1.2 Laatste bestelmoment</h3>
+            <p> Hiermee kun je instellen tot welk moment het mogelijk is voor jou een bestelling klaar te maken voor levering. Indien jij hier tot 16:00 uur instelt, zullen alle klanten na dit tijdstip een latere dag in hun checkout te zien krijgen als eerste levermogelijkheid. <br>
+            Bijvoorbeeld: Jij hebt een verwerktijd van 1 dag en kunt tot 16:00 bestellingen verwerken. De bestelling komt binnen op dinsdag 04 oktober om 16:02, de eerst volgende mogelijkheid voor jouw klant zou dan donderdag 06 oktober worden. Dit betekent voor jou dat je het pakket op woensdag zal inleveren bij een PostNL punt.</p><br><br>
+              <img src="media/MA2_laatste_bestelmoment.png">
+
+            <h3 id="4_1_3">4.1.3 Verzenddagen</h3>
+                    <p> Bij de verzenddagen kun je invullen op welke dagen het voor jou mogelijk is pakketten in te leveren voor collectie op dezelfde dag. In de checkout wordt hier rekening mee gehouden qua keuzes die worden getoond aan jouw klant.</p>
+                    <img src="media/MA2_verzenddagen.png">
+            <h3 id="4_1_4">4.1.4 Maandagbezorging</h3>
+                <p>Er kan ook gekozen worden om een pakket op maandag te laten bezorgen, houd er rekening mee dat je bij verzenddagen wel de zaterdag selecteert als verzenddag.<br> Let op: Maandaglevering is alleen mogelijk wanneer het laatste bestelmoment voor maandagbezorging op 14:30 is ingesteld en zaterdag het pakket voor 15:00 wordt geleverd bij één van de hiervoor bestemde <a href="https://blog.myparcel.nl/maandagbezorging" target="_blank"><b>PostNL locaties</b></a>.</p>
+              <img src="media/MA2_maandagbezorging.png">
+
+            <h3 id="4_1_5">4.1.5 Vertraging</h3>
+                  <p> Indien jij een langere verwerkingstijd nodig hebt om tot leveren over te gaan kun je dat hier aangeven. Hier zal rekening mee worden gehouden in het tonen van de beschikbare bezorgdagen in de checkout.</p>
+                  <img src="media/MA2_vertraging.png">
+
+            <h3 id="4_1_6">4.1.6 Kleuren</h3>
+            <p>Het is mogelijk om kleuren van het venster waarin de verzendopties worden weergegeven in de checkout geheel naar jouw stijl aan te passen. Om de juiste codering te vinden voor de kleureninstelling kun je kijken op <a href="http://html-color-codes.info/web-safe-colors/" target="_blank"><b>deze website</b></a></p>
+            <img src="media/MA2_kleuren_checkout.png">
+        <h2 id="4_2">4.2 Bezorging</h2>
+        <img src="media/MA2_bezorging_checkout.png">
+            <h3 id="4_2_1">4.2.1 Titel bezorging</h3>
+            <p>Je kunt zelf kiezen welke titel jij de bezorging geeft. Het advies is om "Thuis of op het werk bezorgd" hierin te plaatsen.</p>
+            <h3 id="4_2_2">4.2.2 Alleen huisadres</h3>
+            <p> Je kunt hiermee aangeven of jouw klanten hier zelf voor kunnen kiezen in de checkout. Indien jij dit wilt weergeven in de checkout kies dan voor <span class="nice">Ja</span>. Ook is het mogelijk om aan deze optie een eigen naam mee te geven, in het voorbeeld is deze optie 'Niet bij de buren bezorgen' genoemd. Als laatste optie kun je er ook een meerprijs aan koppelen, in het voorbeeld kost deze optie € 0.27 extra.</p>
+            <h3 id="4_2_3">4.2.3 Handtekening voor ontvangst</h3>
+            <p>Je kunt hiermee aangeven of jouw klanten hier zelf voor kunnen kiezen in de checkout. Indien jij dit wilt weergeven in de checkout kies dan voor <span class="nice">Ja</span> Ook is het mogelijk om aan deze optie een eigen naam mee te geven, in het voorbeeld heet deze optie 'Handtekening voor ontvangst'. Als laatste optie kun je er ook een meerprijs aan koppelen, in het voorbeeld kost deze optie € 0.35 extra.</p>
+            <p> Er is ook een optie gemaakt voor een gecombineerde meerprijs voor de keuzes samen<span class="nice">Alleen bij mij bezorgen</span> en <span class="nice">Handtekening voor ontvangst</span> te bepalen. Je kunt zelf een prijs naar eigen inzicht invullen.</p>
+
+        <h2 id="4_3">4.3 Brievenbuspakje instellingen</h2>
+        <img src="media/MA2_brievenbuspakje_instelling.png">
+    <p>Het is mogelijk om automatisch brievenbuspakjes te laten selecteren afhankelijk van de instellingen. Dit kan op basis van gewicht of volume welke jij kunt instellen bij de productgegevens.</p>
+
+        <p><span class="nice">Producten -> catalogus -> Klik op bewerken</span><br><br>
+        	<img src="media/MA2_catalogus_producten_bewerken.png"></p>
+			<p>Het is mogelijk om dit te tonen in de checkout waarbij jouw klant een keuze heeft. In dit geval zullen er meerdere verzendopties worden getoont, namelijk: Pakket, Brievenbuspakje en indien ingesteld de keuze om op te halen bij een PostNL locatie.
+			Wil je liever niet deze keuze aan jouw klant bieden, kun je de titel leeg laten. In dit geval zal er alleen een brievenbuspakje worden aangemaakt bij MyParcel maar wordt het normale tarief berekend.</p>
+			    <p>Wanneer de optie 'Brievenbuspakje tonen met andere opties' op nee wordt gezet dan zal er in de checkout alleen de optie Brievenbuspakje te zien zijn.
+      Dit is vooral handig wanneer er gekozen wordt voor een produkt dat onder Brievenbuspakje valt en je de klant geen andere optie wil geven.</p><br><br>
+
+      <img src="media/MA_checkoutbbp.png"></p>
+
+        <h2 id="4_4">4.4 Ochtendlevering</h2>
+          	<p>Het is mogelijk om jouw klanten de mogelijkheid te geven te kiezen voor ochtendlevering (bezorging tot 12:00). Wanneer je deze optie hebt geactiveerd zal er een extra keuzemogelijkheid verschijnen in de checkout. Tevens is het mogelijk hier een meerprijs aan te koppelen. De prijs die hier wordt ingevuld zal bij het huidige tarief worden opgeteld. Jouw klant ziet in de checkout het totaalbedrag van de zending.
+        	   </p>
+             <img src="media/MA2_ochtendlevering.png">
+
+        <h2 id="4_5">4.5 Avondlevering</h2>
+            	<p>Het is ook mogelijk om jouw klanten de mogelijkheid te geven te kiezen voor avondlevering (bezorging vanaf 18:00 uur). Wanneer je deze optie hebt geactiveerd zal er net een extra keuzemogelijkheid verschijnen in de checkout. Tevens is het mogelijk hier een meerprijs aan te koppelen. De prijs die hier wordt ingevuld zal bij het huidige tarief worden opgeteld. Jouw klant ziet in de checkout het totaalbedrag van de zending.</p>
+              <img src="media/MA2_avond_levering.png">
+
+        <h2 id="4_6">4.6 Ophalen PostNL locatie</h2>
+        	<p>Met deze optie kunnen jouw klanten kiezen om hun pakket bij een PostNL locatie op te halen. Deze locatie kunnen zij zelf kiezen in de checkout. Je kunt hier eventueel ook een meerprijs voor rekenen.</p>
+          <img src="media/MA2_ophalen_bij_postNL.png">
+            <p> Hieronder kun je een voorbeeld zien als de klant voor PostNL afhaallocatie kiest.</p>
+          <img src="media/MA2_checkout_verzend_opties_2.png">
+
+        <h2 id="4_7">4.7 Extra vroeg ophalen bij PostNL locatie</h2>
+              	<p>Ook voor het ophalen op een PostNL locatie is er een mogelijkheid om dit specifiek in de ochtend te doen (mogelijk vanaf 08:30 in plaats vanaf 16:00). Ook hierbij heb je de keuze om een meerprijs toe te voegen.</p>
+      <img src="media/MA2_extra_vroeg_postnl.png">
+
+      <h1 id="5">5 Veel gestelde vragen</h1>
+
+       <h2 id="5_1">5.1 Ondersteunen jullie mijn checkout?</h2>
+       <p>
+            In tegenstelling met de MyParcel plugin van Magento 1, ondersteund deze extensie voor Magento 2 elke checkout. De volgende checkouts zijn getest:
+       </p>
+       <ul>
+           <li>OnePageCheckout, dit is de standaard checkout van Magento.</li>
+           <li>MagePlaza One Step Checkout</li>
+       </ul>
+
+       <h2 id="5_2">5.2 Ik gebruik een postcodecheck extensie, is dat een probleem?</h2>
+       <p>
+           Het mogelijk een postcodecheck extensie te gebruiken in combinatie met de MyParcel Magento 2
+           extensie. Doormiddel van de onderstaande link, kom jij op de site voor de door ons aanbevolen extensie.<br><br>
+           <a href="http://www.postcode-checkout.nl/plug-ins/standaard/magento-2" target="_blank">Postcode Checkout Magento Extensie</a>
+       </p>
+
+       <h2 id="5_3">5.3 Hoe kan ik gratis verzenden instellen?</h2>
+       <p>
+           Naast de Table Rates kun je ook gratis verzenden instellen via Marketing > Winkelwagen prijsregels.
+       </p>
+       <ol>
+           <li>Klik rechts bovenin op <span class="nice">Nieuwe regel toevoegen</span>.</li>
+           <li>Bij <span class="nice">Regelgegevens</span> geef je de regel een naam (voorbeeld: ‘gratis verzenden vanaf 50’). Zet de <span class="nice">status</span>
+               op <span class="nice">actief</span> en kies bij <span class="nice">websites</span> en <span class="nice">klantengroepen</span> alle opties.
+           </li>
+           <li>Klik links boven op <span class="nice">Voorwaarden</span> en schrijf zelf de regel door op <span class="nice">+</span> te klikken. (voorbeeld: Subtotaal gelijk aan of groter dan 50)
+           </li>
+           <li>Ga naar de volgende stap <span class="nice">acties</span> en geef bij <span class="nice">gratis verzending</span> aan <span class="nice">Alleen voor betreffende artikelen</span>.
+           <li>Klik rechts bovenin op opslaan.</li>
+       </ol>
+     </div>
+
 
     <footer class="site-footer">
         <p>
