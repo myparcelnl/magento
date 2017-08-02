@@ -17,7 +17,7 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
-use myparcelnl\sdk\src\Model\MyParcelClassConstants;
+use MyParcelNL\Sdk\src\Model\MyParcelClassConstants;
 
 class OrderAction extends OrdersAction
 {
@@ -42,6 +42,11 @@ class OrderAction extends OrdersAction
     }
 
     /**
+     * Check if Magento can create shipment
+     *
+     * Magento shipment contains one or more products. Magento shipments can never make more shipments than the number
+     * of products.
+     *
      * @return bool
      */
     public function canShip()

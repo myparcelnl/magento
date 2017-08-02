@@ -77,6 +77,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Create Magento Track from Magento shipment
+     *
      * @param Order\Shipment $shipment
      *
      * @return $this
@@ -97,6 +99,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Set all data to MyParcel object
+     *
      * @param Order\Shipment\Track $magentoTrack
      * @param array                $options
      *
@@ -107,13 +111,23 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     public function convertDataFromMagentoToApi($magentoTrack, $options)
     {
         $address = $magentoTrack->getShipment()->getShippingAddress();
+        $checkoutData = $magentoTrack->getShipment()->getOrder()->getData('delivery_options');
+        $deliveryType = $this->getDeliveryTypeFromCheckout($checkoutData);
+        if ($options['package_type'] === 'default') {
+            $packageType = self::$defaultOptions->getPackageType();
+        } else {
+            $packageType = (int)$options['package_type'] ?: 1;
+        }
 
         if ($address->getCountryId() != 'NL' && (int)$options['package_type'] == 2) {
             $options['package_type'] = 1;
         }
 
         $this
-            ->setApiKey($this->helper->getGeneralConfig('api/key', $magentoTrack->getShipment()->getOrder()->getStoreId()))
+            ->setApiKey(
+                $this->helper->getGeneralConfig('api/key',
+                    $magentoTrack->getShipment()->getOrder()->getStoreId()
+                ))
             ->setReferenceId($magentoTrack->getEntityId())
             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
@@ -134,7 +148,10 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
-            ->setPackageType((int)$options['package_type'] == null ? 1 : (int)$options['package_type'])
+            ->setDeliveryDateFromCheckout($checkoutData)
+            ->setDeliveryType($deliveryType)
+            ->setPickupAddressFromCheckout($checkoutData)
+            ->setPackageType($packageType)
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
@@ -163,6 +180,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     }
 
     /**
+     * Get default value if option === null
+     *
      * @param $options[]
      * @param $optionKey
      *

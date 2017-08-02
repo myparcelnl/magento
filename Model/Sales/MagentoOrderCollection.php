@@ -12,14 +12,11 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use Magento\Payment\Helper\Data as PaymentHelper;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 
 /**
@@ -27,14 +24,16 @@ use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
  *
  * @package MyParcelNL\Magento\Model\Sales
  */
-class MagentoOrderCollection
+class MagentoOrderCollection implements MagentoOrderCollectionInterface
 {
     const PATH_HELPER_DATA = 'MyParcelNL\Magento\Helper\Data';
     const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
     const PATH_ORDER_GRID = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
     const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
+    const PATH_MANAGER_INTERFACE = '\Magento\Framework\Message\ManagerInterface';
     const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
     const URL_SHOW_POSTNL_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
+    const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
 
     /**
      * @var MyParcelCollection
@@ -62,11 +61,6 @@ class MagentoOrderCollection
     private $objectManager;
 
     /**
-     * @var Data
-     */
-    private $helper;
-
-    /**
      * @var Order\Shipment\Track
      */
     private $modelTrack;
@@ -76,10 +70,20 @@ class MagentoOrderCollection
      */
     private $areaList;
 
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface $messageManager
+     */
+    private $messageManager;
+
+    /**
+     * @var \MyParcelNL\Magento\Helper\Data
+     */
+    private $helper;
+
     private $options = [
         'create_track_if_one_already_exist' => true,
         'request_type' => 'download',
-        'package_type' => 1,
+        'package_type' => 'default',
         'positions' => null,
         'only_recipient' => null,
         'signature' => null,
@@ -91,9 +95,9 @@ class MagentoOrderCollection
     /**
      * CreateAndPrintMyParcelTrack constructor.
      *
-     * @param ObjectManagerInterface                            $objectManagerInterface
-     * @param \Magento\Framework\App\RequestInterface           $request
-     * @param null                                              $areaList
+     * @param ObjectManagerInterface $objectManagerInterface
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param null $areaList
      */
     public function __construct(ObjectManagerInterface $objectManagerInterface, $request = null, $areaList = null)
     {
@@ -108,10 +112,13 @@ class MagentoOrderCollection
 
         $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
-        $this->myParcelCollection = new MyParcelCollection();
+        $this->messageManager = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
+        $this->myParcelCollection = (new MyParcelCollection())->setUserAgent('Magento2', $this->helper->getVersion());
     }
 
     /**
+     * Set options from POST or GET variables
+     *
      * @return $this
      */
     public function setOptionsFromParameters()
@@ -119,7 +126,6 @@ class MagentoOrderCollection
         // If options isset
         foreach (array_keys($this->options) as $option) {
             if ($this->request->getParam('mypa_' . $option) === null) {
-
                 if ($this->request->getParam('mypa_extra_options_checkboxes_in_form') === null) {
                     // Use default options
                     $this->options[$option] = null;
@@ -149,6 +155,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Get all options
+     *
      * @return array
      */
     public function getOptions()
@@ -157,6 +165,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Get option by key
+     *
      * @param $option
      *
      * @return mixed
@@ -167,6 +177,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Add MyParcel consignment to collection
+     *
      * @param $myParcelConsignment MyParcelConsignmentRepository
      *
      * @return $this
@@ -180,6 +192,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Get all Magento orders
+     *
      * @return \Magento\Sales\Model\ResourceModel\Order\Collection
      */
     public function getOrders()
@@ -188,6 +202,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Set Magento collection
+     *
      * @param $orderCollection \Magento\Sales\Model\ResourceModel\Order\Collection
      *
      * @return $this
@@ -200,7 +216,7 @@ class MagentoOrderCollection
     }
 
     /**
-     * Set existing or create new Magento track and set API consignment to collection
+     * Set existing or create new Magento Track and set API consignment to collection
      *
      * @throws \Exception
      * @throws LocalizedException
@@ -221,7 +237,25 @@ class MagentoOrderCollection
     }
 
     /**
-     * @param bool $createIfOneAlreadyExists Create track if one already exists
+     * Check if there is 1 shipment in all orders
+     *
+     * @return bool
+     */
+    public function hasShipment()
+    {
+        /** @var $order Order */
+        /** @var Order\Shipment $shipment */
+        foreach ($this->getOrders() as $order) {
+            if ($order->hasShipments()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Create new Magento Track and save order
      *
      * @return $this
      */
@@ -247,6 +281,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Check if shipment already exists
+     *
      * @param $shipment
      *
      * @return bool
@@ -267,6 +303,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Create new Magento Track
+     *
      * @param Order\Shipment $shipment
      *
      * @return mixed
@@ -288,6 +326,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Add MyParcel Track from Magento Track
+     *
      * @return $this
      * @throws \Exception
      *
@@ -301,6 +341,9 @@ class MagentoOrderCollection
          * @var Order\Shipment\Track $magentoTrack
          */
         foreach ($this->getOrders() as $order) {
+            if ($order->getShipmentsCollection()->getSize() == 0) {
+                $this->messageManager->addError(self::ERROR_ORDER_HAS_NO_SHIPMENT);
+            }
             foreach ($order->getShipmentsCollection() as $shipment) {
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE) {
@@ -314,6 +357,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Set PDF content and convert status 'Concept' to 'Registered'
+     *
      * @return $this
      */
     public function setPdfOfLabels()
@@ -324,6 +369,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Download PDF directly
+     *
      * @return $this
      * @throws \Exception
      */
@@ -335,6 +382,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Create MyParcel concepts and update Magento Track
+     *
      * @return $this
      */
     public function createMyParcelConcepts()
@@ -364,6 +413,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Update MyParcel collection
+     *
      * @return $this
      */
     public function setLatestData()
@@ -374,7 +425,7 @@ class MagentoOrderCollection
     }
 
     /**
-     * Send multiple emails with track and trace variable
+     * Send multiple shipment emails with Track and trace variable
      *
      * @return $this
      */
@@ -389,9 +440,9 @@ class MagentoOrderCollection
     }
 
     /**
-     * @param \Magento\Sales\Model\Order $order
+     * Send shipment email with Track and trace variable
      *
-     * @todo fill PostObject with more details from the order
+     * @param \Magento\Sales\Model\Order $order
      */
     private function sendTrackEmailFromOrder(Order $order)
     {
@@ -408,6 +459,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Get MyParcel Track from Magento Track
+     *
      * @param Order\Shipment\Track $magentoTrack
      *
      * @return MyParcelTrackTrace $myParcelTrack
@@ -483,6 +536,9 @@ class MagentoOrderCollection
 
     /**
      * Update all the tracks that made created via the API
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function updateMagentoTrack()
     {
@@ -495,7 +551,9 @@ class MagentoOrderCollection
             foreach ($order->getShipmentsCollection() as $shipment) {
                 $trackCollection = $shipment->getTracksCollection();
                 foreach ($trackCollection as $magentoTrack) {
-                    $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId($magentoTrack->getData('myparcel_consignment_id'));
+                    $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
+                        $magentoTrack->getData('myparcel_consignment_id')
+                    );
 
                     $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
 
@@ -514,6 +572,9 @@ class MagentoOrderCollection
 
     /**
      * Update column track_status in sales_order_grid
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function updateOrderGrid()
     {
@@ -545,6 +606,8 @@ class MagentoOrderCollection
     }
 
     /**
+     * Update sales_order table
+     *
      * @param $order Order
      *
      * @return array
@@ -571,7 +634,7 @@ class MagentoOrderCollection
          */
         foreach ($order->getShipmentsCollection() as $shipment) {
             foreach ($shipment->getTracksCollection() as $track) {
-                // Set all track data in array
+                // Set all Track data in array
                 if ($track->getData('myparcel_status') !== null) {
                     $data['track_status'][] = __('status_' . $track->getData('myparcel_status'));
                 }

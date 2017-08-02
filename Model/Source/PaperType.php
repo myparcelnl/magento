@@ -1,6 +1,6 @@
 <?php
 /**
- * Get paper types for the settings
+ * Get paper types for MyParcel system settings
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl

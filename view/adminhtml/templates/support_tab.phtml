@@ -1,0 +1,137 @@
+<?php
+/** @var $block \MyParcelNL\Magento\Block\System\Config\Form\SupportTabRepository */
+?>
+
+<link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css" />
+
+<div class="accordion">
+    <div class="entry-edit form-inline">
+        <div class="section-config active">
+            <div class="entry-edit-head admin__collapsible-block">
+                <a id="myparcelnl_magento_version-head" href="#myparcelnl_magento_version-link" onclick="Fieldset.toggleCollapse('myparcelnl_magento_version'); return false;" class="open"><?= __('Version and support');?></a>
+            </div>
+            <input id="myparcelnl_magento_version-state" name="config_state[myparcelnl_magento_version]" type="hidden" value="1">
+            <fieldset class="config admin__collapsible-block" id="myparcelnl_magento_version">
+                <div class="myparcel_container">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+                        <tr>
+                            <td>
+                                <table id="supportWrap" cellpadding="0" cellspacing="0">
+                                    <tbody>
+                                        <tr>
+                                            <td colspan="3">
+                                                <div class="instructions">
+                                                    <?= __('The MyParcel extension version %1 is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.', '<b>'.$block->getVersion().'</b>',"<b><a class=\"link\" target=\"_blank\" href=\"https://github.com/myparcelnl/magento/releases/latest\"><span class= \"current_version\"></span></a></b>");?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="3">
+                                                <div class="instructions">
+                                                    <?= __('To read the instructions for the MyParcel Magento extension, click %1 here %2.','<a target="_blank" href="https://myparcelnl.github.io/magento/">','</a>');?>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="2">
+                                                <div class="text-box instructions">
+                                                    <h3><?= __('When using the extension please note:');?></h3>
+                                                    <ol>
+                                                        <li><?= __('To be able to configure the extension you need to possess and use an active MyParcel account.');?></li>
+                                                        <li><?= __('During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.');?></li>
+                                                    </ol>
+                                                </div>
+                                                <div class="text-box instructions">
+                                                    <h3><?= __('Magento &amp; 3rd party version compatibility');?></h3>
+                                                    <p><?= __('We cannot guarantee perfect functionality of the MyParcel extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact MyParcel.');?></p>
+
+                                                </div>
+                                            </td>
+                                            <td class="myparcel_support">
+                                                <div class="text-box instructions">
+                                                    <h3><?= __('Questions and information about your MyParcel account');?></h3>
+                                                    <p><?= __('For questions related to your MyParcel account, configuration problems, extension conflicts and bugs, please contact MyParcel.');?></p>
+
+                                                    <table class="support_contact">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="version_contact_first"><?= __('MyParcel:');?></td>
+                                                                <td class="last">
+                                                                    <a target="_blank" href="http://www.myparcel.nl"><?= __('www.myparcel.nl');?></a>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="version_contact_first"><?= __('Phone:');?></td>
+                                                                <td class="last">023 - 30 30 315</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="version_contact_first"><?= __('Email');?></td>
+                                                                <td class="last"><a href="mailto:info@myparcel.nl"><?= __('info@myparcel.nl');?></a></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <h3 class="myparcel_documents"><?= __('Documents');?></h3>
+                                                    <ul class="support_tab">
+                                                        <li>
+                                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases/latest">
+                                                                <?= __('Latest stable release');?>
+                                                            </a>  (<span class="current_version"></span>)
+                                                            <script>
+                                                                require(['jquery'], function($){
+                                                                    $.get('https://api.github.com/repos/myparcelnl/magento/releases/latest', function (data) {
+                                                                        $('.current_version').html('' + data.name + '');
+                                                                    });
+                                                                });
+                                                            </script>
+                                                        </li>
+                                                        <li>
+                                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases" title="<?= __('Full changelog');?>"><?= __('Full changelog');?></a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="link" target="_blank" href="https://myparcelnl.github.io/magento/#2" title="<?= __('Installation and configuration manual');?>"><?= __('Installation and configuration manual');?></a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="link" target="_blank" href="https://backoffice.myparcel.nl/settings" title="<?= __('MyParcel backoffice');?>"> <?= __('MyParcel backoffice');?></a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </fieldset>
+            <script type="text/javascript">
+                require(['prototype'], function(){Fieldset.applyCollapse('myparcelnl_magento_version');});
+            </script>
+        </div>
+        <div class="section-config active">
+            <div class="entry-edit-head admin__collapsible-block">
+                <a id="myparcelnl_magento_progress-head" href="#myparcelnl_magento_progress-link" onclick="Fieldset.toggleCollapse('myparcelnl_magento_progress'); return false;" class="open"><?= __('MyParcel progress');?></a>
+            </div>
+            <input id="myparcelnl_magento_progress-state" name="config_state[myparcelnl_magento_progress]" type="hidden" value="1">
+            <fieldset class="config admin__collapsible-block" id="myparcelnl_magento_progress">
+                <p>Wil je weten waar ze de komende tijd mee bezig zijn? Hieronder vind je de planning voor Magento 2. Heb je zelf suggesties of ideeën? Ze zijn altijd welkom. Op die manier blijven we samen de extensie verbeteren.</p>
+                <div class="mypa_columns"></div>
+
+            </fieldset>
+            <script type="text/javascript">
+                require(['prototype'], function(){Fieldset.applyCollapse('myparcelnl_magento_progress');});
+            </script>
+        </div>
+    </div>
+</div>
+
+<script type="text/x-magento-init">
+   {
+       ".mypa_columns": {
+           "myparcelnl_supporttab": {}
+        }
+   }
+</script>

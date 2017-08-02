@@ -18,13 +18,22 @@ namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
+use Psr\Log\LoggerInterface;
 
 class Data extends AbstractHelper
 {
+    const MODULE_NAME = 'MyParcelNL_Magento';
     const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
     const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
+    const XML_PATH_CHECKOUT = 'myparcelnl_magento_checkout/';
+
+    /**
+     * @var ModuleListInterface
+     */
+    private $moduleList;
 
     /**
      * @var CheckApiKeyService
@@ -32,15 +41,20 @@ class Data extends AbstractHelper
     private $checkApiKeyService;
 
     /**
+     * Get settings by field
+     *
      * @param Context $context
+     * @param ModuleListInterface $moduleList
      * @param CheckApiKeyService $checkApiKeyService
      */
     public function __construct(
         Context $context,
+        ModuleListInterface $moduleList,
         CheckApiKeyService $checkApiKeyService
     )
     {
         parent::__construct($context);
+        $this->moduleList = $moduleList;
         $this->checkApiKeyService = $checkApiKeyService;
     }
 
@@ -58,6 +72,8 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Get general settings
+     *
      * @param string $code
      * @param int    $storeId
      *
@@ -69,6 +85,8 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Get default settings
+     *
      * @param string $code
      * @param null   $storeId
      *
@@ -77,6 +95,50 @@ class Data extends AbstractHelper
     public function getStandardConfig($code = '', $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);
+    }
+
+    /**
+     * Get checkout setting
+     *
+     * @param string $code
+     * @param null   $storeId
+     *
+     * @return mixed
+     */
+    public function getCheckoutConfig($code, $storeId = null)
+    {
+        $settings = $this->getTmpScope();
+        if ($settings == null) {
+            $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
+            if ($value != null) {
+                return $value;
+            } else {
+                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+            }
+        }
+
+        if (!is_array($settings)) {
+            $this->_logger->critical('No data in settings array');
+        }
+
+        if (!key_exists($code, $settings)) {
+            $this->_logger->critical('Can\'t get setting ' . $code);
+        }
+
+        return $settings[$code];
+    }
+
+    /**
+     * Get the version number of the installed module
+     *
+     * @return string
+     */
+    public function getVersion()
+    {
+        $moduleCode = self::MODULE_NAME;
+        $moduleInfo = $this->moduleList->getOne($moduleCode);
+
+        return (string)$moduleInfo['setup_version'];
     }
 
     /**

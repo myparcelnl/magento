@@ -4,7 +4,8 @@ define(
         'Magento_Ui/js/modal/confirm',
         'text!MyParcelNL_Magento/template/grid/order_massaction.html',
         'Magento_Ui/js/modal/alert',
-        'loadingPopup'
+        'loadingPopup',
+        'mage/translate'
     ],
     function ($, confirmation, template, alert) {
         'use strict';
@@ -46,7 +47,7 @@ define(
                             }
                         );
                     } else {
-                        // In order grid, button don't exist. Append a button
+                    /* In order grid, button don't exist. Append a button */
                     massSelectorLoadInterval = setInterval(
                         function () {
                             var actionSelector = $('.action-select-wrap .action-menu');
@@ -77,23 +78,24 @@ define(
                 _showMyParcelModal: function () {
                     var parentThis = this;
                     parentThis
-                        ._setSelectedIds();
+                        ._setSelectedIds()
+                        ._translateTemplate();
 
                     if (this.selectedIds.length == 0) {
-                        alert({title: 'Please select an item from the list'});
+                        alert({title: $.mage.__('Please select an item from the list')});
 
                         return this;
                     }
                      
                     if (('has_api_key' in this.options) && (this.options['has_api_key'] == false)) {
-                        alert({title: 'No key found. Go to Configuration and then to MyParcel to enter the key.'});
+                        alert({title: $.mage.__('No key found. Go to Configuration and then to MyParcel to enter the key.')});
 
                         return this;
                     }
 
                     confirmation(
                         {
-                            title: 'MyParcel options',
+                            title: $.mage.__('MyParcel options'),
                             content: template,
                             focus: function () {
                                 $('#selected_ids').val(parentThis.selectedIds.join(','));
@@ -112,6 +114,30 @@ define(
                             }
                         }
                     );
+                },
+
+                /**
+                 * Translate html templates
+                 **/
+                _translateTemplate: function () {
+                    /*
+                    Magento only index these variables in js-translation if you define
+                    $.mage.__('Action type');
+                    $.mage.__('Download label');
+                    $.mage.__('Concept');
+                    $.mage.__('Package Type');
+                    $.mage.__('Default');
+                    $.mage.__('Package');
+                    $.mage.__('Mailbox');
+                    $.mage.__('Letter');
+                    $.mage.__('Print position');
+                    */
+
+                    $($.parseHTML(template)).find("[trans]").each(function( index ) {
+                        var oldElement = $(this).get(0).outerHTML;
+                        var newElement = $(this).html($.mage.__($(this).attr('trans'))).get(0).outerHTML;
+                        template = template.replace(oldElement, newElement);
+                    });
                 },
 
                 /**
@@ -147,7 +173,7 @@ define(
                     }
 
                     $('#mypa_request_type-download').prop('checked', true).trigger('change');
-                    $('#mypa_package_type-package').prop('checked', true).trigger('change');
+                    $('#mypa_package_type-default').prop('checked', true).trigger('change');
                     $('#paper_size-' + this.options.settings['paper_type']).prop('checked', true).trigger('change');
 
                     if (selectAmount != 0) {

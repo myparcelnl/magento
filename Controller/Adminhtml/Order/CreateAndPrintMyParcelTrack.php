@@ -94,8 +94,21 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         try {
             $this->orderCollection
                 ->setOptionsFromParameters()
-                ->setMagentoShipment()
-                ->setMagentoTrack()
+                ->setMagentoShipment();
+        } catch (\Exception $e) {
+            if (count($this->messageManager->getMessages()) == 0) {
+                $this->messageManager->addErrorMessage(__('An error has occurred while creating a Magento shipment. Please check the order and contact MyParcel'));
+                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+            }
+        }
+
+        if (!$this->orderCollection->hasShipment()) {
+            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
+            return $this;
+        }
+
+        try {
+            $this->orderCollection->setMagentoTrack()
                 ->setMyParcelTrack()
                 ->createMyParcelConcepts()
                 ->updateOrderGrid();

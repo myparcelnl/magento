@@ -15,14 +15,13 @@
 namespace MyParcelNL\Magento\Block\Sales;
 
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
-use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use Magento\Framework\App\ObjectManager;
 
 class NewShipment extends AbstractItems
 {
     /**
-     * @var Order
+     * @var \Magento\Sales\Model\Order
      */
     private $order;
 
@@ -82,11 +81,29 @@ class NewShipment extends AbstractItems
     }
 
     /**
+     * Get package type
+     */
+    public function getPackageType()
+    {
+        return $this->defaultOptions->getPackageType();
+    }
+
+    /**
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
+    }
+
+    /**
+     * Get all chosen options
+     *
+     * @return array
+     */
+    public function getChosenOptions()
+    {
+        return json_decode($this->order->getData('delivery_options'), true);
     }
 }

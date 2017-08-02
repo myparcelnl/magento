@@ -14,28 +14,28 @@
         />
         <label class="admin__field-label"
                for="mypa_create_from_observer">
-            <span><?php echo __('Create MyParcel consignment') ?></span></label>
+            <span><?=__('Create MyParcel consignment') ?></span></label>
     </div>
     <div class="field field-mypa_package_type mypa-option-toggle" style="margin-top: 10px;">
         <div class="admin__field-control">
             <div class="admin__field admin__field-option">
-                <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa_package_type" value="1" checked="checked">
-                <label class="admin__field-label" for="mypa_package_type-package"><?php echo __('Package');?></label>
+                <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa_package_type" value="1" <?=$block->getPackageType() !== 1 ?: 'checked="checked"';?>>
+                <label class="admin__field-label" for="mypa_package_type-package"><?=__('Package');?></label>
             </div>
             <?php if ($block->getCountry() == 'NL'): ?>
                 <div class="admin__field admin__field-option">
-                    <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="2">
-                    <label class="admin__field-label" for="mypa_package_type-mailbox"><?php echo __('Mailbox');?></label>
+                    <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="2" <?=$block->getPackageType() !== 2 ?: 'checked="checked"';?>>
+                    <label class="admin__field-label" for="mypa_package_type-mailbox"><?=__('Mailbox');?></label>
                 </div>
             <?php endif;?>
             <div class="admin__field admin__field-option">
-                <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa_package_type" value="3">
-                <label class="admin__field-label" for="mypa_package_type-letter"><?php echo __('Letter');?></label>
+                <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa_package_type" value="3" <?=$block->getPackageType() !== 3 ?: 'checked="checked"';?>>
+                <label class="admin__field-label" for="mypa_package_type-letter"><?=__('Letter');?></label>
             </div>
         </div>
     </div>
 <?php if ($block->getCountry() == 'NL'): ?>
-    <div class="field choice admin__field admin__field-option field-mypa_only_recipient mypa_package-toggle mypa-option-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_only_recipient mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() !== 2 ?: 'display:none';?>">
         <input id="mypa_only_recipient"
                class="admin__control-checkbox"
                name="mypa_only_recipient"
@@ -45,9 +45,9 @@
         />
         <label class="admin__field-label"
                for="mypa_only_recipient">
-            <span><?php echo __('Home address only') ?></span></label>
+            <span><?=__('Home address only') ?></span></label>
     </div>
-    <div class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() === 1 ?: 'display:none';?>">
         <input id="mypa_signature"
                class="admin__control-checkbox"
                name="mypa_signature"
@@ -57,9 +57,9 @@
         />
         <label class="admin__field-label"
                for="mypa_signature">
-            <span><?php echo __('Signature on receipt') ?></span></label>
+            <span><?=__('Signature on receipt') ?></span></label>
     </div>
-    <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle mypa-option-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() === 1 ?: 'display:none';?>">
         <input id="mypa_return"
                class="admin__control-checkbox"
                name="mypa_return"
@@ -69,9 +69,9 @@
         />
         <label class="admin__field-label"
                for="mypa_return">
-            <span><?php echo __('Return if no answer') ?></span></label>
+            <span><?=__('Return if no answer') ?></span></label>
     </div>
-    <div class="field choice admin__field admin__field-option field-mypa_large_format mypa_package-toggle mypa-option-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_large_format mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() === 1 ?: 'display:none';?>">
         <input id="mypa_large_format"
                class="admin__control-checkbox"
                name="mypa_large_format"
@@ -81,15 +81,15 @@
         />
         <label class="admin__field-label"
                for="mypa_large_format">
-            <span><?php echo __('Large package') ?></span></label>
+            <span><?=__('Large package') ?></span></label>
     </div>
-    <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle">
+    <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() === 1 ?: 'display:none';?>">
         <label class="admin__field-label"
                for="mypa_insurance" style="display: block">
-            <span><?php echo __('Insured up to:') ?></span></label>
+            <span><?=__('Insured up to:') ?></span></label>
         <?php $defaultInsurance = $block->getDefaultInsurance();?>
         <select name="mypa_insurance" id="mypa_insurance" class="required product-custom-option admin__control-select" title="" >
-            <option value="0" ><?php echo __('No insurance') ?></option>
+            <option value="0" ><?=__('No insurance') ?></option>
             <option value="50" <?= $defaultInsurance == 50 ? 'selected="selected"' : '';?> >€ 50</option>
             <option value="250" <?= $defaultInsurance == 250 ? 'selected="selected"' : '';?> >€ 250</option>
             <option value="500" <?= $defaultInsurance == 500 ? 'selected="selected"' : '';?> >€ 500</option>
