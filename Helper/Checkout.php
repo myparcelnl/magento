@@ -20,6 +20,7 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
+use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Checkout extends Data
 {
@@ -41,15 +42,17 @@ class Checkout extends Data
      * @param ModuleListInterface $moduleList
      * @param EstimateAddressInterfaceFactory $estimatedAddressFactory
      * @param ShippingMethodManagement $shippingMethodManagement
+     * @param CheckApiKeyService $checkApiKeyService
      */
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
         EstimateAddressInterfaceFactory $estimatedAddressFactory,
-        ShippingMethodManagement $shippingMethodManagement
+        ShippingMethodManagement $shippingMethodManagement,
+        CheckApiKeyService $checkApiKeyService
     )
     {
-        parent::__construct($context, $moduleList);
+        parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->estimatedAddressFactory = $estimatedAddressFactory;
     }
