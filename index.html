@@ -113,6 +113,9 @@
         <p>Om een update uit te voeren kun je het volgende commando gebruiken:<br>
           <span class="nice">composer update myparcelnl/magento</span><br>
           <br>
+            Maak je momenteel gebruik van de MyParcel versie 1.x en zou je hem graag willen updaten naar een nieuwere versie 2.x, dan zou je de onderstaande commando moeten gebruiken om laatste versie te installeren:<br>
+            <span class="nice">composer require myparcelnl/magento "~2.1"</span><br>
+            <br>
           Om de cache te legen en andere benodigde acties van Magento 2 uit te voeren gebruik het volgende commando:
           <span class="nice">rm -rf pub/static/*; rm -rf var/cache/*; rm -rf var/pagecache/*; rm -rf var/generation/*; rm -rf var/dir/*; rm -rf var/view_preprocessed/*; php bin/magento cache:flush && php bin/magento setup:upgrade && php bin/magento setup:static-content:deploy && php bin/magento indexer:reindex</span>
         </p>
