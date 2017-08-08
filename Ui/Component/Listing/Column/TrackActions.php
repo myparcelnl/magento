@@ -58,7 +58,7 @@ class TrackActions extends Column
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
-                if ($item['track_status'] == null) {
+                if (isset($item['track_status']) == false) {
                     $item[$this->getData('name')]['action-download_package_label'] = [
                         'href' => $this->urlBuilder->getUrl(
                             'myparcelnl/order/CreateAndPrintMyParcelTrack',
