@@ -30,10 +30,11 @@ define(
             window.mypa.moment = moment;
 
             if (window.mypa.isLoading === false) {
-                jQuery('.table-checkout-shipping-method').hide();
+                _hideRadios();
                 window.mypa.isLoading = true;
                 isLoading = setTimeout(function(){
                     clearTimeout(isLoading);
+                    _hideRadios();
 
                     jQuery.ajax({
                         url: mageUrl.build('rest/V1/delivery_settings/get'),
@@ -52,7 +53,6 @@ define(
 
         function init() {
             if ((myparcel_method_alias = window.mypa.data.general.parent_carrier) === null) {
-                jQuery('.table-checkout-shipping-method').show();
                 return void 0;
             }
 
@@ -122,8 +122,7 @@ define(
         }
 
         function _hideRadios() {
-            jQuery(myparcel_method_element).parent().parent().hide();
-            jQuery('.table-checkout-shipping-method').show();
+            jQuery("td[id^='label_method_signature'],td[id^='label_method_mailbox'],td[id^='label_method_pickup'],td[id^='label_method_evening'],td[id^='label_method_only_recipient'],td[id^='label_method_morning']").parent().hide();
         }
 
         function myParcelOptionsActive() {
