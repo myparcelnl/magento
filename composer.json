@@ -2,7 +2,7 @@
     "name": "myparcelnl/magento",
     "description": "A Magento 2 module that creates MyParcel labels",
     "type": "magento2-module",
-    "version": "2.1.17",
+    "version": "2.1.18",
     "homepage": "https://www.myparcel.nl",
     "keywords": ["MyParcel", "My Parcel", "Post NL", "PostNL", "Magento 2"],
     "license": "CC BY-NC-ND 3.0 NL",
