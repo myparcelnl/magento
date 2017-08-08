@@ -276,8 +276,11 @@
                 $tabs.bind('click', updateDelivery);
                 $tabs[0].click();
             }
-
-            $("#mypa-tabs-container").attr('style', "width:" + ($("#mypa-tabs-container").width()) + "px");
+            
+            var tabsWidth = $("#mypa-tabs-container").width();
+            if (tabsWidth > 0) {
+                 $("#mypa-tabs-container").attr('style', "width:" + (tabsWidth) + "px");
+            }
             $("#mypa-tabs").attr('style', "width:" + (this.deliveryDays.length * 105) + "px");
             this.makeSlider();
 
