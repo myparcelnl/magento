@@ -14,6 +14,7 @@
 
 namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
@@ -51,13 +52,19 @@ class TrackActions extends Column
      * Set MyParcel order grid actions
      *
      * @param array $dataSource
-     *
      * @return array
+     * @throws LocalizedException
      */
     public function prepareDataSource(array $dataSource)
     {
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as &$item) {
+
+                if (key_exists('track_status', $item) == false) {
+                    throw new LocalizedException(__('Note that the installation of the extension was not successful. Some columns have not been added to the database. The installation should be reversed. Use the following command to reinstall the module: DELETE FROM `setup_module` WHERE `setup_module`.`module` = \'MyParcelNL_Magento\''));
+                    continue;
+                }
+
                 if (isset($item['track_status']) == false) {
                     $item[$this->getData('name')]['action-download_package_label'] = [
                         'href' => $this->urlBuilder->getUrl(
