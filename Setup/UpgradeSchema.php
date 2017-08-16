@@ -18,6 +18,7 @@ use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
+use Magento\Eav\Setup\EavSetupFactory;
 
 class UpgradeSchema implements UpgradeSchemaInterface
 {
@@ -132,6 +133,30 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'comment' => 'MyParcel drop off day',
                 ]
             );
+        }
+
+        if (version_compare($context->getVersion(), '2.1.19', '<=')) {
+            $setup->startSetup();
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+            // Product Attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'attribute_id',
+                [
+                    'type' => 'varchar',
+                    'label' => 'Attribute Label',
+                    'backend' => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
+                    'input' => 'select',
+                    'source' => 'Vendor\Extension\Model\Source\Mysource',
+                    'required' => false,
+                    'sort_order' => 6,
+                    'global' => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_STORE,
+                    'searchable'        => false,
+                    'filterable'        => false
+                ]
+            );
+
         }
 
         $setup->endSetup();
