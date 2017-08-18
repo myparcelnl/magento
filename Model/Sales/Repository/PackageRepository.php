@@ -71,6 +71,8 @@ class PackageRepository extends Package
     }
 
     /**
+     * Set weight depend on product setting 'Fit in Mailbox' and weight from product
+     *
      * @param \Magento\Quote\Model\Quote\Item[] $products
      *
      * @return $this
@@ -78,11 +80,41 @@ class PackageRepository extends Package
     public function setWeightFromQuoteProducts($products)
     {
         foreach ($products as $product) {
-            if ($product->getWeight() > 0) {
-                $this->addWeight($product->getWeight());
-            } else {
-                $this->setAllProductsFit(false);
-            }
+            $this->setWeightFromOneQuoteProduct($product);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote\Item $product
+     *
+     * @return $this
+     */
+    private function setWeightFromOneQuoteProduct($product)
+    {
+        /* Magento\Catalog\Model\Product $newProduct */
+       /* var_dump($product->getId());
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $newProduct = $objectManager->create('Magento\Catalog\Model\Product')->load($product->getId());
+        var_dump($newProduct->getData('myparcel_fit_in_mailbox'));
+        var_dump($newProduct->toArray());
+        exit;
+        var_dump($product->getProduct()->getResource()->getAttributeRawValue('myparcel_fit_in_mailbox'));
+        $percentageFitInMailbox = (int)$product->getAttributeText('myparcel_fit_in_mailbox');
+        var_dump($percentageFitInMailbox);
+        exit();*/
+        $percentageFitInMailbox = (int)$product->getAttributeText('myparcel_fit_in_mailbox');
+        if ($percentageFitInMailbox > 1) {
+            $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100);
+
+            return $this;
+        }
+
+        if ($product->getWeight() > 0) {
+            $this->addWeight($product->getWeight());
+        } else {
+            $this->setAllProductsFit(false);
         }
 
         return $this;
