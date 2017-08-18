@@ -1,6 +1,6 @@
 <?php
 /**
- * Get percentages of the product. So we can figure out later whether the product fits into a mailbox.
+ * Get percentages of the volume of the product. So we can figure out later whether the product fits into a mailbox.
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -20,18 +20,21 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Eav\Model\Entity\Attribute\Source\AbstractSource;
 
-class Volume extends AbstractSource
+class FitInMailboxOptions extends AbstractSource
 {
     /**
-     * Get percentages of the product. So we can figure out later whether the product fits into a mailbox.
+     * Get percentages of the volume of the product. So we can figure out later whether the product fits into a mailbox.
      *
      * @return array
      */
     public function getOptionArray()
     {
         return [
-            ['value' => 1, 'label'=>__('Label-1')],
-            ['value' => 2, 'label'=>__('Label-2')],
+            ['value' => null, 'label'=>__('Look to weight')],
+            ['value' => 101, 'label'=>__('No')],
+            ['value' => 100, 'label'=>__('One product (100%)')],
+            ['value' => 50, 'label'=>__('2 products (50%)')],
+            ['value' => 33, 'label'=>__('3 products (33%)')],
         ];
     }
 
@@ -42,6 +45,6 @@ class Volume extends AbstractSource
      */
     public function getAllOptions()
     {
-        // TODO: Implement getAllOptions() method.
+        return $this->getOptionArray();
     }
 }
