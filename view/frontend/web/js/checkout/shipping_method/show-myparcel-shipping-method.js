@@ -112,8 +112,12 @@ define(
         }
 
         function showOptions() {
-            originalShippingRate.hide();
+            originalShippingRate = jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent();
             optionsContainer.show();
+
+            if (typeof originalShippingRate !== 'undefined') {
+                originalShippingRate.hide();
+            }
         }
 
         function hideOptions() {
