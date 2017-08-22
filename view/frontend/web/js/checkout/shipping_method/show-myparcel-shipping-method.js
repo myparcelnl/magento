@@ -223,6 +223,8 @@ define(
                 optionsContainer = originalShippingRate.parent().prepend('<tr><td colspan="5" id="myparcel_td" >Bezig met laden...</td></tr>').find('#myparcel_td');
 
                 optionsContainer.html(optionsHtml);
+                jQuery('#mypa-pickup_title').html(data.pickup.title);
+                jQuery('#mypa-delivery_title').html(data.delivery.delivery_title);
 
                 _observeFields();
             }
