@@ -148,8 +148,8 @@ class PackageRepository extends Package
         $resourceModel = $product->getProduct()->getResource();
         $attributeId = $resourceModel->getSortedAttributes()['myparcel_fit_in_mailbox']->getData('attribute_id');
 
-            
-        $objectManager = $this->objectManager->getInstance();
+
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection = $resource->getConnection();
         $tableName = $resource->getTableName('catalog_product_entity_varchar');
