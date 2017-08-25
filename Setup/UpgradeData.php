@@ -33,7 +33,7 @@ class UpgradeData implements UpgradeDataInterface
     /**
      * Init
      *
-     * @param CategorySetupFactory $categorySetupFactory
+     * @param \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory
      * @param EavSetupFactory $eavSetupFactory
      */
     public function __construct(\Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory, EavSetupFactory $eavSetupFactory)
@@ -51,9 +51,6 @@ class UpgradeData implements UpgradeDataInterface
      */
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-
         if (version_compare($context->getVersion(), '2.1.23', '<=')) {
 
             $setup->startSetup();

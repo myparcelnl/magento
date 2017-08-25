@@ -30,7 +30,7 @@ class FitInMailboxOptions extends AbstractSource
     public function getOptionArray()
     {
         return [
-            ['value' => null, 'label'=>__('Look to weight')],
+            ['value' => '0', 'label'=>__('Look to weight')],
             ['value' => '101', 'label'=>__('No')],
             ['value' => '100', 'label'=>__('One product (100%)')],
             ['value' => '50', 'label'=>__('2 products (50%)')],

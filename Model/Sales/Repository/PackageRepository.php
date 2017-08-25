@@ -78,6 +78,7 @@ class PackageRepository extends Package
      */
     public function setWeightFromQuoteProducts($products)
     {
+        $this->setWeight(0);
         foreach ($products as $product) {
             $this->setWeightFromOneQuoteProduct($product);
         }
@@ -94,7 +95,7 @@ class PackageRepository extends Package
     {
         $percentageFitInMailbox = $this->getPercentageFitInMailbox($product);
         if ($percentageFitInMailbox > 1) {
-            $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100);
+            $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
 
             return $this;
         }
