@@ -54,7 +54,7 @@ class UpgradeData implements UpgradeDataInterface
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
 
-        if (version_compare($context->getVersion(), '2.1.22', '<=')) {
+        if (version_compare($context->getVersion(), '2.1.23', '<=')) {
 
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
@@ -77,7 +77,7 @@ class UpgradeData implements UpgradeDataInterface
                     'visible' => true,
                     'required' => false,
                     'user_defined' => true,
-                    'default' => 0,
+                    'default' => null,
                     'searchable' => false,
                     'filterable' => false,
                     'comparable' => false,

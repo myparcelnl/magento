@@ -23,7 +23,6 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {
-
     /**
      * Get package type
      *
@@ -93,18 +92,7 @@ class PackageRepository extends Package
      */
     private function setWeightFromOneQuoteProduct($product)
     {
-        /* Magento\Catalog\Model\Product $newProduct */
-       /* var_dump($product->getId());
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $newProduct = $objectManager->create('Magento\Catalog\Model\Product')->load($product->getId());
-        var_dump($newProduct->getData('myparcel_fit_in_mailbox'));
-        var_dump($newProduct->toArray());
-        exit;
-        var_dump($product->getProduct()->getResource()->getAttributeRawValue('myparcel_fit_in_mailbox'));
-        $percentageFitInMailbox = (int)$product->getAttributeText('myparcel_fit_in_mailbox');
-        var_dump($percentageFitInMailbox);
-        exit();*/
-        $percentageFitInMailbox = (int)$product->getAttributeText('myparcel_fit_in_mailbox');
+        $percentageFitInMailbox = $this->getPercentageFitInMailbox($product);
         if ($percentageFitInMailbox > 1) {
             $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100);
 
@@ -144,5 +132,37 @@ class PackageRepository extends Package
         }
 
         return $this;
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote\Item $product
+     *
+     * @return null|int
+     */
+    private function getPercentageFitInMailbox($product)
+    {
+        /**
+         * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
+         */
+        $entityId = $product->getProduct()->getEntityId();
+        $resourceModel = $product->getProduct()->getResource();
+        $attributeId = $resourceModel->getSortedAttributes()['myparcel_fit_in_mailbox']->getData('attribute_id');
+
+            
+        $objectManager = $this->objectManager->getInstance();
+        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection = $resource->getConnection();
+        $tableName = $resource->getTableName('catalog_product_entity_varchar');
+        $sql = $connection->select()
+            ->from($tableName, ['value'])
+            ->where('attribute_id = ?', $attributeId)
+            ->where('entity_id = ?', $entityId);
+
+        $result = $connection->fetchAll($sql);
+        if (isset($result[0]['value']) && (int)$result[0]['value'] > 0) {
+            return (int)$result[0]['value'];
+        }
+
+        return null;
     }
 }

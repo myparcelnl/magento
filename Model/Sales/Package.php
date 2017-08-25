@@ -19,13 +19,40 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
-use MyParcelNL\Magento\Helper\Data;
 use Magento\Framework\App\Helper\Context;
+use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
+use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 use Psr\Log\LoggerInterface;
 
 class Package extends Data implements PackageInterface
 {
+    /**
+     * Object manager
+     *
+     * @var ObjectManager
+     */
+    protected $objectManager;
+
+    /**
+     * @param Context $context
+     * @param ModuleListInterface $moduleList
+     * @param CheckApiKeyService $checkApiKeyService
+     * @param ObjectManager $objectManager
+     */
+    public function __construct(
+        Context $context,
+        ModuleListInterface $moduleList,
+        CheckApiKeyService $checkApiKeyService,
+        ObjectManager $objectManager
+    )
+    {
+        parent::__construct($context, $moduleList, $checkApiKeyService);
+        $this->objectManager = $objectManager;
+    }
+
     const PACKAGE_TYPE_NORMAL = 1;
     const PACKAGE_TYPE_MAILBOX = 2;
     const PACKAGE_TYPE_LETTER = 3;
