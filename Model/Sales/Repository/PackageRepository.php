@@ -145,15 +145,16 @@ class PackageRepository extends Package
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
          */
-        $entityId = $product->getProduct()->getEntityId();
-        $resourceModel = $product->getProduct()->getResource();
-        $attributeId = $resourceModel->getSortedAttributes()['myparcel_fit_in_mailbox']->getData('attribute_id');
-
-
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $entityId = $product->getProduct()->getEntityId();
+        $resourceModel = $product->getProduct()->getResource();
         $connection = $resource->getConnection();
+        
+        // Get ids to filter
         $tableName = $resource->getTableName('catalog_product_entity_varchar');
+        $attributeId = $resourceModel->getSortedAttributes()['myparcel_fit_in_mailbox']->getData('attribute_id');
+        
         $sql = $connection->select()
             ->from($tableName, ['value'])
             ->where('attribute_id = ?', $attributeId)
