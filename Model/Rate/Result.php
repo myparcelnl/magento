@@ -154,10 +154,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         $products = $this->quote->getAllItems();
+        $this->package->setMailboxSettings();
         if (count($products) > 0){
             $this->package->setWeightFromQuoteProducts($products);
         }
-        $this->package->setMailboxSettings();
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
             $settingActive = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active');

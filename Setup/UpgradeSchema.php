@@ -18,6 +18,7 @@ use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
+use Magento\Eav\Setup\EavSetupFactory;
 
 class UpgradeSchema implements UpgradeSchemaInterface
 {

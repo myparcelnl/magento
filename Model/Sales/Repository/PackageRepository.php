@@ -23,7 +23,6 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {
-
     /**
      * Get package type
      *
@@ -71,18 +70,40 @@ class PackageRepository extends Package
     }
 
     /**
+     * Set weight depend on product setting 'Fit in Mailbox' and weight from product
+     *
      * @param \Magento\Quote\Model\Quote\Item[] $products
      *
      * @return $this
      */
     public function setWeightFromQuoteProducts($products)
     {
+        $this->setWeight(0);
         foreach ($products as $product) {
-            if ($product->getWeight() > 0) {
-                $this->addWeight($product->getWeight());
-            } else {
-                $this->setAllProductsFit(false);
-            }
+            $this->setWeightFromOneQuoteProduct($product);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote\Item $product
+     *
+     * @return $this
+     */
+    private function setWeightFromOneQuoteProduct($product)
+    {
+        $percentageFitInMailbox = $this->getPercentageFitInMailbox($product);
+        if ($percentageFitInMailbox > 1) {
+            $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
+
+            return $this;
+        }
+
+        if ($product->getWeight() > 0) {
+            $this->addWeight($product->getWeight());
+        } else {
+            $this->setAllProductsFit(false);
         }
 
         return $this;
@@ -112,5 +133,38 @@ class PackageRepository extends Package
         }
 
         return $this;
+    }
+
+    /**
+     * @param \Magento\Quote\Model\Quote\Item $product
+     *
+     * @return null|int
+     */
+    private function getPercentageFitInMailbox($product)
+    {
+        /**
+         * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
+         */
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $entityId = $product->getProduct()->getEntityId();
+        $resourceModel = $product->getProduct()->getResource();
+        $connection = $resource->getConnection();
+        
+        // Get ids to filter
+        $tableName = $resource->getTableName('catalog_product_entity_varchar');
+        $attributeId = $resourceModel->getSortedAttributes()['myparcel_fit_in_mailbox']->getData('attribute_id');
+        
+        $sql = $connection->select()
+            ->from($tableName, ['value'])
+            ->where('attribute_id = ?', $attributeId)
+            ->where('entity_id = ?', $entityId);
+
+        $result = $connection->fetchAll($sql);
+        if (isset($result[0]['value']) && (int)$result[0]['value'] > 0) {
+            return (int)$result[0]['value'];
+        }
+
+        return null;
     }
 }
