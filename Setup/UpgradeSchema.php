@@ -135,18 +135,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
         }
 
-        if (version_compare($context->getVersion(), '2.2.0', '<=')) {
-            $setup->getConnection()->addColumn(
-                $setup->getTable('catalog_product'),
-                'myparcel_fit_in_mailbox',
-                [
-                    'type' => Table::TYPE_INTEGER,
-                    'nullable' => true,
-                    'comment' => 'MyParcel delivery options',
-                ]
-            );
-        }
-
         $setup->endSetup();
     }
 }
