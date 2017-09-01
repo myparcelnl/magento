@@ -5,8 +5,10 @@
            "myparcelnl_massaction": {
                 "has_api_key": <?= $block->hasApiKey();?>,
                 "url": "<?= $block->getAjaxUrl(); ?>",
+                "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail(); ?>",
                 "settings": <?= $block->getPrintSettings(); ?>,
                 "button_present": true,
+                "button_send_return_mail_present": true,
                 "number_of_positions" : <?= $block->getNumberOfPrintPositions(); ?>,
                 <?php if ($block->canShip()): ?>
                     "action_options": {
