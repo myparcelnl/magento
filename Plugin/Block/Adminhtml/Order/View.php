@@ -34,7 +34,7 @@ class View
             'myparcelnl_print_retour_label',
             [
                 'label' => __('Send return label'),
-                'class' => 'action-myparcel_send_return_mail_present',
+                'class' => 'action-myparcel_send_return_mail',
             ]
         );
     }

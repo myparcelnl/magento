@@ -40,7 +40,7 @@ define(
                     var parentThis = this;
 
                     if (this.options['button_send_return_mail_present']) {
-                        $('.action-myparcel_send_return_mail_present').on(
+                        $('.action-myparcel_send_return_mail').on(
                             "click",
                             function () {
                                 parentThis._setSelectedIds();
