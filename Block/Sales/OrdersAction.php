@@ -66,6 +66,16 @@ class OrdersAction extends Template
     }
 
     /**
+     * Get url to send a mail with a return label
+     *
+     * @return string
+     */
+    public function getAjaxUrlSendReturnMail()
+    {
+        return $this->_urlBuilder->getUrl('myparcelnl/order/SendMyParcelReturnMail');
+    }
+
+    /**
      * Get print settings
      *
      * @return string
