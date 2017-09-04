@@ -30,12 +30,14 @@ class View
                 'class' => 'action-myparcel',
             ]
         );
-        $view->addButton(
-            'myparcelnl_print_retour_label',
-            [
-                'label' => __('Send return label'),
-                'class' => 'action-myparcel_send_return_mail',
-            ]
-        );
+        if ($view->getOrder()->hasShipments() == true) {
+            $view->addButton(
+                'myparcelnl_print_retour_label',
+                [
+                    'label' => __('Send return label'),
+                    'class' => 'action-myparcel_send_return_mail',
+                ]
+            );
+        }
     }
 }
