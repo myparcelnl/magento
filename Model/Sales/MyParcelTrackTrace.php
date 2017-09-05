@@ -185,8 +185,9 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      * @param Order\Shipment\Track $magentoTrack
      * @return $this
      *
-     * @todo Add Classification from setting and/or category
-     * @todo Add country of manufacture
+     * @todo Add setting to global setting and/or category (like magento 1)
+     * @todo Get Classification from setting and/or category
+     * @todo Get country of manufacture (get attribute from product)
      * @todo Find out why the weight does not come on the label
      * @todo Find out why the price does not come on the label
      */
