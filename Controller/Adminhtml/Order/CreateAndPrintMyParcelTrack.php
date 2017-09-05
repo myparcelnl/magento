@@ -108,7 +108,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         }
 
         try {
-            $this->orderCollection->setMagentoTrack()
+            $this->orderCollection
+                ->setMagentoTrack()
                 ->setMyParcelTrack()
                 ->createMyParcelConcepts()
                 ->updateOrderGrid();
