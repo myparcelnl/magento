@@ -425,6 +425,16 @@ class MagentoOrderCollection implements MagentoOrderCollectionInterface
     }
 
     /**
+     * @return $this
+     */
+    public function sendReturnLabelMails()
+    {
+        $this->myParcelCollection->sendReturnLabelMails();
+
+        return $this;
+    }
+
+    /**
      * Send multiple shipment emails with Track and trace variable
      *
      * @return $this

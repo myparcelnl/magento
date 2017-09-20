@@ -10,7 +10,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
- * Action to create and print MyParcel Track
+ * Action to send mails with a return label
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -21,7 +21,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
+class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
 {
     const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
@@ -56,7 +56,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        $this->massAction();
+        $this->sendReturnMail();
 
         return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
     }
@@ -67,8 +67,10 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      * @return $this
      * @throws LocalizedException
      */
-    private function massAction()
+    private function sendReturnMail()
     {
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
         if ($this->orderCollection->apiKeyIsCorrect() !== true) {
             $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
             $this->messageManager->addErrorMessage(__($message));
@@ -87,20 +89,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             throw new LocalizedException(__('No items selected'));
         }
 
-        $this->getRequest()->setParams(['myparcel_track_email' => true]);
-
         $this->addOrdersToCollection($orderIds);
-
-        try {
-            $this->orderCollection
-                ->setOptionsFromParameters()
-                ->setMagentoShipment();
-        } catch (\Exception $e) {
-            if (count($this->messageManager->getMessages()) == 0) {
-                $this->messageManager->addErrorMessage(__('An error has occurred while creating a Magento shipment. Please check the order and contact MyParcel'));
-                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-            }
-        }
 
         if (!$this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
@@ -109,28 +98,20 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         try {
             $this->orderCollection
-                ->setMagentoTrack()
                 ->setMyParcelTrack()
-                ->createMyParcelConcepts()
-                ->updateOrderGrid();
-
-            if ($this->orderCollection->getOption('request_type') == 'only_shipment') {
-                return $this;
-            }
-
-            if ($this->orderCollection->getOption('request_type') == 'download') {
-                $this->orderCollection
-                    ->setPdfOfLabels()
-                    ->updateMagentoTrack()
-                    ->sendTrackEmails()
-                    ->downloadPdfOfLabels();
-            }
+                ->setLatestData()
+                ->sendReturnLabelMails();
         } catch (\Exception $e) {
             if (count($this->messageManager->getMessages()) == 0) {
-                $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));
+                $this->messageManager->addErrorMessage(__('An error has occurred while sending mails with a return label. Please contact MyParcel.'));
                 $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
             }
+
+            return $this;
         }
+
+        $message = 'Return label mail is send to customer.';
+        $this->messageManager->addSuccessMessage(__($message));
 
         return $this;
     }
