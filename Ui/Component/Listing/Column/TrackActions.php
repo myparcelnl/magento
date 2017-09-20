@@ -136,6 +136,16 @@ class TrackActions extends Column
                         'label' => __('Download label'),
                         'hidden' => false,
                     ];
+                    $item[$this->getData('name')]['action-myparcel_send_return_mail'] = [
+                        'href' => $this->urlBuilder->getUrl(
+                            'myparcelnl/order/SendMyParcelReturnMail',
+                            [
+                                'selected_ids' => $item['entity_id'],
+                            ]
+                        ),
+                        'label' => __('Send return label'),
+                        'hidden' => false,
+                    ];
                 }
 
                 /**

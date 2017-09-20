@@ -19,9 +19,12 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
-use MyParcelNL\Magento\Helper\Data;
 use Magento\Framework\App\Helper\Context;
+use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
+use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 use Psr\Log\LoggerInterface;
 
 class Package extends Data implements PackageInterface

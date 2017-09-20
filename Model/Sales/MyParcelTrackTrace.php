@@ -19,6 +19,7 @@ use Magento\Framework\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 use MyParcelNL\Magento\Helper\Data;
 
@@ -156,7 +157,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
-            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance());
+            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
+            ->convertDataForCdCountry($magentoTrack);
 
         return $this;
     }
@@ -177,6 +179,35 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         parent::setApiKey($apiKey);
 
         return $this;
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
+     * @return $this
+     *
+     * @todo Add setting to global setting and/or category (like magento 1)
+     * @todo Get Classification from setting and/or category
+     * @todo Get country of manufacture (get attribute from product)
+     * @todo Find out why the weight does not come on the label
+     * @todo Find out why the price does not come on the label
+     */
+    private function convertDataForCdCountry($magentoTrack)
+    {
+        if (!$this->isCdCountry()) {
+            return $this;
+        }
+
+        foreach ($magentoTrack->getShipment()->getItems() as $product) {
+            $myParcelProduct = (new MyParcelCustomsItem())
+                ->setDescription($product->getName())
+                ->setAmount($product->getQty())
+                ->setWeight($product->getWeight() ?: 1)
+                ->setItemValue($product->getPrice())
+                ->setClassification('0000')
+                ->setCountry('NL');
+
+            $this->addItem($myParcelProduct);
+        }
     }
 
     /**
