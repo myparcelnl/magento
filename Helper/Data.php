@@ -21,7 +21,6 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
-use Psr\Log\LoggerInterface;
 
 class Data extends AbstractHelper
 {
