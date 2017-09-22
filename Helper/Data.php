@@ -18,6 +18,7 @@ namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Logger\Monolog;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
@@ -41,21 +42,29 @@ class Data extends AbstractHelper
     private $checkApiKeyService;
 
     /**
+     * @var Monolog
+     */
+    protected $logger;
+
+    /**
      * Get settings by field
      *
      * @param Context $context
      * @param ModuleListInterface $moduleList
      * @param CheckApiKeyService $checkApiKeyService
+     * @param Monolog $logger
      */
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
-        CheckApiKeyService $checkApiKeyService
+        CheckApiKeyService $checkApiKeyService,
+        Monolog $logger
     )
     {
         parent::__construct($context);
         $this->moduleList = $moduleList;
         $this->checkApiKeyService = $checkApiKeyService;
+        $this->logger = $logger;
     }
 
     /**

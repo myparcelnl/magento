@@ -155,13 +155,17 @@ class PackageRepository extends Package
         $tableName = $resource->getTableName('catalog_product_entity_varchar');
         $attributesHolder = $resourceModel->getSortedAttributes();
 
-        if (key_exists('myparcel_fit_in_mailbox', $attributesHolder)) {
+        if (!key_exists('myparcel_fit_in_mailbox', $attributesHolder)) {
             $this->logger->critical('Can\'t get field from database (myparcel_fit_in_mailbox FROM catalog_product). Run update scrip again.');
-
             return null;
         }
-
-        $attributeId = $attributesHolder['myparcel_fit_in_mailbox']->getData('attribute_id');
+//
+//        if (!empty($attributesHolder)) {
+//            $attributeId = $attributesHolder['myparcel_fit_in_mailbox']->getData('attribute_id');
+//        } else {
+//            $this->logger->critical('Can\'t get field from database (myparcel_fit_in_mailbox FROM catalog_product). Run update scrip again.');
+//            return null;
+//        }
         
         $sql = $connection->select()
             ->from($tableName, ['value'])
