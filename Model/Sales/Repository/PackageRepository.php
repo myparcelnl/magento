@@ -119,11 +119,11 @@ class PackageRepository extends Package
         $settings = $this->getConfigValue(self::XML_PATH_CHECKOUT . 'mailbox');
 
         if ($settings === null) {
-            $this->logger->critical('Can\'t set settings with path:' . self::XML_PATH_CHECKOUT . 'mailbox');
+            $this->_logger->critical('Can\'t set settings with path:' . self::XML_PATH_CHECKOUT . 'mailbox');
         }
 
         if (!key_exists('active', $settings)) {
-            $this->logger->critical('Can\'t get mailbox setting active');
+            $this->_logger->critical('Can\'t get mailbox setting active');
         }
 
         $this->setMailboxActive($settings['active'] === '1');
@@ -156,14 +156,14 @@ class PackageRepository extends Package
         $attributesHolder = $resourceModel->getSortedAttributes();
 
         if (!key_exists('myparcel_fit_in_mailbox', $attributesHolder)) {
-            $this->logger->critical('Can\'t get field from database (myparcel_fit_in_mailbox FROM catalog_product). Run update scrip again.');
+            $this->_logger->critical('Can\'t get field from database (myparcel_fit_in_mailbox FROM catalog_product). Run update scrip again.');
             return null;
         }
 //
 //        if (!empty($attributesHolder)) {
 //            $attributeId = $attributesHolder['myparcel_fit_in_mailbox']->getData('attribute_id');
 //        } else {
-//            $this->logger->critical('Can\'t get field from database (myparcel_fit_in_mailbox FROM catalog_product). Run update scrip again.');
+//            $this->_logger->critical('Can\'t get field from database (myparcel_fit_in_mailbox FROM catalog_product). Run update scrip again.');
 //            return null;
 //        }
         
