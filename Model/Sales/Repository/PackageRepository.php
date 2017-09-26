@@ -159,7 +159,9 @@ class PackageRepository extends Package
             $this->_logger->critical('Can\'t get field from database (myparcel_fit_in_mailbox FROM catalog_product). Run update scrip again.');
             return null;
         }
-        
+
+        $attributeId = $attributesHolder['myparcel_fit_in_mailbox']->getData('attribute_id');
+
         $sql = $connection->select()
             ->from($tableName, ['value'])
             ->where('attribute_id = ?', $attributeId)
