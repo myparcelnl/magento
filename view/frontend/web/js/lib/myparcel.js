@@ -707,8 +707,7 @@
             stringData = JSON.stringify(jsonData);
 
             if (externalJQuery('input[name=delivery_options]').val() !== stringData) {
-                externalJQuery('input[name=delivery_options]').val(stringData);
-                document.getElementsByName('delivery_options')[0].dispatchEvent(new Event('change'));
+                externalJQuery('input[name=delivery_options]').val(stringData).change();
             }
         }
     };
