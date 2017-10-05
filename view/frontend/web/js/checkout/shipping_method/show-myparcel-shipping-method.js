@@ -108,7 +108,7 @@ define(
             window.mypa.address.street1 = street1;
             window.mypa.address.street2 = street2;
             window.mypa.address.cc = country;
-            window.mypa.address.postcode = postcode;
+            window.mypa.address.postcode = postcode.replace(/\s/g,'');
         }
 
         function showOptions() {
