@@ -26,25 +26,33 @@ class Checkout
     /**
      * @var \Magento\Quote\Model\Quote
      */
-    private $quote;
+    private $quoteId;
     /**
      * @var PackageRepository
      */
     private $package;
 
     /**
+     * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
+     */
+    private $products;
+
+    /**
      * Checkout constructor.
      * @param \Magento\Checkout\Model\Session $session
+     * @param \Magento\Checkout\Model\Cart $cart
      * @param \MyParcelNL\Magento\Helper\Checkout $helper
      * @param PackageRepository $package
      */
     public function __construct(
         \Magento\Checkout\Model\Session $session,
+        \Magento\Checkout\Model\Cart $cart,
         \MyParcelNL\Magento\Helper\Checkout $helper,
         PackageRepository $package
     ) {
         $this->helper = $helper;
-        $this->quote = $session->getQuote();
+        $this->quoteId = $session->getQuoteId();
+        $this->products = $cart->getItems();
         $this->package = $package;
         $this->package->setMailboxSettings();
     }
@@ -57,7 +65,7 @@ class Checkout
     public function getCheckoutSettings()
     {
 
-        $this->helper->setBasePriceFromQuote($this->quote);
+        $this->helper->setBasePriceFromQuote($this->quoteId);
 
         $this->data = [
             'general' => $this->getGeneralData(),
@@ -97,8 +105,8 @@ class Checkout
             'dropoff_delay' => $this->helper->getIntergerConfig('dropoff_delay'),
             'color_base' => $this->helper->getCheckoutConfig('color_base'),
             'color_select' => $this->helper->getCheckoutConfig('color_select'),
-            'parent_carrier' => $this->helper->getParentCarrierNameFromQuote($this->quote),
-            'parent_method' => $this->helper->getParentMethodNameFromQuote($this->quote),
+            'parent_carrier' => $this->helper->getParentCarrierNameFromQuote($this->quoteId),
+            'parent_method' => $this->helper->getParentMethodNameFromQuote($this->quoteId),
         ];
     }
 
@@ -201,10 +209,9 @@ class Checkout
     {
         /** @var \Magento\Quote\Model\Quote\Item[] $products */
         $this->helper->setTmpScope('mailbox');
-        $products = $this->quote->getAllItems();
 
-        if (count($products) > 0){
-            $this->package->setWeightFromQuoteProducts($products);
+        if (count($this->products) > 0){
+            $this->package->setWeightFromQuoteProducts($this->products);
         }
 
         /** check if mailbox is active */
