@@ -76,26 +76,26 @@ class Checkout extends Data
     /**
      * Set shipping base price
      *
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return Checkout
      */
-    public function setBasePriceFromQuote($quote)
+    public function setBasePriceFromQuote($quoteId)
     {
-        $price = $this->getParentRatePriceFromQuote($quote);
+        $price = $this->getParentRatePriceFromQuote($quoteId);
         $this->setBasePrice((double)$price);
 
         return $this;
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return string
      */
-    public function getParentRatePriceFromQuote($quote)
+    public function getParentRatePriceFromQuote($quoteId)
     {
-        $method = $this->getParentRateFromQuote($quote);
+        $method = $this->getParentRateFromQuote($quoteId);
         if ($method === null) {
             return null;
         }
@@ -104,13 +104,13 @@ class Checkout extends Data
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return string
      */
-    public function getParentMethodNameFromQuote($quote)
+    public function getParentMethodNameFromQuote($quoteId)
     {
-        $method = $this->getParentRateFromQuote($quote);
+        $method = $this->getParentRateFromQuote($quoteId);
         if ($method === null) {
             return null;
         }
@@ -119,13 +119,13 @@ class Checkout extends Data
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return string
      */
-    public function getParentCarrierNameFromQuote($quote)
+    public function getParentCarrierNameFromQuote($quoteId)
     {
-        $method = $this->getParentRateFromQuote($quote);
+        $method = $this->getParentRateFromQuote($quoteId);
         if ($method === null) {
             return null;
         }
@@ -134,13 +134,13 @@ class Checkout extends Data
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return \Magento\Quote\Model\Cart\ShippingMethod $methods
      */
-    public function getParentRateFromQuote($quote)
+    public function getParentRateFromQuote($quoteId)
     {
-        if ($quote->getId() == null) {
+        if ($quoteId == null) {
             return null;
         }
 
@@ -156,7 +156,7 @@ class Checkout extends Data
         $estimatedAddress->setPostcode('');
         $estimatedAddress->setRegion('');
         $estimatedAddress->setRegionId('');
-        $methods = $this->shippingMethodManagement->estimateByAddress($quote->getId(), $estimatedAddress);
+        $methods = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
 
         foreach ($methods as $method) {
             if (in_array($method->getCarrierCode(), $parentMethods)) {
@@ -236,7 +236,7 @@ class Checkout extends Data
     /*private function getShippingPrice($price, $flag = false)
     {
         $flag = $flag ? true : Mage::helper('tax')->displayShippingPriceIncludingTax();
-        return (float)Mage::helper('tax')->getShippingPrice($price, $flag, $quote->getShippingAddress());
+        return (float)Mage::helper('tax')->getShippingPrice($price, $flag, $quoteId->getShippingAddress());
     }*/
 
     /**
