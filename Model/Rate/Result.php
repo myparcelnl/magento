@@ -52,19 +52,23 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Result constructor.
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Checkout\Model\Session $session
+     * @param \Magento\Checkout\Model\Cart $cart
      * @param Checkout $myParcelHelper
      * @param PackageRepository $package
+     * @internal param \Magento\Checkout\Model\Session $session
      */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Checkout\Model\Session $session,
+        \Magento\Checkout\Model\Cart $cart,
         Checkout $myParcelHelper,
-        PackageRepository $package)
-    {
+        PackageRepository $package
+    ) {
         parent::__construct($storeManager);
-
-        $this->quote = $session->getQuote();
+        /**
+         * Can't get quote from session\Magento\Checkout\Model\Session::getQuote()
+         * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
+         */
+        $this->quote = $cart->getQuote();
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
         $this->parentMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods', true));
