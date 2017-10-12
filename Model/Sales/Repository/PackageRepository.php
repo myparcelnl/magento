@@ -95,6 +95,7 @@ class PackageRepository extends Package
     {
         $percentageFitInMailbox = $this->getPercentageFitInMailbox($product);
         if ($percentageFitInMailbox > 1) {
+
             $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
 
             return $this;
@@ -142,17 +143,36 @@ class PackageRepository extends Package
      */
     private function getPercentageFitInMailbox($product)
     {
+        $result = $this->getCorrectDatabaseForMialbox('catalog_product_entity_varchar', $product);
+
+        if (empty($result)) {
+            $result = $this->getCorrectDatabaseForMialbox('catalog_product_entity_int', $product);
+        }
+
+        if (isset($result[0]['value']) && (int)$result[0]['value'] > 0) {
+            return (int)$result[0]['value'];
+        }
+
+        return null;
+    }
+
+    /**
+     * @param $tableName
+     * @param \Magento\Quote\Model\Quote\Item $product
+     * @return array|null
+     */
+    private function getCorrectDatabaseForMialbox($tableName, $product){
+
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
          */
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+
         $entityId = $product->getProduct()->getEntityId();
         $resourceModel = $product->getProduct()->getResource();
         $connection = $resource->getConnection();
-        
-        // Get ids to filter
-        $tableName = $resource->getTableName('catalog_product_entity_varchar');
+        $tableName = $resource->getTableName($tableName);
         $attributesHolder = $resourceModel->getSortedAttributes();
 
         if (!key_exists('myparcel_fit_in_mailbox', $attributesHolder)) {
@@ -166,12 +186,10 @@ class PackageRepository extends Package
             ->from($tableName, ['value'])
             ->where('attribute_id = ?', $attributeId)
             ->where('entity_id = ?', $entityId);
-
         $result = $connection->fetchAll($sql);
-        if (isset($result[0]['value']) && (int)$result[0]['value'] > 0) {
-            return (int)$result[0]['value'];
-        }
 
-        return null;
+        return $result;
     }
+
+
 }
