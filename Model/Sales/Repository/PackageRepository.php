@@ -143,10 +143,10 @@ class PackageRepository extends Package
      */
     private function getPercentageFitInMailbox($product)
     {
-        $result = $this->getCorrectDatabaseForMialbox('catalog_product_entity_varchar', $product);
+        $result = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product);
 
         if (empty($result)) {
-            $result = $this->getCorrectDatabaseForMialbox('catalog_product_entity_int', $product);
+            $result = $this->getAttributesFromProduct('catalog_product_entity_int', $product);
         }
 
         if (isset($result[0]['value']) && (int)$result[0]['value'] > 0) {
@@ -157,11 +157,11 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param $tableName
+     * @Param string $tableName
      * @param \Magento\Quote\Model\Quote\Item $product
      * @return array|null
      */
-    private function getCorrectDatabaseForMialbox($tableName, $product){
+    private function getAttributesFromProduct($tableName, $product){
 
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
