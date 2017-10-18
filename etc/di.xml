@@ -19,7 +19,7 @@
     </type>
     <!-- Add print label button shipment view-->
     <type name="Magento\Shipping\Block\Adminhtml\View">
-        <plugin name="mypa-action-download-shipment-label" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>
+        <plugin name="mypa-action-download-shipment-label" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Shipment\View"/>
     </type>
     <!-- Avoid default email is sent. With a MyParcel shipment, the mail should be sent only after the barcode exists. -->
     <type name="Magento\Sales\Model\Order\Email\Container\ShipmentIdentity">

@@ -60,9 +60,19 @@ class OrdersAction extends Template
      *
      * @return string
      */
-    public function getAjaxUrl()
+    public function getOrderAjaxUrl()
     {
         return $this->_urlBuilder->getUrl('myparcelnl/order/CreateAndPrintMyParcelTrack');
+    }
+
+    /**
+     * Get url to create and print MyParcel track
+     *
+     * @return string
+     */
+    public function getShipmentAjaxUrl()
+    {
+        return $this->_urlBuilder->getUrl('myparcelnl/shipment/CreateAndPrintMyParcelTrack');
     }
 
     /**
