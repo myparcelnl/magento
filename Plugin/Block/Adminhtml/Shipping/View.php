@@ -12,7 +12,7 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Plugin\Block\Adminhtml\Order;
+namespace MyParcelNL\Magento\Plugin\Block\Adminhtml\Shipping;
 
 class View
 {
