@@ -259,13 +259,20 @@ define(
                     this.selectedIds = [];
                     if (oneOrderIdSelector.length) {
                         parentThis.selectedIds.push(oneOrderIdSelector.attr('value'));
-                    } else {
-                        $('.data-grid-checkbox-cell-inner input.admin__control-checkbox:checked').each(
-                            function () {
-                                parentThis.selectedIds.push($(this).attr('value'));
-                            }
-                        );
+                        return this;
                     }
+
+                    if ('entity_id' in parentThis.options) {
+                        parentThis.selectedIds.push(parentThis.options['entity_id']);
+                        return this;
+                    }
+
+                    $('.data-grid-checkbox-cell-inner input.admin__control-checkbox:checked').each(
+                        function () {
+                            parentThis.selectedIds.push($(this).attr('value'));
+                        }
+                    );
+
                     return this;
                 },
 
