@@ -203,17 +203,37 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             return $this;
         }
 
-        foreach ($magentoTrack->getShipment()->getItems() as $product) {
+        if ($magentoTrack->getShipment()->getData('items') != null) {
+            $products = $magentoTrack->getShipment()->getData('items');
+
+            foreach ($products as $product) {
+                $myParcelProduct = (new MyParcelCustomsItem())
+                    ->setDescription($product->getName())
+                    ->setAmount($product->getQty())
+                    ->setWeight($product->getWeight() ?: 1)
+                    ->setItemValue($product->getPrice())
+                    ->setClassification('0000')
+                    ->setCountry('NL');
+
+                $this->addItem($myParcelProduct);
+            }
+        }
+
+        $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
+
+        foreach ($products as $product) {
             $myParcelProduct = (new MyParcelCustomsItem())
-                ->setDescription($product->getName())
-                ->setAmount($product->getQty())
-                ->setWeight($product->getWeight() ?: 1)
-                ->setItemValue($product->getPrice())
+                ->setDescription($product['name'])
+                ->setAmount($product['qty'])
+                ->setWeight($product['weight'] ?: 1)
+                ->setItemValue($product['price'])
                 ->setClassification('0000')
                 ->setCountry('NL');
 
             $this->addItem($myParcelProduct);
         }
+
+        return $this;
     }
 
     /**
@@ -233,5 +253,23 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         } else {
             return (bool)$options[$optionKey];
         }
+    }
+
+    /**
+     * @param $shipmentId
+     * @return \Magento\Sales\Model\ResourceModel\Order\Collection
+     */
+    private function getItemsCollectionByShipmentId($shipmentId)
+    {
+        $connection = $this->objectManager->create('\Magento\Framework\App\ResourceConnection');
+        $conn = $connection->getConnection();
+        $select = $conn->select()
+            ->from(
+                ['main_table' => 'sales_shipment_item']
+            )
+            ->where('main_table.parent_id=?', $shipmentId);
+        $items = $conn->fetchAll($select);
+
+        return $items;
     }
 }

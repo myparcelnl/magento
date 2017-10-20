@@ -22,7 +22,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 {
     const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
-    const PATH_URI_ORDER_INDEX = 'sales/order/index';
+    const PATH_URI_SHIPMENT_INDEX = 'sales/shipment/index';
 
     /**
      * @var MagentoShipmentCollection
@@ -56,7 +56,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     {
         $this->massAction();
 
-        return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
+        return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_SHIPMENT_INDEX);
     }
 
     /**

@@ -1,0 +1,19 @@
+<?php /** @var $block \MyParcelNL\Magento\Block\Sales\ShipmentsAction */ ?>
+<script type="text/x-magento-init">
+   {
+       ".page-footer": {
+           "myparcelnl_massaction": {
+                "has_api_key": <?= $block->hasApiKey();?>,
+                "url": "<?= $block->getShipmentAjaxUrl(); ?>",
+                "settings": <?= $block->getPrintSettings(); ?>,
+                "button_present": false,
+                "action_options": {
+                    "request_type": true,
+                    "package_type": true,
+                    "package_type-mailbox": true,
+                    "print_position": true
+                }
+           }
+        }
+   }
+</script>
