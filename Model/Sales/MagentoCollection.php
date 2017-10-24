@@ -282,9 +282,9 @@ class MagentoCollection implements MagentoCollectionInterface
      */
     protected function getTrackByShipment($shipment)
     {
-        $collection = $this->objectManager->get(self::PATH_ORDER_TRACK_COLLECTION);
+        /* @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection $collection */
+        $collection = $this->objectManager->create(self::PATH_ORDER_TRACK_COLLECTION);
         $collection
-            ->clear()
             ->addAttributeToFilter('parent_id', $shipment->getId());
 
         return $collection;
