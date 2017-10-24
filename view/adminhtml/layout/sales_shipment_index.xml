@@ -12,7 +12,7 @@
     </head>
     <body>
         <referenceContainer name="content">
-            <block class="MyParcelNL\Magento\Block\Sales\OrdersAction" name="myparcelnl.order" template="shipment.phtml" after="-" />
+            <block class="MyParcelNL\Magento\Block\Sales\ShipmentsAction" name="myparcelnl.shipment" template="shipment.phtml" after="-" />
         </referenceContainer>
     </body>
 </page>

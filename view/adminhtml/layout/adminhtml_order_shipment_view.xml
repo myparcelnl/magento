@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © 2016 Magento. All rights reserved.
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
@@ -11,8 +11,11 @@
         <css src="MyParcelNL_Magento::css/massaction-options.css"/>
     </head>
     <body>
+        <referenceBlock name="order_tab_info">
+            <block class="MyParcelNL\Magento\Block\Sales\View" name="order_shipping_view" template="order_view.phtml"/>
+        </referenceBlock>
         <referenceContainer name="content">
-            <block class="MyParcelNL\Magento\Block\Sales\OrdersAction" name="myparcelnl.order" template="shipment.phtml" after="-" />
+            <block class="MyParcelNL\Magento\Block\Sales\ShipmentAction" name="myparcelnl.order" template="shipment_view_action.phtml" after="-" />
         </referenceContainer>
     </body>
 </page>
