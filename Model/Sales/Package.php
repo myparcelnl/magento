@@ -81,7 +81,7 @@ class Package extends Data implements PackageInterface
      */
     public function setWeight($weight)
     {
-        $this->weight = $weight;
+        $this->weight = (int)$weight;
     }
 
     /**
@@ -89,7 +89,7 @@ class Package extends Data implements PackageInterface
      */
     public function addWeight($weight)
     {
-        $this->weight += $weight;
+        $this->weight += (int)$weight;
     }
 
     /**

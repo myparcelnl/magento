@@ -78,6 +78,10 @@ class PackageRepository extends Package
      */
     public function setWeightFromQuoteProducts($products)
     {
+        if (empty($products)) {
+            return $this;
+        }
+
         $this->setWeight(0);
         foreach ($products as $product) {
             $this->setWeightFromOneQuoteProduct($product);
@@ -102,7 +106,7 @@ class PackageRepository extends Package
         }
 
         if ($product->getWeight() > 0) {
-            $this->addWeight($product->getWeight());
+            $this->addWeight($product->getWeight() * $product->getQty());
         } else {
             $this->setAllProductsFit(false);
         }
