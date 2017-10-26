@@ -134,6 +134,7 @@ define(
                     Magento only index these variables in js-translation if you define
                     $.mage.__('Action type');
                     $.mage.__('Download label');
+                    $.mage.__('Open in new tab');
                     $.mage.__('Concept');
                     $.mage.__('Package Type');
                     $.mage.__('Default');
@@ -238,10 +239,10 @@ define(
                     $("input[name='mypa_request_type']").on(
                         "change",
                         function () {
-                            if ($('#mypa_request_type-download').prop('checked')) {
-                                $('.mypa_position_container').show();
-                            } else {
+                            if ($('#mypa_request_type-concept').prop('checked')) {
                                 $('.mypa_position_container').hide();
+                            } else {
+                                $('.mypa_position_container').show();
                             }
                         }
                     );
@@ -282,7 +283,12 @@ define(
                  * @protected
                  */
                 _createConsignment: function () {
-                    window.location.href = this.options.url + '?' + $("#mypa-options-form").serialize();
+                    var url = this.options.url + '?' + $("#mypa-options-form").serialize();
+                    if ($('#mypa_request_type-open_new_tab').prop('checked')) {
+                        window.open(url);
+                    } else {
+                        window.location.href = url;
+                    }
                 },
 
                 _startLoading: function () {
