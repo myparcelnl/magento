@@ -97,7 +97,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                 ->createMyParcelConcepts()
                 ->updateGridByShipment();
 
-            if ($this->shipmentCollection->getOption('request_type') != 'download') {
+            if ($this->shipmentCollection->getOption('request_type') == 'concept') {
                 return $this;
             }
 
