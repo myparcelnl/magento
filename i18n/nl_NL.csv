@@ -68,6 +68,7 @@ Download letter label,Download ongefrankeerd label
 Create new concept,Creëer nieuw concept
 Create shipment,Zending aanmaken
 Please select an item from the list,Selecteer eerst een order uit de lijst
+⚠️&#160; Please check address,⚠️&#160; Controller het adres
 No key found. Go to Configuration and then to MyParcel to enter the key.,Geen API key gevonden. Ga naar Configuratie en vervolgens naar MyParcel om de API key in te voeren.
 "No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.","Er kan geen zending met deze bestelling gemaakt worden. Zendingen kunnen niet worden aangemaakt als de status 'Wordt vastgehouden' is of als het product digitaal is."
 MyParcel Track,MyParcel barcode
@@ -78,6 +79,7 @@ MyParcel Shipment Email Template for Guest,Sjabloon e-mail voor een MyParcel zen
 Use Shipment email template when "Default" option is selected.,Gebruik Verzending template als er gekozen is voor "Gebruik systeemwaarde".
 Action type,Actie
 Download label,Download label
+Open in new tab, Open in nieuw tabblad
 Package Type,Pakkettype
 Print position,Printpositie
 MyParcel version,MyParcel versie

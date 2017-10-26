@@ -166,7 +166,8 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function downloadPdfOfLabels()
     {
-        $this->myParcelCollection->downloadPdfOfLabels();
+        $inlineDownload = $this->options['request_type'] == 'open_new_tab';
+        $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
 
         return $this;
     }
