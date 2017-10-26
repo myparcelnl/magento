@@ -23,23 +23,31 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Framework\Event\ObserverInterface;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
+use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 {
-    const DELIVERY_OPTIONS_FIELD = 'delivery_options';
-    const DROP_OFF_DAY_FIELD = 'drop_off_day';
+    const FIELD_DELIVERY_OPTIONS = 'delivery_options';
+    const FIELD_DROP_OFF_DAY = 'drop_off_day';
+    const FIELD_TRACK_STATUS = 'track_status';
     /**
      * @var DeliveryRepository
      */
     private $delivery;
+    /**
+     * @var MyParcelConsignmentRepository
+     */
+    private $consignmentRepository;
 
     /**
      * SaveOrderBeforeSalesModelQuoteObserver constructor.
      * @param DeliveryRepository $delivery
+     * @param MyParcelConsignmentRepository $consignmentRepository
      */
-    public function __construct(DeliveryRepository $delivery)
+    public function __construct(DeliveryRepository $delivery, MyParcelConsignmentRepository $consignmentRepository)
     {
         $this->delivery = $delivery;
+        $this->consignmentRepository = $consignmentRepository;
     }
 
     /**
@@ -53,15 +61,21 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $quote = $observer->getEvent()->getData('quote');
         /* @var \Magento\Sales\Model\Order $order */
         $order = $observer->getEvent()->getData('order');
+        $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
 
-        if ($quote->hasData(self::DELIVERY_OPTIONS_FIELD)) {
-            $jsonDeliveryOptions = $quote->getData(self::DELIVERY_OPTIONS_FIELD);
-            $order->setData(self::DELIVERY_OPTIONS_FIELD, $jsonDeliveryOptions);
+        if ($order->getShippingAddress()->getCountryId() == 'NL' && $this->consignmentRepository->isCorrectAddress($fullStreet) == false) {
+            $order->setData(self::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
+        }
+
+        if ($quote->hasData(self::FIELD_DELIVERY_OPTIONS)) {
+            $jsonDeliveryOptions = $quote->getData(self::FIELD_DELIVERY_OPTIONS);
+            $order->setData(self::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
 
             $dropOffDay = $this->delivery->getDropOffDayFromJson($jsonDeliveryOptions);
-            $order->setData(self::DROP_OFF_DAY_FIELD, $dropOffDay);
+            $order->setData(self::FIELD_DROP_OFF_DAY, $dropOffDay);
         }
 
         return $this;
     }
+
 }
