@@ -180,7 +180,6 @@ class PackageRepository extends Package
         $attributesHolder = $resourceModel->getSortedAttributes();
 
         if (!key_exists('myparcel_fit_in_mailbox', $attributesHolder)) {
-            $this->_logger->critical('Can\'t get field from database (myparcel_fit_in_mailbox FROM catalog_product). Run update scrip again.');
             return null;
         }
 
