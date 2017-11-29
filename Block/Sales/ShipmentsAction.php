@@ -18,7 +18,7 @@ use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
 
-class OrdersAction extends Template
+class ShipmentsAction extends Template
 {
     /**
      * @var \Magento\Framework\ObjectManagerInterface

@@ -26,8 +26,6 @@ class Checkout extends Data
 {
     private $base_price = 0;
 
-    private $tmp_scope = null;
-
     /**
      * @var ShippingMethodManagement
      */
@@ -76,26 +74,26 @@ class Checkout extends Data
     /**
      * Set shipping base price
      *
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return Checkout
      */
-    public function setBasePriceFromQuote($quote)
+    public function setBasePriceFromQuote($quoteId)
     {
-        $price = $this->getParentRatePriceFromQuote($quote);
+        $price = $this->getParentRatePriceFromQuote($quoteId);
         $this->setBasePrice((double)$price);
 
         return $this;
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return string
      */
-    public function getParentRatePriceFromQuote($quote)
+    public function getParentRatePriceFromQuote($quoteId)
     {
-        $method = $this->getParentRateFromQuote($quote);
+        $method = $this->getParentRateFromQuote($quoteId);
         if ($method === null) {
             return null;
         }
@@ -104,13 +102,13 @@ class Checkout extends Data
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return string
      */
-    public function getParentMethodNameFromQuote($quote)
+    public function getParentMethodNameFromQuote($quoteId)
     {
-        $method = $this->getParentRateFromQuote($quote);
+        $method = $this->getParentRateFromQuote($quoteId);
         if ($method === null) {
             return null;
         }
@@ -119,13 +117,13 @@ class Checkout extends Data
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return string
      */
-    public function getParentCarrierNameFromQuote($quote)
+    public function getParentCarrierNameFromQuote($quoteId)
     {
-        $method = $this->getParentRateFromQuote($quote);
+        $method = $this->getParentRateFromQuote($quoteId);
         if ($method === null) {
             return null;
         }
@@ -134,17 +132,16 @@ class Checkout extends Data
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param \Magento\Quote\Model\Quote $quoteId
      *
      * @return \Magento\Quote\Model\Cart\ShippingMethod $methods
      */
-    public function getParentRateFromQuote($quote)
+    public function getParentRateFromQuote($quoteId)
     {
-        if ($quote->getId() == null) {
+        if ($quoteId == null) {
             return null;
         }
 
-        $this->setTmpScope('');
         $parentMethods = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
 
         /**
@@ -156,7 +153,7 @@ class Checkout extends Data
         $estimatedAddress->setPostcode('');
         $estimatedAddress->setRegion('');
         $estimatedAddress->setRegionId('');
-        $methods = $this->shippingMethodManagement->estimateByAddress($quote->getId(), $estimatedAddress);
+        $methods = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
 
         foreach ($methods as $method) {
             if (in_array($method->getCarrierCode(), $parentMethods)) {
@@ -236,27 +233,8 @@ class Checkout extends Data
     /*private function getShippingPrice($price, $flag = false)
     {
         $flag = $flag ? true : Mage::helper('tax')->displayShippingPriceIncludingTax();
-        return (float)Mage::helper('tax')->getShippingPrice($price, $flag, $quote->getShippingAddress());
+        return (float)Mage::helper('tax')->getShippingPrice($price, $flag, $quoteId->getShippingAddress());
     }*/
-
-    /**
-     * @return mixed
-     */
-    public function getTmpScope()
-    {
-        return $this->tmp_scope;
-    }
-
-    /**
-     * @param mixed $tmp_scope
-     */
-    public function setTmpScope($tmp_scope)
-    {
-        $this->tmp_scope = $this->getConfigValue(self::XML_PATH_CHECKOUT . $tmp_scope);
-        if (!is_array($this->tmp_scope)) {
-            $this->_logger->critical('Can\'t get settings with path:' . self::XML_PATH_CHECKOUT . $tmp_scope);
-        }
-    }
 
     /**
      * Get checkout setting
@@ -268,23 +246,12 @@ class Checkout extends Data
      */
     public function getCheckoutConfig($code, $canBeNull = false)
     {
-        $settings = $this->getTmpScope();
-        if ($settings == null) {
-            $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
-            if ($value != null || $canBeNull) {
-                return $value;
-            } else {
-                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
-            }
+        $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
+        if (null != $value || $canBeNull) {
+            return $value;
         }
 
-        if (!is_array($settings)) {
-            $this->_logger->critical('No data in settings array');
-        } else if (!key_exists($code, $settings)) {
-            $this->_logger->critical('Can\'t get setting ' . $code);
-        }
-
-        return $settings[$code];
+        $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
     }
 
     /**

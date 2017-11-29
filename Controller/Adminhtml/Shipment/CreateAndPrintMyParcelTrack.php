@@ -1,13 +1,11 @@
 <?php
 
-namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
+namespace MyParcelNL\Magento\Controller\Adminhtml\Shipment;
 
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 
 /**
  * Action to create and print MyParcel Track
@@ -24,12 +22,12 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 {
     const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
-    const PATH_URI_ORDER_INDEX = 'sales/order/index';
+    const PATH_URI_SHIPMENT_INDEX = 'sales/shipment/index';
 
     /**
-     * @var MagentoOrderCollection
+     * @var MagentoShipmentCollection
      */
-    private $orderCollection;
+    private $shipmentCollection;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -41,7 +39,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
 
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection = new MagentoOrderCollection(
+        $this->shipmentCollection = new MagentoShipmentCollection(
             $context->getObjectManager(),
             $this->getRequest(),
             null
@@ -58,7 +56,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     {
         $this->massAction();
 
-        return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
+        return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_SHIPMENT_INDEX);
     }
 
     /**
@@ -69,7 +67,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     private function massAction()
     {
-        if ($this->orderCollection->apiKeyIsCorrect() !== true) {
+        if ($this->shipmentCollection->apiKeyIsCorrect() !== true) {
             $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
@@ -78,51 +76,37 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         }
 
         if ($this->getRequest()->getParam('selected_ids')) {
-            $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
+            $shipmentIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
-            $orderIds = $this->getRequest()->getParam('selected');
+            $shipmentIds = $this->getRequest()->getParam('selected');
         }
 
-        if (empty($orderIds)) {
+        if (empty($shipmentIds)) {
             throw new LocalizedException(__('No items selected'));
         }
 
         $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
-        $this->addOrdersToCollection($orderIds);
+        $this->addShipmentsToCollection($shipmentIds);
 
         try {
-            $this->orderCollection
+            $this->shipmentCollection
                 ->setOptionsFromParameters()
-                ->setNewMagentoShipment();
-        } catch (\Exception $e) {
-            if (count($this->messageManager->getMessages()) == 0) {
-                $this->messageManager->addErrorMessage(__('An error has occurred while creating a Magento shipment. Please check the order and contact MyParcel'));
-                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-            }
-        }
-
-        if (!$this->orderCollection->hasShipment()) {
-            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
-            return $this;
-        }
-
-        try {
-            $this->orderCollection
                 ->setMagentoTrack()
                 ->setMyParcelTrack()
                 ->createMyParcelConcepts()
-                ->updateGridByOrder();
+                ->updateGridByShipment();
 
-            if ($this->orderCollection->getOption('request_type') == 'concept') {
+            if ($this->shipmentCollection->getOption('request_type') == 'concept') {
                 return $this;
             }
 
-            $this->orderCollection
+            $this->shipmentCollection
                 ->setPdfOfLabels()
                 ->updateMagentoTrack()
-                ->sendTrackEmails()
+                ->sendTrackEmailFromShipments()
                 ->downloadPdfOfLabels();
+
         } catch (\Exception $e) {
             if (count($this->messageManager->getMessages()) == 0) {
                 $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));
@@ -134,15 +118,15 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * @param $orderIds int[]
+     * @param $shipmentIds int[]
      */
-    private function addOrdersToCollection($orderIds)
+    private function addShipmentsToCollection($shipmentIds)
     {
         /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+         * @var \Magento\Sales\Model\ResourceModel\order\shipment\Collection $collection
          */
-        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
-        $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
-        $this->orderCollection->setOrderCollection($collection);
+        $collection = $this->_objectManager->get(MagentoShipmentCollection::PATH_MODEL_SHIPMENT);
+        $collection->addAttributeToFilter('entity_id', ['in' => $shipmentIds]);
+        $this->shipmentCollection->setShipmentCollection($collection);
     }
 }

@@ -19,17 +19,11 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 
-interface MagentoOrderCollectionInterface
+interface MagentoCollectionInterface
 {
     public function setOptionsFromParameters();
-
-    public function setOrderCollection($orderCollection);
 
     public function getOptions();
 
     public function getOption($option);
-
-    public function hasShipment();
-
-    public function setMagentoTrack();
 }

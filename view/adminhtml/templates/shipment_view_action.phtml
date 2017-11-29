@@ -1,16 +1,17 @@
-<?php /** @var $block \MyParcelNL\Magento\Block\Sales\OrderAction */ ?>
+<?php /** @var $block \MyParcelNL\Magento\Block\Sales\ShipmentAction */ ?>
 <script type="text/x-magento-init">
    {
        ".page-footer": {
            "myparcelnl_massaction": {
                 "has_api_key": <?= $block->hasApiKey();?>,
-                "url": "<?= $block->getOrderAjaxUrl(); ?>",
+                "entity_id": <?= $block->getEntityId();?>,
+                "url": "<?= $block->getShipmentAjaxUrl(); ?>",
                 "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail(); ?>",
                 "settings": <?= $block->getPrintSettings(); ?>,
                 "button_present": true,
-                "button_send_return_mail_present": true,
+                "button_send_return_mail_present": false,
                 "number_of_positions" : <?= $block->getNumberOfPrintPositions(); ?>,
-                <?php if ($block->canShip()): ?>
+                <?php if ($block->hasTrack() == false): ?>
                     "action_options": {
                         "request_type": true,
                         "package_type": true,

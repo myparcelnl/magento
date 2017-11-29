@@ -25,9 +25,9 @@ use MyParcelNL\Magento\Helper\Data;
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
     /**
-     * @var \Magento\Quote\Model\Quote
+     * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
      */
-    private $quote;
+    private $products;
 
     /**
      * @var Checkout
@@ -52,19 +52,23 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Result constructor.
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Checkout\Model\Session $session
+     * @param \Magento\Backend\Model\Session\Quote $quote
      * @param Checkout $myParcelHelper
      * @param PackageRepository $package
+     * @internal param \Magento\Checkout\Model\Session $session
      */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Checkout\Model\Session $session,
+        \Magento\Backend\Model\Session\Quote $quote,
         Checkout $myParcelHelper,
-        PackageRepository $package)
-    {
+        PackageRepository $package
+    ) {
         parent::__construct($storeManager);
-
-        $this->quote = $session->getQuote();
+        /**
+         * Can't get quote from session\Magento\Checkout\Model\Session::getQuote()
+         * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
+         */
+        $this->products = $quote->getQuote()->getItems();
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
         $this->parentMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods', true));
@@ -153,7 +157,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        $products = $this->quote->getAllItems();
+        $products = $this->products;
         $this->package->setMailboxSettings();
         if (count($products) > 0){
             $this->package->setWeightFromQuoteProducts($products);

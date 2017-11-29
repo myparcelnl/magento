@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2013-2017 Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="styles"/>
+    <head>
+        <css src="MyParcelNL_Magento::css/massaction-options.css"/>
+    </head>
+    <body>
+        <referenceBlock name="order_tab_info">
+            <block class="MyParcelNL\Magento\Block\Sales\View" name="order_shipping_view" template="order_view.phtml"/>
+        </referenceBlock>
+        <referenceContainer name="content">
+            <block class="MyParcelNL\Magento\Block\Sales\ShipmentAction" name="myparcelnl.order" template="shipment_view_action.phtml" after="-" />
+        </referenceContainer>
+    </body>
+</page>

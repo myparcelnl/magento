@@ -109,7 +109,7 @@ class NewShipment implements ObserverInterface
             ->setData('myparcel_status', 1);
         $shipment->addTrack($myParcelTrack->mageTrack);
 
-        $this->updateOrderGrid($myParcelTrack, $shipment);
+        $this->updateTrackGrid($shipment);
     }
 
     /**
@@ -117,13 +117,14 @@ class NewShipment implements ObserverInterface
      *
      * Magento puts our two columns sales_order automatically to sales_order_grid
      *
-     * @param MyParcelTrackTrace                  $myParcelTrack
      * @param \Magento\Sales\Model\Order\Shipment $shipment
      */
-    private function updateOrderGrid($myParcelTrack, $shipment)
+    private function updateTrackGrid($shipment)
     {
+        $aHtml = $this->orderCollection->getHtmlForGridColumns($shipment->getOrder()->getId());
         $shipment->getOrder()
-            ->setData('track_status', __('status_' . $myParcelTrack->mageTrack->getData('myparcel_status')))
-            ->setData('track_number', $myParcelTrack->mageTrack->getData('track_number'));
+            ->setData('track_status', $aHtml['track_status'])
+            ->setData('track_number', $aHtml['track_number'])
+        ->save();
     }
 }
