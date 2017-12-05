@@ -104,11 +104,11 @@ define(
             }
 
             window.mypa.address = [];
-            window.mypa.address.street0 = street0;
-            window.mypa.address.street1 = street1;
-            window.mypa.address.street2 = street2;
-            window.mypa.address.cc = country;
-            window.mypa.address.postcode = postcode.replace(/\s/g,'');
+            window.mypa.address.street0 = street0.replace(/[<>=]/g,'');
+            window.mypa.address.street1 = street1.replace(/[<>=]/g,'');
+            window.mypa.address.street2 = street2.replace(/[<>=]/g,'');
+            window.mypa.address.cc = country.replace(/[<>=]/g,'');
+            window.mypa.address.postcode = postcode.replace(/[\s<>=]/g,'');
         }
 
         function showOptions() {
