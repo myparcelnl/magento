@@ -249,51 +249,51 @@ define(
             switch (type) {
                 case "morning":
                     if (json.options.signature) {
-                        _checkMethod('#s_method_' + myparcel_method_alias + '_morning_signature');
+                        _checkMethod('input[value=' + myparcel_method_alias + '_morning_signature' + ']');
                     } else {
-                        _checkMethod('#s_method_' + myparcel_method_alias + '_morning');
+                        _checkMethod('input[value=' + myparcel_method_alias + '_morning' + ']');
                     }
                     myparcel.showDays();
                     break;
                 case "standard":
                     if (json.options.signature && json.options.only_recipient) {
-                        _checkMethod('#s_method_' + myparcel_method_alias + '_signature_only_recip');
+                        _checkMethod('input[value=' + myparcel_method_alias + '_signature_only_recip' + ']');
                     } else {
                         if (json.options.signature) {
-                            _checkMethod('#s_method_' + myparcel_method_alias + '_signature');
+                            _checkMethod('input[value=' + myparcel_method_alias + '_signature' + ']');
                         } else if (json.options.only_recipient) {
-                            _checkMethod('#s_method_' + myparcel_method_alias + '_only_recipient');
+                            _checkMethod('input[value=' + myparcel_method_alias + '_only_recipient' + ']');
                         } else {
-                            _checkMethod('#s_method_' + myparcel_method_alias + '_' + window.mypa.data.general.parent_method);
+                            _checkMethod('input[value=' + myparcel_method_alias + '_' + window.mypa.data.general.parent_method + ']');
                         }
                     }
                     myparcel.showDays();
                     break;
                 case "night":
                     if (json.options.signature) {
-                        _checkMethod('#s_method_' + myparcel_method_alias + '_evening_signature');
+                        _checkMethod('input[value=' + myparcel_method_alias + '_evening_signature' + ']');
                     } else {
-                        _checkMethod('#s_method_' + myparcel_method_alias + '_evening');
+                        _checkMethod('input[value=' + myparcel_method_alias + '_evening' + ']');
                     }
                     myparcel.showDays();
                     break;
                 case "retail":
-                    _checkMethod('#s_method_' + myparcel_method_alias + '_pickup');
+                    _checkMethod('input[value=' + myparcel_method_alias + '_pickup' + ']');
                     myparcel.hideDays();
                     break;
                 case "retailexpress":
-                    _checkMethod('#s_method_' + myparcel_method_alias + '_pickup_express');
+                    _checkMethod('input[value=' + myparcel_method_alias + '_pickup_express' + ']');
                     myparcel.hideDays();
                     break;
                 case "mailbox":
-                    _checkMethod('#s_method_' + myparcel_method_alias + '_mailbox');
+                    _checkMethod('input[value=' + myparcel_method_alias + '_mailbox' + ']');
                     myparcel.hideDays();
                     break;
             }
         }
 
         function _checkMethod(selector) {
-            jQuery("input[id^='s_method']").prop("checked", false).change();
+            jQuery(".col-method > input[type='radio']").prop("checked", false).change();
             jQuery(selector).prop("checked", true).change().trigger('click');
         }
     }

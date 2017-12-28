@@ -311,15 +311,16 @@ class MagentoCollection implements MagentoCollectionInterface
 
     /**
      * @param $orderId
-     * @return \Magento\Sales\Model\ResourceModel\Order\Collection
+     * @return array
      */
     private function getTracksCollectionByOrderId($orderId)
     {
+        /** @var \Magento\Framework\App\ResourceConnection $connection */
         $connection = $this->objectManager->create('\Magento\Framework\App\ResourceConnection');
         $conn = $connection->getConnection();
         $select = $conn->select()
             ->from(
-                ['main_table' => 'sales_shipment_track']
+                ['main_table' => $conn->getTableName('sales_shipment_track')]
             )
             ->where('main_table.order_id=?', $orderId);
         $tracks = $conn->fetchAll($select);
