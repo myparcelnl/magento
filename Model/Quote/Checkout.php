@@ -93,18 +93,16 @@ class Checkout
      */
     private function getGeneralData()
     {
-        $this->helper->setTmpScope('general');
-
         return [
             'base_price' => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
-            'cutoff_time' => $this->helper->getTimeConfig('cutoff_time'),
-            'deliverydays_window' => $this->helper->getIntergerConfig('deliverydays_window'),
-            'dropoff_days' => $this->helper->getArrayConfig('dropoff_days'),
-            'monday_delivery_active' => $this->helper->getBoolConfig('monday_delivery_active'),
-            'saturday_cutoff_time' => $this->helper->getTimeConfig('saturday_cutoff_time'),
-            'dropoff_delay' => $this->helper->getIntergerConfig('dropoff_delay'),
-            'color_base' => $this->helper->getCheckoutConfig('color_base'),
-            'color_select' => $this->helper->getCheckoutConfig('color_select'),
+            'cutoff_time' => $this->helper->getTimeConfig('general/cutoff_time'),
+            'deliverydays_window' => $this->helper->getIntergerConfig('general/deliverydays_window'),
+            'dropoff_days' => $this->helper->getArrayConfig('general/dropoff_days'),
+            'monday_delivery_active' => $this->helper->getBoolConfig('general/monday_delivery_active'),
+            'saturday_cutoff_time' => $this->helper->getTimeConfig('general/saturday_cutoff_time'),
+            'dropoff_delay' => $this->helper->getIntergerConfig('general/dropoff_delay'),
+            'color_base' => $this->helper->getCheckoutConfig('general/color_base'),
+            'color_select' => $this->helper->getCheckoutConfig('general/color_select'),
             'parent_carrier' => $this->helper->getParentCarrierNameFromQuote($this->quoteId),
             'parent_method' => $this->helper->getParentMethodNameFromQuote($this->quoteId),
         ];
@@ -117,17 +115,15 @@ class Checkout
      */
     private function getDeliveryData()
     {
-        $this->helper->setTmpScope('delivery');
-
         $deliveryData = [
-            'delivery_title' => $this->helper->getCheckoutConfig('delivery_title'),
-            'only_recipient_active' => $this->helper->getBoolConfig('only_recipient_active'),
-            'only_recipient_title' => $this->helper->getCheckoutConfig('only_recipient_title'),
-            'only_recipient_fee' => $this->helper->getMethodPriceFormat('only_recipient_fee', false, '+ '),
-            'signature_active' => $this->helper->getBoolConfig('signature_active'),
-            'signature_title' => $this->helper->getCheckoutConfig('signature_title'),
-            'signature_fee' => $this->helper->getMethodPriceFormat('signature_fee', false, '+ '),
-            'signature_and_only_recipient_fee' => $this->helper->getMethodPriceFormat('signature_and_only_recipient_fee', false, '+ '),
+            'delivery_title' => $this->helper->getCheckoutConfig('delivery/delivery_title'),
+            'only_recipient_active' => $this->helper->getBoolConfig('delivery/only_recipient_active'),
+            'only_recipient_title' => $this->helper->getCheckoutConfig('delivery/only_recipient_title'),
+            'only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/only_recipient_fee', false, '+ '),
+            'signature_active' => $this->helper->getBoolConfig('delivery/signature_active'),
+            'signature_title' => $this->helper->getCheckoutConfig('delivery/signature_title'),
+            'signature_fee' => $this->helper->getMethodPriceFormat('delivery/signature_fee', false, '+ '),
+            'signature_and_only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/signature_and_only_recipient_fee', false, '+ '),
         ];
 
         if ($deliveryData['signature_active'] === false) {
@@ -148,11 +144,9 @@ class Checkout
      */
     private function getMorningData()
     {
-        $this->helper->setTmpScope('morning');
-
         return [
-            'active' => $this->helper->getBoolConfig('active'),
-            'fee' => $this->helper->getMethodPriceFormat('fee'),
+            'active' => $this->helper->getBoolConfig('morning/active'),
+            'fee' => $this->helper->getMethodPriceFormat('morning/fee'),
         ];
     }
 
@@ -163,11 +157,9 @@ class Checkout
      */
     private function getEveningData()
     {
-        $this->helper->setTmpScope('evening');
-
         return [
-            'active' => $this->helper->getBoolConfig('active'),
-            'fee' => $this->helper->getMethodPriceFormat('fee'),
+            'active' => $this->helper->getBoolConfig('evening/active'),
+            'fee' => $this->helper->getMethodPriceFormat('evening/fee'),
         ];
     }
 
@@ -178,12 +170,10 @@ class Checkout
      */
     private function getPickupData()
     {
-        $this->helper->setTmpScope('pickup');
-
         return [
-            'active' => $this->helper->getBoolConfig('active'),
-            'title' => $this->helper->getCheckoutConfig('title'),
-            'fee' => $this->helper->getMethodPriceFormat('fee'),
+            'active' => $this->helper->getBoolConfig('pickup/active'),
+            'title' => $this->helper->getCheckoutConfig('pickup/title'),
+            'fee' => $this->helper->getMethodPriceFormat('pickup/fee'),
         ];
     }
 
@@ -194,11 +184,9 @@ class Checkout
      */
     private function getPickupExpressData()
     {
-        $this->helper->setTmpScope('pickup_express');
-
         return [
-            'active' => $this->helper->getCheckoutConfig('active'),
-            'fee' => $this->helper->getMethodPriceFormat('fee'),
+            'active' => $this->helper->getCheckoutConfig('pickup_express/active'),
+            'fee' => $this->helper->getMethodPriceFormat('pickup_express/fee'),
         ];
     }
 
@@ -208,8 +196,6 @@ class Checkout
     private function getMailboxData()
     {
         /** @var \Magento\Quote\Model\Quote\Item[] $products */
-        $this->helper->setTmpScope('mailbox');
-
         if (count($this->products) > 0){
             $this->package->setWeightFromQuoteProducts($this->products);
         }
@@ -217,8 +203,8 @@ class Checkout
         /** check if mailbox is active */
         $mailboxData = [
             'active' => $this->package->fitInMailbox(),
-            'title' => $this->helper->getCheckoutConfig('title'),
-            'fee' => $this->helper->getMethodPriceFormat('fee', false),
+            'title' => $this->helper->getCheckoutConfig('mailbox/title'),
+            'fee' => $this->helper->getMethodPriceFormat('mailbox/fee', false),
         ];
 
         if ($mailboxData['active'] === false) {

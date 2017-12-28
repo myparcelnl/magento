@@ -26,8 +26,6 @@ class Checkout extends Data
 {
     private $base_price = 0;
 
-    private $tmp_scope = null;
-
     /**
      * @var ShippingMethodManagement
      */
@@ -144,7 +142,6 @@ class Checkout extends Data
             return null;
         }
 
-        $this->setTmpScope('');
         $parentMethods = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
 
         /**
@@ -240,25 +237,6 @@ class Checkout extends Data
     }*/
 
     /**
-     * @return mixed
-     */
-    public function getTmpScope()
-    {
-        return $this->tmp_scope;
-    }
-
-    /**
-     * @param mixed $tmp_scope
-     */
-    public function setTmpScope($tmp_scope)
-    {
-        $this->tmp_scope = $this->getConfigValue(self::XML_PATH_CHECKOUT . $tmp_scope);
-        if (!is_array($this->tmp_scope)) {
-            $this->_logger->critical('Can\'t get settings with path:' . self::XML_PATH_CHECKOUT . $tmp_scope);
-        }
-    }
-
-    /**
      * Get checkout setting
      *
      * @param string $code
@@ -268,23 +246,12 @@ class Checkout extends Data
      */
     public function getCheckoutConfig($code, $canBeNull = false)
     {
-        $settings = $this->getTmpScope();
-        if ($settings == null) {
-            $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
-            if ($value != null || $canBeNull) {
-                return $value;
-            } else {
-                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
-            }
+        $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
+        if (null != $value || $canBeNull) {
+            return $value;
         }
 
-        if (!is_array($settings)) {
-            $this->_logger->critical('No data in settings array');
-        } else if (!key_exists($code, $settings)) {
-            $this->_logger->critical('Can\'t get setting ' . $code);
-        }
-
-        return $settings[$code];
+        $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
     }
 
     /**
