@@ -47,11 +47,11 @@
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
                 <only_recipient_active>1</only_recipient_active>
                 <only_recipient_title>Niet bij de buren bezorgen</only_recipient_title>
-                <only_recipient_fee>0.33</only_recipient_fee>
+                <only_recipient_fee>0.29</only_recipient_fee>
                 <signature_active>1</signature_active>
                 <signature_title>Handtekening voor ontvangst</signature_title>
-                <signature_fee>0.42</signature_fee>
-                <signature_and_only_recipient_fee>0.51</signature_and_only_recipient_fee>
+                <signature_fee>0.36</signature_fee>
+                <signature_and_only_recipient_fee>0.44</signature_and_only_recipient_fee>
             </delivery>
             <mailbox>
                 <active>0</active>
@@ -75,7 +75,7 @@
             </pickup>
             <pickup_express>
                 <active>1</active>
-                <fee>1.25</fee>
+                <fee>1.38</fee>
             </pickup_express>
         </myparcelnl_magento_checkout>
         <sales_email>
