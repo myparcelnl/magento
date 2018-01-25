@@ -5,7 +5,7 @@
     "version": "2.3.2",
     "homepage": "https://www.myparcel.nl",
     "keywords": ["MyParcel", "My Parcel", "Post NL", "PostNL", "Magento 2"],
-    "license": "GNU",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Reindert Vetter",
