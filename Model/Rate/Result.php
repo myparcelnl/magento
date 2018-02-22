@@ -228,13 +228,19 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $price = 0;
         if ($alias == 'morning_signature') {
             $price += $this->myParcelHelper->getMethodPrice('morning/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
-        } else if ($alias == 'evening_signature') {
-            $price += $this->myParcelHelper->getMethodPrice('evening/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
-        } else {
-            $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox');
+            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
+
+            return $price;
         }
+
+        if ($alias == 'evening_signature') {
+            $price += $this->myParcelHelper->getMethodPrice('evening/fee');
+            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
+
+            return $price;
+        }
+
+        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox');
 
         return $price;
     }

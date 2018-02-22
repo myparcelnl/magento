@@ -211,7 +211,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     private function getShippingMethod($alias, $settingPath)
     {
-
         $title = $this->createTitle($settingPath);
         $price = $this->createPrice($alias, $settingPath);
 
@@ -244,30 +243,32 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         return $title;
     }
 
-    /**
-     * Create price
-     * Calculate price if multiple options are chosen
-     *
-     * @param $alias
-     * @param $settingPath
-     * @return float
-     */
-    private function createPrice($alias, $settingPath) {
-        $price = 0;
-        if ($alias == 'morning_signature') {
-            $price += $this->myParcelHelper->getMethodPrice('morning/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
-        } else if ($alias == 'evening_signature') {
-            $price += $this->myParcelHelper->getMethodPrice('evening/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
-        } else {
-            $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee');
-        }
+	/**
+	 * Create price
+	 * Calculate price if multiple options are chosen
+	 *
+	 * @param $alias
+	 * @param $settingPath
+	 * @return float
+	 */
+	private function createPrice($alias, $settingPath) {
+		$price = 0;
+		if ($alias == 'morning_signature') {
+			$price += $this->myParcelHelper->getMethodPrice('morning/fee');
+			$price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
 
-        if ($alias != 'mailbox') {
-            $price += $this->myParcelHelper->getBasePrice();
-        }
+			return $price;
+		}
 
-        return $price;
-    }
+		if ($alias == 'evening_signature') {
+			$price += $this->myParcelHelper->getMethodPrice('evening/fee');
+			$price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
+
+			return $price;
+		}
+
+		$price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox');
+
+		return $price;
+	}
 }
