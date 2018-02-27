@@ -168,11 +168,15 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     public function getAllowedMethods()
     {
-        $methods = $this->getMethods();
-
         if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
             $methods = ['mailbox' => 'mailbox/'];
-        } else if (!$this->package->fitInMailbox()) {
+
+	        return $methods;
+        }
+
+        $methods = $this->getMethods();
+
+        if (!$this->package->fitInMailbox()) {
             unset($methods['mailbox']);
         }
 

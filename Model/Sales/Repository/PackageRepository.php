@@ -23,7 +23,9 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {
-    /**
+	const DEFAULT_WEIGHT = 2000;
+
+	/**
      * Get package type
      *
      * If package type is not set, calculate package type
@@ -62,7 +64,11 @@ class PackageRepository extends Package
             return false;
         }
 
-        if ($this->getWeight() > $this->getMaxWeight()) {
+	    if ($this->getWeight() == false) {
+		    return false;
+	    }
+
+	    if ($this->getWeight() > $this->getMaxWeight()) {
             return false;
         }
 
@@ -98,6 +104,7 @@ class PackageRepository extends Package
     private function setWeightFromOneQuoteProduct($product)
     {
         $percentageFitInMailbox = $this->getPercentageFitInMailbox($product);
+
         if ($percentageFitInMailbox > 1) {
 
             $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
@@ -134,7 +141,7 @@ class PackageRepository extends Package
         $this->setMailboxActive($settings['active'] === '1');
         if ($this->isMailboxActive() === true) {
             $this->setShowMailboxWithOtherOptions($settings['other_options'] === '1');
-            $this->setMaxWeight((int)$settings['weight']);
+            $this->setMaxWeight((int)$settings['weight'] ?: self::DEFAULT_WEIGHT);
         }
 
         return $this;
@@ -147,52 +154,67 @@ class PackageRepository extends Package
      */
     private function getPercentageFitInMailbox($product)
     {
-        $result = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product);
+        $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product);
 
-        if (empty($result)) {
-            $result = $this->getAttributesFromProduct('catalog_product_entity_int', $product);
+        if (empty($attributeValue)) {
+            $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product);
         }
 
-        if (isset($result[0]['value']) && (int)$result[0]['value'] > 0) {
-            return (int)$result[0]['value'];
+        if ($attributeValue) {
+            return (int)$attributeValue;
         }
 
         return null;
     }
 
-    /**
-     * @Param string $tableName
-     * @param \Magento\Quote\Model\Quote\Item $product
-     * @return array|null
-     */
+	/**
+	 * @Param string $tableName
+	 *
+	 * @param string $tableName
+	 * @param \Magento\Quote\Model\Quote\Item $product
+	 *
+	 * @return array|null
+	 */
     private function getAttributesFromProduct($tableName, $product){
 
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
          */
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+
         $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-
         $entityId = $product->getProduct()->getEntityId();
-        $resourceModel = $product->getProduct()->getResource();
         $connection = $resource->getConnection();
-        $tableName = $resource->getTableName($tableName);
-        $attributesHolder = $resourceModel->getSortedAttributes();
 
-        if (!key_exists('myparcel_fit_in_mailbox', $attributesHolder)) {
-            return null;
-        }
+	    $attributeId = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'));
+	    $attributeValue = $this
+		    ->getValueFromAttribute(
+		    	$connection,
+			    $resource->getTableName($tableName),
+			    $attributeId,
+			    $entityId
+		    );
 
-        $attributeId = $attributesHolder['myparcel_fit_in_mailbox']->getData('attribute_id');
-
-        $sql = $connection->select()
-            ->from($tableName, ['value'])
-            ->where('attribute_id = ?', $attributeId)
-            ->where('entity_id = ?', $entityId);
-        $result = $connection->fetchAll($sql);
-
-        return $result;
+        return $attributeValue;
     }
 
+	private function getAttributeId($connection, $tableName) {
+		$sql = $connection
+			->select('entity_type_id')
+		    ->from($tableName)
+		    ->where('attribute_code = ?', 'myparcel_fit_in_mailbox');
 
+		return $connection->fetchOne($sql);
+	}
+
+	private function getValueFromAttribute( $connection, $tableName, $attributeId, $entityId ) {
+
+		$sql = $connection
+			->select()
+			->from($tableName, ['value'])
+			->where('attribute_id = ?', $attributeId)
+			->where('entity_id = ?', $entityId);
+
+		return $connection->fetchOne($sql);
+	}
 }
