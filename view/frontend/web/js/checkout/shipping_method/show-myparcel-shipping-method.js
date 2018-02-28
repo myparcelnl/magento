@@ -57,7 +57,6 @@ define(
             }
 
             myparcel_method_element = "input[id^='s_method_" + myparcel_method_alias + "_']";
-
             checkAddress();
         }
 
@@ -66,9 +65,12 @@ define(
                 clearTimeout(isLoadingAddress);
                 _setAddress();
                 _hideRadios();
-                _appendTemplate();
 
-                if (myParcelOptionsActive() && _getHouseNumber() !== null) {
+                if (checkOnlyShowMailbox()) {
+                    console.log('wel hier');
+                    showMailboxRadio();
+                } else if (_getCcIsLocal() && _getHouseNumber() !== null) {
+                    _appendTemplate();
                     _setParameters();
                     showOptions();
                 } else {
@@ -76,6 +78,27 @@ define(
                     hideOptions();
                 }
             }, 1000);
+        }
+
+        function checkOnlyShowMailbox() {
+            if (_getCcIsLocal() === false) {
+                return false;
+            }
+
+            if (window.mypa.data.mailbox.active === false) {
+                return false
+            }
+
+            if (window.mypa.data.mailbox.mailbox_other_options === true) {
+                return false;
+            }
+
+            return true;
+        }
+        
+        function showMailboxRadio() {
+            jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
+            jQuery("td[id^='label_carrier_mailbox']").parent().show();
         }
 
         function _setAddress() {
@@ -129,7 +152,7 @@ define(
             jQuery("td[id^='label_method_signature'],td[id^='label_method_mailbox'],td[id^='label_method_pickup'],td[id^='label_method_evening'],td[id^='label_method_only_recipient'],td[id^='label_method_morning']").parent().hide();
         }
 
-        function myParcelOptionsActive() {
+        function _getCcIsLocal() {
             if (window.mypa.address.cc !== 'NL') {
                 return false;
             }
