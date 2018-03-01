@@ -145,7 +145,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     public function getMethods()
     {
-        $methods = [
+	    $methods = [
             'signature' => 'delivery/signature_',
             'only_recipient' => 'delivery/only_recipient_',
             'signature_only_recip' => 'delivery/signature_and_only_recipient_',
@@ -168,11 +168,15 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     public function getAllowedMethods()
     {
+	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
+            $methods = ['mailbox' => 'mailbox/'];
+
+	        return $methods;
+        }
+
         $methods = $this->getMethods();
 
-        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-            $methods = ['mailbox' => 'mailbox/'];
-        } else if (!$this->package->fitInMailbox()) {
+        if (!$this->package->fitInMailbox()) {
             unset($methods['mailbox']);
         }
 

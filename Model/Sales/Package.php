@@ -150,7 +150,7 @@ class Package extends Data implements PackageInterface
      */
     public function getMaxWeight()
     {
-        return $this->max_mailbox_weight;
+        return (int)$this->max_mailbox_weight;
     }
 
     /**
