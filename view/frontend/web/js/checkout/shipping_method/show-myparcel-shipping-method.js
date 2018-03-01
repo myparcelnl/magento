@@ -67,7 +67,6 @@ define(
                 _hideRadios();
 
                 if (checkOnlyShowMailbox()) {
-                    console.log('wel hier');
                     showMailboxRadio();
                 } else if (_getCcIsLocal() && _getHouseNumber() !== null) {
                     _appendTemplate();
