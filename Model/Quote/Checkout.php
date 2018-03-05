@@ -203,6 +203,7 @@ class Checkout
         /** check if mailbox is active */
         $mailboxData = [
             'active' => $this->package->fitInMailbox(),
+            'mailbox_other_options' => $this->package->isShowMailboxWithOtherOptions(),
             'title' => $this->helper->getCheckoutConfig('mailbox/title'),
             'fee' => $this->helper->getMethodPriceFormat('mailbox/fee', false),
         ];
