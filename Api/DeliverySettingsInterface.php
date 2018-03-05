@@ -24,7 +24,7 @@ Interface DeliverySettingsInterface
      * Return all delivery Settings settings
      *
      * @api
-     * @return array All Settings
+     * @return mixed[] All Settings
      */
     public function get();
 }
