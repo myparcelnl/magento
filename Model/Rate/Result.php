@@ -71,14 +71,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 	 */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Backend\Model\Session\Quote $quote,
+        //\Magento\Backend\Model\Session\Quote $quote,
+        \Magento\Checkout\Model\Session $checkoutSession,
 	    Session $session,
         Checkout $myParcelHelper,
         PackageRepository $package
     ) {
         parent::__construct($storeManager);
 
-
+        $this->products = $checkoutSession->getQuote()->getItems();
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
 	    $this->session = $session;
