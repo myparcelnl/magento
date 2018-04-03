@@ -49,44 +49,43 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * @var bool
      */
     private $myParcelRatesAlreadyAdded = false;
-	/**
-	 * @var Session
-	 */
-	private $session;
-	/**
-	 * @var \Magento\Backend\Model\Session\Quote
-	 */
-	private $quote;
+    /**
+     * @var Session
+     */
+    private $session;
+    /**
+     * @var \Magento\Backend\Model\Session\Quote
+     */
+    private $quote;
 
-	/**
-	 * Result constructor.
-	 *
-	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-	 * @param \Magento\Backend\Model\Session\Quote $quote
-	 * @param Checkout $myParcelHelper
-	 * @param Session $session
-	 * @param PackageRepository $package
-	 *
-	 * @internal param \Magento\Checkout\Model\Session $session
-	 */
+    /**
+     * Result constructor.
+     *
+     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param \Magento\Backend\Model\Session\Quote $quote
+     * @param Checkout $myParcelHelper
+     * @param Session $session
+     * @param PackageRepository $package
+     *
+     * @internal param \Magento\Checkout\Model\Session $session
+     */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        //\Magento\Backend\Model\Session\Quote $quote,
-        \Magento\Checkout\Model\Session $checkoutSession,
-	    Session $session,
+        \Magento\Backend\Model\Session\Quote $quote,
+        Session $session,
         Checkout $myParcelHelper,
         PackageRepository $package
     ) {
         parent::__construct($storeManager);
 
-        $this->products = $checkoutSession->getQuote()->getItems();
+
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
-	    $this->session = $session;
-	    $this->quote = $quote;
+        $this->session = $session;
+        $this->quote = $quote;
 
         $this->parentMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods', true));
-	    $this->products = $this->getProductsFromCardAndSession();
+        $this->products = $this->getProductsFromCardAndSession();
     }
 
     /**
@@ -145,19 +144,19 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getAllowedMethods()
     {
-	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-		    $methods = ['mailbox' => 'mailbox/'];
+        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
+            $methods = ['mailbox' => 'mailbox/'];
 
-		    return $methods;
-	    }
+            return $methods;
+        }
 
-	    $methods = $this->getMethods();
+        $methods = $this->getMethods();
 
-	    if (!$this->package->fitInMailbox()) {
-		    unset($methods['mailbox']);
-	    }
+        if (!$this->package->fitInMailbox()) {
+            unset($methods['mailbox']);
+        }
 
-	    return $methods;
+        return $methods;
     }
 
     /**
@@ -264,15 +263,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         return $price;
     }
 
-	/**
-	 * Can't get quote from session\Magento\Checkout\Model\Session::getQuote()
-	 * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
-	 */
-	private function getProductsFromCardAndSession() {
-		if (count($this->quote->getQuote()->getItems())) {
-			return $this->quote->getQuote()->getItems();
-		}
+    /**
+     * Can't get quote from session\Magento\Checkout\Model\Session::getQuote()
+     * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
+     */
+    private function getProductsFromCardAndSession() {
+        if (count($this->quote->getQuote()->getItems())) {
+            return $this->quote->getQuote()->getItems();
+        }
 
-		return $this->session->getQuote()->getitems();
-	}
+        return $this->session->getQuote()->getitems();
+    }
 }
