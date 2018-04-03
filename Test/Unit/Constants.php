@@ -21,10 +21,14 @@ namespace MyParcelNL\magento\Test\Unit;
 
 class Constants extends \PHPUnit_Framework_TestCase
 {
-    const BASE_URL = "http://127.0.0.1/magento2/index.php/";
+    const BASE_URL = "http://127.0.0.1:81/magento/";
     const API_PREFIX = "rest/V1/";
 
     private $token = '';
+
+    const USERNAME = "new-admin";
+
+    const PASSWORD = "!admin123!";
 
     protected function setUp()
     {
@@ -75,7 +79,7 @@ class Constants extends \PHPUnit_Framework_TestCase
 
     protected function setToken()
     {
-        $userData = ["username" => "admin", "password" => "sd46g1mo"];
+        $userData = ["username" => self::USERNAME, "password" => self::PASSWORD];
         $result = $this->sendPostRequest(self::API_PREFIX . 'integration/admin/token', json_encode($userData));
 
         $this->token = $result;
