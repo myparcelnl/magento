@@ -18,10 +18,11 @@
 
 namespace MyParcelNL\Magento\Model\Rate;
 
+use Magento\Checkout\Model\Session;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
-use Magento\Checkout\Model\Session;
 
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
@@ -49,43 +50,27 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * @var bool
      */
     private $myParcelRatesAlreadyAdded = false;
-	/**
-	 * @var Session
-	 */
-	private $session;
-	/**
-	 * @var \Magento\Backend\Model\Session\Quote
-	 */
-	private $quote;
 
-	/**
-	 * Result constructor.
-	 *
-	 * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-	 * @param \Magento\Backend\Model\Session\Quote $quote
-	 * @param Checkout $myParcelHelper
-	 * @param Session $session
-	 * @param PackageRepository $package
-	 *
-	 * @internal param \Magento\Checkout\Model\Session $session
-	 */
+    /**
+     * Result constructor.
+     * @param StoreManagerInterface $storeManager
+     * @param Session $checkoutSession
+     * @param Checkout $myParcelHelper
+     * @param PackageRepository $package
+     * @internal param \Magento\Checkout\Model\Session $session
+     */
     public function __construct(
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Backend\Model\Session\Quote $quote,
-	    Session $session,
+        StoreManagerInterface $storeManager,
+        Session $checkoutSession,
         Checkout $myParcelHelper,
         PackageRepository $package
     ) {
         parent::__construct($storeManager);
 
-
+        $this->products = $checkoutSession->getQuote()->getItems();
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
-	    $this->session = $session;
-	    $this->quote = $quote;
-
         $this->parentMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods', true));
-	    $this->products = $this->getProductsFromCardAndSession();
     }
 
     /**
@@ -144,19 +129,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getAllowedMethods()
     {
-	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-		    $methods = ['mailbox' => 'mailbox/'];
+        $methods = $this->getMethods();
 
-		    return $methods;
-	    }
+        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
+            $methods = ['mailbox' => 'mailbox/'];
+        } else if (!$this->package->fitInMailbox()) {
+            unset($methods['mailbox']);
+        }
 
-	    $methods = $this->getMethods();
-
-	    if (!$this->package->fitInMailbox()) {
-		    unset($methods['mailbox']);
-	    }
-
-	    return $methods;
+        return $methods;
     }
 
     /**
@@ -175,10 +156,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
+        $products = $this->products;
         $this->package->setMailboxSettings();
-
-        if (count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products);
+        if (count($products) > 0){
+            $this->package->setWeightFromQuoteProducts($products);
         }
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
@@ -246,32 +227,14 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $price = 0;
         if ($alias == 'morning_signature') {
             $price += $this->myParcelHelper->getMethodPrice('morning/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
-
-            return $price;
-        }
-
-        if ($alias == 'evening_signature') {
+            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
+        } else if ($alias == 'evening_signature') {
             $price += $this->myParcelHelper->getMethodPrice('evening/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
-
-            return $price;
+            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee');
+        } else {
+            $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox');
         }
-
-        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox');
 
         return $price;
     }
-
-	/**
-	 * Can't get quote from session\Magento\Checkout\Model\Session::getQuote()
-	 * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
-	 */
-	private function getProductsFromCardAndSession() {
-		if (count($this->quote->getQuote()->getItems())) {
-			return $this->quote->getQuote()->getItems();
-		}
-
-		return $this->session->getQuote()->getitems();
-	}
 }
