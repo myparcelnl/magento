@@ -37,7 +37,7 @@ class CreateLabelsTest extends Constants
 
         $response = $this->createLabel(implode(',', $orders));
 
-        $this->assertTrue(preg_match("/^%PDF-1./", $response));
+        $this->assertEquals(1, preg_match("/^%PDF-1./", $response));
     }
 
     /**
