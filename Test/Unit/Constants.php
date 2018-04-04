@@ -32,6 +32,9 @@ class Constants extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
+        error_reporting(E_ALL);
+        ini_set("display_errors", 1);
+
         $this->setToken();
     }
 

@@ -24,28 +24,20 @@ use MyParcelNL\magento\Test\Unit\Constants;
 
 class CreateLabelsTest extends Constants
 {
-    const NUMBER_OF_ORDERS = 1;
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-    }
-
+    const MAX_NUMBER_OF_ORDERS = 2;
 
     public function testExecute()
     {
-        $numberOfOrders = 1;
+        $i = 1;
         $orders = [];
-        while ($numberOfOrders <= self::NUMBER_OF_ORDERS) {
-            echo $numberOfOrders;
+        while ($i <= self::MAX_NUMBER_OF_ORDERS) {
             $orders[] = $this->setOrder();
-            $numberOfOrders++;
+            $i++;
         }
 
         $response = $this->createLabel(implode(',', $orders));
 
-        $this->equalTo(true, preg_match("/^%PDF-1./", $response));
+        $this->assertTrue(preg_match("/^%PDF-1./", $response));
     }
 
     /**
@@ -61,7 +53,7 @@ class CreateLabelsTest extends Constants
             'paper_size' => 'A4',
             'mypa_positions' => '1',
         ];
-        var_dump($this->getCreateLabelUrl() . '?' . http_build_query($data));
+
         $response = $this->sendGetRequest($this->getCreateLabelUrl() . '?' . http_build_query($data));
 
         return $response;
