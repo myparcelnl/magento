@@ -76,7 +76,7 @@ class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
                 $dateTime = date('d-m-Y H:i', strtotime($data['date']. ' ' . $data['time'][0]['start']));
                 $html .= __('Deliver:') .' ' . $dateTime;
 
-                if($data['time'][0]['price_comment'] != 'standard')
+                if(isset($data['time'][0]['price_comment']) && $data['time'][0]['price_comment'] != 'standard')
                     $html .=  ', ' . __($data['time'][0]['price_comment']);
 
                 if (key_exists('options', $data)) {
