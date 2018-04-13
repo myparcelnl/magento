@@ -101,7 +101,15 @@ define(
         }
 
         function _setAddress() {
-            if (customer.isLoggedIn()) {
+            if (customer.isLoggedIn() &&
+                typeof quote !== 'undefined' &&
+                typeof quote.shippingAddress !== 'undefined' &&
+                typeof quote.shippingAddress._latestValue !== 'undefined' &&
+                typeof quote.shippingAddress._latestValue.street !== 'undefined' &&
+                typeof quote.shippingAddress._latestValue.street[0] !== 'undefined' &&
+                typeof quote.shippingAddress._latestValue.street[1] !== 'undefined'&&
+                typeof quote.shippingAddress._latestValue.street[2] !== 'undefined'
+            ) {
                 var street0 = quote.shippingAddress._latestValue.street[0];
                 if (typeof street0 === 'undefined') street0 = '';
                 var street1 = quote.shippingAddress._latestValue.street[1];
