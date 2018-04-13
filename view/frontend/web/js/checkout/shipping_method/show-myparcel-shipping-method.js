@@ -106,9 +106,7 @@ define(
                 typeof quote.shippingAddress !== 'undefined' &&
                 typeof quote.shippingAddress._latestValue !== 'undefined' &&
                 typeof quote.shippingAddress._latestValue.street !== 'undefined' &&
-                typeof quote.shippingAddress._latestValue.street[0] !== 'undefined' &&
-                typeof quote.shippingAddress._latestValue.street[1] !== 'undefined'&&
-                typeof quote.shippingAddress._latestValue.street[2] !== 'undefined'
+                typeof quote.shippingAddress._latestValue.street[0] !== 'undefined'
             ) {
                 var street0 = quote.shippingAddress._latestValue.street[0];
                 if (typeof street0 === 'undefined') street0 = '';
@@ -151,7 +149,10 @@ define(
         }
 
         function hideOptions() {
-            optionsContainer.hide();
+            if (typeof optionsContainer !== 'undefined') {
+                optionsContainer.hide();
+            }
+
             jQuery(myparcel_method_element + ':first').parent().parent().show();
         }
 
