@@ -143,7 +143,9 @@ define(
         }
 
         function hideOptions() {
-            optionsContainer.hide();
+            if (typeof originalShippingRate !== 'undefined') {
+                optionsContainer.hide();
+            }
             jQuery(myparcel_method_element + ':first').parent().parent().show();
         }
 
