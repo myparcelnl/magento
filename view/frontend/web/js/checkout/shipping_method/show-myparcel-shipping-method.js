@@ -152,7 +152,6 @@ define(
             if (typeof optionsContainer !== 'undefined') {
                 optionsContainer.hide();
             }
-
             jQuery(myparcel_method_element + ':first').parent().parent().show();
         }
 
