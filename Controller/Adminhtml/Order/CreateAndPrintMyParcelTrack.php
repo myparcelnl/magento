@@ -96,10 +96,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                 ->setOptionsFromParameters()
                 ->setNewMagentoShipment();
         } catch (\Exception $e) {
-            if (count($this->messageManager->getMessages()) == 0) {
-                $this->messageManager->addErrorMessage(__('An error has occurred while creating a Magento shipment. Please check the order and contact MyParcel'));
-                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-            }
+            $this->messageManager->addErrorMessage(__('An error has occurred while creating a Magento shipment and the error is being logged. Please check the order and contact MyParcel'));
+            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
         }
 
         if (!$this->orderCollection->hasShipment()) {
@@ -124,10 +122,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                 ->sendTrackEmails()
                 ->downloadPdfOfLabels();
         } catch (\Exception $e) {
-            if (count($this->messageManager->getMessages()) == 0) {
-                $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));
-                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-            }
+            $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label and the error is being logged. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));
+            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
         }
 
         return $this;

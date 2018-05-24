@@ -320,7 +320,7 @@ class MagentoCollection implements MagentoCollectionInterface
         $conn = $connection->getConnection();
         $select = $conn->select()
             ->from(
-                ['main_table' => $conn->getTableName('sales_shipment_track')]
+                ['main_table' => $connection->getTableName('sales_shipment_track')]
             )
             ->where('main_table.order_id=?', $orderId);
         $tracks = $conn->fetchAll($select);
