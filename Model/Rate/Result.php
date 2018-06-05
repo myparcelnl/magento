@@ -268,10 +268,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 	 * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
 	 */
 	private function getProductsFromCardAndSession() {
-		if (count($this->quote->getQuote()->getItems())) {
+        if ($this->quote->getQuoteId() != null && count($this->quote->getQuote()->getItems())) {
 			return $this->quote->getQuote()->getItems();
 		}
 
-		return $this->session->getQuote()->getitems();
+		return $this->session->getQuote()->getItems();
 	}
 }
