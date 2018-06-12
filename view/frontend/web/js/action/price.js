@@ -9,7 +9,7 @@ define(
         'uiComponent',
         'Magento_Checkout/js/model/quote',
         'Magento_Catalog/js/price-utils',
-        'myparcelnl_init_shipping_options'
+        'MyParcelNL_Magento/js/checkout/shipping_method/show-myparcel-shipping-method'
     ],
     function (Component, quote, priceUtils, MyParcel) {
         "use strict";
