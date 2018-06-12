@@ -76,6 +76,8 @@ define(
                     jQuery(myparcel_method_element + ":first").parent().parent().show();
                     hideOptions();
                 }
+
+                _observeFields();
             }, 1000);
         }
 
@@ -256,7 +258,6 @@ define(
                 jQuery('#mypa-pickup_title').html(data.pickup.title);
                 jQuery('#mypa-delivery_title').html(data.delivery.delivery_title);
 
-                _observeFields();
             }
         }
 
