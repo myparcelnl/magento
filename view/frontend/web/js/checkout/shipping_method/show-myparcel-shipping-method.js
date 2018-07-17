@@ -6,10 +6,10 @@ define(
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/checkout-data',
         'jquery',
-        'myparcelnl_options_template',
-        'myparcelnl_options_css-dynamic',
+        'text!MyParcelNL_Magento/template/checkout/options.html',
+        'text!MyParcelNL_Magento/css/checkout/options-dynamic.min.css',
         'MyParcelNL_Magento/js/lib/moment.min',
-        'myparcelnl_lib_myparcel'
+        'MyParcelNL_Magento/js/lib/myparcel'
     ],
     function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment) {
         'use strict';
@@ -76,6 +76,8 @@ define(
                     jQuery(myparcel_method_element + ":first").parent().parent().show();
                     hideOptions();
                 }
+
+                _observeFields();
             }, 1000);
         }
 
@@ -256,7 +258,6 @@ define(
                 jQuery('#mypa-pickup_title').html(data.pickup.title);
                 jQuery('#mypa-delivery_title').html(data.delivery.delivery_title);
 
-                _observeFields();
             }
         }
 
