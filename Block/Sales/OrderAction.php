@@ -25,20 +25,27 @@ class OrderAction extends OrdersAction
      * @var \Magento\Sales\Model\Order
      */
     private $order;
+    /**
+     * @var \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository
+     */
+    private $consignmentRepository;
 
     /**
-     * @param Context                     $context
-     * @param array                       $data
+     * @param Context $context
      * @param \Magento\Framework\Registry $registry
+     * @param \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository $consignmentRepository
+     * @param array $data
      */
     public function __construct(
         Context $context,
         \Magento\Framework\Registry $registry,
+        \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository $consignmentRepository,
         array $data = []
     ) {
         // Set order
         $this->order = $registry->registry('sales_order');
         parent::__construct($context, $data);
+        $this->consignmentRepository = $consignmentRepository;
     }
 
     /**
@@ -78,9 +85,6 @@ class OrderAction extends OrdersAction
      */
     public function isCdCountry()
     {
-        return !in_array(
-            $this->getCountry(),
-            MyParcelClassConstants::EU_COUNTRIES
-        );
+        return $this->consignmentRepository->isCdCountry();
     }
 }
