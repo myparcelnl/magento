@@ -208,39 +208,69 @@ define(
         }
 
         function _setParameters() {
-            var data = window.mypa.data;
-            window.mypa.settings = {
-                deliverydays_window: data.general.deliverydays_window,
-                number: _getHouseNumber(),
-                street: _getFullStreet(),
-                postal_code: window.mypa.address.postcode,
-                cutoff_time: data.general.cutoff_time,
-                dropoff_days: data.general.dropoff_days,
-                monday_delivery: data.general.monday_delivery_active,
-                saturday_cutoff_time: data.general.saturday_cutoff_time,
-                dropoff_delay: data.general.dropoff_delay,
-                exclude_delivery_type: data.general.exclude_delivery_types,
-                price: {
-                    morning: data.morning.fee,
-                    default: data.general.base_price,
-                    night: data.evening.fee,
-                    pickup: data.pickup.fee,
-                    pickup_express: data.pickup_express.fee,
-                    signed: data.delivery.signature_fee,
-                    only_recipient: data.delivery.only_recipient_fee,
-                    combi_options: data.delivery.signature_and_only_recipient_fee,
-                    mailbox: data.mailbox.fee,
+            var data = {
+                address: {
+                    cc: 'NL',
+                    street: _getFullStreet(),
+                    postalCode: window.mypa.address.postcode,
+                    number: _getHouseNumber(),
+                    city:'Hoofddorp'
                 },
-                base_url: 'https://api.myparcel.nl/delivery_options',
-                text:
-                    {
-                        signed: data.delivery.signature_title,
-                        only_recipient: data.delivery.only_recipient_title
-                    }
-            };
+                txtWeekDays: [
+                    'Zondag',
+                    'Maandag',
+                    'Dinsdag',
+                    'Woensdag',
+                    'Donderdag',
+                    'Vrijdag',
+                    'Zaterdag'
+                ],
+                translateENtoNL: {
+                    'monday': 'maandag',
+                    'tuesday': 'dindsag',
+                    'wednesday': 'woensdag',
+                    'thursday': 'donderdag',
+                    'friday': 'vrijdag',
+                    'saturday': 'zaterdag',
+                    'sunday': 'zondag'
+                },
+                config: {
+                    "apiBaseUrl": "https://api.myparcel.nl/",
+                    "carrier": "1",
 
-            myparcel = new MyParcel();
-            myparcel.updatePage();
+                    "priceMorningDelivery":  window.mypa.data.morning.fee,
+                    "priceStandardDelivery": window.mypa.data.general.base_price,
+                    "priceEveningDelivery": window.mypa.data.evening.fee,
+                    "priceSignature": window.mypa.data.delivery.signature_fee,
+                    "priceOnlyRecipient":window.mypa.data.delivery.only_recipient_fee,
+                    "pricePickup": window.mypa.data.pickup.fee,
+                    "pricePickupExpress": window.mypa.data.pickup_express.fee,
+
+                    "deliveryTitle": window.mypa.data.delivery.delivery_title,
+                    "pickupTitle": window.mypa.data.pickup.title,
+                    "deliveryMorningTitle": window.mypa.data.morning.title,
+                    "deliveryStandardTitle": window.mypa.data.delivery.standard_delivery_title,
+                    "deliveryEveningTitle": window.mypa.data.evening.title,
+                    "signatureTitle": window.mypa.data.delivery.signature_title,
+                    "onlyRecipientTitle": window.mypa.data.delivery.only_recipient_title,
+
+                    "allowMondayDelivery": window.mypa.data.general.monday_delivery_active,
+                    "allowMorningDelivery": window.mypa.data.morning.active,
+                    "allowEveningDelivery": window.mypa.data.evening.active,
+                    "allowSignature": window.mypa.data.delivery.signature_active,
+                    "allowOnlyRecipient": window.mypa.data.delivery.only_recipient_active,
+                    "allowPickupPoints": window.mypa.data.pickup.active,
+                    "allowPickupExpress": window.mypa.data.pickup_express.active,
+
+                    "dropOffDays": window.mypa.data.general.dropoff_days,
+                    "saturdayCutoffTime": window.mypa.data.general.saturday_cutoff_time,
+                    "cutoffTime": window.mypa.data.general.cutoff_time,
+                    "deliverydaysWindow": window.mypa.data.general.deliverydays_window,
+                    "dropoffDelay":window.mypa.data.general.dropoff_delay
+                }
+
+            };
+            MyParcel.init(data);
         }
 
         function _appendTemplate() {

@@ -45,6 +45,7 @@
             </general>
             <delivery>
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
+                <standard_delivery_title>Standaardlevering</standard_delivery_title>
                 <only_recipient_active>1</only_recipient_active>
                 <only_recipient_title>Niet bij de buren bezorgen</only_recipient_title>
                 <only_recipient_fee>0.29</only_recipient_fee>
@@ -62,10 +63,12 @@
             </mailbox>
             <morning>
                 <active>1</active>
+                <title>Ochtendlevering</title>
                 <fee>10</fee>
             </morning>
             <evening>
                 <active>1</active>
+                <title>Avondlevering</title>
                 <fee>1.25</fee>
             </evening>
             <pickup>
