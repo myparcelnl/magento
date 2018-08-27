@@ -324,8 +324,7 @@ MyParcel = {
         if (selectedPriceComment === "retail") {
             MyParcel.result.price_comment = "retail";
         }
-
-        jQuery('#mypa-input').val(JSON.stringify(result));
+        jQuery("input[name='delivery_options']").val(result);
     },
 
     addDeliveryToExternalInput: function (deliveryMomentOfDay) {
@@ -337,7 +336,7 @@ MyParcel = {
         if (currentDeliveryData !== null) {
             currentDeliveryData.signed = MyParcel.DELIVERY_SIGNED;
             currentDeliveryData.only_recipient = MyParcel.DELIVERY_ONLY_RECIPIENT
-            jQuery('#mypa-input').val(JSON.stringify(currentDeliveryData));
+            jQuery("input[name='delivery_options']").val(JSON.stringify(currentDeliveryData));
         }
     },
 
