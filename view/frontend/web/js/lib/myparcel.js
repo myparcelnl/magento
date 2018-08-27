@@ -18,7 +18,6 @@ MyParcel = {
     init: function (externalData) {
         this.data = externalData;
 
-        console.log(MyParcel);
         isMobile = true;
         if (jQuery(window).width() > 980) {
             isMobile = false;
@@ -214,7 +213,7 @@ MyParcel = {
          *
          */
         if (jQuery('#method-myparcel-delivery-morning').prop('checked')) {
-            jQuery('#s_method_myparcel_morning').click();
+            jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_morning').click();
             MyParcel.DELIVERY_ONLY_RECIPIENT = 1;
             MyParcel.addStyleToPrice('#mypa-morning-delivery, #mypa-only-recipient-price');
 
@@ -222,7 +221,7 @@ MyParcel = {
              * Signature
              */
             if (jQuery('#mypa-signature-selector').prop('checked')) {
-                jQuery('#s_method_myparcel_morning_signature').click();
+                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_morning_signature').click();
                 MyParcel.DELIVERY_SIGNED = 1;
                 MyParcel.addStyleToPrice('#mypa-signature-price');
             }
@@ -240,7 +239,7 @@ MyParcel = {
              * Signature and only recipient
              */
             if (jQuery('#mypa-signature-selector').prop('checked') && jQuery('#mypa-only-recipient-selector').prop('checked')) {
-                jQuery('#s_method_myparcel_delivery_signature_and_only_recipient_fee').click();
+                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_signature_only_recip').click();
                 MyParcel.DELIVERY_SIGNED = 1;
                 MyParcel.DELIVERY_ONLY_RECIPIENT = 1;
                 MyParcel.addStyleToPrice('#mypa-signature-price, #mypa-only-recipient-price');
@@ -250,7 +249,7 @@ MyParcel = {
              * Signature
              */
             if (jQuery('#mypa-signature-selector').prop('checked')) {
-                jQuery('#s_method_myparcel_delivery_signature').click();
+                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_signature').click();
                 MyParcel.DELIVERY_SIGNED = 1;
                 MyParcel.addStyleToPrice('#mypa-signature-price');
             } else
@@ -259,11 +258,11 @@ MyParcel = {
              * Only recipient
              */
             if (jQuery('#mypa-only-recipient-selector').prop('checked')) {
-                jQuery('#s_method_myparcel_delivery_only_recipient').click();
+                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_only_recipient').click();
                 MyParcel.DELIVERY_ONLY_RECIPIENT = 1;
                 MyParcel.addStyleToPrice('#mypa-only-recipient-price');
             } else {
-                jQuery('#s_method_myparcel_flatrate, #s_method_myparcel_tablerate').click();
+                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_' + window.mypa.data.general.parent_carrier ).click();
             }
 
             MyParcel.addDeliveryToExternalInput(MyParcel.DELIVERY_NORMAL);
@@ -275,7 +274,7 @@ MyParcel = {
          *
          */
         if (jQuery('#method-myparcel-delivery-evening').prop('checked')) {
-            jQuery('#s_method_myparcel_evening').click();
+            jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_evening').click();
             MyParcel.DELIVERY_ONLY_RECIPIENT = 1;
             MyParcel.addStyleToPrice('#mypa-evening-delivery, #mypa-only-recipient-price');
 
@@ -283,7 +282,7 @@ MyParcel = {
              * Signature
              */
             if (jQuery('#mypa-signature-selector').prop('checked')) {
-                jQuery('#s_method_myparcel_evening_signature').click();
+                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_evening_signature').click();
                 MyParcel.DELIVERY_SIGNED = 1;
                 MyParcel.addStyleToPrice('#mypa-signature-price');
             }
@@ -301,7 +300,7 @@ MyParcel = {
              * Early morning pickup
              */
             if (jQuery('#mypa-pickup-express-selector').prop('checked')) {
-                jQuery('#s_method_myparcel_pickup_express').click();
+                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_pickup_express').click();
                 MyParcel.addPickupToExternalInput('retailexpress');
                 MyParcel.addStyleToPrice('#mypa-pickup-express-price');
                 return;
@@ -310,7 +309,7 @@ MyParcel = {
             }
 
 
-            jQuery('#s_method_myparcel_pickup').click();
+            jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_pickup').click();
             MyParcel.addPickupToExternalInput('retail');
         }
     },
