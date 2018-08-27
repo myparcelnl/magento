@@ -120,6 +120,8 @@ define(
                 if (typeof country === 'undefined') country = '';
                 var postcode = quote.shippingAddress._latestValue.postcode;
                 if (typeof postcode === 'undefined') postcode = '';
+                var city = quote.shippingAddress._latestValue.postcode;
+                if (typeof city === 'undefined') city = '';
             } else {
                 var street0 = jQuery("input[name='street[0]']").val();
                 if (typeof street0 === 'undefined') street0 = '';
@@ -131,6 +133,8 @@ define(
                 if (typeof country === 'undefined') country = '';
                 var postcode = jQuery("input[name='postcode']").val();
                 if (typeof postcode === 'undefined') postcode = '';
+                var city = jQuery("input[name='city']").val();
+                if (typeof city === 'undefined') city = '';
             }
 
             window.mypa.address = [];
@@ -139,6 +143,7 @@ define(
             window.mypa.address.street2 = street2.replace(/[<>=]/g,'');
             window.mypa.address.cc = country.replace(/[<>=]/g,'');
             window.mypa.address.postcode = postcode.replace(/[\s<>=]/g,'');
+            window.mypa.address.city = city.replace(/[<>=]/g,'');
         }
 
         function showOptions() {
@@ -210,11 +215,11 @@ define(
         function _setParameters() {
             var data = {
                 address: {
-                    cc: 'NL',
+                    cc: window.mypa.address.cc,
                     street: _getFullStreet(),
                     postalCode: window.mypa.address.postcode,
                     number: _getHouseNumber(),
-                    city:'Hoofddorp'
+                    city: window.mypa.address.city
                 },
                 txtWeekDays: [
                     'Zondag',
