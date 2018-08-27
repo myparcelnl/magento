@@ -117,6 +117,7 @@ class Checkout
     {
         $deliveryData = [
             'delivery_title' => $this->helper->getCheckoutConfig('delivery/delivery_title'),
+            'standard_delivery_title' => $this->helper->getCheckoutConfig('delivery/standard_delivery_title'),
             'only_recipient_active' => $this->helper->getBoolConfig('delivery/only_recipient_active'),
             'only_recipient_title' => $this->helper->getCheckoutConfig('delivery/only_recipient_title'),
             'only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/only_recipient_fee', false, '+ '),
@@ -146,6 +147,7 @@ class Checkout
     {
         return [
             'active' => $this->helper->getBoolConfig('morning/active'),
+            'title' => $this->helper->getCheckoutConfig('morning/title'),
             'fee' => $this->helper->getMethodPriceFormat('morning/fee'),
         ];
     }
@@ -159,6 +161,7 @@ class Checkout
     {
         return [
             'active' => $this->helper->getBoolConfig('evening/active'),
+            'title' => $this->helper->getCheckoutConfig('evening/title'),
             'fee' => $this->helper->getMethodPriceFormat('evening/fee'),
         ];
     }
