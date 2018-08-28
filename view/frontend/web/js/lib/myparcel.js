@@ -324,7 +324,7 @@ MyParcel = {
         if (selectedPriceComment === "retail") {
             MyParcel.result.price_comment = "retail";
         }
-        jQuery("input[name='delivery_options']").val(result);
+        jQuery("input[name='delivery_options']").val(JSON.stringify(result);
     },
 
     addDeliveryToExternalInput: function (deliveryMomentOfDay) {
