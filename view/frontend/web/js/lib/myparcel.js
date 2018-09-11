@@ -9,11 +9,12 @@ MyParcel = {
     result: {},
     currentLocation: {},
 
+    deliverySigned: 0,
+    deliveryOnlyRecipient: 0,
+
     DELIVERY_MORNING: 'morning',
     DELIVERY_NORMAL: 'standard',
     DELIVERY_NIGHT: 'avond',
-    DELIVERY_SIGNED: 0,
-    DELIVERY_ONLY_RECIPIENT: 0,
 
     init: function (externalData) {
         this.data = externalData;
@@ -204,8 +205,9 @@ MyParcel = {
     },
 
     mapExternalWebshopTriggers: function () {
-        MyParcel.DELIVERY_SIGNED = 0;
-        MyParcel.DELIVERY_ONLY_RECIPIENT = 0;
+        var method = null;
+        MyParcel.deliverySigned = 0;
+        MyParcel.deliveryOnlyRecipient = 0;
         MyParcel.removeStyleFromPrice();
 
         /**
@@ -213,20 +215,21 @@ MyParcel = {
          *
          */
         if (jQuery('#method-myparcel-delivery-morning').prop('checked')) {
-            jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_morning').click();
-            MyParcel.DELIVERY_ONLY_RECIPIENT = 1;
+            method = 'morning';
+            MyParcel.deliveryOnlyRecipient = 1;
             MyParcel.addStyleToPrice('#mypa-morning-delivery, #mypa-only-recipient-price');
 
             /**
              * Signature
              */
             if (jQuery('#mypa-signature-selector').prop('checked')) {
-                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_morning_signature').click();
-                MyParcel.DELIVERY_SIGNED = 1;
+                method = 'morning_signature';
+                MyParcel.deliverySigned = 1;
                 MyParcel.addStyleToPrice('#mypa-signature-price');
             }
 
             MyParcel.addDeliveryToExternalInput(MyParcel.DELIVERY_MORNING);
+            MyParcel.clickMagentoShippingMethod(method);
             return;
         }
 
@@ -239,9 +242,9 @@ MyParcel = {
              * Signature and only recipient
              */
             if (jQuery('#mypa-signature-selector').prop('checked') && jQuery('#mypa-only-recipient-selector').prop('checked')) {
-                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_signature_only_recip').click();
-                MyParcel.DELIVERY_SIGNED = 1;
-                MyParcel.DELIVERY_ONLY_RECIPIENT = 1;
+                method = 'signature_only_recip';
+                MyParcel.deliverySigned = 1;
+                MyParcel.deliveryOnlyRecipient = 1;
                 MyParcel.addStyleToPrice('#mypa-signature-price, #mypa-only-recipient-price');
             } else
 
@@ -249,8 +252,8 @@ MyParcel = {
              * Signature
              */
             if (jQuery('#mypa-signature-selector').prop('checked')) {
-                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_signature').click();
-                MyParcel.DELIVERY_SIGNED = 1;
+                method = 'signature';
+                MyParcel.deliverySigned = 1;
                 MyParcel.addStyleToPrice('#mypa-signature-price');
             } else
 
@@ -258,14 +261,15 @@ MyParcel = {
              * Only recipient
              */
             if (jQuery('#mypa-only-recipient-selector').prop('checked')) {
-                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_only_recipient').click();
-                MyParcel.DELIVERY_ONLY_RECIPIENT = 1;
+                method = 'only_recipient';
+                MyParcel.deliveryOnlyRecipient = 1;
                 MyParcel.addStyleToPrice('#mypa-only-recipient-price');
             } else {
-                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_' + window.mypa.data.general.parent_carrier ).click();
+                method = window.mypa.data.general.parent_carrier;
             }
 
             MyParcel.addDeliveryToExternalInput(MyParcel.DELIVERY_NORMAL);
+            MyParcel.clickMagentoShippingMethod(method);
             return;
         }
 
@@ -274,20 +278,21 @@ MyParcel = {
          *
          */
         if (jQuery('#method-myparcel-delivery-evening').prop('checked')) {
-            jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_evening').click();
-            MyParcel.DELIVERY_ONLY_RECIPIENT = 1;
+            method = 'evening';
+            MyParcel.deliveryOnlyRecipient = 1;
             MyParcel.addStyleToPrice('#mypa-evening-delivery, #mypa-only-recipient-price');
 
             /**
              * Signature
              */
             if (jQuery('#mypa-signature-selector').prop('checked')) {
-                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_evening_signature').click();
-                MyParcel.DELIVERY_SIGNED = 1;
+                method = 'evening_signature';
+                MyParcel.deliverySigned = 1;
                 MyParcel.addStyleToPrice('#mypa-signature-price');
             }
 
             MyParcel.addDeliveryToExternalInput(MyParcel.DELIVERY_NIGHT);
+            MyParcel.clickMagentoShippingMethod(method);
             return;
         }
 
@@ -300,17 +305,16 @@ MyParcel = {
              * Early morning pickup
              */
             if (jQuery('#mypa-pickup-express-selector').prop('checked')) {
-                jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_pickup_express').click();
+                method = 'pickup_express';
                 MyParcel.addPickupToExternalInput('retailexpress');
                 MyParcel.addStyleToPrice('#mypa-pickup-express-price');
-                return;
             } else {
+                method = 'pickup';
+                MyParcel.addPickupToExternalInput('retail');
                 MyParcel.addStyleToPrice('#mypa-pickup-price');
             }
 
-
-            jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_pickup').click();
-            MyParcel.addPickupToExternalInput('retail');
+            MyParcel.clickMagentoShippingMethod(method);
         }
     },
 
@@ -324,6 +328,8 @@ MyParcel = {
         if (selectedPriceComment === "retail") {
             MyParcel.result.price_comment = "retail";
         }
+
+        console.log('delivery_options1');
         jQuery("input[name='delivery_options']").val(JSON.stringify(result));
     },
 
@@ -334,8 +340,12 @@ MyParcel = {
         var currentDeliveryData = MyParcel.triggerDefaultOptionDelivery(deliveryDateId, deliveryMomentOfDay);
 
         if (currentDeliveryData !== null) {
-            currentDeliveryData.signed = MyParcel.DELIVERY_SIGNED;
-            currentDeliveryData.only_recipient = MyParcel.DELIVERY_ONLY_RECIPIENT
+
+            currentDeliveryData.options = {
+                "signature": MyParcel.deliverySigned,
+                "only_recipient": MyParcel.deliveryOnlyRecipient
+            };
+
             jQuery("input[name='delivery_options']").val(JSON.stringify(currentDeliveryData));
         }
     },
@@ -850,6 +860,9 @@ MyParcel = {
         });
     },
 
+    clickMagentoShippingMethod: function (method) {
+        jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_' + method).click();
+    },
 
     /*
      * callDeliveryOptions
