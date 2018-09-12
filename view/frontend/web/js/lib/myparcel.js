@@ -329,7 +329,6 @@ MyParcel = {
             MyParcel.result.price_comment = "retail";
         }
 
-        console.log('delivery_options1');
         jQuery("input[name='delivery_options']").val(JSON.stringify(result));
     },
 
