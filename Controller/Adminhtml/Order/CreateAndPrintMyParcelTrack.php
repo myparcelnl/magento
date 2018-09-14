@@ -91,40 +91,30 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         $this->addOrdersToCollection($orderIds);
 
-        try {
-            $this->orderCollection
-                ->setOptionsFromParameters()
-                ->setNewMagentoShipment();
-        } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage(__('An error has occurred while creating a Magento shipment and the error is being logged. Please check the order and contact MyParcel'));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-        }
+        $this->orderCollection
+            ->setOptionsFromParameters()
+            ->setNewMagentoShipment();
 
         if (!$this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
             return $this;
         }
 
-        try {
-            $this->orderCollection
-                ->setMagentoTrack()
-                ->setMyParcelTrack()
-                ->createMyParcelConcepts()
-                ->updateGridByOrder();
+        $this->orderCollection
+            ->setMagentoTrack()
+            ->setMyParcelTrack()
+            ->createMyParcelConcepts()
+            ->updateGridByOrder();
 
-            if ($this->orderCollection->getOption('request_type') == 'concept') {
-                return $this;
-            }
-
-            $this->orderCollection
-                ->setPdfOfLabels()
-                ->updateMagentoTrack()
-                ->sendTrackEmails()
-                ->downloadPdfOfLabels();
-        } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label and the error is being logged. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+        if ($this->orderCollection->getOption('request_type') == 'concept') {
+            return $this;
         }
+
+        $this->orderCollection
+            ->setPdfOfLabels()
+            ->updateMagentoTrack()
+            ->sendTrackEmails()
+            ->downloadPdfOfLabels();
 
         return $this;
     }
