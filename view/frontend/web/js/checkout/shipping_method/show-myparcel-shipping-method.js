@@ -8,7 +8,6 @@ define(
         'jquery',
         'text!MyParcelNL_Magento/template/checkout/options.html',
         'text!MyParcelNL_Magento/css/checkout/options-dynamic.min.css',
-        'MyParcelNL_Magento/js/lib/moment.min',
         'MyParcelNL_Magento/js/lib/myparcel'
     ],
     function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment) {
