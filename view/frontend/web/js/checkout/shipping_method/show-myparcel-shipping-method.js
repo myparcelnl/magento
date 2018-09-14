@@ -166,7 +166,7 @@ define(
         }
 
         function _getCcIsLocal() {
-            if (window.mypa.address.cc !== 'NL') {
+            if (window.mypa.address.cc !== 'NL' && window.mypa.address.cc !== 'BE' ) {
                 return false;
             }
 
