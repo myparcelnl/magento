@@ -503,6 +503,10 @@ MyParcel = {
                 MyParcel.showOnlyRecipient();
             }
         }
+        if(MyParcel.data.address.cc === 'BE'){
+            jQuery('#mypa-delivery-titel').html(MyParcel.data.config.BelgiumdeliveryTitel);
+            jQuery('#mypa-delivery-date-text,#mypa-delivery-date-select').hide();
+        }
     },
 
     /*
@@ -640,6 +644,7 @@ MyParcel = {
      */
 
     hidePickUpLocations: function () {
+        console.log(MyParcel.data.config);
         if (!MyParcel.data.config.allowPickupPoints) {
             jQuery('#mypa-pickup-location-selector').hide();
         }
@@ -657,7 +662,9 @@ MyParcel = {
      */
 
     showPickUpLocations: function () {
-        if (MyParcel.data.config.allowPickupPoints) {
+
+        console.log(MyParcel.data.config.AllowBelgiumPickup);
+        if (MyParcel.data.config.allowPickupPoints || MyParcel.data.config.AllowBelgiumPickup ) {
 
             var html = "";
             jQuery.each(MyParcel.result.deliveryOptions.data.pickup, function (key, value) {

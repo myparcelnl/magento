@@ -212,6 +212,7 @@ define(
         }
 
         function _setParameters() {
+          console.log(window.mypa);
             var data = {
                 address: {
                     cc: window.mypa.address.cc,
@@ -270,7 +271,11 @@ define(
                     "saturdayCutoffTime": window.mypa.data.general.saturday_cutoff_time,
                     "cutoffTime": window.mypa.data.general.cutoff_time,
                     "deliverydaysWindow": window.mypa.data.general.deliverydays_window,
-                    "dropoffDelay":window.mypa.data.general.dropoff_delay
+                    "dropoffDelay":window.mypa.data.general.dropoff_delay,
+
+                    "AllowBelgiumPickup": window.mypa.belgium_pickup.active,
+                    "BelgiumDeliveryTitel": window.mypa.belgium_pickup.titel,
+                    "BelgiumDeliveryStandardTitel": window.mypa.belgium_pickup.fee
                 }
 
             };
