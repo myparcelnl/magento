@@ -197,7 +197,6 @@ define(
                 setTimeout(function(){
                     if (jQuery(myparcel_method_element + ':checked').length === 0) {
                         delivery_options_input.val('');
-                        myparcel.optionsHaveBeenModified();
                     }
                 }, 50);
             });
@@ -214,7 +213,6 @@ define(
         }
 
         function _setParameters() {
-          console.log(window.mypa);
             var data = {
                 address: {
                     cc: window.mypa.address.cc,

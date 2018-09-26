@@ -12,6 +12,9 @@ MyParcel = {
     deliverySigned: 0,
     deliveryOnlyRecipient: 0,
 
+    isBinded: false,
+    isCallingDeliveryOptions: false,
+
     DELIVERY_MORNING: 'morning',
     DELIVERY_NORMAL: 'standard',
     DELIVERY_NIGHT: 'avond',
@@ -135,6 +138,11 @@ MyParcel = {
      */
 
     bind: function () {
+        if (this.isBinded === true) {
+            return;
+        }
+        this.isBinded = true;
+
         jQuery('#mypa-submit').on('click', function (e) {
             e.preventDefault();
             MyParcel.exportDeliveryOptionToWebshop();
@@ -363,12 +371,14 @@ MyParcel = {
         var dateArray = MyParcel.result.deliveryOptions.data.delivery[deliveryDateId];
         var currentDeliveryData = null;
 
-        jQuery.each(dateArray['time'], function (key, value) {
-            if (value.price_comment === deliveryMomentOfDay) {
-                currentDeliveryData = jQuery.extend({}, dateArray);
-                currentDeliveryData['time'] = [value];
-            }
-        });
+        if (typeof dateArray !== 'undefined') {
+            jQuery.each(dateArray['time'], function (key, value) {
+                if (value.price_comment === deliveryMomentOfDay) {
+                    currentDeliveryData = jQuery.extend({}, dateArray);
+                    currentDeliveryData['time'] = [value];
+                }
+            });
+        }
 
         if (currentDeliveryData === null) {
             jQuery('#mypa-only-recipient-selector').prop('disabled', false).prop('checked', false);
@@ -861,7 +871,7 @@ MyParcel = {
         jQuery('.mypa-message-model').off('click');
 
         /* bind trigger to new button */
-        jQuery('#mypa-error-try-again').on('click', function () {
+        jQuery('#mypa-error-try-again').off('click').on('click', function () {
             MyParcel.retryPostalcodeHouseNumber();
         });
     },
@@ -879,6 +889,11 @@ MyParcel = {
      */
 
     callDeliveryOptions: function () {
+        if (MyParcel.isCallingDeliveryOptions === true) {
+            return;
+        }
+        MyParcel.isCallingDeliveryOptions = true;
+
         MyParcel.showSpinner();
         MyParcel.clearPickUpLocations();
 
@@ -892,6 +907,8 @@ MyParcel = {
             MyParcel.showMessage(
                 '<h3>Adresgegevens zijn niet ingevuld</h3>'
             );
+            MyParcel.isCallingDeliveryOptions = false;
+            return;
         }
         if (cc === "BE") {
             var numberExtra = this.data.address.numberExtra;
@@ -905,6 +922,7 @@ MyParcel = {
         /* Don't call API unless both Postcode and House Number are set */
         if (!number || !postalCode) {
             MyParcel.showFallBackDelivery();
+            MyParcel.isCallingDeliveryOptions = false;
             return;
         }
 
@@ -937,6 +955,11 @@ MyParcel = {
             .done(MyParcel.responseSuccess)
             .fail(MyParcel.responseError)
             .always(MyParcel.responseComplete);
+
+        setTimeout(function(){
+            MyParcel.isCallingDeliveryOptions = false;
+        }, 50);
+
     },
 
     responseSuccess: function (response) {
@@ -952,6 +975,7 @@ MyParcel = {
                 else {
                     MyParcel.showFallBackDelivery();
                 }
+                return false
             });
         }
 
