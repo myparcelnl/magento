@@ -273,9 +273,9 @@ define(
                     "deliverydaysWindow": window.mypa.data.general.deliverydays_window,
                     "dropoffDelay":window.mypa.data.general.dropoff_delay,
 
-                    "AllowBelgiumPickup": window.mypa.belgium_pickup.active,
-                    "BelgiumDeliveryTitel": window.mypa.belgium_pickup.titel,
-                    "BelgiumDeliveryStandardTitel": window.mypa.belgium_pickup.fee
+                    // "AllowBelgiumPickup": window.mypa.belgium_pickup.active,
+                    // "BelgiumDeliveryTitel": window.mypa.belgium_pickup.titel,
+                    // "BelgiumDeliveryStandardTitel": window.mypa.belgium_pickup.fee
                 }
 
             };

@@ -268,6 +268,7 @@ MyParcel = {
                 method = window.mypa.data.general.parent_carrier;
             }
 
+            MyParcel.addStyleToPrice('#mypa-normal-delivery');
             MyParcel.addDeliveryToExternalInput(MyParcel.DELIVERY_NORMAL);
             MyParcel.clickMagentoShippingMethod(method);
             return;
@@ -491,7 +492,7 @@ MyParcel = {
         if (MyParcel.data.address.cc === "NL") {
             jQuery('#mypa-pre-selectors-' + this.data.address.cc.toLowerCase()).show();
             jQuery('#mypa-delivery-selectors-' + this.data.address.cc.toLowerCase()).show();
-            jQuery('#mypa-delivery-date-select, .mypa-extra-delivery-options').show();
+            jQuery('.mypa-extra-delivery-options').show();
 
             MyParcel.hideSignature();
             if (this.data.config.allowSignature) {
@@ -559,11 +560,11 @@ MyParcel = {
     },
 
     showOnlyRecipient: function () {
-        jQuery('#mypa-only-recipient, #mypa-only-recipient-price').show();
+        jQuery('#mypa-only-recipient').parent().show();
     },
 
     hideOnlyRecipient: function () {
-        jQuery('#mypa-only-recipient, #mypa-only-recipient-price').hide();
+        jQuery('#mypa-only-recipient').parent().hide();
     },
 
     /*
@@ -601,18 +602,18 @@ MyParcel = {
 
         /* Hide the day selector when the value of the deliverydaysWindow is 0 or is NaN*/
         if (deliveryWindow === 0 || isNaN(deliveryWindow)) {
-            jQuery('#mypa-select-date').hide();
+            jQuery('#mypa-select-date, #mypa-delivery-date-select').hide();
         }
 
         /* When deliverydaysWindow is 1, hide the day selector and show a div to show the date */
         if (deliveryWindow === 1) {
-            jQuery('#mypa-select-date').hide();
+            jQuery('#mypa-select-date, #mypa-delivery-date-select').hide();
             jQuery('#mypa-delivery-date-text').show();
         }
 
         /* When deliverydaysWindow > 1, show the day selector */
         if (deliveryWindow > 1) {
-            jQuery('#mypa-select-date').show();
+            jQuery('#mypa-select-date, #mypa-delivery-date-select').show();
             jQuery('#mypa-delivery-date-text').hide();
         }
 
