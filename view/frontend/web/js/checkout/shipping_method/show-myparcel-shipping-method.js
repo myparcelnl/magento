@@ -8,9 +8,10 @@ define(
         'jquery',
         'text!MyParcelNL_Magento/template/checkout/options.html',
         'text!MyParcelNL_Magento/css/checkout/options-dynamic.min.css',
-        'MyParcelNL_Magento/js/lib/myparcel'
+        'MyParcelNL_Magento/js/lib/myparcel',
+        'Magento_Checkout/js/action/set-shipping-information'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
@@ -27,6 +28,7 @@ define(
             }
             window.mypa.fn.hideOptions = hideOptions;
             window.mypa.moment = moment;
+            window.mypa.setShippingInformationAction = setShippingInformationAction;
 
             if (window.mypa.isLoading === false) {
                 _hideRadios();
@@ -273,9 +275,9 @@ define(
                     "deliverydaysWindow": window.mypa.data.general.deliverydays_window,
                     "dropoffDelay":window.mypa.data.general.dropoff_delay,
 
-                    // "AllowBelgiumPickup": window.mypa.belgium_pickup.active,
-                    // "BelgiumDeliveryTitel": window.mypa.belgium_pickup.titel,
-                    // "BelgiumDeliveryStandardTitel": window.mypa.belgium_pickup.fee
+                    "AllowBelgiumPickup": window.mypa.data.belgium_pickup.active,
+                    "BelgiumDeliveryTitel": window.mypa.data.belgium_pickup.titel,
+                    "BelgiumDeliveryStandardTitel": window.mypa.data.belgium_pickup.fee
                 }
 
             };

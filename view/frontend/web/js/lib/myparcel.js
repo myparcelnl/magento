@@ -183,8 +183,6 @@ MyParcel = {
         });
 
         jQuery('#mypa-pickup-express').hide();
-        /* todo: move */
-
 
         jQuery('#mypa-pickup-delivery, #mypa-pickup-location').on('change', function (e) {
             MyParcel.setCurrentLocation();
@@ -316,6 +314,7 @@ MyParcel = {
             }
 
             MyParcel.clickMagentoShippingMethod(method);
+            window.mypa.setShippingInformationAction();
         }
     },
 
@@ -931,7 +930,7 @@ MyParcel = {
             monday_delivery: mondayDeliveryActive,
             deliverydays_window: this.deliveryDaysWindow,
             cutoff_time: this.data.config.cutoffTime,
-            dropoff_delay: this.data.config.dropoffDelay
+            dropoff_delay: this.data.config.dropoffDelay,
         };
 
         jQuery.get(url, params)

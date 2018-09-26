@@ -75,6 +75,7 @@ class Checkout
             'mailbox' => $this->getMailboxData(),
             'pickup' => $this->getPickupData(),
             'pickup_express' => $this->getPickupExpressData(),
+            'belgium_pickup' => $this->getBelgiumData(),
         ];
 
         $this
@@ -190,6 +191,20 @@ class Checkout
         return [
             'active' => $this->helper->getCheckoutConfig('pickup_express/active'),
             'fee' => $this->helper->getMethodPriceFormat('pickup_express/fee'),
+        ];
+    }
+
+    /**
+     * Get Belgium pickup data
+     *
+     * @return array)
+     */
+    private function getBelgiumData()
+    {
+        return [
+            'active' => $this->helper->getCheckoutConfig('belgium_pickup/active'),
+            'titel' => $this->helper->getCheckoutConfig('belgium_pickup/title'),
+            'fee' => $this->helper->getMethodPriceFormat('belgium_pickup/fee'),
         ];
     }
 
