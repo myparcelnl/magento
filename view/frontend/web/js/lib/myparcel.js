@@ -654,7 +654,6 @@ MyParcel = {
      */
 
     hidePickUpLocations: function () {
-        console.log(MyParcel.data.config);
         if (!MyParcel.data.config.allowPickupPoints) {
             jQuery('#mypa-pickup-location-selector').hide();
         }
@@ -673,7 +672,6 @@ MyParcel = {
 
     showPickUpLocations: function () {
 
-        console.log(MyParcel.data.config.AllowBelgiumPickup);
         if (MyParcel.data.config.allowPickupPoints || MyParcel.data.config.AllowBelgiumPickup ) {
 
             var html = "";
