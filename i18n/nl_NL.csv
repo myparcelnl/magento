@@ -146,6 +146,7 @@ Mailbox settings,Brievenbuspakje instellingen
 Automate mailbox,Brievenbuspakje automatiseren
 Mailbox with other options,Brievenbuspakje tonen met andere opties
 Mailbox titel,Brievenbuspakje titel
+Select automatically mailbox packages based on weight or volume,Selecteer automatisch brievenbuspakje op basis van gewicht of volume
 Leave blank to automate mailbox packets only in the backend,Laat leeg om brievenbuspakjes alleen in de backend te automatiseren
 Mailbox weight,Brievenbuspakje gewicht
 "Besides assigning weights to all products, you can also specify a volume of each product.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten."
