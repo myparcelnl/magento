@@ -75,7 +75,7 @@ class Checkout
             'mailbox' => $this->getMailboxData(),
             'pickup' => $this->getPickupData(),
             'pickup_express' => $this->getPickupExpressData(),
-            'belgium_pickup' => $this->getBelgiumData(),
+            'belgium_pickup' => $this->getBelgiumPickupData(),
         ];
 
         $this
@@ -199,7 +199,7 @@ class Checkout
      *
      * @return array)
      */
-    private function getBelgiumData()
+    private function getBelgiumPickupData()
     {
         return [
             'active' => $this->helper->getCheckoutConfig('belgium_pickup/active'),
