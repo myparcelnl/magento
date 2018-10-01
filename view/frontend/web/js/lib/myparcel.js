@@ -750,7 +750,7 @@ MyParcel = {
 
     showPostnlPickupOnGoogleMaps: function () {
 
-        jQuery.getScript("https://maps.googleapis.com/maps/api/js?key=AIzaSyAyBuzlPSNhmRIEhIl-3ZUidj3fwXfsDSw&amp;sensor=false", function () {
+        jQuery.getScript("https://maps.googleapis.com/maps/api/js?key=[YOUR_API_KEY]&amp;sensor=false", function () {
             jQuery('#mypa-pickup-google-maps').show();
 
             var bounds = new google.maps.LatLngBounds();
