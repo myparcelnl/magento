@@ -8,10 +8,10 @@ define(
         'jquery',
         'text!MyParcelNL_Magento/template/checkout/options.html',
         'text!MyParcelNL_Magento/css/checkout/options-dynamic.min.css',
-        'MyParcelNL_Magento/js/lib/moment.min',
-        'MyParcelNL_Magento/js/lib/myparcel'
+        'MyParcelNL_Magento/js/lib/myparcel',
+        'Magento_Checkout/js/action/set-shipping-information'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction) {
         'use strict';
 
         var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
@@ -28,6 +28,7 @@ define(
             }
             window.mypa.fn.hideOptions = hideOptions;
             window.mypa.moment = moment;
+            window.mypa.setShippingInformationAction = setShippingInformationAction;
 
             if (window.mypa.isLoading === false) {
                 _hideRadios();
@@ -120,6 +121,8 @@ define(
                 if (typeof country === 'undefined') country = '';
                 var postcode = quote.shippingAddress._latestValue.postcode;
                 if (typeof postcode === 'undefined') postcode = '';
+                var city = quote.shippingAddress._latestValue.postcode;
+                if (typeof city === 'undefined') city = '';
             } else {
                 var street0 = jQuery("input[name='street[0]']").val();
                 if (typeof street0 === 'undefined') street0 = '';
@@ -131,6 +134,8 @@ define(
                 if (typeof country === 'undefined') country = '';
                 var postcode = jQuery("input[name='postcode']").val();
                 if (typeof postcode === 'undefined') postcode = '';
+                var city = jQuery("input[name='city']").val();
+                if (typeof city === 'undefined') city = '';
             }
 
             window.mypa.address = [];
@@ -139,6 +144,7 @@ define(
             window.mypa.address.street2 = street2.replace(/[<>=]/g,'');
             window.mypa.address.cc = country.replace(/[<>=]/g,'');
             window.mypa.address.postcode = postcode.replace(/[\s<>=]/g,'');
+            window.mypa.address.city = city.replace(/[<>=]/g,'');
         }
 
         function showOptions() {
@@ -162,7 +168,7 @@ define(
         }
 
         function _getCcIsLocal() {
-            if (window.mypa.address.cc !== 'NL') {
+            if (window.mypa.address.cc !== 'NL' && window.mypa.address.cc !== 'BE' ) {
                 return false;
             }
 
@@ -191,7 +197,6 @@ define(
                 setTimeout(function(){
                     if (jQuery(myparcel_method_element + ':checked').length === 0) {
                         delivery_options_input.val('');
-                        myparcel.optionsHaveBeenModified();
                     }
                 }, 50);
             });
@@ -208,39 +213,73 @@ define(
         }
 
         function _setParameters() {
-            var data = window.mypa.data;
-            window.mypa.settings = {
-                deliverydays_window: data.general.deliverydays_window,
-                number: _getHouseNumber(),
-                street: _getFullStreet(),
-                postal_code: window.mypa.address.postcode,
-                cutoff_time: data.general.cutoff_time,
-                dropoff_days: data.general.dropoff_days,
-                monday_delivery: data.general.monday_delivery_active,
-                saturday_cutoff_time: data.general.saturday_cutoff_time,
-                dropoff_delay: data.general.dropoff_delay,
-                exclude_delivery_type: data.general.exclude_delivery_types,
-                price: {
-                    morning: data.morning.fee,
-                    default: data.general.base_price,
-                    night: data.evening.fee,
-                    pickup: data.pickup.fee,
-                    pickup_express: data.pickup_express.fee,
-                    signed: data.delivery.signature_fee,
-                    only_recipient: data.delivery.only_recipient_fee,
-                    combi_options: data.delivery.signature_and_only_recipient_fee,
-                    mailbox: data.mailbox.fee,
+            var data = {
+                address: {
+                    cc: window.mypa.address.cc,
+                    street: _getFullStreet(),
+                    postalCode: window.mypa.address.postcode,
+                    number: _getHouseNumber(),
+                    city: window.mypa.address.city
                 },
-                base_url: 'https://api.myparcel.nl/delivery_options',
-                text:
-                    {
-                        signed: data.delivery.signature_title,
-                        only_recipient: data.delivery.only_recipient_title
-                    }
-            };
+                txtWeekDays: [
+                    'Zondag',
+                    'Maandag',
+                    'Dinsdag',
+                    'Woensdag',
+                    'Donderdag',
+                    'Vrijdag',
+                    'Zaterdag'
+                ],
+                translateENtoNL: {
+                    'monday': 'maandag',
+                    'tuesday': 'dindsag',
+                    'wednesday': 'woensdag',
+                    'thursday': 'donderdag',
+                    'friday': 'vrijdag',
+                    'saturday': 'zaterdag',
+                    'sunday': 'zondag'
+                },
+                config: {
+                    "apiBaseUrl": "https://api.myparcel.nl/",
+                    "carrier": "1",
 
-            myparcel = new MyParcel();
-            myparcel.updatePage();
+                    "priceMorningDelivery":  window.mypa.data.morning.fee,
+                    "priceStandardDelivery": window.mypa.data.general.base_price,
+                    "priceEveningDelivery": window.mypa.data.evening.fee,
+                    "priceSignature": window.mypa.data.delivery.signature_fee,
+                    "priceOnlyRecipient":window.mypa.data.delivery.only_recipient_fee,
+                    "pricePickup": window.mypa.data.pickup.fee,
+                    "pricePickupExpress": window.mypa.data.pickup_express.fee,
+
+                    "deliveryTitle": window.mypa.data.delivery.delivery_title,
+                    "pickupTitle": window.mypa.data.pickup.title,
+                    "deliveryMorningTitle": window.mypa.data.morning.title,
+                    "deliveryStandardTitle": window.mypa.data.delivery.standard_delivery_title,
+                    "deliveryEveningTitle": window.mypa.data.evening.title,
+                    "signatureTitle": window.mypa.data.delivery.signature_title,
+                    "onlyRecipientTitle": window.mypa.data.delivery.only_recipient_title,
+
+                    "allowMondayDelivery": window.mypa.data.general.monday_delivery_active,
+                    "allowMorningDelivery": window.mypa.data.morning.active,
+                    "allowEveningDelivery": window.mypa.data.evening.active,
+                    "allowSignature": window.mypa.data.delivery.signature_active,
+                    "allowOnlyRecipient": window.mypa.data.delivery.only_recipient_active,
+                    "allowPickupPoints": window.mypa.data.pickup.active,
+                    "allowPickupExpress": window.mypa.data.pickup_express.active,
+
+                    "dropOffDays": window.mypa.data.general.dropoff_days,
+                    "saturdayCutoffTime": window.mypa.data.general.saturday_cutoff_time,
+                    "cutoffTime": window.mypa.data.general.cutoff_time,
+                    "deliverydaysWindow": window.mypa.data.general.deliverydays_window,
+                    "dropoffDelay":window.mypa.data.general.dropoff_delay,
+
+                    "AllowBelgiumPickup": window.mypa.data.belgium_pickup.active,
+                    "BelgiumDeliveryTitel": window.mypa.data.belgium_pickup.titel,
+                    "BelgiumDeliveryStandardTitel": window.mypa.data.belgium_pickup.fee
+                }
+
+            };
+            MyParcel.init(data);
         }
 
         function _appendTemplate() {
