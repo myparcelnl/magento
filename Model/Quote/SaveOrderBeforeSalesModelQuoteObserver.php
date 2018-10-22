@@ -105,7 +105,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
          * $shippingMethod = ...
          */
 
-        if ( $this->array_like( $shippingMethod, $myParcelMethods ) ) {
+        if ($this->array_like($shippingMethod, $myParcelMethods)) {
             return true;
         }
 
