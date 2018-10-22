@@ -130,7 +130,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
             return false;
         });
 
-        return count( $result ) > 0;
+        return count($result) > 0;
     }
 
 }
