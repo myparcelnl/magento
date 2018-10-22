@@ -98,7 +98,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      * @return bool
      */
     private function isMyParcelMethod($quote) {
-        $myParcelMethods = array_keys( Carrier::getMethods() );
+        $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
         /**
          * @todo explode and use second part
