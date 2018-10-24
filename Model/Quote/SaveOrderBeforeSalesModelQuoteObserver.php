@@ -100,11 +100,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     private function isMyParcelMethod($quote) {
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
-        /**
-         * @todo explode and use second part
-         * $shippingMethod = ...
-         */
-
+        
         if ($this->array_like($shippingMethod, $myParcelMethods)) {
             return true;
         }
