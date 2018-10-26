@@ -136,6 +136,7 @@ Deliver the package only at address of the intended recipient.,Lever het pakket 
 Home address only titel,Alleen huisadres titel
 Home address only fee,Alleen huisadres prijs
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
+Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
 Signature on receipt,Handtekening voor ontvangst
 Signature on receipt title, Handtekening voor ontvangst titel
 Signature on receipt fee, Handtekening voor ontvangst prijs
