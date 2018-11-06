@@ -94,7 +94,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         try {
             $this->orderCollection
                 ->setOptionsFromParameters()
-                ->setNewMagentoShipment();
+                ->setNewMagentoShipment()
+                ->reload();
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(__('An error has occurred while creating a Magento shipment and the error is being logged. Please check the order and contact MyParcel'));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);

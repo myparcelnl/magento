@@ -40,13 +40,35 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Set Magento collection
      *
-     * @param $orderCollection \Magento\Sales\Model\ResourceModel\Order\Collection
+     * @param $orderCollection \Magento\Sales\Model\ResourceModel\Order\Collection|Order[]
      *
      * @return $this
      */
     public function setOrderCollection($orderCollection)
     {
         $this->orders = $orderCollection;
+
+        return $this;
+    }
+
+    /**
+     * Set Magento collection
+     *
+     * @param $orderCollection \Magento\Sales\Model\ResourceModel\Order\Collection
+     *
+     * @return $this
+     */
+    public function reload()
+    {
+        $ids = $this->orders->getAllIds();
+
+        $orders = [];
+        foreach ($ids as $orderId) {
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $orders[] = $objectManager->create('\Magento\Sales\Model\Order')->load($orderId);
+        }
+
+        $this->setOrderCollection($orders);
 
         return $this;
     }
@@ -67,7 +89,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
         }
 
-        $this->getOrders()->save();
+        $this->save();
 
         return $this;
     }
@@ -76,6 +98,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Create new Magento Track and save order
      *
      * @return $this
+     * @throws \Exception
      */
     public function setMagentoTrack()
     {
@@ -91,7 +114,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
         }
 
-        $this->getOrders()->save();
+        $this->save();
 
         return $this;
     }
@@ -137,8 +160,8 @@ class MagentoOrderCollection extends MagentoCollection
             foreach ($order->getShipmentsCollection() as $shipment) {
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE) {
-                        $myparcelTrack = $this->getMyParcelTrack($magentoTrack);
-                        $this->myParcelCollection->addConsignment($myparcelTrack);
+                        $myParcelTrack = $this->getMyParcelTrack($magentoTrack);
+                        $this->myParcelCollection->addConsignment($myParcelTrack);
                     }
                 }
             }
@@ -238,6 +261,12 @@ class MagentoOrderCollection extends MagentoCollection
         return $this;
     }
 
+    private function save() {
+        foreach ($this->getOrders() as $order) {
+            $order->save();
+        }
+    }
+
     /**
      * Send shipment email with Track and trace variable
      *
@@ -308,7 +337,7 @@ class MagentoOrderCollection extends MagentoCollection
 
             // Send email
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
-                ->notify($shipment);
+                                ->notify($shipment);
 
         } catch (\Exception $e) {
             throw new LocalizedException(
@@ -378,7 +407,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
         }
 
-        $this->getOrders()->save();
+        $this->save();
 
         return $this;
     }
