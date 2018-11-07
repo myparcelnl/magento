@@ -67,7 +67,13 @@ ol > li, ul > li {
     background-color: rgba(255, 255, 255, 0.2);
     border-color: rgba(255, 255, 255, 0.3);
 }
-
+.imageCenter{
+    width: 400px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+}
 @media screen and (min-width: 64em) {
     .btn {
         padding: 0.75rem 1rem;
