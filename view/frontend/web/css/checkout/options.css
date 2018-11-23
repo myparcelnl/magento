@@ -224,3 +224,8 @@
         width: 90%;
     }
 }
+
+/* hide shipping block in card */
+div#block-shipping {
+    display: none;
+}
