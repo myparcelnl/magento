@@ -143,7 +143,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      *
      * @return array
      */
-    public function getMethods()
+    public static function getMethods()
     {
 	    $methods = [
             'signature' => 'delivery/signature_',
@@ -174,7 +174,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
 	        return $methods;
         }
 
-        $methods = $this->getMethods();
+        $methods = self::getMethods();
 
         if (!$this->package->fitInMailbox()) {
             unset($methods['mailbox']);
