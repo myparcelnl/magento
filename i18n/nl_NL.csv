@@ -70,7 +70,7 @@ Download letter label,Download ongefrankeerd label
 Create new concept,Creëer nieuw concept
 Create shipment,Zending aanmaken
 Please select an item from the list,Selecteer eerst een order uit de lijst
-⚠️&#160; Please check address,⚠️&#160; Controleer het adres
+Please check address,Controleer het adres
 No key found. Go to Configuration and then to MyParcel to enter the key.,Geen API key gevonden. Ga naar Configuratie en vervolgens naar MyParcel om de API key in te voeren.
 "No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.","Er kan geen zending met deze bestelling gemaakt worden. Zendingen kunnen niet worden aangemaakt als de status 'Wordt vastgehouden' is of als het product digitaal is."
 MyParcel Track,MyParcel barcode
