@@ -220,7 +220,7 @@ MyParcel = {
          * Morning delivery
          *
          */
-        if (jQuery('#method-myparcel-delivery-morning').prop('checked')) {
+        if (jQuery('#mypa-pickup-delivery').prop('checked') === false && jQuery('#method-myparcel-delivery-morning').prop('checked')) {
             method = 'morning';
             MyParcel.deliveryOnlyRecipient = 1;
             MyParcel.addStyleToPrice('#mypa-morning-delivery, #mypa-only-recipient-price');
@@ -284,7 +284,7 @@ MyParcel = {
          * Evening delivery
          *
          */
-        if (jQuery('#method-myparcel-delivery-evening').prop('checked')) {
+        if (jQuery('#mypa-pickup-delivery').prop('checked') === false && jQuery('#method-myparcel-delivery-evening').prop('checked')) {
             method = 'evening';
             MyParcel.deliveryOnlyRecipient = 1;
             MyParcel.addStyleToPrice('#mypa-evening-delivery, #mypa-only-recipient-price');
@@ -875,7 +875,8 @@ MyParcel = {
     },
 
     clickMagentoShippingMethod: function (method) {
-        jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_' + method).click();
+        jQuery('#label_method_' + method + '_' + window.mypa.data.general.parent_carrier).parent().find('input').click();
+        //jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_' + method).click();
     },
 
     /*
