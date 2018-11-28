@@ -876,7 +876,6 @@ MyParcel = {
 
     clickMagentoShippingMethod: function (method) {
         jQuery('#label_method_' + method + '_' + window.mypa.data.general.parent_carrier).parent().find('input').click();
-        //jQuery('#s_method_' + window.mypa.data.general.parent_carrier + '_' + method).click();
     },
 
     /*
