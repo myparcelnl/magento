@@ -271,7 +271,7 @@ MyParcel = {
                 MyParcel.deliveryOnlyRecipient = 1;
                 MyParcel.addStyleToPrice('#mypa-only-recipient-price');
             } else {
-                method = window.mypa.data.general.parent_carrier;
+                method = window.mypa.data.general.parent_method;
             }
 
             MyParcel.addStyleToPrice('#mypa-normal-delivery');
