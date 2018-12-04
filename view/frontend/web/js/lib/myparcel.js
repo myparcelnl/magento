@@ -514,7 +514,7 @@ MyParcel = {
             }
         }
         if(MyParcel.data.address.cc === 'BE'){
-            jQuery('#mypa-delivery-titel').html(MyParcel.data.config.BelgiumdeliveryTitel);
+            jQuery('#mypa-delivery-title').html(MyParcel.data.config.BelgiumdeliveryTitle);
             jQuery('#mypa-delivery-date-text,#mypa-delivery-date-select').hide();
         }
     },
@@ -728,7 +728,7 @@ MyParcel = {
             html += '<span class="mypa-pickup-location-details-phone">' + currentLocation.phone_number + '</span>';
         }
         html += '<span class="mypa-pickup-location-details-time">Ophalen vanaf:&nbsp;' + startTime + '</span>';
-        html += '<h3 class="mypa-openings-titel">Openingstijden</h3>';
+        html += '<h3 class="mypa-openings-title">Openingstijden</h3>';
 
         jQuery.each(
             currentLocation.opening_hours, function (weekday, value) {

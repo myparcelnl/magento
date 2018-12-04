@@ -274,8 +274,8 @@ define(
                     "dropoffDelay":window.mypa.data.general.dropoff_delay,
 
                     "AllowBelgiumPickup": window.mypa.data.belgium_pickup.active,
-                    "BelgiumDeliveryTitel": window.mypa.data.belgium_pickup.titel,
-                    "BelgiumDeliveryStandardTitel": window.mypa.data.belgium_pickup.fee
+                    "BelgiumDeliveryTitle": window.mypa.data.belgium_pickup.title,
+                    "BelgiumDeliveryStandardTitle": window.mypa.data.belgium_pickup.fee
                 }
 
             };
