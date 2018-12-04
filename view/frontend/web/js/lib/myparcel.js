@@ -368,6 +368,10 @@ MyParcel = {
 
     triggerDefaultOptionDelivery: function (deliveryDateId, deliveryMomentOfDay) {
 
+        if (typeof MyParcel.result.deliveryOptions === 'undefined') {
+            return null;
+        }
+
         var dateArray = MyParcel.result.deliveryOptions.data.delivery[deliveryDateId];
         var currentDeliveryData = null;
 
