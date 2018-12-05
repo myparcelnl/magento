@@ -197,6 +197,7 @@ define(
                 setTimeout(function(){
                     if (jQuery(myparcel_method_element + ':checked').length === 0) {
                         delivery_options_input.val('');
+                        MyParcel.optionsHaveBeenModified();
                     }
                 }, 50);
             });
@@ -274,8 +275,8 @@ define(
                     "dropoffDelay":window.mypa.data.general.dropoff_delay,
 
                     "AllowBelgiumPickup": window.mypa.data.belgium_pickup.active,
-                    "BelgiumDeliveryTitel": window.mypa.data.belgium_pickup.titel,
-                    "BelgiumDeliveryStandardTitel": window.mypa.data.belgium_pickup.fee
+                    "BelgiumDeliveryTitle": window.mypa.data.belgium_pickup.title,
+                    "BelgiumDeliveryStandardTitle": window.mypa.data.belgium_pickup.fee
                 }
 
             };

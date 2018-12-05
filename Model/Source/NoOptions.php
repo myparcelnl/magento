@@ -1,6 +1,7 @@
 <?php
 /**
- * Get paper types for MyParcel system settings
+ * Get only the "No" option for in the MyParcel system settings
+ * This option is used with settings that are not possible because an parent option is turned off.
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl

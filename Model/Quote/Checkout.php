@@ -201,9 +201,16 @@ class Checkout
      */
     private function getBelgiumPickupData()
     {
+        if (empty($this->helper->getCheckoutConfig('belgium_pickup/active'))) {
+            return [
+                'active' => 0,
+                'title' => "",
+                'fee' => 0,
+            ];
+        }
         return [
             'active' => $this->helper->getCheckoutConfig('belgium_pickup/active'),
-            'titel' => $this->helper->getCheckoutConfig('belgium_pickup/title'),
+            'title' => $this->helper->getCheckoutConfig('belgium_pickup/title'),
             'fee' => $this->helper->getMethodPriceFormat('belgium_pickup/fee'),
         ];
     }
