@@ -86,7 +86,7 @@ MyParcel = {
 
         var selectedDate = jQuery('#mypa-select-date').val();
         var selectDateKey = MyParcel.storeDeliveryOptions.data.delivery[selectedDate]['time'];
-
+        jQuery('#method-myparcel-normal').prop('checked', true);
         MyParcel.hideMorningDelivery();
         MyParcel.hideEveningDelivery();
 
@@ -208,6 +208,16 @@ MyParcel = {
 
             MyParcel.mapExternalWebshopTriggers()
         });
+    },
+
+    /*
+     * optionsHaveBeenModified
+     */
+    optionsHaveBeenModified: function () {
+        jQuery("input[name='delivery_options']").change();
+        MyParcel.hidePickUpLocations();
+        MyParcel.hideDelivery();
+        return;
     },
 
     mapExternalWebshopTriggers: function () {
@@ -445,8 +455,6 @@ MyParcel = {
         if (selected.length > 0) {
             deliveryOption = selected.val();
         }
-
-        /* XXX Send to appropriate webshop field */
     },
 
 
@@ -483,6 +491,7 @@ MyParcel = {
      */
 
     hideDelivery: function () {
+        jQuery('.myparcel-delivery-method, .myparcel-delivery-sub-method').prop('checked', false);
         jQuery('#mypa-delivery-date-select, #mypa-pre-selectors-nl, #mypa-delivery-date-text,.mypa-extra-delivery-options').hide();
         jQuery('#mypa-delivery').parent().parent().hide();
         MyParcel.hideSignature();
@@ -501,7 +510,7 @@ MyParcel = {
 
     showDelivery: function () {
         jQuery('#mypa-delivery').parent().parent().show();
-
+        MyParcel.showDeliveryDates();
         if (MyParcel.data.address.cc === "NL") {
             jQuery('#mypa-pre-selectors-' + this.data.address.cc.toLowerCase()).show();
             jQuery('#mypa-delivery-selectors-' + this.data.address.cc.toLowerCase()).show();
@@ -658,6 +667,7 @@ MyParcel = {
      */
 
     hidePickUpLocations: function () {
+        jQuery('.myparcel-pickup-method, .myparcel-pickup-sub-method').prop('checked', false);
         if (!MyParcel.data.config.allowPickupPoints) {
             jQuery('#mypa-pickup-location-selector').hide();
         }

@@ -197,6 +197,7 @@ define(
                 setTimeout(function(){
                     if (jQuery(myparcel_method_element + ':checked').length === 0) {
                         delivery_options_input.val('');
+                        MyParcel.optionsHaveBeenModified();
                     }
                 }, 50);
             });
