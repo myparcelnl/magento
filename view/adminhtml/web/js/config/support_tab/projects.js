@@ -49,7 +49,7 @@ require(['jquery'], function($){
         };
 
         appendColumn = function (column) {
-            $('.mypa_columns').append('<div class="myparcel_column"><h2 class="myparcel_progress_column_titel">' + column.title + '</h2><div id="label-' + column.alias + '"></div></div>');
+            $('.mypa_columns').append('<div class="myparcel_column"><h2 class="myparcel_progress_column_title">' + column.title + '</h2><div id="label-' + column.alias + '"></div></div>');
             appendCards(column)
         };
 

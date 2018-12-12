@@ -75,6 +75,7 @@ class Checkout
             'mailbox' => $this->getMailboxData(),
             'pickup' => $this->getPickupData(),
             'pickup_express' => $this->getPickupExpressData(),
+            'belgium_pickup' => $this->getBelgiumPickupData(),
         ];
 
         $this
@@ -117,6 +118,7 @@ class Checkout
     {
         $deliveryData = [
             'delivery_title' => $this->helper->getCheckoutConfig('delivery/delivery_title'),
+            'standard_delivery_title' => $this->helper->getCheckoutConfig('delivery/standard_delivery_title'),
             'only_recipient_active' => $this->helper->getBoolConfig('delivery/only_recipient_active'),
             'only_recipient_title' => $this->helper->getCheckoutConfig('delivery/only_recipient_title'),
             'only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/only_recipient_fee', false, '+ '),
@@ -146,6 +148,7 @@ class Checkout
     {
         return [
             'active' => $this->helper->getBoolConfig('morning/active'),
+            'title' => $this->helper->getCheckoutConfig('morning/title'),
             'fee' => $this->helper->getMethodPriceFormat('morning/fee'),
         ];
     }
@@ -159,6 +162,7 @@ class Checkout
     {
         return [
             'active' => $this->helper->getBoolConfig('evening/active'),
+            'title' => $this->helper->getCheckoutConfig('evening/title'),
             'fee' => $this->helper->getMethodPriceFormat('evening/fee'),
         ];
     }
@@ -187,6 +191,27 @@ class Checkout
         return [
             'active' => $this->helper->getCheckoutConfig('pickup_express/active'),
             'fee' => $this->helper->getMethodPriceFormat('pickup_express/fee'),
+        ];
+    }
+
+    /**
+     * Get Belgium pickup data
+     *
+     * @return array)
+     */
+    private function getBelgiumPickupData()
+    {
+        if (empty($this->helper->getCheckoutConfig('belgium_pickup/active'))) {
+            return [
+                'active' => 0,
+                'title' => "",
+                'fee' => 0,
+            ];
+        }
+        return [
+            'active' => $this->helper->getCheckoutConfig('belgium_pickup/active'),
+            'title' => $this->helper->getCheckoutConfig('belgium_pickup/title'),
+            'fee' => $this->helper->getMethodPriceFormat('belgium_pickup/fee'),
         ];
     }
 

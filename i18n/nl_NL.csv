@@ -56,6 +56,8 @@ Track action,Track actie
 MyParcel options,MyParcel opties
 Package,Pakket
 Mailbox,Brievenbuspakje
+Morning delivery,Ochtendlevering
+Evening delivery,Avondlevering
 Letter,Ongefrankeerd
 Home address only,Alleen huisadres
 Signature on receipt,Handtekening voor ontvangst
@@ -126,16 +128,15 @@ Monday delivery cut-off time,Laatste bestelmoment voor maandaglevering.
 Dropoff-delay,Vertraging
 No delay,Geen vertraging
 "This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.","Stel hier het aantal dagen in die je nodig hebt om het product (te ontvangen,) te verpakken en aan te bieden bij PostNL, vanaf het moment dat de bestelling is geplaatst".
-Base color,Basis kleur
-Color for selected items,Kleur voor geselecteerde items
 Methods,Verzendmethode
 The extra myparcel options are added to this shipping method,De extra myparcel opties worden bij deze verzendmethode toegevoegd.
-Delivery titel,Bezorg titel
+Delivery title,Bezorg titel
 Home address only, Alleen huisadres
 Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
-Home address only titel,Alleen huisadres titel
+Home address only title,Alleen huisadres titel
 Home address only fee,Alleen huisadres prijs
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
+Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
 Signature on receipt,Handtekening voor ontvangst
 Signature on receipt title, Handtekening voor ontvangst titel
 Signature on receipt fee, Handtekening voor ontvangst prijs
@@ -145,7 +146,8 @@ If both have been selected this price will be added to the regular shipping pric
 Mailbox settings,Brievenbuspakje instellingen
 Automate mailbox,Brievenbuspakje automatiseren
 Mailbox with other options,Brievenbuspakje tonen met andere opties
-Mailbox titel,Brievenbuspakje titel
+Mailbox title,Brievenbuspakje titel
+Select automatically mailbox packages based on weight or volume,Selecteer automatisch brievenbuspakje op basis van gewicht of volume
 Leave blank to automate mailbox packets only in the backend,Laat leeg om brievenbuspakjes alleen in de backend te automatiseren
 Mailbox weight,Brievenbuspakje gewicht
 "Besides assigning weights to all products, you can also specify a volume of each product.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten."
