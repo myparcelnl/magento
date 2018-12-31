@@ -124,6 +124,10 @@ define(
                 var city = quote.shippingAddress._latestValue.postcode;
                 if (typeof city === 'undefined') city = '';
             } else {
+                var validatedAddress = usePostcodeValidateAdress();
+                if (typeof validatedAddress !== 'undefined'){
+                    var street0 = validatedAddress;
+                }
                 var street0 = jQuery("input[name='street[0]']").val();
                 if (typeof street0 === 'undefined') street0 = '';
                 var street1 = jQuery("input[name='street[1]']").val();
@@ -145,6 +149,16 @@ define(
             window.mypa.address.cc = country.replace(/[<>=]/g,'');
             window.mypa.address.postcode = postcode.replace(/[\s<>=]/g,'');
             window.mypa.address.city = city.replace(/[<>=]/g,'');
+        }
+
+        /**
+         * Use the validated address data from POSTCODE.NL
+         * @returns {*|jQuery}
+         */
+        function usePostcodeValidateAdress(validatedAddress = '') {
+            validatedAddress = jQuery(".postcode-valid-address").text();
+
+            return validatedAddress;
         }
 
         function showOptions() {
