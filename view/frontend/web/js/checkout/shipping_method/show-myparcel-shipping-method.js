@@ -126,7 +126,7 @@ define(
             } else {
                 var street0 = jQuery("input[name='street[0]']").val();
                 var validatedAddress = getPostcodeValidateAddress();
-                if (typeof validatedAddress !== 'undefined'){
+                if (validatedAddress && typeof validatedAddress !== 'undefined'){
                     var street0 = validatedAddress;
                 }
                 if (typeof street0 === 'undefined') street0 = '';
