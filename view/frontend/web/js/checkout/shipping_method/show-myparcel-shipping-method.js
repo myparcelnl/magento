@@ -159,7 +159,6 @@ define(
             var validatedAddress = jQuery(".postcode-valid-address").text();
 
             if (jQuery("select[name='country_id']").val() == 'BE') {
-                console.log('hier kom ik in');
                 validatedAddress = jQuery('#shipping-be-street').val() + ' ' + jQuery('#shipping-be-house').val();
             }
             return validatedAddress
