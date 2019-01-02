@@ -124,11 +124,11 @@ define(
                 var city = quote.shippingAddress._latestValue.postcode;
                 if (typeof city === 'undefined') city = '';
             } else {
+                var street0 = jQuery("input[name='street[0]']").val();
                 var validatedAddress = getPostcodeValidateAddress();
                 if (typeof validatedAddress !== 'undefined'){
                     var street0 = validatedAddress;
                 }
-                var street0 = jQuery("input[name='street[0]']").val();
                 if (typeof street0 === 'undefined') street0 = '';
                 var street1 = jQuery("input[name='street[1]']").val();
                 if (typeof street1 === 'undefined') street1 = '';
@@ -156,7 +156,13 @@ define(
          * @returns {* | jQuery}
          */
         function getPostcodeValidateAddress() {
-            return jQuery(".postcode-valid-address").text();
+            var validatedAddress = jQuery(".postcode-valid-address").text();
+
+            if (jQuery("select[name='country_id']").val() == 'BE') {
+                console.log('hier kom ik in');
+                validatedAddress = jQuery('#shipping-be-street').val() + ' ' + jQuery('#shipping-be-house').val();
+            }
+            return validatedAddress
         }
 
         function showOptions() {
