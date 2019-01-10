@@ -85,7 +85,7 @@ Open in new tab, Open in nieuw tabblad
 Package Type,Pakkettype
 Print position,Printpositie
 MyParcel version,MyParcel versie
-"The MyParcel extension version %1 is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","De MyParcel extensie versie %1 is geïnstalleerd in jouw webshop. Momenteel is de laatste stabiele versie %2. Als je enige problemen ervaart adviseren wij altijd de laatste stabiele versie te installeren in jouw magento omgeving."
+"The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","Versie %1 van de extensie is geïnstalleerd in jouw webshop. Momenteel is de laatste stabiele versie %2. Als je enige problemen ervaart adviseren wij altijd de laatste stabiele versie te installeren in jouw magento omgeving."
 "To read the instructions for the Magento extension, click %1 here %2.","Klik %1 hier %2 om de handleiding van de Magento extensie te bekijken."
 When using the extension please note:,Aandachtspunten bij het gebruik van deze extensie:
 To be able to configure the extension you need to possess and use an active account.,U dient een actief account te hebben om de extensie te kunnen configureren.
