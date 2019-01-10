@@ -43,8 +43,8 @@ Automate 'Return if no answer',Automatiseer 'Retour bij niet aanwezig'
 'Return if no answer' operates above a certain order total amount,'Retour bij niet aanwezig' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 Automate 'Large format',Automatiseer 'Groot pakket'
 'Large format' operates above a certain order total amount,'Groot pakket' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
-Automate 'Insurance € 50',Automatiseer 'Verzekerd tot € 50'
-"'Insurance € 50' operates above a certain order total amount. Only for dutch shipments.","'Verzekerd tot € 50' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen."
+Automate 'Insurance € 100',Automatiseer 'Verzekerd tot € 100'
+"'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.","'Verzekerd tot € 100' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen."
 Automate 'Insurance € 250',Automatiseer 'Verzekerd tot € 250'
 "'Insurance € 250' operates above a certain order total amount. Only for dutch shipments, shipments to outside of the EU are standard ensured up to € 200.","'Verzekerd tot € 250' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen, zendingen naar landen buiten de EU zijn standaard verzekerd tot € 200."
 Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
@@ -105,7 +105,6 @@ Installation and configuration manual,Installatie en configuratie handleiding
 Full changelog,Volledige release notes
 Installation and configuration instructions,Installatie en configuratie handleiding
 MyParcel progress, MyParcel vooruitgang
-MyParcel backoffice,MyParcel backoffice
 delivery/signature_and_only_recipient_title,Niet bij de buren bezorgen + handtekening voor ontvangst
 morning/title,Ochtendlevering
 morning_signature/title,Ochtendlevering + handtekening voor ontvangst
