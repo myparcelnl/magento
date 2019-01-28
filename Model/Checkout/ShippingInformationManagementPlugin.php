@@ -24,7 +24,11 @@ class ShippingInformationManagementPlugin
         \Magento\Checkout\Api\Data\ShippingInformationInterface $addressInformation
     ) {
         $extAttributes = $addressInformation->getExtensionAttributes();
-        if (! empty($extAttributes) && ! empty($extAttributes->getDeliveryOptions())) {
+
+        if (! empty($extAttributes) &&
+            ! empty($extAttributes->getDeliveryOptions()) &&
+            $extAttributes->getDeliveryOptions() != '{}'
+        ) {
             $deliveryOptions = $extAttributes->getDeliveryOptions();
             $quote = $this->quoteRepository->getActive($cartId);
             $quote->setDeliveryOptions($deliveryOptions);
