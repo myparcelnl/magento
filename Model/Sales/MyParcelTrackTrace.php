@@ -180,7 +180,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     public function setApiKey($apiKey)
     {
         if ($apiKey == null) {
-            throw new LocalizedException(__('API key is not known. Go to the settings in the back office of MyParcel to create an API key. Fill the API key in the settings.'));
+            throw new LocalizedException(__('API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.'));
         }
         parent::setApiKey($apiKey);
 

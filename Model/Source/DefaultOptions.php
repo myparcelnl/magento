@@ -95,8 +95,8 @@ class DefaultOptions
             return 250;
         }
 
-        if ($this->getDefault('insurance_50')) {
-            return 50;
+        if ($this->getDefault('insurance_100')) {
+            return 100;
         }
 
         return 0;
