@@ -51,11 +51,7 @@ class AgeCheckNo implements ArrayInterface
     {
         $settings = self::$helper->getStandardConfig('options');
 
-        if ($settings[$option . '_active'] == '1') {
-            return true;
-        }
-
-        return false;
+        return $settings[$option . '_active'] == '1';
     }
 
     /**
