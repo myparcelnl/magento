@@ -31,20 +31,14 @@ class AgeCheckYes implements ArrayInterface
     static private $helper;
 
     /**
-     * @var Order
-     */
-    static private $order;
-
-    /**
      * Insurance constructor.
      *
      * @param $order Order
      * @param $helper Data
      */
-    public function __construct(Order $order, Data $helper)
+    public function __construct(Data $helper)
     {
         self::$helper = $helper;
-        self::$order = $order;
     }
 
     /**
