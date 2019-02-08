@@ -143,9 +143,7 @@ class Checkout
      * @return mixed
      */
     private function getAgeCheckData(){
-        $isAgeCheckActive = $this->helper->getStandardConfig('options')['age_check_active'];
-
-        return $isAgeCheckActive;
+        return $this->helper->getStandardConfig('options')['age_check_active'];
     }
 
     /**
