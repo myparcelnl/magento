@@ -43,6 +43,9 @@ Automate 'Return if no answer',Automatiseer 'Retour bij niet aanwezig'
 'Return if no answer' operates above a certain order total amount,'Retour bij niet aanwezig' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 Automate 'Large format',Automatiseer 'Groot pakket'
 'Large format' operates above a certain order total amount,'Groot pakket' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscheck is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ moet zijn en dit moet bewijzen door middel van een identiteitsbewijs. Met deze verzendoptie zijn handtekening voor ontvangst en alleen huisadres inbegrepen. De leeftijdscheck is verder uitgesloten van de bezorgopties in de ochtend en avondlevering.
+"If age check is active than the morning delivery is not possible","Als leeftijdscheck actief is, dan is ochtendlevering niet mogelijk"
+"If age check is active than the evening delivery is not possible","Als leeftijdscheck actief is, dan is avondlevering niet mogelijk"
 Automate 'Insurance € 100',Automatiseer 'Verzekerd tot € 100'
 "'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.","'Verzekerd tot € 100' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen."
 Automate 'Insurance € 250',Automatiseer 'Verzekerd tot € 250'
@@ -136,12 +139,12 @@ Home address only, Alleen huisadres
 Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
 Home address only title,Alleen huisadres titel
 Home address only fee,Alleen huisadres prijs
-This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
+This will be added to the regular shipping price,"Dit zal bij de normale verzendkosten worden opgeteld"
+"This will be added to the regular shipping price. Once the age check is activated, than the price are already included.","Dit zal bij de normale verzendkosten worden opgeteld. Zodra de leeftijdscheck geactiveerd is, dan zijn dan kosten al inbegrepen."
 Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
 Signature on receipt,Handtekening voor ontvangst
 Signature on receipt title, Handtekening voor ontvangst titel
 Signature on receipt fee, Handtekening voor ontvangst prijs
-This will be added to the regular shipping price, Dit zal bij de normale verzendkosten worden opgeteld
 Home address only and signature on receipt together fee,De prijs van handtekening voor ontvangst en alleen huisadres samen
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
 Mailbox settings,Brievenbuspakje instellingen
@@ -157,7 +160,6 @@ Enter a basic price for a mailbox. The regular price will not affect this price.
 Morning delivery,Ochtendlevering
 Morning delivery active,Ochtendlevering actief
 Morning delivery fee, Ochtendlevering prijs
-This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Evening delivery,Avondlevering
 Evening delivery active,Avondlevering actief
 Evening delivery fee,Avondlevering prijs
