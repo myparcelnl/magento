@@ -43,6 +43,7 @@ Automate 'Return if no answer',Automatiseer 'Retour bij niet aanwezig'
 'Return if no answer' operates above a certain order total amount,'Retour bij niet aanwezig' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 Automate 'Large format',Automatiseer 'Groot pakket'
 'Large format' operates above a certain order total amount,'Groot pakket' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
+Automate 'Age check 18+', Automatiseer 'Leeftijdscheck 18+'
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscheck is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ moet zijn en dit moet bewijzen door middel van een identiteitsbewijs. Met deze verzendoptie zijn handtekening voor ontvangst en alleen huisadres inbegrepen. De leeftijdscheck is verder uitgesloten van de bezorgopties in de ochtend en avondlevering.
 "If age check is active than the morning delivery is not possible","Als leeftijdscheck actief is, dan is ochtendlevering niet mogelijk"
 "If age check is active than the evening delivery is not possible","Als leeftijdscheck actief is, dan is avondlevering niet mogelijk"
