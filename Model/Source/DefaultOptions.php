@@ -117,13 +117,6 @@ class DefaultOptions
     }
 
     private function isMailBox() {
-        /** @todo get mailbox config */
-        $mailboxActive = true;
-
-        if ($mailboxActive !== true) {
-            return false;
-        }
-
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
             return false;
@@ -138,8 +131,6 @@ class DefaultOptions
         ) {
             return true;
         }
-
-        /** @todo; check if mailbox fit in box */
         
         return false;
     }

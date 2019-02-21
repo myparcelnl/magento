@@ -115,13 +115,17 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         $checkoutData = $magentoTrack->getShipment()->getOrder()->getData('delivery_options');
         $deliveryType = $this->getDeliveryTypeFromCheckout($checkoutData);
         if ($options['package_type'] === 'default') {
-            $packageType = self::$defaultOptions->getPackageType();
+            if (false !== strpos($magentoTrack->getShipment()->getOrder()->getShippingMethod(), '_mailbox')) {
+                $packageType = 2;
+            } else {
+                $packageType = 1;
+            }
         } else {
             $packageType = (int)$options['package_type'] ?: 1;
         }
 
         if ($address->getCountryId() != 'NL' && (int)$options['package_type'] == 2) {
-            $options['package_type'] = 1;
+            $packageType = 1;
         }
 
         $this
