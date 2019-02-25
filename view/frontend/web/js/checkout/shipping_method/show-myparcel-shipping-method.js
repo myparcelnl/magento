@@ -101,6 +101,7 @@ define(
         function showMailboxRadio() {
             jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
             jQuery("td[id^='label_carrier_mailbox']").parent().show();
+            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"mailbox"}]}');
         }
 
         function _setAddress() {
