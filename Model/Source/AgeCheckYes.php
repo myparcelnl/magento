@@ -65,7 +65,7 @@ class AgeCheckYes implements ArrayInterface
     public function toOptionArray()
     {
         if ($this->getDefault('age_check')) {
-            return [['value' => 1, 'label' => __('Yes')]];
+            return [['value' => 0, 'label' => __('No')]];
         }
 
         return [['value' => 1, 'label' => __('Yes')], ['value' => 0, 'label' => __('No')]];
