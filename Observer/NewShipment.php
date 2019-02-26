@@ -101,7 +101,7 @@ class NewShipment implements ObserverInterface
         $consignmentId = $this
             ->orderCollection
             ->myParcelCollection
-            ->getConsignmentByReferenceId($myParcelTrack->mageTrack->getId())
+            ->getConsignmentByReferenceId($shipment->getEntityId())
             ->getMyParcelConsignmentId();
 
         $myParcelTrack->mageTrack

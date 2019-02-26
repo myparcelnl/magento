@@ -144,7 +144,7 @@ class MagentoShipmentCollection extends MagentoCollection
         foreach ($this->getShipments() as $shipment) {
             foreach ($shipment->getTracksCollection() as $track) {
                 $myParcelTrack = $this
-                    ->myParcelCollection->getConsignmentByReferenceId($track->getId());
+                    ->myParcelCollection->getConsignmentByReferenceId($shipment->getEntityId());
 
                 $track
                     ->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId())
