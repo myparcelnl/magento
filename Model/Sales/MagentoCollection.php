@@ -297,6 +297,7 @@ class MagentoCollection implements MagentoCollectionInterface
      * @param Order\Shipment\Track $magentoTrack
      *
      * @return MyParcelTrackTrace $myParcelTrack
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function getMyParcelTrack($magentoTrack)
     {

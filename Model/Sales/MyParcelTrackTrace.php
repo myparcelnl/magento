@@ -168,7 +168,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
             ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
             ->convertDataForCdCountry($magentoTrack)
-            ->setPhysicalProperties($packageType === 4 ? ['weight' => $this->getTotalWeight()] : null);
+            ->calculateTotalWeight($magentoTrack);
 
         return $this;
     }
@@ -274,5 +274,40 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         $items = $conn->fetchAll($select);
 
         return $items;
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
+     *
+     * @return MyParcelTrackTrace
+     * @throws LocalizedException
+     */
+    private function calculateTotalWeight($magentoTrack) {
+
+        if ($this->getPackageType() !== 4) {
+            return $this;
+        }
+
+        $totalWeight = 0;
+
+        if ($magentoTrack->getShipment()->getData('items') != null) {
+            $products = $magentoTrack->getShipment()->getData('items');
+
+            foreach ($products as $product) {
+                $totalWeight += $product->getWeight() ?: 1;
+            }
+        }
+
+        $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
+
+        foreach ($products as $product) {
+            $totalWeight += $product['weight'] ?: 1;
+        }
+
+        $this->setPhysicalProperties([
+            "weight" => $totalWeight
+        ]);
+
+        return $this;
     }
 }
