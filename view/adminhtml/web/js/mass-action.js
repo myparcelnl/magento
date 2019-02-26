@@ -140,6 +140,7 @@ define(
                     $.mage.__('Default');
                     $.mage.__('Package');
                     $.mage.__('Mailbox');
+                    $.mage.__('Digital stamp');
                     $.mage.__('Letter');
                     $.mage.__('Print position');
                     */

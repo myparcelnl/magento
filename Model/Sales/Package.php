@@ -32,6 +32,7 @@ class Package extends Data implements PackageInterface
     const PACKAGE_TYPE_NORMAL = 1;
     const PACKAGE_TYPE_MAILBOX = 2;
     const PACKAGE_TYPE_LETTER = 3;
+    const PACKAGE_TYPE_DIGITAL_STAMP = 4;
 
     /**
      * @var int
@@ -47,6 +48,11 @@ class Package extends Data implements PackageInterface
      * @var bool
      */
     private $mailbox_active = false;
+
+    /**
+     * @var bool
+     */
+    private $digital_stamp_active = false;
 
     /**
      * @var bool
@@ -111,6 +117,22 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
+    public function isDigitalStampActive()
+    {
+        return $this->digital_stamp_active;
+    }
+
+    /**
+     * @param bool $digital_stamp_active
+     */
+    public function setDigitalStampActive($digital_stamp_active)
+    {
+        $this->digital_stamp_active = $digital_stamp_active;
+    }
+
+    /**
+     * @return bool
+     */
     public function isAllProductsFit()
     {
         return $this->all_products_fit;
@@ -162,7 +184,7 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * package = 1, mailbox = 2, letter = 3
+     * package = 1, mailbox = 2, letter = 3, digital_stamp = 4
      *
      * @return int
      */
@@ -172,7 +194,7 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * package = 1, mailbox = 2, letter = 3
+     * package = 1, mailbox = 2, letter = 3, digital_stamp = 4
      *
      * @param int $package_type
      */

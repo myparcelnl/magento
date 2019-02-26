@@ -30,7 +30,7 @@ class PackageRepository extends Package
      *
      * If package type is not set, calculate package type
      *
-     * @return int 1|2|3
+     * @return int 1|2|3|4
      */
     public function getPackageType()
     {
@@ -42,6 +42,11 @@ class PackageRepository extends Package
         // Set Mailbox if possible
         if ($this->fitInMailbox() === true) {
             $this->setPackageType(self::PACKAGE_TYPE_MAILBOX);
+        }
+
+        // Set digital_stamp if possible
+        if ($this->fitInDigital_stamp() === true) {
+            $this->setPackageType(self::PACKAGE_TYPE_DIGITAL_STAMP);
         }
 
         return parent::getPackageType();
@@ -69,6 +74,26 @@ class PackageRepository extends Package
 	    }
 
 	    if ($this->getWeight() > $this->getMaxWeight()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function fitInDigital_stamp()
+    {
+        if ($this->getCurrentCountry() !== 'NL') {
+            return false;
+        }
+
+        if ($this->isDigitalStampActive() === false) {
+            return false;
+        }
+
+        if ($this->getWeight() > self::DEFAULT_WEIGHT) {
             return false;
         }
 
