@@ -177,7 +177,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
         $this->package->setMailboxSettings();
 
-        if (count($this->products) > 0){
+        if ($this->products && count($this->products) > 0){
             $this->package->setWeightFromQuoteProducts($this->products);
         }
 
@@ -268,7 +268,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 	 * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
 	 */
 	private function getProductsFromCardAndSession() {
-        if ($this->quote->getQuoteId() != null && count($this->quote->getQuote()->getItems())) {
+        if ($this->quote->getQuoteId() != null &&
+            $this->quote->getQuote()->getItems() &&
+            count($this->quote->getQuote()->getItems())
+        ){
 			return $this->quote->getQuote()->getItems();
 		}
 
