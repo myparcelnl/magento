@@ -120,7 +120,9 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             $packageType = (int)$options['package_type'] ?: 1;
         }
 
-        if ($address->getCountryId() != 'NL' && (int)$options['package_type'] == 2) {
+        if ($address->getCountryId() != 'NL' &&
+            ((int)$options['package_type'] == 2 || (int)$options['package_type'] == 4)) {
+
             $options['package_type'] = 1;
         }
 
@@ -165,7 +167,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
             ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
-            ->convertDataForCdCountry($magentoTrack);
+            ->convertDataForCdCountry($magentoTrack)
+            ->setPhysicalProperties($packageType === 4 ? ['weight' => $this->getTotalWeight()] : null);
 
         return $this;
     }
@@ -215,7 +218,6 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
                     ->setItemValue($product->getPrice())
                     ->setClassification('0000')
                     ->setCountry('NL');
-
                 $this->addItem($myParcelProduct);
             }
         }

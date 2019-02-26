@@ -105,12 +105,15 @@ class DefaultOptions
     /**
      * Get package type
      *
-     * @return int 1|2|3
+     * @return int 1|2|3|4
      */
     public function getPackageType()
     {
         if ($this->isMailBox() === true) {
             return 2;
+        }
+        if ($this->isDigitalStamp() === true) {
+            return 4;
         }
 
         return 1;
@@ -135,6 +138,26 @@ class DefaultOptions
 
         /** @todo; check if mailbox fit in box */
         
+        return false;
+    }
+
+    private function isDigitalStamp() {
+// @todo: mailbox is hetzelfde
+        $country = self::$order->getShippingAddress()->getCountryId();
+        if ($country != 'NL') {
+            return false;
+        }
+
+        if (
+            is_array(self::$chosenOptions) &&
+            key_exists('time', self::$chosenOptions) &&
+            is_array(self::$chosenOptions['time']) &&
+            key_exists('price_comment', self::$chosenOptions['time'][0]) &&
+            self::$chosenOptions['time'][0]['price_comment'] == 'digital_stamp'
+        ) {
+            return true;
+        }
+
         return false;
     }
 }

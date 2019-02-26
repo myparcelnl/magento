@@ -24,6 +24,10 @@
             </div>
             <?php if ($block->getCountry() == 'NL'): ?>
                 <div class="admin__field admin__field-option">
+                    <input type="radio" class="admin__control-radio" id="mypa_package_type-digital_stamp" name="mypa_package_type" value="4" <?=$block->getPackageType() !== 4 ?: 'checked="checked"';?>>
+                    <label class="admin__field-label" for="mypa_package_type-digital_stamp"><?=__('Digital stamp');?></label>
+                </div>
+                <div class="admin__field admin__field-option">
                     <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="2" <?=$block->getPackageType() !== 2 ?: 'checked="checked"';?>>
                     <label class="admin__field-label" for="mypa_package_type-mailbox"><?=__('Mailbox');?></label>
                 </div>

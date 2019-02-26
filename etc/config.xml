@@ -56,6 +56,11 @@
                 <signature_fee>0.36</signature_fee>
                 <signature_and_only_recipient_fee>0.44</signature_and_only_recipient_fee>
             </delivery>
+            <digital_stamp>
+                <active>0</active>
+                <title>Digitale postzegel</title>
+                <fee>0</fee>
+            </digital_stamp>
             <mailbox>
                 <active>0</active>
                 <other_options>1</other_options>
