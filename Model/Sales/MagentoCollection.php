@@ -86,6 +86,7 @@ class MagentoCollection implements MagentoCollectionInterface
         'large_format' => null,
         'age_check' => null,
         'insurance' => null,
+        'digital_stamp_weight' => null,
     ];
 
     /**

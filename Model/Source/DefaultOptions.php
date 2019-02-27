@@ -102,6 +102,40 @@ class DefaultOptions
         return 0;
     }
 
+
+    /**
+     * Get default of the option
+     *
+     * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     *
+     * @return bool
+     */
+    public function getDigitalStampWeight()
+    {
+        $settings = self::$helper->getCheckoutConfig('digital_stamp/default_weight');
+
+        if ($settings == '0') {
+            return $settings;
+        }
+        if ($settings == '20') {
+            return $settings;
+        }
+        if ($settings == '50') {
+            return $settings;
+        }
+        if ($settings == '100') {
+            return $settings;
+        }
+        if ($settings == '350') {
+            return $settings;
+        }
+        if ($settings == '2000') {
+            return $settings;
+        }
+
+        return 0;
+    }
+
     /**
      * Get package type
      *
@@ -142,7 +176,7 @@ class DefaultOptions
     }
 
     private function isDigitalStamp() {
-// @todo: mailbox is hetzelfde
+
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
             return false;

@@ -23,6 +23,10 @@ use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 use MyParcelNL\Magento\Helper\Data;
 
+/**
+ * Class MyParcelTrackTrace
+ * @package MyParcelNL\Magento\Model\Sales
+ */
 class MyParcelTrackTrace extends MyParcelConsignmentRepository
 {
     /**
@@ -168,7 +172,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
             ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
             ->convertDataForCdCountry($magentoTrack)
-            ->calculateTotalWeight($magentoTrack);
+            ->calculateTotalWeight($magentoTrack, (int)$options['digital_stamp_weight'] );
 
         return $this;
     }
@@ -275,20 +279,22 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
 
         return $items;
     }
-
     /**
      * @param Order\Shipment\Track $magentoTrack
+     * @param int $totalWeight
      *
      * @return MyParcelTrackTrace
      * @throws LocalizedException
      */
-    private function calculateTotalWeight($magentoTrack) {
+    private function calculateTotalWeight($magentoTrack, $totalWeight = 0) {
 
         if ($this->getPackageType() !== 4) {
             return $this;
         }
 
-        $totalWeight = 0;
+        if ($totalWeight !== 0){
+            return $this->setPhysicalProperties(["weight" => $totalWeight]);
+        }
 
         if ($magentoTrack->getShipment()->getData('items') != null) {
             $products = $magentoTrack->getShipment()->getData('items');
