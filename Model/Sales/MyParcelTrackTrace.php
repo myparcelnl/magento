@@ -172,7 +172,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
             ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
             ->convertDataForCdCountry($magentoTrack)
-            ->calculateTotalWeight($magentoTrack, (int)$options['digital_stamp_weight'] );
+            ->calculateTotalWeight($magentoTrack, $options['digital_stamp_weight'] !== null ? (int)$options['digital_stamp_weight'] : (int)self::$defaultOptions->getDigitalStampWeight());
+
 
         return $this;
     }
