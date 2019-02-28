@@ -132,6 +132,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             'pickup' => 'pickup/',
             'pickup_express' => 'pickup_express/',
             'mailbox' => 'mailbox/',
+            'digital_stamp' => 'digital_stamp/',
         ];
 
         return $methods;
@@ -144,6 +145,12 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getAllowedMethods()
     {
+        if ($this->package->fitInDigitalStamp()) {
+            $methods = ['digital_stamp' => 'digital_stamp/'];
+
+            return $methods;
+        }
+
 	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
 		    $methods = ['mailbox' => 'mailbox/'];
 
