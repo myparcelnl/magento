@@ -127,7 +127,6 @@ class Package extends Data implements PackageInterface
      */
     public function setDigitalStampActive($digital_stamp_active)
     {
-        //@todo deze functie wordt nog niet gebnruikt
         $this->digital_stamp_active = $digital_stamp_active;
     }
 

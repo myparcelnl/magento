@@ -87,7 +87,29 @@ class UpgradeData implements UpgradeDataInterface
             );
         }
 
-        if (version_compare($context->getVersion(), '2.4.3', '<=')) {
+        /* Set a new 'MyParcel options' group and place the option 'myparcel_fit_in_mailbox' into it */
+        if (version_compare($context->getVersion(), '2.4.10', '<=')) {
+
+            $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+            $groupName = 'MyParcel Options'; /* Label of your group*/
+            $entityTypeId = $eavSetup->getEntityTypeId('catalog_product'); /* get entity type id so that attribute are only assigned to catalog_product */
+            $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId); /* Here we have fetched all attribute set as we want attribute group to show under all attribute set.*/
+
+            foreach($attributeSetIds as $attributeSetId) {
+                $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, $groupName, 19);
+                $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, $groupName);
+
+                // Add existing attribute to group
+                $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
+                $eavSetup->addAttributeToGroup($entityTypeId, $attributeSetId, $attributeGroupId, $attributeId, null);
+            }
+        }
+
+        /* Add the option 'Fit in digital stamp' */
+        if (version_compare($context->getVersion(), '2.4.10', '<=')) {
 
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
@@ -100,25 +122,27 @@ class UpgradeData implements UpgradeDataInterface
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
-                    'type'                    => 'boolean',
-                    'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
-                    'label'                   => 'Fit in digital stamp',
-                    'input'                   => 'checkbox',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => null,
-                    'searchable'              => false,
-                    'filterable'              => false,
-                    'comparable'              => false,
-                    'visible_on_front'        => true,
+                    'group' => 'MyParcel Options',
+                    'type' => 'int',
+                    'backend' => '',
+                    'frontend' => '',
+                    'label' => 'Fit in digital stamp',
+                    'input' => 'boolean',
+                    'class' => '',
+                    'source' => '',
+                    'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible' => true,
+                    'required' => false,
+                    'user_defined' => true,
+                    'default' => '0',
+                    'searchable' => true,
+                    'filterable' => true,
+                    'comparable' => true,
+                    'visible_on_front' => true,
                     'used_in_product_listing' => true,
-                    'unique'                  => false,
-                    'apply_to'                => 'simple,configurable,bundle,grouped',
-                    'group'                   => 'General'
+                    'unique' => false,
+                    'apply_to' => '',
+
                 ]
             );
         }
