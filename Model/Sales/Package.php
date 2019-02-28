@@ -42,7 +42,7 @@ class Package extends Data implements PackageInterface
     /**
      * @var int
      */
-    private $max_mailbox_weight = 0;
+    private $max_weight = 0;
 
     /**
      * @var bool
@@ -127,6 +127,7 @@ class Package extends Data implements PackageInterface
      */
     public function setDigitalStampActive($digital_stamp_active)
     {
+        //@todo deze functie wordt nog niet gebnruikt
         $this->digital_stamp_active = $digital_stamp_active;
     }
 
@@ -172,15 +173,15 @@ class Package extends Data implements PackageInterface
      */
     public function getMaxWeight()
     {
-        return (int)$this->max_mailbox_weight;
+        return (int)$this->max_weight;
     }
 
     /**
-     * @param int $max_mailbox_weight
+     * @param int $max_weight
      */
-    public function setMaxWeight($max_mailbox_weight)
+    public function setMaxWeight($max_weight)
     {
-        $this->max_mailbox_weight = $max_mailbox_weight;
+        $this->max_weight = $max_weight;
     }
 
     /**

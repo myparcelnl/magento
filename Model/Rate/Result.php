@@ -176,6 +176,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         $this->package->setMailboxSettings();
+        $this->package->setDigitalStampSettings();
 
         if ($this->products && count($this->products) > 0){
             $this->package->setWeightFromQuoteProducts($this->products);

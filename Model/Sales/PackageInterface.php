@@ -63,9 +63,9 @@ interface PackageInterface
      */
     public function getMaxWeight();
     /**
-     * @param int $max_mailbox_weight
+     * @param int $max_weight
      */
-    public function setMaxWeight($max_mailbox_weight);
+    public function setMaxWeight($max_weight);
     /**
      * package = 1, mailbox = 2, letter = 3
      *

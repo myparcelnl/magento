@@ -55,6 +55,7 @@ class Checkout
         $this->products = $cart->getItems();
         $this->package = $package;
         $this->package->setMailboxSettings();
+        $this->package->setDigitalStampSettings();
     }
 
     /**
@@ -73,6 +74,7 @@ class Checkout
             'morning' => $this->getMorningData(),
             'evening' => $this->getEveningData(),
             'mailbox' => $this->getMailboxData(),
+            'digital_stamp' => $this->getDigitalStampData(),
             'pickup' => $this->getPickupData(),
             'pickup_express' => $this->getPickupExpressData(),
             'belgium_pickup' => $this->getBelgiumPickupData(),
@@ -246,6 +248,30 @@ class Checkout
         }
 
         return $mailboxData;
+    }
+
+    /**
+     * @return array
+     */
+    private function getDigitalStampData()
+    {
+        /** @var \Magento\Quote\Model\Quote\Item[] $products */
+        if (count($this->products) > 0){
+            $this->package->setWeightFromQuoteProducts($this->products);
+        }
+
+        /** check if mailbox is active */
+        $digitalStampData = [
+            'active' => $this->package->fitInDigitalStamp(),
+            'title' => $this->helper->getCheckoutConfig('digital_stamp/title'),
+            'fee' => $this->helper->getMethodPriceFormat('digital_stamp/fee', false),
+        ];
+
+        if ($digitalStampData['active'] === false) {
+            $digitalStampData['fee'] = 'disabled';
+        }
+
+        return $digitalStampData;
     }
 
     /**

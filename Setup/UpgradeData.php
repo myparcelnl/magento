@@ -87,7 +87,12 @@ class UpgradeData implements UpgradeDataInterface
             );
         }
 
-        if (version_compare($context->getVersion(), '2.xxx', '<=')) {
+        if (version_compare($context->getVersion(), '2.4.3', '<=')) {
+
+            $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
             /**
              * Add attributes to the eav/attribute
              */
@@ -95,12 +100,12 @@ class UpgradeData implements UpgradeDataInterface
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
-                    'type'                    => 'varchar',
+                    'type'                    => 'boolean',
                     'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
-                    'label'                   => 'Fit digital stamp',
-                    'input'                   => 'select',
+                    'label'                   => 'Fit in digital stamp',
+                    'input'                   => 'checkbox',
                     'class'                   => '',
-                    'source'                  => 'MyParcelNL\Magento\Model\Source\FitInMailboxOptions',
+                    'source'                  => '',
                     'global'                  => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
                     'visible'                 => true,
                     'required'                => false,

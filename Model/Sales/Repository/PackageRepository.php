@@ -45,7 +45,7 @@ class PackageRepository extends Package
         }
 
         // Set digital_stamp if possible
-        if ($this->fitInDigital_stamp() === true) {
+        if ($this->fitInDigitalStamp() === true) {
             $this->setPackageType(self::PACKAGE_TYPE_DIGITAL_STAMP);
         }
 
@@ -83,7 +83,7 @@ class PackageRepository extends Package
     /**
      * @return bool
      */
-    public function fitInDigital_stamp()
+    public function fitInDigitalStamp()
     {
         if ($this->getCurrentCountry() !== 'NL') {
             return false;
@@ -190,6 +190,31 @@ class PackageRepository extends Package
         }
 
         return null;
+    }
+
+    /**
+     * Init all digital stamp settings
+     *
+     * @return $this
+     */
+    public function setDigitalStampSettings()
+    {
+        $settings = $this->getConfigValue(self::XML_PATH_CHECKOUT . 'digital_stamp');
+
+        if ($settings === null) {
+            $this->_logger->critical('Can\'t set settings with path:' . self::XML_PATH_CHECKOUT . 'digital stamp');
+        }
+
+        if (!key_exists('active', $settings)) {
+            $this->_logger->critical('Can\'t get digital stamp setting active');
+        }
+
+        $this->setDigitalStampActive($settings['active'] === '1');
+        if ($this->isDigitalStampActive() === true) {
+            $this->setMaxWeight((int)self::DEFAULT_WEIGHT);
+        }
+
+        return $this;
     }
 
 	/**

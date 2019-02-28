@@ -156,6 +156,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             'pickup' => 'pickup/',
             'pickup_express' => 'pickup_express/',
             'mailbox' => 'mailbox/',
+            'digital_stamp' => 'digital_stamp/',
         ];
 
         return $methods;
@@ -168,6 +169,12 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     public function getAllowedMethods()
     {
+        if ($this->package->fitInDigitalStamp()) {
+            $methods = ['digital_stamp' => 'digital_stamp/'];
+
+            return $methods;
+        }
+
 	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
             $methods = ['mailbox' => 'mailbox/'];
 
@@ -191,6 +198,8 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     {
         $products = $this->quote->getAllItems($result);
         $this->package->setMailboxSettings();
+        $this->package->setDigitalStampSettings();
+
         if (count($products) > 0){
             $this->package->setWeightFromQuoteProducts($products);
         }

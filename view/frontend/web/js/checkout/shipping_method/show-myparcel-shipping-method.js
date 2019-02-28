@@ -67,7 +67,9 @@ define(
                 _setAddress();
                 _hideRadios();
 
-                if (checkOnlyShowMailbox()) {
+                if (checkOnlyShowDigitalStamp()) {
+                    showDigitalStampRadio();
+                } else if (checkOnlyShowMailbox()) {
                     showMailboxRadio();
                 } else if (_getCcIsLocal() && _getHouseNumber() !== null) {
                     _appendTemplate();
@@ -97,11 +99,29 @@ define(
 
             return true;
         }
+
+        function checkOnlyShowDigitalStamp() {
+            if (_getCcIsLocal() === false) {
+                return false;
+            }
+
+            if (window.mypa.data.digital_stamp.active === false) {
+                return false
+            }
+
+            return true;
+        }
         
         function showMailboxRadio() {
             jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
             jQuery("td[id^='label_carrier_mailbox']").parent().show();
             jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"mailbox"}]}');
+        }
+
+        function showDigitalStampRadio() {
+            jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
+            jQuery("td[id^='label_carrier_digital_stamp']").parent().show();
+            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"digital_stamp"}]}');
         }
 
         function _setAddress() {
@@ -182,7 +202,7 @@ define(
         }
 
         function _hideRadios() {
-            jQuery("td[id^='label_method_signature'],td[id^='label_method_mailbox'],td[id^='label_method_pickup'],td[id^='label_method_evening'],td[id^='label_method_only_recipient'],td[id^='label_method_morning']").parent().hide();
+            jQuery("td[id^='label_method_signature'],td[id^='label_method_mailbox'],td[id^='label_method_digital_stamp'],td[id^='label_method_pickup'],td[id^='label_method_evening'],td[id^='label_method_only_recipient'],td[id^='label_method_morning']").parent().hide();
         }
 
         function _getCcIsLocal() {
