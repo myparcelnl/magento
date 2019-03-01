@@ -155,6 +155,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman);
         }
 
+        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : null;
+
         $this
             ->setPostalCode($address->getPostcode())
             ->setCity($address->getCity())
@@ -172,7 +174,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
             ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
             ->convertDataForCdCountry($magentoTrack)
-            ->calculateTotalWeight($magentoTrack, $options['digital_stamp_weight'] !== null ? (int)$options['digital_stamp_weight'] : (int)self::$defaultOptions->getDigitalStampWeight());
+            ->calculateTotalWeight($magentoTrack, $totalWeight);
 
 
         return $this;
@@ -293,22 +295,38 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             return $this;
         }
 
-        if ($totalWeight !== 0){
-            return $this->setPhysicalProperties(["weight" => $totalWeight]);
+        if ($totalWeight > 0){
+            $this->setPhysicalProperties(["weight" => $totalWeight]);
+
+            return $this;
+        }
+
+        $weightFromSettings = (int) self::$defaultOptions->getDigitalStampWeight();
+        if ($weightFromSettings) {
+            $this->setPhysicalProperties(["weight" => $totalWeight]);
+
+            return $this;
         }
 
         if ($magentoTrack->getShipment()->getData('items') != null) {
             $products = $magentoTrack->getShipment()->getData('items');
 
             foreach ($products as $product) {
-                $totalWeight += $product->getWeight() ?: 1;
+                $totalWeight += $product->getWeight();
             }
         }
 
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
 
         foreach ($products as $product) {
-            $totalWeight += $product['weight'] ?: 1;
+            $totalWeight += $product['weight'];
+        }
+
+        if ($totalWeight == 0) {
+            /**
+             * throw new \Exception() for user
+             */
+            throw new \Exception('The order with digital stamp can not be exported, no weights have been entered');
         }
 
         $this->setPhysicalProperties([

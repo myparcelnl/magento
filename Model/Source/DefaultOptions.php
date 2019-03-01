@@ -104,36 +104,13 @@ class DefaultOptions
 
 
     /**
-     * Get default of the option
-     *
-     * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     * Get default of digital stamp weight
      *
      * @return bool
      */
     public function getDigitalStampWeight()
     {
-        $settings = self::$helper->getCheckoutConfig('digital_stamp/default_weight');
-
-        if ($settings == '0') {
-            return $settings;
-        }
-        if ($settings == '20') {
-            return $settings;
-        }
-        if ($settings == '50') {
-            return $settings;
-        }
-        if ($settings == '100') {
-            return $settings;
-        }
-        if ($settings == '350') {
-            return $settings;
-        }
-        if ($settings == '2000') {
-            return $settings;
-        }
-
-        return 0;
+        return self::$helper->getCheckoutConfig('digital_stamp/default_weight');
     }
 
     /**
@@ -143,17 +120,17 @@ class DefaultOptions
      */
     public function getPackageType()
     {
-        if ($this->isMailBox() === true) {
+        if ($this->isDigitalStampOrMailbox('mailbox') === true) {
             return 2;
         }
-        if ($this->isDigitalStamp() === true) {
+        if ($this->isDigitalStampOrMailbox('digital_stamp') === true) {
             return 4;
         }
 
         return 1;
     }
 
-    private function isMailBox() {
+    private function isDigitalStampOrMailbox($option) {
 
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
@@ -165,33 +142,11 @@ class DefaultOptions
             key_exists('time', self::$chosenOptions) &&
             is_array(self::$chosenOptions['time']) &&
             key_exists('price_comment', self::$chosenOptions['time'][0]) &&
-            self::$chosenOptions['time'][0]['price_comment'] == 'mailbox'
+            self::$chosenOptions['time'][0]['price_comment'] == $option
         ) {
             return true;
         }
-
-        /** @todo; check if mailbox fit in box */
         
-        return false;
-    }
-
-    private function isDigitalStamp() {
-
-        $country = self::$order->getShippingAddress()->getCountryId();
-        if ($country != 'NL') {
-            return false;
-        }
-
-        if (
-            is_array(self::$chosenOptions) &&
-            key_exists('time', self::$chosenOptions) &&
-            is_array(self::$chosenOptions['time']) &&
-            key_exists('price_comment', self::$chosenOptions['time'][0]) &&
-            self::$chosenOptions['time'][0]['price_comment'] == 'digital_stamp'
-        ) {
-            return true;
-        }
-
         return false;
     }
 }
