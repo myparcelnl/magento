@@ -93,6 +93,10 @@ class PackageRepository extends Package
             return false;
         }
 
+        if ($this->isAllProductsFit() === false) {
+            return false;
+        }
+
         if ($this->getWeight() > self::DEFAULT_WEIGHT) {
             return false;
         }
@@ -128,10 +132,9 @@ class PackageRepository extends Package
      */
     private function setWeightFromOneQuoteProduct($product)
     {
-        $percentageFitInMailbox = $this->getPercentageFitInMailbox($product);
+        $percentageFitInMailbox = $this->getAttributesFitInOptions($product, 'fit_in_mailbox');
 
         if ($percentageFitInMailbox > 1) {
-
             $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
 
             return $this;
@@ -145,6 +148,7 @@ class PackageRepository extends Package
 
         return $this;
     }
+
 
     /**
      * Init all mailbox settings
@@ -177,12 +181,12 @@ class PackageRepository extends Package
      *
      * @return null|int
      */
-    private function getPercentageFitInMailbox($product)
+    private function getAttributesFitInOptions($product, $databaseColumn)
     {
-        $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product);
+        $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $databaseColumn);
 
         if (empty($attributeValue)) {
-            $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product);
+            $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product, $databaseColumn);
         }
 
         if ($attributeValue) {
@@ -225,7 +229,7 @@ class PackageRepository extends Package
 	 *
 	 * @return array|null
 	 */
-    private function getAttributesFromProduct($tableName, $product){
+    private function getAttributesFromProduct($tableName, $product, $databaseColumn){
 
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
@@ -236,7 +240,7 @@ class PackageRepository extends Package
         $entityId = $product->getProduct()->getEntityId();
         $connection = $resource->getConnection();
 
-	    $attributeId = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'));
+	    $attributeId = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $databaseColumn);
 	    $attributeValue = $this
 		    ->getValueFromAttribute(
 		    	$connection,
@@ -248,11 +252,11 @@ class PackageRepository extends Package
         return $attributeValue;
     }
 
-	private function getAttributeId($connection, $tableName) {
+	private function getAttributeId($connection, $tableName, $databaseColumn) {
 		$sql = $connection
 			->select('entity_type_id')
 		    ->from($tableName)
-		    ->where('attribute_code = ?', 'myparcel_fit_in_mailbox');
+		    ->where('attribute_code = ?', 'myparcel_'. $databaseColumn);
 
 		return $connection->fetchOne($sql);
 	}
