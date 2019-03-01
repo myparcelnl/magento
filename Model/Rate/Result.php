@@ -182,11 +182,18 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        $this->package->setMailboxSettings();
-        $this->package->setDigitalStampSettings();
+        $this->getDigitalStampProductSetting();
 
-        if ($this->products && count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products);
+        if ($this->package->fitInDigitalStamp()) {
+            $this->getMailBoxProductSetting();
+        }
+
+        if ($this->package->fitInDigitalStamp()) {
+            $this->package->setMailboxSettings();
+
+            if ($this->products && count($this->products) > 0) {
+                $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
+            }
         }
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
@@ -199,6 +206,32 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         $this->myParcelRatesAlreadyAdded = true;
+    }
+
+    /**
+     * Get the digital_stamp product setting
+     */
+    private function getDigitalStampProductSetting(){
+        $this->package->setDigitalStampSettings();
+
+        if ($this->products && count($this->products) > 0){
+            $this->package->setFitInDigitalStampFromQuoteProducts($this->products);
+            $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
+        }
+        return;
+    }
+
+    /**
+     * Get the fit_in_mailbox product setting
+     */
+    private function getMailBoxProductSetting(){
+            $this->package->setMailboxSettings();
+
+            if ($this->products && count($this->products) > 0) {
+                $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
+            }
+
+        return;
     }
 
     /**

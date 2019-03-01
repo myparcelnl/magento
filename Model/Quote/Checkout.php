@@ -232,7 +232,7 @@ class Checkout
     {
         /** @var \Magento\Quote\Model\Quote\Item[] $products */
         if (count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products);
+            $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
         }
 
         /** check if mailbox is active */
@@ -257,7 +257,7 @@ class Checkout
     {
         /** @var \Magento\Quote\Model\Quote\Item[] $products */
         if (count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products);
+            $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
         }
 
         /** check if mailbox is active */

@@ -23,7 +23,8 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {
-	const DEFAULT_WEIGHT = 2000;
+	const DEFAULT_MAILBOX_WEIGHT = 2000;
+	const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
 
 	/**
      * Get package type
@@ -97,7 +98,7 @@ class PackageRepository extends Package
             return false;
         }
 
-        if ($this->getWeight() > self::DEFAULT_WEIGHT) {
+        if ($this->getWeight() > self::DEFAULT_MAILBOX_WEIGHT) {
             return false;
         }
 
@@ -105,13 +106,39 @@ class PackageRepository extends Package
     }
 
     /**
-     * Set weight depend on product setting 'Fit in Mailbox' and weight from product
+     * Set weight depend on product setting 'Fit in digital stamp' and weight from product
      *
      * @param \Magento\Quote\Model\Quote\Item[] $products
      *
      * @return $this
      */
-    public function setWeightFromQuoteProducts($products)
+    public function setFitInDigitalStampFromQuoteProducts($products)
+    {
+        if (empty($products)) {
+            return $this;
+        }
+
+        foreach ($products as $product) {
+            $fitIn = $this->getAttributesFitInOptions($product, 'digital_stamp');
+
+            if ($fitIn === null){
+                return $this->setAllProductsFit(false);
+            }
+
+        }
+        return $this;
+    }
+
+    /**
+     * Set weight depend on product setting 'Fit in Mailbox' and weight from product
+     *
+     * @param \Magento\Quote\Model\Quote\Item[] $products
+     *
+     * @param string $column
+     *
+     * @return $this
+     */
+    public function setWeightFromQuoteProducts($products, $column)
     {
         if (empty($products)) {
             return $this;
@@ -119,7 +146,7 @@ class PackageRepository extends Package
 
         $this->setWeight(0);
         foreach ($products as $product) {
-            $this->setWeightFromOneQuoteProduct($product);
+            $this->setWeightFromOneQuoteProduct($product, $column);
         }
 
         return $this;
@@ -128,16 +155,20 @@ class PackageRepository extends Package
     /**
      * @param \Magento\Quote\Model\Quote\Item $product
      *
+     * @param string $column
+     *
      * @return $this
      */
-    private function setWeightFromOneQuoteProduct($product)
+    private function setWeightFromOneQuoteProduct($product, $column)
     {
-        $percentageFitInMailbox = $this->getAttributesFitInOptions($product, 'fit_in_mailbox');
+        if ('fit_in_mailbox' == $column) {
+            $percentageFitInMailbox = $this->getAttributesFitInOptions($product, 'fit_in_mailbox');
 
-        if ($percentageFitInMailbox > 1) {
-            $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
+            if ($percentageFitInMailbox > 1) {
+                $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
 
-            return $this;
+                return $this;
+            }
         }
 
         if ($product->getWeight() > 0) {
@@ -170,7 +201,7 @@ class PackageRepository extends Package
         $this->setMailboxActive($settings['active'] === '1');
         if ($this->isMailboxActive() === true) {
             $this->setShowMailboxWithOtherOptions($settings['other_options'] === '1');
-            $this->setMaxWeight((int)$settings['weight'] ?: self::DEFAULT_WEIGHT);
+            $this->setMaxWeight((int)$settings['weight'] ?: self::DEFAULT_MAILBOX_WEIGHT);
         }
 
         return $this;
@@ -179,14 +210,16 @@ class PackageRepository extends Package
     /**
      * @param \Magento\Quote\Model\Quote\Item $product
      *
+     * @param string $column
+     *
      * @return null|int
      */
-    private function getAttributesFitInOptions($product, $databaseColumn)
+    private function getAttributesFitInOptions($product, $column)
     {
-        $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $databaseColumn);
+        $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $column);
 
         if (empty($attributeValue)) {
-            $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product, $databaseColumn);
+            $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product, $column);
         }
 
         if ($attributeValue) {
@@ -215,21 +248,20 @@ class PackageRepository extends Package
 
         $this->setDigitalStampActive($settings['active'] === '1');
         if ($this->isDigitalStampActive() === true) {
-            $this->setMaxWeight((int)self::DEFAULT_WEIGHT);
+            $this->setMaxWeight((int)self::DEFAULT_DIGITAL_STAMP_WEIGHT);
         }
 
         return $this;
     }
 
-	/**
-	 * @Param string $tableName
-	 *
-	 * @param string $tableName
-	 * @param \Magento\Quote\Model\Quote\Item $product
-	 *
-	 * @return array|null
-	 */
-    private function getAttributesFromProduct($tableName, $product, $databaseColumn){
+    /**
+     * @param string $tableName
+     * @param \Magento\Quote\Model\Quote\Item $product
+     * @param string $column
+     *
+     * @return array|null
+     */
+    private function getAttributesFromProduct($tableName, $product, $column){
 
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
@@ -240,7 +272,7 @@ class PackageRepository extends Package
         $entityId = $product->getProduct()->getEntityId();
         $connection = $resource->getConnection();
 
-	    $attributeId = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $databaseColumn);
+	    $attributeId = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
 	    $attributeValue = $this
 		    ->getValueFromAttribute(
 		    	$connection,
