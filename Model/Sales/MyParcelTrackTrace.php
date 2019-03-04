@@ -155,7 +155,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman);
         }
 
-        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : null;
+        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : (int) self::$defaultOptions->getDigitalStampWeight();
 
         $this
             ->setPostalCode($address->getPostcode())
