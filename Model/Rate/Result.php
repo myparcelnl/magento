@@ -185,10 +185,12 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->getDigitalStampProductSetting();
 
         if ($this->package->fitInDigitalStamp()) {
-            $this->getMailBoxProductSetting();
+            $this->package->setDigitalStampSettings();
         }
 
-        if ($this->package->fitInDigitalStamp()) {
+        $this->getMailBoxProductSetting();
+
+        if ($this->package->fitInMailbox()) {
             $this->package->setMailboxSettings();
 
             if ($this->products && count($this->products) > 0) {

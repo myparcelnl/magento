@@ -98,7 +98,7 @@ class PackageRepository extends Package
             return false;
         }
 
-        if ($this->getWeight() > self::DEFAULT_MAILBOX_WEIGHT) {
+        if ($this->getWeight() > self::DEFAULT_DIGITAL_STAMP_WEIGHT) {
             return false;
         }
 
