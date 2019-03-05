@@ -88,7 +88,7 @@ class UpgradeData implements UpgradeDataInterface
         }
 
         /* Set a new 'MyParcel options' group and place the option 'myparcel_fit_in_mailbox' into it */
-        if (version_compare($context->getVersion(), '2.4.10', '<=')) {
+        if (version_compare($context->getVersion(), '2.5.0', '<=')) {
 
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
@@ -109,7 +109,7 @@ class UpgradeData implements UpgradeDataInterface
         }
 
         /* Add the option 'Fit in digital stamp' */
-        if (version_compare($context->getVersion(), '2.4.10', '<=')) {
+        if (version_compare($context->getVersion(), '2.5.0', '<=')) {
 
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
