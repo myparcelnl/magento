@@ -119,7 +119,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
-        $this->package->setCurrentCountry($this->quote->getBillingAddress()->getCountryId());
+        $this->package->setCurrentCountry($this->quote->getShippingAddress()->getCountryId());
     }
 
     protected function _doShipmentRequest(\Magento\Framework\DataObject $request)

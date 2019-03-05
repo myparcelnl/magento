@@ -83,7 +83,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->session = $session;
         $this->quote = $quote;
         $this->parentMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods', true));
-        $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getBillingAddress()->getCountryId());
+        $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
         $this->products = $this->getQuoteFromCardOrSession()->getItems();
     }
 

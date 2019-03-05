@@ -94,7 +94,7 @@ class PackageRepository extends Package
             return false;
         }
 
-        if ($this->isAllProductsFit() === false) {
+        if ($this->isAllProductsFitInDigitalStamp() === false) {
             return false;
         }
 
@@ -122,7 +122,7 @@ class PackageRepository extends Package
             $fitIn = $this->getAttributesFitInOptions($product, 'digital_stamp');
 
             if ($fitIn === null){
-                return $this->setAllProductsFit(false);
+                return $this->setAllProductsFit(false, 'digital_stamp');
             }
 
         }

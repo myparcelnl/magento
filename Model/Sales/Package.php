@@ -62,6 +62,11 @@ class Package extends Data implements PackageInterface
     /**
      * @var bool
      */
+    private $all_products_fit_in_digital_stamp = true;
+
+    /**
+     * @var bool
+     */
     private $show_mailbox_with_other_options = true;
 
     /**
@@ -139,12 +144,25 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param bool $all_products_fit
+     * @return bool
      */
-    public function setAllProductsFit($all_products_fit)
+    public function isAllProductsFitInDigitalStamp()
     {
-        if ($all_products_fit === false) {
+        return $this->all_products_fit_in_digital_stamp;
+    }
+
+    /**
+     * @param bool $all_products_fit
+     * @param null $package_type
+     */
+    public function setAllProductsFit($all_products_fit, $package_type = null)
+    {
+        if ($all_products_fit === false && $package_type === null) {
             $this->all_products_fit = $all_products_fit;
+        }
+
+        if ($all_products_fit === false && $package_type === 'digital_stamp') {
+            $this->all_products_fit_in_digital_stamp = $all_products_fit;
         }
     }
 
