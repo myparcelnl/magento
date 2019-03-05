@@ -54,6 +54,7 @@ class Checkout
         $this->quoteId = $session->getQuoteId();
         $this->products = $cart->getItems();
         $this->package = $package;
+        $this->package->setCurrentCountry($session->getQuote()->getBillingAddress()->getCountryId());
         $this->package->setMailboxSettings();
         $this->package->setDigitalStampSettings();
     }

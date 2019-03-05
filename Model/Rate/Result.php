@@ -78,14 +78,13 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     ) {
         parent::__construct($storeManager);
 
-
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
-	    $this->session = $session;
-	    $this->quote = $quote;
-
+        $this->session = $session;
+        $this->quote = $quote;
         $this->parentMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods', true));
-	    $this->products = $this->getProductsFromCardAndSession();
+        $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getBillingAddress()->getCountryId());
+        $this->products = $this->getQuoteFromCardOrSession()->getItems();
     }
 
     /**
@@ -309,15 +308,17 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 	/**
 	 * Can't get quote from session\Magento\Checkout\Model\Session::getQuote()
 	 * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
-	 */
-	private function getProductsFromCardAndSession() {
+     *
+     * @return \Magento\Quote\Model\Quote
+     */
+	private function getQuoteFromCardOrSession() {
         if ($this->quote->getQuoteId() != null &&
-            $this->quote->getQuote()->getItems() &&
-            count($this->quote->getQuote()->getItems())
+            $this->quote->getQuote() &&
+            count($this->quote->getQuote())
         ){
-			return $this->quote->getQuote()->getItems();
+			return $this->quote->getQuote();
 		}
 
-		return $this->session->getQuote()->getItems();
+		return $this->session->getQuote();
 	}
 }
