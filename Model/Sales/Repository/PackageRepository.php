@@ -284,7 +284,7 @@ class PackageRepository extends Package
 		$sql = $connection
 			->select('entity_type_id')
 		    ->from($tableName)
-		    ->where('attribute_code = ?', 'myparcel_'. $databaseColumn);
+		    ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
 
 		return $connection->fetchOne($sql);
 	}
