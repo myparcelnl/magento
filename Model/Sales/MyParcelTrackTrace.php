@@ -118,6 +118,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         $address = $magentoTrack->getShipment()->getShippingAddress();
         $checkoutData = $magentoTrack->getShipment()->getOrder()->getData('delivery_options');
         $deliveryType = $this->getDeliveryTypeFromCheckout($checkoutData);
+        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : (int) self::$defaultOptions->getDigitalStampWeight();
+
         if ($options['package_type'] === 'default') {
             $packageType = self::$defaultOptions->getPackageType();
         } else {
@@ -155,8 +157,6 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman);
         }
 
-        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : (int) self::$defaultOptions->getDigitalStampWeight();
-
         $this
             ->setPostalCode($address->getPostcode())
             ->setCity($address->getCity())
@@ -175,7 +175,6 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
             ->convertDataForCdCountry($magentoTrack)
             ->calculateTotalWeight($magentoTrack, $totalWeight);
-
 
         return $this;
     }
@@ -282,12 +281,14 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
 
         return $items;
     }
+
     /**
      * @param Order\Shipment\Track $magentoTrack
      * @param int $totalWeight
      *
      * @return MyParcelTrackTrace
      * @throws LocalizedException
+     * @throws \Exception
      */
     private function calculateTotalWeight($magentoTrack, $totalWeight = 0) {
 
@@ -323,9 +324,6 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         }
 
         if ($totalWeight == 0) {
-            /**
-             * throw new \Exception() for user
-             */
             throw new \Exception('The order with digital stamp can not be exported, no weights have been entered');
         }
 

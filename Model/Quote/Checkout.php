@@ -261,7 +261,7 @@ class Checkout
             $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
         }
 
-        /** check if mailbox is active */
+        /** check if digital stamp is active */
         $digitalStampData = [
             'active' => $this->package->fitInDigitalStamp(),
             'title' => $this->helper->getCheckoutConfig('digital_stamp/title'),

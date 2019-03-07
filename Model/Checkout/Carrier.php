@@ -176,10 +176,10 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             return $methods;
         }
 
-	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
+        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
             $methods = ['mailbox' => 'mailbox/'];
 
-	        return $methods;
+            return $methods;
         }
 
         $methods = self::getMethods();

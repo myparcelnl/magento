@@ -154,7 +154,6 @@ class PackageRepository extends Package
 
     /**
      * @param \Magento\Quote\Model\Quote\Item $product
-     *
      * @param string $column
      *
      * @return $this
@@ -209,7 +208,6 @@ class PackageRepository extends Package
 
     /**
      * @param \Magento\Quote\Model\Quote\Item $product
-     *
      * @param string $column
      *
      * @return null|int
@@ -237,7 +235,6 @@ class PackageRepository extends Package
     public function setDigitalStampSettings()
     {
         $settings = $this->getConfigValue(self::XML_PATH_CHECKOUT . 'digital_stamp');
-
         if ($settings === null) {
             $this->_logger->critical('Can\'t set settings with path:' . self::XML_PATH_CHECKOUT . 'digital stamp');
         }

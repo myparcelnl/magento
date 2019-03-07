@@ -93,7 +93,6 @@ class NewShipment extends AbstractItems
     public function getWeight()
     {
         return $this->defaultOptions->getDigitalStampWeight();
-
     }
 
     /**

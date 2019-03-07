@@ -16,6 +16,7 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\Package;
 
 class DefaultOptions
 {
@@ -121,13 +122,14 @@ class DefaultOptions
     public function getPackageType()
     {
         if ($this->isDigitalStampOrMailbox('mailbox') === true) {
-            return 2;
-        }
-        if ($this->isDigitalStampOrMailbox('digital_stamp') === true) {
-            return 4;
+            return Package::PACKAGE_TYPE_MAILBOX;
         }
 
-        return 1;
+        if ($this->isDigitalStampOrMailbox('digital_stamp') === true) {
+            return Package::PACKAGE_TYPE_DIGITAL_STAMP;
+        }
+
+        return Package::PACKAGE_TYPE_NORMAL;
     }
 
     private function isDigitalStampOrMailbox($option) {

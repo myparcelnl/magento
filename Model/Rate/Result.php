@@ -145,19 +145,14 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function getAllowedMethods()
     {
         if ($this->package->fitInDigitalStamp()) {
-            $methods = ['digital_stamp' => 'digital_stamp/'];
-
-            return $methods;
+            return ['digital_stamp' => 'digital_stamp/'];
         }
 
-	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-		    $methods = ['mailbox' => 'mailbox/'];
-
-		    return $methods;
-	    }
+        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
+            return ['mailbox' => 'mailbox/'];
+        }
 
 	    $methods = $this->getMethods();
-
 	    if (!$this->package->fitInMailbox()) {
 		    unset($methods['mailbox']);
 	    }
@@ -182,13 +177,11 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         $this->getDigitalStampProductSetting();
-
         if ($this->package->fitInDigitalStamp()) {
             $this->package->setDigitalStampSettings();
         }
 
         $this->getMailBoxProductSetting();
-
         if ($this->package->fitInMailbox()) {
             $this->package->setMailboxSettings();
 
@@ -226,11 +219,11 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * Get the fit_in_mailbox product setting
      */
     private function getMailBoxProductSetting(){
-            $this->package->setMailboxSettings();
+        $this->package->setMailboxSettings();
 
-            if ($this->products && count($this->products) > 0) {
-                $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
-            }
+        if ($this->products && count($this->products) > 0) {
+            $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
+        }
 
         return;
     }
@@ -316,9 +309,9 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             $this->quote->getQuote() &&
             count($this->quote->getQuote())
         ){
-			return $this->quote->getQuote();
-		}
+            return $this->quote->getQuote();
+        }
 
-		return $this->session->getQuote();
-	}
+        return $this->session->getQuote();
+    }
 }

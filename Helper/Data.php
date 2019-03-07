@@ -107,7 +107,6 @@ class Data extends AbstractHelper
     public function getCheckoutConfig($code, $storeId = null)
     {
         $settings = null;
-
         if ($settings == null) {
             $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
             if ($value != null) {
