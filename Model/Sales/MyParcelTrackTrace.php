@@ -292,7 +292,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      */
     private function calculateTotalWeight($magentoTrack, $totalWeight = 0) {
 
-        if ($this->getPackageType() !== 4) {
+        if ($this->getPackageType() !== self::PACKAGE_TYPE_DIGITAL_STAMP) {
             return $this;
         }
 
