@@ -304,7 +304,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
 
         $weightFromSettings = (int)self::$defaultOptions->getDigitalStampWeight();
         if ($weightFromSettings) {
-            $this->setPhysicalProperties(["weight" => $totalWeight]);
+            $this->setPhysicalProperties(["weight" => $weightFromSettings]);
 
             return $this;
         }
