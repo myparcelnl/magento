@@ -118,7 +118,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         $address = $magentoTrack->getShipment()->getShippingAddress();
         $checkoutData = $magentoTrack->getShipment()->getOrder()->getData('delivery_options');
         $deliveryType = $this->getDeliveryTypeFromCheckout($checkoutData);
-        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : (int) self::$defaultOptions->getDigitalStampWeight();
+        $totalWeight = $options['digital_stamp_weight'] !== null ? (int)$options['digital_stamp_weight'] : (int)self::$defaultOptions->getDigitalStampWeight();
 
         if ($options['package_type'] === 'default') {
             $packageType = self::$defaultOptions->getPackageType();
@@ -302,7 +302,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             return $this;
         }
 
-        $weightFromSettings = (int) self::$defaultOptions->getDigitalStampWeight();
+        $weightFromSettings = (int)self::$defaultOptions->getDigitalStampWeight();
         if ($weightFromSettings) {
             $this->setPhysicalProperties(["weight" => $totalWeight]);
 
