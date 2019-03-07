@@ -44,11 +44,11 @@ interface PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFit();
+    public function isAllProductsFitInMailbox();
     /**
-     * @param bool $all_products_fit
+     * @param bool $all_products_fit_in_mailbox
      */
-    public function setAllProductsFit($all_products_fit);
+    public function setAllProductsFitInMailbox($all_products_fit_in_mailbox);
     /**
      * @return bool
      */

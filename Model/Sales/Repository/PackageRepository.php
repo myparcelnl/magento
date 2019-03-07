@@ -66,7 +66,7 @@ class PackageRepository extends Package
             return false;
         }
 
-        if ($this->isAllProductsFit() === false) {
+        if ($this->isAllProductsFitInMailbox() === false) {
             return false;
         }
 
@@ -121,7 +121,7 @@ class PackageRepository extends Package
         foreach ($products as $product) {
 
             if ($this->getAttributesFitInOptions($product, 'digital_stamp') === null){
-                return $this->setAllProductsFit(false, 'digital_stamp');
+                return $this->setAllProductsFitInMailbox(false, 'digital_stamp');
             }
 
         }
@@ -172,7 +172,7 @@ class PackageRepository extends Package
         if ($product->getWeight() > 0) {
             $this->addWeight($product->getWeight() * $product->getQty());
         } else {
-            $this->setAllProductsFit(false);
+            $this->setAllProductsFitInMailbox(false);
         }
 
         return $this;
