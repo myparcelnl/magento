@@ -244,10 +244,6 @@ class Checkout
             'fee' => $this->helper->getMethodPriceFormat('mailbox/fee', false),
         ];
 
-        if ($mailboxData['active'] === false) {
-            $mailboxData['fee'] = 'disabled';
-        }
-
         return $mailboxData;
     }
 
@@ -267,10 +263,6 @@ class Checkout
             'title' => $this->helper->getCheckoutConfig('digital_stamp/title'),
             'fee' => $this->helper->getMethodPriceFormat('digital_stamp/fee', false),
         ];
-
-        if ($digitalStampData['active'] === false) {
-            $digitalStampData['fee'] = 'disabled';
-        }
 
         return $digitalStampData;
     }
