@@ -179,7 +179,6 @@ class PackageRepository extends Package
         return $this;
     }
 
-
     /**
      * Init all mailbox settings
      *

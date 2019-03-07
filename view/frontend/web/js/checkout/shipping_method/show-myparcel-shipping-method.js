@@ -85,28 +85,16 @@ define(
         }
 
         function checkOnlyShowMailbox() {
-            if (_getCcIsLocal() === false) {
-                return false;
-            }
-
-            if (window.mypa.data.mailbox.active === false) {
+            if (_getCcIsLocal() === false || window.mypa.data.mailbox.active === false) {
                 return false
-            }
-
-            if (window.mypa.data.mailbox.mailbox_other_options === true) {
-                return false;
             }
 
             return true;
         }
 
         function checkOnlyShowDigitalStamp() {
-            if (_getCcIsLocal() === false) {
+            if (_getCcIsLocal() === false || window.mypa.data.digital_stamp.active === false) {
                 return false;
-            }
-
-            if (window.mypa.data.digital_stamp.active === false) {
-                return false
             }
 
             return true;

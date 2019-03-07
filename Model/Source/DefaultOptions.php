@@ -103,7 +103,6 @@ class DefaultOptions
         return 0;
     }
 
-
     /**
      * Get default of digital stamp weight
      *
