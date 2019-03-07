@@ -161,7 +161,7 @@ class PackageRepository extends Package
     private function setWeightFromOneQuoteProduct($product, $column)
     {
         if ('fit_in_mailbox' == $column) {
-            $percentageFitInMailbox = $this->getAttributesFitInOptions($product, 'fit_in_mailbox');
+            $percentageFitInMailbox = $this->getAttributesFitInOptions($product, $column);
 
             if ($percentageFitInMailbox > 1) {
                 $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
