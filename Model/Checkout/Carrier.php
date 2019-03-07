@@ -171,15 +171,11 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     public function getAllowedMethods()
     {
         if ($this->package->fitInDigitalStamp()) {
-            $methods = ['digital_stamp' => 'digital_stamp/'];
-
-            return $methods;
+            return ['digital_stamp' => 'digital_stamp/'];
         }
 
         if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-            $methods = ['mailbox' => 'mailbox/'];
-
-            return $methods;
+            return ['mailbox' => 'mailbox/'];
         }
 
         $methods = self::getMethods();
