@@ -197,9 +197,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         $this->package->setDigitalStampSettings();
         $this->package->setMailboxSettings();
 
-        if (count($products) > 0){
-            $this->package->setWeightFromQuoteProducts($products, 'fit_in_mailbox');
-        }
+        $this->package->setWeightFromQuoteProducts($products, 'fit_in_mailbox');
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
 

@@ -184,10 +184,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->getMailBoxProductSetting();
         if ($this->package->fitInMailbox()) {
             $this->package->setMailboxSettings();
-
-            if ($this->products && count($this->products) > 0) {
-                $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
-            }
+            $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
         }
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
@@ -212,7 +209,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             $this->package->setFitInDigitalStampFromQuoteProducts($this->products);
             $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
         }
-        
+
         return;
     }
 

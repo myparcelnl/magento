@@ -232,9 +232,7 @@ class Checkout
     private function getMailboxData()
     {
         /** @var \Magento\Quote\Model\Quote\Item[] $products */
-        if (count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
-        }
+        $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
 
         /** check if mailbox is active */
         $mailboxData = [
@@ -253,9 +251,7 @@ class Checkout
     private function getDigitalStampData()
     {
         /** @var \Magento\Quote\Model\Quote\Item[] $products */
-        if (count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
-        }
+        $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
 
         /** check if digital stamp is active */
         $digitalStampData = [
