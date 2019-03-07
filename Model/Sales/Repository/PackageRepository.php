@@ -119,9 +119,8 @@ class PackageRepository extends Package
         }
 
         foreach ($products as $product) {
-            $fitIn = $this->getAttributesFitInOptions($product, 'digital_stamp');
 
-            if ($fitIn === null){
+            if ($this->getAttributesFitInOptions($product, 'digital_stamp') === null){
                 return $this->setAllProductsFit(false, 'digital_stamp');
             }
 
