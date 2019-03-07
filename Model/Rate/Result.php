@@ -212,6 +212,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             $this->package->setFitInDigitalStampFromQuoteProducts($this->products);
             $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
         }
+        
         return;
     }
 
