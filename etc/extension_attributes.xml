@@ -7,6 +7,3 @@
         <attribute code="delivery_options" type="MyParcelNL\Magento\Api\Data\DeliveryOptionsInRestApi" />
     </extension_attributes>
 </config>
-
-
-
