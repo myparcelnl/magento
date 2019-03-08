@@ -54,7 +54,9 @@ class Checkout
         $this->quoteId = $session->getQuoteId();
         $this->products = $cart->getItems();
         $this->package = $package;
+        $this->package->setCurrentCountry($session->getQuote()->getShippingAddress()->getCountryId());
         $this->package->setMailboxSettings();
+        $this->package->setDigitalStampSettings();
     }
 
     /**
@@ -73,6 +75,7 @@ class Checkout
             'morning' => $this->getMorningData(),
             'evening' => $this->getEveningData(),
             'mailbox' => $this->getMailboxData(),
+            'digital_stamp' => $this->getDigitalStampData(),
             'pickup' => $this->getPickupData(),
             'pickup_express' => $this->getPickupExpressData(),
             'belgium_pickup' => $this->getBelgiumPickupData(),
@@ -229,9 +232,7 @@ class Checkout
     private function getMailboxData()
     {
         /** @var \Magento\Quote\Model\Quote\Item[] $products */
-        if (count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products);
-        }
+        $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
 
         /** check if mailbox is active */
         $mailboxData = [
@@ -241,11 +242,25 @@ class Checkout
             'fee' => $this->helper->getMethodPriceFormat('mailbox/fee', false),
         ];
 
-        if ($mailboxData['active'] === false) {
-            $mailboxData['fee'] = 'disabled';
-        }
-
         return $mailboxData;
+    }
+
+    /**
+     * @return array
+     */
+    private function getDigitalStampData()
+    {
+        /** @var \Magento\Quote\Model\Quote\Item[] $products */
+        $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
+
+        /** check if digital stamp is active */
+        $digitalStampData = [
+            'active' => $this->package->fitInDigitalStamp(),
+            'title' => $this->helper->getCheckoutConfig('digital_stamp/title'),
+            'fee' => $this->helper->getMethodPriceFormat('digital_stamp/fee', false),
+        ];
+
+        return $digitalStampData;
     }
 
     /**

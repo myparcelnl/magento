@@ -16,6 +16,7 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\Package;
 
 class DefaultOptions
 {
@@ -103,23 +104,34 @@ class DefaultOptions
     }
 
     /**
+     * Get default of digital stamp weight
+     *
+     * @return bool
+     */
+    public function getDigitalStampWeight()
+    {
+        return self::$helper->getCheckoutConfig('digital_stamp/default_weight');
+    }
+
+    /**
      * Get package type
      *
      * @return int 1|2|3|4
      */
     public function getPackageType()
     {
-        if ($this->isMailBox() === true) {
-            return 2;
-        }
-        if ($this->isDigitalStamp() === true) {
-            return 4;
+        if ($this->isDigitalStampOrMailbox('mailbox') === true) {
+            return Package::PACKAGE_TYPE_MAILBOX;
         }
 
-        return 1;
+        if ($this->isDigitalStampOrMailbox('digital_stamp') === true) {
+            return Package::PACKAGE_TYPE_DIGITAL_STAMP;
+        }
+
+        return Package::PACKAGE_TYPE_NORMAL;
     }
 
-    private function isMailBox() {
+    private function isDigitalStampOrMailbox($option) {
 
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
@@ -131,33 +143,11 @@ class DefaultOptions
             key_exists('time', self::$chosenOptions) &&
             is_array(self::$chosenOptions['time']) &&
             key_exists('price_comment', self::$chosenOptions['time'][0]) &&
-            self::$chosenOptions['time'][0]['price_comment'] == 'mailbox'
+            self::$chosenOptions['time'][0]['price_comment'] == $option
         ) {
             return true;
         }
-
-        /** @todo; check if mailbox fit in box */
         
-        return false;
-    }
-
-    private function isDigitalStamp() {
-// @todo: mailbox is hetzelfde
-        $country = self::$order->getShippingAddress()->getCountryId();
-        if ($country != 'NL') {
-            return false;
-        }
-
-        if (
-            is_array(self::$chosenOptions) &&
-            key_exists('time', self::$chosenOptions) &&
-            is_array(self::$chosenOptions['time']) &&
-            key_exists('price_comment', self::$chosenOptions['time'][0]) &&
-            self::$chosenOptions['time'][0]['price_comment'] == 'digital_stamp'
-        ) {
-            return true;
-        }
-
         return false;
     }
 }

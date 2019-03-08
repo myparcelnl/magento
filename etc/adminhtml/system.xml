@@ -237,14 +237,22 @@
                     <comment>Select automatically digital stamp packages based on weight</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="title" translate="label comment" type="text" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
+               <field id="default_weight" translate="label" type="select" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
+                   <label>Default weight</label>
+                   <comment>Price depends on the weight. Are the weights correctly filled in for all products? Choose "No standard weight" to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.</comment>
+                   <source_model>MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions</source_model>
+                   <depends>
+                       <field id="active">1</field>
+                   </depends>
+               </field>
+                <field id="title" translate="label comment" type="text" sortOrder="233" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Digital stamp title</label>
                     <comment>Leave blank to automate digital stamp packets only in the backend</comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="233" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="234" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Digital stamp fee</label>
                     <comment>Enter a basic price for a digital stamp. The regular price will not affect this price.</comment>
                     <depends>
@@ -252,35 +260,35 @@
                     </depends>
                 </field>
             </group>
-            <group id="mailbox" translate="label" type="text " sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="mailbox" translate="label" type="text " sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Mailbox settings</label>
-                <field id="active" translate="label" type="select" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label" type="select" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate mailbox</label>
                     <comment>Select automatically mailbox packages based on weight or volume</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="other_options" translate="label comment" type="select" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="other_options" translate="label comment" type="select" sortOrder="242" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mailbox with other options</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="title" translate="label comment" type="text" sortOrder="233" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="title" translate="label comment" type="text" sortOrder="243" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mailbox title</label>
                     <comment>Leave blank to automate mailbox packets only in the backend</comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="weight" translate="label comment" type="text" sortOrder="234" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="weight" translate="label comment" type="text" sortOrder="244" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mailbox weight</label>
                     <comment>Besides assigning weights to all products, you can also specify a volume of each product.</comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="235" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="245" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mailbox fee</label>
                     <comment>Enter a basic price for a mailbox. The regular price will not affect this price.</comment>
                     <depends>
@@ -288,20 +296,20 @@
                     </depends>
                 </field>
             </group>
-            <group id="morning" translate="label comment" type="text" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="morning" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Morning delivery</label>
-                <field id="active" translate="label comment" type="select" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning delivery active</label>
                     <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
                     <comment>If age check is active than the morning delivery is not possible</comment>
                 </field>
-                <field id="title" translate="label comment" type="text" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="title" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning title</label>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="242" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="252" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning delivery fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>
@@ -309,20 +317,20 @@
                     </depends>
                 </field>
             </group>
-            <group id="evening" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="evening" translate="label comment" type="text" sortOrder="260" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Evening delivery</label>
-                <field id="active" translate="label comment" type="select" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="261" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening delivery active</label>
                     <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
                     <comment>If age check is active than the Evening delivery is not possible</comment>
                 </field>
-                <field id="title" translate="label comment" type="text" sortOrder="252" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="title" translate="label comment" type="text" sortOrder="262" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening title</label>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="253" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="263" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening delivery fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>
@@ -330,19 +338,19 @@
                     </depends>
                 </field>
             </group>
-            <group id="pickup" translate="label comment" type="text" sortOrder="260" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="pickup" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Pickup at PostNL location</label>
-                <field id="active" translate="label comment" type="select" sortOrder="261" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="271" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup active</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="title" translate="label comment" type="text" sortOrder="262" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="title" translate="label comment" type="text" sortOrder="272" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup title</label>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="263" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="273" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>
@@ -350,16 +358,16 @@
                     </depends>
                 </field>
             </group>
-            <group id="pickup_express" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="pickup_express" translate="label comment" type="text" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Pickup Express at PostNL location</label>
-                <field id="active" translate="label comment" type="select" sortOrder="271" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="281" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup Express active</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="myparcelnl_magento_checkout/pickup/active">1</field>
                     </depends>
                 </field>
-                <field id="active_holder" translate="label comment" type="select" sortOrder="274" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active_holder" translate="label comment" type="select" sortOrder="284" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup Express active</label>
                     <source_model>MyParcelNL\Magento\Model\Source\NoOptions</source_model>
                     <depends>
@@ -367,7 +375,7 @@
                     </depends>
                     <comment>Not possible if Pickup at PostNL location is not active</comment>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="272" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="282" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup Express fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>
@@ -376,16 +384,16 @@
                     </depends>
                 </field>
             </group>
-            <group id="belgium_pickup" translate="label comment" type="text" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="belgium_pickup" translate="label comment" type="text" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Pickup at Belgium PostNL location</label>
-                <field id="active" translate="label comment" type="select" sortOrder="283" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup Belgium active</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="myparcelnl_magento_checkout/pickup/active">1</field>
                     </depends>
                 </field>
-                <field id="active_holder" translate="label comment" type="select" sortOrder="274" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active_holder" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup Belgium active</label>
                     <source_model>MyParcelNL\Magento\Model\Source\NoOptions</source_model>
                     <depends>
@@ -393,14 +401,14 @@
                     </depends>
                     <comment>Not possible if Pickup at PostNL location is not active</comment>
                 </field>
-                <field id="title" translate="label comment" type="text" sortOrder="286" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="title" translate="label comment" type="text" sortOrder="296" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup Belgium title</label>
                     <depends>
                         <field id="active">1</field>
                         <field id="myparcelnl_magento_checkout/pickup/active">1</field>
                     </depends>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="289" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="299" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup Belgium fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>

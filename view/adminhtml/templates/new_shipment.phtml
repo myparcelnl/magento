@@ -26,6 +26,15 @@
                 <div class="admin__field admin__field-option">
                     <input type="radio" class="admin__control-radio" id="mypa_package_type-digital_stamp" name="mypa_package_type" value="4" <?=$block->getPackageType() !== 4 ?: 'checked="checked"';?>>
                     <label class="admin__field-label" for="mypa_package_type-digital_stamp"><?=__('Digital stamp');?></label>
+                    <?php $weight = $block->getWeight();?>
+                    <select name="mypa_digital_stamp_weight" id="mypa_digital_stamp_weight" class="required product-custom-option admin__control-select" title="" >
+                        <option value="0" <?= $weight == 0 ? 'selected="selected"' : '';?> >No standard weight</option>
+                        <option value="20" <?= $weight == 20 ? 'selected="selected"' : '';?> >0 - 20 gram</option>
+                        <option value="50" <?= $weight == 50 ? 'selected="selected"' : '';?> >20 - 50 gram</option>
+                        <option value="100" <?= $weight == 100 ? 'selected="selected"' : '';?> >50 - 100 gram</option>
+                        <option value="350" <?= $weight == 350 ? 'selected="selected"' : '';?> >100 - 350 gram</option>
+                        <option value="2000" <?= $weight == 2000 ? 'selected="selected"' : '';?> >350 - 2000 gram</option>
+                    </select>
                 </div>
                 <div class="admin__field admin__field-option">
                     <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="2" <?=$block->getPackageType() !== 2 ?: 'checked="checked"';?>>
