@@ -12,11 +12,26 @@ use Magento\Framework\App\ObjectManager;
 
 class OrderExtension
 {
+
+    /**
+     * @var \Magento\Framework\HTTP\PhpEnvironment\Request
+     */
     protected $request;
 
+    /**
+     * @var ObjectManager
+     */
+    private $objectManager;
+
+    /**
+     * OrderExtension constructor.
+     *
+     * @param \Magento\Framework\HTTP\PhpEnvironment\Request $request
+     */
     public function __construct(\Magento\Framework\HTTP\PhpEnvironment\Request $request)
     {
        $this->request = $request->setPathInfo();
+       $this->objectManager = ObjectManager::getInstance();
     }
 
     /**
@@ -26,9 +41,7 @@ class OrderExtension
      */
     public function afterGetDeliveryOptions()
     {
-        $objectManager =  ObjectManager::getInstance();
-
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $resource = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection = $resource->getConnection();
         $tableName = $resource->getTableName('sales_order'); // Gives table name with prefix
 
