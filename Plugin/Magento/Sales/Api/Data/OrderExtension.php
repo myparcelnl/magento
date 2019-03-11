@@ -20,11 +20,9 @@ class OrderExtension
     }
 
     /**
-     * Avoid default email is sent.
+     * Use the delivery_options data from the sales_order table so it can be used in the magento rest api.
      *
-     * With a MyParcel shipment, the mail should be sent only if the barcode exists.
-     *
-     * @return string|null
+     * @return mixed
      */
     public function afterGetDeliveryOptions()
     {
