@@ -26,7 +26,6 @@ class OrderExtension
      */
     public function afterGetDeliveryOptions()
     {
-
         $objectManager =  ObjectManager::getInstance();
 
         $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
@@ -41,7 +40,7 @@ class OrderExtension
             ->from($tableName)
             ->where('entity_id = '. $entityId);
 
-        $result = $connection->fetchAll($sql); // gives associated array, table fields as key in array.
+        $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
         return $result[0]['delivery_options'];
     }
