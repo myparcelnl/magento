@@ -51,7 +51,7 @@ class OrderExtension
         $sql = $connection
             ->select('delivery_options')
             ->from($tableName)
-            ->where('entity_id = '. $entityId);
+            ->where('entity_id = ' . $entityId);
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
