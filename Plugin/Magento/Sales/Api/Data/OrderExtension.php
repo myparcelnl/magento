@@ -10,11 +10,12 @@ namespace MyparcelNL\Magento\Plugin\Magento\Sales\Api\Data;
 
 use Magento\Framework\App\ObjectManager;
 
-class OrderExtension {
-
+class OrderExtension
+{
     protected $request;
 
-    public function __construct(\Magento\Framework\HTTP\PhpEnvironment\Request $request) {
+    public function __construct(\Magento\Framework\HTTP\PhpEnvironment\Request $request)
+    {
        $this->request = $request->setPathInfo();
     }
 
@@ -25,7 +26,8 @@ class OrderExtension {
      *
      * @return string|null
      */
-    public function afterGetDeliveryOptions() {
+    public function afterGetDeliveryOptions()
+    {
 
         $objectManager =  ObjectManager::getInstance();
 
@@ -33,13 +35,13 @@ class OrderExtension {
         $connection = $resource->getConnection();
         $tableName = $resource->getTableName('sales_order'); //gives table name with prefix
 
-        $entity_id  = str_replace("/rest/V1/orders/","" ,$this->request->getPathInfo());;
+        $entityId  = str_replace("/rest/V1/orders/","" ,$this->request->getPathInfo());;
 
         //Select Data from table
         $sql = $connection
             ->select('delivery_options')
             ->from($tableName)
-            ->where('entity_id = '. $entity_id);
+            ->where('entity_id = '. $entityId);
 
         $result = $connection->fetchAll($sql); // gives associated array, table fields as key in array.
 
