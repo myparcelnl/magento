@@ -8,11 +8,11 @@
 
 namespace MyparcelNL\Magento\Plugin\Magento\Sales\Api\Data;
 
+use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\Framework\App\ObjectManager;
 
 class OrderExtension
 {
-
     /**
      * @var \Magento\Framework\HTTP\PhpEnvironment\Request
      */
@@ -28,7 +28,7 @@ class OrderExtension
      *
      * @param \Magento\Framework\HTTP\PhpEnvironment\Request $request
      */
-    public function __construct(\Magento\Framework\HTTP\PhpEnvironment\Request $request)
+    public function __construct(Request $request)
     {
        $this->request = $request->setPathInfo();
        $this->objectManager = ObjectManager::getInstance();
