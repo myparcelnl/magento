@@ -8,7 +8,7 @@
 
 namespace MyParcelNL\Magento\Api\Data;
 
-interface DeliveryOptionsInRestApi
+interface DeliveryOptions
 {
     const VALUE = 'value';
 

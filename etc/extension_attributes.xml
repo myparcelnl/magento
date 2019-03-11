@@ -4,6 +4,6 @@
         <attribute code="delivery_options" type="string"/>
     </extension_attributes>
     <extension_attributes for="Magento\Sales\Api\Data\OrderInterface">
-        <attribute code="delivery_options" type="MyParcelNL\Magento\Api\Data\DeliveryOptionsInRestApi" />
+        <attribute code="delivery_options" type="MyParcelNL\Magento\Api\Data\DeliveryOptions" />
     </extension_attributes>
 </config>
