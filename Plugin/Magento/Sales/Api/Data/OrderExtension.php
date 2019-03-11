@@ -33,7 +33,7 @@ class OrderExtension {
         $connection = $resource->getConnection();
         $tableName = $resource->getTableName('sales_order'); // Gives table name with prefix
 
-        $entity_id  = str_replace("/rest/V1/orders/","" ,$this->request->getPathInfo());;
+        $entity_id  = str_replace("/rest/V1/orders/","" ,$this->request->getPathInfo());
 
         //Select Data from table
         $sql = $connection
