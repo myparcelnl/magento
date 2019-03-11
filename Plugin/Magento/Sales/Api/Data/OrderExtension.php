@@ -31,7 +31,7 @@ class OrderExtension {
 
         $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection = $resource->getConnection();
-        $tableName = $resource->getTableName('sales_order'); //gives table name with prefix
+        $tableName = $resource->getTableName('sales_order'); // Gives table name with prefix
 
         $entity_id  = str_replace("/rest/V1/orders/","" ,$this->request->getPathInfo());;
 
