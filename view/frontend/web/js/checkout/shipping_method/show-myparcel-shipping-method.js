@@ -67,10 +67,10 @@ define(
                 _setAddress();
                 _hideRadios();
 
-                if (checkOnlyShowDigitalStamp()) {
-                    showDigitalStampRadio();
-                } else if (checkOnlyShowMailbox()) {
-                    showMailboxRadio();
+                if (checkOnlyShowRadioButton('digital_stamp')) {
+                    showDeliveryRadio('digital_stamp');
+                } else if (checkOnlyShowRadioButton('mailbox')) {
+                    showDeliveryRadio('mailbox');
                 } else if (_getCcIsLocal() && _getHouseNumber() !== null) {
                     _appendTemplate();
                     _setParameters();
@@ -84,32 +84,19 @@ define(
             }, 1000);
         }
 
-        function checkOnlyShowMailbox() {
-            if (_getCcIsLocal() === false || window.mypa.data.mailbox.active === false) {
+        function checkOnlyShowRadioButton(type) {
+            if (_getCcIsLocal() === false || window.mypa.data[type].active === false) {
                 return false
             }
 
             return true;
         }
 
-        function checkOnlyShowDigitalStamp() {
-            if (_getCcIsLocal() === false || window.mypa.data.digital_stamp.active === false) {
-                return false;
-            }
-
-            return true;
-        }
-        
-        function showMailboxRadio() {
+        function showDeliveryRadio(type) {
             jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
-            jQuery("td[id^='label_carrier_mailbox']").parent().show();
-            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"mailbox"}]}');
-        }
-
-        function showDigitalStampRadio() {
-            jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
-            jQuery("td[id^='label_carrier_digital_stamp']").parent().show();
-            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"digital_stamp"}]}');
+            jQuery("td[id^='label_carrier_"+ type +"']").parent().show();
+            jQuery("td[id^='label_carrier_"+ type +"_" + window.mypa.data.general.parent_method + "']").hide();
+            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"'+ type +'"}]}');
         }
 
         function _setAddress() {
