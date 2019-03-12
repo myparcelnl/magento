@@ -344,7 +344,7 @@ MyParcel = {
 
         /* If retail; convert retailexpress to retail */
         if (selectedPriceComment === "retail") {
-            MyParcel.result.price_comment = "retail";
+            result.price_comment = "retail";
         }
 
         jQuery("input[name='delivery_options']").val(JSON.stringify(result));
