@@ -71,7 +71,7 @@ class DefaultOptions
         $settings = self::$helper->getStandardConfig('options');
 
         if ($settings[$option . '_active'] == '1') {
-            if ($total > (int)$settings[$option . '_from_price']) {
+            if (!$option . '_from_price' || $total > (int)$settings[$option . '_from_price']) {
                 return true;
             } else {
                 return false;
