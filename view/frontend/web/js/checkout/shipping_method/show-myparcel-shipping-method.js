@@ -14,7 +14,7 @@ define(
     function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction) {
         'use strict';
 
-        var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
+        var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress, typeTitle;
 
         return {
             loadOptions: loadOptions,
@@ -93,9 +93,18 @@ define(
         }
 
         function showDeliveryRadio(type) {
+
             jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
             jQuery("td[id^='label_carrier_"+ type +"']").parent().show();
-            jQuery("td[id^='label_carrier_"+ type +"_" + window.mypa.data.general.parent_method + "']").hide();
+
+            if (type === "digital_stamp"){
+                typeTitle = "Digital stamp";
+            }
+
+            if(type === "mailbox"){
+                typeTitle = "Mailbox";
+            }
+            jQuery("td[id^='label_carrier_"+ type +"_" + window.mypa.data.general.parent_method + "']").html(typeTitle);
             jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"'+ type +'"}]}');
         }
 
