@@ -149,6 +149,16 @@ Signature on receipt title, Handtekening voor ontvangst titel
 Signature on receipt fee, Handtekening voor ontvangst prijs
 Home address only and signature on receipt together fee,De prijs van handtekening voor ontvangst en alleen huisadres samen
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
+Digital stamp settings,Digitale postzegel instellingen,
+Automate digital stamp,Digitale postzegel automatiseren
+Select automatically digital stamp packages based on weight,Selecteer automatisch digitale postzegel op basis van gewicht
+Default weight,Standaard gewicht
+No standard weight, Geen standaard gewicht
+"Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.","Prijs is afhankelijk van het gewicht. Zijn de gewichten correct ingevuld voor alle producten? Kies 'Geen standaard gewicht' om MyParcel het gewicht zelf te laten berekenen. Selecteer hier een standaard gewicht als de producten geen juiste gewichten bevatten."
+Digital stamp title,Digitale postzegel titel
+Leave blank to automate digital stamp packets only in the backend,Laat dit leeg om digitale postzegel alleen in de backend te automatiseren
+Digital stamp fee,Digitale postzegel prijs
+Enter a basic price for a digital stamp. The regular price will not affect this price.,Voer een basisprijs in voor een digitale postzegel. De normale prijs heeft geen invloed op deze prijs.
 Mailbox settings,Brievenbuspakje instellingen
 Automate mailbox,Brievenbuspakje automatiseren
 Mailbox with other options,Brievenbuspakje tonen met andere opties
@@ -159,6 +169,15 @@ Mailbox weight,Brievenbuspakje gewicht
 "Besides assigning weights to all products, you can also specify a volume of each product.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten."
 Mailbox fee,Brievenbuspakje prijs
 Enter a basic price for a mailbox. The regular price will not affect this price.,Vul een basis prijs in voor een brievenbuspakje. De huidige prijs heeft geen invloed op deze prijs.
+Fit in Mailbox, Past in brievenbuspakje
+Fit in digital stamp, Past in digitale postzegel
+Look to weight,Kijk naar het gewicht
+One product (100%),Één product (100%)
+2 products (50%),2 producten (50%)
+3 products (33%),3 producten (33%)
+10 products (10%),10 producten (10%)
+20 products (5%),20 producten (5%)
+MyParcel Options, MyParcel Opties
 Morning delivery,Ochtendlevering
 Morning delivery active,Ochtendlevering actief
 Morning delivery fee, Ochtendlevering prijs

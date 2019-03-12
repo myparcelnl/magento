@@ -291,7 +291,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return $price;
         }
 
-        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox');
+        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox' && $alias !== 'digital_stamp');
 
         return $price;
     }
