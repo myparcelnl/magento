@@ -239,7 +239,7 @@
                 </field>
                <field id="default_weight" translate="label" type="select" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
                    <label>Default weight</label>
-                   <comment>Price depends on the weight. Are the weights correctly filled in for all products? Choose "No standard weight" to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.</comment>
+                   <comment>Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.</comment>
                    <source_model>MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions</source_model>
                    <depends>
                        <field id="active">1</field>

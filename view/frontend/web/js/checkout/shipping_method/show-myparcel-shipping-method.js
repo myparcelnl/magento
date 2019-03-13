@@ -67,10 +67,10 @@ define(
                 _setAddress();
                 _hideRadios();
 
-                if (checkOnlyShowDigitalStamp()) {
-                    showDigitalStampRadio();
-                } else if (checkOnlyShowMailbox()) {
-                    showMailboxRadio();
+                if (checkOnlyShowRadioButton('digital_stamp')) {
+                    showDeliveryRadio('digital_stamp');
+                } else if (checkOnlyShowRadioButton('mailbox')) {
+                    showDeliveryRadio('mailbox');
                 } else if (_getCcIsLocal() && _getHouseNumber() !== null) {
                     _appendTemplate();
                     _setParameters();
@@ -84,32 +84,28 @@ define(
             }, 1000);
         }
 
-        function checkOnlyShowMailbox() {
-            if (_getCcIsLocal() === false || window.mypa.data.mailbox.active === false) {
+        function checkOnlyShowRadioButton(extraOption) {
+            if (_getCcIsLocal() === false || window.mypa.data[extraOption].active === false) {
                 return false
             }
 
             return true;
         }
 
-        function checkOnlyShowDigitalStamp() {
-            if (_getCcIsLocal() === false || window.mypa.data.digital_stamp.active === false) {
-                return false;
+        function showDeliveryRadio(extraOption, typeTitle = '') {
+
+            jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
+            jQuery("td[id^='label_carrier_"+ extraOption +"']").parent().show();
+
+            if (extraOption === "digital_stamp"){
+                typeTitle = "Digital stamp";
             }
 
-            return true;
-        }
-        
-        function showMailboxRadio() {
-            jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
-            jQuery("td[id^='label_carrier_mailbox']").parent().show();
-            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"mailbox"}]}');
-        }
-
-        function showDigitalStampRadio() {
-            jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
-            jQuery("td[id^='label_carrier_digital_stamp']").parent().show();
-            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"digital_stamp"}]}');
+            if(extraOption === "mailbox"){
+                typeTitle = "Mailbox";
+            }
+            jQuery("td[id^='label_carrier_"+ extraOption +"_" + window.mypa.data.general.parent_method + "']").html(typeTitle);
+            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"'+ extraOption +'"}]}');
         }
 
         function _setAddress() {
