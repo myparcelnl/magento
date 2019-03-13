@@ -14,7 +14,7 @@ define(
     function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction) {
         'use strict';
 
-        var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress, typeTitle;
+        var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
 
         return {
             loadOptions: loadOptions,
@@ -84,28 +84,28 @@ define(
             }, 1000);
         }
 
-        function checkOnlyShowRadioButton(type) {
-            if (_getCcIsLocal() === false || window.mypa.data[type].active === false) {
+        function checkOnlyShowRadioButton(extraOption) {
+            if (_getCcIsLocal() === false || window.mypa.data[extraOption].active === false) {
                 return false
             }
 
             return true;
         }
 
-        function showDeliveryRadio(type) {
+        function showDeliveryRadio(extraOption, typeTitle = '') {
 
             jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
-            jQuery("td[id^='label_carrier_"+ type +"']").parent().show();
+            jQuery("td[id^='label_carrier_"+ extraOption +"']").parent().show();
 
-            if (type === "digital_stamp"){
+            if (extraOption === "digital_stamp"){
                 typeTitle = "Digital stamp";
             }
 
-            if(type === "mailbox"){
+            if(extraOption === "mailbox"){
                 typeTitle = "Mailbox";
             }
-            jQuery("td[id^='label_carrier_"+ type +"_" + window.mypa.data.general.parent_method + "']").html(typeTitle);
-            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"'+ type +'"}]}');
+            jQuery("td[id^='label_carrier_"+ extraOption +"_" + window.mypa.data.general.parent_method + "']").html(typeTitle);
+            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"'+ extraOption +'"}]}');
         }
 
         function _setAddress() {
