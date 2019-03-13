@@ -10,6 +10,7 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyparcelNL\Magento\Model\Source\DefaultOptions;
 
 class Checkout
 {
@@ -39,18 +40,22 @@ class Checkout
 
     /**
      * Checkout constructor.
+     *
      * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Checkout\Model\Cart $cart
      * @param \MyParcelNL\Magento\Helper\Checkout $helper
+     * @param DefaultOptions $defaultOptions
      * @param PackageRepository $package
      */
     public function __construct(
         \Magento\Checkout\Model\Session $session,
         \Magento\Checkout\Model\Cart $cart,
         \MyParcelNL\Magento\Helper\Checkout $helper,
+        DefaultOptions $defaultOptions,
         PackageRepository $package
     ) {
         $this->helper = $helper;
+        $this->defaultOptions = $defaultOptions;
         $this->quoteId = $session->getQuoteId();
         $this->products = $cart->getItems();
         $this->package = $package;
@@ -122,10 +127,10 @@ class Checkout
         $deliveryData = [
             'delivery_title' => $this->helper->getCheckoutConfig('delivery/delivery_title'),
             'standard_delivery_title' => $this->helper->getCheckoutConfig('delivery/standard_delivery_title'),
-            'only_recipient_active' => $this->hasAgeCheck() ? $this->helper->getBoolConfig('delivery/only_recipient_active') : 0,
+            'only_recipient_active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('delivery/only_recipient_active'),
             'only_recipient_title' => $this->helper->getCheckoutConfig('delivery/only_recipient_title'),
             'only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/only_recipient_fee', false, '+ '),
-            'signature_active' => $this->hasAgeCheck() ? $this->helper->getBoolConfig('delivery/signature_active') : 0,
+            'signature_active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('delivery/signature_active'),
             'signature_title' => $this->helper->getCheckoutConfig('delivery/signature_title'),
             'signature_fee' => $this->helper->getMethodPriceFormat('delivery/signature_fee', false, '+ '),
             'signature_and_only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/signature_and_only_recipient_fee', false, '+ '),
@@ -147,7 +152,7 @@ class Checkout
      * @return bool
      */
     private function hasAgeCheck(){
-        return $this->helper->getBoolConfig('options')['age_check_active'];
+        return $this->defaultOptions->getDefault('age_check');
     }
 
     /**
@@ -158,7 +163,7 @@ class Checkout
     private function getMorningData()
     {
         return [
-            'active' => $this->hasAgeCheck() ? $this->helper->getBoolConfig('morning/active') : 0,
+            'active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('morning/active'),
             'title' => $this->helper->getCheckoutConfig('morning/title'),
             'fee' => $this->helper->getMethodPriceFormat('morning/fee'),
         ];
@@ -172,7 +177,7 @@ class Checkout
     private function getEveningData()
     {
         return [
-            'active' => $this->hasAgeCheck() ? $this->helper->getBoolConfig('evening/active') : 0,
+            'active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('evening/active'),
             'title' => $this->helper->getCheckoutConfig('evening/title'),
             'fee' => $this->helper->getMethodPriceFormat('evening/fee'),
         ];
