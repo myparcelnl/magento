@@ -14,7 +14,6 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
 
@@ -26,7 +25,7 @@ class DefaultOptions
     static private $helper;
 
     /**
-     * @var Order
+     * @var \Magento\Sales\Model\Order|\Magento\Quote\Model\Quote
      */
     static private $order;
 
@@ -38,10 +37,10 @@ class DefaultOptions
     /**
      * Insurance constructor.
      *
-     * @param $order Order
-     * @param $helper Data
+     * @param \Magento\Sales\Model\Order|\Magento\Quote\Model\Quote $order
+     * @param Data $helper
      */
-    public function __construct(Order $order, Data $helper)
+    public function __construct($order, Data $helper)
     {
         self::$helper = $helper;
         self::$order = $order;
