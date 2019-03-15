@@ -58,6 +58,7 @@
             </delivery>
             <digital_stamp>
                 <active>0</active>
+                <default_weight>0</default_weight>
                 <title>Digitale postzegel</title>
                 <fee>0</fee>
             </digital_stamp>
