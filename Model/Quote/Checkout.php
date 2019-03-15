@@ -66,7 +66,6 @@ class Checkout
         $this->package->setCurrentCountry($session->getQuote()->getShippingAddress()->getCountryId());
         $this->package->setMailboxSettings();
         $this->package->setDigitalStampSettings();
-
     }
 
     /**
