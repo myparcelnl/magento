@@ -49,7 +49,6 @@ class Checkout
      * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Checkout\Model\Cart $cart
      * @param \MyParcelNL\Magento\Helper\Checkout $helper
-     * @param DefaultOptions $defaultOptions
      * @param PackageRepository $package
      */
     public function __construct(
