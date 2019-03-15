@@ -27,7 +27,7 @@
     </type>
     <!-- Add field delivery_options to order rest endpoint -->
     <type name="Magento\Sales\Api\Data\OrderExtension">
-        <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Api_Data_OrderExtension" sortOrder="11" type="MyparcelNL\Magento\Plugin\Magento\Sales\Api\Data\OrderExtension"/>
+        <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Api_Data_OrderExtension" sortOrder="11" type="MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data\OrderExtension"/>
     </type>
     <!-- Save address information in checkout -->
     <type name="Magento\Checkout\Model\ShippingInformationManagement">

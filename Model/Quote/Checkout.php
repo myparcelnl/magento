@@ -10,7 +10,7 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
-use MyparcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
 class Checkout
 {

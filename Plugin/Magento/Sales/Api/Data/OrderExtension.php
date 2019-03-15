@@ -6,7 +6,7 @@
  * Time: 16:23
  */
 
-namespace MyparcelNL\Magento\Plugin\Magento\Sales\Api\Data;
+namespace MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data;
 
 use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\Framework\App\ObjectManager;
