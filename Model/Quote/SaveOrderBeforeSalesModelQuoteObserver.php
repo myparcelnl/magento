@@ -22,9 +22,9 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 
 use Magento\Framework\Event\ObserverInterface;
-use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
+use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
 use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
@@ -55,13 +55,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     public function __construct(
         DeliveryRepository $delivery,
         MyParcelConsignmentRepository $consignmentRepository,
-        Checkout $checkoutHelper
+        CheckoutHelper $checkoutHelper
     ) {
         $this->delivery = $delivery;
         $this->consignmentRepository = $consignmentRepository;
-
         $this->parentMethods = explode(',', $checkoutHelper->getCheckoutConfig('general/shipping_methods'));
-
     }
 
     /**

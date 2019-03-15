@@ -39,6 +39,11 @@ class Checkout
     private $products;
 
     /**
+     * @var DefaultOptions
+     */
+    private $defaultOptions;
+
+    /**
      * Checkout constructor.
      *
      * @param \Magento\Checkout\Model\Session $session
@@ -51,14 +56,13 @@ class Checkout
         \Magento\Checkout\Model\Session $session,
         \Magento\Checkout\Model\Cart $cart,
         \MyParcelNL\Magento\Helper\Checkout $helper,
-        DefaultOptions $defaultOptions,
         PackageRepository $package
     ) {
         $this->helper = $helper;
-        $this->defaultOptions = $defaultOptions;
         $this->quoteId = $session->getQuoteId();
         $this->products = $cart->getItems();
         $this->package = $package;
+        $this->defaultOptions = new DefaultOptions($session->getQuote(), $helper);
         $this->package->setCurrentCountry($session->getQuote()->getShippingAddress()->getCountryId());
         $this->package->setMailboxSettings();
         $this->package->setDigitalStampSettings();
