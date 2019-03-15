@@ -41,10 +41,13 @@ class OrderExtension
      */
     public function afterGetDeliveryOptions()
     {
+        if (strpos($this->request->getPathInfo(),"/rest/V1/orders/") === false){
+            return null;
+        }
+
         $resource = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection = $resource->getConnection();
         $tableName = $resource->getTableName('sales_order'); // Gives table name with prefix
-
         $entityId  = str_replace("/rest/V1/orders/","" ,$this->request->getPathInfo());
 
         //Select Data from table
