@@ -41,7 +41,7 @@ class OrderExtension
      */
     public function afterGetDeliveryOptions()
     {
-        if (strpos($this->request->getPathInfo(),"/rest/V1/orders/") === false){
+        if (strpos($this->request->getPathInfo(), "/rest/V1/orders/") === false){
             return null;
         }
 
