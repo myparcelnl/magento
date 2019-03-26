@@ -32,7 +32,6 @@ class MagentoCollection implements MagentoCollectionInterface
     const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
     const PATH_MANAGER_INTERFACE = '\Magento\Framework\Message\ManagerInterface';
     const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    const URL_SHOW_POSTNL_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
     const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
 
     /**

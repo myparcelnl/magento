@@ -14,6 +14,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Sdk\src\Helper\TrackTraceUrl;
 
 /**
  * Class MagentoOrderCollection
@@ -26,6 +27,11 @@ class MagentoOrderCollection extends MagentoCollection
      * @var \Magento\Sales\Model\ResourceModel\Order\Collection
      */
     private $orders = null;
+
+    /**
+     * @var TrackTraceUrl
+     */
+    public $trackTraceUrl;
 
     /**
      * Get all Magento orders
@@ -371,6 +377,7 @@ class MagentoOrderCollection extends MagentoCollection
 
                 if ($myParcelTrack->getBarcode()) {
                     $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
+                    $magentoTrack->setDescription('hoi');
                 }
                 $magentoTrack->save();
             }
