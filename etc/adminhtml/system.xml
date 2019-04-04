@@ -188,7 +188,7 @@
                 <field id="only_recipient_active" translate="label comment" type="select" sortOrder="223" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Home address only</label>
                     <comment>Deliver the package only at address of the intended recipient.</comment>
-                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
+                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckYes</source_model>
                 </field>
                 <field id="only_recipient_title" translate="label comment" type="text" sortOrder="224" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Home address only title</label>
@@ -205,7 +205,7 @@
                 </field>
                 <field id="signature_active" translate="label comment" type="select" sortOrder="226" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
+                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckYes</source_model>
                 </field>
                 <field id="signature_title" translate="label comment" type="text" sortOrder="227" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt title</label>
