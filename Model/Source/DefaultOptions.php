@@ -14,8 +14,8 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\Package;
 
 class DefaultOptions
 {
@@ -25,7 +25,7 @@ class DefaultOptions
     static private $helper;
 
     /**
-     * @var Order
+     * @var \Magento\Sales\Model\Order|\Magento\Quote\Model\Quote
      */
     static private $order;
 
@@ -37,10 +37,10 @@ class DefaultOptions
     /**
      * Insurance constructor.
      *
-     * @param $order Order
-     * @param $helper Data
+     * @param \Magento\Sales\Model\Order|\Magento\Quote\Model\Quote $order
+     * @param Data $helper
      */
-    public function __construct(Order $order, Data $helper)
+    public function __construct($order, Data $helper)
     {
         self::$helper = $helper;
         self::$order = $order;
@@ -69,12 +69,10 @@ class DefaultOptions
         $total = self::$order->getGrandTotal();
         $settings = self::$helper->getStandardConfig('options');
 
-        if ($settings[$option . '_active'] == '1') {
-            if ($total > (int)$settings[$option . '_from_price']) {
-                return true;
-            } else {
-                return false;
-            }
+        if ($settings[$option . '_active'] == '1' &&
+            (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
+        ) {
+            return true;
         }
 
         return false;
@@ -95,34 +93,42 @@ class DefaultOptions
             return 250;
         }
 
-        if ($this->getDefault('insurance_50')) {
-            return 50;
+        if ($this->getDefault('insurance_100')) {
+            return 100;
         }
 
         return 0;
     }
 
     /**
+     * Get default of digital stamp weight
+     *
+     * @return bool
+     */
+    public function getDigitalStampWeight()
+    {
+        return self::$helper->getCheckoutConfig('digital_stamp/default_weight');
+    }
+
+    /**
      * Get package type
      *
-     * @return int 1|2|3
+     * @return int 1|2|3|4
      */
     public function getPackageType()
     {
-        if ($this->isMailBox() === true) {
-            return 2;
+        if ($this->isDigitalStampOrMailbox('mailbox') === true) {
+            return Package::PACKAGE_TYPE_MAILBOX;
         }
 
-        return 1;
+        if ($this->isDigitalStampOrMailbox('digital_stamp') === true) {
+            return Package::PACKAGE_TYPE_DIGITAL_STAMP;
+        }
+
+        return Package::PACKAGE_TYPE_NORMAL;
     }
 
-    private function isMailBox() {
-        /** @todo get mailbox config */
-        $mailboxActive = true;
-
-        if ($mailboxActive !== true) {
-            return false;
-        }
+    private function isDigitalStampOrMailbox($option) {
 
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
@@ -134,12 +140,10 @@ class DefaultOptions
             key_exists('time', self::$chosenOptions) &&
             is_array(self::$chosenOptions['time']) &&
             key_exists('price_comment', self::$chosenOptions['time'][0]) &&
-            self::$chosenOptions['time'][0]['price_comment'] == 'mailbox'
+            self::$chosenOptions['time'][0]['price_comment'] == $option
         ) {
             return true;
         }
-
-        /** @todo; check if mailbox fit in box */
         
         return false;
     }

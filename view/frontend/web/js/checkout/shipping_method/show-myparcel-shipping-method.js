@@ -67,8 +67,10 @@ define(
                 _setAddress();
                 _hideRadios();
 
-                if (checkOnlyShowMailbox()) {
-                    showMailboxRadio();
+                if (checkOnlyShowRadioButton('digital_stamp')) {
+                    showDeliveryRadio('digital_stamp');
+                } else if (checkOnlyShowRadioButton('mailbox')) {
+                    showDeliveryRadio('mailbox');
                 } else if (_getCcIsLocal() && _getHouseNumber() !== null) {
                     _appendTemplate();
                     _setParameters();
@@ -82,25 +84,28 @@ define(
             }, 1000);
         }
 
-        function checkOnlyShowMailbox() {
-            if (_getCcIsLocal() === false) {
-                return false;
-            }
-
-            if (window.mypa.data.mailbox.active === false) {
+        function checkOnlyShowRadioButton(extraOption) {
+            if (_getCcIsLocal() === false || window.mypa.data[extraOption].active === false) {
                 return false
-            }
-
-            if (window.mypa.data.mailbox.mailbox_other_options === true) {
-                return false;
             }
 
             return true;
         }
-        
-        function showMailboxRadio() {
+
+        function showDeliveryRadio(extraOption, typeTitle = '') {
+
             jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
-            jQuery("td[id^='label_carrier_mailbox']").parent().show();
+            jQuery("td[id^='label_carrier_"+ extraOption +"']").parent().show();
+
+            if (extraOption === "digital_stamp"){
+                typeTitle = "Digital stamp";
+            }
+
+            if(extraOption === "mailbox"){
+                typeTitle = "Mailbox";
+            }
+            jQuery("td[id^='label_carrier_"+ extraOption +"_" + window.mypa.data.general.parent_method + "']").html(typeTitle);
+            jQuery("input[name='delivery_options']").val('{"time":[{"price_comment":"'+ extraOption +'"}]}');
         }
 
         function _setAddress() {
@@ -125,6 +130,10 @@ define(
                 if (typeof city === 'undefined') city = '';
             } else {
                 var street0 = jQuery("input[name='street[0]']").val();
+                var validatedAddress = getPostcodeValidateAddress();
+                if (validatedAddress && typeof validatedAddress !== 'undefined'){
+                    var street0 = validatedAddress;
+                }
                 if (typeof street0 === 'undefined') street0 = '';
                 var street1 = jQuery("input[name='street[1]']").val();
                 if (typeof street1 === 'undefined') street1 = '';
@@ -147,6 +156,19 @@ define(
             window.mypa.address.city = city.replace(/[<>=]/g,'');
         }
 
+        /**
+         * Use the validated address data from POSTCODE.NL
+         * @returns {* | jQuery}
+         */
+        function getPostcodeValidateAddress() {
+            var validatedAddress = jQuery(".postcode-valid-address").text();
+
+            if (jQuery("select[name='country_id']").val() === 'BE') {
+                validatedAddress = jQuery('#shipping-be-street').val() + ' ' + jQuery('#shipping-be-house').val();
+            }
+            return validatedAddress
+        }
+
         function showOptions() {
             originalShippingRate = jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent();
             optionsContainer.show();
@@ -164,7 +186,7 @@ define(
         }
 
         function _hideRadios() {
-            jQuery("td[id^='label_method_signature'],td[id^='label_method_mailbox'],td[id^='label_method_pickup'],td[id^='label_method_evening'],td[id^='label_method_only_recipient'],td[id^='label_method_morning']").parent().hide();
+            jQuery("td[id^='label_method_signature'],td[id^='label_method_mailbox'],td[id^='label_method_digital_stamp'],td[id^='label_method_pickup'],td[id^='label_method_evening'],td[id^='label_method_only_recipient'],td[id^='label_method_morning']").parent().hide();
         }
 
         function _getCcIsLocal() {

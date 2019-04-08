@@ -32,6 +32,7 @@ class Package extends Data implements PackageInterface
     const PACKAGE_TYPE_NORMAL = 1;
     const PACKAGE_TYPE_MAILBOX = 2;
     const PACKAGE_TYPE_LETTER = 3;
+    const PACKAGE_TYPE_DIGITAL_STAMP = 4;
 
     /**
      * @var int
@@ -41,7 +42,7 @@ class Package extends Data implements PackageInterface
     /**
      * @var int
      */
-    private $max_mailbox_weight = 0;
+    private $max_weight = 0;
 
     /**
      * @var bool
@@ -51,7 +52,17 @@ class Package extends Data implements PackageInterface
     /**
      * @var bool
      */
-    private $all_products_fit = true;
+    private $digital_stamp_active = false;
+
+    /**
+     * @var bool
+     */
+    private $all_products_fit_in_mailbox = true;
+
+    /**
+     * @var bool
+     */
+    private $all_products_fit_in_digital_stamp = true;
 
     /**
      * @var bool
@@ -111,18 +122,47 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFit()
+    public function isDigitalStampActive()
     {
-        return $this->all_products_fit;
+        return $this->digital_stamp_active;
     }
 
     /**
-     * @param bool $all_products_fit
+     * @param bool $digital_stamp_active
      */
-    public function setAllProductsFit($all_products_fit)
+    public function setDigitalStampActive($digital_stamp_active)
     {
-        if ($all_products_fit === false) {
-            $this->all_products_fit = $all_products_fit;
+        $this->digital_stamp_active = $digital_stamp_active;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllProductsFitInMailbox()
+    {
+        return $this->all_products_fit_in_mailbox;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllProductsFitInDigitalStamp()
+    {
+        return $this->all_products_fit_in_digital_stamp;
+    }
+
+    /**
+     * @param bool $all_products_fit_in_mailbox
+     * @param null $package_type
+     */
+    public function setAllProductsFitInMailbox($all_products_fit_in_mailbox, $package_type = null)
+    {
+        if ($all_products_fit_in_mailbox === false && $package_type === null) {
+            $this->all_products_fit_in_mailbox = $all_products_fit_in_mailbox;
+        }
+
+        if ($all_products_fit_in_mailbox === false && $package_type === 'digital_stamp') {
+            $this->all_products_fit_in_digital_stamp = $all_products_fit_in_mailbox;
         }
     }
 
@@ -150,19 +190,19 @@ class Package extends Data implements PackageInterface
      */
     public function getMaxWeight()
     {
-        return (int)$this->max_mailbox_weight;
+        return (int)$this->max_weight;
     }
 
     /**
-     * @param int $max_mailbox_weight
+     * @param int $max_weight
      */
-    public function setMaxWeight($max_mailbox_weight)
+    public function setMaxWeight($max_weight)
     {
-        $this->max_mailbox_weight = $max_mailbox_weight;
+        $this->max_weight = $max_weight;
     }
 
     /**
-     * package = 1, mailbox = 2, letter = 3
+     * package = 1, mailbox = 2, letter = 3, digital_stamp = 4
      *
      * @return int
      */
@@ -172,7 +212,7 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * package = 1, mailbox = 2, letter = 3
+     * package = 1, mailbox = 2, letter = 3, digital_stamp = 4
      *
      * @param int $package_type
      */

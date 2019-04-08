@@ -44,11 +44,11 @@ interface PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFit();
+    public function isAllProductsFitInMailbox();
     /**
-     * @param bool $all_products_fit
+     * @param bool $all_products_fit_in_mailbox
      */
-    public function setAllProductsFit($all_products_fit);
+    public function setAllProductsFitInMailbox($all_products_fit_in_mailbox);
     /**
      * @return bool
      */
@@ -63,9 +63,9 @@ interface PackageInterface
      */
     public function getMaxWeight();
     /**
-     * @param int $max_mailbox_weight
+     * @param int $max_weight
      */
-    public function setMaxWeight($max_mailbox_weight);
+    public function setMaxWeight($max_weight);
     /**
      * package = 1, mailbox = 2, letter = 3
      *

@@ -11,6 +11,7 @@ status_10,Delivered - Return shipment
 status_11,Delivered - Return shipment pickup location
 status_12,Unrelated label printed
 status_13,Credited
+status_14,Digital stamp label printed
 status_30,Inactive - Concept
 status_31,Inactive - Registered
 status_32,Inactive - Enroute - Handed to carrier

@@ -84,7 +84,9 @@ class MagentoCollection implements MagentoCollectionInterface
         'signature' => null,
         'return' => null,
         'large_format' => null,
+        'age_check' => null,
         'insurance' => null,
+        'digital_stamp_weight' => null,
     ];
 
     /**
@@ -296,6 +298,7 @@ class MagentoCollection implements MagentoCollectionInterface
      * @param Order\Shipment\Track $magentoTrack
      *
      * @return MyParcelTrackTrace $myParcelTrack
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     protected function getMyParcelTrack($magentoTrack)
     {

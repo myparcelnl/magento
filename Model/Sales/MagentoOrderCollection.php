@@ -213,7 +213,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getShipmentsCollection() as $shipment) {
             foreach ($shipment->getTracksCollection() as $track) {
                 $myParcelTrack = $this
-                    ->myParcelCollection->getConsignmentByReferenceId($track->getId());
+                    ->myParcelCollection->getConsignmentByReferenceId($shipment->getEntityId());
 
                 $track
                     ->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId())
@@ -366,6 +366,10 @@ class MagentoOrderCollection extends MagentoCollection
                 $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
                     $magentoTrack->getData('myparcel_consignment_id')
                 );
+
+                if (null === $myParcelTrack) {
+                    continue;
+                }
 
                 $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
 

@@ -119,6 +119,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
+        $this->package->setCurrentCountry($this->quote->getShippingAddress()->getCountryId());
     }
 
     protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
@@ -156,6 +157,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             'pickup' => 'pickup/',
             'pickup_express' => 'pickup_express/',
             'mailbox' => 'mailbox/',
+            'digital_stamp' => 'digital_stamp/',
         ];
 
         return $methods;
@@ -168,10 +170,12 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     public function getAllowedMethods()
     {
-	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-            $methods = ['mailbox' => 'mailbox/'];
+        if ($this->package->fitInDigitalStamp()) {
+            return ['digital_stamp' => 'digital_stamp/'];
+        }
 
-	        return $methods;
+        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
+            return ['mailbox' => 'mailbox/'];
         }
 
         $methods = self::getMethods();
@@ -190,10 +194,10 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     private function addShippingMethods($result)
     {
         $products = $this->quote->getAllItems($result);
+        $this->package->setDigitalStampSettings();
         $this->package->setMailboxSettings();
-        if (count($products) > 0){
-            $this->package->setWeightFromQuoteProducts($products);
-        }
+
+        $this->package->setWeightFromQuoteProducts($products, 'fit_in_mailbox');
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
 

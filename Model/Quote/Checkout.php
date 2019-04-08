@@ -10,6 +10,7 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
 class Checkout
 {
@@ -38,7 +39,13 @@ class Checkout
     private $products;
 
     /**
+     * @var DefaultOptions
+     */
+    private $defaultOptions;
+
+    /**
      * Checkout constructor.
+     *
      * @param \Magento\Checkout\Model\Session $session
      * @param \Magento\Checkout\Model\Cart $cart
      * @param \MyParcelNL\Magento\Helper\Checkout $helper
@@ -54,7 +61,10 @@ class Checkout
         $this->quoteId = $session->getQuoteId();
         $this->products = $cart->getItems();
         $this->package = $package;
+        $this->defaultOptions = new DefaultOptions($session->getQuote(), $helper);
+        $this->package->setCurrentCountry($session->getQuote()->getShippingAddress()->getCountryId());
         $this->package->setMailboxSettings();
+        $this->package->setDigitalStampSettings();
     }
 
     /**
@@ -73,6 +83,7 @@ class Checkout
             'morning' => $this->getMorningData(),
             'evening' => $this->getEveningData(),
             'mailbox' => $this->getMailboxData(),
+            'digital_stamp' => $this->getDigitalStampData(),
             'pickup' => $this->getPickupData(),
             'pickup_express' => $this->getPickupExpressData(),
             'belgium_pickup' => $this->getBelgiumPickupData(),
@@ -119,10 +130,10 @@ class Checkout
         $deliveryData = [
             'delivery_title' => $this->helper->getCheckoutConfig('delivery/delivery_title'),
             'standard_delivery_title' => $this->helper->getCheckoutConfig('delivery/standard_delivery_title'),
-            'only_recipient_active' => $this->helper->getBoolConfig('delivery/only_recipient_active'),
+            'only_recipient_active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('delivery/only_recipient_active'),
             'only_recipient_title' => $this->helper->getCheckoutConfig('delivery/only_recipient_title'),
             'only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/only_recipient_fee', false, '+ '),
-            'signature_active' => $this->helper->getBoolConfig('delivery/signature_active'),
+            'signature_active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('delivery/signature_active'),
             'signature_title' => $this->helper->getCheckoutConfig('delivery/signature_title'),
             'signature_fee' => $this->helper->getMethodPriceFormat('delivery/signature_fee', false, '+ '),
             'signature_and_only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/signature_and_only_recipient_fee', false, '+ '),
@@ -139,6 +150,14 @@ class Checkout
         return $deliveryData;
     }
 
+
+    /**
+     * @return bool
+     */
+    private function hasAgeCheck(){
+        return $this->defaultOptions->getDefault('age_check');
+    }
+
     /**
      * Get morning data
      *
@@ -147,7 +166,7 @@ class Checkout
     private function getMorningData()
     {
         return [
-            'active' => $this->helper->getBoolConfig('morning/active'),
+            'active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('morning/active'),
             'title' => $this->helper->getCheckoutConfig('morning/title'),
             'fee' => $this->helper->getMethodPriceFormat('morning/fee'),
         ];
@@ -161,7 +180,7 @@ class Checkout
     private function getEveningData()
     {
         return [
-            'active' => $this->helper->getBoolConfig('evening/active'),
+            'active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('evening/active'),
             'title' => $this->helper->getCheckoutConfig('evening/title'),
             'fee' => $this->helper->getMethodPriceFormat('evening/fee'),
         ];
@@ -221,9 +240,7 @@ class Checkout
     private function getMailboxData()
     {
         /** @var \Magento\Quote\Model\Quote\Item[] $products */
-        if (count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products);
-        }
+        $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
 
         /** check if mailbox is active */
         $mailboxData = [
@@ -233,11 +250,25 @@ class Checkout
             'fee' => $this->helper->getMethodPriceFormat('mailbox/fee', false),
         ];
 
-        if ($mailboxData['active'] === false) {
-            $mailboxData['fee'] = 'disabled';
-        }
-
         return $mailboxData;
+    }
+
+    /**
+     * @return array
+     */
+    private function getDigitalStampData()
+    {
+        /** @var \Magento\Quote\Model\Quote\Item[] $products */
+        $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
+
+        /** check if digital stamp is active */
+        $digitalStampData = [
+            'active' => $this->package->fitInDigitalStamp(),
+            'title' => $this->helper->getCheckoutConfig('digital_stamp/title'),
+            'fee' => $this->helper->getMethodPriceFormat('digital_stamp/fee', false),
+        ];
+
+        return $digitalStampData;
     }
 
     /**

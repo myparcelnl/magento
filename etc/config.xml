@@ -23,8 +23,10 @@
                 <return_from_price>1</return_from_price>
                 <large_format_active>0</large_format_active>
                 <large_format_from_price>1</large_format_from_price>
-                <insurance_50_active>0</insurance_50_active>
-                <insurance_50_from_price>1</insurance_50_from_price>
+                <age_check_active>0</age_check_active>
+                <age_check_from_price>0</age_check_from_price>
+                <insurance_100_active>0</insurance_100_active>
+                <insurance_100_from_price>1</insurance_100_from_price>
                 <insurance_250_active>0</insurance_250_active>
                 <insurance_250_from_price>1</insurance_250_from_price>
                 <insurance_500_active>0</insurance_500_active>
@@ -54,6 +56,12 @@
                 <signature_fee>0.36</signature_fee>
                 <signature_and_only_recipient_fee>0.44</signature_and_only_recipient_fee>
             </delivery>
+            <digital_stamp>
+                <active>0</active>
+                <default_weight>0</default_weight>
+                <title>Digitale postzegel</title>
+                <fee>0</fee>
+            </digital_stamp>
             <mailbox>
                 <active>0</active>
                 <other_options>1</other_options>

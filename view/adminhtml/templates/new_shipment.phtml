@@ -24,6 +24,19 @@
             </div>
             <?php if ($block->getCountry() == 'NL'): ?>
                 <div class="admin__field admin__field-option">
+                    <input type="radio" class="admin__control-radio" id="mypa_package_type-digital_stamp" name="mypa_package_type" value="4" <?=$block->getPackageType() !== 4 ?: 'checked="checked"';?>>
+                    <label class="admin__field-label" for="mypa_package_type-digital_stamp"><?=__('Digital stamp');?></label>
+                    <?php $weight = $block->getWeight();?>
+                    <select name="mypa_digital_stamp_weight" id="mypa_digital_stamp_weight" class="required product-custom-option admin__control-select" title="" >
+                        <option value="0" <?= $weight == 0 ? 'selected="selected"' : '';?> >No standard weight</option>
+                        <option value="20" <?= $weight == 20 ? 'selected="selected"' : '';?> >0 - 20 gram</option>
+                        <option value="50" <?= $weight == 50 ? 'selected="selected"' : '';?> >20 - 50 gram</option>
+                        <option value="100" <?= $weight == 100 ? 'selected="selected"' : '';?> >50 - 100 gram</option>
+                        <option value="350" <?= $weight == 350 ? 'selected="selected"' : '';?> >100 - 350 gram</option>
+                        <option value="2000" <?= $weight == 2000 ? 'selected="selected"' : '';?> >350 - 2000 gram</option>
+                    </select>
+                </div>
+                <div class="admin__field admin__field-option">
                     <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="2" <?=$block->getPackageType() !== 2 ?: 'checked="checked"';?>>
                     <label class="admin__field-label" for="mypa_package_type-mailbox"><?=__('Mailbox');?></label>
                 </div>
@@ -42,6 +55,7 @@
                value="1"
                type="checkbox"
                 <?= $block->getDefaultOption('only_recipient') == true ? 'checked="checked"' : '';?>
+                <?= $block->getDefaultOption('age_check') == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label"
                for="mypa_only_recipient">
@@ -54,6 +68,7 @@
                value="1"
                type="checkbox"
                <?= $block->getDefaultOption('signature') == true ? 'checked="checked"' : '';?>
+               <?= $block->getDefaultOption('age_check') == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label"
                for="mypa_signature">
@@ -83,6 +98,21 @@
                for="mypa_large_format">
             <span><?=__('Large package') ?></span></label>
     </div>
+
+    <div class="field choice admin__field admin__field-option field-mypa_age_check mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() === 1 ?: 'display:none';?>">
+        <input id="mypa_age_check"
+               class="admin__control-checkbox"
+               name="mypa_age_check"
+               value="1"
+               type="checkbox"
+            <?= $block->getDefaultOption('age_check') == true ? 'checked="checked"' : '';?>
+        />
+        <label class="admin__field-label"
+               for="mypa_age_check">
+            <span><?=__('Age check 18+') ?></span></label>
+    </div>
+
+
     <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() === 1 ?: 'display:none';?>">
         <label class="admin__field-label"
                for="mypa_insurance" style="display: block">
@@ -90,7 +120,7 @@
         <?php $defaultInsurance = $block->getDefaultInsurance();?>
         <select name="mypa_insurance" id="mypa_insurance" class="required product-custom-option admin__control-select" title="" >
             <option value="0" ><?=__('No insurance') ?></option>
-            <option value="50" <?= $defaultInsurance == 50 ? 'selected="selected"' : '';?> >€ 50</option>
+            <option value="100" <?= $defaultInsurance == 100 ? 'selected="selected"' : '';?> >€ 100</option>
             <option value="250" <?= $defaultInsurance == 250 ? 'selected="selected"' : '';?> >€ 250</option>
             <option value="500" <?= $defaultInsurance == 500 ? 'selected="selected"' : '';?> >€ 500</option>
             <option value="1000" >€ 1000</option>

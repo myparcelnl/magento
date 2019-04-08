@@ -36,6 +36,11 @@ class NewShipment extends AbstractItems
     private $defaultOptions;
 
     /**
+     * @var \Magento\Sales\Model\Order\Shipment
+     */
+    private $shipment;
+
+    /**
      * @param \Magento\Backend\Block\Template\Context                   $context
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface      $stockRegistry
      * @param \Magento\CatalogInventory\Api\StockConfigurationInterface $stockConfiguration
@@ -50,6 +55,7 @@ class NewShipment extends AbstractItems
         \Magento\Framework\ObjectManagerInterface $objectManager
     ) {
         // Set order
+        $this->shipment = $registry->registry('current_shipment');
         $this->order = $registry->registry('current_shipment')->getOrder();
         $this->objectManager = $objectManager;
 
@@ -78,6 +84,15 @@ class NewShipment extends AbstractItems
     public function getDefaultInsurance()
     {
         return $this->defaultOptions->getDefaultInsurance();
+    }
+
+    /**
+     * Get default value of insurance based on order grand total
+     * @return int
+     */
+    public function getWeight()
+    {
+        return $this->defaultOptions->getDigitalStampWeight();
     }
 
     /**

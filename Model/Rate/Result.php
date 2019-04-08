@@ -78,14 +78,13 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     ) {
         parent::__construct($storeManager);
 
-
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
-	    $this->session = $session;
-	    $this->quote = $quote;
-
+        $this->session = $session;
+        $this->quote = $quote;
         $this->parentMethods = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods', true));
-	    $this->products = $this->getProductsFromCardAndSession();
+        $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
+        $this->products = $this->getQuoteFromCardOrSession()->getItems();
     }
 
     /**
@@ -132,6 +131,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             'pickup' => 'pickup/',
             'pickup_express' => 'pickup_express/',
             'mailbox' => 'mailbox/',
+            'digital_stamp' => 'digital_stamp/',
         ];
 
         return $methods;
@@ -144,14 +144,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getAllowedMethods()
     {
-	    if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-		    $methods = ['mailbox' => 'mailbox/'];
+        if ($this->package->fitInDigitalStamp()) {
+            return ['digital_stamp' => 'digital_stamp/'];
+        }
 
-		    return $methods;
-	    }
+        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
+            return ['mailbox' => 'mailbox/'];
+        }
 
 	    $methods = $this->getMethods();
-
 	    if (!$this->package->fitInMailbox()) {
 		    unset($methods['mailbox']);
 	    }
@@ -175,10 +176,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        $this->package->setMailboxSettings();
+        $this->getDigitalStampProductSetting();
+        if ($this->package->fitInDigitalStamp()) {
+            $this->package->setDigitalStampSettings();
+        }
 
-        if (count($this->products) > 0){
-            $this->package->setWeightFromQuoteProducts($this->products);
+        $this->getMailBoxProductSetting();
+        if ($this->package->fitInMailbox()) {
+            $this->package->setMailboxSettings();
+            $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
         }
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
@@ -191,6 +197,33 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         $this->myParcelRatesAlreadyAdded = true;
+    }
+
+    /**
+     * Get the digital_stamp product setting
+     */
+    private function getDigitalStampProductSetting(){
+        $this->package->setDigitalStampSettings();
+
+        if ($this->products && count($this->products) > 0){
+            $this->package->setFitInDigitalStampFromQuoteProducts($this->products);
+            $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
+        }
+
+        return;
+    }
+
+    /**
+     * Get the fit_in_mailbox product setting
+     */
+    private function getMailBoxProductSetting(){
+        $this->package->setMailboxSettings();
+
+        if ($this->products && count($this->products) > 0) {
+            $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
+        }
+
+        return;
     }
 
     /**
@@ -258,7 +291,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return $price;
         }
 
-        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox');
+        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox' && $alias !== 'digital_stamp');
 
         return $price;
     }
@@ -266,12 +299,17 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 	/**
 	 * Can't get quote from session\Magento\Checkout\Model\Session::getQuote()
 	 * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
-	 */
-	private function getProductsFromCardAndSession() {
-        if ($this->quote->getQuoteId() != null && count($this->quote->getQuote()->getItems())) {
-			return $this->quote->getQuote()->getItems();
-		}
+     *
+     * @return \Magento\Quote\Model\Quote
+     */
+	private function getQuoteFromCardOrSession() {
+        if ($this->quote->getQuoteId() != null &&
+            $this->quote->getQuote() &&
+            count($this->quote->getQuote())
+        ){
+            return $this->quote->getQuote();
+        }
 
-		return $this->session->getQuote()->getItems();
-	}
+        return $this->session->getQuote();
+    }
 }

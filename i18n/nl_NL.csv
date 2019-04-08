@@ -11,6 +11,7 @@ status_10,Retourzending afgeleverd
 status_11,Retourzending op afhaallocatie
 status_12,Ongefrankeerd label geprint
 status_13,Gecrediteerd
+status_14,Digitale postzegel geprint
 status_30,Inactief - Concept
 status_31,Inactief - Voorgemeld
 status_32,Inactief - Aangeboden bij MyParcel
@@ -27,7 +28,7 @@ Version and support,Versie en support
 General settings,Algemene instellingen
 API settings,API instellingen
 To get your personal API credentials you should contact MyParcel.,Neem contact op met MyParcel om de API gegevens te ontvangen.
-The API Key given by MyParcel,Stel hier de API key in die is ontvangen vanuit MyParcel
+The API Key,Stel hier de API key in
 Default shipment settings,Standaard verzendinstellingen
 Print MyParcel labels directly,Print MyParcel labels direct
 Print settings,Print instellingen
@@ -43,8 +44,12 @@ Automate 'Return if no answer',Automatiseer 'Retour bij niet aanwezig'
 'Return if no answer' operates above a certain order total amount,'Retour bij niet aanwezig' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 Automate 'Large format',Automatiseer 'Groot pakket'
 'Large format' operates above a certain order total amount,'Groot pakket' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
-Automate 'Insurance € 50',Automatiseer 'Verzekerd tot € 50'
-"'Insurance € 50' operates above a certain order total amount. Only for dutch shipments.","'Verzekerd tot € 50' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen."
+Automate 'Age check 18+', Automatiseer 'Leeftijdscheck 18+'
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscheck is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ moet zijn en dit moet bewijzen door middel van een identiteitsbewijs. Met deze verzendoptie zijn handtekening voor ontvangst en alleen huisadres inbegrepen. De leeftijdscheck is verder uitgesloten van de bezorgopties in de ochtend en avondlevering.
+"If age check is active than the morning delivery is not possible","Als leeftijdscheck actief is, dan is ochtendlevering niet mogelijk"
+"If age check is active than the evening delivery is not possible","Als leeftijdscheck actief is, dan is avondlevering niet mogelijk"
+Automate 'Insurance € 100',Automatiseer 'Verzekerd tot € 100'
+"'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.","'Verzekerd tot € 100' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen."
 Automate 'Insurance € 250',Automatiseer 'Verzekerd tot € 250'
 "'Insurance € 250' operates above a certain order total amount. Only for dutch shipments, shipments to outside of the EU are standard ensured up to € 200.","'Verzekerd tot € 250' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen, zendingen naar landen buiten de EU zijn standaard verzekerd tot € 200."
 Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
@@ -56,6 +61,7 @@ Track action,Track actie
 MyParcel options,MyParcel opties
 Package,Pakket
 Mailbox,Brievenbuspakje
+Digital stamp, Digitale postzegel
 Morning delivery,Ochtendlevering
 Evening delivery,Avondlevering
 Letter,Ongefrankeerd
@@ -85,15 +91,15 @@ Open in new tab, Open in nieuw tabblad
 Package Type,Pakkettype
 Print position,Printpositie
 MyParcel version,MyParcel versie
-"The MyParcel extension version %1 is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","De MyParcel extensie versie %1 is geïnstalleerd in jouw webshop. Momenteel is de laatste stabiele versie %2. Als je enige problemen ervaart adviseren wij altijd de laatste stabiele versie te installeren in jouw magento omgeving."
-"To read the instructions for the MyParcel Magento extension, click %1 here %2.","Klik %1 hier %2 om de handleiding van de MyParcel Magento extensie te bekijken."
+"The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","Versie %1 van de extensie is geïnstalleerd in jouw webshop. Momenteel is de laatste stabiele versie %2. Als je enige problemen ervaart adviseren wij altijd de laatste stabiele versie te installeren in jouw magento omgeving."
+"To read the instructions for the Magento extension, click %1 here %2.","Klik %1 hier %2 om de handleiding van de Magento extensie te bekijken."
 When using the extension please note:,Aandachtspunten bij het gebruik van deze extensie:
-To be able to configure the extension you need to possess and use an active MyParcel account.,U dient een actief MyParcel account te hebben om de extensie te kunnen configureren.
+To be able to configure the extension you need to possess and use an active account.,U dient een actief account te hebben om de extensie te kunnen configureren.
 During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.,Indien u de oude MyParcel extensie gebruikt kan deze actief blijven in de overgangsfase. Wel dient u PakjeGemak in de oude MyParcel extensie uit te schakelen.
 Magento &amp; 3rd party version compatibility,Magento & derde partijen ondersteuning
-We cannot guarantee perfect functionality of the MyParcel extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact MyParcel.,Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento, of als u de extensie wilt gebruiken samen met een 3rd party extensie die niet ondersteund wordt, kunnen wij niet garanderen dat de MyParcel extensie feilloos zal functioneren. Voor vragen kunt u contact opnemen met MyParcel.
-Questions and information about your MyParcel account,MyParcel account vragen en informatie
-"For questions related to your MyParcel account, configuration problems, extension conflicts and bugs, please contact MyParcel.","Voor vragen gerelateerd aan uw MyParcel account, configuratie problemen, extensie conflicten en bugs, neemt u contact op met MyParcel."
+We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.,Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento, of als u de extensie wilt gebruiken samen met een 3rd party extensie die niet ondersteund wordt, kunnen wij niet garanderen dat de extensie feilloos zal functioneren. Voor vragen kunt u contact opnemen met ons.
+Questions and information about your account,Account vragen en informatie
+"For questions related to your account, configuration problems, extension conflicts and bugs, please contact us.","Voor vragen gerelateerd aan uw account, configuratie problemen, extensie conflicten en bugs, neemt u contact ons op."
 MyParcel:,MyParcel:
 www.myparcel.nl,www.myparcel.nl
 info@myparcel.nl,info@myparcel.nl
@@ -105,7 +111,8 @@ Installation and configuration manual,Installatie en configuratie handleiding
 Full changelog,Volledige release notes
 Installation and configuration instructions,Installatie en configuratie handleiding
 MyParcel progress, MyParcel vooruitgang
-MyParcel backoffice,MyParcel backoffice
+Do you want to know what they are doing in the near future? Below you can find the schedule for Magento 2. Do you have any suggestions or ideas? They are always welcome. That way we will continue to improve the extension together.,Wil je weten waar ze de komende tijd mee bezig zijn? Hieronder vind je de planning voor Magento 2. Heb je zelf suggesties of ideeën? Ze zijn altijd welkom. Op die manier blijven we samen de extensie verbeteren.
+API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,API key is niet bekend. Ga naar de instellingen in de backoffice om een API key te maken. Vul de API key in bij de instellingen.
 delivery/signature_and_only_recipient_title,Niet bij de buren bezorgen + handtekening voor ontvangst
 morning/title,Ochtendlevering
 morning_signature/title,Ochtendlevering + handtekening voor ontvangst
@@ -135,14 +142,24 @@ Home address only, Alleen huisadres
 Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
 Home address only title,Alleen huisadres titel
 Home address only fee,Alleen huisadres prijs
-This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
+This will be added to the regular shipping price,"Dit zal bij de normale verzendkosten worden opgeteld"
+"This will be added to the regular shipping price. Once the age check is activated, than the price are already included.","Dit zal bij de normale verzendkosten worden opgeteld. Zodra de leeftijdscheck geactiveerd is, dan zijn dan kosten al inbegrepen."
 Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
 Signature on receipt,Handtekening voor ontvangst
 Signature on receipt title, Handtekening voor ontvangst titel
 Signature on receipt fee, Handtekening voor ontvangst prijs
-This will be added to the regular shipping price, Dit zal bij de normale verzendkosten worden opgeteld
 Home address only and signature on receipt together fee,De prijs van handtekening voor ontvangst en alleen huisadres samen
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
+Digital stamp settings,Digitale postzegel instellingen,
+Automate digital stamp,Digitale postzegel automatiseren
+Select automatically digital stamp packages based on weight,Selecteer automatisch digitale postzegel op basis van gewicht
+Default weight,Standaard gewicht
+No standard weight, Geen standaard gewicht
+"Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.","Prijs is afhankelijk van het gewicht. Zijn de gewichten correct ingevuld voor alle producten? Kies 'Geen standaard gewicht' om MyParcel het gewicht zelf te laten berekenen. Selecteer hier een standaard gewicht als de producten geen juiste gewichten bevatten."
+Digital stamp title,Digitale postzegel titel
+Leave blank to automate digital stamp packets only in the backend,Laat dit leeg om digitale postzegel alleen in de backend te automatiseren
+Digital stamp fee,Digitale postzegel prijs
+Enter a basic price for a digital stamp. The regular price will not affect this price.,Voer een basisprijs in voor een digitale postzegel. De normale prijs heeft geen invloed op deze prijs.
 Mailbox settings,Brievenbuspakje instellingen
 Automate mailbox,Brievenbuspakje automatiseren
 Mailbox with other options,Brievenbuspakje tonen met andere opties
@@ -153,10 +170,18 @@ Mailbox weight,Brievenbuspakje gewicht
 "Besides assigning weights to all products, you can also specify a volume of each product.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten."
 Mailbox fee,Brievenbuspakje prijs
 Enter a basic price for a mailbox. The regular price will not affect this price.,Vul een basis prijs in voor een brievenbuspakje. De huidige prijs heeft geen invloed op deze prijs.
+Fit in Mailbox, Past in brievenbuspakje
+Fit in digital stamp, Past in digitale postzegel
+Look to weight,Kijk naar het gewicht
+One product (100%),Één product (100%)
+2 products (50%),2 producten (50%)
+3 products (33%),3 producten (33%)
+10 products (10%),10 producten (10%)
+20 products (5%),20 producten (5%)
+MyParcel Options, MyParcel Opties
 Morning delivery,Ochtendlevering
 Morning delivery active,Ochtendlevering actief
 Morning delivery fee, Ochtendlevering prijs
-This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Evening delivery,Avondlevering
 Evening delivery active,Avondlevering actief
 Evening delivery fee,Avondlevering prijs
