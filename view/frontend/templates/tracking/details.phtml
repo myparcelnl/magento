@@ -22,9 +22,6 @@ $fields = [
 $number = is_object($track) ? $track->getTracking() : $track['number'];
 ?>
 
-
-
-yesssssss!
 <table class="data table order tracking" id="tracking-table-popup-<?= $block->escapeHtml($number) ?>">
     <caption class="table-caption"><?= $block->escapeHtml(__('Order tracking')) ?></caption>
     <tbody>
@@ -94,7 +91,7 @@ yesssssss!
             <th class="col label" scope="row">
                 <?= ($track['title'] ? $block->escapeHtml($track['title']) : $block->escapeHtml(__('N/A'))) ?>:
             </th>
-            <td class="col value"><?= (isset($track['number']) ? $block->escapeHtml($track['number']) : '') ?>asdfsdafa</td>
+            <td class="col value"><?= (isset($track['number']) ? $block->escapeHtml($track['number']) : '') ?></td>
         </tr>
     <?php endif; ?>
     </tbody>

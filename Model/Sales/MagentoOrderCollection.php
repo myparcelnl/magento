@@ -377,7 +377,6 @@ class MagentoOrderCollection extends MagentoCollection
 
                 if ($myParcelTrack->getBarcode()) {
                     $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
-                    $magentoTrack->setDescription('hoi');
                 }
                 $magentoTrack->save();
             }
