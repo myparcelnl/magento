@@ -20,6 +20,7 @@ use \Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Sales\Model\Order;
 use \Magento\Ui\Component\Listing\Columns\Column;
 use \Magento\Framework\Api\SearchCriteriaBuilder;
+use MyParcelNL\Sdk\src\Helper\TrackTraceUrl;
 
 class TrackNumber extends Column
 {
@@ -27,10 +28,11 @@ class TrackNumber extends Column
      * Set column MyParcel barcode to order grid
      *
      * @param array $dataSource
+     * @param null $postcode
      *
      * @return array
      */
-    public function prepareDataSource(array $dataSource)
+    public function prepareDataSource(array $dataSource, $postcode = null)
     {
         /**
          * @var Order $order
@@ -38,8 +40,19 @@ class TrackNumber extends Column
          */
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                if (key_exists('track_number', $item)) {
-                    $item[$this->getData('name')] = $item['track_number'];
+
+                $address = explode(",", $item['shipping_address']);
+
+                /* Get the postcode from address */
+                if ( ! empty($address[2])) {
+                    list($street, $city, $postcode) = explode(",", $item['shipping_address']);
+                }
+
+                if (key_exists('track_number', $item) && $postcode) {
+                    $trackTrace = (new TrackTraceUrl())
+                        ->create($item['track_number'], $postcode, null);
+
+                    $item[$this->getData('name')] = '<a target="_blank" href=' . $trackTrace . ' >' . $item['track_number'] . '</a>';
                 }
             }
         }
