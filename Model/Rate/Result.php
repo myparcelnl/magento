@@ -18,6 +18,7 @@
 
 namespace MyParcelNL\Magento\Model\Rate;
 
+use Countable;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
@@ -305,6 +306,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 	private function getQuoteFromCardOrSession() {
         if ($this->quote->getQuoteId() != null &&
             $this->quote->getQuote() &&
+            $this->quote->getQuote() instanceof Countable &&
             count($this->quote->getQuote())
         ){
             return $this->quote->getQuote();
