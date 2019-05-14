@@ -9,12 +9,13 @@ define(
         'text!MyParcelNL_Magento/template/checkout/options.html',
         'text!MyParcelNL_Magento/css/checkout/options-dynamic.min.css',
         'MyParcelNL_Magento/js/lib/myparcel',
-        'Magento_Checkout/js/action/set-shipping-information'
+        'Magento_Checkout/js/action/set-shipping-information',
+        'uiRegistry'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction, registry) {
         'use strict';
 
-        var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
+        var originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
 
         return {
             loadOptions: loadOptions,
@@ -109,6 +110,9 @@ define(
         }
 
         function _setAddress() {
+
+            var fieldsetName = 'checkout.steps.shipping-step.shippingAddress.shipping-address-fieldset.';
+
             if (customer.isLoggedIn() &&
                 typeof quote !== 'undefined' &&
                 typeof quote.shippingAddress !== 'undefined' &&
@@ -129,31 +133,36 @@ define(
                 var city = quote.shippingAddress._latestValue.postcode;
                 if (typeof city === 'undefined') city = '';
             } else {
-                var street0 = jQuery("input[name='street[0]']").val();
-                var validatedAddress = getPostcodeValidateAddress();
-                if (validatedAddress && typeof validatedAddress !== 'undefined'){
-                    var street0 = validatedAddress;
-                }
+
+                var street0 = registry.get(fieldsetName + 'street.0').get('value');
                 if (typeof street0 === 'undefined') street0 = '';
-                var street1 = jQuery("input[name='street[1]']").val();
+
+                var street1 = registry.get(fieldsetName + 'street.1').get('value');
                 if (typeof street1 === 'undefined') street1 = '';
-                var street2 = jQuery("input[name='street[2]']").val();
-                if (typeof street2 === 'undefined') street2 = '';
-                var country = jQuery("select[name='country_id']").val();
+
+                if (registry.get(fieldsetName + 'street.2')) {
+                    var street2 = registry.get(fieldsetName + 'street.2').get('value');
+                } else {
+                    var street2 = '';
+                }
+
+                var country = registry.get(fieldsetName + 'country_id').get('value');
                 if (typeof country === 'undefined') country = '';
-                var postcode = jQuery("input[name='postcode']").val();
+
+                var postcode = registry.get(fieldsetName + 'postcode').get('value');
                 if (typeof postcode === 'undefined') postcode = '';
-                var city = jQuery("input[name='city']").val();
+
+                var city = registry.get(fieldsetName + 'city').get('value');
                 if (typeof city === 'undefined') city = '';
             }
 
-            window.mypa.address = [];
-            window.mypa.address.street0 = street0.replace(/[<>=]/g,'');
-            window.mypa.address.street1 = street1.replace(/[<>=]/g,'');
-            window.mypa.address.street2 = street2.replace(/[<>=]/g,'');
-            window.mypa.address.cc = country.replace(/[<>=]/g,'');
-            window.mypa.address.postcode = postcode.replace(/[\s<>=]/g,'');
-            window.mypa.address.city = city.replace(/[<>=]/g,'');
+            window.mypa.address             = [];
+            window.mypa.address.street0     = street0.replace(/[<>=]/g, '');
+            window.mypa.address.street1     = street1.replace(/[<>=]/g, '');
+            window.mypa.address.street2     = street2.replace(/[<>=]/g, '');
+            window.mypa.address.cc          = country.replace(/[<>=]/g, '');
+            window.mypa.address.postcode    = postcode.replace(/[\s<>=]/g, '');
+            window.mypa.address.city        = city.replace(/[<>=]/g, '');
         }
 
         /**
