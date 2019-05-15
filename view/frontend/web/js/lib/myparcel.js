@@ -338,6 +338,11 @@ MyParcel = {
 
     addPickupToExternalInput: function (selectedPriceComment) {
         var locationId = jQuery('#mypa-pickup-location').val();
+
+        if (locationId == '') {
+            return;
+        }
+
         var currentLocation = MyParcel.getPickupByLocationId(MyParcel.storeDeliveryOptions.data.pickup, locationId);
 
         var result = jQuery.extend({}, currentLocation);
