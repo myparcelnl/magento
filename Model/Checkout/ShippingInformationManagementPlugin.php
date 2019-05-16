@@ -26,7 +26,8 @@ class ShippingInformationManagementPlugin
         $extAttributes = $addressInformation->getExtensionAttributes();
 
         if (! empty($extAttributes) &&
-            ! empty($extAttributes->getDeliveryOptions())
+            ! empty($extAttributes->getDeliveryOptions()) &&
+            $extAttributes->getDeliveryOptions() != '{}'
         ) {
             $deliveryOptions = $extAttributes->getDeliveryOptions();
             $quote = $this->quoteRepository->getActive($cartId);
