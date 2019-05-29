@@ -137,14 +137,11 @@ define(
                 var street0 = registry.get(fieldsetName + 'street.0').get('value');
                 if (typeof street0 === 'undefined') street0 = '';
 
-                var street1 = registry.get(fieldsetName + 'street.1').get('value');
-                if (typeof street1 === 'undefined') street1 = '';
+                var getStreetOne = registry.get(fieldsetName + 'street.1');
+                var street1 = getStreetOne ? getStreetOne.get('value') : '';
 
-                if (registry.get(fieldsetName + 'street.2')) {
-                    var street2 = registry.get(fieldsetName + 'street.2').get('value');
-                } else {
-                    var street2 = '';
-                }
+                var getStreetTwo = registry.get(fieldsetName + 'street.2');
+                var street2 = getStreetTwo ? getStreetTwo.get('value') : '';
 
                 var country = registry.get(fieldsetName + 'country_id').get('value');
                 if (typeof country === 'undefined') country = '';
