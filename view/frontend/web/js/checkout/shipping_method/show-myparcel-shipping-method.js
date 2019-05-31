@@ -136,12 +136,12 @@ define(
         }
 
         function getLoggedInAddress() {
-            var street0 = quote.shippingAddress._latestValue.street[0];
-            var street1 = quote.shippingAddress._latestValue.street[1];
-            var street2 = quote.shippingAddress._latestValue.street[2];
-            var country = quote.shippingAddress._latestValue.countryId;
-            var postcode = quote.shippingAddress._latestValue.postcode;
-            var city = quote.shippingAddress._latestValue.postcode;
+            var street0     = quote.shippingAddress._latestValue.street[0];
+            var street1     = quote.shippingAddress._latestValue.street[1];
+            var street2     = quote.shippingAddress._latestValue.street[2];
+            var country     = quote.shippingAddress._latestValue.countryId;
+            var postcode    = quote.shippingAddress._latestValue.postcode;
+            var city        = quote.shippingAddress._latestValue.postcode;
 
             return {
                 data: {
@@ -156,12 +156,12 @@ define(
         }
 
         function getNoLoggedInAddress(fieldsetName) {
-            var street0 = registry.get(fieldsetName + 'street.0');
-            var street1 = registry.get(fieldsetName + 'street.1');
-            var street2 = registry.get(fieldsetName + 'street.2');
-            var country = registry.get(fieldsetName + 'country_id');
-            var postcode = registry.get(fieldsetName + 'postcode');
-            var city = registry.get(fieldsetName + 'city');
+            var street0     = registry.get(fieldsetName + 'street.0');
+            var street1     = registry.get(fieldsetName + 'street.1');
+            var street2     = registry.get(fieldsetName + 'street.2');
+            var country     = registry.get(fieldsetName + 'country_id');
+            var postcode    = registry.get(fieldsetName + 'postcode');
+            var city        = registry.get(fieldsetName + 'city');
 
             return {
                 data: {
