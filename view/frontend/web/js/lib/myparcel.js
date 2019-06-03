@@ -897,6 +897,21 @@ MyParcel = {
         jQuery('#label_method_' + method + '_' + window.mypa.data.general.parent_carrier).parent().find('input').click();
     },
 
+     /*
+     * saturdayCutoffTime
+     *
+     * Check if it is Saturday today, then use the Saturday CutoffTime
+     *
+     */
+    saturdayCutoffTime: function() {
+        var date = new Date();
+        var numberOfDay = date.getDay();
+
+        if (numberOfDay === 6) {
+            this.data.config.cutoffTime = this.data.config.saturdayCutoffTime;
+        }
+    },
+
     /*
      * callDeliveryOptions
      *
@@ -904,7 +919,6 @@ MyParcel = {
      * Postal Code.
      *
      */
-
     callDeliveryOptions: function () {
         if (MyParcel.isCallingDeliveryOptions === true) {
             return;
@@ -913,6 +927,7 @@ MyParcel = {
 
         MyParcel.showSpinner();
         MyParcel.clearPickUpLocations();
+        MyParcel.saturdayCutoffTime();
 
         var cc = this.data.address.cc;
         var postalCode = this.data.address.postalCode;
