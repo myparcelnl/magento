@@ -819,7 +819,7 @@ MyParcel = {
      /*
      * Check if it is Saturday today, then use the Saturday CutoffTime
      */
-    setsaturdayCutoffTime: function() {
+    setSaturdayCutoffTime: function() {
         var date = new Date();
         var numberOfDay = date.getDay();
 
@@ -839,7 +839,7 @@ MyParcel = {
 
         MyParcel.showSpinner();
         MyParcel.clearPickUpLocations();
-        MyParcel.setsaturdayCutoffTime();
+        MyParcel.setSaturdayCutoffTime();
 
         var cc = this.data.address.cc;
         var postalCode = this.data.address.postalCode;
