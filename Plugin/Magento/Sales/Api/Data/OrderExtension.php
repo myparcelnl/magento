@@ -13,6 +13,8 @@ use Magento\Framework\App\ObjectManager;
 
 class OrderExtension
 {
+    const ENTITYID = 4;
+
     /**
      * @var \Magento\Framework\HTTP\PhpEnvironment\Request
      */
@@ -30,8 +32,8 @@ class OrderExtension
      */
     public function __construct(Request $request)
     {
-       $this->request = $request->setPathInfo();
-       $this->objectManager = ObjectManager::getInstance();
+        $this->request       = $request->setPathInfo();
+        $this->objectManager = ObjectManager::getInstance();
     }
 
     /**
@@ -41,23 +43,42 @@ class OrderExtension
      */
     public function afterGetDeliveryOptions()
     {
-        if (strpos($this->request->getPathInfo(), "/rest/V1/orders/") === false){
+        if (strpos($this->request->getPathInfo(), "/rest/V1/orders") === false) {
             return null;
         }
 
-        $resource = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
+        $resource   = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection = $resource->getConnection();
-        $tableName = $resource->getTableName('sales_order'); // Gives table name with prefix
-        $entityId  = str_replace("/rest/V1/orders/","" ,$this->request->getPathInfo());
+        $tableName  = $resource->getTableName('sales_order'); // Gives table name with prefix
+        $conditions = $this->getEntityOrIncrementId();
 
         //Select Data from table
         $sql = $connection
             ->select('delivery_options')
             ->from($tableName)
-            ->where('entity_id = ' . $entityId);
+            ->where($conditions['column'] . ' = ' . $conditions['value']);
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
         return $result[0]['delivery_options'];
+    }
+
+    /**
+     * @return array
+     */
+    public function getEntityOrIncrementId()
+    {
+        $path        = $this->request->getPathInfo();
+        $explodePath = explode('/', $path);
+
+        $searchColumn = 'entity_id';
+        $searchValue  = str_replace("/rest/V1/orders/", "", $this->request->getPathInfo());
+
+        if (! isset($explodePath[self::ENTITYID])) {
+            $searchColumn = 'increment_id';
+            $searchValue  = $_GET['searchCriteria']['filterGroups'][0]['filters'][0]['value'];
+        }
+
+        return ['column' => $searchColumn, 'value' => $searchValue];
     }
 }
