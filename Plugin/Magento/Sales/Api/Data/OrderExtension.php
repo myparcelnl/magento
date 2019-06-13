@@ -13,7 +13,7 @@ use Magento\Framework\App\ObjectManager;
 
 class OrderExtension
 {
-    const ENTITYID = 4;
+    const ENTITY_ID = 4;
 
     /**
      * @var \Magento\Framework\HTTP\PhpEnvironment\Request
@@ -74,7 +74,7 @@ class OrderExtension
         $searchColumn = 'entity_id';
         $searchValue  = str_replace("/rest/V1/orders/", "", $this->request->getPathInfo());
 
-        if (! isset($explodePath[self::ENTITYID])) {
+        if (! isset($explodePath[self::ENTITY_ID])) {
             $searchColumn = 'increment_id';
             $searchValue  = $_GET['searchCriteria']['filterGroups'][0]['filters'][0]['value'];
         }
