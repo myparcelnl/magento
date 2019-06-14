@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: richardperdaan
@@ -10,10 +11,11 @@ namespace MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data;
 
 use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\Framework\App\ObjectManager;
+use MyParcelNL\Sdk\src\Support\Arr;
 
 class OrderExtension
 {
-    const ENTITYID = 4;
+    const ENTITY_ID_POSITION = 4;
 
     /**
      * @var \Magento\Framework\HTTP\PhpEnvironment\Request
@@ -39,7 +41,7 @@ class OrderExtension
     /**
      * Use the delivery_options data from the sales_order table so it can be used in the magento rest api.
      *
-     * @return mixed
+     * @return string
      */
     public function afterGetDeliveryOptions()
     {
@@ -50,13 +52,17 @@ class OrderExtension
         $resource   = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection = $resource->getConnection();
         $tableName  = $resource->getTableName('sales_order'); // Gives table name with prefix
-        $conditions = $this->getEntityOrIncrementId();
+        $conditions = $this->getEntityIdOrIncrementId();
+
+        if (empty($conditions['value'])) {
+            return '';
+        }
 
         //Select Data from table
         $sql = $connection
             ->select('delivery_options')
             ->from($tableName)
-            ->where($conditions['column'] . ' = ' . $conditions['value']);
+            ->where($conditions['column'] . ' = ' . (int) $conditions['value']);
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
@@ -66,7 +72,7 @@ class OrderExtension
     /**
      * @return array
      */
-    public function getEntityOrIncrementId()
+    private function getEntityIdOrIncrementId()
     {
         $path        = $this->request->getPathInfo();
         $explodePath = explode('/', $path);
@@ -74,9 +80,10 @@ class OrderExtension
         $searchColumn = 'entity_id';
         $searchValue  = str_replace("/rest/V1/orders/", "", $this->request->getPathInfo());
 
-        if (! isset($explodePath[self::ENTITYID])) {
+        if (empty($explodePath[self::ENTITY_ID_POSITION])) {
             $searchColumn = 'increment_id';
-            $searchValue  = $_GET['searchCriteria']['filterGroups'][0]['filters'][0]['value'];
+            $searchValue  = $this->request->getQueryValue('searchCriteria');
+            $searchValue = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
         }
 
         return ['column' => $searchColumn, 'value' => $searchValue];
