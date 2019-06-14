@@ -15,7 +15,8 @@ use MyParcelNL\Sdk\src\Support\Arr;
 
 class OrderExtension
 {
-
+    const ENTITY_ID          = 'entity_id';
+    const INCREMENT_ID       = 'increment_id';
     const ENTITY_ID_POSITION = 4;
 
     /**
@@ -50,16 +51,16 @@ class OrderExtension
             return null;
         }
 
-        $resource   = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection = $resource->getConnection();
-        $tableName  = $resource->getTableName('sales_order'); // Gives table name with prefix
+        $resource    = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection  = $resource->getConnection();
+        $tableName   = $resource->getTableName('sales_order'); // Gives table name with prefix
         $path        = $this->request->getPathInfo();
         $explodePath = explode('/', $path);
 
         if (empty($explodePath[self::ENTITY_ID_POSITION])) {
             [$searchColumn, $searchValue] = $this->getIdByIncrementId();
         } else {
-            [$searchColumn, $searchValue] = $this->getIdByEntityId();
+            [$searchColumn, $searchValue] = $this->getIdByEntityId($explodePath[self::ENTITY_ID_POSITION]);
         }
 
         if (empty($searchValue)) {
@@ -78,14 +79,13 @@ class OrderExtension
     }
 
     /**
+     * @param $entityId
+     *
      * @return array
      */
-    private function getIdByEntityId()
+    private function getIdByEntityId($entityId)
     {
-        $searchColumn = 'entity_id';
-        $searchValue  = str_replace("/rest/V1/orders/", "", $this->request->getPathInfo());
-
-        return [$searchColumn, $searchValue];
+        return [self::ENTITY_ID, $entityId];
     }
 
     /**
@@ -93,10 +93,9 @@ class OrderExtension
      */
     private function getIdByIncrementId()
     {
-        $searchColumn = 'increment_id';
-        $searchValue  = $this->request->getQueryValue('searchCriteria');
-        $searchValue  = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
+        $searchValue = $this->request->getQueryValue('searchCriteria');
+        $searchValue = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
 
-        return [$searchColumn, $searchValue];
+        return [self::INCREMENT_ID, $searchValue];
     }
 }
