@@ -9,12 +9,13 @@ define(
         'text!MyParcelNL_Magento/template/checkout/options.html',
         'text!MyParcelNL_Magento/css/checkout/options-dynamic.min.css',
         'MyParcelNL_Magento/js/lib/myparcel',
-        'Magento_Checkout/js/action/set-shipping-information'
+        'Magento_Checkout/js/action/set-shipping-information',
+        'uiRegistry'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction, registry) {
         'use strict';
 
-        var  originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
+        var originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
 
         return {
             loadOptions: loadOptions,
@@ -109,6 +110,10 @@ define(
         }
 
         function _setAddress() {
+
+            var fieldsetName = 'checkout.steps.shipping-step.shippingAddress.shipping-address-fieldset.';
+            var address = [];
+
             if (customer.isLoggedIn() &&
                 typeof quote !== 'undefined' &&
                 typeof quote.shippingAddress !== 'undefined' &&
@@ -116,44 +121,58 @@ define(
                 typeof quote.shippingAddress._latestValue.street !== 'undefined' &&
                 typeof quote.shippingAddress._latestValue.street[0] !== 'undefined'
             ) {
-                var street0 = quote.shippingAddress._latestValue.street[0];
-                if (typeof street0 === 'undefined') street0 = '';
-                var street1 = quote.shippingAddress._latestValue.street[1];
-                if (typeof street1 === 'undefined') street1 = '';
-                var street2 = quote.shippingAddress._latestValue.street[2];
-                if (typeof street2 === 'undefined') street2 = '';
-                var country = quote.shippingAddress._latestValue.countryId;
-                if (typeof country === 'undefined') country = '';
-                var postcode = quote.shippingAddress._latestValue.postcode;
-                if (typeof postcode === 'undefined') postcode = '';
-                var city = quote.shippingAddress._latestValue.postcode;
-                if (typeof city === 'undefined') city = '';
+                address = getLoggedInAddress();
             } else {
-                var street0 = jQuery("input[name='street[0]']").val();
-                var validatedAddress = getPostcodeValidateAddress();
-                if (validatedAddress && typeof validatedAddress !== 'undefined'){
-                    var street0 = validatedAddress;
-                }
-                if (typeof street0 === 'undefined') street0 = '';
-                var street1 = jQuery("input[name='street[1]']").val();
-                if (typeof street1 === 'undefined') street1 = '';
-                var street2 = jQuery("input[name='street[2]']").val();
-                if (typeof street2 === 'undefined') street2 = '';
-                var country = jQuery("select[name='country_id']").val();
-                if (typeof country === 'undefined') country = '';
-                var postcode = jQuery("input[name='postcode']").val();
-                if (typeof postcode === 'undefined') postcode = '';
-                var city = jQuery("input[name='city']").val();
-                if (typeof city === 'undefined') city = '';
+                address = getNoLoggedInAddress(fieldsetName);
             }
 
-            window.mypa.address = [];
-            window.mypa.address.street0 = street0.replace(/[<>=]/g,'');
-            window.mypa.address.street1 = street1.replace(/[<>=]/g,'');
-            window.mypa.address.street2 = street2.replace(/[<>=]/g,'');
-            window.mypa.address.cc = country.replace(/[<>=]/g,'');
-            window.mypa.address.postcode = postcode.replace(/[\s<>=]/g,'');
-            window.mypa.address.city = city.replace(/[<>=]/g,'');
+            window.mypa.address             = [];
+            window.mypa.address.street0     = address.data.street0.replace(/[<>=]/g, '');
+            window.mypa.address.street1     = address.data.street1.replace(/[<>=]/g, '');
+            window.mypa.address.street2     = address.data.street2.replace(/[<>=]/g, '');
+            window.mypa.address.cc          = address.data.country.replace(/[<>=]/g, '');
+            window.mypa.address.postcode    = address.data.postcode.replace(/[\s<>=]/g, '');
+            window.mypa.address.city        = address.data.city.replace(/[<>=]/g, '');
+        }
+
+        function getLoggedInAddress() {
+            var street0     = quote.shippingAddress._latestValue.street[0];
+            var street1     = quote.shippingAddress._latestValue.street[1];
+            var street2     = quote.shippingAddress._latestValue.street[2];
+            var country     = quote.shippingAddress._latestValue.countryId;
+            var postcode    = quote.shippingAddress._latestValue.postcode;
+            var city        = quote.shippingAddress._latestValue.postcode;
+
+            return {
+                data: {
+                    "street0": street0 ? street0 : '',
+                    "street1": street1 ? street1 : '',
+                    "street2": street2 ? street2 : '',
+                    "country": country ? country : '',
+                    "postcode": postcode ? postcode : '',
+                    "city": city ? city : '',
+                }
+            }
+        }
+
+        function getNoLoggedInAddress(fieldsetName) {
+            var street0     = registry.get(fieldsetName + 'street.0');
+            var street1     = registry.get(fieldsetName + 'street.1');
+            var street2     = registry.get(fieldsetName + 'street.2');
+            var country     = registry.get(fieldsetName + 'country_id');
+            var postcode    = registry.get(fieldsetName + 'postcode');
+            var city        = registry.get(fieldsetName + 'city');
+
+            return {
+                data: {
+                    "street0": street0 ? street0.get('value') : '',
+                    "street1": street1 ? street1.get('value') : '',
+                    "street2": street2 ? street2.get('value') : '',
+                    "country": country ? country.get('value') : '',
+                    "postcode": postcode ? postcode.get('value') : '',
+                    "city": city ? city.get('value') : '',
+                }
+            }
         }
 
         /**
