@@ -53,9 +53,16 @@ class OrderExtension
         $resource   = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection = $resource->getConnection();
         $tableName  = $resource->getTableName('sales_order'); // Gives table name with prefix
-        $conditions = $this->getEntityIdOrIncrementId();
+        $path        = $this->request->getPathInfo();
+        $explodePath = explode('/', $path);
 
-        if (empty($conditions['value'])) {
+        if (empty($explodePath[self::ENTITY_ID_POSITION])) {
+            [$searchColumn, $searchValue] = $this->getIdByIncrementId();
+        } else {
+            [$searchColumn, $searchValue] = $this->getIdByEntityId();
+        }
+
+        if (empty($searchValue)) {
             return '';
         }
 
@@ -63,7 +70,7 @@ class OrderExtension
         $sql = $connection
             ->select('delivery_options')
             ->from($tableName)
-            ->where($conditions['column'] . ' = ' . (int) $conditions['value']);
+            ->where($searchColumn . ' = ' . (int) $searchValue);
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
@@ -73,20 +80,23 @@ class OrderExtension
     /**
      * @return array
      */
-    private function getEntityIdOrIncrementId()
+    private function getIdByEntityId()
     {
-        $path        = $this->request->getPathInfo();
-        $explodePath = explode('/', $path);
-
         $searchColumn = 'entity_id';
         $searchValue  = str_replace("/rest/V1/orders/", "", $this->request->getPathInfo());
 
-        if (empty($explodePath[self::ENTITY_ID_POSITION])) {
-            $searchColumn = 'increment_id';
-            $searchValue  = $this->request->getQueryValue('searchCriteria');
-            $searchValue  = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
-        }
+        return [$searchColumn, $searchValue];
+    }
 
-        return ['column' => $searchColumn, 'value' => $searchValue];
+    /**
+     * @return array
+     */
+    private function getIdByIncrementId()
+    {
+        $searchColumn = 'increment_id';
+        $searchValue  = $this->request->getQueryValue('searchCriteria');
+        $searchValue  = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
+
+        return [$searchColumn, $searchValue];
     }
 }
