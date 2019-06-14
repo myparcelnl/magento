@@ -15,6 +15,7 @@ use MyParcelNL\Sdk\src\Support\Arr;
 
 class OrderExtension
 {
+
     const ENTITY_ID_POSITION = 4;
 
     /**
@@ -83,7 +84,7 @@ class OrderExtension
         if (empty($explodePath[self::ENTITY_ID_POSITION])) {
             $searchColumn = 'increment_id';
             $searchValue  = $this->request->getQueryValue('searchCriteria');
-            $searchValue = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
+            $searchValue  = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
         }
 
         return ['column' => $searchColumn, 'value' => $searchValue];
