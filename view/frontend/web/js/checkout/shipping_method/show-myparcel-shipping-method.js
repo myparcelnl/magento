@@ -112,6 +112,7 @@ define(
         function _setAddress() {
 
             var fieldsetName = 'checkout.steps.shipping-step.shippingAddress.shipping-address-fieldset.';
+            var address = [];
 
             if (customer.isLoggedIn() &&
                 typeof quote !== 'undefined' &&
@@ -120,49 +121,58 @@ define(
                 typeof quote.shippingAddress._latestValue.street !== 'undefined' &&
                 typeof quote.shippingAddress._latestValue.street[0] !== 'undefined'
             ) {
-                var street0 = quote.shippingAddress._latestValue.street[0];
-                if (typeof street0 === 'undefined') street0 = '';
-                var street1 = quote.shippingAddress._latestValue.street[1];
-                if (typeof street1 === 'undefined') street1 = '';
-                var street2 = quote.shippingAddress._latestValue.street[2];
-                if (typeof street2 === 'undefined') street2 = '';
-                var country = quote.shippingAddress._latestValue.countryId;
-                if (typeof country === 'undefined') country = '';
-                var postcode = quote.shippingAddress._latestValue.postcode;
-                if (typeof postcode === 'undefined') postcode = '';
-                var city = quote.shippingAddress._latestValue.postcode;
-                if (typeof city === 'undefined') city = '';
+                address = getLoggedInAddress();
             } else {
-
-                var street0 = registry.get(fieldsetName + 'street.0').get('value');
-                if (typeof street0 === 'undefined') street0 = '';
-
-                var street1 = registry.get(fieldsetName + 'street.1').get('value');
-                if (typeof street1 === 'undefined') street1 = '';
-
-                if (registry.get(fieldsetName + 'street.2')) {
-                    var street2 = registry.get(fieldsetName + 'street.2').get('value');
-                } else {
-                    var street2 = '';
-                }
-
-                var country = registry.get(fieldsetName + 'country_id').get('value');
-                if (typeof country === 'undefined') country = '';
-
-                var postcode = registry.get(fieldsetName + 'postcode').get('value');
-                if (typeof postcode === 'undefined') postcode = '';
-
-                var city = registry.get(fieldsetName + 'city').get('value');
-                if (typeof city === 'undefined') city = '';
+                address = getNoLoggedInAddress(fieldsetName);
             }
 
             window.mypa.address             = [];
-            window.mypa.address.street0     = street0.replace(/[<>=]/g, '');
-            window.mypa.address.street1     = street1.replace(/[<>=]/g, '');
-            window.mypa.address.street2     = street2.replace(/[<>=]/g, '');
-            window.mypa.address.cc          = country.replace(/[<>=]/g, '');
-            window.mypa.address.postcode    = postcode.replace(/[\s<>=]/g, '');
-            window.mypa.address.city        = city.replace(/[<>=]/g, '');
+            window.mypa.address.street0     = address.data.street0.replace(/[<>=]/g, '');
+            window.mypa.address.street1     = address.data.street1.replace(/[<>=]/g, '');
+            window.mypa.address.street2     = address.data.street2.replace(/[<>=]/g, '');
+            window.mypa.address.cc          = address.data.country.replace(/[<>=]/g, '');
+            window.mypa.address.postcode    = address.data.postcode.replace(/[\s<>=]/g, '');
+            window.mypa.address.city        = address.data.city.replace(/[<>=]/g, '');
+        }
+
+        function getLoggedInAddress() {
+            var street0     = quote.shippingAddress._latestValue.street[0];
+            var street1     = quote.shippingAddress._latestValue.street[1];
+            var street2     = quote.shippingAddress._latestValue.street[2];
+            var country     = quote.shippingAddress._latestValue.countryId;
+            var postcode    = quote.shippingAddress._latestValue.postcode;
+            var city        = quote.shippingAddress._latestValue.postcode;
+
+            return {
+                data: {
+                    "street0": street0 ? street0 : '',
+                    "street1": street1 ? street1 : '',
+                    "street2": street2 ? street2 : '',
+                    "country": country ? country : '',
+                    "postcode": postcode ? postcode : '',
+                    "city": city ? city : '',
+                }
+            }
+        }
+
+        function getNoLoggedInAddress(fieldsetName) {
+            var street0     = registry.get(fieldsetName + 'street.0');
+            var street1     = registry.get(fieldsetName + 'street.1');
+            var street2     = registry.get(fieldsetName + 'street.2');
+            var country     = registry.get(fieldsetName + 'country_id');
+            var postcode    = registry.get(fieldsetName + 'postcode');
+            var city        = registry.get(fieldsetName + 'city');
+
+            return {
+                data: {
+                    "street0": street0 ? street0.get('value') : '',
+                    "street1": street1 ? street1.get('value') : '',
+                    "street2": street2 ? street2.get('value') : '',
+                    "country": country ? country.get('value') : '',
+                    "postcode": postcode ? postcode.get('value') : '',
+                    "city": city ? city.get('value') : '',
+                }
+            }
         }
 
         /**

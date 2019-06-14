@@ -270,11 +270,12 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      */
     private function getItemsCollectionByShipmentId($shipmentId)
     {
+        /** @var \Magento\Framework\App\ResourceConnection $connection */
         $connection = $this->objectManager->create('\Magento\Framework\App\ResourceConnection');
         $conn = $connection->getConnection();
         $select = $conn->select()
             ->from(
-                ['main_table' => 'sales_shipment_item']
+                ['main_table' => $connection->getTableName('sales_shipment_item')]
             )
             ->where('main_table.parent_id=?', $shipmentId);
         $items = $conn->fetchAll($select);
