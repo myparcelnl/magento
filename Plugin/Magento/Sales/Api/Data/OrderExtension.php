@@ -43,7 +43,7 @@ class OrderExtension
     /**
      * Use the delivery_options data from the sales_order table so it can be used in the magento rest api.
      *
-     * @return string
+     * @return string|null
      */
     public function afterGetDeliveryOptions()
     {
@@ -74,6 +74,10 @@ class OrderExtension
             ->where($searchColumn . ' = ' . (int) $searchValue);
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
+
+        if (empty($result[0])){
+            return null;
+        }
 
         return $result[0]['delivery_options'];
     }
