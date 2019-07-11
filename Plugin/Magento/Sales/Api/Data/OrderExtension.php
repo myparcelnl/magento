@@ -75,6 +75,10 @@ class OrderExtension
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
+        if (empty($result[0])){
+            return null;
+        }
+
         return $result[0]['delivery_options'];
     }
 
