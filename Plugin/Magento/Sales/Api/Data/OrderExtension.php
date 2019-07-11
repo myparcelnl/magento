@@ -43,7 +43,7 @@ class OrderExtension
     /**
      * Use the delivery_options data from the sales_order table so it can be used in the magento rest api.
      *
-     * @return string
+     * @return string|null
      */
     public function afterGetDeliveryOptions()
     {
