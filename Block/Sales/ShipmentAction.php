@@ -27,22 +27,22 @@ class ShipmentAction extends OrdersAction
      */
     private $shipment;
     /**
-     * @var \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository
+     * @var \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment
      */
-    private $consignmentRepository;
+    private $consignment;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Sales\Model\Order\Shipment $shipment
-     * @param \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository $consignmentRepository
+     * @param \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment
      * @param array $data
      */
     public function __construct(
         Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Sales\Model\Order\Shipment $shipment,
-        \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository $consignmentRepository,
+        \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment,
         array $data = []
     ) {
         // Set shipment and order
@@ -51,7 +51,7 @@ class ShipmentAction extends OrdersAction
 
         $this->order = $this->shipment->getOrder();
         parent::__construct($context, $data);
-        $this->consignmentRepository = $consignmentRepository;
+        $this->consignment = $consignment;
     }
 
     public function getEntityId()
@@ -83,7 +83,6 @@ class ShipmentAction extends OrdersAction
 
     /**
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCountry()
     {
@@ -96,6 +95,6 @@ class ShipmentAction extends OrdersAction
      */
     public function isCdCountry()
     {
-        return $this->consignmentRepository->isCdCountry();
+        return $this->consignment->isCdCountry();
     }
 }

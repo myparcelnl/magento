@@ -14,6 +14,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 /**
  * Class MagentoOrderCollection
@@ -53,8 +54,6 @@ class MagentoOrderCollection extends MagentoCollection
 
     /**
      * Set Magento collection
-     *
-     * @param $orderCollection \Magento\Sales\Model\ResourceModel\Order\Collection
      *
      * @return $this
      */
@@ -159,8 +158,9 @@ class MagentoOrderCollection extends MagentoCollection
             }
             foreach ($order->getShipmentsCollection() as $shipment) {
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
-                    if ($magentoTrack->getCarrierCode() == MyParcelTrackTrace::MYPARCEL_CARRIER_CODE) {
+                    if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
                         $myParcelTrack = $this->getMyParcelTrack($magentoTrack);
+                        /** @var AbstractConsignment $myParcelTrack */
                         $this->myParcelCollection->addConsignment($myParcelTrack);
                     }
                 }
@@ -174,6 +174,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Set PDF content and convert status 'Concept' to 'Registered'
      *
      * @return $this
+     * @throws \Exception
      */
     public function setPdfOfLabels()
     {
@@ -200,6 +201,9 @@ class MagentoOrderCollection extends MagentoCollection
      * Create MyParcel concepts and update Magento Track
      *
      * @return $this
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \Exception
      */
     public function createMyParcelConcepts()
     {
@@ -212,11 +216,11 @@ class MagentoOrderCollection extends MagentoCollection
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
             foreach ($shipment->getTracksCollection() as $track) {
-                $myParcelTrack = $this
-                    ->myParcelCollection->getConsignmentByReferenceId($shipment->getEntityId());
+                $myParcelCollection = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
+                $myParcelTrack      = $myParcelCollection->first();
 
                 $track
-                    ->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId())
+                    ->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentIds())
                     ->setData('myparcel_status', $myParcelTrack->getStatus())
                     ->save(); // must
             }
@@ -229,6 +233,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Update MyParcel collection
      *
      * @return $this
+     * @throws \Exception
      */
     public function setLatestData()
     {
@@ -239,6 +244,8 @@ class MagentoOrderCollection extends MagentoCollection
 
     /**
      * @return $this
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
     public function sendReturnLabelMails()
     {
@@ -297,8 +304,8 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @param Order $order
      *
-     * @return $this
-     * @throws LocalizedException
+     * @return void
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function createShipment(Order $order)
     {
@@ -351,6 +358,7 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
     public function updateMagentoTrack()
     {

@@ -110,8 +110,10 @@ class TrackSender extends Sender
      * corresponding cron job.
      *
      * @param Shipment $shipment
-     * @param bool $forceSyncMode
+     * @param bool     $forceSyncMode
+     *
      * @return bool
+     * @throws \Exception
      */
     public function send(Shipment $shipment, $forceSyncMode = false)
     {
@@ -154,7 +156,9 @@ class TrackSender extends Sender
      * Get payment info block as html
      *
      * @param Order $order
+     *
      * @return string
+     * @throws \Exception
      */
     protected function getPaymentHtml(Order $order)
     {

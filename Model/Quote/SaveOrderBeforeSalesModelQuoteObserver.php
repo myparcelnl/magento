@@ -25,7 +25,7 @@ use Magento\Framework\Event\ObserverInterface;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
-use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 {
@@ -37,9 +37,9 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      */
     private $delivery;
     /**
-     * @var MyParcelConsignmentRepository
+     * @var AbstractConsignment
      */
-    private $consignmentRepository;
+    private $consignment;
     /**
      * @var array
      */
@@ -48,17 +48,17 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     /**
      * SaveOrderBeforeSalesModelQuoteObserver constructor.
      *
-     * @param DeliveryRepository $delivery
-     * @param MyParcelConsignmentRepository $consignmentRepository
-     * @param Checkout $checkoutHelper
+     * @param DeliveryRepository                  $delivery
+     * @param AbstractConsignment                 $consignment
+     * @param \MyParcelNL\Magento\Helper\Checkout $checkoutHelper
      */
     public function __construct(
         DeliveryRepository $delivery,
-        MyParcelConsignmentRepository $consignmentRepository,
+        AbstractConsignment $consignment,
         CheckoutHelper $checkoutHelper
     ) {
-        $this->delivery = $delivery;
-        $this->consignmentRepository = $consignmentRepository;
+        $this->delivery      = $delivery;
+        $this->consignment   = $consignment;
         $this->parentMethods = explode(',', $checkoutHelper->getCheckoutConfig('general/shipping_methods'));
     }
 
@@ -75,7 +75,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $order = $observer->getEvent()->getData('order');
         $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
 
-        if ($order->getShippingAddress()->getCountryId() == 'NL' && $this->consignmentRepository->isCorrectAddress($fullStreet) == false) {
+        if ($order->getShippingAddress()->getCountryId() == 'NL' && $this->consignment->isCorrectAddress($fullStreet) == false) {
             $order->setData(self::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
         }
 
