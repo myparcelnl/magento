@@ -181,7 +181,7 @@ class MagentoCollection implements MagentoCollectionInterface
      * @return $this
      * @throws \Exception
      */
-    public function addConsignment($consignment)
+    public function addConsignment(AbstractConsignment $consignment)
     {
         $this->myParcelCollection->addConsignment($consignment);
 
@@ -301,16 +301,16 @@ class MagentoCollection implements MagentoCollectionInterface
      * @return TrackTraceHolder $myParcelTrack
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function getMyParcelTrack($magentoTrack)
+    protected function createConsignmentAndGetTrackTraceHolder($magentoTrack): TrackTraceHolder
     {
-        $myParcelTrack = new TrackTraceHolder(
+        $trackTraceHolder = new TrackTraceHolder(
             $this->objectManager,
             $this->helper,
             $magentoTrack->getShipment()->getOrder()
         );
-        $myParcelTrack->convertDataFromMagentoToApi($magentoTrack, $this->options);
+        $trackTraceHolder->convertDataFromMagentoToApi($magentoTrack, $this->options);
 
-        return $myParcelTrack;
+        return $trackTraceHolder;
     }
 
     /**

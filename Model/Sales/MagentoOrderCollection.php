@@ -64,7 +64,7 @@ class MagentoOrderCollection extends MagentoCollection
         $orders = [];
         foreach ($ids as $orderId) {
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $orders[] = $objectManager->create('\Magento\Sales\Model\Order')->load($orderId);
+            $orders[]      = $objectManager->create('\Magento\Sales\Model\Order')->load($orderId);
         }
 
         $this->setOrderCollection($orders);
@@ -159,9 +159,8 @@ class MagentoOrderCollection extends MagentoCollection
             foreach ($order->getShipmentsCollection() as $shipment) {
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
-                        $myParcelTrack = $this->getMyParcelTrack($magentoTrack);
-                        /** @var AbstractConsignment $myParcelTrack */
-                        $this->myParcelCollection->addConsignment($myParcelTrack);
+                        $trackTraceHolder = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack);
+                        $this->myParcelCollection->addConsignment($trackTraceHolder->consignment);
                     }
                 }
             }
@@ -212,16 +211,17 @@ class MagentoOrderCollection extends MagentoCollection
         /**
          * @var Order                $order
          * @var Order\Shipment       $shipment
-         * @var Order\Shipment\Track $track
+         * @var Order\Shipment\Track $mageTrack
+         * @var AbstractConsignment $consignment
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
-            foreach ($shipment->getTracksCollection() as $track) {
+            foreach ($shipment->getTracksCollection() as $mageTrack) {
                 $myParcelCollection = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
-                $myParcelTrack      = $myParcelCollection->first();
+                $consignment = $myParcelCollection->first();
 
-                $track
-                    ->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentIds())
-                    ->setData('myparcel_status', $myParcelTrack->getStatus())
+                $mageTrack
+                    ->setData('myparcel_consignment_id', $consignment->getConsignmentId())
+                    ->setData('myparcel_status', $consignment->getStatus())
                     ->save(); // must
             }
         }
@@ -268,7 +268,8 @@ class MagentoOrderCollection extends MagentoCollection
         return $this;
     }
 
-    private function save() {
+    private function save()
+    {
         foreach ($this->getOrders() as $order) {
             $order->save();
         }
@@ -278,6 +279,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Send shipment email with Track and trace variable
      *
      * @param \Magento\Sales\Model\Order $order
+     *
      * @return $this
      */
     private function sendTrackEmailFromOrder(Order $order)
@@ -315,12 +317,12 @@ class MagentoOrderCollection extends MagentoCollection
          */
         // Initialize the order shipment object
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
-        $shipment = $convertOrder->toShipment($order);
+        $shipment     = $convertOrder->toShipment($order);
 
         // Loop through order items
         foreach ($order->getAllItems() as $orderItem) {
             // Check if order item has qty to ship or is virtual
-            if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
+            if (! $orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                 continue;
             }
 
