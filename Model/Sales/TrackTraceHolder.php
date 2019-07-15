@@ -17,12 +17,12 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
-use MyParcelNL\Magento\Helper\Data;
 
 /**
  * Class MyParcelTrackTrace
@@ -80,7 +80,7 @@ class TrackTraceHolder
     ) {
         $this->objectManager = $objectManager;
         $this->helper = $helper;
-        $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');;
+        $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
         self::$defaultOptions = new DefaultOptions(
             $order,
             $this->helper
@@ -104,7 +104,6 @@ class TrackTraceHolder
             ->setTitle(self::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber('concept');
-
 
         return $this;
     }
@@ -136,11 +135,11 @@ class TrackTraceHolder
 
         if ($address->getCountryId() != 'NL' &&
             ((int) $options['package_type'] == 2 || (int) $options['package_type'] == 4)) {
-
             $options['package_type'] = 1;
         }
 
-        $apiKey = $this->helper->getGeneralConfig('api/key',
+        $apiKey = $this->helper->getGeneralConfig(
+            'api/key',
             $magentoTrack->getShipment()->getOrder()->getStoreId()
         );
 
@@ -307,13 +306,13 @@ class TrackTraceHolder
      * @throws LocalizedException
      * @throws \Exception
      */
-    private function calculateTotalWeight($magentoTrack, $totalWeight = 0) {
-
+    private function calculateTotalWeight($magentoTrack, $totalWeight = 0)
+    {
         if ($this->consignment->getPackageType() !== AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
             return $this;
         }
 
-        if ($totalWeight > 0){
+        if ($totalWeight > 0) {
             $this->consignment->setPhysicalProperties(["weight" => $totalWeight]);
 
             return $this;
