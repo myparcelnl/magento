@@ -75,7 +75,7 @@ class OrderExtension
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
-        if (empty($result[0])){
+        if (empty($result)){
             return null;
         }
 
