@@ -112,6 +112,20 @@
             <span><?=__('Age check 18+') ?></span></label>
     </div>
 
+    <div class="field choice admin__field admin__field-option field-mypa_labels_amount mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() === 1 ?: 'display:none';?>">
+        <label class="admin__field-label"
+               for="mypa_labels_amount" style="display: block">
+            <span><?=__('Labels amount:') ?></span></label>
+        <?php $x = 1; ?>
+        <select name="mypa_labels_amount" id="mypa_labels_amount" class="required product-custom-option admin__control-select" title="" >
+            <?php
+            while($x <= 10) {
+                echo '<option value="'.$x.'" >'.__($x) .'</option>';
+                $x++;
+            }
+            ?>
+        </select>
+    </div>
 
     <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle" style="<?=$block->getPackageType() === 1 ?: 'display:none';?>">
         <label class="admin__field-label"
