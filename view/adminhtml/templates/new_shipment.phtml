@@ -116,12 +116,13 @@
         <label class="admin__field-label"
                for="mypa_labels_amount" style="display: block">
             <span><?=__('Labels amount:') ?></span></label>
-        <?php $x = 1; ?>
-        <select name="mypa_labels_amount" id="mypa_labels_amount" class="required product-custom-option admin__control-select" title="" >
+        <?php $label_amount = 1; ?>
+        <select name="mypa_labels_amount" id="mypa_labels_amount"
+                class="required product-custom-option admin__control-select" title="">
             <?php
-            while($x <= 10) {
-                echo '<option value="'.$x.'" >'.__($x) .'</option>';
-                $x++;
+            while ($label_amount <= 10) {
+                echo '<option value="' . $label_amount . '" >' . __($label_amount) . '</option>';
+                $label_amount ++;
             }
             ?>
         </select>
