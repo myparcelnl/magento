@@ -93,8 +93,9 @@ define(
             return true;
         }
 
-        function showDeliveryRadio(extraOption, typeTitle = '') {
+        function showDeliveryRadio(extraOption, typeTitle) {
 
+            typeTitle = (typeof typeTitle !== 'undefined') ? typeTitle : '';
             jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
             jQuery("td[id^='label_carrier_"+ extraOption +"']").parent().show();
 
