@@ -63,9 +63,13 @@ define(
             checkAddress();
             checkIfMyParcelSelected();
         }
-        
+
         function checkIfMyParcelSelected() {
-            jQuery("input[name^='ko_unique_11']").on('change', function (event) {
+
+            var elements = document.querySelectorAll('.table-checkout-shipping-method td input:not([id*="mypa"])');
+            var ko_unique = elements[0].name;
+
+            jQuery("input[name^="+ko_unique+"]").on('change', function (event) {
                 MyParcel.hideDelivery();
                 MyParcel.hidePickUpLocations();
             });
