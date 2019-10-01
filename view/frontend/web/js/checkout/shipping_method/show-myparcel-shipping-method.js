@@ -6,13 +6,14 @@ define(
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/checkout-data',
         'jquery',
+        'ko',
         'text!MyParcelNL_Magento/template/checkout/options.html',
         'text!MyParcelNL_Magento/css/checkout/options-dynamic.min.css',
         'MyParcelNL_Magento/js/lib/myparcel',
         'Magento_Checkout/js/action/set-shipping-information',
         'uiRegistry'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction, registry) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData, jQuery, ko, optionsHtml, cssDynamic, moment, setShippingInformationAction, registry) {
         'use strict';
 
         var originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
@@ -60,6 +61,14 @@ define(
 
             myparcel_method_element = "input[id^='s_method_" + myparcel_method_alias + "_']";
             checkAddress();
+            checkIfMyParcelSelected();
+        }
+        
+        function checkIfMyParcelSelected() {
+            jQuery("input[name^='ko_unique_11']").on('change', function (event) {
+                MyParcel.hideDelivery();
+                MyParcel.hidePickUpLocations();
+            });
         }
 
         function checkAddress() {
