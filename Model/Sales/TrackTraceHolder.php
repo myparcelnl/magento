@@ -15,19 +15,20 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
-use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
+use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 
 /**
  * Class MyParcelTrackTrace
  * @package MyParcelNL\Magento\Model\Sales
  */
-class MyParcelTrackTrace extends MyParcelConsignmentRepository
+class TrackTraceHolder
 {
     /**
      * Track title showing in Magento
@@ -61,6 +62,11 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     public $mageTrack;
 
     /**
+     * @var \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment|null
+     */
+    public $consignment;
+
+    /**
      * MyParcelTrackTrace constructor.
      *
      * @param ObjectManagerInterface     $objectManager
@@ -74,7 +80,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
     ) {
         $this->objectManager = $objectManager;
         $this->helper = $helper;
-        $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');;
+        $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
         self::$defaultOptions = new DefaultOptions(
             $order,
             $this->helper
@@ -99,7 +105,6 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber('concept');
 
-
         return $this;
     }
 
@@ -115,36 +120,41 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      */
     public function convertDataFromMagentoToApi($magentoTrack, $options)
     {
-        $address = $magentoTrack->getShipment()->getShippingAddress();
+        $this->consignment = ConsignmentFactory::createByCarrierId(PostNLConsignment::CARRIER_ID);
+
+        $address      = $magentoTrack->getShipment()->getShippingAddress();
         $checkoutData = $magentoTrack->getShipment()->getOrder()->getData('delivery_options');
-        $deliveryType = $this->getDeliveryTypeFromCheckout($checkoutData);
-        $totalWeight = $options['digital_stamp_weight'] !== null ? (int)$options['digital_stamp_weight'] : (int)self::$defaultOptions->getDigitalStampWeight();
+        $deliveryType = $this->consignment->getDeliveryTypeFromCheckout($checkoutData);
+        $totalWeight  = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : (int) self::$defaultOptions->getDigitalStampWeight();
 
         if ($options['package_type'] === 'default') {
             $packageType = self::$defaultOptions->getPackageType();
         } else {
-            $packageType = (int)$options['package_type'] ?: 1;
+            $packageType = (int) $options['package_type'] ?: 1;
         }
 
         if ($address->getCountryId() != 'NL' &&
-            ((int)$options['package_type'] == 2 || (int)$options['package_type'] == 4)) {
-
+            ((int) $options['package_type'] == 2 || (int) $options['package_type'] == 4)) {
             $options['package_type'] = 1;
         }
 
-        $this
-            ->setApiKey(
-                $this->helper->getGeneralConfig('api/key',
-                    $magentoTrack->getShipment()->getOrder()->getStoreId()
-                ))
+        $apiKey = $this->helper->getGeneralConfig(
+            'api/key',
+            $magentoTrack->getShipment()->getOrder()->getStoreId()
+        );
+
+        $this->validateApiKey($apiKey);
+
+        $this->consignment
+            ->setApiKey($apiKey)
             ->setReferenceId($magentoTrack->getShipment()->getEntityId())
-            ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
+            ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
             ->setCompany($address->getCompany())
             ->setPerson($address->getName());
 
         try {
-            $this->setFullStreet($address->getData('street'));
+            $this->consignment->setFullStreet($address->getData('street'));
         } catch (\Exception $e) {
             $errorHuman = 'An error has occurred while validating the address: ' . $address->getData('street') . '. Check number and number suffix.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
@@ -152,12 +162,12 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
         }
 
         if ($address->getPostcode() == null && $address->getCountryId() == 'NL') {
-            $errorHuman = 'An error has occurred while validating the order number ' . $magentoTrack->getOrderId(). '. Postcode is required.';
+            $errorHuman = 'An error has occurred while validating the order number ' . $magentoTrack->getOrderId() . '. Postcode is required.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman);
         }
 
-        $this
+        $this->consignment
             ->setPostalCode($address->getPostcode())
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
@@ -172,9 +182,10 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
-            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
-            ->convertDataForCdCountry($magentoTrack)
-            ->calculateTotalWeight($magentoTrack, $totalWeight);
+            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance());
+
+        $this->convertDataForCdCountry($magentoTrack)
+             ->calculateTotalWeight($magentoTrack, $totalWeight);
 
         return $this;
     }
@@ -187,20 +198,23 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function setApiKey($apiKey)
+    public function validateApiKey($apiKey)
     {
         if ($apiKey == null) {
             throw new LocalizedException(__('API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.'));
         }
-        parent::setApiKey($apiKey);
 
         return $this;
     }
 
     /**
      * @param Order\Shipment\Track $magentoTrack
+     *
      * @return $this
      *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \Exception
      * @todo Add setting to global setting and/or category (like magento 1)
      * @todo Get Classification from setting and/or category
      * @todo Get country of manufacture (get attribute from product)
@@ -209,7 +223,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      */
     private function convertDataForCdCountry($magentoTrack)
     {
-        if (!$this->isCdCountry()) {
+        if (!$this->consignment->isCdCountry()) {
             return $this;
         }
 
@@ -218,13 +232,13 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
 
             foreach ($products as $product) {
                 $myParcelProduct = (new MyParcelCustomsItem())
-                    ->setDescription($product->getName())
-                    ->setAmount($product->getQty())
-                    ->setWeight($product->getWeight() ?: 1)
-                    ->setItemValue($product->getPrice())
+                    ->setDescription($product->consignment->getName())
+                    ->setAmount($product->consignment->getQty())
+                    ->setWeight($product->consignment->getWeight() ?: 1)
+                    ->setItemValue($product->consignment->getPrice())
                     ->setClassification('0000')
                     ->setCountry('NL');
-                $this->addItem($myParcelProduct);
+                $this->consignment->addItem($myParcelProduct);
             }
         }
 
@@ -239,7 +253,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
                 ->setClassification('0000')
                 ->setCountry('NL');
 
-            $this->addItem($myParcelProduct);
+            $this->consignment->addItem($myParcelProduct);
         }
 
         return $this;
@@ -266,7 +280,8 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
 
     /**
      * @param $shipmentId
-     * @return \Magento\Sales\Model\ResourceModel\Order\Collection
+     *
+     * @return array
      */
     private function getItemsCollectionByShipmentId($shipmentId)
     {
@@ -287,25 +302,25 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
      * @param Order\Shipment\Track $magentoTrack
      * @param int $totalWeight
      *
-     * @return MyParcelTrackTrace
+     * @return TrackTraceHolder
      * @throws LocalizedException
      * @throws \Exception
      */
-    private function calculateTotalWeight($magentoTrack, $totalWeight = 0) {
-
-        if ($this->getPackageType() !== self::PACKAGE_TYPE_DIGITAL_STAMP) {
+    private function calculateTotalWeight($magentoTrack, $totalWeight = 0)
+    {
+        if ($this->consignment->getPackageType() !== AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
             return $this;
         }
 
-        if ($totalWeight > 0){
-            $this->setPhysicalProperties(["weight" => $totalWeight]);
+        if ($totalWeight > 0) {
+            $this->consignment->setPhysicalProperties(["weight" => $totalWeight]);
 
             return $this;
         }
 
         $weightFromSettings = (int)self::$defaultOptions->getDigitalStampWeight();
         if ($weightFromSettings) {
-            $this->setPhysicalProperties(["weight" => $weightFromSettings]);
+            $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
 
             return $this;
         }
@@ -314,7 +329,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             $products = $magentoTrack->getShipment()->getData('items');
 
             foreach ($products as $product) {
-                $totalWeight += $product->getWeight();
+                $totalWeight += $product->consignment->getWeight();
             }
         }
 
@@ -328,7 +343,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             throw new \Exception('The order with digital stamp can not be exported, no weights have been entered');
         }
 
-        $this->setPhysicalProperties([
+        $this->consignment->setPhysicalProperties([
             "weight" => $totalWeight
         ]);
 

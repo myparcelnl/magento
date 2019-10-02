@@ -16,7 +16,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 /**
  * Class MagentoOrderCollection
@@ -176,14 +176,14 @@ class MagentoCollection implements MagentoCollectionInterface
     /**
      * Add MyParcel consignment to collection
      *
-     * @param $myParcelConsignment MyParcelConsignmentRepository
+     * @param $consignment AbstractConsignment
      *
      * @return $this
      * @throws \Exception
      */
-    public function addMyParcelConsignment($myParcelConsignment)
+    public function addConsignment(AbstractConsignment $consignment)
     {
-        $this->myParcelCollection->addConsignment($myParcelConsignment);
+        $this->myParcelCollection->addConsignment($consignment);
 
         return $this;
     }
@@ -257,7 +257,8 @@ class MagentoCollection implements MagentoCollectionInterface
      *
      * @param Order\Shipment $shipment
      *
-     * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection
+     * @return \Magento\Sales\Model\Order\Shipment\Track
+     * @throws \Exception
      */
     protected function setNewMagentoTrack($shipment)
     {
@@ -266,8 +267,8 @@ class MagentoCollection implements MagentoCollectionInterface
         $track
             ->setOrderId($shipment->getOrderId())
             ->setShipment($shipment)
-            ->setCarrierCode(MyParcelTrackTrace::MYPARCEL_CARRIER_CODE)
-            ->setTitle(MyParcelTrackTrace::MYPARCEL_TRACK_TITLE)
+            ->setCarrierCode(TrackTraceHolder::MYPARCEL_CARRIER_CODE)
+            ->setTitle(TrackTraceHolder::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber('Concept')
             ->save();
@@ -297,19 +298,19 @@ class MagentoCollection implements MagentoCollectionInterface
      *
      * @param Order\Shipment\Track $magentoTrack
      *
-     * @return MyParcelTrackTrace $myParcelTrack
+     * @return TrackTraceHolder $myParcelTrack
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function getMyParcelTrack($magentoTrack)
+    protected function createConsignmentAndGetTrackTraceHolder($magentoTrack): TrackTraceHolder
     {
-        $myParcelTrack = new MyParcelTrackTrace(
+        $trackTraceHolder = new TrackTraceHolder(
             $this->objectManager,
             $this->helper,
             $magentoTrack->getShipment()->getOrder()
         );
-        $myParcelTrack->convertDataFromMagentoToApi($magentoTrack, $this->options);
+        $trackTraceHolder->convertDataFromMagentoToApi($magentoTrack, $this->options);
 
-        return $myParcelTrack;
+        return $trackTraceHolder;
     }
 
     /**

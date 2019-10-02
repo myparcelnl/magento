@@ -18,7 +18,6 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
 
 class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
@@ -46,6 +45,7 @@ class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
      * Collect options selected at checkout and calculate type consignment
      *
      * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCheckoutOptionsHtml()
     {

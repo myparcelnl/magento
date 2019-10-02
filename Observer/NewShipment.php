@@ -19,7 +19,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
 class NewShipment implements ObserverInterface
 {
@@ -65,7 +65,8 @@ class NewShipment implements ObserverInterface
      *
      * @param Observer $observer
      *
-     * @return $this
+     * @return void
+     * @throws \Exception
      */
     public function execute(Observer $observer)
     {
@@ -88,7 +89,7 @@ class NewShipment implements ObserverInterface
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
 
         // Set MyParcel options
-        $myParcelTrack = (new MyParcelTrackTrace($this->objectManager, $this->helper, $shipment->getOrder()))
+        $myParcelTrack = (new TrackTraceHolder($this->objectManager, $this->helper, $shipment->getOrder()))
             ->createTrackTraceFromShipment($shipment);
         $myParcelTrack->convertDataFromMagentoToApi($myParcelTrack->mageTrack, $options);
 
@@ -101,7 +102,7 @@ class NewShipment implements ObserverInterface
         $consignmentId = $this
             ->orderCollection
             ->myParcelCollection
-            ->getConsignmentByReferenceId($shipment->getEntityId())
+            ->getConsignmentsByReferenceId($shipment->getEntityId())->first()
             ->getMyParcelConsignmentId();
 
         $myParcelTrack->mageTrack
@@ -118,6 +119,8 @@ class NewShipment implements ObserverInterface
      * Magento puts our two columns sales_order automatically to sales_order_grid
      *
      * @param \Magento\Sales\Model\Order\Shipment $shipment
+     *
+     * @throws \Exception
      */
     private function updateTrackGrid($shipment)
     {

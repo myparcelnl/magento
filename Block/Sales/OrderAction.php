@@ -14,10 +14,7 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
-use Magento\Framework\App\ObjectManager;
-use MyParcelNL\Sdk\src\Model\MyParcelClassConstants;
 
 class OrderAction extends OrdersAction
 {
@@ -26,26 +23,26 @@ class OrderAction extends OrdersAction
      */
     private $order;
     /**
-     * @var \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository
+     * @var \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment
      */
-    private $consignmentRepository;
+    private $consignment;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Registry $registry
-     * @param \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository $consignmentRepository
+     * @param \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment
      * @param array $data
      */
     public function __construct(
         Context $context,
         \Magento\Framework\Registry $registry,
-        \MyParcelNL\Sdk\src\Model\Repository\MyParcelConsignmentRepository $consignmentRepository,
+        \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment,
         array $data = []
     ) {
         // Set order
         $this->order = $registry->registry('sales_order');
         parent::__construct($context, $data);
-        $this->consignmentRepository = $consignmentRepository;
+        $this->consignment = $consignment;
     }
 
     /**
@@ -72,7 +69,6 @@ class OrderAction extends OrdersAction
 
     /**
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCountry()
     {
@@ -85,6 +81,6 @@ class OrderAction extends OrdersAction
      */
     public function isCdCountry()
     {
-        return $this->consignmentRepository->isCdCountry();
+        return $this->consignment->isCdCountry();
     }
 }
