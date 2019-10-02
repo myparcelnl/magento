@@ -69,7 +69,7 @@ define(
             var elements = document.querySelectorAll('.table-checkout-shipping-method td input:not([id*="mypa"])');
             var ko_unique = elements[0].name;
 
-            jQuery("input[name^="+ko_unique+"]").on('change', function (event) {
+            jQuery('input[name^=' + ko_unique + ']').on('change', function (event) {
                 MyParcel.hideDelivery();
                 MyParcel.hidePickUpLocations();
             });
