@@ -95,7 +95,7 @@ class NewShipment implements ObserverInterface
 
         // Do the request
         $this->orderCollection->myParcelCollection
-            ->addConsignment($myParcelTrack)
+            ->addConsignment($myParcelTrack->consignment)
             ->createConcepts()
             ->setLatestData();
 
