@@ -95,9 +95,8 @@ class NewShipment implements ObserverInterface
         $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
 
         // Do the request
-        $this->orderCollection
-            ->myParcelCollection
-            ->addMultiCollo($trackTraceHolder->consignment, $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT)
+        $this->orderCollection->myParcelCollection
+            ->addConsignment($myParcelTrack->consignment)
             ->createConcepts()
             ->setLatestData();
 

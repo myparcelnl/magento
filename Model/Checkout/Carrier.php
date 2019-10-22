@@ -24,7 +24,6 @@ use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\Result;
 use Magento\Shipping\Model\Simplexml\Element;
-use Magento\Ups\Helper\Config;
 use Magento\Framework\Xml\Security;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
@@ -35,7 +34,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     const CODE = 'mypa';
     protected $_code = self::CODE;
     protected $_localeFormat;
-    protected $configHelper;
 
     /**
      * @var \Magento\Quote\Model\Quote
@@ -92,7 +90,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         \Magento\Directory\Helper\Data $directoryData,
         \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
         \Magento\Checkout\Model\Session $session,
-        Config $configHelper,
         Checkout $myParcelHelper,
         PackageRepository $package,
         array $data = []
@@ -116,7 +113,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             $data
         );
         $this->quote = $session->getQuote();
-        $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
         $this->package->setCurrentCountry($this->quote->getShippingAddress()->getCountryId());
