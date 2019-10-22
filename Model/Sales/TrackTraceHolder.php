@@ -23,6 +23,7 @@ use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
+use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 
 /**
  * Class MyParcelTrackTrace
@@ -33,8 +34,9 @@ class TrackTraceHolder
     /**
      * Track title showing in Magento
      */
-    const MYPARCEL_TRACK_TITLE = 'MyParcel';
+    const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
+    const defaultLabelAmount    = 1;
 
     /**
      * @var ObjectManagerInterface
@@ -145,7 +147,7 @@ class TrackTraceHolder
 
         $this->validateApiKey($apiKey);
 
-        $this->consignment
+        $this->consignment = (ConsignmentFactory::createByCarrierId('1'))
             ->setApiKey($apiKey)
             ->setReferenceId($magentoTrack->getShipment()->getEntityId())
             ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))

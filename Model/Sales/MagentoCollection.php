@@ -86,6 +86,7 @@ class MagentoCollection implements MagentoCollectionInterface
         'large_format' => null,
         'age_check' => null,
         'insurance' => null,
+        'label_amount' => null,
         'digital_stamp_weight' => null,
     ];
 
@@ -134,7 +135,6 @@ class MagentoCollection implements MagentoCollectionInterface
                 $this->options[$option] = $this->request->getParam('mypa_' . $option);
             }
         }
-
         // Remove position if paper size == A6
         if ($this->request->getParam('mypa_paper_size', 'A6') != 'A4') {
             $this->options['positions'] = null;

@@ -23,6 +23,7 @@ use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
 class NewShipment implements ObserverInterface
 {
+    const DEFAULT_LABEL_AMOUNT = 1;
     /**
      * @var \Magento\Framework\App\ObjectManager
      */
@@ -89,9 +90,9 @@ class NewShipment implements ObserverInterface
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
 
         // Set MyParcel options
-        $myParcelTrack = (new TrackTraceHolder($this->objectManager, $this->helper, $shipment->getOrder()))
+        $trackTraceHolder = (new TrackTraceHolder($this->objectManager, $this->helper, $shipment->getOrder()))
             ->createTrackTraceFromShipment($shipment);
-        $myParcelTrack->convertDataFromMagentoToApi($myParcelTrack->mageTrack, $options);
+        $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
 
         // Do the request
         $this->orderCollection->myParcelCollection
@@ -99,16 +100,15 @@ class NewShipment implements ObserverInterface
             ->createConcepts()
             ->setLatestData();
 
-        $consignmentId = $this
-            ->orderCollection
+        $consignmentId = $this->orderCollection
             ->myParcelCollection
             ->getConsignmentsByReferenceId($shipment->getEntityId())->first()
             ->getMyParcelConsignmentId();
 
-        $myParcelTrack->mageTrack
+        $trackTraceHolder->mageTrack
             ->setData('myparcel_consignment_id', $consignmentId)
             ->setData('myparcel_status', 1);
-        $shipment->addTrack($myParcelTrack->mageTrack);
+        $shipment->addTrack($trackTraceHolder->mageTrack);
 
         $this->updateTrackGrid($shipment);
     }
