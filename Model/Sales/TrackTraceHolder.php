@@ -147,7 +147,7 @@ class TrackTraceHolder
 
         $this->validateApiKey($apiKey);
 
-        $this->consignment = (ConsignmentFactory::createByCarrierId('1'))
+        $this->consignment = (ConsignmentFactory::createByCarrierId(PostNLConsignment::CARRIER_ID))
             ->setApiKey($apiKey)
             ->setReferenceId($magentoTrack->getShipment()->getEntityId())
             ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
