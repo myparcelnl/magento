@@ -96,7 +96,7 @@ class NewShipment implements ObserverInterface
 
         // Do the request
         $this->orderCollection->myParcelCollection
-            ->addConsignment($myParcelTrack->consignment)
+            ->addMultiCollo($trackTraceHolder->consignment, $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT)
             ->createConcepts()
             ->setLatestData();
 
@@ -125,6 +125,7 @@ class NewShipment implements ObserverInterface
     private function updateTrackGrid($shipment)
     {
         $aHtml = $this->orderCollection->getHtmlForGridColumns($shipment->getOrder()->getId());
+
         $shipment->getOrder()
             ->setData('track_status', $aHtml['track_status'])
             ->setData('track_number', $aHtml['track_number'])
