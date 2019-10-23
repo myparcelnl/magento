@@ -36,7 +36,7 @@ class MagentoCollection implements MagentoCollectionInterface
     const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
 
     /**
-     * @var MyParcelCollection
+     * @var \MyParcelNL\Sdk\src\Helper\MyParcelCollection|\MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment[]
      */
     public $myParcelCollection;
 

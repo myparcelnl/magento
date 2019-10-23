@@ -14,6 +14,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 /**
@@ -147,6 +148,8 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setMyParcelTrack()
     {
+        $newCollection = new MyParcelCollection();
+
         /**
          * @var Order                $order
          * @var Order\Shipment       $shipment
@@ -160,11 +163,13 @@ class MagentoOrderCollection extends MagentoCollection
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
                         $trackTraceHolder = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack);
-                        $this->myParcelCollection->addConsignment($trackTraceHolder->consignment);
+                        $newCollection->push($trackTraceHolder->consignment);
                     }
                 }
             }
         }
+
+        $this->myParcelCollection = $newCollection;
 
         return $this;
     }
@@ -212,12 +217,11 @@ class MagentoOrderCollection extends MagentoCollection
          * @var Order                $order
          * @var Order\Shipment       $shipment
          * @var Order\Shipment\Track $mageTrack
-         * @var AbstractConsignment $consignment
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
             foreach ($shipment->getTracksCollection() as $mageTrack) {
-                $myParcelCollection = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
-                $consignment = $myParcelCollection->first();
+                $consignmentId      = $mageTrack->getData('myparcel_consignment_id');
+                $consignment = $this->myParcelCollection->getConsignmentByApiId($consignmentId);
 
                 $mageTrack
                     ->setData('myparcel_consignment_id', $consignment->getConsignmentId())
