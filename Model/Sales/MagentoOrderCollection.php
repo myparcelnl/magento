@@ -143,8 +143,6 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return $this
      * @throws \Exception
-     *
-     * @todo; add filter carrier code
      */
     public function setMyParcelTrack()
     {
