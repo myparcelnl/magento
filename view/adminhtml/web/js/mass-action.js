@@ -96,7 +96,7 @@ define(
 
                         return this;
                     }
-                     
+
                     if (('has_api_key' in this.options) && (this.options['has_api_key'] == false)) {
                         alert({title: $.mage.__('No key found. Go to Configuration and then to MyParcel to enter the key.')});
 
@@ -247,6 +247,32 @@ define(
                             }
                         }
                     );
+
+                    $("select[name='mypa_label_amount']").on(
+                      "change",
+                      function () {
+                          var selectAmount = parseInt($("select[name='mypa_label_amount']").val());
+
+                          if (selectAmount != 0) {
+                              if (selectAmount >= 1) {
+                                  $('#mypa_position-2').prop('checked', true);
+                              }
+
+                              if (selectAmount >= 2) {
+                                  $('#mypa_position-4').prop('checked', true);
+                              }
+
+                              if (selectAmount >= 3) {
+                                  $('#mypa_position-1').prop('checked', true);
+                              }
+
+                              if (selectAmount >= 4) {
+                                  $('#mypa_position-3').prop('checked', true);
+                              }
+                          }
+                      }
+                    );
+
                     return this;
                 },
 

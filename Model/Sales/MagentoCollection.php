@@ -25,14 +25,14 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
  */
 class MagentoCollection implements MagentoCollectionInterface
 {
-    const PATH_HELPER_DATA = 'MyParcelNL\Magento\Helper\Data';
-    const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
-    const PATH_MODEL_SHIPMENT = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
-    const PATH_ORDER_GRID = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
-    const PATH_ORDER_TRACK = 'Magento\Sales\Model\Order\Shipment\Track';
-    const PATH_MANAGER_INTERFACE = '\Magento\Framework\Message\ManagerInterface';
+    const PATH_HELPER_DATA            = 'MyParcelNL\Magento\Helper\Data';
+    const PATH_MODEL_ORDER            = '\Magento\Sales\Model\ResourceModel\Order\Collection';
+    const PATH_MODEL_SHIPMENT         = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
+    const PATH_ORDER_GRID             = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
+    const PATH_ORDER_TRACK            = 'Magento\Sales\Model\Order\Shipment\Track';
+    const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
     const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    const URL_SHOW_POSTNL_STATUS = 'https://mijnpakket.postnl.nl/Inbox/Search';
+    const URL_SHOW_POSTNL_STATUS      = 'https://mijnpakket.postnl.nl/Inbox/Search';
     const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
 
     /**
@@ -77,25 +77,25 @@ class MagentoCollection implements MagentoCollectionInterface
 
     protected $options = [
         'create_track_if_one_already_exist' => true,
-        'request_type' => 'download',
-        'package_type' => 'default',
-        'positions' => null,
-        'only_recipient' => null,
-        'signature' => null,
-        'return' => null,
-        'large_format' => null,
-        'age_check' => null,
-        'insurance' => null,
-        'label_amount' => null,
-        'digital_stamp_weight' => null,
+        'request_type'                      => 'download',
+        'package_type'                      => 'default',
+        'positions'                         => null,
+        'only_recipient'                    => null,
+        'signature'                         => null,
+        'return'                            => null,
+        'large_format'                      => null,
+        'age_check'                         => null,
+        'insurance'                         => null,
+        'label_amount'                      => null,
+        'digital_stamp_weight'              => null,
     ];
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
      *
-     * @param ObjectManagerInterface $objectManagerInterface
+     * @param ObjectManagerInterface                  $objectManagerInterface
      * @param \Magento\Framework\App\RequestInterface $request
-     * @param null $areaList
+     * @param null                                    $areaList
      */
     public function __construct(ObjectManagerInterface $objectManagerInterface, $request = null, $areaList = null)
     {
@@ -105,12 +105,12 @@ class MagentoCollection implements MagentoCollectionInterface
         }
 
         $this->objectManager = $objectManagerInterface;
-        $this->request = $request;
-        $this->trackSender = $this->objectManager->get('MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender');
+        $this->request       = $request;
+        $this->trackSender   = $this->objectManager->get('MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender');
 
-        $this->helper = $objectManagerInterface->create(self::PATH_HELPER_DATA);
-        $this->modelTrack = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
-        $this->messageManager = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
+        $this->helper             = $objectManagerInterface->create(self::PATH_HELPER_DATA);
+        $this->modelTrack         = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
+        $this->messageManager     = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgent('Magento2', $this->helper->getVersion());
     }
 
@@ -135,6 +135,13 @@ class MagentoCollection implements MagentoCollectionInterface
                 $this->options[$option] = $this->request->getParam('mypa_' . $option);
             }
         }
+
+        $label_amount = $this->request->getParam('mypa_label_amount');
+
+        if ($label_amount) {
+            $this->options['label_amount'] = $label_amount;
+        }
+
         // Remove position if paper size == A6
         if ($this->request->getParam('mypa_paper_size', 'A6') != 'A4') {
             $this->options['positions'] = null;
@@ -198,6 +205,7 @@ class MagentoCollection implements MagentoCollectionInterface
      * Update sales_order table
      *
      * @param $orderId
+     *
      * @return array
      */
     public function getHtmlForGridColumns($orderId)
@@ -206,13 +214,13 @@ class MagentoCollection implements MagentoCollectionInterface
          * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
          */
         // Temporarily fix to translate in cronjob
-        if (!empty($this->areaList)) {
+        if (! empty($this->areaList)) {
             $areaObject = $this->areaList->getArea(\Magento\Framework\App\Area::AREA_ADMINHTML);
             $areaObject->load(\Magento\Framework\App\Area::PART_TRANSLATE);
         }
         $tracks = $this->getTracksCollectionByOrderId($orderId);
 
-        $data = ['track_status' => [], 'track_number' => []];
+        $data       = ['track_status' => [], 'track_number' => []];
         $columnHtml = ['track_status' => '', 'track_number' => ''];
 
         /**
@@ -315,19 +323,20 @@ class MagentoCollection implements MagentoCollectionInterface
 
     /**
      * @param $orderId
+     *
      * @return array
      */
     private function getTracksCollectionByOrderId($orderId)
     {
         /** @var \Magento\Framework\App\ResourceConnection $connection */
         $connection = $this->objectManager->create('\Magento\Framework\App\ResourceConnection');
-        $conn = $connection->getConnection();
-        $select = $conn->select()
-            ->from(
-                ['main_table' => $connection->getTableName('sales_shipment_track')]
-            )
-            ->where('main_table.order_id=?', $orderId);
-        $tracks = $conn->fetchAll($select);
+        $conn       = $connection->getConnection();
+        $select     = $conn->select()
+                           ->from(
+                               ['main_table' => $connection->getTableName('sales_shipment_track')]
+                           )
+                           ->where('main_table.order_id=?', $orderId);
+        $tracks     = $conn->fetchAll($select);
 
         return $tracks;
     }
