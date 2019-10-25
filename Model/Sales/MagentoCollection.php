@@ -15,6 +15,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
+use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -86,7 +87,7 @@ class MagentoCollection implements MagentoCollectionInterface
         'large_format'                      => null,
         'age_check'                         => null,
         'insurance'                         => null,
-        'label_amount'                      => null,
+        'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
         'digital_stamp_weight'              => null,
     ];
 

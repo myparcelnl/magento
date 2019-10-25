@@ -51,12 +51,14 @@ class NewShipment implements ObserverInterface
 
     /**
      * NewShipment constructor.
+     *
+     * @param \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
      */
-    public function __construct()
+    public function __construct(MagentoOrderCollection $orderCollection = null)
     {
         $this->objectManager   = ObjectManager::getInstance();
         $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
+        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
         $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }

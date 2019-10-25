@@ -36,7 +36,6 @@ class TrackTraceHolder
      */
     const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
-    const defaultLabelAmount    = 1;
 
     /**
      * @var ObjectManagerInterface

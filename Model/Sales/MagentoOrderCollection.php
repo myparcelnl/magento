@@ -107,10 +107,16 @@ class MagentoOrderCollection extends MagentoCollection
          * @var Order\Shipment $shipment
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
-            if ($this->shipmentHasTrack($shipment) == false ||
+            $i = 1;
+
+            if (
+                $this->shipmentHasTrack($shipment) == false ||
                 $this->getOption('create_track_if_one_already_exist')
             ) {
-                $this->setNewMagentoTrack($shipment);
+                while ($i <= $this->getOption('label_amount')) {
+                    $this->setNewMagentoTrack($shipment);
+                    $i ++;
+                }
             }
         }
 
@@ -158,11 +164,17 @@ class MagentoOrderCollection extends MagentoCollection
                 $this->messageManager->addError(self::ERROR_ORDER_HAS_NO_SHIPMENT);
             }
             foreach ($order->getShipmentsCollection() as $shipment) {
+
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
                         $trackTraceHolder = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack);
-                        $newCollection->push($trackTraceHolder->consignment);
+                        break;
                     }
+                }
+
+                if (! empty($trackTraceHolder)) {
+                    $consignment = $trackTraceHolder->consignment->setReferenceId($shipment->getEntityId());
+                    $newCollection->addMultiCollo($consignment, $this->getOption('label_amount'));
                 }
             }
         }
@@ -217,9 +229,12 @@ class MagentoOrderCollection extends MagentoCollection
          * @var Order\Shipment\Track $mageTrack
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
+            $consignments = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
+
             foreach ($shipment->getTracksCollection() as $mageTrack) {
-                $consignmentId      = $mageTrack->getData('myparcel_consignment_id');
-                $consignment = $this->myParcelCollection->getConsignmentByApiId($consignmentId);
+                if (! $consignment = $consignments->pop()) {
+                    continue;
+                }
 
                 $mageTrack
                     ->setData('myparcel_consignment_id', $consignment->getConsignmentId())
