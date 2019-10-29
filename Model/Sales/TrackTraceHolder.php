@@ -36,7 +36,6 @@ class TrackTraceHolder
      */
     const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
-    const defaultLabelAmount    = 1;
 
     /**
      * @var ObjectManagerInterface
@@ -147,7 +146,7 @@ class TrackTraceHolder
 
         $this->validateApiKey($apiKey);
 
-        $this->consignment = (ConsignmentFactory::createByCarrierId('1'))
+        $this->consignment = (ConsignmentFactory::createByCarrierId(PostNLConsignment::CARRIER_ID))
             ->setApiKey($apiKey)
             ->setReferenceId($magentoTrack->getShipment()->getEntityId())
             ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
