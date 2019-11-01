@@ -328,6 +328,12 @@ ol > li, ul > li {
     border: 0;
 }
 
+.imageNextToEachOther{
+    height: 500px;
+    padding: 20px;
+    margin: 20px;
+}
+
 @media screen and (min-width: 64em) {
     .main-content {
         max-width: 64rem;
