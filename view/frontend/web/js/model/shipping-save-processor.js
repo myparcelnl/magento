@@ -1,13 +1,12 @@
 define([
-    'mage/utils/wrapper',
-    'MyParcelNL_Magento/js/model/shipping-save-processor/myParcel'
+    'mage/utils/wrapper'
 ], function (wrapper, after) {
     'use strict';
 
     return function (payloadExtender) {
-
         return wrapper.wrap(payloadExtender, function (_super, payload) {
-            var original = _super(payload); // call original method
+            // call original method
+            var original = _super(payload);
 
             var result = payload;
 
@@ -16,7 +15,11 @@ define([
                 result = original;
             }
 
-            return after(result); // the 'after' plugin
+            var deliveryOptions = document.querySelector('[name="delivery_options"]').value;
+
+            result['addressInformation']['extension_attributes']['delivery_options'] = deliveryOptions;
+       
+            return result;
         });
     }
 });

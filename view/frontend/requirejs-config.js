@@ -12,7 +12,7 @@ var config = {
     config: {
         mixins: {
             'Magento_Checkout/js/model/shipping-save-processor/payload-extender': {
-                'MyParcelNL_Magento/js/mixins/checkout/model/shipping-save-processor/payload-extender-mixin': true
+                'MyParcelNL_Magento/js/model/shipping-save-processor': true
             }
         }
     }
