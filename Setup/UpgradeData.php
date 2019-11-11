@@ -74,7 +74,7 @@ class UpgradeData implements UpgradeDataInterface
                     'class'                   => '',
                     'source'                  => 'MyParcelNL\Magento\Model\Source\FitInMailboxOptions',
                     'global'                  => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
-                    'visible'                 => true,
+                    'visible'                 => false,
                     'required'                => false,
                     'user_defined'            => true,
                     'default'                 => null,
