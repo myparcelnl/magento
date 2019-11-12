@@ -2,14 +2,13 @@
 
 namespace MyParcelNL\Magento\Setup;
 
-use Magento\Catalog\Api\Data\ProductAttributeInterface;
 use Magento\Catalog\Setup\CategorySetupFactory;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
-use Magento\Framework\Setup\UpgradeDataInterface;
-use Magento\Framework\Setup\ModuleContextInterface;
-use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
+use Magento\Framework\Setup\ModuleContextInterface;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
+use Magento\Framework\Setup\UpgradeDataInterface;
 
 /**
  * Upgrade Data script
@@ -55,7 +54,6 @@ class UpgradeData implements UpgradeDataInterface
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
         if (version_compare($context->getVersion(), '2.1.23', '<=')) {
-
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
             $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
@@ -92,7 +90,6 @@ class UpgradeData implements UpgradeDataInterface
 
         /* Set a new 'MyParcel options' group and place the option 'myparcel_fit_in_mailbox' into it */
         if (version_compare($context->getVersion(), '2.5.0', '<=')) {
-
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
             $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
@@ -101,7 +98,7 @@ class UpgradeData implements UpgradeDataInterface
             $entityTypeId = $eavSetup->getEntityTypeId('catalog_product'); /* get entity type id so that attribute are only assigned to catalog_product */
             $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId); /* Here we have fetched all attribute set as we want attribute group to show under all attribute set.*/
 
-            foreach($attributeSetIds as $attributeSetId) {
+            foreach ($attributeSetIds as $attributeSetId) {
                 $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, $groupName, 19);
                 $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, $groupName);
 
@@ -113,7 +110,6 @@ class UpgradeData implements UpgradeDataInterface
 
         /* Add the option 'Fit in digital stamp' */
         if (version_compare($context->getVersion(), '2.5.0', '<=')) {
-
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
             $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
@@ -145,7 +141,39 @@ class UpgradeData implements UpgradeDataInterface
                     'used_in_product_listing' => true,
                     'unique' => false,
                     'apply_to' => '',
+                ]
+            );
+        }
+        /* Add the option 'Fit in digital stamp' and 'myparcel_fit_in_mailbox' standard on false by default */
+        if (version_compare($context->getVersion(), '3.1.0', '<=')) {
+            $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
+            /**
+             * Add attributes to the eav/attribute
+             */
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_digital_stamp',
+                [
+
+                    'visible' => false,
+                    'visible_on_front' => false,
+                    'used_in_product_listing' => false
+                ]
+            );
+            /**
+             * Add attributes to the eav/attribute
+             */
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_fit_in_mailbox',
+                [
+
+                    'visible' => false,
+                    'visible_on_front' => false,
+                    'used_in_product_listing' => false
                 ]
             );
         }
