@@ -183,7 +183,8 @@ class TrackTraceHolder
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
-            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance());
+            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
+            ->setInvoice('');
 
         $this->convertDataForCdCountry($magentoTrack)
              ->calculateTotalWeight($magentoTrack, $totalWeight);

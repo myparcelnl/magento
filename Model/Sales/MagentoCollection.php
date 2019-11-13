@@ -137,7 +137,7 @@ class MagentoCollection implements MagentoCollectionInterface
             }
         }
 
-        $label_amount = $this->request->getParam('mypa_label_amount');
+        $label_amount = $this->request->getParam('mypa_label_amount') ?? NewShipment::DEFAULT_LABEL_AMOUNT;
 
         if ($label_amount) {
             $this->options['label_amount'] = $label_amount;
