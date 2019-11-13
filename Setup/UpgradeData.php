@@ -34,19 +34,19 @@ class UpgradeData implements UpgradeDataInterface
      * Init
      *
      * @param \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory
-     * @param EavSetupFactory $eavSetupFactory
+     * @param EavSetupFactory                             $eavSetupFactory
      */
     public function __construct(\Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory, EavSetupFactory $eavSetupFactory)
     {
         $this->categorySetupFactory = $categorySetupFactory;
-        $this->eavSetupFactory = $eavSetupFactory;
+        $this->eavSetupFactory      = $eavSetupFactory;
     }
 
     /**
      * Upgrades data for a module
      *
      * @param ModuleDataSetupInterface $setup
-     * @param ModuleContextInterface $context
+     * @param ModuleContextInterface   $context
      *
      * @return void
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -94,9 +94,11 @@ class UpgradeData implements UpgradeDataInterface
             /** @var EavSetup $eavSetup */
             $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
-            $groupName = 'MyParcel Options'; /* Label of the group*/
-            $entityTypeId = $eavSetup->getEntityTypeId('catalog_product'); /* get entity type id so that attribute are only assigned to catalog_product */
-            $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId); /* Here we have fetched all attribute set as we want attribute group to show under all attribute set.*/
+            $groupName       = 'MyParcel Options'; /* Label of the group*/
+            $entityTypeId    = $eavSetup->getEntityTypeId('catalog_product'
+            ); /* get entity type id so that attribute are only assigned to catalog_product */
+            $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId
+            ); /* Here we have fetched all attribute set as we want attribute group to show under all attribute set.*/
 
             foreach ($attributeSetIds as $attributeSetId) {
                 $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, $groupName, 19);
@@ -121,26 +123,26 @@ class UpgradeData implements UpgradeDataInterface
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
-                    'group' => 'MyParcel Options',
-                    'type' => 'int',
-                    'backend' => '',
-                    'frontend' => '',
-                    'label' => 'Fit in digital stamp',
-                    'input' => 'boolean',
-                    'class' => '',
-                    'source' => '',
-                    'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible' => true,
-                    'required' => false,
-                    'user_defined' => true,
-                    'default' => '0',
-                    'searchable' => true,
-                    'filterable' => true,
-                    'comparable' => true,
-                    'visible_on_front' => false,
+                    'group'                   => 'MyParcel Options',
+                    'type'                    => 'int',
+                    'backend'                 => '',
+                    'frontend'                => '',
+                    'label'                   => 'Fit in digital stamp',
+                    'input'                   => 'boolean',
+                    'class'                   => '',
+                    'source'                  => '',
+                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible'                 => true,
+                    'required'                => false,
+                    'user_defined'            => true,
+                    'default'                 => '0',
+                    'searchable'              => true,
+                    'filterable'              => true,
+                    'comparable'              => true,
+                    'visible_on_front'        => false,
                     'used_in_product_listing' => true,
-                    'unique' => false,
-                    'apply_to' => '',
+                    'unique'                  => false,
+                    'apply_to'                => '',
                 ]
             );
         }
@@ -158,8 +160,8 @@ class UpgradeData implements UpgradeDataInterface
                 'myparcel_digital_stamp',
                 [
 
-                    'visible' => false,
-                    'visible_on_front' => false,
+                    'visible'                 => false,
+                    'visible_on_front'        => false,
                     'used_in_product_listing' => false
                 ]
             );
@@ -171,8 +173,8 @@ class UpgradeData implements UpgradeDataInterface
                 'myparcel_fit_in_mailbox',
                 [
 
-                    'visible' => false,
-                    'visible_on_front' => false,
+                    'visible'                 => false,
+                    'visible_on_front'        => false,
                     'used_in_product_listing' => false
                 ]
             );
