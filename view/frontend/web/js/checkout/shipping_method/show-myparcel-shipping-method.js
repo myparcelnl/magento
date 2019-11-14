@@ -67,12 +67,14 @@ define(
         function checkIfMyParcelSelected() {
 
             var elements = document.querySelectorAll('.table-checkout-shipping-method td input:not([id*="mypa"])');
-            var ko_unique = elements[0].name;
+            if (elements.length > 0) {
+                var ko_unique = elements[0].name;
 
-            jQuery('input[name^=' + ko_unique + ']').on('change', function (event) {
-                MyParcel.hideDelivery();
-                MyParcel.hidePickUpLocations();
-            });
+                jQuery('input[name^=' + ko_unique + ']').on('change', function (event) {
+                    MyParcel.hideDelivery();
+                    MyParcel.hidePickUpLocations();
+                });
+            }
         }
 
         function checkAddress() {
