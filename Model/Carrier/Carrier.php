@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelNL\Magento\Model\Carrier;
 
 use Magento\Quote\Model\Quote\Address\RateResult\Error;
 use Magento\Quote\Model\Quote\Address\RateRequest;
@@ -31,7 +31,7 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 
 class Carrier extends AbstractCarrierOnline implements CarrierInterface
 {
-    const CODE = 'mypa';
+    const CODE = 'myparcel_delivery';
     protected $_code = self::CODE;
     protected $_localeFormat;
 
