@@ -21,6 +21,7 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
+use \Magento\Checkout\Model\Session;
 
 class Checkout extends Data
 {
@@ -36,23 +37,33 @@ class Checkout extends Data
     private $estimatedAddressFactory;
 
     /**
-     * @param Context $context
-     * @param ModuleListInterface $moduleList
+     * @var \Magento\Quote\Model\Quote
+     */
+    private $quote;
+
+    /**
+     * @param Context                         $context
+     * @param ModuleListInterface             $moduleList
      * @param EstimateAddressInterfaceFactory $estimatedAddressFactory
-     * @param ShippingMethodManagement $shippingMethodManagement
-     * @param CheckApiKeyService $checkApiKeyService
+     * @param ShippingMethodManagement        $shippingMethodManagement
+     * @param CheckApiKeyService              $checkApiKeyService
+     * @param Session                         $session
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
         EstimateAddressInterfaceFactory $estimatedAddressFactory,
         ShippingMethodManagement $shippingMethodManagement,
-        CheckApiKeyService $checkApiKeyService
-    )
-    {
+        CheckApiKeyService $checkApiKeyService,
+        Session $session
+    ) {
         parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
-        $this->estimatedAddressFactory = $estimatedAddressFactory;
+        $this->estimatedAddressFactory  = $estimatedAddressFactory;
+        $this->quote                    = $session->getQuote();
     }
 
     /**
@@ -81,7 +92,7 @@ class Checkout extends Data
     public function setBasePriceFromQuote($quoteId)
     {
         $price = $this->getParentRatePriceFromQuote($quoteId);
-        $this->setBasePrice((double)$price);
+        $this->setBasePrice((double) $price);
 
         return $this;
     }
@@ -142,17 +153,17 @@ class Checkout extends Data
             return null;
         }
 
-        $parentMethods = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
-
+        $parentMethods    = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
+        $addressFromQuote = $this->quote->getShippingAddress();
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
-         * @var \Magento\Quote\Model\Cart\ShippingMethod[] $methods
+         * @var \Magento\Quote\Model\Cart\ShippingMethod[]       $methods
          */
         $estimatedAddress = $this->estimatedAddressFactory->create();
-        $estimatedAddress->setCountryId('NL');
-        $estimatedAddress->setPostcode('');
-        $estimatedAddress->setRegion('');
-        $estimatedAddress->setRegionId('');
+        $estimatedAddress->setCountryId($addressFromQuote->getCountryId());
+        $estimatedAddress->setPostcode($addressFromQuote->getPostcode());
+        $estimatedAddress->setRegion($addressFromQuote->getRegion());
+        $estimatedAddress->setRegionId($addressFromQuote->getRegionId());
         $methods = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
 
         foreach ($methods as $method) {
@@ -170,7 +181,7 @@ class Checkout extends Data
      *Check if total shipping price is not below 0 euro
      *
      * @param string $key
-     * @param bool $addBasePrice
+     * @param bool   $addBasePrice
      *
      * @return float
      */
@@ -180,21 +191,21 @@ class Checkout extends Data
 
         if ($addBasePrice) {
             if ($this->getBasePrice() + $value < 0) {
-                return (float)0;
+                return (float) 0;
             }
 
             // Calculate value
             $value = $this->getBasePrice() + $value;
         }
 
-        return (float)$value;
+        return (float) $value;
     }
 
     /**
      * Get MyParcel method/option price with EU format
      *
      * @param string $key
-     * @param bool $addBasePrice
+     * @param bool   $addBasePrice
      * @param string $prefix
      *
      * @return string
@@ -215,9 +226,10 @@ class Checkout extends Data
      *
      * @return string
      */
-    public function getMoneyFormat($value) {
+    public function getMoneyFormat($value)
+    {
         $value = number_format($value, 2, ',', '.');
-        $value = '&#8364; ' . (string)$value;
+        $value = '&#8364; ' . (string) $value;
 
         return $value;
     }
@@ -240,7 +252,7 @@ class Checkout extends Data
      * Get checkout setting
      *
      * @param string $code
-     * @param bool $canBeNull
+     * @param bool   $canBeNull
      *
      * @return mixed
      */
@@ -299,6 +311,6 @@ class Checkout extends Data
      */
     public function getIntergerConfig($key)
     {
-        return (float)$this->getCheckoutConfig($key);
+        return (float) $this->getCheckoutConfig($key);
     }
 }
