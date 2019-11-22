@@ -8,7 +8,6 @@
 
 namespace MyParcelNL\Magento\Model\Quote;
 
-
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
@@ -74,7 +73,6 @@ class Checkout
      */
     public function getCheckoutSettings()
     {
-
         $this->helper->setBasePriceFromQuote($this->quoteId);
 
         $this->data = [
@@ -150,11 +148,11 @@ class Checkout
         return $deliveryData;
     }
 
-
     /**
      * @return bool
      */
-    private function hasAgeCheck(){
+    private function hasAgeCheck()
+    {
         return $this->defaultOptions->getDefault('age_check');
     }
 
