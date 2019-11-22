@@ -155,7 +155,6 @@ class UpgradeData implements UpgradeDataInterface
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
-
                     'visible'                 => false,
                     'visible_on_front'        => false,
                     'used_in_product_listing' => false
@@ -167,7 +166,6 @@ class UpgradeData implements UpgradeDataInterface
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 [
-
                     'visible'                 => false,
                     'visible_on_front'        => false,
                     'used_in_product_listing' => false
