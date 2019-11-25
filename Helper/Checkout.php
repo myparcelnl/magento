@@ -168,7 +168,7 @@ class Checkout extends Data
         $methods = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
 
         foreach ($methods as $method) {
-            if (($checkoutActive || $checkoutActive == null) && in_array($method->getCarrierCode(), $parentMethods)) {
+            if ($checkoutActive !='0' && in_array($method->getCarrierCode(), $parentMethods)) {
                 return $method;
             }
         }
