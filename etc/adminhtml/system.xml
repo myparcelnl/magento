@@ -141,7 +141,7 @@
                 <field id="checkout_active" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Checkout</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>Delivery options allow your customers to select whether they want their parcel delivered at home or to a pickup point. Depending on the settings you can allow them to select a dat, time and even options like requiring a signature on delivery.</comment>
+                    <comment>Delivery options allow your customers to select whether they want their parcel delivered at home or to a pickup point. Depending on the settings you can allow them to select a date, time and even options like requiring a signature on delivery.</comment>
                 </field>
                 <field id="deliverydays_window" translate="label comment" type="select" sortOrder="212" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Numbers of days</label>
