@@ -18,15 +18,14 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
-
 use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {
-	const DEFAULT_MAILBOX_WEIGHT = 2000;
-	const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
+    const DEFAULT_MAILBOX_WEIGHT = 2000;
+    const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
 
-	/**
+    /**
      * Get package type
      *
      * If package type is not set, calculate package type
@@ -70,11 +69,11 @@ class PackageRepository extends Package
             return false;
         }
 
-	    if ($this->getWeight() == false) {
-		    return false;
-	    }
+        if ($this->getWeight() == false) {
+            return false;
+        }
 
-	    if ($this->getWeight() > $this->getMaxWeight()) {
+        if ($this->getWeight() > $this->getMaxWeight()) {
             return false;
         }
 
@@ -119,11 +118,9 @@ class PackageRepository extends Package
         }
 
         foreach ($products as $product) {
-
-            if ($this->getAttributesFitInOptions($product, 'digital_stamp') === null){
+            if ($this->getAttributesFitInOptions($product, 'digital_stamp') === null) {
                 return $this->setAllProductsFitInMailbox(false, 'digital_stamp');
             }
-
         }
         return $this;
     }
@@ -256,7 +253,8 @@ class PackageRepository extends Package
      *
      * @return array|null
      */
-    private function getAttributesFromProduct($tableName, $product, $column){
+    private function getAttributesFromProduct($tableName, $product, $column)
+    {
 
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
@@ -267,35 +265,36 @@ class PackageRepository extends Package
         $entityId = $product->getProduct()->getEntityId();
         $connection = $resource->getConnection();
 
-	    $attributeId = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
-	    $attributeValue = $this
-		    ->getValueFromAttribute(
-		    	$connection,
-			    $resource->getTableName($tableName),
-			    $attributeId,
-			    $entityId
-		    );
+        $attributeId = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
+        $attributeValue = $this
+            ->getValueFromAttribute(
+                $connection,
+                $resource->getTableName($tableName),
+                $attributeId,
+                $entityId
+            );
 
         return $attributeValue;
     }
 
-	private function getAttributeId($connection, $tableName, $databaseColumn) {
-		$sql = $connection
-			->select('entity_type_id')
-		    ->from($tableName)
-		    ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
+    private function getAttributeId($connection, $tableName, $databaseColumn)
+    {
+        $sql = $connection
+            ->select('entity_type_id')
+            ->from($tableName)
+            ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
 
-		return $connection->fetchOne($sql);
-	}
+        return $connection->fetchOne($sql);
+    }
 
-	private function getValueFromAttribute( $connection, $tableName, $attributeId, $entityId ) {
+    private function getValueFromAttribute($connection, $tableName, $attributeId, $entityId)
+    {
+        $sql = $connection
+            ->select()
+            ->from($tableName, ['value'])
+            ->where('attribute_id = ?', $attributeId)
+            ->where('entity_id = ?', $entityId);
 
-		$sql = $connection
-			->select()
-			->from($tableName, ['value'])
-			->where('attribute_id = ?', $attributeId)
-			->where('entity_id = ?', $entityId);
-
-		return $connection->fetchOne($sql);
-	}
+        return $connection->fetchOne($sql);
+    }
 }

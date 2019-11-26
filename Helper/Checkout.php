@@ -16,12 +16,12 @@
 
 namespace MyParcelNL\Magento\Helper;
 
+use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
-use \Magento\Checkout\Model\Session;
 
 class Checkout extends Data
 {
@@ -154,6 +154,7 @@ class Checkout extends Data
         }
 
         $parentMethods    = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
+        $checkoutActive   = $this->getCheckoutConfig('general/checkout_active');
         $addressFromQuote = $this->quote->getShippingAddress();
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
@@ -167,7 +168,7 @@ class Checkout extends Data
         $methods = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
 
         foreach ($methods as $method) {
-            if (in_array($method->getCarrierCode(), $parentMethods)) {
+            if ($checkoutActive !='0' && in_array($method->getCarrierCode(), $parentMethods)) {
                 return $method;
             }
         }
