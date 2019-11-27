@@ -37,12 +37,6 @@ class TrackTraceHolder
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
 
     /**
-     * Completion price and weight for World shipments
-     */
-    const THOUSAND = 1000;
-    const HUNDRED  = 100;
-
-    /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
@@ -236,28 +230,14 @@ class TrackTraceHolder
             return $this;
         }
 
-        if ($magentoTrack->getShipment()->getData('items') != null) {
-            $products = $magentoTrack->getShipment()->getData('items');
-
-            foreach ($products as $product) {
-                $myParcelProduct = (new MyParcelCustomsItem())
-                    ->setDescription($product->consignment->getName())
-                    ->setAmount($product->consignment->getQty())
-                    ->setWeight($product->consignment->getWeight() ?: 1)
-                    ->setItemValue($product->consignment->getPrice())
-                    ->setClassification('0000')
-                    ->setCountry('NL');
-                $this->consignment->addItem($myParcelProduct);
-            }
-        }
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
 
         foreach ($products as $product) {
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])
-                ->setWeight($product['weight'] * self::THOUSAND ?: self::THOUSAND)
-                ->setItemValue($product['price'] * self::HUNDRED)
+                ->setWeight($product['weight'] * 1000 ?: 1000)
+                ->setItemValue($product['price'] * 100)
                 ->setClassification('0000')
                 ->setCountry('NL');
 
