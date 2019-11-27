@@ -273,7 +273,7 @@ MyParcel = {
                 MyParcel.deliveryOnlyRecipient = 1;
                 MyParcel.addStyleToPrice('#mypa-only-recipient-price');
             } else {
-                method = window.mypa.data.general.parent_method;
+                method = window.mypa.data.general.parent_carrier;
             }
 
             MyParcel.addStyleToPrice('#mypa-normal-delivery');
@@ -320,7 +320,6 @@ MyParcel = {
                 MyParcel.addPickupToExternalInput('retail');
                 MyParcel.addStyleToPrice('#mypa-pickup-price');
             }
-
             MyParcel.clickMagentoShippingMethod(method);
             window.mypa.setShippingInformationAction();
         }
