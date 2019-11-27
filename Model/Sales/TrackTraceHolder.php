@@ -23,7 +23,6 @@ use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
-use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 
 /**
  * Class MyParcelTrackTrace
@@ -36,6 +35,12 @@ class TrackTraceHolder
      */
     const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
+
+    /**
+     * Completion price and weight for World shipments
+     */
+    const THOUSAND = 1000;
+    const HUNDRED  = 100;
 
     /**
      * @var ObjectManagerInterface
@@ -79,8 +84,8 @@ class TrackTraceHolder
         Data $helper,
         Order $order
     ) {
-        $this->objectManager = $objectManager;
-        $this->helper = $helper;
+        $this->objectManager  = $objectManager;
+        $this->helper         = $helper;
         $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
         self::$defaultOptions = new DefaultOptions(
             $order,
@@ -183,7 +188,9 @@ class TrackTraceHolder
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
-            ->setInsurance($options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance())
+            ->setInsurance(
+                $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
+            )
             ->setInvoice('');
 
         $this->convertDataForCdCountry($magentoTrack)
@@ -225,7 +232,7 @@ class TrackTraceHolder
      */
     private function convertDataForCdCountry($magentoTrack)
     {
-        if (!$this->consignment->isCdCountry()) {
+        if (! $this->consignment->isCdCountry()) {
             return $this;
         }
 
@@ -243,15 +250,14 @@ class TrackTraceHolder
                 $this->consignment->addItem($myParcelProduct);
             }
         }
-
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
 
         foreach ($products as $product) {
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])
-                ->setWeight($product['weight'] ?: 1)
-                ->setItemValue($product['price'])
+                ->setWeight($product['weight'] * self::THOUSAND ?: self::THOUSAND)
+                ->setItemValue($product['price'] * self::HUNDRED)
                 ->setClassification('0000')
                 ->setCountry('NL');
 
@@ -264,7 +270,7 @@ class TrackTraceHolder
     /**
      * Get default value if option === null
      *
-     * @param $options[]
+     * @param $options []
      * @param $optionKey
      *
      * @return bool
@@ -274,9 +280,9 @@ class TrackTraceHolder
     private function getValueOfOption($options, $optionKey)
     {
         if ($options[$optionKey] === null) {
-            return (bool)self::$defaultOptions->getDefault($optionKey);
+            return (bool) self::$defaultOptions->getDefault($optionKey);
         } else {
-            return (bool)$options[$optionKey];
+            return (bool) $options[$optionKey];
         }
     }
 
@@ -289,20 +295,20 @@ class TrackTraceHolder
     {
         /** @var \Magento\Framework\App\ResourceConnection $connection */
         $connection = $this->objectManager->create('\Magento\Framework\App\ResourceConnection');
-        $conn = $connection->getConnection();
-        $select = $conn->select()
-            ->from(
-                ['main_table' => $connection->getTableName('sales_shipment_item')]
-            )
-            ->where('main_table.parent_id=?', $shipmentId);
-        $items = $conn->fetchAll($select);
+        $conn       = $connection->getConnection();
+        $select     = $conn->select()
+                           ->from(
+                               ['main_table' => $connection->getTableName('sales_shipment_item')]
+                           )
+                           ->where('main_table.parent_id=?', $shipmentId);
+        $items      = $conn->fetchAll($select);
 
         return $items;
     }
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     * @param int $totalWeight
+     * @param int                  $totalWeight
      *
      * @return TrackTraceHolder
      * @throws LocalizedException
@@ -320,7 +326,7 @@ class TrackTraceHolder
             return $this;
         }
 
-        $weightFromSettings = (int)self::$defaultOptions->getDigitalStampWeight();
+        $weightFromSettings = (int) self::$defaultOptions->getDigitalStampWeight();
         if ($weightFromSettings) {
             $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
 
@@ -345,9 +351,11 @@ class TrackTraceHolder
             throw new \Exception('The order with digital stamp can not be exported, no weights have been entered');
         }
 
-        $this->consignment->setPhysicalProperties([
-            "weight" => $totalWeight
-        ]);
+        $this->consignment->setPhysicalProperties(
+            [
+                "weight" => $totalWeight
+            ]
+        );
 
         return $this;
     }
