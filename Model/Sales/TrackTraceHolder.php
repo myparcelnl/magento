@@ -37,6 +37,12 @@ class TrackTraceHolder
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
 
     /**
+     * Completion price and weight for World shipments
+     */
+    const THOUSAND = 1000;
+    const HUNDRED  = 100;
+
+    /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
@@ -250,8 +256,8 @@ class TrackTraceHolder
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])
-                ->setWeight($product['weight'] * 1000 ?: 1000)
-                ->setItemValue($product['price'] * 100)
+                ->setWeight($product['weight'] * self::THOUSAND ?: self::THOUSAND)
+                ->setItemValue($product['price'] * self::HUNDRED)
                 ->setClassification('0000')
                 ->setCountry('NL');
 
