@@ -123,7 +123,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return array
      */
-    private function getMethods()
+    public static function getMethods()
     {
         $methods = [
             'signature'            => 'delivery/signature_',
@@ -157,7 +157,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return ['mailbox' => 'mailbox/'];
         }
 
-        $methods = $this->getMethods();
+        $methods = self::getMethods();
         if (! $this->package->fitInMailbox()) {
             unset($methods['mailbox']);
         }

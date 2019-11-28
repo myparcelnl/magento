@@ -21,6 +21,7 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
+use MyParcelNL\Magento\Model\Rate\Result;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Checkout extends Data
@@ -153,7 +154,7 @@ class Checkout extends Data
             return null;
         }
 
-        $parentMethods    = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
+        $parentCarriers   = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
         $checkoutActive   = $this->getCheckoutConfig('general/checkout_active');
         $addressFromQuote = $this->quote->getShippingAddress();
         /**
@@ -165,10 +166,16 @@ class Checkout extends Data
         $estimatedAddress->setPostcode($addressFromQuote->getPostcode());
         $estimatedAddress->setRegion($addressFromQuote->getRegion());
         $estimatedAddress->setRegionId($addressFromQuote->getRegionId());
-        $methods = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
+        $magentoMethods  = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
+        $myParcelMethods = array_keys(Result::getMethods());
 
-        foreach ($methods as $method) {
-            if ($checkoutActive !='0' && in_array($method->getCarrierCode(), $parentMethods)) {
+
+        foreach ($magentoMethods as $key => $method) {
+            if (
+                $checkoutActive != '0' &&
+                in_array($method->getCarrierCode(), $parentCarriers) &&
+                ! in_array($method->getMethodCode(), $myParcelMethods)
+            ) {
                 return $method;
             }
         }
