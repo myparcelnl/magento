@@ -104,7 +104,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\Method) {
             $this->_rates[] = $result;
             $this->addMyParcelRates($result);
-        } else if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
+        } elseif ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
             $this->_rates[] = $result;
 
         } elseif ($result instanceof \Magento\Shipping\Model\Rate\Result) {
