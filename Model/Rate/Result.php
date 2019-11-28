@@ -104,7 +104,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\Method) {
             $this->_rates[] = $result;
             $this->addMyParcelRates($result);
-        } elseif ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
+        } else if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
             $this->_rates[] = $result;
 
         } elseif ($result instanceof \Magento\Shipping\Model\Rate\Result) {
@@ -123,7 +123,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return array
      */
-    private function getMethods()
+    public static function getMethods()
     {
         $methods = [
             'signature'            => 'delivery/signature_',
@@ -157,7 +157,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return ['mailbox' => 'mailbox/'];
         }
 
-        $methods = $this->getMethods();
+        $methods = self::getMethods();
         if (! $this->package->fitInMailbox()) {
             unset($methods['mailbox']);
         }
