@@ -162,10 +162,10 @@ class Checkout extends Data
          * @var \Magento\Quote\Model\Cart\ShippingMethod[]       $methods
          */
         $estimatedAddress = $this->estimatedAddressFactory->create();
-        $estimatedAddress->setCountryId($addressFromQuote->getCountryId());
-        $estimatedAddress->setPostcode($addressFromQuote->getPostcode());
-        $estimatedAddress->setRegion($addressFromQuote->getRegion());
-        $estimatedAddress->setRegionId($addressFromQuote->getRegionId());
+        $estimatedAddress->setCountryId($addressFromQuote->getCountryId() ?? 'NL');
+        $estimatedAddress->setPostcode($addressFromQuote->getPostcode() ?? '');
+        $estimatedAddress->setRegion($addressFromQuote->getRegion() ?? '');
+        $estimatedAddress->setRegionId($addressFromQuote->getRegionId() ?? '');
         $magentoMethods  = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
         $myParcelMethods = array_keys(Result::getMethods());
 
