@@ -170,7 +170,7 @@ class Checkout extends Data
         $myParcelMethods = array_keys(Result::getMethods());
 
 
-        foreach ($magentoMethods as $key => $method) {
+        foreach ($magentoMethods as $method) {
             if (
                 $checkoutActive != '0' &&
                 in_array($method->getCarrierCode(), $parentCarriers) &&
