@@ -27,6 +27,7 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 class Checkout extends Data
 {
     const DEFAULT_COUNTRY_CODE = 'NL';
+    
     private $base_price = 0;
 
     /**
