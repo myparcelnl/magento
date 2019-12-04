@@ -26,6 +26,8 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Checkout extends Data
 {
+    const DEFAULT_COUNTRY_CODE = 'NL';
+    
     private $base_price = 0;
 
     /**
@@ -162,15 +164,15 @@ class Checkout extends Data
          * @var \Magento\Quote\Model\Cart\ShippingMethod[]       $methods
          */
         $estimatedAddress = $this->estimatedAddressFactory->create();
-        $estimatedAddress->setCountryId($addressFromQuote->getCountryId());
-        $estimatedAddress->setPostcode($addressFromQuote->getPostcode());
-        $estimatedAddress->setRegion($addressFromQuote->getRegion());
-        $estimatedAddress->setRegionId($addressFromQuote->getRegionId());
+        $estimatedAddress->setCountryId($addressFromQuote->getCountryId() ?? self::DEFAULT_COUNTRY_CODE);
+        $estimatedAddress->setPostcode($addressFromQuote->getPostcode() ?? '');
+        $estimatedAddress->setRegion($addressFromQuote->getRegion() ?? '');
+        $estimatedAddress->setRegionId($addressFromQuote->getRegionId() ?? '');
         $magentoMethods  = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
         $myParcelMethods = array_keys(Result::getMethods());
 
 
-        foreach ($magentoMethods as $key => $method) {
+        foreach ($magentoMethods as $method) {
             if (
                 $checkoutActive != '0' &&
                 in_array($method->getCarrierCode(), $parentCarriers) &&
