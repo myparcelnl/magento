@@ -173,6 +173,69 @@ class UpgradeData implements UpgradeDataInterface
             );
         }
 
+        // The options digital stamp and mailbox were not showing on the product options
+        if (version_compare($context->getVersion(), '3.1.4', '<=')) {
+            $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+            // Add attributes to the eav/attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_digital_stamp',
+                [
+                    'group'                   => 'MyParcel Options',
+                    'type'                    => 'int',
+                    'backend'                 => '',
+                    'frontend'                => '',
+                    'label'                   => 'Fit in digital stamp',
+                    'input'                   => 'boolean',
+                    'class'                   => '',
+                    'source'                  => '',
+                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible'                 => true,
+                    'required'                => false,
+                    'user_defined'            => true,
+                    'default'                 => '0',
+                    'searchable'              => true,
+                    'filterable'              => true,
+                    'comparable'              => true,
+                    'visible_on_front'        => false,
+                    'used_in_product_listing' => false,
+                    'unique'                  => false,
+                    'apply_to'                => '',
+                ]
+            );
+
+             // Add attributes to the eav/attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_fit_in_mailbox',
+                [
+                    'group'                   => 'MyParcel Options',
+                    'type'                    => 'varchar',
+                    'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
+                    'label'                   => 'Fit in Mailbox',
+                    'input'                   => 'select',
+                    'class'                   => '',
+                    'source'                  => 'MyParcelNL\Magento\Model\Source\FitInMailboxOptions',
+                    'global'                  => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
+                    'visible'                 => true,
+                    'required'                => false,
+                    'user_defined'            => true,
+                    'default'                 => null,
+                    'searchable'              => false,
+                    'filterable'              => false,
+                    'comparable'              => false,
+                    'visible_on_front'        => false,
+                    'used_in_product_listing' => true,
+                    'unique'                  => false,
+                    'apply_to'                => 'simple,configurable,bundle,grouped',
+                    'group'                   => 'General'
+                ]
+            );
+        }
+
         $setup->endSetup();
     }
 }
