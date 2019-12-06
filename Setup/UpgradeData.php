@@ -173,7 +173,8 @@ class UpgradeData implements UpgradeDataInterface
             );
         }
 
-        // The options digital stamp and mailbox were not showing on the product options
+        // This migration is necessary because the migration for version 3.1.0 was not correct used.
+        // The data in the database was not filled in correctly, that was the reason why DPZ and BBP were not visible in the settings.
         if (version_compare($context->getVersion(), '3.1.4', '<=')) {
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
