@@ -14,6 +14,7 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use Magento\Catalog\Model\ResourceModel\Product;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
@@ -218,11 +219,6 @@ class TrackTraceHolder
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws \Exception
-     * @todo Add setting to global setting and/or category (like magento 1)
-     * @todo Get Classification from setting and/or category
-     * @todo Get country of manufacture (get attribute from product)
-     * @todo Find out why the weight does not come on the label
-     * @todo Find out why the price does not come on the label
      */
     private function convertDataForCdCountry($magentoTrack)
     {
@@ -238,13 +234,60 @@ class TrackTraceHolder
                 ->setAmount($product['qty'])
                 ->setWeight($product['weight'] * 1000 ?: 1000)
                 ->setItemValue($product['price'] * 100)
-                ->setClassification('0000')
+                ->setClassification($this->hs_code($product))
                 ->setCountry('NL');
 
             $this->consignment->addItem($myParcelProduct);
         }
 
         return $this;
+    }
+
+    private function hs_code($product)
+    {
+        $tableName = 'catalog_product_entity_int';
+        /**
+         * @var Product $resourceModel
+         */
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $entityId = $product['product_id'];
+        $connection = $resource->getConnection();
+        $attributeId = $this->getAttributeId(
+            $connection,
+            $resource->getTableName('eav_attribute'),
+            'classification'
+        );
+        $attributeValue = $this
+            ->getValueFromAttribute(
+                $connection,
+                $resource->getTableName($tableName),
+                $attributeId,
+                $entityId
+            );
+
+        return $attributeValue;
+    }
+
+    private function getAttributeId($connection, $tableName, $databaseColumn)
+    {
+        $sql = $connection
+            ->select('entity_type_id')
+            ->from($tableName)
+            ->where('attribute_code = ?', $databaseColumn);
+
+        return $connection->fetchOne($sql);
+    }
+
+    private function getValueFromAttribute($connection, $tableName, $attributeId, $entityId)
+    {
+        $sql = $connection
+            ->select()
+            ->from($tableName, ['value'])
+            ->where('attribute_id = ?', $attributeId)
+            ->where('entity_id = ?', $entityId);
+
+        return $connection->fetchOne($sql);
     }
 
     /**
