@@ -153,7 +153,7 @@ class UpgradeData implements UpgradeDataInterface
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
-                'classification',
+                'myparcel_classification',
                 [
                     'group'                   => 'MyParcel Options',
                     'note'                    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',

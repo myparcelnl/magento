@@ -274,7 +274,7 @@ class TrackTraceHolder
         $sql = $connection
             ->select('entity_type_id')
             ->from($tableName)
-            ->where('attribute_code = ?', $databaseColumn);
+            ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
 
         return $connection->fetchOne($sql);
     }
