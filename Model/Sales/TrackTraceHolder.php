@@ -235,7 +235,7 @@ class TrackTraceHolder
                 ->setAmount($product['qty'])
                 ->setWeight($product['weight'] * 1000 ?: 1000)
                 ->setItemValue($product['price'] * 100)
-                ->setClassification($this->hs_code('catalog_product_entity_int', $product['product_id'], 'classification'))
+                ->setClassification($this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
                 ->setCountry('NL');
 
             $this->consignment->addItem($myParcelProduct);
@@ -251,7 +251,7 @@ class TrackTraceHolder
      *
      * @return null|string
      */
-    private function hs_code(string $tableName, int $entityId, string $column): ?string
+    private function hsCode(string $tableName, int $entityId, string $column): ?string
     {
 
         $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
