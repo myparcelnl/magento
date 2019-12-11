@@ -18,6 +18,7 @@ use Magento\Catalog\Model\ResourceModel\Product;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Tests\NamingConvention\true\mixed;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
@@ -234,7 +235,7 @@ class TrackTraceHolder
                 ->setAmount($product['qty'])
                 ->setWeight($product['weight'] * 1000 ?: 1000)
                 ->setItemValue($product['price'] * 100)
-                ->setClassification($this->hs_code($product))
+                ->setClassification($this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
                 ->setCountry('NL');
 
             $this->consignment->addItem($myParcelProduct);
@@ -243,20 +244,23 @@ class TrackTraceHolder
         return $this;
     }
 
-    private function hs_code($product)
+    /**
+     * @param $tableName
+     * @param $entityId
+     * @param $column
+     *
+     * @return null|string
+     */
+    private function hsCode(string $tableName, int $entityId, string $column): ?string
     {
-        $tableName = 'catalog_product_entity_int';
-        /**
-         * @var Product $resourceModel
-         */
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $entityId = $product['product_id'];
-        $connection = $resource->getConnection();
-        $attributeId = $this->getAttributeId(
+
+        $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection     = $resource->getConnection();
+        $attributeId    = $this->getAttributeId(
             $connection,
             $resource->getTableName('eav_attribute'),
-            'classification'
+            $column
         );
         $attributeValue = $this
             ->getValueFromAttribute(
@@ -267,27 +271,6 @@ class TrackTraceHolder
             );
 
         return $attributeValue;
-    }
-
-    private function getAttributeId($connection, $tableName, $databaseColumn)
-    {
-        $sql = $connection
-            ->select('entity_type_id')
-            ->from($tableName)
-            ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
-
-        return $connection->fetchOne($sql);
-    }
-
-    private function getValueFromAttribute($connection, $tableName, $attributeId, $entityId)
-    {
-        $sql = $connection
-            ->select()
-            ->from($tableName, ['value'])
-            ->where('attribute_id = ?', $attributeId)
-            ->where('entity_id = ?', $entityId);
-
-        return $connection->fetchOne($sql);
     }
 
     /**
@@ -327,6 +310,43 @@ class TrackTraceHolder
         $items      = $conn->fetchAll($select);
 
         return $items;
+    }
+
+    /**
+     * @param object $connection
+     * @param string $tableName
+     * @param string $databaseColumn
+     *
+     * @return mixed
+     */
+    private function getAttributeId(object $connection, string $tableName, string $databaseColumn): string
+    {
+        $sql = $connection
+            ->select('entity_type_id')
+            ->from($tableName)
+            ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
+
+        return $connection->fetchOne($sql);
+    }
+
+    /**
+     * @param object $connection
+     * @param string $tableName
+     *
+     * @param string $attributeId
+     * @param string $entityId
+     *
+     * @return string|null
+     */
+    private function getValueFromAttribute(object $connection, string $tableName, string $attributeId, string $entityId): ?string
+    {
+        $sql = $connection
+            ->select()
+            ->from($tableName, ['value'])
+            ->where('attribute_id = ?', $attributeId)
+            ->where('entity_id = ?', $entityId);
+
+        return $connection->fetchOne($sql);
     }
 
     /**

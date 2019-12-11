@@ -143,7 +143,7 @@ class UpgradeData implements UpgradeDataInterface
                 ]
             );
         }
-      
+
         // Add the option 'Fit in digital stamp' and 'myparcel_fit_in_mailbox' on default by false
         if (version_compare($context->getVersion(), '3.1.0', '<=')) {
             $setup->startSetup();
@@ -165,46 +165,10 @@ class UpgradeData implements UpgradeDataInterface
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_fit_in_mailbox',
-                [ 
+                [
                     'visible'                 => false,
                     'visible_on_front'        => false,
                     'used_in_product_listing' => false
-                ]
-            );
-        }
-
-        // Add the option 'HS code for products'
-        if (version_compare($context->getVersion(), '3.1.3', '<=')) {
-            $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
-
-            // Add attributes to the eav/attribute
-            $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
-                'myparcel_classification',
-                [
-                    'group'                   => 'MyParcel Options',
-                    'note'                    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'HS code',
-                    'input'                   => 'text',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => '0',
-                    'searchable'              => true,
-                    'filterable'              => true,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => true,
-                    'unique'                  => false,
-                    'apply_to'                => '',
                 ]
             );
         }
@@ -273,7 +237,41 @@ class UpgradeData implements UpgradeDataInterface
             );
         }
 
+        // Add the option 'HS code for products'
+        if (version_compare($context->getVersion(), '3.2.0', '<=')) {
+            $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
+            // Add attributes to the eav/attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_classification',
+                [
+                    'group'                   => 'MyParcel Options',
+                    'note'                    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
+                    'type'                    => 'int',
+                    'backend'                 => '',
+                    'frontend'                => '',
+                    'label'                   => 'HS code',
+                    'input'                   => 'text',
+                    'class'                   => '',
+                    'source'                  => '',
+                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible'                 => true,
+                    'required'                => false,
+                    'user_defined'            => true,
+                    'default'                 => '0',
+                    'searchable'              => true,
+                    'filterable'              => true,
+                    'comparable'              => true,
+                    'visible_on_front'        => false,
+                    'used_in_product_listing' => true,
+                    'unique'                  => false,
+                    'apply_to'                => '',
+                ]
+            );
+        }
 
         $setup->endSetup();
     }
