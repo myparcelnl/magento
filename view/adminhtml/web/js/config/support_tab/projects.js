@@ -23,43 +23,30 @@ require(['jquery'], function($){
 
     (function () {
 
-        var getColumns, appendCards, appendColumn;
+        var appendCards, appendColumn;
         window.mypa.load = function () {
-            var columns = getColumns();
-            $.each(columns, function(key, value) {
-                appendColumn(value);
-            });
+            appendCards();
         };
 
-        getColumns = function () {
-            return [
-                {
-                    alias: "todo",
-                    title: "To do"
-                },
-                {
-                    alias: "in-progress",
-                    title: "Binnenkort"
-                },
-                {
-                    alias: "done",
-                    title: "Nieuw"
-                }
-            ];
+        appendColumn = function (data) {
+            $('.mypa_columns').append('<div class="myparcel_column"><a href="' + data.html_url + '" target="_blank"><h2 class="myparcel_progress_column_title">' + data.name + '</h2></a></div><div id="label-' + data.id + '"></div></div>');
+
         };
 
-        appendColumn = function (column) {
-            $('.mypa_columns').append('<div class="myparcel_column"><h2 class="myparcel_progress_column_title">' + column.title + '</h2><div id="label-' + column.alias + '"></div></div>');
-            appendCards(column)
-        };
-
-        appendCards = function (column) {
+        appendCards = function () {
             $.ajax({
                 type: 'GET',
-                url: "https://api.github.com/repos/myparcelnl/magento/issues?labels=" + column.alias + "&sort=updated-asc",
-                success : function(issues) {
-                    $.each(issues, function(key, issue) {
-                        $('#label-' + column.alias).append('<a href="' + issue.html_url + '" target="_blank"><div class="card_item"><h3>' + issue.title + '</h3></div></a>');
+                url: 'https://api.github.com/repos/myparcelnl/magento/releases',
+                success : function(data) {
+                    data.slice(0, 1).forEach(function (data) {
+
+                        appendColumn(data);
+
+                        var arr = data.body.split('*').slice(1);
+
+                        $.each(arr, function( index, value ) {
+                            $('#label-' + data.id).append('<div class="card_item"><h2>' + value + '</h2></div>');
+                        });
                     });
                 }
             });
