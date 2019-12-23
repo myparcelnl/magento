@@ -85,10 +85,6 @@
                 <title>Ophalen bij een PostNL locatie</title>
                 <fee>0</fee>
             </pickup>
-            <pickup_express>
-                <active>1</active>
-                <fee>1.38</fee>
-            </pickup_express>
             <belgium_pickup>
                 <active>1</active>
                 <title>Ophalen bij een PostNL locatie</title>

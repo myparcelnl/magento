@@ -306,7 +306,6 @@ define(
                     "priceSignature": window.mypa.data.delivery.signature_fee,
                     "priceOnlyRecipient":window.mypa.data.delivery.only_recipient_fee,
                     "pricePickup": window.mypa.data.pickup.fee,
-                    "pricePickupExpress": window.mypa.data.pickup_express.fee,
 
                     "deliveryTitle": window.mypa.data.delivery.delivery_title,
                     "pickupTitle": window.mypa.data.pickup.title,
@@ -322,7 +321,6 @@ define(
                     "allowSignature": window.mypa.data.delivery.signature_active,
                     "allowOnlyRecipient": window.mypa.data.delivery.only_recipient_active,
                     "allowPickupPoints": window.mypa.data.pickup.active,
-                    "allowPickupExpress": window.mypa.data.pickup_express.active,
 
                     "dropOffDays": window.mypa.data.general.dropoff_days,
                     "saturdayCutoffTime": window.mypa.data.general.saturday_cutoff_time,
@@ -406,10 +404,6 @@ define(
                     break;
                 case "retail":
                     _checkMethod('input[value=' + myparcel_method_alias + '_pickup' + ']');
-                    myparcel.hideDays();
-                    break;
-                case "retailexpress":
-                    _checkMethod('input[value=' + myparcel_method_alias + '_pickup_express' + ']');
                     myparcel.hideDays();
                     break;
                 case "mailbox":

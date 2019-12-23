@@ -83,7 +83,6 @@ class Checkout
             'mailbox' => $this->getMailboxData(),
             'digital_stamp' => $this->getDigitalStampData(),
             'pickup' => $this->getPickupData(),
-            'pickup_express' => $this->getPickupExpressData(),
             'belgium_pickup' => $this->getBelgiumPickupData(),
         ];
 
@@ -199,19 +198,6 @@ class Checkout
     }
 
     /**
-     * Get pickup express data
-     *
-     * @return array)
-     */
-    private function getPickupExpressData()
-    {
-        return [
-            'active' => $this->helper->getCheckoutConfig('pickup_express/active'),
-            'fee' => $this->helper->getMethodPriceFormat('pickup_express/fee'),
-        ];
-    }
-
-    /**
      * Get Belgium pickup data
      *
      * @return array)
@@ -288,10 +274,6 @@ class Checkout
 
         if ($this->data['pickup']['active'] == false) {
             $excludeDeliveryTypes[] = '4';
-        }
-
-        if ($this->data['pickup_express']['active'] == false) {
-            $excludeDeliveryTypes[] = '5';
         }
 
         $result = implode(';', $excludeDeliveryTypes);

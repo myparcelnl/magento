@@ -382,32 +382,6 @@
                     </depends>
                 </field>
             </group>
-            <group id="pickup_express" translate="label comment" type="text" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Pickup Express at PostNL location</label>
-                <field id="active" translate="label comment" type="select" sortOrder="281" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pickup Express active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="myparcelnl_magento_checkout/pickup/active">1</field>
-                    </depends>
-                </field>
-                <field id="active_holder" translate="label comment" type="select" sortOrder="284" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pickup Express active</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\NoOptions</source_model>
-                    <depends>
-                        <field id="myparcelnl_magento_checkout/pickup/active">0</field>
-                    </depends>
-                    <comment>Not possible if Pickup at PostNL location is not active</comment>
-                </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="282" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pickup Express fee</label>
-                    <comment>This will be added to the regular shipping price</comment>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="myparcelnl_magento_checkout/pickup/active">1</field>
-                    </depends>
-                </field>
-            </group>
             <group id="belgium_pickup" translate="label comment" type="text" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Pickup at Belgium PostNL location</label>
                 <field id="active" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
