@@ -117,7 +117,6 @@ API key is not known. Go to the settings in the backoffice to create an API key.
 delivery/signature_and_only_recipient_title,Niet bij de buren bezorgen + handtekening voor ontvangst
 morning/title,Ochtendlevering
 morning_signature/title,Ochtendlevering + handtekening voor ontvangst
-pickup_express/title,Ophalen bij een PostNL locatie (extra vroeg ophalen)
 evening_signature/title,Avondlevering + handtekening voor ontvangst
 evening/title,Avondlevering
 Basic settings,Basis instellingen
@@ -190,9 +189,6 @@ Pickup at PostNL location,Ophalen bij een PostNL locatie
 Pickup active,Ophalen actief
 Pickup titel,Ophalen titel
 Pickup fee,Ophalen prijs
-Pickup Express at PostNL location,Extra vroeg ophalen bij PostNL locatie
-Pickup Express active,Extra vroeg ophalen actief
-Pickup Express fee,Extra vroeg ophalen prijs
 Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
 Set the number of days to let the customer make an order on a different day than to deliver the first one.,Stel hier het aantal dagen in om de klant de keuze te laten maken een bestelling op een andere dag dan de eerst volgende te laten bezorgen.

@@ -151,7 +151,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             'evening' => 'evening/',
             'evening_signature' => 'evening_signature/',
             'pickup' => 'pickup/',
-            'pickup_express' => 'pickup_express/',
             'mailbox' => 'mailbox/',
             'digital_stamp' => 'digital_stamp/',
         ];

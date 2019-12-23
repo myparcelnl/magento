@@ -134,7 +134,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             'evening'              => 'evening/',
             'evening_signature'    => 'evening_signature/',
             'pickup'               => 'pickup/',
-            'pickup_express'       => 'pickup_express/',
             'mailbox'              => 'mailbox/',
             'digital_stamp'        => 'digital_stamp/',
         ];

@@ -184,8 +184,6 @@ MyParcel = {
             MyParcel.defaultCheckCheckbox('method-myparcel-normal');
         });
 
-        jQuery('#mypa-pickup-express').hide();
-
         jQuery('#mypa-pickup-delivery, #mypa-pickup-location').on('change', function (e) {
             MyParcel.setCurrentLocation();
             MyParcel.toggleDeliveryOptions();
@@ -308,18 +306,10 @@ MyParcel = {
          * Pickup
          */
         if (jQuery('#mypa-pickup-delivery').prop('checked') || jQuery('#mypa-pickup-selector').prop('checked')) {
-            /**
-             * Early morning pickup
-             */
-            if (jQuery('#mypa-pickup-express-selector').prop('checked')) {
-                method = 'pickup_express';
-                MyParcel.addPickupToExternalInput('retailexpress');
-                MyParcel.addStyleToPrice('#mypa-pickup-express-price');
-            } else {
-                method = 'pickup';
-                MyParcel.addPickupToExternalInput('retail');
-                MyParcel.addStyleToPrice('#mypa-pickup-price');
-            }
+            method = 'pickup';
+            MyParcel.addPickupToExternalInput('retail');
+            MyParcel.addStyleToPrice('#mypa-pickup-price');
+
             MyParcel.clickMagentoShippingMethod(method);
             window.mypa.setShippingInformationAction();
         }
@@ -335,11 +325,6 @@ MyParcel = {
         var currentLocation = MyParcel.getPickupByLocationId(MyParcel.storeDeliveryOptions.data.pickup, locationId);
 
         var result = jQuery.extend({}, currentLocation);
-
-        /* If retail; convert retailexpress to retail */
-        if (selectedPriceComment === "retail") {
-            result.price_comment = "retail";
-        }
 
         jQuery("input[name='delivery_options']").val(JSON.stringify(result));
     },
@@ -413,27 +398,15 @@ MyParcel = {
     /*
      * Shows and hides the display options that are valid for the recipient only and signature required pre-selectors
      */
-
     toggleDeliveryOptions: function () {
         var isPickup = jQuery('#mypa-pickup-delivery').is(':checked');
         jQuery('#mypa-pickup-selector').prop('checked', true);
-
-        if (isPickup && this.currentLocation.price_comment === "retailexpress") {
-            jQuery('#mypa-pickup-express-price').html(MyParcel.getPriceHtml(this.data.config.pricePickupExpress));
-            jQuery('#mypa-pickup-express').show();
-
-        } else {
-            jQuery('#mypa-pickup-express-selector').attr("checked", false);
-            jQuery('#mypa-pickup-express').hide();
-
-        }
     },
 
 
     /*
      * Exports the selected deliveryoption to the webshop.
      */
-
     exportDeliveryOptionToWebshop: function () {
         var deliveryOption = "";
         var selected = jQuery("#mypa-delivery-option-form").find("input[type='radio']:checked");
@@ -446,7 +419,6 @@ MyParcel = {
     /*
      * Hides pop-up message.
      */
-
     hideMessage: function () {
         jQuery('.mypa-message-model').hide().html(' ');
         jQuery('#mypa-delivery-option-form').show();
@@ -618,7 +590,7 @@ MyParcel = {
             jQuery('#mypa-pickup-location-selector').hide();
         }
 
-        jQuery('#mypa-pickup-options, #mypa-pickup, #mypa-pickup-express, #mypa-pickup-google-maps').hide();
+        jQuery('#mypa-pickup-options, #mypa-pickup, #mypa-pickup-google-maps').hide();
 
     },
 
