@@ -56,7 +56,12 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        $this->massAction();
+        try {
+            $this->massAction();    
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage(nl2br($e->getMessage()));
+        }
+        
 
         return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
     }
