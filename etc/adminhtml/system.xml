@@ -222,7 +222,7 @@
                 </field>
                 <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="225" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Home address only fee</label>
-                    <comment>This will be added to the regular shipping price. Once the age check is activated, than the price are already included.</comment>
+                    <comment>This will be added to the regular shipping price. Once the age check is activated, then the price is already included.</comment>
                     <depends>
                         <field id="only_recipient_active">1</field>
                     </depends>
@@ -239,7 +239,7 @@
                 </field>
                 <field id="signature_fee" translate="label comment" type="text" sortOrder="229" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt fee</label>
-                    <comment>This will be added to the regular shipping price. Once the age check is activated, than the price are already included.</comment>
+                    <comment>This will be added to the regular shipping price. Once the age check is activated, then the price is already included.</comment>
                     <depends>
                         <field id="signature_active">1</field>
                     </depends>
@@ -325,7 +325,7 @@
                 <field id="active" translate="label comment" type="select" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning delivery active</label>
                     <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
-                    <comment>If age check is active than the morning delivery is not possible</comment>
+                    <comment>If age check is active then the morning delivery is not possible</comment>
                 </field>
                 <field id="title" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning title</label>
@@ -346,7 +346,7 @@
                 <field id="active" translate="label comment" type="select" sortOrder="261" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening delivery active</label>
                     <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
-                    <comment>If age check is active than the evening delivery is not possible</comment>
+                    <comment>If age check is active then the evening delivery is not possible</comment>
                 </field>
                 <field id="title" translate="label comment" type="text" sortOrder="262" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening title</label>
