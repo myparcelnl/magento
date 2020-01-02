@@ -11,7 +11,7 @@
         <myparcelnl_magento_general>
             <basic_settings>
                 <paper_type>A4</paper_type>
-                <weight_type>gram</weight_type>
+                <weight_indication>gram</weight_indication>
             </basic_settings>
         </myparcelnl_magento_general>
         <myparcelnl_magento_standard>

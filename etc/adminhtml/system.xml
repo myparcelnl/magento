@@ -31,7 +31,7 @@
                     <comment>Select a standard orientation for printing labels.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\PaperType</source_model>
                 </field>
-                <field id="weight_type" translate="label comment" type="select" sortOrder="212" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="weight_indication" translate="label comment" type="select" sortOrder="212" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>I use the following weight type</label>
                     <comment>This is the type of weight that I use with my products.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\WeightType</source_model>
