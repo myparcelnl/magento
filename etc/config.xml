@@ -35,6 +35,7 @@
         </myparcelnl_magento_standard>
         <myparcelnl_magento_checkout>
             <general>
+                <checkout_active>1</checkout_active>
                 <deliverydays_window>5</deliverydays_window>
                 <cutoff_time>15,30,00</cutoff_time>
                 <monday_delivery_active>0</monday_delivery_active>
@@ -84,10 +85,6 @@
                 <title>Ophalen bij een PostNL locatie</title>
                 <fee>0</fee>
             </pickup>
-            <pickup_express>
-                <active>1</active>
-                <fee>1.38</fee>
-            </pickup_express>
             <belgium_pickup>
                 <active>1</active>
                 <title>Ophalen bij een PostNL locatie</title>

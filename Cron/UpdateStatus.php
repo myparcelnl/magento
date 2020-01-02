@@ -23,7 +23,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\MyParcelTrackTrace;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
 class UpdateStatus
 {
@@ -57,6 +57,8 @@ class UpdateStatus
      * Run the cron job
      *
      * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
     public function execute()
     {
@@ -72,7 +74,8 @@ class UpdateStatus
     /**
      * Get all order to update the data
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return \MyParcelNL\Magento\Cron\UpdateStatus
+     * @throws \Exception
      */
     private function setOrdersToUpdate()
     {
@@ -99,7 +102,7 @@ class UpdateStatus
             ->addFieldToSelect('order_id')
             ->addAttributeToFilter('myparcel_status', [1, 2, 3, 4, 5, 6, 8])
             ->addAttributeToFilter('myparcel_consignment_id', ['notnull' => true])
-            ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, MyParcelTrackTrace::MYPARCEL_CARRIER_CODE)
+            ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, TrackTraceHolder::MYPARCEL_CARRIER_CODE)
             ->setPageSize(300)
             ->setOrder('order_id', 'DESC');
 
@@ -110,6 +113,8 @@ class UpdateStatus
      * Get collection from order ids
      *
      * @param $orderIds int[]
+     *
+     * @throws \Exception
      */
     private function addOrdersToCollection($orderIds)
     {

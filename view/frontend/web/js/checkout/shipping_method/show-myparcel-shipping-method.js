@@ -6,13 +6,14 @@ define(
         'Magento_Customer/js/model/customer',
         'Magento_Checkout/js/checkout-data',
         'jquery',
+        'ko',
         'text!MyParcelNL_Magento/template/checkout/options.html',
         'text!MyParcelNL_Magento/css/checkout/options-dynamic.min.css',
         'MyParcelNL_Magento/js/lib/myparcel',
         'Magento_Checkout/js/action/set-shipping-information',
         'uiRegistry'
     ],
-    function(mageUrl, uiComponent, quote, customer, checkoutData,jQuery, optionsHtml, cssDynamic, moment, setShippingInformationAction, registry) {
+    function(mageUrl, uiComponent, quote, customer, checkoutData, jQuery, ko, optionsHtml, cssDynamic, moment, setShippingInformationAction, registry) {
         'use strict';
 
         var originalShippingRate, optionsContainer, isLoading, myparcel, delivery_options_input, myparcel_method_alias, myparcel_method_element, isLoadingAddress;
@@ -60,6 +61,20 @@ define(
 
             myparcel_method_element = "input[id^='s_method_" + myparcel_method_alias + "_']";
             checkAddress();
+            checkIfMyParcelSelected();
+        }
+
+        function checkIfMyParcelSelected() {
+
+            var elements = document.querySelectorAll('.table-checkout-shipping-method td input:not([id*="mypa"])');
+            if (elements.length > 0) {
+                var ko_unique = elements[0].name;
+
+                jQuery('input[name^=' + ko_unique + ']').on('change', function (event) {
+                    MyParcel.hideDelivery();
+                    MyParcel.hidePickUpLocations();
+                });
+            }
         }
 
         function checkAddress() {
@@ -93,8 +108,8 @@ define(
             return true;
         }
 
-        function showDeliveryRadio(extraOption, typeTitle = '') {
-
+        function showDeliveryRadio(extraOption) {
+            var typeTitle = '';
             jQuery("td[id^='label_carrier_" + window.mypa.data.general.parent_method + "']").parent().hide();
             jQuery("td[id^='label_carrier_"+ extraOption +"']").parent().show();
 
@@ -291,7 +306,6 @@ define(
                     "priceSignature": window.mypa.data.delivery.signature_fee,
                     "priceOnlyRecipient":window.mypa.data.delivery.only_recipient_fee,
                     "pricePickup": window.mypa.data.pickup.fee,
-                    "pricePickupExpress": window.mypa.data.pickup_express.fee,
 
                     "deliveryTitle": window.mypa.data.delivery.delivery_title,
                     "pickupTitle": window.mypa.data.pickup.title,
@@ -307,7 +321,6 @@ define(
                     "allowSignature": window.mypa.data.delivery.signature_active,
                     "allowOnlyRecipient": window.mypa.data.delivery.only_recipient_active,
                     "allowPickupPoints": window.mypa.data.pickup.active,
-                    "allowPickupExpress": window.mypa.data.pickup_express.active,
 
                     "dropOffDays": window.mypa.data.general.dropoff_days,
                     "saturdayCutoffTime": window.mypa.data.general.saturday_cutoff_time,
@@ -391,10 +404,6 @@ define(
                     break;
                 case "retail":
                     _checkMethod('input[value=' + myparcel_method_alias + '_pickup' + ']');
-                    myparcel.hideDays();
-                    break;
-                case "retailexpress":
-                    _checkMethod('input[value=' + myparcel_method_alias + '_pickup_express' + ']');
                     myparcel.hideDays();
                     break;
                 case "mailbox":
