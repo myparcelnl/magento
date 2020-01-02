@@ -9,9 +9,10 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <myparcelnl_magento_general>
-            <print>
+            <basic_settings>
                 <paper_type>A4</paper_type>
-            </print>
+                <weight_type>gram</weight_type>
+            </basic_settings>
         </myparcelnl_magento_general>
         <myparcelnl_magento_standard>
             <options>
