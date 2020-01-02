@@ -53,6 +53,9 @@ class UpgradeData implements UpgradeDataInterface
      */
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
+        $connection = $setup->getConnection();
+        $table    = $setup->getTable('core_config_data');
+
         if (version_compare($context->getVersion(), '2.1.23', '<=')) {
             $setup->startSetup();
             /** @var EavSetup $eavSetup */
@@ -271,6 +274,22 @@ class UpgradeData implements UpgradeDataInterface
                     'apply_to'                => '',
                 ]
             );
+
+            // Move paper type from print to basic settings
+            $selectPaperTypeSetting = $connection->select()->from(
+                $table,
+                ['config_id', 'path', 'value']
+            )->where(
+                '`path` = "myparcelnl_magento_general/print/paper_type"'
+            );
+
+            $paperType = $connection->fetchAll($selectPaperTypeSetting) ?? [];
+            foreach ($paperType as $value) {
+                $fullPath = 'myparcelnl_magento_general/basic_settings/paper_type';
+                $bind     = ['path' => $fullPath, 'value' => $value['value']];
+                $where    = 'config_id = ' . $value['config_id'];
+                $connection->update($table, $bind, $where);
+            }
         }
 
         $setup->endSetup();

@@ -90,9 +90,9 @@ class OrdersAction extends Template
      *
      * @return string
      */
-    public function getPrintSettings()
+    public function getBasicSettings()
     {
-        $settings = $this->helper->getGeneralConfig('print');
+        $settings = $this->helper->getGeneralConfig('basic_settings');
 
         return json_encode($settings);
     }
