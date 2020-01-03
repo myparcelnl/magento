@@ -233,9 +233,9 @@ class TrackTraceHolder
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])
-                ->setWeight($product['weight'] * 1000 ?: 1000)
+                ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
-                ->setClassification($this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
+                ->setClassification((int) $this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
                 ->setCountry('NL');
 
             $this->consignment->addItem($myParcelProduct);
@@ -245,15 +245,34 @@ class TrackTraceHolder
     }
 
     /**
-     * @param $tableName
-     * @param $entityId
-     * @param $column
+     * Get the correct weight type
      *
-     * @return null|string
+     * @param string|null $weight
+     *
+     * @return int
      */
-    private function hsCode(string $tableName, int $entityId, string $column): ?string
+    private function getWeightTypeOfOption(?string $weight): int
     {
+        $weightType = $this->helper->getGeneralConfig(
+            'basic_settings/weight_indication'
+        );
 
+        if ($weightType != 'gram') {
+            return (int) ($weight * 1000);
+        }
+
+        return (int) $weight ?: 1000;
+    }
+
+    /**
+     * @param string $tableName
+     * @param string $entityId
+     * @param string $column
+     *
+     * @return string|null
+     */
+    private function hsCode(string $tableName, string $entityId, string $column): ?string
+    {
         $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
         $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection     = $resource->getConnection();

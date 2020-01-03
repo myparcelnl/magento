@@ -24,12 +24,17 @@
                     <comment>The API Key</comment>
                 </field>
             </group>
-            <group id="print" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Print settings</label>
+            <group id="basic_settings" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Basic settings</label>
                 <field id="paper_type" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Paper type</label>
                     <comment>Select a standard orientation for printing labels.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\PaperType</source_model>
+                </field>
+                <field id="weight_indication" translate="label comment" type="select" sortOrder="212" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>I use the following weight type</label>
+                    <comment>This is the type of weight that I use with my products.</comment>
+                    <source_model>MyParcelNL\Magento\Model\Source\WeightType</source_model>
                 </field>
             </group>
         </section>
