@@ -8,6 +8,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Sdk\src\Exception\ApiException;
 
 /**
  * Action to create and print MyParcel Track
@@ -52,12 +53,14 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      * Dispatch request
      *
      * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
     public function execute()
     {
         try {
             $this->massAction();
-        } catch (\Exception $e) {
+        } catch (ApiException $e) {
             // If you want to see the full error, use the following code
             // $this->messageManager->addErrorMessage(nl2br($e->getMessage()));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
