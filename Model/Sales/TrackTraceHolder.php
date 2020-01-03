@@ -264,7 +264,6 @@ class TrackTraceHolder
         return (int) $weight ?: 1000;
     }
 
-
     /**
      * @param string $tableName
      * @param string $entityId
@@ -274,7 +273,6 @@ class TrackTraceHolder
      */
     private function hsCode(string $tableName, string $entityId, string $column): ?string
     {
-
         $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
         $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection     = $resource->getConnection();

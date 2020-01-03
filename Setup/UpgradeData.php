@@ -54,7 +54,7 @@ class UpgradeData implements UpgradeDataInterface
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
         $connection = $setup->getConnection();
-        $table    = $setup->getTable('core_config_data');
+        $table      = $setup->getTable('core_config_data');
 
         if (version_compare($context->getVersion(), '2.1.23', '<=')) {
             $setup->startSetup();
@@ -284,6 +284,7 @@ class UpgradeData implements UpgradeDataInterface
             );
 
             $paperType = $connection->fetchAll($selectPaperTypeSetting) ?? [];
+
             foreach ($paperType as $value) {
                 $fullPath = 'myparcelnl_magento_general/basic_settings/paper_type';
                 $bind     = ['path' => $fullPath, 'value' => $value['value']];
