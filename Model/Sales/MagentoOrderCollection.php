@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -161,7 +164,7 @@ class MagentoOrderCollection extends MagentoCollection
          */
         foreach ($this->getOrders() as $order) {
             if ($order->getShipmentsCollection()->getSize() == 0) {
-                $this->messageManager->addError(self::ERROR_ORDER_HAS_NO_SHIPMENT);
+                $this->messageManager->addErrorMessage(self::ERROR_ORDER_HAS_NO_SHIPMENT);
             }
             foreach ($order->getShipmentsCollection() as $shipment) {
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
@@ -274,6 +277,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Send multiple shipment emails with Track and trace variable
      *
      * @return $this
+     * @throws \Exception
      */
     public function sendTrackEmails()
     {
@@ -297,6 +301,7 @@ class MagentoOrderCollection extends MagentoCollection
      * @param \Magento\Sales\Model\Order $order
      *
      * @return $this
+     * @throws \Exception
      */
     private function sendTrackEmailFromOrder(Order $order)
     {
