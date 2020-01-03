@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Sdk\src\Exception\ApiException;
+use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 
 /**
  * Action to create and print MyParcel Track
@@ -51,12 +55,14 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      *
      * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
     public function execute()
     {
-        $this->massAction();
+        try {
+            $this->massAction();
+        } catch (ApiException | MissingFieldException $e) {
+            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+        }
 
         return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
     }
