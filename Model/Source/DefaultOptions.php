@@ -19,8 +19,9 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class DefaultOptions
 {
-    // Maximum characters length of item description.
+    // Maximum characters length of company name.
     const DESCRIPTION_MAX_LENGTH = 50;
+
     /**
      * @var Data
      */
