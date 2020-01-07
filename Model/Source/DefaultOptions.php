@@ -19,20 +19,22 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class DefaultOptions
 {
+    // Maximum characters length of item description.
+    const DESCRIPTION_MAX_LENGTH = 50;
     /**
      * @var Data
      */
-    static private $helper;
+    private static $helper;
 
     /**
      * @var \Magento\Sales\Model\Order|\Magento\Quote\Model\Quote
      */
-    static private $order;
+    private static $order;
 
     /**
      * @var array
      */
-    static private $chosenOptions;
+    private static $chosenOptions;
 
     /**
      * Insurance constructor.
@@ -76,6 +78,19 @@ class DefaultOptions
         }
 
         return false;
+    }
+
+    /**
+     * @param $address
+     *
+     * @return string
+     */
+    public function getMaxCompanyName($address)
+    {
+        if (strlen($address) >= self::DESCRIPTION_MAX_LENGTH) {
+            return  substr(0, 47) . '...';
+        }
+        return 0;
     }
 
     /**
@@ -128,8 +143,8 @@ class DefaultOptions
         return Package::PACKAGE_TYPE_NORMAL;
     }
 
-    private function isDigitalStampOrMailbox($option) {
-
+    private function isDigitalStampOrMailbox($option)
+    {
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
             return false;
@@ -144,7 +159,7 @@ class DefaultOptions
         ) {
             return true;
         }
-        
+
         return false;
     }
 }
