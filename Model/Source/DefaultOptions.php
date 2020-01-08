@@ -1,16 +1,5 @@
 <?php
-/**
- * All functions to handle insurance
- *
- * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
- *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
- * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
- * @since       File available since Release v0.1.0
- */
+
 
 namespace MyParcelNL\Magento\Model\Source;
 
@@ -86,12 +75,13 @@ class DefaultOptions
      *
      * @return string
      */
-    public function getMaxCompanyName($address)
+    public function getMaxCompanyName(string $address): string
     {
         if (strlen($address) >= self::COMPANY_NAME_MAX_LENGTH) {
-            return  substr(0, 47) . '...';
+            $address = substr($address, 0, 47) . '...';
         }
-        return 0;
+
+        return $address;
     }
 
     /**
