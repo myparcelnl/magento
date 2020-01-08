@@ -20,7 +20,7 @@ use MyParcelNL\Magento\Model\Sales\Package;
 class DefaultOptions
 {
     // Maximum characters length of company name.
-    const DESCRIPTION_MAX_LENGTH = 50;
+    const COMPANY_NAME_MAX_LENGTH = 50;
 
     /**
      * @var Data
@@ -88,7 +88,7 @@ class DefaultOptions
      */
     public function getMaxCompanyName($address)
     {
-        if (strlen($address) >= self::DESCRIPTION_MAX_LENGTH) {
+        if (strlen($address) >= self::COMPANY_NAME_MAX_LENGTH) {
             return  substr(0, 47) . '...';
         }
         return 0;
