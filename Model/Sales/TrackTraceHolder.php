@@ -195,7 +195,7 @@ class TrackTraceHolder
     }
 
     /**
-     * @param $checkoutData
+     * @param string $checkoutData
      *
      * @return string
      */
