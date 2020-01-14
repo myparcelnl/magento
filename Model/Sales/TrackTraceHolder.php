@@ -14,7 +14,6 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use Magento\Catalog\Model\ResourceModel\Product;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
@@ -175,7 +174,7 @@ class TrackTraceHolder
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
-            ->setDeliveryDateFromCheckout($checkoutData)
+            ->setDeliveryDateFromCheckout($this->getDeliveryDate($checkoutData))
             ->setDeliveryType($deliveryType)
             ->setPickupAddressFromCheckout($checkoutData)
             ->setPackageType($packageType)
@@ -193,6 +192,24 @@ class TrackTraceHolder
              ->calculateTotalWeight($magentoTrack, $totalWeight);
 
         return $this;
+    }
+
+    /**
+     * @param $checkoutData
+     *
+     * @return string
+     */
+    public function getDeliveryDate(string $checkoutData): string
+    {
+        $deliveryDetails = json_decode($checkoutData, true);
+        $deliveryDate    = $deliveryDetails['date'];
+        $todayDate       = date("Y-m-d");
+
+        if ($deliveryDate < $todayDate) {
+            $deliveryDetails['date'] = date("Y-m-d", strtotime($todayDate . "+1 day"));
+        }
+
+        return json_encode($deliveryDetails);
     }
 
     /**
