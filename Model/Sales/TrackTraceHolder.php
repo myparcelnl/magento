@@ -204,7 +204,7 @@ class TrackTraceHolder
     public function convertDeliveryDate(?string $checkoutData): string
     {
         $deliveryDetails = json_decode($checkoutData, true);
-        $deliveryDate    = strtotime($deliveryDetails['date']) ?: strtotime("now");
+        $deliveryDate    = $deliveryDetails['date'] ? strtotime($deliveryDetails['date']) : strtotime("now");
         $todayDate       = strtotime("now");
 
         if ($deliveryDate <= $todayDate) {
