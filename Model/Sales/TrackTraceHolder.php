@@ -197,7 +197,7 @@ class TrackTraceHolder
     /**
      * Convert delivery date to tomorrow, when delivery date is passed
      *
-     * @param string $checkoutData
+     * @param string|null $checkoutData
      *
      * @return string
      */
