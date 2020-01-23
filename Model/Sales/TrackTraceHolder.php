@@ -174,7 +174,7 @@ class TrackTraceHolder
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
-            ->setDeliveryDateFromCheckout($this->convertDeliveryDate($checkoutData))
+            ->setDeliveryDate($this->convertDeliveryDate($checkoutData))
             ->setDeliveryType($deliveryType)
             ->setPickupAddressFromCheckout($checkoutData)
             ->setPackageType($packageType)
@@ -197,21 +197,21 @@ class TrackTraceHolder
     /**
      * Convert delivery date to tomorrow, when delivery date is passed
      *
-     * @param string $checkoutData
+     * @param string|null $checkoutData
      *
      * @return string
      */
-    public function convertDeliveryDate(string $checkoutData): string
+    public function convertDeliveryDate(?string $checkoutData): string
     {
         $deliveryDetails = json_decode($checkoutData, true);
-        $deliveryDate    = $deliveryDetails['date'];
-        $todayDate       = date("Y-m-d");
+        $deliveryDate    = $deliveryDetails['date'] ? strtotime($deliveryDetails['date']) : strtotime("now");
+        $todayDate       = strtotime("now");
 
-        if ($deliveryDate < $todayDate) {
-            $deliveryDetails['date'] = date("Y-m-d", strtotime($todayDate . "+1 day"));
+        if ($deliveryDate <= $todayDate) {
+            $deliveryDetails['date'] = date("Y-m-d", strtotime("+1 day"));
         }
 
-        return json_encode($deliveryDetails);
+        return $deliveryDetails['date'];
     }
 
     /**
