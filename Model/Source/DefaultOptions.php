@@ -79,6 +79,20 @@ class DefaultOptions
     }
 
     /**
+     * @param $address
+     *
+     * @return string
+     */
+    public function getMaxCompanyName(string $address): string
+    {
+        if (strlen($address) >= self::COMPANY_NAME_MAX_LENGTH) {
+            $address = substr($address, 0, 47) . '...';
+        }
+
+        return $address;
+    }
+    
+    /**
      * Get default value of insurance based on order grand total
      *
      * @return int

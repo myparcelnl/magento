@@ -140,7 +140,7 @@ class MyParcelTrackTrace extends MyParcelConsignmentRepository
             ->setReferenceId($magentoTrack->getShipment()->getEntityId())
             ->setMyParcelConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
-            ->setCompany($address->getCompany())
+            ->setCompany(self::$defaultOptions->getMaxCompanyName($address->getCompany()))
             ->setPerson($address->getName());
 
         try {
