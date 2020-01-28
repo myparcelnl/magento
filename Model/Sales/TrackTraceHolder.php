@@ -209,7 +209,7 @@ class TrackTraceHolder
         $todayDate    = strtotime('now');
 
         if ($deliveryDate <= $todayDate) {
-            $deliveryDetails['date'] = date('Y-m-d', strtotime(''+1 day''));
+            $deliveryDetails['date'] = date('Y-m-d', strtotime('+1 day'));
         }
 
         return $deliveryDetails['date'];
