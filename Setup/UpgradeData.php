@@ -275,7 +275,42 @@ class UpgradeData implements UpgradeDataInterface
                 ]
             );
 
-            // Move paper type from print to basic settings
+            // Enable / Disable checkout with this product.
+            if (version_compare($context->getVersion(), '3.2.0', '<=')) {
+                $setup->startSetup();
+                /** @var EavSetup $eavSetup */
+                $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+                // Add attributes to the eav/attribute
+                $eavSetup->addAttribute(
+                    \Magento\Catalog\Model\Product::ENTITY,
+                    'myparcel_disable_checkout',
+                    [
+                        'group'                   => 'MyParcel Options',
+                        'type'                    => 'int',
+                        'backend'                 => '',
+                        'frontend'                => '',
+                        'label'                   => 'Show checkout with this product',
+                        'input'                   => 'boolean',
+                        'class'                   => '',
+                        'source'                  => '',
+                        'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                        'visible'                 => true,
+                        'required'                => false,
+                        'user_defined'            => true,
+                        'default'                 => '1',
+                        'searchable'              => true,
+                        'filterable'              => true,
+                        'comparable'              => true,
+                        'visible_on_front'        => false,
+                        'used_in_product_listing' => false,
+                        'unique'                  => false,
+                        'apply_to'                => '',
+                    ]
+                );
+
+
+                // Move paper type from print to basic settings
             $selectPaperTypeSetting = $connection->select()->from(
                 $table,
                 ['config_id', 'path', 'value']
