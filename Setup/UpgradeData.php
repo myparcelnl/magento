@@ -286,7 +286,7 @@ class UpgradeData implements UpgradeDataInterface
                 'myparcel_disable_checkout',
                 [
                     'group'                   => 'MyParcel Options',
-                    'note'                    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
+                    'note'                    => 'With this option you can disable the delivery options for this product.',
                     'type'                    => 'int',
                     'backend'                 => '',
                     'frontend'                => '',
@@ -299,7 +299,7 @@ class UpgradeData implements UpgradeDataInterface
                     'required'                => false,
                     'user_defined'            => true,
                     'default'                 => true,
-                    'searchable'              => true,
+                    'searchable'              => 1,
                     'filterable'              => true,
                     'comparable'              => true,
                     'visible_on_front'        => false,
