@@ -186,7 +186,7 @@ class TrackTraceHolder
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
-            ->setInvoice('');
+            ->setInvoice($magentoTrack->getShipment()->getOrder()->getIncrementId());
 
         $this->convertDataForCdCountry($magentoTrack)
              ->calculateTotalWeight($magentoTrack, $totalWeight);
