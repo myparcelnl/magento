@@ -18,11 +18,17 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
+use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {
-    const DEFAULT_MAILBOX_WEIGHT = 2000;
+    /**
+     * @var Checkout
+     */
+    private $myParcelHelper;
+
+    const DEFAULT_MAILBOX_WEIGHT       = 2000;
     const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
 
     /**
@@ -105,6 +111,25 @@ class PackageRepository extends Package
     }
 
     /**
+     * @param \Magento\Quote\Model\Quote\Item[] $products
+     *
+     * @return int
+     */
+    public function disableCheckoutWithProduct($products)
+    {
+        foreach ($products as $product) {
+            $test = (int) $this->getAttributesFitInOptions($product, 'disable_checkout');
+
+            if ($test === 1) {
+                $test12 = $this->myParcelHelper->setDisableCheckout(1);
+            }
+        }
+        var_dump($test12);
+        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
+        return $test;
+    }
+
+    /**
      * Set weight depend on product setting 'Fit in digital stamp' and weight from product
      *
      * @param \Magento\Quote\Model\Quote\Item[] $products
@@ -122,6 +147,7 @@ class PackageRepository extends Package
                 return $this->setAllProductsFitInMailbox(false, 'digital_stamp');
             }
         }
+
         return $this;
     }
 
@@ -130,7 +156,7 @@ class PackageRepository extends Package
      *
      * @param \Magento\Quote\Model\Quote\Item[] $products
      *
-     * @param string $column
+     * @param string                            $column
      *
      * @return $this
      */
@@ -150,7 +176,7 @@ class PackageRepository extends Package
 
     /**
      * @param \Magento\Quote\Model\Quote\Item $product
-     * @param string $column
+     * @param string                          $column
      *
      * @return $this
      */
@@ -188,14 +214,14 @@ class PackageRepository extends Package
             $this->_logger->critical('Can\'t set settings with path:' . self::XML_PATH_CHECKOUT . 'mailbox');
         }
 
-        if (!key_exists('active', $settings)) {
+        if (! key_exists('active', $settings)) {
             $this->_logger->critical('Can\'t get mailbox setting active');
         }
 
         $this->setMailboxActive($settings['active'] === '1');
         if ($this->isMailboxActive() === true) {
             $this->setShowMailboxWithOtherOptions($settings['other_options'] === '1');
-            $this->setMaxWeight((int)$settings['weight'] ?: self::DEFAULT_MAILBOX_WEIGHT);
+            $this->setMaxWeight((int) $settings['weight'] ?: self::DEFAULT_MAILBOX_WEIGHT);
         }
 
         return $this;
@@ -203,7 +229,7 @@ class PackageRepository extends Package
 
     /**
      * @param \Magento\Quote\Model\Quote\Item $product
-     * @param string $column
+     * @param string                          $column
      *
      * @return null|int
      */
@@ -216,7 +242,7 @@ class PackageRepository extends Package
         }
 
         if ($attributeValue) {
-            return (int)$attributeValue;
+            return (int) $attributeValue;
         }
 
         return null;
@@ -234,22 +260,22 @@ class PackageRepository extends Package
             $this->_logger->critical('Can\'t set settings with path:' . self::XML_PATH_CHECKOUT . 'digital stamp');
         }
 
-        if (!key_exists('active', $settings)) {
+        if (! key_exists('active', $settings)) {
             $this->_logger->critical('Can\'t get digital stamp setting active');
         }
 
         $this->setDigitalStampActive($settings['active'] === '1');
         if ($this->isDigitalStampActive() === true) {
-            $this->setMaxWeight((int)self::DEFAULT_DIGITAL_STAMP_WEIGHT);
+            $this->setMaxWeight((int) self::DEFAULT_DIGITAL_STAMP_WEIGHT);
         }
 
         return $this;
     }
 
     /**
-     * @param string $tableName
+     * @param string                          $tableName
      * @param \Magento\Quote\Model\Quote\Item $product
-     * @param string $column
+     * @param string                          $column
      *
      * @return array|null
      */
@@ -261,11 +287,11 @@ class PackageRepository extends Package
          */
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
 
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $entityId = $product->getProduct()->getEntityId();
+        $resource   = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $entityId   = $product->getProduct()->getEntityId();
         $connection = $resource->getConnection();
 
-        $attributeId = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
+        $attributeId    = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
         $attributeValue = $this
             ->getValueFromAttribute(
                 $connection,

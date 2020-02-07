@@ -27,7 +27,7 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 class Checkout extends Data
 {
     const DEFAULT_COUNTRY_CODE = 'NL';
-    
+
     private $base_price = 0;
 
     /**
@@ -43,6 +43,8 @@ class Checkout extends Data
      * @var \Magento\Quote\Model\Quote
      */
     private $quote;
+
+    private $disableCheckout = 0;
 
     /**
      * @param Context                         $context
@@ -158,6 +160,7 @@ class Checkout extends Data
 
         $parentCarriers   = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
         $checkoutActive   = $this->getCheckoutConfig('general/checkout_active');
+        $checkoutDisabled = $this->getDisableCheckout();
         $addressFromQuote = $this->quote->getShippingAddress();
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
@@ -171,10 +174,10 @@ class Checkout extends Data
         $magentoMethods  = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
         $myParcelMethods = array_keys(Result::getMethods());
 
-
         foreach ($magentoMethods as $method) {
             if (
                 $checkoutActive != '0' &&
+                $checkoutDisabled === 0 &&
                 in_array($method->getCarrierCode(), $parentCarriers) &&
                 ! in_array($method->getMethodCode(), $myParcelMethods)
             ) {
@@ -322,5 +325,24 @@ class Checkout extends Data
     public function getIntergerConfig($key)
     {
         return (float) $this->getCheckoutConfig($key);
+    }
+
+    /**
+     * @return int
+     */
+    public function getDisableCheckout(): int
+    {
+        return $this->disableCheckout;
+    }
+
+    /**
+     * @param int $disableCheckout
+     *
+     * @return void
+     */
+    public function setDisableCheckout(int $disableCheckout): string
+    {
+//        $this->disableCheckout = $disableCheckout;
+        return 'ja';
     }
 }
