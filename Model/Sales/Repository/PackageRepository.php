@@ -112,8 +112,6 @@ class PackageRepository extends Package
 
     /**
      * @param \Magento\Quote\Model\Quote\Item[] $products
-     *
-     * @return int
      */
     public function disableCheckoutWithProduct($products)
     {
@@ -121,12 +119,10 @@ class PackageRepository extends Package
             $test = (int) $this->getAttributesFitInOptions($product, 'disable_checkout');
 
             if ($test === 1) {
-                $test12 = $this->myParcelHelper->setDisableCheckout(1);
+               $this->setDisableCheckout(1);
             }
         }
-        var_dump($test12);
-        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
-        return $test;
+        return;
     }
 
     /**

@@ -80,6 +80,11 @@ class Package extends Data implements PackageInterface
     private $package_type = null;
 
     /**
+     * @var int
+     */
+    private $disableCheckout = 0;
+
+    /**
      * @return int
      */
     public function getWeight()
@@ -183,6 +188,22 @@ class Package extends Data implements PackageInterface
         $this->show_mailbox_with_other_options = $show_mailbox_with_other_options;
 
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getDisableCheckout(): int
+    {
+        return $this->disableCheckout;
+    }
+
+    /**
+     * @param int $disableCheckout
+     */
+    public function setDisableCheckout(int $disableCheckout)
+    {
+        $this->disableCheckout = $disableCheckout;
     }
 
     /**

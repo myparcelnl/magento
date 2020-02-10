@@ -23,6 +23,7 @@ use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
 use MyParcelNL\Magento\Model\Rate\Result;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
+use MyParcelNL\Magento\Model\Sales\Package;
 
 class Checkout extends Data
 {
@@ -44,15 +45,16 @@ class Checkout extends Data
      */
     private $quote;
 
-    private $disableCheckout = 0;
+    private $package;
 
     /**
-     * @param Context                         $context
-     * @param ModuleListInterface             $moduleList
-     * @param EstimateAddressInterfaceFactory $estimatedAddressFactory
-     * @param ShippingMethodManagement        $shippingMethodManagement
-     * @param CheckApiKeyService              $checkApiKeyService
-     * @param Session                         $session
+     * @param Context                                 $context
+     * @param ModuleListInterface                     $moduleList
+     * @param EstimateAddressInterfaceFactory         $estimatedAddressFactory
+     * @param ShippingMethodManagement                $shippingMethodManagement
+     * @param CheckApiKeyService                      $checkApiKeyService
+     * @param \MyParcelNL\Magento\Model\Sales\Package $package
+     * @param Session                                 $session
      *
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -63,11 +65,13 @@ class Checkout extends Data
         EstimateAddressInterfaceFactory $estimatedAddressFactory,
         ShippingMethodManagement $shippingMethodManagement,
         CheckApiKeyService $checkApiKeyService,
+        package $package,
         Session $session
     ) {
         parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->estimatedAddressFactory  = $estimatedAddressFactory;
+        $this->package          = $package;
         $this->quote                    = $session->getQuote();
     }
 
@@ -157,10 +161,9 @@ class Checkout extends Data
         if ($quoteId == null) {
             return null;
         }
-
         $parentCarriers   = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
         $checkoutActive   = $this->getCheckoutConfig('general/checkout_active');
-        $checkoutDisabled = $this->getDisableCheckout();
+        $checkoutDisabled = $this->package->getDisableCheckout();
         $addressFromQuote = $this->quote->getShippingAddress();
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
@@ -325,24 +328,5 @@ class Checkout extends Data
     public function getIntergerConfig($key)
     {
         return (float) $this->getCheckoutConfig($key);
-    }
-
-    /**
-     * @return int
-     */
-    public function getDisableCheckout(): int
-    {
-        return $this->disableCheckout;
-    }
-
-    /**
-     * @param int $disableCheckout
-     *
-     * @return void
-     */
-    public function setDisableCheckout(int $disableCheckout): string
-    {
-//        $this->disableCheckout = $disableCheckout;
-        return 'ja';
     }
 }
