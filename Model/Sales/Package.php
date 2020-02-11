@@ -80,9 +80,9 @@ class Package extends Data implements PackageInterface
     private $package_type = null;
 
     /**
-     * @var int
+     * @var bool
      */
-    private $disableCheckout = 0;
+    private $disableCheckout = false;
 
     /**
      * @return int
@@ -199,9 +199,9 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param int $disableCheckout
+     * @param bool $disableCheckout
      */
-    public function setDisableCheckout(int $disableCheckout)
+    public function setDisableCheckout(bool $disableCheckout)
     {
         $this->disableCheckout = $disableCheckout;
     }

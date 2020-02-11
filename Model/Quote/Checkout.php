@@ -113,7 +113,7 @@ class Checkout
             'color_base' => $this->helper->getCheckoutConfig('general/color_base'),
             'color_select' => $this->helper->getCheckoutConfig('general/color_select'),
             'parent_carrier' => $this->helper->getParentCarrierNameFromQuote($this->quoteId),
-            'parent_method' => $this->helper->getParentMethodNameFromQuote($this->quoteId),
+            'parent_method' => $this->package->getDisableCheckout() ? false : $this->helper->getParentMethodNameFromQuote($this->quoteId),
         ];
     }
 
