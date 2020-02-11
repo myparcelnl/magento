@@ -186,7 +186,7 @@ class TrackTraceHolder
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
-            ->setInvoice('');
+            ->setInvoice($magentoTrack->getShipment()->getOrder()->getIncrementId());
 
         $this->convertDataForCdCountry($magentoTrack)
              ->calculateTotalWeight($magentoTrack, $totalWeight);
@@ -204,11 +204,12 @@ class TrackTraceHolder
     public function convertDeliveryDate(?string $checkoutData): string
     {
         $deliveryDetails = json_decode($checkoutData, true);
-        $deliveryDate    = $deliveryDetails['date'] ? strtotime($deliveryDetails['date']) : strtotime("now");
-        $todayDate       = strtotime("now");
+
+        $deliveryDate = strtotime($deliveryDetails['date'] ?? 'now');
+        $todayDate    = strtotime('now');
 
         if ($deliveryDate <= $todayDate) {
-            $deliveryDetails['date'] = date("Y-m-d", strtotime("+1 day"));
+            $deliveryDetails['date'] = date('Y-m-d', strtotime('+1 day'));
         }
 
         return $deliveryDetails['date'];
