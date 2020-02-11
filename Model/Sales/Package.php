@@ -29,9 +29,9 @@ use Psr\Log\LoggerInterface;
 
 class Package extends Data implements PackageInterface
 {
-    const PACKAGE_TYPE_NORMAL = 1;
-    const PACKAGE_TYPE_MAILBOX = 2;
-    const PACKAGE_TYPE_LETTER = 3;
+    const PACKAGE_TYPE_NORMAL        = 1;
+    const PACKAGE_TYPE_MAILBOX       = 2;
+    const PACKAGE_TYPE_LETTER        = 3;
     const PACKAGE_TYPE_DIGITAL_STAMP = 4;
 
     /**
@@ -97,7 +97,7 @@ class Package extends Data implements PackageInterface
      */
     public function setWeight($weight)
     {
-        $this->weight = (int)$weight;
+        $this->weight = (int) $weight;
     }
 
     /**
@@ -105,7 +105,7 @@ class Package extends Data implements PackageInterface
      */
     public function addWeight($weight)
     {
-        $this->weight += (int)$weight;
+        $this->weight += (int) $weight;
     }
 
     /**
@@ -181,6 +181,7 @@ class Package extends Data implements PackageInterface
 
     /**
      * @param bool $show_mailbox_with_other_options
+     *
      * @return $this
      */
     public function setShowMailboxWithOtherOptions($show_mailbox_with_other_options)
@@ -211,7 +212,7 @@ class Package extends Data implements PackageInterface
      */
     public function getMaxWeight()
     {
-        return (int)$this->max_weight;
+        return (int) $this->max_weight;
     }
 
     /**
@@ -252,6 +253,7 @@ class Package extends Data implements PackageInterface
 
     /**
      * @param string $current_country
+     *
      * @return Package
      */
     public function setCurrentCountry($current_country)

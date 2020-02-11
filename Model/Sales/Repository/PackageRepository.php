@@ -30,7 +30,7 @@ class PackageRepository extends Package
 
     const DEFAULT_MAILBOX_WEIGHT       = 2000;
     const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
-    const DISABLED_CHECKOUT_ON = 1;
+    const DISABLED_CHECKOUT_ON         = 1;
 
     /**
      * Get package type
@@ -120,9 +120,10 @@ class PackageRepository extends Package
             $getDisabledOption = (int) $this->getAttributesFitInOptions($product, 'disable_checkout');
 
             if ($getDisabledOption === self::DISABLED_CHECKOUT_ON) {
-               $this->setDisableCheckout(true);
+                $this->setDisableCheckout(true);
             }
         }
+
         return;
     }
 

@@ -71,7 +71,7 @@ class Checkout extends Data
         parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->estimatedAddressFactory  = $estimatedAddressFactory;
-        $this->package          = $package;
+        $this->package                  = $package;
         $this->quote                    = $session->getQuote();
     }
 
