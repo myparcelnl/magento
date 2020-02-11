@@ -180,7 +180,6 @@ class Checkout extends Data
         foreach ($magentoMethods as $method) {
             if (
                 $checkoutActive != '0' &&
-                $checkoutDisabled === 0 &&
                 in_array($method->getCarrierCode(), $parentCarriers) &&
                 ! in_array($method->getMethodCode(), $myParcelMethods)
             ) {
