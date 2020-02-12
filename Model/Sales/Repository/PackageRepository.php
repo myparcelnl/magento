@@ -121,6 +121,7 @@ class PackageRepository extends Package
 
             if ($getDisabledOption === self::DISABLED_CHECKOUT_ON) {
                 $this->setDisableCheckout(true);
+                break;
             }
         }
 
