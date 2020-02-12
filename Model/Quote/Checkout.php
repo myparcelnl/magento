@@ -45,10 +45,10 @@ class Checkout
     /**
      * Checkout constructor.
      *
-     * @param \Magento\Checkout\Model\Session $session
-     * @param \Magento\Checkout\Model\Cart $cart
+     * @param \Magento\Checkout\Model\Session     $session
+     * @param \Magento\Checkout\Model\Cart        $cart
      * @param \MyParcelNL\Magento\Helper\Checkout $helper
-     * @param PackageRepository $package
+     * @param PackageRepository                   $package
      */
     public function __construct(
         \Magento\Checkout\Model\Session $session,
@@ -56,10 +56,10 @@ class Checkout
         \MyParcelNL\Magento\Helper\Checkout $helper,
         PackageRepository $package
     ) {
-        $this->helper = $helper;
-        $this->quoteId = $session->getQuoteId();
-        $this->products = $cart->getItems();
-        $this->package = $package;
+        $this->helper         = $helper;
+        $this->quoteId        = $session->getQuoteId();
+        $this->products       = $cart->getItems();
+        $this->package        = $package;
         $this->defaultOptions = new DefaultOptions($session->getQuote(), $helper);
         $this->package->setCurrentCountry($session->getQuote()->getShippingAddress()->getCountryId());
         $this->package->setMailboxSettings();
@@ -76,23 +76,25 @@ class Checkout
         $this->helper->setBasePriceFromQuote($this->quoteId);
 
         $this->data = [
-            'general' => $this->getGeneralData(),
-            'delivery' => $this->getDeliveryData(),
-            'morning' => $this->getMorningData(),
-            'evening' => $this->getEveningData(),
-            'mailbox' => $this->getMailboxData(),
-            'digital_stamp' => $this->getDigitalStampData(),
-            'pickup' => $this->getPickupData(),
+            'general'        => $this->getGeneralData(),
+            'delivery'       => $this->getDeliveryData(),
+            'morning'        => $this->getMorningData(),
+            'evening'        => $this->getEveningData(),
+            'mailbox'        => $this->getMailboxData(),
+            'digital_stamp'  => $this->getDigitalStampData(),
+            'pickup'         => $this->getPickupData(),
             'belgium_pickup' => $this->getBelgiumPickupData(),
         ];
 
         $this
             ->setExcludeDeliveryTypes();
 
-        return ['root' => [
-            'version' => (string)$this->helper->getVersion(),
-            'data' => (array)$this->data
-        ]];
+        return [
+            'root' => [
+                'version' => (string) $this->helper->getVersion(),
+                'data'    => (array) $this->data
+            ]
+        ];
     }
 
     /**
@@ -102,18 +104,20 @@ class Checkout
      */
     private function getGeneralData()
     {
+        $disableCheckout = $this->package->getDisableCheckout();
+
         return [
-            'base_price' => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
-            'cutoff_time' => $this->helper->getTimeConfig('general/cutoff_time'),
-            'deliverydays_window' => $this->helper->getIntergerConfig('general/deliverydays_window'),
-            'dropoff_days' => $this->helper->getArrayConfig('general/dropoff_days'),
+            'base_price'             => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
+            'cutoff_time'            => $this->helper->getTimeConfig('general/cutoff_time'),
+            'deliverydays_window'    => $this->helper->getIntergerConfig('general/deliverydays_window'),
+            'dropoff_days'           => $this->helper->getArrayConfig('general/dropoff_days'),
             'monday_delivery_active' => $this->helper->getBoolConfig('general/monday_delivery_active'),
-            'saturday_cutoff_time' => $this->helper->getTimeConfig('general/saturday_cutoff_time'),
-            'dropoff_delay' => $this->helper->getIntergerConfig('general/dropoff_delay'),
-            'color_base' => $this->helper->getCheckoutConfig('general/color_base'),
-            'color_select' => $this->helper->getCheckoutConfig('general/color_select'),
-            'parent_carrier' => $this->helper->getParentCarrierNameFromQuote($this->quoteId),
-            'parent_method' => $this->helper->getParentMethodNameFromQuote($this->quoteId),
+            'saturday_cutoff_time'   => $this->helper->getTimeConfig('general/saturday_cutoff_time'),
+            'dropoff_delay'          => $this->helper->getIntergerConfig('general/dropoff_delay'),
+            'color_base'             => $this->helper->getCheckoutConfig('general/color_base'),
+            'color_select'           => $this->helper->getCheckoutConfig('general/color_select'),
+            'parent_carrier'         => $disableCheckout ?: $this->helper->getParentCarrierNameFromQuote($this->quoteId),
+            'parent_method'          => $disableCheckout ?: $this->helper->getParentMethodNameFromQuote($this->quoteId),
         ];
     }
 
@@ -125,14 +129,14 @@ class Checkout
     private function getDeliveryData()
     {
         $deliveryData = [
-            'delivery_title' => $this->helper->getCheckoutConfig('delivery/delivery_title'),
-            'standard_delivery_title' => $this->helper->getCheckoutConfig('delivery/standard_delivery_title'),
-            'only_recipient_active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('delivery/only_recipient_active'),
-            'only_recipient_title' => $this->helper->getCheckoutConfig('delivery/only_recipient_title'),
-            'only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/only_recipient_fee', false, '+ '),
-            'signature_active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('delivery/signature_active'),
-            'signature_title' => $this->helper->getCheckoutConfig('delivery/signature_title'),
-            'signature_fee' => $this->helper->getMethodPriceFormat('delivery/signature_fee', false, '+ '),
+            'delivery_title'                   => $this->helper->getCheckoutConfig('delivery/delivery_title'),
+            'standard_delivery_title'          => $this->helper->getCheckoutConfig('delivery/standard_delivery_title'),
+            'only_recipient_active'            => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('delivery/only_recipient_active'),
+            'only_recipient_title'             => $this->helper->getCheckoutConfig('delivery/only_recipient_title'),
+            'only_recipient_fee'               => $this->helper->getMethodPriceFormat('delivery/only_recipient_fee', false, '+ '),
+            'signature_active'                 => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('delivery/signature_active'),
+            'signature_title'                  => $this->helper->getCheckoutConfig('delivery/signature_title'),
+            'signature_fee'                    => $this->helper->getMethodPriceFormat('delivery/signature_fee', false, '+ '),
             'signature_and_only_recipient_fee' => $this->helper->getMethodPriceFormat('delivery/signature_and_only_recipient_fee', false, '+ '),
         ];
 
@@ -164,8 +168,8 @@ class Checkout
     {
         return [
             'active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('morning/active'),
-            'title' => $this->helper->getCheckoutConfig('morning/title'),
-            'fee' => $this->helper->getMethodPriceFormat('morning/fee'),
+            'title'  => $this->helper->getCheckoutConfig('morning/title'),
+            'fee'    => $this->helper->getMethodPriceFormat('morning/fee'),
         ];
     }
 
@@ -178,8 +182,8 @@ class Checkout
     {
         return [
             'active' => $this->hasAgeCheck() ? false : $this->helper->getBoolConfig('evening/active'),
-            'title' => $this->helper->getCheckoutConfig('evening/title'),
-            'fee' => $this->helper->getMethodPriceFormat('evening/fee'),
+            'title'  => $this->helper->getCheckoutConfig('evening/title'),
+            'fee'    => $this->helper->getMethodPriceFormat('evening/fee'),
         ];
     }
 
@@ -192,8 +196,8 @@ class Checkout
     {
         return [
             'active' => $this->helper->getBoolConfig('pickup/active'),
-            'title' => $this->helper->getCheckoutConfig('pickup/title'),
-            'fee' => $this->helper->getMethodPriceFormat('pickup/fee'),
+            'title'  => $this->helper->getCheckoutConfig('pickup/title'),
+            'fee'    => $this->helper->getMethodPriceFormat('pickup/fee'),
         ];
     }
 
@@ -207,14 +211,15 @@ class Checkout
         if (empty($this->helper->getCheckoutConfig('belgium_pickup/active'))) {
             return [
                 'active' => 0,
-                'title' => "",
-                'fee' => 0,
+                'title'  => "",
+                'fee'    => 0,
             ];
         }
+
         return [
             'active' => $this->helper->getCheckoutConfig('belgium_pickup/active'),
-            'title' => $this->helper->getCheckoutConfig('belgium_pickup/title'),
-            'fee' => $this->helper->getMethodPriceFormat('belgium_pickup/fee'),
+            'title'  => $this->helper->getCheckoutConfig('belgium_pickup/title'),
+            'fee'    => $this->helper->getMethodPriceFormat('belgium_pickup/fee'),
         ];
     }
 
@@ -228,10 +233,10 @@ class Checkout
 
         /** check if mailbox is active */
         $mailboxData = [
-            'active' => $this->package->fitInMailbox(),
+            'active'                => $this->package->fitInMailbox(),
             'mailbox_other_options' => $this->package->isShowMailboxWithOtherOptions(),
-            'title' => $this->helper->getCheckoutConfig('mailbox/title'),
-            'fee' => $this->helper->getMethodPriceFormat('mailbox/fee', false),
+            'title'                 => $this->helper->getCheckoutConfig('mailbox/title'),
+            'fee'                   => $this->helper->getMethodPriceFormat('mailbox/fee', false),
         ];
 
         return $mailboxData;
@@ -248,8 +253,8 @@ class Checkout
         /** check if digital stamp is active */
         $digitalStampData = [
             'active' => $this->package->fitInDigitalStamp(),
-            'title' => $this->helper->getCheckoutConfig('digital_stamp/title'),
-            'fee' => $this->helper->getMethodPriceFormat('digital_stamp/fee', false),
+            'title'  => $this->helper->getCheckoutConfig('digital_stamp/title'),
+            'fee'    => $this->helper->getMethodPriceFormat('digital_stamp/fee', false),
         ];
 
         return $digitalStampData;

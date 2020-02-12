@@ -211,7 +211,7 @@ class UpgradeData implements UpgradeDataInterface
                 ]
             );
 
-             // Add attributes to the eav/attribute
+            // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_fit_in_mailbox',
@@ -270,6 +270,40 @@ class UpgradeData implements UpgradeDataInterface
                     'comparable'              => true,
                     'visible_on_front'        => false,
                     'used_in_product_listing' => true,
+                    'unique'                  => false,
+                    'apply_to'                => '',
+                ]
+            );
+
+            // Enable / Disable checkout with this product.
+            $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+            // Add attributes to the eav/attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_disable_checkout',
+                [
+                    'group'                   => 'MyParcel Options',
+                    'note'                    => 'With this option you can disable the delivery options for this product.',
+                    'type'                    => 'int',
+                    'backend'                 => '',
+                    'frontend'                => '',
+                    'label'                   => 'Disable checkout with this product',
+                    'input'                   => 'boolean',
+                    'class'                   => '',
+                    'source'                  => '',
+                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible'                 => true,
+                    'required'                => false,
+                    'user_defined'            => true,
+                    'default'                 => 0,
+                    'searchable'              => true,
+                    'filterable'              => true,
+                    'comparable'              => true,
+                    'visible_on_front'        => false,
+                    'used_in_product_listing' => false,
                     'unique'                  => false,
                     'apply_to'                => '',
                 ]
