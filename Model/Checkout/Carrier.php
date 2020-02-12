@@ -211,7 +211,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     }
 
     /**
-     * @param        $alias
+     * @param string $alias
      * @param string $settingPath
      *
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
