@@ -104,9 +104,7 @@ class Checkout
      */
     private function getGeneralData()
     {
-        if ($this->package->getDisableCheckout()) {
-            return [];
-        }
+        $disableCheckout = $this->package->getDisableCheckout();
 
         return [
             'base_price'             => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
@@ -118,8 +116,8 @@ class Checkout
             'dropoff_delay'          => $this->helper->getIntergerConfig('general/dropoff_delay'),
             'color_base'             => $this->helper->getCheckoutConfig('general/color_base'),
             'color_select'           => $this->helper->getCheckoutConfig('general/color_select'),
-            'parent_carrier'         => $this->helper->getParentCarrierNameFromQuote($this->quoteId),
-            'parent_method'          => $this->helper->getParentMethodNameFromQuote($this->quoteId),
+            'parent_carrier'         => $disableCheckout ? $disableCheckout : $this->helper->getParentCarrierNameFromQuote($this->quoteId),
+            'parent_method'          => $disableCheckout ? $disableCheckout : $this->helper->getParentMethodNameFromQuote($this->quoteId),
         ];
     }
 

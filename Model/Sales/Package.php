@@ -192,9 +192,9 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @return int
+     * @return bool
      */
-    public function getDisableCheckout(): int
+    public function getDisableCheckout(): bool
     {
         return $this->disableCheckout;
     }

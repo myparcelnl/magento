@@ -30,7 +30,7 @@ class PackageRepository extends Package
 
     const DEFAULT_MAILBOX_WEIGHT       = 2000;
     const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
-    const DISABLED_CHECKOUT_ON         = 1;
+    const DISABLED_CHECKOUT_ON         = true;
 
     /**
      * Get package type
@@ -117,7 +117,7 @@ class PackageRepository extends Package
     public function disableCheckoutWithProduct($products)
     {
         foreach ($products as $product) {
-            $getDisabledOption = (int) $this->getAttributesFitInOptions($product, 'disable_checkout');
+            $getDisabledOption = (bool) $this->getAttributesProductsOptions($product, 'disable_checkout');
 
             if ($getDisabledOption === self::DISABLED_CHECKOUT_ON) {
                 $this->setDisableCheckout(true);
@@ -141,7 +141,7 @@ class PackageRepository extends Package
         }
 
         foreach ($products as $product) {
-            if ($this->getAttributesFitInOptions($product, 'digital_stamp') === null) {
+            if ($this->getAttributesProductsOptions($product, 'digital_stamp') === null) {
                 return $this->setAllProductsFitInMailbox(false, 'digital_stamp');
             }
         }
@@ -181,7 +181,7 @@ class PackageRepository extends Package
     private function setWeightFromOneQuoteProduct($product, $column)
     {
         if ('fit_in_mailbox' == $column) {
-            $percentageFitInMailbox = $this->getAttributesFitInOptions($product, $column);
+            $percentageFitInMailbox = $this->getAttributesProductsOptions($product, $column);
 
             if ($percentageFitInMailbox > 1) {
                 $this->addWeight($this->getMaxWeight() * $percentageFitInMailbox / 100 * $product->getQty());
@@ -231,7 +231,7 @@ class PackageRepository extends Package
      *
      * @return null|int
      */
-    private function getAttributesFitInOptions($product, $column)
+    private function getAttributesProductsOptions($product, $column)
     {
         $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $column);
 

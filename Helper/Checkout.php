@@ -163,7 +163,6 @@ class Checkout extends Data
         }
         $parentCarriers   = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
         $checkoutActive   = $this->getCheckoutConfig('general/checkout_active');
-        $checkoutDisabled = $this->package->getDisableCheckout();
         $addressFromQuote = $this->quote->getShippingAddress();
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
