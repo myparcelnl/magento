@@ -117,7 +117,7 @@ class Checkout
             'color_base'             => $this->helper->getCheckoutConfig('general/color_base'),
             'color_select'           => $this->helper->getCheckoutConfig('general/color_select'),
             'parent_carrier'         => $disableCheckout ? $disableCheckout : $this->helper->getParentCarrierNameFromQuote($this->quoteId),
-            'parent_method'          => $disableCheckout ? $disableCheckout : $this->helper->getParentMethodNameFromQuote($this->quoteId),
+            'parent_method'          => $disableCheckout ?: $this->helper->getParentMethodNameFromQuote($this->quoteId),
         ];
     }
 
