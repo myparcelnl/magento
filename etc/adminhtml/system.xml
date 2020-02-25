@@ -36,6 +36,10 @@
                     <comment>This is the type of weight that I use with my products.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\WeightType</source_model>
                 </field>
+                <field id="label_description" translate="label comment" type="text" sortOrder="213" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Label description</label>
+                    <comment>With this option, you can add a description to the shipment. This will be printed on the top left of the label, and you can use this to search or sort shipments in your backoffice. Use [ORDER_NR] to include the order number, [DELIVERY_DATE] to include the delivery date.</comment>
+                </field>
             </group>
         </section>
         <section id="myparcelnl_magento_standard" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
