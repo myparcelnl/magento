@@ -36,6 +36,8 @@ class TrackTraceHolder
      */
     const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
+    const ORDER_NUMBER          = '[ORDER_NR]';
+    const DELIVERY_DATE         = '[DELIVERY_DATE]';
 
     /**
      * @var ObjectManagerInterface
@@ -173,7 +175,7 @@ class TrackTraceHolder
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
+            ->setLabelDescription($this->getLabelDescription($magentoTrack, $checkoutData))
             ->setDeliveryDate($this->convertDeliveryDate($checkoutData))
             ->setDeliveryType($deliveryType)
             ->setPickupAddressFromCheckout($checkoutData)
@@ -230,6 +232,45 @@ class TrackTraceHolder
         }
 
         return $this;
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
+     *
+     * @param string               $checkoutData
+     *
+     * @return array|mixed|string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getLabelDescription(Order\Shipment\Track $magentoTrack, string $checkoutData): string
+    {
+        $labelDescription = $this->helper->getGeneralConfig(
+            'basic_settings/label_description',
+            $magentoTrack->getShipment()->getOrder()->getStoreId()
+        );
+
+        if (! $labelDescription) {
+            return '';
+        }
+
+        $splitLabelDescription = explode(' ', $labelDescription);
+
+        foreach ($splitLabelDescription as $description) {
+
+            if (strpos($description, self::ORDER_NUMBER) !== false) {
+                $description = $magentoTrack->getShipment()->getOrder()->getIncrementId();
+            }
+
+            if (strpos($description, self::DELIVERY_DATE) !== false) {
+                $description = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+            }
+
+            $labelDescriptionCollection[] = $description;
+        }
+
+        $convertedLabelDescription = implode(' ', $labelDescriptionCollection);
+
+        return $convertedLabelDescription;
     }
 
     /**
