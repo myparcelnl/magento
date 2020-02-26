@@ -8,7 +8,6 @@
 
 namespace MyParcelNL\Magento\Model\Quote;
 
-
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
@@ -74,7 +73,6 @@ class Checkout
      */
     public function getCheckoutSettings()
     {
-
         $this->helper->setBasePriceFromQuote($this->quoteId);
 
         $this->data = [
@@ -85,7 +83,6 @@ class Checkout
             'mailbox' => $this->getMailboxData(),
             'digital_stamp' => $this->getDigitalStampData(),
             'pickup' => $this->getPickupData(),
-            'pickup_express' => $this->getPickupExpressData(),
             'belgium_pickup' => $this->getBelgiumPickupData(),
         ];
 
@@ -150,11 +147,11 @@ class Checkout
         return $deliveryData;
     }
 
-
     /**
      * @return bool
      */
-    private function hasAgeCheck(){
+    private function hasAgeCheck()
+    {
         return $this->defaultOptions->getDefault('age_check');
     }
 
@@ -197,19 +194,6 @@ class Checkout
             'active' => $this->helper->getBoolConfig('pickup/active'),
             'title' => $this->helper->getCheckoutConfig('pickup/title'),
             'fee' => $this->helper->getMethodPriceFormat('pickup/fee'),
-        ];
-    }
-
-    /**
-     * Get pickup express data
-     *
-     * @return array)
-     */
-    private function getPickupExpressData()
-    {
-        return [
-            'active' => $this->helper->getCheckoutConfig('pickup_express/active'),
-            'fee' => $this->helper->getMethodPriceFormat('pickup_express/fee'),
         ];
     }
 
@@ -290,10 +274,6 @@ class Checkout
 
         if ($this->data['pickup']['active'] == false) {
             $excludeDeliveryTypes[] = '4';
-        }
-
-        if ($this->data['pickup_express']['active'] == false) {
-            $excludeDeliveryTypes[] = '5';
         }
 
         $result = implode(';', $excludeDeliveryTypes);

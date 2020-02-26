@@ -14,9 +14,11 @@ class ShippingInformationManagementPlugin
     }
 
     /**
-     * @param \Magento\Checkout\Model\ShippingInformationManagement $subject
-     * @param $cartId
+     * @param \Magento\Checkout\Model\ShippingInformationManagement   $subject
+     * @param                                                         $cartId
      * @param \Magento\Checkout\Api\Data\ShippingInformationInterface $addressInformation
+     *
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function beforeSaveAddressInformation(
         \Magento\Checkout\Model\ShippingInformationManagement $subject,

@@ -46,8 +46,8 @@ Automate 'Large format',Automatiseer 'Groot pakket'
 'Large format' operates above a certain order total amount,'Groot pakket' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 Automate 'Age check 18+', Automatiseer 'Leeftijdscheck 18+'
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscheck is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ moet zijn en dit moet bewijzen door middel van een identiteitsbewijs. Met deze verzendoptie zijn handtekening voor ontvangst en alleen huisadres inbegrepen. De leeftijdscheck is verder uitgesloten van de bezorgopties in de ochtend en avondlevering.
-"If age check is active than the morning delivery is not possible","Als leeftijdscheck actief is, dan is ochtendlevering niet mogelijk"
-"If age check is active than the evening delivery is not possible","Als leeftijdscheck actief is, dan is avondlevering niet mogelijk"
+"If age check is active then the morning delivery is not possible","Als leeftijdscheck actief is, dan is ochtendlevering niet mogelijk"
+"If age check is active then the evening delivery is not possible","Als leeftijdscheck actief is, dan is avondlevering niet mogelijk"
 Automate 'Insurance € 100',Automatiseer 'Verzekerd tot € 100'
 "'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.","'Verzekerd tot € 100' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen."
 Automate 'Insurance € 250',Automatiseer 'Verzekerd tot € 250'
@@ -70,6 +70,7 @@ Signature on receipt,Handtekening voor ontvangst
 Return if no answer,Retour bij niet aanwezig
 Large package,Groot pakket
 Insured up to:,Verzekeren tot:
+Label amount:, Aantal labels:
 Download package label,Download pakket label
 Download mailbox label,Download brievenbuspakje label
 Download letter label,Download ongefrankeerd label
@@ -116,7 +117,6 @@ API key is not known. Go to the settings in the backoffice to create an API key.
 delivery/signature_and_only_recipient_title,Niet bij de buren bezorgen + handtekening voor ontvangst
 morning/title,Ochtendlevering
 morning_signature/title,Ochtendlevering + handtekening voor ontvangst
-pickup_express/title,Ophalen bij een PostNL locatie (extra vroeg ophalen)
 evening_signature/title,Avondlevering + handtekening voor ontvangst
 evening/title,Avondlevering
 Basic settings,Basis instellingen
@@ -143,7 +143,7 @@ Deliver the package only at address of the intended recipient.,Lever het pakket 
 Home address only title,Alleen huisadres titel
 Home address only fee,Alleen huisadres prijs
 This will be added to the regular shipping price,"Dit zal bij de normale verzendkosten worden opgeteld"
-"This will be added to the regular shipping price. Once the age check is activated, than the price are already included.","Dit zal bij de normale verzendkosten worden opgeteld. Zodra de leeftijdscheck geactiveerd is, dan zijn dan kosten al inbegrepen."
+"This will be added to the regular shipping price. Once the age check is activated, then the price is already included.","Dit zal bij de normale verzendkosten worden opgeteld. Zodra de leeftijdscheck geactiveerd is, dan zijn dan kosten al inbegrepen."
 Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
 Signature on receipt,Handtekening voor ontvangst
 Signature on receipt title, Handtekening voor ontvangst titel
@@ -189,13 +189,9 @@ Pickup at PostNL location,Ophalen bij een PostNL locatie
 Pickup active,Ophalen actief
 Pickup titel,Ophalen titel
 Pickup fee,Ophalen prijs
-Pickup Express at PostNL location,Extra vroeg ophalen bij PostNL locatie
-Pickup Express active,Extra vroeg ophalen actief
-Pickup Express fee,Extra vroeg ophalen prijs
 Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
 Set the number of days to let the customer make an order on a different day than to deliver the first one.,Stel hier het aantal dagen in om de klant de keuze te laten maken een bestelling op een andere dag dan de eerst volgende te laten bezorgen.
-
-
+"Delivery options allow your customers to select whether they want their parcel delivered at home or to a pickup point. Depending on the settings you can allow them to select a date, time and even options like requiring a signature on delivery.","Met de bezorgopties kunnen uw klanten selecteren of ze hun pakket thuis of bij een afhaalpunt willen laten bezorgen. Afhankelijk van de instellingen kunt u ze een datum, tijd en zelfs opties laten selecteren, zoals een handtekening bij aflevering."
 
 
