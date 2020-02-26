@@ -255,7 +255,9 @@ class TrackTraceHolder
         }
 
         $deliveryDate     = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
-        $labelDescription = str_replace([self::ORDER_NUMBER, self::DELIVERY_DATE], [
+        $labelDescription = str_replace(
+            [self::ORDER_NUMBER, self::DELIVERY_DATE],
+            [
                 $order->getIncrementId(),
                 $deliveryDate
             ], $labelDescription);
