@@ -116,6 +116,10 @@ class PackageRepository extends Package
      */
     public function disableCheckoutWithProduct($products)
     {
+        if (! $products) {
+            return;
+        }
+
         foreach ($products as $product) {
             $getDisabledOption = (bool) $this->getAttributesProductsOptions($product, 'disable_checkout');
 

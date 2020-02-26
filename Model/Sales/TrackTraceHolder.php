@@ -36,6 +36,8 @@ class TrackTraceHolder
      */
     const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
+    const ORDER_NUMBER          = '%order_nr%';
+    const DELIVERY_DATE         = '%delivery_date%';
 
     /**
      * @var ObjectManagerInterface
@@ -173,7 +175,7 @@ class TrackTraceHolder
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
+            ->setLabelDescription($this->getLabelDescription($magentoTrack, $checkoutData))
             ->setDeliveryDate($this->convertDeliveryDate($checkoutData))
             ->setDeliveryType($deliveryType)
             ->setPickupAddressFromCheckout($checkoutData)
@@ -230,6 +232,35 @@ class TrackTraceHolder
         }
 
         return $this;
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
+     * @param string               $checkoutData
+     *
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getLabelDescription($magentoTrack, string $checkoutData): string
+    {
+        $order = $magentoTrack->getShipment()->getOrder();
+
+        $labelDescription = $this->helper->getGeneralConfig(
+            'basic_settings/label_description',
+            $order->getStoreId()
+        );
+
+        if (! $labelDescription) {
+            return '';
+        }
+
+        $deliveryDate     = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+        $labelDescription = str_replace(
+            [self::ORDER_NUMBER, self::DELIVERY_DATE],
+            [$order->getIncrementId(), $deliveryDate],
+            $labelDescription);
+
+        return $labelDescription;
     }
 
     /**
