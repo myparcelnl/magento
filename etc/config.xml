@@ -12,7 +12,7 @@
             <basic_settings>
                 <paper_type>A4</paper_type>
                 <weight_indication>gram</weight_indication>
-                <label_description>[ORDER_NR]</label_description>
+                <label_description>%order_nr%</label_description>
             </basic_settings>
         </myparcelnl_magento_general>
         <myparcelnl_magento_standard>
