@@ -275,7 +275,6 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     *
      * @return $this
      *
      * @throws \Magento\Framework\Exception\LocalizedException
