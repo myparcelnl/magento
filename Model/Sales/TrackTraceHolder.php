@@ -36,8 +36,8 @@ class TrackTraceHolder
      */
     const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
-    const ORDER_NUMBER          = '[ORDER_NR]';
-    const DELIVERY_DATE         = '[DELIVERY_DATE]';
+    const ORDER_NUMBER          = '%order_nr%';
+    const DELIVERY_DATE         = '%delivery_date%';
 
     /**
      * @var ObjectManagerInterface
