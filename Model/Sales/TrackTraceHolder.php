@@ -236,10 +236,9 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     *
      * @param string               $checkoutData
      *
-     * @return array|mixed|string
+     * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getLabelDescription(Order\Shipment\Track $magentoTrack, string $checkoutData): string
@@ -275,6 +274,7 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
+     *
      * @return $this
      *
      * @throws \Magento\Framework\Exception\LocalizedException
