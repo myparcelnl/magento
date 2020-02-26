@@ -243,9 +243,11 @@ class TrackTraceHolder
      */
     public function getLabelDescription(Order\Shipment\Track $magentoTrack, string $checkoutData): string
     {
+        $order = $magentoTrack->getShipment()->getOrder();
+        
         $labelDescription = $this->helper->getGeneralConfig(
             'basic_settings/label_description',
-            $magentoTrack->getShipment()->getOrder()->getStoreId()
+            $order->getStoreId()
         );
 
         if (! $labelDescription) {
@@ -257,7 +259,7 @@ class TrackTraceHolder
         foreach ($splitLabelDescription as $description) {
 
             if (strpos($description, self::ORDER_NUMBER) !== false) {
-                $description = $magentoTrack->getShipment()->getOrder()->getIncrementId();
+                $description = $order->getIncrementId();
             }
 
             if (strpos($description, self::DELIVERY_DATE) !== false) {
