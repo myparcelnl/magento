@@ -241,7 +241,7 @@ class TrackTraceHolder
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getLabelDescription(Order\Shipment\Track $magentoTrack, string $checkoutData): string
+    public function getLabelDescription($magentoTrack, string $checkoutData): string
     {
         $order = $magentoTrack->getShipment()->getOrder();
 
