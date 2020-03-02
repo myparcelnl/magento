@@ -18,6 +18,7 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
+use Magento\Quote\Model\Quote\Item;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Sales\Package;
 
@@ -111,8 +112,15 @@ class PackageRepository extends Package
         return true;
     }
 
+    public function dropOffDelayDayWithProduct($products)
+    {
+        if (! $products) {
+            return;
+        }
+    }
+
     /**
-     * @param \Magento\Quote\Model\Quote\Item[] $products
+     * @param Item[] $products
      */
     public function disableCheckoutWithProduct($products)
     {
@@ -135,7 +143,7 @@ class PackageRepository extends Package
     /**
      * Set weight depend on product setting 'Fit in digital stamp' and weight from product
      *
-     * @param \Magento\Quote\Model\Quote\Item[] $products
+     * @param Item[] $products
      *
      * @return $this
      */
@@ -157,7 +165,7 @@ class PackageRepository extends Package
     /**
      * Set weight depend on product setting 'Fit in Mailbox' and weight from product
      *
-     * @param \Magento\Quote\Model\Quote\Item[] $products
+     * @param Item[] $products
      *
      * @param string                            $column
      *
@@ -178,7 +186,7 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote\Item $product
+     * @param Item $product
      * @param string                          $column
      *
      * @return $this
@@ -231,7 +239,7 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote\Item $product
+     * @param Item $product
      * @param string                          $column
      *
      * @return null|int
@@ -277,7 +285,7 @@ class PackageRepository extends Package
 
     /**
      * @param string                          $tableName
-     * @param \Magento\Quote\Model\Quote\Item $product
+     * @param Item $product
      * @param string                          $column
      *
      * @return array|null
