@@ -18,7 +18,6 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
-use Magento\Quote\Model\Quote\Item;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Sales\Package;
 
@@ -115,30 +114,30 @@ class PackageRepository extends Package
     /**
      * Check if the dropoff delay day has set in the products setting and get the highest delay day
      *
-     * @param Item [] $products
+     * @param \Magento\Quote\Model\Quote\Item [] $products
      *
      * @return int
      */
     public function dropOffDelayDayWithProduct($products)
     {
-        $highestDelayDay = 0;
+        $highestDelay = 0;
 
         if (! $products) {
-            return $highestDelayDay;
+            return $highestDelay;
         }
 
         foreach ($products as $product) {
-            $productDelayDay = (int) $this->getAttributesProductsOptions($product, 'dropoff_delay');
-            if ($highestDelayDay < $productDelayDay) {
-                $highestDelayDay = $productDelayDay;
+            $productDelay = (int) $this->getAttributesProductsOptions($product, 'dropoff_delay');
+            if ($highestDelay < $productDelay) {
+                $highestDelay = $productDelay;
             }
         }
 
-        return $highestDelayDay;
+        return $highestDelay;
     }
 
     /**
-     * @param Item[] $products
+     * @param \Magento\Quote\Model\Quote\Item[] $products
      */
     public function disableCheckoutWithProduct($products)
     {
@@ -161,7 +160,7 @@ class PackageRepository extends Package
     /**
      * Set weight depend on product setting 'Fit in digital stamp' and weight from product
      *
-     * @param Item[] $products
+     * @param \Magento\Quote\Model\Quote\Item[] $products
      *
      * @return $this
      */
@@ -183,7 +182,7 @@ class PackageRepository extends Package
     /**
      * Set weight depend on product setting 'Fit in Mailbox' and weight from product
      *
-     * @param Item[] $products
+     * @param \Magento\Quote\Model\Quote\Item[] $products
      *
      * @param string                            $column
      *
@@ -204,7 +203,7 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param Item $product
+     * @param \Magento\Quote\Model\Quote\Item $product
      * @param string                          $column
      *
      * @return $this
@@ -257,7 +256,7 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param Item $product
+     * @param \Magento\Quote\Model\Quote\Item $product
      * @param string                          $column
      *
      * @return null|int
@@ -303,7 +302,7 @@ class PackageRepository extends Package
 
     /**
      * @param string                          $tableName
-     * @param Item $product
+     * @param \Magento\Quote\Model\Quote\Item $product
      * @param string                          $column
      *
      * @return array|null
