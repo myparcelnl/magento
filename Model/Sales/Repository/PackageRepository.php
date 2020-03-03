@@ -112,11 +112,29 @@ class PackageRepository extends Package
         return true;
     }
 
+    /**
+     * Check if the dropoff delay day has set in the products setting and get the highest delay day
+     *
+     * @param Item [] $products
+     *
+     * @return int
+     */
     public function dropOffDelayDayWithProduct($products)
     {
+        $highestDelayDay = 0;
+
         if (! $products) {
-            return;
+            return $highestDelayDay;
         }
+
+        foreach ($products as $product) {
+            $productDelayDay = (int) $this->getAttributesProductsOptions($product, 'dropoff_delay');
+            if ($highestDelayDay < $productDelayDay) {
+                $highestDelayDay = $productDelayDay;
+            }
+        }
+
+        return $highestDelayDay;
     }
 
     /**

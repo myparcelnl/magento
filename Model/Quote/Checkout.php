@@ -113,7 +113,7 @@ class Checkout
             'dropoff_days'           => $this->helper->getArrayConfig('general/dropoff_days'),
             'monday_delivery_active' => $this->helper->getBoolConfig('general/monday_delivery_active'),
             'saturday_cutoff_time'   => $this->helper->getTimeConfig('general/saturday_cutoff_time'),
-            'dropoff_delay'          => $this->helper->getIntergerConfig('general/dropoff_delay'),
+            'dropoff_delay'          => $this->package->dropOffDelayDayWithProduct($this->products) ?: $this->helper->getIntergerConfig('general/dropoff_delay'),
             'color_base'             => $this->helper->getCheckoutConfig('general/color_base'),
             'color_select'           => $this->helper->getCheckoutConfig('general/color_select'),
             'parent_carrier'         => $disableCheckout ?: $this->helper->getParentCarrierNameFromQuote($this->quoteId),
