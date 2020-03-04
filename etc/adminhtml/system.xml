@@ -38,7 +38,7 @@
                 </field>
                 <field id="label_description" translate="label comment" type="text" sortOrder="213" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Label description</label>
-                    <comment>This description will appear on the shipment label. Use %order_nr% to include the order number, %delivery_date% to include the delivery date.</comment>
+                    <comment>This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.</comment>
                 </field>
             </group>
         </section>

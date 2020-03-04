@@ -38,6 +38,9 @@ class TrackTraceHolder
     const MYPARCEL_CARRIER_CODE = 'myparcelnl';
     const ORDER_NUMBER          = '%order_nr%';
     const DELIVERY_DATE         = '%delivery_date%';
+    const PRODUCT_ID            = '%product_id%';
+    const PRODUCT_NAME          = '%product_name%';
+    const PRODUCT_QTY           = '%product_qty%';
 
     /**
      * @var ObjectManagerInterface
@@ -254,10 +257,24 @@ class TrackTraceHolder
             return '';
         }
 
+        $productInfo      = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
         $deliveryDate     = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+
         $labelDescription = str_replace(
-            [self::ORDER_NUMBER, self::DELIVERY_DATE],
-            [$order->getIncrementId(), $deliveryDate],
+            [
+                self::ORDER_NUMBER,
+                self::DELIVERY_DATE,
+                self::PRODUCT_ID,
+                self::PRODUCT_NAME,
+                self::PRODUCT_QTY
+            ],
+            [
+                $order->getIncrementId(),
+                $deliveryDate,
+                $productInfo[0]['product_id'],
+                $productInfo[0]['name'],
+                (int) $productInfo[0]['qty']
+            ],
             $labelDescription);
 
         return $labelDescription;
