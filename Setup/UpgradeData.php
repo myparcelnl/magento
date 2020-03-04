@@ -309,6 +309,40 @@ class UpgradeData implements UpgradeDataInterface
                 ]
             );
 
+            // Set a dropoff delay for this product.
+            $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+            // Add attributes to the eav/attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_dropoff_delay',
+                [
+                    'group'                   => 'MyParcel Options',
+                    'note'                    => 'This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.',
+                    'type'                    => 'varchar',
+                    'backend'                 => '',
+                    'frontend'                => '',
+                    'label'                   => 'Dropoff-delay',
+                    'input'                   => 'select',
+                    'class'                   => '',
+                    'source'                  => 'MyParcelNL\Magento\Model\Source\DropOffDelayDays',
+                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible'                 => true,
+                    'required'                => false,
+                    'user_defined'            => true,
+                    'default'                 => null,
+                    'searchable'              => false,
+                    'filterable'              => false,
+                    'comparable'              => false,
+                    'visible_on_front'        => false,
+                    'used_in_product_listing' => true,
+                    'unique'                  => false,
+                    'apply_to'                => '',
+                ]
+            );
+
             // Move paper type from print to basic settings
             $selectPaperTypeSetting = $connection->select()->from(
                 $table,

@@ -112,6 +112,31 @@ class PackageRepository extends Package
     }
 
     /**
+     * Check if the dropoff delay day has set in the products setting and get the highest delay day
+     *
+     * @param \Magento\Quote\Model\Quote\Item [] $products
+     *
+     * @return int
+     */
+    public function dropOffDelayDayWithProduct($products)
+    {
+        $highestDelay = 0;
+
+        if (! $products) {
+            return $highestDelay;
+        }
+
+        foreach ($products as $product) {
+            $productDelay = (int) $this->getAttributesProductsOptions($product, 'dropoff_delay');
+            if ($highestDelay < $productDelay) {
+                $highestDelay = $productDelay;
+            }
+        }
+
+        return $highestDelay;
+    }
+
+    /**
      * @param \Magento\Quote\Model\Quote\Item[] $products
      */
     public function disableCheckoutWithProduct($products)
