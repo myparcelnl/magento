@@ -51,9 +51,7 @@ class TrackNumber extends Column
 
             // Only render the T&T as a link and add the script to remove the click handler if it's actually a barcode.
             if (strpos($trackNumber, '3S') === 0) {
-                // Remove any spaces from the postal code.
-                $trimmedPostalCode  = str_replace(' ', '', $postalCode);
-                $trackTrace  = (new TrackTraceUrl())->create($trackNumber, $trimmedPostalCode);
+                $trackTrace  = (new TrackTraceUrl())->create($trackNumber, $postalCode);
 
                 $item[$data] = "<a class=\"myparcel-barcode-link\" target=\"_blank\" href=\"$trackTrace\">$trackNumber</a>";
                 $item[$data] .= self::SCRIPT_UNBIND_CLICK;
