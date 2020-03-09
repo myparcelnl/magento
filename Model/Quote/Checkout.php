@@ -103,11 +103,11 @@ class Checkout
     private function getDeliveryDelayDay()
     {
         $productDelay = $this->package->dropOffDelayDayWithProduct($this->products);
-        $generalDelay = $this->helper->getIntergerConfig('general/dropoff_delay');
 
         if (! $productDelay) {
-            $productDelay = $generalDelay;
+            $productDelay = $this->helper->getIntergerConfig('general/dropoff_delay');
         }
+
         return $productDelay;
     }
 
