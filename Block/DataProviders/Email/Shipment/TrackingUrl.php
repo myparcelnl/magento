@@ -26,7 +26,7 @@ class TrackingUrl extends MagentoTrackingUrl implements ArgumentInterface
         /**
          * @var Order
          */
-        $order = (ObjectManager::getInstance())->create('\Magento\Sales\Model\Order')->load($track->getOrderId());
+        $order = (ObjectManager::getInstance())->create(\Magento\Sales\Model\Order::class)->load($track->getOrderId());
 
         return (new TrackTraceUrl())->create(
             $track->getNumber(),
