@@ -16,6 +16,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Observer\NewShipment;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -279,7 +280,7 @@ class MagentoCollection implements MagentoCollectionInterface
             ->setCarrierCode(TrackTraceHolder::MYPARCEL_CARRIER_CODE)
             ->setTitle(TrackTraceHolder::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber('Concept')
+            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY)
             ->save();
 
         return $track;
