@@ -20,6 +20,7 @@ use Magento\Sales\Model\Order;
 use Magento\Tests\NamingConvention\true\mixed;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
@@ -109,7 +110,7 @@ class TrackTraceHolder
             ->setCarrierCode(self::MYPARCEL_CARRIER_CODE)
             ->setTitle(self::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber('concept');
+            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY);
 
         return $this;
     }

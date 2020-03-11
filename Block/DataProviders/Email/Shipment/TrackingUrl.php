@@ -3,7 +3,6 @@
 namespace MyParcelNL\Magento\Block\DataProviders\Email\Shipment;
 
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl as MagentoTrackingUrl;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment\Track;
@@ -12,7 +11,7 @@ use MyparcelNL\Sdk\src\Helper\TrackTraceUrl;
 /**
  * Shipment track info for email
  */
-class TrackingUrl extends MagentoTrackingUrl implements ArgumentInterface
+class TrackingUrl extends MagentoTrackingUrl
 {
     /**
      * Get full Track & Trace url for the shipping e-mail
@@ -26,7 +25,7 @@ class TrackingUrl extends MagentoTrackingUrl implements ArgumentInterface
         /**
          * @var Order
          */
-        $order = (ObjectManager::getInstance())->create(\Magento\Sales\Model\Order::class)->load($track->getOrderId());
+        $order = (ObjectManager::getInstance())->create(Order::class)->load($track->getOrderId());
 
         return (new TrackTraceUrl())->create(
             $track->getNumber(),
