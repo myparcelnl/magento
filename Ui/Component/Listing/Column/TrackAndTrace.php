@@ -6,8 +6,12 @@ use Magento\Sales\Model\Order;
 use Magento\Ui\Component\Listing\Columns\Column;
 use MyparcelNL\Sdk\src\Helper\TrackTraceUrl;
 
-class TrackNumber extends Column
+class TrackAndTrace extends Column
 {
+    const NAME = 'track_number';
+
+    const VALUE_EMPTY = '–';
+
     /**
      * Script tag to unbind the click event from the td wrapping the barcode link.
      */
@@ -41,7 +45,7 @@ class TrackNumber extends Column
                 [$street, $city, $postalCode] = $addressParts;
             }
 
-            // Stop if either the barcode/status or postal code is missing.
+            // Stop if either the barcode or postal code is missing.
             if (! $item['track_number'] || ! $postalCode) {
                 continue;
             }
@@ -50,7 +54,7 @@ class TrackNumber extends Column
             $data = $this->getData('name');
 
             // Only render the T&T as a link and add the script to remove the click handler if it's actually a barcode.
-            if (strpos($trackNumber, '3S') === 0) {
+            if (strpos($trackNumber, self::VALUE_EMPTY) === -1) {
                 $trackTrace  = (new TrackTraceUrl())->create($trackNumber, $postalCode);
 
                 $item[$data] = "<a class=\"myparcel-barcode-link\" target=\"_blank\" href=\"$trackTrace\">$trackNumber</a>";
