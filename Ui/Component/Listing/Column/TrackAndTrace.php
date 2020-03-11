@@ -46,20 +46,17 @@ class TrackAndTrace extends Column
             }
 
             // Stop if either the barcode or postal code is missing.
-            if (! $item['track_number'] || ! $postalCode) {
+            if (! $item['track_number'] || $item['track_number'] === self::VALUE_EMPTY || ! $postalCode) {
                 continue;
             }
 
             $trackNumber = $item['track_number'];
             $data = $this->getData('name');
 
-            // Only render the T&T as a link and add the script to remove the click handler if it's actually a barcode.
-            if (strpos($trackNumber, self::VALUE_EMPTY) === -1) {
-                $trackTrace  = (new TrackTraceUrl())->create($trackNumber, $postalCode);
-
-                $item[$data] = "<a class=\"myparcel-barcode-link\" target=\"_blank\" href=\"$trackTrace\">$trackNumber</a>";
-                $item[$data] .= self::SCRIPT_UNBIND_CLICK;
-            }
+            // Render the T&T as a link and add the script to remove the click handler.
+            $trackTrace = (new TrackTraceUrl())->create($trackNumber, $postalCode);
+            $item[$data] = "<a class=\"myparcel-barcode-link\" target=\"_blank\" href=\"$trackTrace\">$trackNumber</a>";
+            $item[$data] .= self::SCRIPT_UNBIND_CLICK;
         }
 
         return $dataSource;
