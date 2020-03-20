@@ -361,6 +361,43 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
+        // add country of origin to product
+        if (version_compare($context->getVersion(), '3.4.0', '<=')) {
+            $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+            // Add attributes to the eav/attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcelCountryOfOrigin',
+                [
+                    'group' => 'MyParcel Options',
+                    'note' => 'Blabla',
+                    'type' => 'varchar',
+                    'backend' => '',
+                    'frontend' => '',
+                    'label' => 'Country of Origin',
+                    'input' => 'text',
+                    'class' => '',
+                    'source' => '',
+                    'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible' => true,
+                    'required' => false,
+                    'user_defined' => true,
+                    'default' => null,
+                    'searchable' => true,
+                    'filterable' => true,
+                    'comparable' => true,
+                    'visible_on_front' => false,
+                    'used_in_product_listing' => true,
+                    'unique' => false,
+                    'apply_to' => '',
+                ]
+            );
+
+        }
+
         $setup->endSetup();
     }
 }
