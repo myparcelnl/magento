@@ -56,9 +56,9 @@ Automate 'Insurance € 250',Automatiseer 'Verzekerd tot € 250'
 Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
 "'Insurance € 500' operates above a certain order total amount. For NL shipping only, shipments inside the EU insured default is € 500.","'Verzekerd tot € 500' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag. Alleen voor Nederlandse verzendingen, zendingen naar landen binnen de EU zijn standaard verzekerd tot € 500."
 From price,Vanaf prijs
-Track number,Track nummer
-Track status,Track status
-Track action,Track actie
+Track & Trace,Track & Trace
+Shipping status,Status zending
+Shipment,Zending
 MyParcel options,MyParcel opties
 Package,Pakket
 Mailbox,Brievenbuspakje
@@ -190,7 +190,7 @@ Pickup at PostNL location,Ophalen bij een PostNL locatie
 Pickup active,Ophalen actief
 Pickup titel,Ophalen titel
 Pickup fee,Ophalen prijs
-Drop off day,Verzenddagen
+Delivery date,Bezorgdatum
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
 Set the number of days to let the customer make an order on a different day than to deliver the first one.,Stel hier het aantal dagen in om de klant de keuze te laten maken een bestelling op een andere dag dan de eerst volgende te laten bezorgen.
 "Delivery options allow your customers to select whether they want their parcel delivered at home or to a pickup point. Depending on the settings you can allow them to select a date, time and even options like requiring a signature on delivery.","Met de bezorgopties kunnen uw klanten selecteren of ze hun pakket thuis of bij een afhaalpunt willen laten bezorgen. Afhankelijk van de instellingen kunt u ze een datum, tijd en zelfs opties laten selecteren, zoals een handtekening bij aflevering."
