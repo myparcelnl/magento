@@ -19,6 +19,9 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class DefaultOptions
 {
+    // Maximum characters length of company name.
+    const COMPANY_NAME_MAX_LENGTH = 50;
+
     /**
      * @var Data
      */
@@ -79,19 +82,19 @@ class DefaultOptions
     }
 
     /**
-     * @param $address
+     * @param string|null $address
      *
-     * @return string
+     * @return string|null
      */
-    public function getMaxCompanyName(string $address): string
+    public function getMaxCompanyName(?string $address): ?string
     {
-        if (strlen($address) >= self::COMPANY_NAME_MAX_LENGTH) {
+        if (strlen((string) $address) >= self::COMPANY_NAME_MAX_LENGTH) {
             $address = substr($address, 0, 47) . '...';
         }
 
         return $address;
     }
-    
+
     /**
      * Get default value of insurance based on order grand total
      *
@@ -158,7 +161,7 @@ class DefaultOptions
         ) {
             return true;
         }
-        
+
         return false;
     }
 }
