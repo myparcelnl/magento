@@ -88,7 +88,7 @@ class DefaultOptions
      */
     public function getMaxCompanyName(?string $address): ?string
     {
-        if (strlen($address) >= self::COMPANY_NAME_MAX_LENGTH) {
+        if (strlen((string)$address) >= self::COMPANY_NAME_MAX_LENGTH) {
             $address = substr($address, 0, 47) . '...';
         }
 
