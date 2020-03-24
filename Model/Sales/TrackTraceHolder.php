@@ -302,8 +302,8 @@ class TrackTraceHolder
                 ->setAmount($product['qty'])
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
-                ->setClassification((int) $this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry((string) $this->countryOfOrigin('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin'));
+                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
+                ->setCountry((string) $this->getCountryOfOrigin($product));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -330,32 +330,13 @@ class TrackTraceHolder
         return (int) $weight ?: 1000;
     }
 
-    /**
-     * @param string $tableName
-     * @param string $entityId
-     * @param string $column
-     *
-     * @return string|null
-     */
-    private function countryOfOrigin(string $tableName, string $entityId, string $column): ?string
+    public function getCountryOfOrigin($product)
     {
-        $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection     = $resource->getConnection();
-        $attributeId    = $this->getAttributeId(
-            $connection,
-            $resource->getTableName('eav_attribute'),
-            $column
-        );
-        $attributeValue = $this
-            ->getValueFromAttribute(
-                $connection,
-                $resource->getTableName($tableName),
-                $attributeId,
-                $entityId
-            );
+        if ($this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin')) {
+            return $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin');
+        }
 
-        return $attributeValue;
+        return $this->helper->getGeneralConfig('basic_settings/country_of_origin');
     }
 
     /**
@@ -365,7 +346,7 @@ class TrackTraceHolder
      *
      * @return string|null
      */
-    private function hsCode(string $tableName, string $entityId, string $column): ?string
+    private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
         $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
         $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');

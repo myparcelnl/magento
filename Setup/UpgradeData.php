@@ -385,7 +385,7 @@ class UpgradeData implements UpgradeDataInterface
                     'visible' => true,
                     'required' => false,
                     'user_defined' => true,
-                    'default' => 'NL',
+                    'default' => '',
                     'searchable' => true,
                     'filterable' => true,
                     'comparable' => true,
