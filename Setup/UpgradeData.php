@@ -373,11 +373,11 @@ class UpgradeData implements UpgradeDataInterface
                 'myparcel_country_of_origin',
                 [
                     'group' => 'MyParcel Options',
-                    'note' => 'Blabla',
+                    'note' => 'Country of origin is used for shipments out of the EU. This is where your products are shipped from.',
                     'type' => 'varchar',
                     'backend' => '',
                     'frontend' => '',
-                    'label' => 'Country of Origin',
+                    'label' => 'Country of origin',
                     'input' => 'text',
                     'class' => '',
                     'source' => '',

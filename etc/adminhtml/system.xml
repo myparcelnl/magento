@@ -41,7 +41,7 @@
                     <comment>This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.</comment>
                 </field>
                 <field id="country_of_origin" translate="label comment" type="text" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Country of Origin</label>
+                    <label>Country of origin</label>
                     <comment>This country will appear on the international consignment labels. This is where your products are shipped from.</comment>
                 </field>
             </group>
