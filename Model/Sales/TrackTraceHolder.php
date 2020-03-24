@@ -304,7 +304,7 @@ class TrackTraceHolder
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
                 ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry((string) $productCountryOfOrigin ?? $this->helper->getGeneralConfig('basic_settings/country_of_origin'));
+                ->setCountry((string) $this->getCountryOfOrigin($product));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -329,6 +329,24 @@ class TrackTraceHolder
         }
 
         return (int) $weight ?: 1000;
+    }
+
+    /**
+     * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
+     *
+     * @param $product
+     * @return string
+     */
+    public function getCountryOfOrigin($product): string
+    {
+        $productCountryOfOrigin = $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin');
+        $mpCountryOfOrigin = $this->helper->getGeneralConfig('basic_settings/country_of_origin');
+
+        if ($productCountryOfOrigin) {
+            return $productCountryOfOrigin;
+        }
+
+        return $mpCountryOfOrigin;
     }
 
     /**
