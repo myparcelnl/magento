@@ -294,10 +294,10 @@ class TrackTraceHolder
         if (! $this->consignment->isCdCountry()) {
             return $this;
         }
-
+        exit('here');
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
-
         foreach ($products as $product) {
+            exit($this->countryOfOrigin('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin'));
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])
@@ -308,7 +308,6 @@ class TrackTraceHolder
 
             $this->consignment->addItem($myParcelProduct);
         }
-
         return $this;
     }
 
@@ -330,6 +329,34 @@ class TrackTraceHolder
         }
 
         return (int) $weight ?: 1000;
+    }
+
+    /**
+     * @param string $tableName
+     * @param string $entityId
+     * @param string $column
+     *
+     * @return string|null
+     */
+    private function countryOfOrigin(string $tableName, string $entitiyId, string $column): ?string
+    {
+        $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection     = $resource->getConnection();
+        $attributeId    = $this->getAttributeId(
+            $connection,
+            $resource->getTableName('eav_attribute'),
+            $column
+        );
+        $attributeValue = $this
+            ->getValueFromAttribute(
+                $connection,
+                $resource->getTableName($tableName),
+                $attributeId,
+                $entityId
+            );
+
+        return $attributeValue;
     }
 
     /**

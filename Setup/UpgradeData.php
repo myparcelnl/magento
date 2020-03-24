@@ -370,7 +370,7 @@ class UpgradeData implements UpgradeDataInterface
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
-                'myparcelCountryOfOrigin',
+                'myparcel_country_of_origin',
                 [
                     'group' => 'MyParcel Options',
                     'note' => 'Blabla',
@@ -385,7 +385,7 @@ class UpgradeData implements UpgradeDataInterface
                     'visible' => true,
                     'required' => false,
                     'user_defined' => true,
-                    'default' => null,
+                    'default' => 'NL',
                     'searchable' => true,
                     'filterable' => true,
                     'comparable' => true,
