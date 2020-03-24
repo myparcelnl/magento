@@ -294,17 +294,18 @@ class TrackTraceHolder
         if (! $this->consignment->isCdCountry()) {
             return $this;
         }
-        exit('here');
+
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
         foreach ($products as $product) {
-            exit($this->countryOfOrigin('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin'));
+            var_dump($this->countryOfOrigin('catalog_product_entity_int', $product['product_id'], 'country_of_origin'));
+            exit();
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
                 ->setClassification((int) $this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry('NL');
+                ->setCountry($this->countryOfOrigin('catalog_product_entity_int', $product['product_id'], 'country_of_origin'));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -338,7 +339,7 @@ class TrackTraceHolder
      *
      * @return string|null
      */
-    private function countryOfOrigin(string $tableName, string $entitiyId, string $column): ?string
+    private function countryOfOrigin(string $tableName, string $entityId, string $column): ?string
     {
         $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
         $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
