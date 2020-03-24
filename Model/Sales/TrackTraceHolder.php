@@ -297,15 +297,13 @@ class TrackTraceHolder
 
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
         foreach ($products as $product) {
-            var_dump($this->countryOfOrigin('catalog_product_entity_int', $product['product_id'], 'country_of_origin'));
-            exit();
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
                 ->setClassification((int) $this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry($this->countryOfOrigin('catalog_product_entity_int', $product['product_id'], 'country_of_origin'));
+                ->setCountry((string) $this->countryOfOrigin('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin'));
 
             $this->consignment->addItem($myParcelProduct);
         }
