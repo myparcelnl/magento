@@ -3,16 +3,16 @@
  * Show carrier column
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Richard Perdaan <info@sendmyparcel.be>
+ * @author      Richard Perdaan <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v3.0.0
  */
 
-namespace MyParcelBE\Magento\Ui\Component\Listing\Column;
+namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
 use Magento\Sales\Model\Order;
 use Magento\Ui\Component\Listing\Columns\Column;

@@ -7,21 +7,21 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelBE\Magento\Block\Sales;
+namespace MyParcelNL\Magento\Block\Sales;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
-use MyParcelBE\Magento\Helper\Checkout as CheckoutHelper;
-use MyParcelBE\Magento\Model\Quote\Checkout;
+use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
+use MyParcelNL\Magento\Model\Quote\Checkout;
 
 class View extends AbstractOrder
 {
@@ -31,7 +31,7 @@ class View extends AbstractOrder
     private $objectManager;
 
     /**
-     * @var \MyParcelBE\Magento\Helper\Order
+     * @var \MyParcelNL\Magento\Helper\Order
      */
     private $helper;
 
@@ -41,7 +41,7 @@ class View extends AbstractOrder
     public function _construct()
     {
         $this->objectManager = ObjectManager::getInstance();
-        $this->helper        = $this->objectManager->get('\MyParcelBE\Magento\Helper\Order');
+        $this->helper        = $this->objectManager->get('\MyParcelNL\Magento\Helper\Order');
         parent::_construct();
     }
 

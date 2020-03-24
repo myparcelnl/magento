@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelBE\Magento\Adapter;
+namespace MyParcelNL\Magento\Adapter;
 
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractShipmentOptionsAdapter;

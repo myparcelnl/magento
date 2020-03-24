@@ -7,23 +7,23 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe/magento
+ * https://github.com/myparcelnl/magento
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelBE\Magento\Model\Sales;
+namespace MyParcelNL\Magento\Model\Sales;
 
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\Helper\Context;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
-use MyParcelBE\Magento\Helper\Data;
+use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 use Psr\Log\LoggerInterface;
 
@@ -44,7 +44,7 @@ class Package extends Data implements PackageInterface
     /**
      * @var string
      */
-    private $current_country = 'BE';
+    private $current_country = 'NL';
 
     /**
      * @var int

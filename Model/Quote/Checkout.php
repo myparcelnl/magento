@@ -1,11 +1,11 @@
 <?php
 
-namespace MyParcelBE\Magento\Model\Quote;
+namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
-use MyParcelBE\Magento\Helper\Data;
-use MyParcelBE\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use \Magento\Store\Model\StoreManagerInterface;
 
 class Checkout
@@ -20,7 +20,7 @@ class Checkout
     private $data = [];
 
     /**
-     * @var \MyParcelBE\Magento\Helper\Checkout
+     * @var \MyParcelNL\Magento\Helper\Checkout
      */
     private $helper;
 
@@ -48,14 +48,14 @@ class Checkout
      *
      * @param \Magento\Checkout\Model\Session            $session
      * @param \Magento\Checkout\Model\Cart               $cart
-     * @param \MyParcelBE\Magento\Helper\Checkout        $helper
+     * @param \MyParcelNL\Magento\Helper\Checkout        $helper
      * @param PackageRepository                          $package
      * @param \Magento\Store\Model\StoreManagerInterface $currency
      */
     public function __construct(
         Session $session,
         Cart $cart,
-        \MyParcelBE\Magento\Helper\Checkout $helper,
+        \MyParcelNL\Magento\Helper\Checkout $helper,
         PackageRepository $package,
         StoreManagerInterface $currency
     ) {

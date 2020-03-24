@@ -3,16 +3,16 @@
  * The class to provide functions for new_shipment.phtml
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelBE\Magento\Block\Sales;
+namespace MyParcelNL\Magento\Block\Sales;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
@@ -20,8 +20,8 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
-use MyParcelBE\Magento\Helper\Checkout;
-use MyParcelBE\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Helper\Checkout;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
 class NewShipment extends AbstractItems
 {
@@ -36,7 +36,7 @@ class NewShipment extends AbstractItems
     private $objectManager;
 
     /**
-     * @var \MyParcelBE\Magento\Model\Source\DefaultOptions
+     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
     private $defaultOptions;
 
@@ -60,7 +60,7 @@ class NewShipment extends AbstractItems
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,
-            $this->objectManager->get('\MyParcelBE\Magento\Helper\Data')
+            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
         );
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);

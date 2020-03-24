@@ -2,13 +2,13 @@
 <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
     <!-- Example: curl http://127.0.0.1/rest/V1/delivery_options/get -->
     <route url="/V1/delivery_options/get" method="GET">
-        <service class="MyParcelBE\Magento\Api\DeliveryOptionsInterface" method="get"/>
+        <service class="MyParcelNL\Magento\Api\DeliveryOptionsInterface" method="get"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>
     </route>
     <route url="/V1/shipping_methods" method="POST">
-        <service class="MyParcelBE\Magento\Api\ShippingMethodsInterface" method="getFromDeliveryOptions"/>
+        <service class="MyParcelNL\Magento\Api\ShippingMethodsInterface" method="getFromDeliveryOptions"/>
         <resources>
             <resource ref="anonymous"/>
         </resources>

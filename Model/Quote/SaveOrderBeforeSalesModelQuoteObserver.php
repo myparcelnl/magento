@@ -9,24 +9,24 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelBE\Magento\Model\Quote;
+namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use MyParcelBE\Magento\Helper\Checkout;
-use MyParcelBE\Magento\Model\Checkout\Carrier;
-use MyParcelBE\Magento\Model\Checkout\DeliveryOptions;
-use MyParcelBE\Magento\Helper\Checkout as CheckoutAlias;
-use MyParcelBE\Magento\Model\Sales\Repository\DeliveryRepository;
+use MyParcelNL\Magento\Helper\Checkout;
+use MyParcelNL\Magento\Model\Checkout\Carrier;
+use MyParcelNL\Magento\Model\Checkout\DeliveryOptions;
+use MyParcelNL\Magento\Helper\Checkout as CheckoutAlias;
+use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -79,8 +79,8 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
 
         $destinationCountry = $order->getShippingAddress()->getCountryId();
-        if ($destinationCountry == AbstractConsignment::CC_BE &&
-            ! SplitStreet::isCorrectStreet($fullStreet, AbstractConsignment::CC_BE, $destinationCountry)
+        if ($destinationCountry == AbstractConsignment::CC_NL &&
+            ! SplitStreet::isCorrectStreet($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)
         ) {
             $order->setData(CheckoutAlias::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
         }

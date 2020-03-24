@@ -26,7 +26,7 @@ status_99,Inactif - Statut inconnu
 Version and support,Version et support
 General settings,Paramètres généraux
 API settings,Paramètres API
-Go to the general settings in the back office of MyParcel BE to generate the API Key.,Rendez-vous dans les paramètres généraux du backoffice MyParcel BE pour générer la clé API.
+Go to the general settings in the back office of MyParcel to generate the API Key.,Rendez-vous dans les paramètres généraux du backoffice MyParcel pour générer la clé API.
 The API Key,Introduisez ici votre clé API
 Default shipment settings,Paramètres d'expédition standards
 Print MyParcel labels directly,Imprimez directement les étiquettes MyParcel
@@ -70,7 +70,7 @@ MyParcel version,Version de MyParcel
 "To read the instructions for the Magento extension, click %1 here %2.","Cliquez %1 ici %2 pour consulter le manuel de l'extension Magento."
 When using the extension please note:,Portez attention aux points suivants lorsque vous utilisez cette extension :
 To be able to configure the extension you need to possess and use an active account.,Vous devez disposer d'une compte actif pour configurer l'extension.
-During the transition phase the old Magento MyParcel BE extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel BE extension.,Si vous utilisez l'ancienne extension MyParcel BE, celle-ci peut demeurer active durant la phase de transition. Vous devez cependant désactiver PakjeGemak dans l'ancienne extension MyParcel BE.
+During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.,Si vous utilisez l'ancienne extension MyParcel, celle-ci peut demeurer active durant la phase de transition. Vous devez cependant désactiver PakjeGemak dans l'ancienne extension MyParcel.
 Magento &amp 3rd party version compatibility,Magento et compatibilité avec des extensions tierces
 We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.,Nous ne pouvons garantir le fonctionnement sans faille de l'extension si vous souhaitez utiliser celle-ci sur une version ou une édition non supportée de Magento, ou si vous souhaitez l'utiliser avec une extension de tiers qui n'est pas compatible. En cas de question, merci de nous contacter.
 Questions and information about your account,Questions et informations relatives au compte
@@ -118,7 +118,7 @@ Pickup fee,Collecte - prix
 Drop off day,Jours de dépôt
 Select the days that you send the orders.,Sélectionnez les jours lors desquels vous envoyez les commandes.
 Show a delivery day in the checkout.,Afficher le jour de livraison au moment du checkout.
-You not have entered the correct API key. Go to the general settings in the back office of MyParcel BE to generate the API Key.,Vous n'avez pas introduit une clé API correcte. Rendez-vous dans les paramètres généraux du backoffice de MyParcel BE pour générer la clé API.
+You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,Vous n'avez pas introduit une clé API correcte. Rendez-vous dans les paramètres généraux du backoffice de MyParcel pour générer la clé API.
 Address details are not entered,Les données relatives à l'adresse ne sont pas complétées
 The times will be visible when nothing is filled in,Les temps ne seront pas visibles si aucune donnée n'est complétée
 "Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Introduisez ici un montant positif ou négatif. Si vous souhaitez par exemple proposer une réduction pour cette fonction ou décompter des frais supplémentaires pour cette option de livraison."

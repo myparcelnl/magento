@@ -2,7 +2,7 @@ define(
     [
         'jquery',
         'Magento_Ui/js/modal/confirm',
-        'text!MyParcelBE_Magento/template/grid/order_massaction.html',
+        'text!MyParcelNL_Magento/template/grid/order_massaction.html',
         'Magento_Ui/js/modal/alert',
         'loadingPopup',
         'mage/translate'
@@ -96,7 +96,7 @@ define(
 
                         return this;
                     }
-                     
+
                     if (('has_api_key' in this.options) && (this.options['has_api_key'] == false)) {
                         alert({title: $.mage.__('No key found. Go to Configuration and then to MyParcel to enter the key.')});
 

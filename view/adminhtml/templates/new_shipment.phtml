@@ -1,5 +1,5 @@
-<?php /** @var MyParcelBE\Magento\Block\Sales\NewShipment $block */ ?>
-<?php /** @var MyParcelBE\Magento\Block\Sales\NewShipment $jsonDeliveryOptions */ ?>
+<?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */ ?>
+<?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $jsonDeliveryOptions */ ?>
     <input name="mypa_extra_options_checkboxes_in_form"
            value="1"
            type="hidden"
@@ -26,7 +26,7 @@
         </div>
     </div>
 
-<?php if ($block->getCountry() == 'BE'): ?>
+<?php if ($block->getCountry() == 'NL'): ?>
     <div class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
         <input id="mypa_signature"
                class="admin__control-checkbox"
@@ -52,7 +52,7 @@
     <script type="text/x-magento-init">
        {
            ".page-footer": {
-               "myparcelbe_newshipment": {}
+               "myparcelnl_newshipment": {}
             }
        }
     </script>

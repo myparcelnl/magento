@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelBE\Magento\Api;
+namespace MyParcelNL\Magento\Api;
 
 /**
  * Get delivery options

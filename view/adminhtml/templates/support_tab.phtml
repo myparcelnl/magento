@@ -1,5 +1,5 @@
 <?php
-/** @var $block \MyParcelBE\Magento\Block\System\Config\Form\SupportTabRepository */
+/** @var $block \MyParcelNL\Magento\Block\System\Config\Form\SupportTabRepository */
 ?>
 
 <link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css" />
@@ -8,10 +8,10 @@
     <div class="entry-edit form-inline">
         <div class="section-config active">
             <div class="entry-edit-head admin__collapsible-block">
-                <a id="myparcelbe_magento_version-head" href="#myparcelbe_magento_version-link" onclick="Fieldset.toggleCollapse('myparcelbe_magento_version'); return false;" class="open"><?= __('Version and support');?></a>
+                <a id="myparcelnl_magento_version-head" href="#myparcelnl_magento_version-link" onclick="Fieldset.toggleCollapse('myparcelnl_magento_version'); return false;" class="open"><?= __('Version and support');?></a>
             </div>
-            <input id="myparcelbe_magento_version-state" name="config_state[myparcelbe_magento_version]" type="hidden" value="1">
-            <fieldset class="config admin__collapsible-block" id="myparcelbe_magento_version">
+            <input id="myparcelnl_magento_version-state" name="config_state[myparcelnl_magento_version]" type="hidden" value="1">
+            <fieldset class="config admin__collapsible-block" id="myparcelnl_magento_version">
                 <div class="myparcel_container">
                     <table cellspacing="0" class="form-list">
                         <tbody>
@@ -22,14 +22,14 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    <?= __('The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.', '<b>'.$block->getModuleVersion() . '</b>',"<b><a class=\"link\" target=\"_blank\" href=\"https://github.com/myparcelbe/magento/releases/latest\"><span class= \"current_version\"></span></a></b>");?>
+                                                    <?= __('The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.', '<b>'.$block->getModuleVersion() . '</b>',"<b><a class=\"link\" target=\"_blank\" href=\"https://github.com/myparcelnl/magento/releases/latest\"><span class= \"current_version\"></span></a></b>");?>
                                                 </div>
                                             </td>
                                         </tr>
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    <?= __('To read the instructions for the Magento extension, click %1 here %2.','<a target="_blank" href="https://myparcelbe.github.io/magento/">','</a>');?>
+                                                    <?= __('To read the instructions for the Magento extension, click %1 here %2.','<a target="_blank" href="https://myparcel.github.io/magento/">','</a>');?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -39,7 +39,7 @@
                                                     <h3><?= __('When using the extension please note:');?></h3>
                                                     <ol>
                                                         <li><?= __('To be able to configure the extension you need to possess and use an active account.');?></li>
-                                                        <li><?= __('During the transition phase the old Magento MyParcel BE extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel BE extension.');?></li>
+                                                        <li><?= __('During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.');?></li>
                                                     </ol>
                                                 </div>
                                                 <div class="text-box instructions">
@@ -56,9 +56,9 @@
                                                     <table class="support_contact">
                                                         <tbody>
                                                             <tr>
-                                                                <td class="version_contact_first"><?= __('MyParcel BE:');?></td>
+                                                                <td class="version_contact_first"><?= __('MyParcel:');?></td>
                                                                 <td class="last">
-                                                                    <a target="_blank" href="https://www.sendmyparcel.be/"><?= __('www.sendmyparcel.be');?></a>
+                                                                    <a target="_blank" href="https://www.myparcel.nl/"><?= __('www.myparcel.nl');?></a>
                                                                 </td>
                                                             </tr>
                                                             <tr>
@@ -67,7 +67,7 @@
                                                             </tr>
                                                             <tr>
                                                                 <td class="version_contact_first"><?= __('Email');?></td>
-                                                                <td class="last"><a href="mailto:info@sendmyparcel.be"><?= __('info@sendmyparcel.be');?></a></td>
+                                                                <td class="last"><a href="mailto:info@myparcel.nl"><?= __('info@myparcel.nl');?></a></td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
@@ -75,22 +75,22 @@
                                                     <h3 class="myparcel_documents"><?= __('Documents');?></h3>
                                                     <ul class="support_tab">
                                                         <li>
-                                                            <a class="link" target="_blank" href="https://github.com/myparcelbe/magento/releases/latest">
+                                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases/latest">
                                                                 <?= __('Latest stable release');?>
                                                             </a>  (<span class="current_version"></span>)
                                                             <script>
                                                                 require(['jquery'], function($){
-                                                                    $.get('https://api.github.com/repos/myparcelbe/magento/releases/latest', function (data) {
+                                                                    $.get('https://api.github.com/repos/myparcel/magento/releases/latest', function (data) {
                                                                         $('.current_version').html('' + data.name + '');
                                                                     });
                                                                 });
                                                             </script>
                                                         </li>
                                                         <li>
-                                                            <a class="link" target="_blank" href="https://github.com/myparcelbe/magento/releases" title="<?= __('Full changelog');?>"><?= __('Full changelog');?></a>
+                                                            <a class="link" target="_blank" href="https://github.com/myparcelnl/magento/releases" title="<?= __('Full changelog');?>"><?= __('Full changelog');?></a>
                                                         </li>
                                                         <li>
-                                                            <a class="link" target="_blank" href="https://myparcelbe.github.io/magento/#2" title="<?= __('Installation and configuration manual');?>"><?= __('Installation and configuration manual');?></a>
+                                                            <a class="link" target="_blank" href="https://myparcel.github.io/magento/#2" title="<?= __('Installation and configuration manual');?>"><?= __('Installation and configuration manual');?></a>
                                                         </li>
                                                     </ul>
                                                 </div>
@@ -105,7 +105,7 @@
                 </div>
             </fieldset>
             <script type="text/javascript">
-                require(['prototype'], function(){Fieldset.applyCollapse('myparcelbe_magento_version');});
+                require(['prototype'], function(){Fieldset.applyCollapse('myparcelnl_magento_version');});
             </script>
         </div>
     </div>

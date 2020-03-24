@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelBE\Magento\Model\Checkout;
+namespace MyParcelNL\Magento\Model\Checkout;
 
 use Magento\Checkout\Api\Data\ShippingInformationInterface;
 use Magento\Checkout\Model\ShippingInformationManagement;

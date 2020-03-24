@@ -7,19 +7,19 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe/magento
+ * https://github.com/myparcelnl/magento
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelBE\Magento\Model\Sales\Repository;
+namespace MyParcelNL\Magento\Model\Sales\Repository;
 
 
-use MyParcelBE\Magento\Model\Sales\Package;
+use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {

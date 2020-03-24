@@ -3,26 +3,26 @@
  * An object with the track and trace data
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@sendmyparcel.be>
+ * @author      Reindert Vetter <reindert@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelBE\Magento\Model\Sales;
+namespace MyParcelNL\Magento\Model\Sales;
 
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelBE\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
-use MyParcelBE\Magento\Helper\Checkout;
-use MyParcelBE\Magento\Helper\Data;
-use MyParcelBE\Magento\Model\Source\DefaultOptions;
-use MyParcelBE\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Helper\Checkout;
+use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractShipmentOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
@@ -32,7 +32,7 @@ use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 
 /**
  * Class TrackTraceHolder
- * @package MyParcelBE\Magento\Model\Sales
+ * @package MyParcelNL\Magento\Model\Sales
  */
 class TrackTraceHolder
 {
@@ -40,7 +40,7 @@ class TrackTraceHolder
      * Track title showing in Magento
      */
     const MYPARCEL_TRACK_TITLE  = 'MyParcel';
-    const MYPARCEL_CARRIER_CODE = 'myparcelbe';
+    const MYPARCEL_CARRIER_CODE = 'myparcel';
 
     /**
      * @var ObjectManagerInterface
@@ -53,7 +53,7 @@ class TrackTraceHolder
     protected $messageManager;
 
     /**
-     * @var \MyParcelBE\Magento\Model\Source\DefaultOptions
+     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
     private static $defaultOptions;
 
@@ -166,7 +166,7 @@ class TrackTraceHolder
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman . '-' . $e);
         }
 
-        if ($address->getPostcode() == null && $address->getCountryId() == 'BE') {
+        if ($address->getPostcode() == null && $address->getCountryId() == 'NL') {
             $errorHuman = 'An error has occurred while validating the order number ' . $magentoTrack->getOrderId() . '. Postcode is required.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman);
@@ -243,7 +243,7 @@ class TrackTraceHolder
                     ->setWeight($product->getWeight() ?: 1)
                     ->setItemValue($this->getCentsByPrice($product->getPrice()))
                     ->setClassification('0000')
-                    ->setCountry('BE');
+                    ->setCountry('NL');
                 $this->consignment->addItem($myParcelProduct);
             }
         }
@@ -257,7 +257,7 @@ class TrackTraceHolder
                 ->setWeight($product['weight'] ?: 1)
                 ->setItemValue($this->getCentsByPrice($product['price']))
                 ->setClassification('0000')
-                ->setCountry('BE');
+                ->setCountry('NL');
 
             $this->consignment->addItem($myParcelProduct);
         }

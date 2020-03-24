@@ -3,23 +3,23 @@
  * Set MyParcel options to new track
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelBE\Magento\Observer;
+namespace MyParcelNL\Magento\Observer;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order\Shipment;
-use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
 class NewShipment implements ObserverInterface
 {
@@ -45,7 +45,7 @@ class NewShipment implements ObserverInterface
     private $orderCollection;
 
     /**
-     * @var \MyParcelBE\Magento\Helper\Data
+     * @var \MyParcelNL\Magento\Helper\Data
      */
     private $helper;
 
@@ -57,7 +57,7 @@ class NewShipment implements ObserverInterface
         $this->objectManager = ObjectManager::getInstance();
         $this->request = $this->objectManager->get('Magento\Framework\App\RequestInterface');
         $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper = $this->objectManager->get('MyParcelBE\Magento\Helper\Data');
+        $this->helper = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }
 
@@ -91,7 +91,7 @@ class NewShipment implements ObserverInterface
 
         // The reason that $amount is hard coded is because this is part of multicollo, this is not possible in the Belguim plugin. However, a preparation has been made for this.
         $amount  = 1;
-        /** @var \MyParcelBE\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
+        /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
 

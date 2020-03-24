@@ -1,9 +1,9 @@
 <?php
 
-namespace MyParcelBE\Magento\Model\Checkout;
+namespace MyParcelNL\Magento\Model\Checkout;
 
 use Exception;
-use MyParcelBE\Magento\Helper\Data;
+use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 
 class DeliveryOptionsToShippingMethods

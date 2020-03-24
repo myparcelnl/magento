@@ -12,27 +12,27 @@
         </arguments>
     </virtualType>
     <!-- API delivery settings -->
-    <preference for="MyParcelBE\Magento\Api\DeliveryOptionsInterface"
-                type="MyParcelBE\Magento\Model\Checkout\DeliveryOptions" />
+    <preference for="MyParcelNL\Magento\Api\DeliveryOptionsInterface"
+                type="MyParcelNL\Magento\Model\Checkout\DeliveryOptions" />
     <!-- API shipping methods -->
-    <preference for="MyParcelBE\Magento\Api\ShippingMethodsInterface"
-                type="MyParcelBE\Magento\Model\Checkout\ShippingMethods" />
+    <preference for="MyParcelNL\Magento\Api\ShippingMethodsInterface"
+                type="MyParcelNL\Magento\Model\Checkout\ShippingMethods" />
     <!-- Add print label button in order view -->
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
-        <plugin name="mypa-massaction-button" sortOrder="10" type="MyParcelBE\Magento\Plugin\Block\Adminhtml\Order\View"/>
+        <plugin name="mypa-massaction-button" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>
     </type>
     <!-- Add print label button shipment view-->
     <type name="Magento\Shipping\Block\Adminhtml\View">
-        <plugin name="mypa-action-download-shipment-label" sortOrder="10" type="MyParcelBE\Magento\Plugin\Block\Adminhtml\Shipment\View"/>
+        <plugin name="mypa-action-download-shipment-label" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Shipment\View"/>
     </type>
     <!-- Avoid default email is sent. With a MyParcel shipment, the mail should be sent only after the barcode exists. -->
     <type name="Magento\Sales\Model\Order\Email\Container\ShipmentIdentity">
-        <plugin name="MyParcelBE_Magento_Plugin_Magento_Sales_Model_Order_Email_Container_ShipmentIdentity" sortOrder="10" type="MyParcelBE\Magento\Plugin\Magento\Sales\Model\Order\Email\Container\ShipmentIdentity"/>
+        <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Model_Order_Email_Container_ShipmentIdentity" sortOrder="10" type="MyParcelNL\Magento\Plugin\Magento\Sales\Model\Order\Email\Container\ShipmentIdentity"/>
     </type>
     <!-- Save address information in checkout -->
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
-        <plugin name="save-in-quote" type="MyParcelBE\Magento\Model\Checkout\ShippingInformationManagementPlugin" sortOrder="10"/>
+        <plugin name="save-in-quote" type="MyParcelNL\Magento\Model\Checkout\ShippingInformationManagementPlugin" sortOrder="10"/>
     </type>
     <!-- Get all Rates -->
-    <preference for="Magento\Shipping\Model\Rate\Result" type="MyParcelBE\Magento\Model\Rate\Result" />
+    <preference for="Magento\Shipping\Model\Rate\Result" type="MyParcelNL\Magento\Model\Rate\Result" />
 </config>

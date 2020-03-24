@@ -5,16 +5,16 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2016 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelBE\Magento\Helper;
+namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -26,10 +26,10 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
-    const MODULE_NAME             = 'MyParcelBE_Magento';
-    const XML_PATH_GENERAL        = 'myparcelbe_magento_general/';
-    const XML_PATH_BPOST_SETTINGS = 'myparcelbe_magento_bpost_settings/';
-    const XML_PATH_DPD_SETTINGS   = 'myparcelbe_magento_dpd_settings/';
+    const MODULE_NAME             = 'MyParcelNL_Magento';
+    const XML_PATH_GENERAL        = 'myparcelnl_magento_general/';
+    const XML_PATH_BPOST_SETTINGS = 'myparcelnl_magento_bpost_settings/';
+    const XML_PATH_DPD_SETTINGS   = 'myparcelnl_magento_dpd_settings/';
 
     public const CARRIERS = [BpostConsignment::CARRIER_NAME, DPDConsignment::CARRIER_NAME];
 

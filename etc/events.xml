@@ -2,9 +2,9 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <!-- Create MyParcel concept if shipment is created -->
     <event name="sales_order_shipment_save_before">
-        <observer name="mypa_save_shipment" instance="MyParcelBE\Magento\Observer\NewShipment" />
+        <observer name="mypa_save_shipment" instance="MyParcelNL\Magento\Observer\NewShipment" />
     </event>
     <event name="sales_model_service_quote_submit_before">
-        <observer name="mypa_sales_model_service_quote_submit_before" instance="MyParcelBE\Magento\Model\Quote\SaveOrderBeforeSalesModelQuoteObserver" />
+        <observer name="mypa_sales_model_service_quote_submit_before" instance="MyParcelNL\Magento\Model\Quote\SaveOrderBeforeSalesModelQuoteObserver" />
     </event>
 </config>

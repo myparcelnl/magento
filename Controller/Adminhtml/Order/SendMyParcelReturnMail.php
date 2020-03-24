@@ -1,25 +1,25 @@
 <?php
 
-namespace MyParcelBE\Magento\Controller\Adminhtml\Order;
+namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
-use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
  * Action to send mails with a return label
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
+class MyParcelReturnMail extends \Magento\Framework\App\Action\Action
 {
     const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
@@ -70,7 +70,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
         if ($this->orderCollection->apiKeyIsCorrect() !== true) {
-            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel BE to generate the API Key.';
+            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
 

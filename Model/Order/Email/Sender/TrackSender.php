@@ -7,15 +7,15 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
  */
-namespace MyParcelBE\Magento\Model\Order\Email\Sender;
+namespace MyParcelNL\Magento\Model\Order\Email\Sender;
 
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Sales\Model\Order;
@@ -25,7 +25,7 @@ use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Sales\Model\Order\Address\Renderer;
 use Magento\Framework\Event\ManagerInterface;
-use MyParcelBE\Magento\Model\Order\Email\Container\TrackIdentity;
+use MyParcelNL\Magento\Model\Order\Email\Container\TrackIdentity;
 
 class TrackSender extends Sender
 {

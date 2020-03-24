@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelBE\Magento\Model\Source;
+namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Option\ArrayInterface;
 

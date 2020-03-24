@@ -1,22 +1,22 @@
 <?php
 
-namespace MyParcelBE\Magento\Controller\Adminhtml\Shipment;
+namespace MyParcelNL\Magento\Controller\Adminhtml\Shipment;
 
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
-use MyParcelBE\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 
 /**
  * Action to create and print MyParcel Track
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelbe
+ * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelbe/magento
+ * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
 class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
@@ -68,7 +68,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     private function massAction()
     {
         if ($this->shipmentCollection->apiKeyIsCorrect() !== true) {
-            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel BE to generate the API Key.';
+            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
 

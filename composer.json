@@ -1,22 +1,22 @@
 {
-    "name": "myparcelbe/magento",
-    "description": "A Magento 2 module that creates MyParcel Belgium labels",
+    "name": "myparcel/magento",
+    "description": "A Magento 2 module that creates MyParcel labels",
     "type": "magento2-module",
     "version": "3.0.0-beta.3",
-    "homepage": "https://www.sendmyparcel.be",
-    "keywords": ["MyParcel BE", "My Parcel BE", "Bpost", "bpost", "Magento 2"],
+    "homepage": "https://www.myparcel.nl",
+    "keywords": ["MyParcel", "myparcel", "PostNL", "postnl", "Magento 2"],
     "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Reindert Vetter",
-            "email": "info@sendmyparcel.be",
-            "homepage": "https://www.sendmyparcel.be",
+            "email": "info@myparcel.nl",
+            "homepage": "https://www.myparcel.nl",
             "role": "Developer"
         },
         {
             "name": "Richard Perdaan",
-            "email": "info@sendmyparcel.be",
-            "homepage": "https://www.sendmyparcel.be",
+            "email": "info@myparcel.nl",
+            "homepage": "https://www.myparcel.nl",
             "role": "Developer"
         }
     ],
@@ -31,7 +31,7 @@
     "autoload": {
         "files": [ "registration.php" ],
         "psr-4" : {
-            "MyParcelBE\\Magento\\" : ""
+            "MyParcelNL\\Magento\\" : ""
         }
     },
     "extra": {

@@ -23,15 +23,15 @@ status_38,Inactief - Zending afgehaald op afhaallocatie
 status_39,Inactief - Retourzending afgeleverd
 status_40,Inactief - Retourzending op afhaallocactie
 status_99,Inactief - Onbekende status
-myparcelbe_magento_bpost_settings/delivery_title, bpost bezorging
-myparcelbe_magento_bpost_settings/pickup_title, bpost ophaallocatie
-myparcelbe_magento_bpost_settings/delivery/signature_title, bpost bezorging met handtekening
-myparcelbe_magento_dpd_settings/delivery_title,  DPD bezorging
-myparcelbe_magento_dpd_settings/pickup_title, DPD ophaallocatie
+myparcelnl_magento_bpost_settings/delivery_title, bpost bezorging
+myparcelnl_magento_bpost_settings/pickup_title, bpost ophaallocatie
+myparcelnl_magento_bpost_settings/delivery/signature_title, bpost bezorging met handtekening
+myparcelnl_magento_dpd_settings/delivery_title,  DPD bezorging
+myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
 Version and support,Versie en support
 General settings,Algemene instellingen
 API settings,API instellingen
-Go to the general settings in the back office of MyParcel BE to generate the API Key.,Ga naar de algemene instellingen in de backoffice van MyParcel BE om de API Key te genereren.
+Go to the general settings in the back office of MyParcel to generate the API Key.,Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
 The API Key,Stel hier de API key in
 Default shipment settings,Standaard verzendinstellingen
 Print MyParcel labels directly,Print MyParcel labels direct
@@ -75,7 +75,7 @@ MyParcel version,MyParcel versie
 "To read the instructions for the Magento extension, click %1 here %2.","Klik %1 hier %2 om de handleiding van de Magento extensie te bekijken."
 When using the extension please note:,Aandachtspunten bij het gebruik van deze extensie:
 To be able to configure the extension you need to possess and use an active account.,U dient een actief account te hebben om de extensie te kunnen configureren.
-During the transition phase the old Magento MyParcel BE extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel BE extension.,Indien u de oude MyParcel BE extensie gebruikt kan deze actief blijven in de overgangsfase. Wel dient u PakjeGemak in de oude MyParcel BE extensie uit te schakelen.
+During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.,Indien u de oude MyParcel extensie gebruikt kan deze actief blijven in de overgangsfase. Wel dient u PakjeGemak in de oude MyParcel extensie uit te schakelen.
 Magento &amp; 3rd party version compatibility,Magento & derde partijen ondersteuning
 We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.,Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento, of als u de extensie wilt gebruiken samen met een 3rd party extensie die niet ondersteund wordt, kunnen wij niet garanderen dat de extensie feilloos zal functioneren. Voor vragen kunt u contact opnemen met ons.
 Questions and information about your account,Account vragen en informatie
@@ -127,7 +127,7 @@ Pickup fee,Ophalen prijs
 Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
 Show a delivery day in the checkout.,Laat een bezorgdag zien in de checkout.
-You not have entered the correct API key. Go to the general settings in the back office of MyParcel BE to generate the API Key.,U hebt niet de juiste API-sleutel ingevoerd. Ga naar de algemene instellingen in de backoffice van MyParcel BE om de API Key te genereren.
+You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,U hebt niet de juiste API-sleutel ingevoerd. Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
 Address details are not entered,Adresgegevens zijn niet ingevuld
 The times will be visible when nothing is filled in,De tijden zullen zichtbaar zijn wanneer niets is ingevuld
 "Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Voer een bedrag in dat positief of negatief is. Wilt u bijvoorbeeld een korting geven voor het gebruik van deze functie of wilt u extra in rekening brengen voor deze leveringsoptie."

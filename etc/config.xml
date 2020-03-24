@@ -8,7 +8,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <myparcelbe_magento_general>
+        <myparcelnl_magento_general>
             <print>
                 <paper_type>A4</paper_type>
             </print>
@@ -23,8 +23,8 @@
                 <pickup_list_button_title>List</pickup_list_button_title>
                 <pickup_map_button_title>Map</pickup_map_button_title>
             </delivery_titles>
-        </myparcelbe_magento_general>
-        <myparcelbe_magento_bpost_settings>
+        </myparcelnl_magento_general>
+        <myparcelnl_magento_bpost_settings>
             <options>
                 <signature_active>0</signature_active>
                 <signature_from_price>1</signature_from_price>
@@ -49,8 +49,8 @@
                 <active>1</active>
                 <fee>0</fee>
             </pickup>
-        </myparcelbe_magento_bpost_settings>
-        <myparcelbe_magento_dpd_settings>
+        </myparcelnl_magento_bpost_settings>
+        <myparcelnl_magento_dpd_settings>
             <general>
                 <deliverydays_window>1</deliverydays_window>
                 <cutoff_time>15,30,00</cutoff_time>
@@ -65,7 +65,7 @@
                 <title>Ophalen bij een DPD locatie</title>
                 <fee>0</fee>
             </pickup>
-        </myparcelbe_magento_dpd_settings>
+        </myparcelnl_magento_dpd_settings>
         <sales_email>
             <track>
                 <enabled>1</enabled>
