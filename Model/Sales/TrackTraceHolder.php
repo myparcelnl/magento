@@ -297,13 +297,14 @@ class TrackTraceHolder
 
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
         foreach ($products as $product) {
+            $productCountryOfOrigin = $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin');
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
-                ->setClassification($this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry($this->getCountryOfOrigin($product));
+                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
+                ->setCountry((string) $productCountryOfOrigin ?? $this->helper->getGeneralConfig('basic_settings/country_of_origin'));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -328,20 +329,6 @@ class TrackTraceHolder
         }
 
         return (int) $weight ?: 1000;
-    }
-
-    /**
-     * Get country of origin from myparcel settings or product settings
-     *
-     * @param $product
-     * @return string
-     */
-    public function getCountryOfOrigin($product): string
-    {
-        $productCountryOfOrigin = $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin');
-        $mpCountryOfOrigin = $this->helper->getGeneralConfig('basic_settings/country_of_origin');
-
-        return $productCountryOfOrigin ?? $mpCountryOfOrigin;
     }
 
     /**
