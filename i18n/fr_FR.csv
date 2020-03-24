@@ -1,0 +1,140 @@
+﻿status_1,Concept
+status_2,Prénotifié
+status_3,Présenté chez bpost
+status_4,Au tri
+status_5,En cours de distribution
+status_6,Envoi à la douane
+status_7,Envoi livré
+status_8,Envoi au point de collecte
+status_9,Envoi retiré au point de collecte
+status_10,Envoi retour livré
+status_11,Envoi retour au point de collecte
+status_12,Etiquette en franchise de port imprimée
+status_13,Crédité
+status_30,Inactif - Concept
+status_31,Inactif - Prénotifié
+status_32,Inactif - Présenté chez MyParcel
+status_33,Inactif - Au tri
+status_34,Inactif - En cours de distribution
+status_35,Inactif - Envoi à la douane
+status_36,Inactif - Envoi livré
+status_37,Inactif - Envoi au point de collecte
+status_38,Inactif - Envoi retiré au point de collecte
+status_39,Inactif - Envoi retour livré
+status_40,Inactif - Envoi retour au point de collecte
+status_99,Inactif - Statut inconnu
+Version and support,Version et support
+General settings,Paramètres généraux
+API settings,Paramètres API
+Go to the general settings in the back office of MyParcel BE to generate the API Key.,Rendez-vous dans les paramètres généraux du backoffice MyParcel BE pour générer la clé API.
+The API Key,Introduisez ici votre clé API
+Default shipment settings,Paramètres d'expédition standards
+Print MyParcel labels directly,Imprimez directement les étiquettes MyParcel
+Print settings,Paramètres d'impression
+Paper type,Orientation de l'impression
+Select a standard orientation for printing labels.,Sélectionnez une orientation standard pour l'impression des étiquettes.ntatie voor het printen van labels.
+Default shipping options,Options d'expédition standards
+"Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Indiquez ici vos préférences standards quant aux options d'expédition. S'ils sont d'application, ces paramètres seront utilisés par défaut pour tous vos envois. Ces options peuvent bien sûr toujours être modifiées lors du traitement."
+Automate 'Signature on receipt',Automatisation de la 'Signature pour réception'
+Signature on receipt' operates above a certain order total amount,La 'Signature pour réception' est activée lorsque le montant total dépasse le montant indiqué ci-dessus
+Automate 'Insurance € 500',Automatisation de l''Assurance jusqu'à € 500'
+"Insurance € 500' operates above a certain order total amount.","L''Assurance jusqu'à € 500' est activée lorsque le montant total dépasse le montant ci-dessus."
+From price,A partir du prix
+Track number,Numéro de suivi
+Track status,Statut du suivi
+Track action,Action de suivi
+MyParcel options,Options MyParcel
+Package,Colis
+Signature on receipt,Signature pour réception
+Insured up to:,Assuré jusqu'à :
+Download package label,Télécharger l'étiquette du colis
+Create new concept,Créer une nouveau concept
+Create shipment,Créer un envoi
+Please select an item from the list,Sélectionnez une commande dans la liste
+Please check address,Vérifiez l'adresse
+No key found. Go to Configuration and then to MyParcel to enter the key.,Aucune clé API trouvée. Allez dans Configuration et dans MyParcel pour introduire la clé API.
+"No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.","Aucun envoi ne peut être créé pour cette commande. Les envois ne peuvent être créés si le statut est 'En attente' ou si le produit a une forme digitale."
+MyParcel Track,Code-barres MyParcel
+Use Shipment template,Utilisez un modèle d'envoi
+Enable this option to add the MyParcel barcode in the email.,Activez cette option pour ajouter le code-barres MyParcel dans le l'e-mail.
+MyParcel Shipment Email Template,Modèle d'e-mail pour un envoi MyParcel
+MyParcel Shipment Email Template for Guest,Modèle d'e-mail pour un envoi MyParcel comme Invité
+Use Shipment email template when "Default" option is selected.,Utilisez le modèle d'envoi lorsque l'option "par défaut" a été sélectionnée.
+Action type,Action
+Download label,Téléchargez l'étiquette
+Open in new tab, Ouvrir une nouvel onglet
+Package Type,Type de colis
+Print position,Position d'impression
+MyParcel version,Version de MyParcel
+"The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","La version %1 de l'extension est installée sur votre boutique en ligne. Actuellement, la dernière version stable est la version %2. Si vous rencontrez des problèmes, nous vous conseillons d'installer la dernière version stable dans votre environnement Magento."
+"To read the instructions for the Magento extension, click %1 here %2.","Cliquez %1 ici %2 pour consulter le manuel de l'extension Magento."
+When using the extension please note:,Portez attention aux points suivants lorsque vous utilisez cette extension :
+To be able to configure the extension you need to possess and use an active account.,Vous devez disposer d'une compte actif pour configurer l'extension.
+During the transition phase the old Magento MyParcel BE extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel BE extension.,Si vous utilisez l'ancienne extension MyParcel BE, celle-ci peut demeurer active durant la phase de transition. Vous devez cependant désactiver PakjeGemak dans l'ancienne extension MyParcel BE.
+Magento &amp 3rd party version compatibility,Magento et compatibilité avec des extensions tierces
+We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.,Nous ne pouvons garantir le fonctionnement sans faille de l'extension si vous souhaitez utiliser celle-ci sur une version ou une édition non supportée de Magento, ou si vous souhaitez l'utiliser avec une extension de tiers qui n'est pas compatible. En cas de question, merci de nous contacter.
+Questions and information about your account,Questions et informations relatives au compte
+"For questions related to your account, configuration problems, extension conflicts and bugs, please contact us.","En cas de questions relatives à votre compte, à des problèmes de configuration, à des conflits d'extension ou à des bogues, merci de nous contacter."
+Phone:,Téléphone
+Email,E-mail
+Documents,Documents
+Latest stable release,Dernière version stable
+Installation and configuration manual,Manuel d'installation et de configuration
+Full changelog,Toutes les notes de mise à jour
+Installation and configuration instructions,Instructions d'installation et de configuration
+Do you want to know what they are doing in the near future? Below you can find the schedule for Magento 2. Do you have any suggestions or ideas? They are always welcome. That way we will continue to improve the extension together.,Le planning relatif à Magento 2 vous permettra de rester informé des prochains développements. Vous avez des suggestions ou des idées ? N'hésitez pas à nous les envoyer ! Nous pourrons ainsi continuer à améliorer ensemble l'extension.
+API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,La clé API est inconnue. Rendez-vous dans les paramètres du backoffice pour générer une clé API. Introduisez la clé API dans les paramètres.
+Basic settings,Paramètres de base
+Delivery settings,Paramètres de livraison
+Show delivery date,Afficher la date de livraison
+day,jour
+days,jours
+Hide days,Masquer les jours
+Cut-off time,Heure limite de commande
+"If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Lorsqu'une commande est passée après la dernière heure de commande le vendredi et avant celle-ci le lundi, c'est donc le mardi qui sera affiché comme premier jour de livraison."
+Drop-off days,Jours de dépôt
+Saturday active,Samedi actif
+Saturday title,Samedi - titre
+Dropoff-delay,Délai
+No delay,Pas de délai
+"This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at Bpost when ordered before the cutoff time.","Cette option vous permet de définir le nombre de jours dont vous avez besoin pour (recevoir,) emballer et présenter le produit à bpost, à partir du moment de la commande."
+Methods,Mode d'expédition
+The extra myparcel options are added to this shipping method,Les options Myparcel complémentaires seront ajoutées à ce mode d'expédition
+Delivery title,Livraison - titre
+Deliver the package only at address of the intended recipient.,Livraison du colis à l'adresse du destinataire uniquement.
+This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
+Not possible if Pickup at Bpost location is not active,Ceci ne sera pas possible si la collecte à un point bpost n'est pas activée
+Signature on receipt,Signature pour réception
+Signature on receipt title, Signature pour réception - titre
+Signature on receipt fee, Signature pour réception - prix
+This will be added to the regular shipping price, Ceci sera ajouté aux frais d'expédition standards
+If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Si les deux éléments sont sélectionnés, ce prix sera ajouté aux frais d'expédition standards. Laissez vide pour ignorer cette option.
+"Besides assigning weights to all products, you can also specify a volume of each product.","Pour utiliser cette fonction de manière optimale, spécifiez d'abord le poids ou le volume de vos produits."
+This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
+Pickup at Bpost location,Collecte dans un point bpost
+Pickup active,Collecte active
+Pickup titel,Collecte - titre
+Pickup fee,Collecte - prix
+Drop off day,Jours de dépôt
+Select the days that you send the orders.,Sélectionnez les jours lors desquels vous envoyez les commandes.
+Show a delivery day in the checkout.,Afficher le jour de livraison au moment du checkout.
+You not have entered the correct API key. Go to the general settings in the back office of MyParcel BE to generate the API Key.,Vous n'avez pas introduit une clé API correcte. Rendez-vous dans les paramètres généraux du backoffice de MyParcel BE pour générer la clé API.
+Address details are not entered,Les données relatives à l'adresse ne sont pas complétées
+The times will be visible when nothing is filled in,Les temps ne seront pas visibles si aucune donnée n'est complétée
+"Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Introduisez ici un montant positif ou négatif. Si vous souhaitez par exemple proposer une réduction pour cette fonction ou décompter des frais supplémentaires pour cette option de livraison."
+Pick up from,Retrait à partir de
+Opening hours,Heures d'ouverture
+Closed,Fermé
+Postcode,Code postal
+House number,Numéro de rue
+City,Ville
+Again,A nouveau
+Postcode/city combination unknown,Combinaison inconnue du code postal et de la ville
+Deliver as quickly as possible,Livraison le plus vite possible
+Monday,lundi
+Tuesday,mardi
+Wednesday,mercredi
+Thursday,jeudi
+Friday,vendredi
+Saturday,samedi
+Sunday,dimanche

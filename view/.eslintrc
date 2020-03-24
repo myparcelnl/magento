@@ -1,0 +1,12 @@
+{
+  "globals": {
+    "MyParcel": "writable",
+    "MyParcelConfig": "writable",
+    "define": "readonly"
+  },
+  "rules": {
+    "max-params": "off",
+    "max-lines-per-function": "off",
+    "no-underscore-dangle": "off"
+  }
+}
