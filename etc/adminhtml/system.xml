@@ -40,6 +40,10 @@
                     <label>Label description</label>
                     <comment>This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.</comment>
                 </field>
+                <field id="auto_export" translate="label comment" type="select" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto export</label>
+                    <comment>Enable direct export after payment succesfully.</comment>
+                </field>
             </group>
         </section>
         <section id="myparcelnl_magento_standard" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
