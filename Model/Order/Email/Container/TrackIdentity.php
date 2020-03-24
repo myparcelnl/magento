@@ -4,7 +4,7 @@
  * See COPYING.txt for license details.
  */
 
-namespace MyParcelNL\Magento\Model\Order\Email\Container;
+namespace MyParcelBE\Magento\Model\Order\Email\Container;
 
 use Magento\Sales\Model\Order\Email\Container\Container;
 use Magento\Sales\Model\Order\Email\Container\IdentityInterface;

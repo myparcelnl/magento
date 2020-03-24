@@ -7,15 +7,15 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Richard Perdaan <richard@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Richard Perdaan <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release 1.0.5
  */
-namespace MyParcelNL\Magento\Block\System\Config\Form;
+namespace MyParcelBE\Magento\Block\System\Config\Form;
 
 class Color extends \Magento\Config\Block\System\Config\Form\Field {
 

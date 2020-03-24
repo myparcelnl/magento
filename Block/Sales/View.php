@@ -7,20 +7,23 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Block\Sales;
+namespace MyParcelBE\Magento\Block\Sales;
 
 use Magento\Framework\App\ObjectManager;
+use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
+use MyParcelBE\Magento\Helper\Checkout as CheckoutHelper;
+use MyParcelBE\Magento\Model\Quote\Checkout;
 
-class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
+class View extends AbstractOrder
 {
     /**
      * @var \Magento\Framework\ObjectManagerInterface
@@ -28,16 +31,17 @@ class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
     private $objectManager;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Order
+     * @var \MyParcelBE\Magento\Helper\Order
      */
     private $helper;
 
     /**
      * Constructor
      */
-    public function _construct() {
+    public function _construct()
+    {
         $this->objectManager = ObjectManager::getInstance();
-        $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Order');
+        $this->helper        = $this->objectManager->get('\MyParcelBE\Magento\Helper\Order');
         parent::_construct();
     }
 
@@ -49,47 +53,44 @@ class View extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
      */
     public function getCheckoutOptionsHtml()
     {
-        $html = false;
+        $html  = false;
         $order = $this->getOrder();
 
         /** @var object $data Data from checkout */
-        $data = $order->getData('delivery_options') !== null ? json_decode($order->getData('delivery_options'), true) : false;
-        $shippingMethod = $order->getShippingMethod();
+        $data = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : false;
 
-        if ($this->helper->isPickupLocation($shippingMethod))
-        {
-            if(is_array($data) && key_exists('location', $data)){
+        if ($this->helper->isPickupLocation($data)) {
+            if (is_array($data) && key_exists('pickupLocation', $data)) {
 
-                $dateTime = date('d-m-Y H:i', strtotime($data['date'] . ' ' . $data['start_time']));
+                $dateTime = date('d-m-Y H:i', strtotime($data['date']));
 
-                $html .= __('PostNL location:') . ' ' . $dateTime;
-                if($data['price_comment'] != 'retail')
-                    $html .= ', ' . __($data['price_comment']);
-                $html .= ', ' . $data['location']. ', ' . $data['city']. ' (' . $data['postal_code']. ')';
+                $html .= __($data['carrier'] . ' location:') . ' ' . $dateTime;
+                if ($data['deliveryType'] != 'pickup') {
+                    $html .= ', ' . __($data['deliveryType']);
+                }
+                $html .= ', ' . $data['pickupLocation']['location_name'] . ', ' . $data['pickupLocation']['city'] . ' (' . $data['pickupLocation']['postal_code'] . ')';
             } else {
                 /** Old data from orders before version 1.6.0 */
                 $html .= __('MyParcel options data not found');
             }
+
+
         } else {
-            if(is_array($data) && key_exists('date', $data)){
+            if (is_array($data) && key_exists('date', $data)) {
+                $dateTime = date('d-m-Y H:i', strtotime($data['date']));
+                $html .= __('Deliver:') . ' ' . $dateTime;
 
-                $dateTime = date('d-m-Y H:i', strtotime($data['date']. ' ' . $data['time'][0]['start']));
-                $html .= __('Deliver:') .' ' . $dateTime;
-
-                if(isset($data['time'][0]['price_comment']) && $data['time'][0]['price_comment'] != 'standard')
-                    $html .=  ', ' . __($data['time'][0]['price_comment']);
-
-                if (key_exists('options', $data)) {
-                    if(key_exists('only_recipient', $data['options']) && $data['options']['only_recipient'])
-                        $html .=  ', ' . strtolower(__('Home address only'));
-                    if(key_exists('signature', $data['options']) && $data['options']['signature'])
-                        $html .=  ', ' . strtolower(__('Signature on receipt'));
+                if (key_exists('shipmentOptions', $data)) {
+                    if (key_exists('signature', $data['shipmentOptions']) && $data['shipmentOptions']['signature']) {
+                        $html .= ', ' . __('Signature on receipt');
+                    }
                 }
             }
         }
 
-        if (is_array($data) && key_exists('browser', $data))
-            $html = ' <span title="'.$data['browser'].'">' . $html . '</span>';
+        if (is_array($data) && key_exists('browser', $data)) {
+            $html = ' <span title="' . $data['browser'] . '">' . $html . '</span>';
+        }
 
         return $html !== false ? '<br>' . $html : '';
     }

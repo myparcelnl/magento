@@ -2,7 +2,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance dc" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="submit_before">
-            <block class="MyParcelNL\Magento\Block\Sales\NewShipment" name="mypa.new.shipment" template="new_shipment.phtml" after="-" />
+            <block class="MyParcelBE\Magento\Block\Sales\NewShipment" name="mypa.new.shipment" template="new_shipment.phtml" after="-" />
         </referenceContainer>
     </body>
 </page>

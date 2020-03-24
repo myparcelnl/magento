@@ -1,30 +1,26 @@
-<?php /** @var $block \MyParcelNL\Magento\Block\Sales\OrderAction */ ?>
+<?php /** @var $block \MyParcelBE\Magento\Block\Sales\OrderAction */ ?>
 <script type="text/x-magento-init">
    {
        ".page-footer": {
-           "myparcelnl_massaction": {
-                "has_api_key": <?=$block->hasApiKey();?>,
-                "url": "<?=$block->getOrderAjaxUrl();?>",
-                "url_send_return_mail": "<?=$block->getAjaxUrlSendReturnMail();?>",
-                "settings": <?=$block->getBasicSettings();?>,
+           "myparcelbe_massaction": {
+                "has_api_key": <?= $block->hasApiKey();?>,
+                "url": "<?= $block->getOrderAjaxUrl(); ?>",
+                "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail(); ?>",
+                "settings": <?= $block->getPrintSettings(); ?>,
                 "button_present": true,
                 "button_send_return_mail_present": true,
-                "number_of_positions" : <?=$block->getNumberOfPrintPositions();?>,
+                "number_of_positions" : <?= $block->getNumberOfPrintPositions(); ?>,
                 <?php if ($block->canShip()): ?>
                     "action_options": {
                         "request_type": true,
                         "package_type": true,
-                        "package_type-mailbox": <?=$block->getCountry() == 'NL' ? 'true' : 'false';?>,
-                        "print_position": <?=$block->isCdCountry() == true ? 'false' : 'true';?>,
-                        "label_amount": false
+                        "print_position": <?= $block->isCdCountry() == true ? 'false' : 'true'; ?>
                     }
                 <?php else: ?>
                     "action_options": {
                         "request_type": false,
                         "package_type": false,
-                        "package_type-mailbox": false,
-                        "print_position": true,
-                        "label_amount": true
+                        "print_position": true
                     }
                 <?php endif; ?>
            }

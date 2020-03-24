@@ -1,44 +1,41 @@
 <?php
 /**
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Sales;
+namespace MyParcelBE\Magento\Model\Sales;
 
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
-use MyParcelNL\Magento\Observer\NewShipment;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelBE\magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 /**
  * Class MagentoOrderCollection
  *
- * @package MyParcelNL\Magento\Model\Sales
+ * @package MyParcelBE\Magento\Model\Sales
  */
 class MagentoCollection implements MagentoCollectionInterface
 {
-    const PATH_HELPER_DATA            = 'MyParcelNL\Magento\Helper\Data';
+    const PATH_HELPER_DATA            = 'MyParcelBE\Magento\Helper\Data';
     const PATH_MODEL_ORDER            = '\Magento\Sales\Model\ResourceModel\Order\Collection';
     const PATH_MODEL_SHIPMENT         = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
     const PATH_ORDER_GRID             = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
     const PATH_ORDER_TRACK            = 'Magento\Sales\Model\Order\Shipment\Track';
     const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
     const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    const URL_SHOW_POSTNL_STATUS      = 'https://mijnpakket.postnl.nl/Inbox/Search';
     const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
 
     /**
-     * @var \MyParcelNL\Sdk\src\Helper\MyParcelCollection|\MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment[]
+     * @var MyParcelCollection
      */
     public $myParcelCollection;
 
@@ -73,7 +70,7 @@ class MagentoCollection implements MagentoCollectionInterface
     protected $messageManager;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     protected $helper;
 
@@ -81,15 +78,10 @@ class MagentoCollection implements MagentoCollectionInterface
         'create_track_if_one_already_exist' => true,
         'request_type'                      => 'download',
         'package_type'                      => 'default',
+        'carrier'                           => 'bpost',
         'positions'                         => null,
-        'only_recipient'                    => null,
         'signature'                         => null,
-        'return'                            => null,
-        'large_format'                      => null,
-        'age_check'                         => null,
         'insurance'                         => null,
-        'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
-        'digital_stamp_weight'              => null,
     ];
 
     /**
@@ -108,7 +100,7 @@ class MagentoCollection implements MagentoCollectionInterface
 
         $this->objectManager = $objectManagerInterface;
         $this->request       = $request;
-        $this->trackSender   = $this->objectManager->get('MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender');
+        $this->trackSender   = $this->objectManager->get('MyParcelBE\Magento\Model\Order\Email\Sender\TrackSender');
 
         $this->helper             = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack         = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
@@ -136,12 +128,6 @@ class MagentoCollection implements MagentoCollectionInterface
             } else {
                 $this->options[$option] = $this->request->getParam('mypa_' . $option);
             }
-        }
-
-        $label_amount = $this->request->getParam('mypa_label_amount') ?? NewShipment::DEFAULT_LABEL_AMOUNT;
-
-        if ($label_amount) {
-            $this->options['label_amount'] = $label_amount;
         }
 
         // Remove position if paper size == A6
@@ -280,7 +266,7 @@ class MagentoCollection implements MagentoCollectionInterface
             ->setCarrierCode(TrackTraceHolder::MYPARCEL_CARRIER_CODE)
             ->setTitle(TrackTraceHolder::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY)
+            ->setTrackNumber('Concept')
             ->save();
 
         return $track;

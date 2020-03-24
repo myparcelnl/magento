@@ -7,57 +7,70 @@
                         <item name="type" xsi:type="string">download_myparcel_a6_label</item>
                         <item name="id" xsi:type="string">download_myparcel_a6_label</item>
                         <item name="label" xsi:type="string" translate="true">Print MyParcel labels directly</item>
-                        <item name="url" xsi:type="url" path="myparcelnl/order/CreateAndPrintMyParcelTrack"/>
+                        <item name="url" xsi:type="url" path="myparcelbe/order/CreateAndPrintMyParcelTrack"/>
                     </item>
                 </argument>
             </action>
         </massaction>
     </listingToolbar>
     <columns name="sales_order_columns">
-        <column name="track_status" class="MyParcelNL\Magento\Ui\Component\Listing\Column\ShippingStatus">
+        <column name="track_status" class="MyParcelBE\Magento\Ui\Component\Listing\Column\TrackStatus">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="visible" xsi:type="boolean">true</item>
                     <item name="filter" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Shipping status</item>
+                    <item name="label" xsi:type="string" translate="true">Track status</item>
                     <item name="sortOrder" xsi:type="number">5</item>
                     <item name="resizeEnabled" xsi:type="boolean">true</item>
                     <item name="resizeDefaultWidth" xsi:type="string">160</item>
                 </item>
             </argument>
         </column>
-        <column name="track_number" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace">
+        <column name="track_number" class="MyParcelBE\Magento\Ui\Component\Listing\Column\TrackNumber">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="visible" xsi:type="boolean">true</item>
                     <item name="filter" xsi:type="string">text</item>
-                    <item name="label" xsi:type="string" translate="true">Track &amp; Trace</item>
+                    <item name="label" xsi:type="string" translate="true">Track number</item>
                     <item name="sortOrder" xsi:type="number">6</item>
                     <item name="resizeEnabled" xsi:type="boolean">true</item>
                     <item name="resizeDefaultWidth" xsi:type="string">160</item>
                 </item>
             </argument>
         </column>
-        <column name="drop_off_day" class="MyParcelNL\Magento\Ui\Component\Listing\Column\DeliveryDate">
+        <column name="drop_off_day" class="MyParcelBE\Magento\Ui\Component\Listing\Column\DropOffDay">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
                     <item name="visible" xsi:type="boolean">true</item>
                     <item name="filter" xsi:type="string">dateRange</item>
-                    <item name="label" xsi:type="string" translate="true">Delivery date</item>
+                    <item name="label" xsi:type="string" translate="true">Drop off day</item>
                     <item name="sortOrder" xsi:type="number">7</item>
                     <item name="resizeEnabled" xsi:type="boolean">true</item>
                     <item name="resizeDefaultWidth" xsi:type="string">160</item>
                 </item>
             </argument>
         </column>
-        <!-- Action column -->
-        <actionsColumn name="track_actions" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackActions">
+        <column name="myparcel_carrier" class="MyParcelBE\Magento\Ui\Component\Listing\Column\Carrier">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
-                    <item name="label" xsi:type="string" translate="true">Shipment</item>
+                    <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
+                    <item name="visible" xsi:type="boolean">true</item>
+                    <item name="filter" xsi:type="string">text</item>
+                    <item name="label" xsi:type="string" translate="true">Carrier</item>
+                    <item name="sortOrder" xsi:type="number">8</item>
+                    <item name="resizeEnabled" xsi:type="boolean">true</item>
+                    <item name="resizeDefaultWidth" xsi:type="string">160</item>
+                </item>
+            </argument>
+        </column>
+        <!-- Action column -->
+        <actionsColumn name="track_actions" class="MyParcelBE\Magento\Ui\Component\Listing\Column\TrackActions">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="label" xsi:type="string" translate="true">Track action</item>
                     <item name="indexField" xsi:type="string">entity_id</item>
                 </item>
             </argument>

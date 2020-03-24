@@ -3,23 +3,23 @@
  * Set MyParcel options to new track
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Observer;
+namespace MyParcelBE\Magento\Observer;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order\Shipment;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
 
 class NewShipment implements ObserverInterface
 {
@@ -45,22 +45,20 @@ class NewShipment implements ObserverInterface
     private $orderCollection;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     private $helper;
 
     /**
      * NewShipment constructor.
-     *
-     * @param \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
      */
-    public function __construct(MagentoOrderCollection $orderCollection = null)
+    public function __construct()
     {
-        $this->objectManager   = ObjectManager::getInstance();
-        $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
-        $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
+        $this->objectManager = ObjectManager::getInstance();
+        $this->request = $this->objectManager->get('Magento\Framework\App\RequestInterface');
+        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
+        $this->helper = $this->objectManager->get('MyParcelBE\Magento\Helper\Data');
+        $this->modelTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }
 
     /**
@@ -74,6 +72,7 @@ class NewShipment implements ObserverInterface
     public function execute(Observer $observer)
     {
         if ($this->request->getParam('mypa_create_from_observer')) {
+            $this->request->setParams(['myparcel_track_email' => true]);
             $shipment = $observer->getEvent()->getShipment();
             $this->setMagentoAndMyParcelTrack($shipment);
         }
@@ -89,8 +88,10 @@ class NewShipment implements ObserverInterface
     private function setMagentoAndMyParcelTrack(Shipment $shipment)
     {
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
-        $amount  = $options['label_amount'];
-        /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
+
+        // The reason that $amount is hard coded is because this is part of multicollo, this is not possible in the Belguim plugin. However, a preparation has been made for this.
+        $amount  = 1;
+        /** @var \MyParcelBE\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
 
@@ -137,10 +138,9 @@ class NewShipment implements ObserverInterface
     private function updateTrackGrid($shipment)
     {
         $aHtml = $this->orderCollection->getHtmlForGridColumns($shipment->getOrder()->getId());
-
         $shipment->getOrder()
-                 ->setData('track_status', $aHtml['track_status'])
-                 ->setData('track_number', $aHtml['track_number'])
-                 ->save();
+            ->setData('track_status', $aHtml['track_status'])
+            ->setData('track_number', $aHtml['track_number'])
+        ->save();
     }
 }

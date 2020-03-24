@@ -7,16 +7,16 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\magento\Test\Unit;
+namespace MyParcelBE\magento\Test\Unit;
 
 
 class Constants extends \PHPUnit_Framework_TestCase
@@ -141,8 +141,8 @@ class Constants extends \PHPUnit_Framework_TestCase
     {
         $data = ["addressInformation" => [
             "shipping_address" => [
-                "email" => "reindert@myparcel.nl",
-                "countryId" => "NL",
+                "email" => "info@sendmyparcel.be",
+                "countryId" => "BE",
                 "regionId" => "0",
                 "region" => "",
                 "street" => [
@@ -156,7 +156,7 @@ class Constants extends \PHPUnit_Framework_TestCase
                 "lastname" => "yes",
             ],
             "billing_address" => [
-                "countryId" => "NL",
+                "countryId" => "BE",
                 "regionId" => "0",
                 "region" => "",
                 "street" => [
@@ -169,7 +169,7 @@ class Constants extends \PHPUnit_Framework_TestCase
                 "firstname" => "asdf",
                 "lastname" => "MyParcel- asdfsd",
                 "saveInAddressBook" => null,
-                "email" => "reindert-test@myparcel.nl",
+                "email" => "richard-test@sendmyparcel.be",
             ], "shipping_method_code" => "flatrate",
             "shipping_carrier_code" => "flatrate",
         ]];
@@ -198,6 +198,6 @@ class Constants extends \PHPUnit_Framework_TestCase
      */
     protected function getCreateLabelUrl()
     {
-        return 'admin/myparcelnl/order/CreateAndPrintMyParcelTrack/';
+        return 'admin/myparcelbe/order/CreateAndPrintMyParcelTrack/';
     }
 }

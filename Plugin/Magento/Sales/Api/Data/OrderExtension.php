@@ -7,10 +7,10 @@
  * Time: 16:23
  */
 
-namespace MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data;
+namespace MyParcelBE\Magento\Plugin\Magento\Sales\Api\Data;
 
-use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\HTTP\PhpEnvironment\Request;
 use MyParcelNL\Sdk\src\Support\Arr;
 
 class OrderExtension
@@ -58,9 +58,11 @@ class OrderExtension
         $explodePath = explode('/', $path);
 
         if (empty($explodePath[self::ENTITY_ID_POSITION])) {
-            [$searchColumn, $searchValue] = $this->getIdByIncrementId();
+            $searchColumn = self::INCREMENT_ID;
+            $searchValue  = $this->getIdByIncrementId();
         } else {
-            [$searchColumn, $searchValue] = $this->getIdByEntityId($explodePath[self::ENTITY_ID_POSITION]);
+            $searchColumn = self::ENTITY_ID;
+            $searchValue  = $explodePath[self::ENTITY_ID_POSITION];
         }
 
         if (empty($searchValue)) {
@@ -69,37 +71,27 @@ class OrderExtension
 
         //Select Data from table
         $sql = $connection
-            ->select('delivery_options')
+            ->select('myparcel_delivery_options')
             ->from($tableName)
             ->where($searchColumn . ' = ' . (int) $searchValue);
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
-        if (empty($result)){
+        if (empty($result)) {
             return null;
         }
 
-        return $result[0]['delivery_options'];
+        return $result[0]['myparcel_delivery_options'];
     }
 
     /**
-     * @param $entityId
-     *
-     * @return array
-     */
-    private function getIdByEntityId($entityId)
-    {
-        return [self::ENTITY_ID, $entityId];
-    }
-
-    /**
-     * @return array
+     * @return mixed
      */
     private function getIdByIncrementId()
     {
         $searchValue = $this->request->getQueryValue('searchCriteria');
         $searchValue = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
 
-        return [self::INCREMENT_ID, $searchValue];
+        return $searchValue;
     }
 }

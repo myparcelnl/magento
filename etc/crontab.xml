@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default"> <!-- Doesn't need to be unique -->
-        <job name="myparcel_update_status" instance="MyParcelNL\Magento\Cron\UpdateStatus" method="execute">
+        <job name="myparcel_update_status" instance="MyParcelBE\Magento\Cron\UpdateStatus" method="execute">
             <schedule>*/15 * * * *</schedule>
         </job>
     </group>

@@ -1,6 +1,10 @@
 <?php
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelBE\Magento\Model\Checkout;
+
+use Magento\Checkout\Api\Data\ShippingInformationInterface;
+use Magento\Checkout\Model\ShippingInformationManagement;
+use Magento\Quote\Model\QuoteRepository;
 
 class ShippingInformationManagementPlugin
 {
@@ -8,7 +12,7 @@ class ShippingInformationManagementPlugin
     protected $quoteRepository;
 
     public function __construct(
-        \Magento\Quote\Model\QuoteRepository $quoteRepository
+        QuoteRepository $quoteRepository
     ) {
         $this->quoteRepository = $quoteRepository;
     }
@@ -21,19 +25,20 @@ class ShippingInformationManagementPlugin
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function beforeSaveAddressInformation(
-        \Magento\Checkout\Model\ShippingInformationManagement $subject,
+        ShippingInformationManagement $subject,
         $cartId,
-        \Magento\Checkout\Api\Data\ShippingInformationInterface $addressInformation
+        ShippingInformationInterface $addressInformation
     ) {
         $extAttributes = $addressInformation->getExtensionAttributes();
-
+        // @todo check delivery options from field (step 1)
         if (! empty($extAttributes) &&
-            ! empty($extAttributes->getDeliveryOptions()) &&
-            $extAttributes->getDeliveryOptions() != '{}'
+            ! empty($extAttributes->getMyparcelDeliveryOptions()) &&
+            $extAttributes->getMyparcelDeliveryOptions() != '{}'
         ) {
-            $deliveryOptions = $extAttributes->getDeliveryOptions();
+
+            $deliveryOptions = $extAttributes->getMyparcelDeliveryOptions();
             $quote = $this->quoteRepository->getActive($cartId);
-            $quote->setDeliveryOptions($deliveryOptions);
+            $quote->setMyparcelDeliveryOptions($deliveryOptions);
         }
     }
 }

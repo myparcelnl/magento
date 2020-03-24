@@ -1,26 +1,22 @@
 <?php
 
-declare(strict_types=1);
-
-namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
+namespace MyParcelBE\Magento\Controller\Adminhtml\Order;
 
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Sdk\src\Exception\ApiException;
-use MyParcelNL\Sdk\src\Exception\MissingFieldException;
+use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
  * Action to create and print MyParcel Track
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release v0.1.0
  */
 class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
@@ -58,11 +54,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        try {
-            $this->massAction();
-        } catch (ApiException | MissingFieldException $e) {
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-        }
+        $this->massAction();
 
         return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
     }
@@ -72,14 +64,12 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws \Exception
      */
     private function massAction()
     {
         if ($this->orderCollection->apiKeyIsCorrect() !== true) {
-            $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
+            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel BE to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
 
@@ -115,10 +105,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             ->createMyParcelConcepts()
             ->updateGridByOrder();
 
-        if (
-            $this->orderCollection->getOption('request_type') == 'concept' ||
-            $this->orderCollection->myParcelCollection->isEmpty()
-        ) {
+        if ($this->orderCollection->getOption('request_type') == 'concept') {
             return $this;
         }
 

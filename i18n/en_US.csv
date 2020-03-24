@@ -11,7 +11,6 @@ status_10,Delivered - Return shipment
 status_11,Delivered - Return shipment pickup location
 status_12,Unrelated label printed
 status_13,Credited
-status_14,Digital stamp label printed
 status_30,Inactive - Concept
 status_31,Inactive - Registered
 status_32,Inactive - Enroute - Handed to carrier
@@ -24,8 +23,8 @@ status_38,Inactive - Delivered - Package picked up
 status_39,Inactive - Return shipment delivered
 status_40,Inactive - Return shipment pickup location
 status_99,Inactive - Unknown
-delivery/signature_and_only_recipient_title,Do not deliver to the neighbors + signature
-morning/title,Morning delivery
-morning_signature/title,Morning delivery + signature
-evening_signature/title,Evening delivery with signature
-evening/title,Evening delivery
+myparcelbe_magento_bpost_settings/delivery_title, bpost delivery
+myparcelbe_magento_bpost_settings/pickup_title, bpost pickup location
+myparcelbe_magento_bpost_settings/delivery/signature_title, bpost delivery with signature
+myparcelbe_magento_dpd_settings/delivery_title,  DPD delivery
+myparcelbe_magento_dpd_settings/pickup_title, DPD pickup location

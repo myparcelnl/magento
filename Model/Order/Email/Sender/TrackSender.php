@@ -7,15 +7,15 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release 0.1.0
  */
-namespace MyParcelNL\Magento\Model\Order\Email\Sender;
+namespace MyParcelBE\Magento\Model\Order\Email\Sender;
 
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Sales\Model\Order;
@@ -25,7 +25,7 @@ use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Sales\Model\Order\Address\Renderer;
 use Magento\Framework\Event\ManagerInterface;
-use MyParcelNL\Magento\Model\Order\Email\Container\TrackIdentity;
+use MyParcelBE\Magento\Model\Order\Email\Container\TrackIdentity;
 
 class TrackSender extends Sender
 {
@@ -110,10 +110,8 @@ class TrackSender extends Sender
      * corresponding cron job.
      *
      * @param Shipment $shipment
-     * @param bool     $forceSyncMode
-     *
+     * @param bool $forceSyncMode
      * @return bool
-     * @throws \Exception
      */
     public function send(Shipment $shipment, $forceSyncMode = false)
     {
@@ -156,9 +154,7 @@ class TrackSender extends Sender
      * Get payment info block as html
      *
      * @param Order $order
-     *
      * @return string
-     * @throws \Exception
      */
     protected function getPaymentHtml(Order $order)
     {

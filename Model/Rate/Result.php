@@ -7,22 +7,23 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl/magento
+ * https://github.com/myparcelbe/magento
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelNL\Magento\Model\Rate;
+namespace MyParcelBE\Magento\Model\Rate;
 
 use Countable;
 use Magento\Checkout\Model\Session;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use Magento\Quote\Model\Quote\Address\RateResult\Method;
+use MyParcelBE\Magento\Helper\Checkout;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Model\Sales\Repository\PackageRepository;
 
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
@@ -64,10 +65,12 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\Backend\Model\Session\Quote       $quote
-     * @param Checkout                                   $myParcelHelper
      * @param Session                                    $session
+     * @param Checkout                                   $myParcelHelper
      * @param PackageRepository                          $package
      *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @internal param \Magento\Checkout\Model\Session $session
      */
     public function __construct(
@@ -83,7 +86,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->package        = $package;
         $this->session        = $session;
         $this->quote          = $quote;
-        $this->parentMethods  = explode(',', $this->myParcelHelper->getCheckoutConfig('general/shipping_methods', true));
+
+        $this->parentMethods = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods', true));
         $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
         $this->products = $this->getQuoteFromCardOrSession()->getItems();
     }
@@ -100,11 +104,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\Error) {
             $this->setError(true);
         }
-
-        if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\Method) {
-            $this->_rates[] = $result;
-            $this->addMyParcelRates($result);
-        } elseif ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
+        if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
             $this->_rates[] = $result;
         } elseif ($result instanceof \Magento\Shipping\Model\Rate\Result) {
             $rates = $result->getAllRates();
@@ -122,53 +122,21 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return array
      */
-    public static function getMethods()
+    private function getMethods(): array
     {
-        $methods = [
-            'signature'            => 'delivery/signature_',
-            'only_recipient'       => 'delivery/only_recipient_',
-            'signature_only_recip' => 'delivery/signature_and_only_recipient_',
-            'morning'              => 'morning/',
-            'morning_signature'    => 'morning_signature/',
-            'evening'              => 'evening/',
-            'evening_signature'    => 'evening_signature/',
-            'pickup'               => 'pickup/',
-            'mailbox'              => 'mailbox/',
-            'digital_stamp'        => 'digital_stamp/',
+        return [
+            'pickup'             => 'pickup',
+            'standard'           => 'delivery',
+            'standard_signature' => 'delivery/signature',
         ];
-
-        return $methods;
     }
 
     /**
-     * Get allowed shipping methods
+     * Add MyParcel shipping rates.
      *
-     * @return array
+     * @param Method $parentRate
      */
-    private function getAllowedMethods()
-    {
-        if ($this->package->fitInDigitalStamp()) {
-            return ['digital_stamp' => 'digital_stamp/'];
-        }
-
-        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-            return ['mailbox' => 'mailbox/'];
-        }
-
-        $methods = self::getMethods();
-        if (! $this->package->fitInMailbox()) {
-            unset($methods['mailbox']);
-        }
-
-        return $methods;
-    }
-
-    /**
-     * Add Myparcel shipping rates
-     *
-     * @param $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
-     */
-    private function addMyParcelRates($parentRate)
+    private function addMyParcelRates($parentRate): void
     {
         if ($this->myParcelRatesAlreadyAdded) {
             return;
@@ -179,25 +147,24 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        $this->package->disableCheckoutWithProduct($this->products);
-
-        $this->getDigitalStampProductSetting();
-        if ($this->package->fitInDigitalStamp()) {
-            $this->package->setDigitalStampSettings();
+        if (empty($this->products)) {
+            $this->package->setWeightFromQuoteProducts($this->products);
         }
 
-        $this->getMailBoxProductSetting();
-        if ($this->package->fitInMailbox()) {
-            $this->package->setMailboxSettings();
-            $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
-        }
+        foreach ($this->getMethods() as $alias => $settingPath) {
+            foreach (Data::CARRIERS as $carrier) {
+                $map = Data::CARRIERS_XML_PATH_MAP[$carrier];
 
-        foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-            $settingActive = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active');
-            $active        = $settingActive === '1' || $settingActive === null;
-            if ($active) {
-                $method         = $this->getShippingMethod($alias, $settingPath, $parentRate);
-                $this->_rates[] = $method;
+                if (! $this->isSettingActive($map, $settingPath)) {
+                    continue;
+                }
+
+                $method = $this->getShippingMethod(
+                    $this->getFullSettingPath($map, $settingPath),
+                    $parentRate
+                );
+
+                $this->append($method);
             }
         }
 
@@ -205,53 +172,71 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * Get the digital_stamp product setting
-     */
-    private function getDigitalStampProductSetting()
-    {
-        $this->package->setDigitalStampSettings();
-
-        if ($this->products && count($this->products) > 0) {
-            $this->package->setFitInDigitalStampFromQuoteProducts($this->products);
-            $this->package->setWeightFromQuoteProducts($this->products, 'digital_stamp');
-        }
-
-        return;
-    }
-
-    /**
-     * Get the fit_in_mailbox product setting
-     */
-    private function getMailBoxProductSetting()
-    {
-        $this->package->setMailboxSettings();
-
-        if ($this->products && count($this->products) > 0) {
-            $this->package->setWeightFromQuoteProducts($this->products, 'fit_in_mailbox');
-        }
-
-        return;
-    }
-
-    /**
-     * @param        $alias
-     * @param string $settingPath
-     * @param        $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
+     * Check if a given map/setting combination is active. If the setting is not a top level setting its parent group
+     * will be checked for an "active" setting. If this is disabled this will return false;
      *
-     * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
+     * @param        $map
+     * @param string $settingPath
+     *
+     * @return bool
      */
-    private function getShippingMethod($alias, $settingPath, $parentRate)
+    private function isSettingActive(string $map, string $settingPath): bool
+    {
+        $settingName   = $this->getFullSettingPath($map, $settingPath);
+        $settingActive = $this->myParcelHelper->getConfigValue($settingName . 'active');
+        $baseSettingActive = '1';
+
+        if (! $this->isBaseSetting($settingPath)) {
+            $baseSetting = $map . explode("/", $settingPath)[0];
+
+            $baseSettingActive = $this->myParcelHelper->getConfigValue($baseSetting . '/active');
+        }
+
+        return $settingActive === '1' && $baseSettingActive === '1';
+    }
+
+    /**
+     * @param string $map
+     * @param string $settingPath
+     *
+     * @return string
+     */
+    private function getFullSettingPath(string $map, string $settingPath): string
+    {
+        $separator = $this->isBaseSetting($settingPath) ? '/' : '_';
+
+        return $map . $settingPath . $separator;
+    }
+
+    /**
+     * @param string $settingPath
+     *
+     * @return bool
+     */
+    private function isBaseSetting(string $settingPath): bool
+    {
+        return strpos($settingPath, '/') === false;
+    }
+
+    /**
+     * @param string $settingPath
+     * @param Method $parentRate
+     *
+     * @return Method
+     */
+    private function getShippingMethod(string $settingPath, Method $parentRate): Method
     {
         $method = clone $parentRate;
-        $this->myParcelHelper->setBasePrice($parentRate->getPrice());
+        $this->myParcelHelper->setBasePrice($parentRate->getData('price'));
 
         $title = $this->createTitle($settingPath);
-        $price = $this->createPrice($alias, $settingPath);
-        $method->setCarrierTitle($alias);
-        $method->setMethod($alias);
-        $method->setMethodTitle($title);
+        $price = $this->getPrice($settingPath);
+
+        $method->setData('cost', 0);
+        // Trim the separator off the end of the settings path
+        $method->setData('method', substr($settingPath, 0, -1));
+        $method->setData('method_title', $title);
         $method->setPrice($price);
-        $method->setCost(0);
 
         return $method;
     }
@@ -266,10 +251,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function createTitle($settingPath)
     {
-        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'title');
+        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_BPOST_SETTINGS . $settingPath . 'title');
 
         if ($title === null) {
-            $title = __($settingPath . 'title');
+            $title = __(substr($settingPath, 0, strlen($settingPath) - 1) . '_title');
         }
 
         return $title;
@@ -279,31 +264,16 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * Create price
      * Calculate price if multiple options are chosen
      *
-     * @param $alias
      * @param $settingPath
      *
      * @return float
      */
-    private function createPrice($alias, $settingPath)
+    private function getPrice($settingPath): float
     {
-        $price = 0;
-        if ($alias == 'morning_signature') {
-            $price += $this->myParcelHelper->getMethodPrice('morning/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
+        $basePrice = $this->myParcelHelper->getBasePrice();
+        $settingFee = (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
 
-            return $price;
-        }
-
-        if ($alias == 'evening_signature') {
-            $price += $this->myParcelHelper->getMethodPrice('evening/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
-
-            return $price;
-        }
-
-        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox' && $alias !== 'digital_stamp');
-
-        return $price;
+        return $basePrice + $settingFee;
     }
 
     /**
@@ -311,14 +281,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * To fix a conflict with buckeroo, use \Magento\Checkout\Model\Cart::getQuote() like the following
      *
      * @return \Magento\Quote\Model\Quote
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    private function getQuoteFromCardOrSession()
-    {
+    private function getQuoteFromCardOrSession() {
         if ($this->quote->getQuoteId() != null &&
             $this->quote->getQuote() &&
             $this->quote->getQuote() instanceof Countable &&
             count($this->quote->getQuote())
-        ) {
+        ){
             return $this->quote->getQuote();
         }
 

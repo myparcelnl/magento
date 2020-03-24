@@ -7,24 +7,25 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelBE\Magento\Model\Checkout;
 
-
-use MyParcelNL\Magento\Model\Quote\Checkout;
+use Magento\Checkout\Block\Checkout\LayoutProcessor;
+use MyParcelBE\Magento\Helper\Checkout as CheckoutHelper;
+use MyParcelBE\Magento\Model\Quote\Checkout;
 
 class LayoutProcessorPlugin
 {
     /**
-     * @var \MyParcelNL\Magento\Model\Quote\Checkout
+     * @var \MyParcelBE\Magento\Model\Quote\Checkout
      */
     private $settings;
 
@@ -41,32 +42,29 @@ class LayoutProcessorPlugin
      *
      * @return array
      */
-    public function afterProcess(
-        \Magento\Checkout\Block\Checkout\LayoutProcessor $subject,
-        array  $jsLayout
-    ) {
+    public function afterProcess(LayoutProcessor $subject, array  $jsLayout) {
         $jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']
         ['children']['shippingAddress']['children']['before-shipping-method-form']['children'] =
             array_merge_recursive(
                 $jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']
                 ['children']['shippingAddress']['children']['before-shipping-method-form']['children'],
                 [
-                    'delivery_options' => [
+                    CheckoutHelper::FIELD_DELIVERY_OPTIONS => [
                         'component' => 'Magento_Ui/js/form/element/abstract',
                         'config' => [
                             'customScope' => 'shippingAddress',
                             'template' => 'ui/form/field',
                             'elementTmpl' => 'ui/form/element/input',
                             'options' => [],
-                            'id' => 'delivery-options',
+                            'id' => 'myparcel-delivery-options',
                         ],
-                        'dataScope' => 'shippingAddress.delivery_options',
+                        'dataScope' => 'shippingAddress.' . CheckoutHelper::FIELD_DELIVERY_OPTIONS,
                         'label' => 'Delivery Options',
                         'provider' => 'checkoutProvider',
                         'visible' => false,
                         'validation' => [],
                         'sortOrder' => 200,
-                        'id' => 'delivery-options',
+                        'id' => 'myparcel-delivery-options',
                     ],
                 ]
             );

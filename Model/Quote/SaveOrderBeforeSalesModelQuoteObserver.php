@@ -9,30 +9,29 @@
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Quote;
+namespace MyParcelBE\Magento\Model\Quote;
 
-
+use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use MyParcelNL\Magento\Model\Checkout\Carrier;
-use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
+use MyParcelBE\Magento\Helper\Checkout;
+use MyParcelBE\Magento\Model\Checkout\Carrier;
+use MyParcelBE\Magento\Model\Checkout\DeliveryOptions;
+use MyParcelBE\Magento\Helper\Checkout as CheckoutAlias;
+use MyParcelBE\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 {
-    const FIELD_DELIVERY_OPTIONS = 'delivery_options';
-    const FIELD_DROP_OFF_DAY = 'drop_off_day';
-    const FIELD_TRACK_STATUS = 'track_status';
     /**
      * @var DeliveryRepository
      */
@@ -49,69 +48,78 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     /**
      * SaveOrderBeforeSalesModelQuoteObserver constructor.
      *
-     * @param DeliveryRepository                  $delivery
-     * @param AbstractConsignment                 $consignment
-     * @param \MyParcelNL\Magento\Helper\Checkout $checkoutHelper
+     * @param DeliveryRepository  $delivery
+     * @param AbstractConsignment $consignment
+     * @param Checkout            $checkoutHelper
      */
     public function __construct(
         DeliveryRepository $delivery,
         AbstractConsignment $consignment,
-        CheckoutHelper $checkoutHelper
+        Checkout $checkoutHelper
     ) {
         $this->delivery      = $delivery;
         $this->consignment   = $consignment;
-        $this->parentMethods = explode(',', $checkoutHelper->getCheckoutConfig('general/shipping_methods'));
+        $this->parentMethods = explode(',', $checkoutHelper->getGeneralConfig('shipping_methods/methods'));
     }
 
     /**
      *
      * @param \Magento\Framework\Event\Observer $observer
+     *
      * @return $this
      */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function execute(Observer $observer)
     {
         /* @var \Magento\Quote\Model\Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
+        file_put_contents(time() . '_quote.json', json_encode($quote->getData()));
+
         /* @var \Magento\Sales\Model\Order $order */
         $order      = $observer->getEvent()->getData('order');
         $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
 
         $destinationCountry = $order->getShippingAddress()->getCountryId();
-        if ($destinationCountry == AbstractConsignment::CC_NL &&
-            ! SplitStreet::isCorrectStreet($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)
+        if ($destinationCountry == AbstractConsignment::CC_BE &&
+            ! SplitStreet::isCorrectStreet($fullStreet, AbstractConsignment::CC_BE, $destinationCountry)
         ) {
-            $order->setData(self::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
+            $order->setData(CheckoutAlias::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
         }
+        // @todo check delivery options from quote (step 2)
+        if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS && $this->hasMyParcelDeliveryOptions($quote))) {
+            $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS);
 
-        if ($quote->hasData(self::FIELD_DELIVERY_OPTIONS) && $this->isMyParcelMethod($quote)) {
-            $jsonDeliveryOptions = $quote->getData(self::FIELD_DELIVERY_OPTIONS);
-            $order->setData(self::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
+            $order->setData(Checkout::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
 
             $dropOffDay = $this->delivery->getDropOffDayFromJson($jsonDeliveryOptions);
-            $order->setData(self::FIELD_DROP_OFF_DAY, $dropOffDay);
+            $order->setData(Checkout::FIELD_DROP_OFF_DAY, $dropOffDay);
+
+            $selectedCarrier = $this->delivery->getCarrierFromJson($jsonDeliveryOptions);
+            $order->setData(Checkout::FIELD_MYPARCEL_CARRIER, $selectedCarrier);
         }
 
         return $this;
     }
 
     /**
-     * @param $quote
+     * @param \Magento\Quote\Model\Quote $quote
      *
      * @return bool
      */
-    private function isMyParcelMethod($quote) {
+    private function hasMyParcelDeliveryOptions($quote)
+    {
+        file_put_contents(time() . '_hasMyParcelDeliveryOptions.json', json_encode($quote->getData()));
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
 
-        if ($this->array_like($shippingMethod, $myParcelMethods)) {
+        if ($this->arrayLike($shippingMethod, $myParcelMethods)) {
             return true;
         }
 
-        if ($this->array_like($shippingMethod, $this->parentMethods)) {
+        if ($this->arrayLike($shippingMethod, $this->parentMethods)) {
             return true;
         }
 
-        return false;
+        return array_key_exists('myparcel_delivery_options', $quote->getData());
     }
 
     /**
@@ -120,11 +128,13 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      *
      * @return bool
      */
-    private function array_like($input, $data) {
-        $result = array_filter($data, function ($item) use ($input) {
+    private function arrayLike($input, $data)
+    {
+        $result = array_filter($data, function($item) use ($input) {
             if (stripos($input, $item) !== false) {
                 return true;
             }
+
             return false;
         });
 

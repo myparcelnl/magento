@@ -3,19 +3,25 @@
  * The class to provide functions for new_shipment.phtml
  *
  * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
+ * https://github.com/myparcelbe
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@sendmyparcel.be>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
+ * @link        https://github.com/myparcelbe/magento
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Block\Sales;
+namespace MyParcelBE\Magento\Block\Sales;
 
+use Magento\Backend\Block\Template\Context;
+use Magento\CatalogInventory\Api\StockConfigurationInterface;
+use Magento\CatalogInventory\Api\StockRegistryInterface;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelBE\Magento\Helper\Checkout;
+use MyParcelBE\Magento\Model\Source\DefaultOptions;
 
 class NewShipment extends AbstractItems
 {
@@ -30,14 +36,9 @@ class NewShipment extends AbstractItems
     private $objectManager;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     * @var \MyParcelBE\Magento\Model\Source\DefaultOptions
      */
     private $defaultOptions;
-
-    /**
-     * @var \Magento\Sales\Model\Order\Shipment
-     */
-    private $shipment;
 
     /**
      * @param \Magento\Backend\Block\Template\Context                   $context
@@ -47,27 +48,26 @@ class NewShipment extends AbstractItems
      * @param \Magento\Framework\ObjectManagerInterface                 $objectManager
      */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
-        \Magento\CatalogInventory\Api\StockConfigurationInterface $stockConfiguration,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\ObjectManagerInterface $objectManager
+        Context $context,
+        StockRegistryInterface $stockRegistry,
+        StockConfigurationInterface $stockConfiguration,
+        Registry $registry,
+        ObjectManagerInterface $objectManager
     ) {
         // Set order
-        $this->shipment = $registry->registry('current_shipment');
         $this->order = $registry->registry('current_shipment')->getOrder();
         $this->objectManager = $objectManager;
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,
-            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
+            $this->objectManager->get('\MyParcelBE\Magento\Helper\Data')
         );
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
 
     /**
-     * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param $option 'signature'
      *
      * @return bool
      */
@@ -83,15 +83,6 @@ class NewShipment extends AbstractItems
     public function getDefaultInsurance()
     {
         return $this->defaultOptions->getDefaultInsurance();
-    }
-
-    /**
-     * Get default value of insurance based on order grand total
-     * @return int
-     */
-    public function getWeight()
-    {
-        return $this->defaultOptions->getDigitalStampWeight();
     }
 
     /**
@@ -117,6 +108,6 @@ class NewShipment extends AbstractItems
      */
     public function getChosenOptions()
     {
-        return json_decode($this->order->getData('delivery_options'), true);
+        return json_decode($this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true);
     }
 }
