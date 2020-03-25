@@ -31,11 +31,11 @@ class Data extends AbstractHelper
     const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
     const XML_PATH_DPD_SETTINGS   = 'myparcelnl_magento_dpd_settings/';
 
-    public const CARRIERS = [PostNLConsignment::CARRIER_NAME, DPDConsignment::CARRIER_NAME];
+    public const CARRIERS = [PostNLConsignment::CARRIER_NAME /*,DPDConsignment::CARRIER_NAME*/];
 
     public const CARRIERS_XML_PATH_MAP = [
         PostNLConsignment::CARRIER_NAME => Data::XML_PATH_POSTNL_SETTINGS,
-        DPDConsignment::CARRIER_NAME   => Data::XML_PATH_DPD_SETTINGS,
+//        DPDConsignment::CARRIER_NAME   => Data::XML_PATH_DPD_SETTINGS,
     ];
 
     private $moduleList;

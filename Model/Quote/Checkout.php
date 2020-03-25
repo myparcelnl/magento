@@ -160,7 +160,7 @@ class Checkout
     {
         $carriersSettings = [
             ['postnl', Data::XML_PATH_POSTNL_SETTINGS],
-            ['dpd', Data::XML_PATH_DPD_SETTINGS]
+//            ['dpd', Data::XML_PATH_DPD_SETTINGS]
         ];
 
         foreach ($carriersSettings as $carrier) {
