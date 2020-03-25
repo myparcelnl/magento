@@ -73,8 +73,8 @@
 
             </group>
         </section>
-        <section id="myparcelnl_magento_bpost_settings" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>bpost settings</label>
+        <section id="myparcelnl_magento_postnl_settings" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>PostNL settings</label>
             <tab>myparcelnl_magento</tab>
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
             <group id="default_options" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -124,14 +124,14 @@
                 </field>
                 <field id="dropoff_delay" translate="label comment" type="select" sortOrder="217" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Dropoff-delay</label>
-                    <comment>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at Bpost when ordered before the cutoff time.</comment>
+                    <comment>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
                 </field>
             </group>
             <group id="delivery" translate="label comment" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery settings</label>
                 <field id="active" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enabled bpost delivery</label>
+                    <label>Enabled postnl delivery</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="signature_active" translate="label comment" type="select" sortOrder="226" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -151,7 +151,7 @@
                 </field>
             </group>
             <group id="pickup" translate="label comment" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Pickup at Bpost location</label>
+                <label>Pickup at PostNL location</label>
                 <field id="active" translate="label comment" type="select" sortOrder="223" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup active</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -188,7 +188,7 @@
                 </field>
                 <field id="dropoff_delay" translate="label comment" type="select" sortOrder="217" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Dropoff-delay</label>
-                    <comment>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at Bpost when ordered before the cutoff time.</comment>
+                    <comment>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
                 </field>
             </group>

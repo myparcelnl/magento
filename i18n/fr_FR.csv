@@ -1,6 +1,6 @@
 ﻿status_1,Concept
 status_2,Prénotifié
-status_3,Présenté chez bpost
+status_3,Présenté chez postnl
 status_4,Au tri
 status_5,En cours de distribution
 status_6,Envoi à la douane
@@ -97,13 +97,13 @@ Saturday active,Samedi actif
 Saturday title,Samedi - titre
 Dropoff-delay,Délai
 No delay,Pas de délai
-"This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at Bpost when ordered before the cutoff time.","Cette option vous permet de définir le nombre de jours dont vous avez besoin pour (recevoir,) emballer et présenter le produit à bpost, à partir du moment de la commande."
+"This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.","Cette option vous permet de définir le nombre de jours dont vous avez besoin pour (recevoir,) emballer et présenter le produit à postnl, à partir du moment de la commande."
 Methods,Mode d'expédition
 The extra myparcel options are added to this shipping method,Les options Myparcel complémentaires seront ajoutées à ce mode d'expédition
 Delivery title,Livraison - titre
 Deliver the package only at address of the intended recipient.,Livraison du colis à l'adresse du destinataire uniquement.
 This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
-Not possible if Pickup at Bpost location is not active,Ceci ne sera pas possible si la collecte à un point bpost n'est pas activée
+Not possible if Pickup at PostNL location is not active,Ceci ne sera pas possible si la collecte à un point postnl n'est pas activée
 Signature on receipt,Signature pour réception
 Signature on receipt title, Signature pour réception - titre
 Signature on receipt fee, Signature pour réception - prix
@@ -111,7 +111,7 @@ This will be added to the regular shipping price, Ceci sera ajouté aux frais d'
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Si les deux éléments sont sélectionnés, ce prix sera ajouté aux frais d'expédition standards. Laissez vide pour ignorer cette option.
 "Besides assigning weights to all products, you can also specify a volume of each product.","Pour utiliser cette fonction de manière optimale, spécifiez d'abord le poids ou le volume de vos produits."
 This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
-Pickup at Bpost location,Collecte dans un point bpost
+Pickup at PostNL location,Collecte dans un point postnl
 Pickup active,Collecte active
 Pickup titel,Collecte - titre
 Pickup fee,Collecte - prix

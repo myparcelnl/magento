@@ -42,7 +42,7 @@ define(
                         }
                     );
 
-                    $("#mypa_carrier_bpost").click(
+                    $("#mypa_carrier_postnl").click(
                         function () {
                             parentThis._checkOptionsField();
                         }
@@ -67,7 +67,7 @@ define(
                 },
 
                 _checkOptionsField: function () {
-                    if ($('#mypa_carrier_bpost').prop("checked", true)) {
+                    if ($('#mypa_carrier_postnl').prop("checked", true)) {
                         $('.mypa-option-toggle').slideDown();
                     }
                 },

@@ -131,7 +131,7 @@ class UpgradeData implements UpgradeDataInterface
                 foreach ($insuranceData as $value) {
                     $path    = $value['path'];
                     $path    = explode("/", $path);
-                    $path[0] = 'myparcelnl_magento_bpost_settings';
+                    $path[0] = 'myparcelnl_magento_postnl_settings';
                     $path[1] = 'default_options';
 
                     $fullPath = implode("/", $path);
@@ -153,7 +153,7 @@ class UpgradeData implements UpgradeDataInterface
                 foreach ($signatureData as $value) {
                     $path    = $value['path'];
                     $path    = explode("/", $path);
-                    $path[0] = 'myparcelnl_magento_bpost_settings';
+                    $path[0] = 'myparcelnl_magento_postnl_settings';
                     $path[1] = 'default_options';
 
                     $fullPath = implode("/", $path);
@@ -163,7 +163,7 @@ class UpgradeData implements UpgradeDataInterface
                     $connection->update($table, $bind, $where);
                 }
 
-                // Move myparcelnl_magento_checkout to myparcelnl_magento_bpost_settings
+                // Move myparcelnl_magento_checkout to myparcelnl_magento_postnl_settings
                 $selectCheckoutSettings = $connection->select()->from(
                     $table,
                     ['config_id', 'path', 'value']
@@ -175,7 +175,7 @@ class UpgradeData implements UpgradeDataInterface
                 foreach ($checkoutData as $value) {
                     $path    = $value['path'];
                     $path    = explode("/", $path);
-                    $path[0] = 'myparcelnl_magento_bpost_settings';
+                    $path[0] = 'myparcelnl_magento_postnl_settings';
 
                     $fullPath = implode("/", $path);
 
@@ -184,13 +184,13 @@ class UpgradeData implements UpgradeDataInterface
                     $connection->update($table, $bind, $where);
                 }
 
-                // Insert bpost enabled data
+                // Insert postnl enabled data
                 $connection->insert(
                     $table,
                     [
                         'scope'    => 'default',
                         'scope_id' => 0,
-                        'path'     => 'myparcelnl_magento_bpost_settings/delivery/active',
+                        'path'     => 'myparcelnl_magento_postnl_settings/delivery/active',
                         'value'    => 1
                     ]
                 );

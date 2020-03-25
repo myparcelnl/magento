@@ -20,7 +20,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Sdk\src\Model\Consignment\BpostConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DPDConsignment;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
@@ -28,13 +28,13 @@ class Data extends AbstractHelper
 {
     const MODULE_NAME             = 'MyParcelNL_Magento';
     const XML_PATH_GENERAL        = 'myparcelnl_magento_general/';
-    const XML_PATH_BPOST_SETTINGS = 'myparcelnl_magento_bpost_settings/';
+    const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
     const XML_PATH_DPD_SETTINGS   = 'myparcelnl_magento_dpd_settings/';
 
-    public const CARRIERS = [BpostConsignment::CARRIER_NAME, DPDConsignment::CARRIER_NAME];
+    public const CARRIERS = [PostNLConsignment::CARRIER_NAME, DPDConsignment::CARRIER_NAME];
 
     public const CARRIERS_XML_PATH_MAP = [
-        BpostConsignment::CARRIER_NAME => Data::XML_PATH_BPOST_SETTINGS,
+        PostNLConsignment::CARRIER_NAME => Data::XML_PATH_POSTNL_SETTINGS,
         DPDConsignment::CARRIER_NAME   => Data::XML_PATH_DPD_SETTINGS,
     ];
 
@@ -98,7 +98,7 @@ class Data extends AbstractHelper
      */
     public function getStandardConfig($code = '', $storeId = null)
     {
-        return $this->getConfigValue(self::XML_PATH_BPOST_SETTINGS . $code, $storeId);
+        return $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . $code, $storeId);
     }
 
     /**
@@ -113,11 +113,11 @@ class Data extends AbstractHelper
     {
         $settings = $this->getTmpScope();
         if ($settings == null) {
-            $value = $this->getConfigValue(self::XML_PATH_BPOST_SETTINGS . $code);
+            $value = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . $code);
             if ($value != null) {
                 return $value;
             } else {
-                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_BPOST_SETTINGS . $code);
+                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_POSTNL_SETTINGS . $code);
             }
         }
 

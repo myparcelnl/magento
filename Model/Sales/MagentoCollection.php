@@ -78,7 +78,7 @@ class MagentoCollection implements MagentoCollectionInterface
         'create_track_if_one_already_exist' => true,
         'request_type'                      => 'download',
         'package_type'                      => 'default',
-        'carrier'                           => 'bpost',
+        'carrier'                           => 'postnl',
         'positions'                         => null,
         'signature'                         => null,
         'insurance'                         => null,

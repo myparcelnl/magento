@@ -12,7 +12,7 @@ class Checkout
 {
     const selectCarriersArray = 0;
     const selectCarrierPath   = 1;
-    const platform            = 'belgie';
+    const platform            = 'myparcel';
 
     /**
      * @var array
@@ -159,7 +159,7 @@ class Checkout
     private function get_carriers(): array
     {
         $carriersSettings = [
-            ['bpost', Data::XML_PATH_BPOST_SETTINGS],
+            ['postnl', Data::XML_PATH_POSTNL_SETTINGS],
             ['dpd', Data::XML_PATH_DPD_SETTINGS]
         ];
 

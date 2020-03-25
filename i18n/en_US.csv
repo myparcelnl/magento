@@ -23,8 +23,8 @@ status_38,Inactive - Delivered - Package picked up
 status_39,Inactive - Return shipment delivered
 status_40,Inactive - Return shipment pickup location
 status_99,Inactive - Unknown
-myparcelnl_magento_bpost_settings/delivery_title, bpost delivery
-myparcelnl_magento_bpost_settings/pickup_title, bpost pickup location
-myparcelnl_magento_bpost_settings/delivery/signature_title, bpost delivery with signature
+myparcelnl_magento_postnl_settings/delivery_title, postnl delivery
+myparcelnl_magento_postnl_settings/pickup_title, postnl pickup location
+myparcelnl_magento_postnl_settings/delivery/signature_title, postnl delivery with signature
 myparcelnl_magento_dpd_settings/delivery_title,  DPD delivery
 myparcelnl_magento_dpd_settings/pickup_title, DPD pickup location
