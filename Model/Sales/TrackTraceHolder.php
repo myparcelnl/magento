@@ -297,7 +297,6 @@ class TrackTraceHolder
 
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
         foreach ($products as $product) {
-            $productCountryOfOrigin = $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin');
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
                 ->setAmount($product['qty'])

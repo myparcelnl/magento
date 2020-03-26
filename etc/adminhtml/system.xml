@@ -42,7 +42,7 @@
                 </field>
                 <field id="country_of_origin" translate="label comment" type="text" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Country of origin</label>
-                    <comment>This country will appear on the international consignment labels. This is where your products are shipped from.</comment>
+                    <comment>This country will appear on the international consignment labels. This is where your products are shipped from. You can use "NL", "BE", "DE" etc.</comment>
                 </field>
             </group>
         </section>
