@@ -178,7 +178,7 @@ class TrackTraceHolder
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($shipment->getOrder()->getIncrementId())
-            ->setDeliveryDate($deliveryOptionsAdapter->getDate())
+            ->setDeliveryDate($this->helper->getDateFormat($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId())
             ->setPackageType($packageType)
             ->setSignature($shippingOptionsAdapter->hasSignature())

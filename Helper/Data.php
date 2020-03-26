@@ -155,4 +155,19 @@ class Data extends AbstractHelper
 
         return $keyIsCorrect;
     }
+
+    /**
+     * Get date in YYYY-MM-DD HH:MM:SS format
+     *
+     * @param string|null $date
+     *
+     * @return string|null
+     */
+    public function getDateFormat(?string $date): ?string
+    {
+        $date = strtotime($date);
+        $delivery_date = date('Y-m-d H:i:s', $date);
+
+        return $delivery_date;
+    }
 }
