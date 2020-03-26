@@ -361,43 +361,6 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
-        // add country of origin to product
-        if (version_compare($context->getVersion(), '3.4.0', '<=')) {
-            $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
-
-            // Add attributes to the eav/attribute
-            $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
-                'myparcel_country_of_origin',
-                [
-                    'group' => 'MyParcel Options',
-                    'note' => 'Country of origin is used for shipments out of the EU. This is where your products are shipped from. You can use "NL", "BE", "DE" etc.',
-                    'type' => 'varchar',
-                    'backend' => '',
-                    'frontend' => '',
-                    'label' => 'Country of origin',
-                    'input' => 'text',
-                    'class' => '',
-                    'source' => '',
-                    'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible' => true,
-                    'required' => false,
-                    'user_defined' => true,
-                    'default' => '',
-                    'searchable' => true,
-                    'filterable' => true,
-                    'comparable' => true,
-                    'visible_on_front' => false,
-                    'used_in_product_listing' => true,
-                    'unique' => false,
-                    'apply_to' => '',
-                ]
-            );
-
-        }
-
         $setup->endSetup();
     }
 }

@@ -338,7 +338,9 @@ class TrackTraceHolder
      */
     public function getCountryOfOrigin($product): string
     {
-        $productCountryOfOrigin = $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_origin');
+        $productCountryOfOrigin = (string) $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_manufacture', true);
+        var_dump($productCountryOfOrigin);
+        exit();
         $mpCountryOfOrigin = $this->helper->getGeneralConfig('basic_settings/country_of_origin');
 
         if ($productCountryOfOrigin) {
@@ -352,19 +354,29 @@ class TrackTraceHolder
      * @param string $tableName
      * @param string $entityId
      * @param string $column
+     * @param bool $isMagentoAttr
      *
      * @return string|null
      */
-    private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
+    private function getAttributeValue(string $tableName, string $entityId, string $column, bool $isMagentoAttr = null): ?string
     {
         $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
         $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection     = $resource->getConnection();
-        $attributeId    = $this->getAttributeId(
-            $connection,
-            $resource->getTableName('eav_attribute'),
-            $column
-        );
+        if (! $isMagentoAttr) {
+            $attributeId    = $this->getAttributeId(
+                $connection,
+                $resource->getTableName('eav_attribute'),
+                $column
+            );
+        } else {
+            $attributeId    = $this->getMagentoAttributeId(
+                $connection,
+                $resource->getTableName('eav_attribute'),
+                $column
+            );
+        }
+
         $attributeValue = $this
             ->getValueFromAttribute(
                 $connection,
@@ -422,13 +434,29 @@ class TrackTraceHolder
      *
      * @return mixed
      */
+    private function getMagentoAttributeId(object $connection, string $tableName, string $databaseColumn): string
+    {
+        $sql = $connection
+            ->select('entity_type_id')
+            ->from($tableName)
+            ->where('attribute_code = ' . $databaseColumn);
+
+        return $connection->fetchOne($sql);
+    }
+
+    /**
+     * @param object $connection
+     * @param string $tableName
+     * @param string $databaseColumn
+     *
+     * @return mixed
+     */
     private function getAttributeId(object $connection, string $tableName, string $databaseColumn): string
     {
         $sql = $connection
             ->select('entity_type_id')
             ->from($tableName)
             ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
-
         return $connection->fetchOne($sql);
     }
 
