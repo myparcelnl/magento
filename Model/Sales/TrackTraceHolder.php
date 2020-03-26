@@ -303,7 +303,7 @@ class TrackTraceHolder
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
                 ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry((string) $this->getCountryOfOrigin($product));
+                ->setCountry((string) $this->getCountryOfOrigin($product['product_id']));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -333,14 +333,13 @@ class TrackTraceHolder
     /**
      * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
      *
-     * @param $product
+     * @param $product_id
      * @return string
      */
-    public function getCountryOfOrigin($product): string
+    public function getCountryOfOrigin($product_id): string
     {
-        $productCountryOfOrigin = (string) $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'country_of_manufacture', true);
-        var_dump($productCountryOfOrigin);
-        exit();
+        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById((int) $product_id);
+        $productCountryOfOrigin = $product->getCountryOfManufacture();
         $mpCountryOfOrigin = $this->helper->getGeneralConfig('basic_settings/country_of_origin');
 
         if ($productCountryOfOrigin) {
@@ -358,24 +357,16 @@ class TrackTraceHolder
      *
      * @return string|null
      */
-    private function getAttributeValue(string $tableName, string $entityId, string $column, bool $isMagentoAttr = null): ?string
+    private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
         $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
         $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection     = $resource->getConnection();
-        if (! $isMagentoAttr) {
-            $attributeId    = $this->getAttributeId(
-                $connection,
-                $resource->getTableName('eav_attribute'),
-                $column
-            );
-        } else {
-            $attributeId    = $this->getMagentoAttributeId(
-                $connection,
-                $resource->getTableName('eav_attribute'),
-                $column
-            );
-        }
+        $attributeId    = $this->getAttributeId(
+            $connection,
+            $resource->getTableName('eav_attribute'),
+            $column
+        );
 
         $attributeValue = $this
             ->getValueFromAttribute(
@@ -425,23 +416,6 @@ class TrackTraceHolder
         $items      = $conn->fetchAll($select);
 
         return $items;
-    }
-
-    /**
-     * @param object $connection
-     * @param string $tableName
-     * @param string $databaseColumn
-     *
-     * @return mixed
-     */
-    private function getMagentoAttributeId(object $connection, string $tableName, string $databaseColumn): string
-    {
-        $sql = $connection
-            ->select('entity_type_id')
-            ->from($tableName)
-            ->where('attribute_code = ' . $databaseColumn);
-
-        return $connection->fetchOne($sql);
     }
 
     /**
