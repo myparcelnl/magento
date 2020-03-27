@@ -296,6 +296,7 @@ class TrackTraceHolder
         }
 
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
+
         foreach ($products as $product) {
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($product['name'])
