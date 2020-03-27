@@ -303,7 +303,7 @@ class TrackTraceHolder
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
                 ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry((string) $this->getCountryOfOrigin($product['product_id']));
+                ->setCountry($this->getCountryOfOrigin($product['product_id']));
 
             $this->consignment->addItem($myParcelProduct);
         }
