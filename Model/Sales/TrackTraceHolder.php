@@ -336,9 +336,9 @@ class TrackTraceHolder
      * @param $product_id
      * @return string
      */
-    public function getCountryOfOrigin($product_id): string
+    public function getCountryOfOrigin(int $product_id): string
     {
-        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById((int) $product_id);
+        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
         $productCountryOfManufacture = $product->getCountryOfManufacture();
 
         if ($productCountryOfManufacture) {
