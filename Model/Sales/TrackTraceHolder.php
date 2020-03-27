@@ -307,6 +307,7 @@ class TrackTraceHolder
 
             $this->consignment->addItem($myParcelProduct);
         }
+
         return $this;
     }
 
@@ -430,6 +431,7 @@ class TrackTraceHolder
             ->select('entity_type_id')
             ->from($tableName)
             ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
+
         return $connection->fetchOne($sql);
     }
 
