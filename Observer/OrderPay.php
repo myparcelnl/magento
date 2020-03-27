@@ -94,14 +94,14 @@ class OrderPay implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-//        $orderIds = $observer->getEvent()->getOrderIds();
-//        $lastorderId = $orderIds[0];
+        $orderIds = $observer->getEvent()->getOrderIds();
+        $lastorderId = $orderIds[0];
 
 //        $shipment = $this->orderFactory->load($lastorderId);
 
-//        $shipment = $observer->getEvent()->getShipment();
-        $shipmentId = $this->getRequest()->getParam('selected');
-        $this->setMagentoAndMyParcelTrack($shipmentId);
+//        $shipmentid = $observer->getEvent()->getOrder();
+
+        $this->setMagentoAndMyParcelTrack(10); // dit is een order id wat ik al in mijn order grid had staan
     }
 
     /**
@@ -113,43 +113,45 @@ class OrderPay implements ObserverInterface
      * @throws LocalizedException
      * @throws \Exception
      */
-    private function setMagentoAndMyParcelTrack($shipmentIds)
+    private function setMagentoAndMyParcelTrack($orderIds)
     {
-        $this->addShipmentsToCollection($shipmentIds);
+        $this->addOrdersToCollection($orderIds);
 
-        $this->shipmentCollection
-            ->setOptionsFromParameters()
-            ->setMagentoTrack()
-            ->setMyParcelTrack()
-            ->createMyParcelConcepts()
-            ->updateGridByShipment();
+        $this->orderCollection
+            ->setNewMagentoShipment();
 
-        if ($this->shipmentCollection->getOption('request_type') == 'concept') {
+        if (!$this->orderCollection->hasShipment()) {
+            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
             return $this;
         }
 
-        $this->shipmentCollection
-            ->setPdfOfLabels()
-            ->updateMagentoTrack()
-            ->sendTrackEmailFromShipments()
-            ->downloadPdfOfLabels();
+        $this->orderCollection
+            ->setMagentoTrack()
+            ->updateGridByOrder();
+
+        if (
+            $this->orderCollection->getOption('request_type') == 'concept' ||
+            $this->orderCollection->myParcelCollection->isEmpty()
+        ) {
+            return $this;
+        }
+
+        $this->orderCollection
+            ->updateMagentoTrack();
 
         return $this;
     }
 
     /**
-     * @param $shipmentIds int[]
+     * @param $orderIds int[]
      */
-    private function addShipmentsToCollection($shipmentIds)
+    private function addOrdersToCollection($orderIds)
     {
-        //Get Object Manager Instance
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-
         /**
-         * @var Collection $collection
+         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
-        $collection = $objectManager->get(MagentoShipmentCollection::PATH_MODEL_SHIPMENT);
-        $collection->addAttributeToFilter('entity_id', ['in' => $shipmentIds]);
-        $this->shipmentCollection->setShipmentCollection($collection);
+        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
+        $this->orderCollection->setOrderCollection($collection);
     }
 }
