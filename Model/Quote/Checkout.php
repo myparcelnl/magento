@@ -102,7 +102,7 @@ class Checkout
     private function getGeneralData()
     {
         return [
-            'allowRetry'                 => false,
+            'allowRetry'                 => true,
             'platform'                   => self::platform,
             'carriers'                   => array_column($this->get_carriers(), self::selectCarriersArray),
             'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
@@ -124,16 +124,24 @@ class Checkout
             $myParcelConfig["carrierSettings"][$carrier[self::selectCarriersArray]] = [
                 'allowDeliveryOptions' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/active'),
                 'allowSignature'       => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/signature_active'),
+                'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/only_recipient_active'),
+                'allowMorningDelivery' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'morning/active'),
+                'allowEveningDelivery' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'evening/active'),
                 'allowPickupLocations' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'pickup/active'),
 
                 'priceSignature'        => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'delivery/signature_fee', false),
+                'priceOnlyRecipient'    => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'delivery/only_recipient_fee', false),
                 'priceStandardDelivery' => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
+                'priceMorningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'morning/fee', false),
+                'priceEveningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'evening/fee', false),
                 'pricePickup'           => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'pickup/fee', false),
 
-                'cutoffTime'         => $this->helper->getTimeConfig($carrier[self::selectCarrierPath], 'general/cutoff_time'),
-                'deliveryDaysWindow' => $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'general/deliverydays_window'),
-                'dropOffDays'        => $this->helper->getArrayConfig($carrier[self::selectCarrierPath], 'general/dropoff_days'),
-                'dropOffDelay'       => $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'general/dropoff_delay'),
+                'cutoffTime'          => $this->helper->getTimeConfig($carrier[self::selectCarrierPath], 'general/cutoff_time'),
+                'saturdayCutoffTime'  => $this->helper->getTimeConfig($carrier[self::selectCarrierPath], 'general/saturday_cutoff_time'),
+                'deliveryDaysWindow'  => $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'general/deliverydays_window'),
+                'allowMondayDelivery' => $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'general/monday_delivery_active'),
+                'dropOffDays'         => $this->helper->getArrayConfig($carrier[self::selectCarrierPath], 'general/dropoff_days'),
+                'dropOffDelay'        => $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'general/dropoff_delay'),
             ];
         }
 
@@ -182,13 +190,15 @@ class Checkout
     private function getDeliveryOptionsStrings()
     {
         return [
-
             'deliveryTitle'             => $this->helper->getGeneralConfig('delivery_titles/delivery_title'),
             'deliveryStandardTitle'     => $this->helper->getGeneralConfig('delivery_titles/standard_delivery_title'),
+            'deliveryMorningTitle'      => $this->helper->getGeneralConfig('delivery_titles/morning_title'),
+            'deliveryEveningTitle'      => $this->helper->getGeneralConfig('delivery_titles/evening_title'),
             'pickupTitle'               => $this->helper->getGeneralConfig('delivery_titles/pickup_title'),
             'pickupLocationsListButton' => $this->helper->getGeneralConfig('delivery_titles/pickup_list_button_title'),
             'pickupLocationsMapButton'  => $this->helper->getGeneralConfig('delivery_titles/pickup_map_button_title'),
             'signatureTitle'            => $this->helper->getGeneralConfig('delivery_titles/signature_title'),
+            'onlyRecipientTitle'        => $this->helper->getGeneralConfig('delivery_titles/only_recipient_title'),
             'saturdayDeliveryTitle'     => $this->helper->getGeneralConfig('delivery_titles/saturday_title'),
 
             'wrongPostalCodeCity' => __('Postcode/city combination unknown'),

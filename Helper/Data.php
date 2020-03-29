@@ -26,10 +26,11 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
-    const MODULE_NAME             = 'MyParcelNL_Magento';
-    const XML_PATH_GENERAL        = 'myparcelnl_magento_general/';
+    const MODULE_NAME              = 'MyParcelNL_Magento';
+    const SDK_NAME                 = 'MyParcelNL_SDK';
+    const XML_PATH_GENERAL         = 'myparcelnl_magento_general/';
     const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
-    const XML_PATH_DPD_SETTINGS   = 'myparcelnl_magento_dpd_settings/';
+    const XML_PATH_DPD_SETTINGS    = 'myparcelnl_magento_dpd_settings/';
 
     public const CARRIERS = [PostNLConsignment::CARRIER_NAME /*,DPDConsignment::CARRIER_NAME*/];
 
@@ -48,9 +49,9 @@ class Data extends AbstractHelper
     /**
      * Get settings by field
      *
-     * @param Context $context
+     * @param Context             $context
      * @param ModuleListInterface $moduleList
-     * @param CheckApiKeyService $checkApiKeyService
+     * @param CheckApiKeyService  $checkApiKeyService
      */
     public function __construct(
         Context $context,
@@ -58,7 +59,7 @@ class Data extends AbstractHelper
         CheckApiKeyService $checkApiKeyService
     ) {
         parent::__construct($context);
-        $this->moduleList = $moduleList;
+        $this->moduleList         = $moduleList;
         $this->checkApiKeyService = $checkApiKeyService;
     }
 
@@ -121,11 +122,11 @@ class Data extends AbstractHelper
             }
         }
 
-        if (!is_array($settings)) {
+        if (! is_array($settings)) {
             $this->_logger->critical('No data in settings array');
         }
 
-        if (!key_exists($code, $settings)) {
+        if (! key_exists($code, $settings)) {
             $this->_logger->critical('Can\'t get setting ' . $code);
         }
 
@@ -142,7 +143,7 @@ class Data extends AbstractHelper
         $moduleCode = self::MODULE_NAME;
         $moduleInfo = $this->moduleList->getOne($moduleCode);
 
-        return (string)$moduleInfo['setup_version'];
+        return (string) $moduleInfo['setup_version'];
     }
 
     /**
@@ -151,7 +152,7 @@ class Data extends AbstractHelper
     public function apiKeyIsCorrect()
     {
         $defaultApiKey = $this->getGeneralConfig('api/key');
-        $keyIsCorrect = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
+        $keyIsCorrect  = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
 
         return $keyIsCorrect;
     }
@@ -165,7 +166,7 @@ class Data extends AbstractHelper
      */
     public function getDateFormat(?string $date): ?string
     {
-        $date = strtotime($date);
+        $date          = strtotime($date);
         $delivery_date = date('Y-m-d H:i:s', $date);
 
         return $delivery_date;

@@ -54,6 +54,7 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      * Get the url of the stylesheet
      *
      * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCssUrl()
     {

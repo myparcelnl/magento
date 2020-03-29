@@ -22,7 +22,7 @@
                                         <tr>
                                             <td colspan="3">
                                                 <div class="instructions">
-                                                    <?= __('The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.', '<b>'.$block->getModuleVersion() . '</b>',"<b><a class=\"link\" target=\"_blank\" href=\"https://github.com/myparcelnl/magento/releases/latest\"><span class= \"current_version\"></span></a></b>");?>
+                                                    <?= __('The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.', '<b>'.$block->getModuleVersion().'</b>',"<b><a class=\"link\" target=\"_blank\" href=\"https://github.com/myparcelnl/magento/releases/latest\"><span class= \"current_version\"></span></a></b>");?>
                                                 </div>
                                             </td>
                                         </tr>
@@ -80,7 +80,7 @@
                                                             </a>  (<span class="current_version"></span>)
                                                             <script>
                                                                 require(['jquery'], function($){
-                                                                    $.get('https://api.github.com/repos/myparcel/magento/releases/latest', function (data) {
+                                                                    $.get('https://api.github.com/repos/myparcelnl/magento/releases/latest', function (data) {
                                                                         $('.current_version').html('' + data.name + '');
                                                                     });
                                                                 });
