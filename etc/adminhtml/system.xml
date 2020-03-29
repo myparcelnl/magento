@@ -63,22 +63,28 @@
                     <label>Home address only title</label>
                     <comment>The times will be visible when nothing is filled in</comment>
                 </field>
-                <field id="morning_title" translate="label comment" type="text" sortOrder="225" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="digital_stamp_title" translate="label comment" type="text" sortOrder="225" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Digital stamp</label>
+                </field>
+                <field id="mailbox_title" translate="label comment" type="text" sortOrder="226" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Mailbox</label>
+                </field>
+                <field id="morning_title" translate="label comment" type="text" sortOrder="227" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning title</label>
                 </field>
-                <field id="evening_title" translate="label comment" type="text" sortOrder="226" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="evening_title" translate="label comment" type="text" sortOrder="228" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening title</label>
                 </field>
 
-                <field id="pickup_title" translate="label comment" type="text" sortOrder="227" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="pickup_title" translate="label comment" type="text" sortOrder="229" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup title</label>
                 </field>
 
-                <field id="pickup_list_button_title" translate="label comment" type="text" sortOrder="228" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="pickup_list_button_title" translate="label comment" type="text" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup list button text</label>
                 </field>
 
-                <field id="pickup_map_button_title" translate="label comment" type="text" sortOrder="229" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="pickup_map_button_title" translate="label comment" type="text" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup map button text</label>
                 </field>
 
@@ -185,6 +191,51 @@
                     <depends>
                         <field id="active">1</field>
                         <field id="only_recipient_active">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="digital_stamp" translate="label" type="text " sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Digital stamp settings</label>
+                <field id="active" translate="label" type="select" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate digital stamp</label>
+                    <comment>Select automatically digital stamp packages based on weight</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="default_weight" translate="label" type="select" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default weight</label>
+                    <comment>Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.</comment>
+                    <source_model>MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="fee" translate="label comment" type="text" sortOrder="234" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Digital stamp fee</label>
+                    <comment>Enter a basic price for a digital stamp. The regular price will not affect this price.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="mailbox" translate="label" type="text" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Mailbox settings</label>
+                <field id="active" translate="label" type="select" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate mailbox</label>
+                    <comment>Select automatically mailbox packages based on weight or volume</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="weight" translate="label comment" type="text" sortOrder="244" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Mailbox weight</label>
+                    <comment>Besides assigning weights to all products, you can also specify a volume of each product.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="fee" translate="label comment" type="text" sortOrder="245" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Mailbox fee</label>
+                    <comment>Enter a basic price for a mailbox. The regular price will not affect this price.</comment>
+                    <depends>
+                        <field id="active">1</field>
                     </depends>
                 </field>
             </group>

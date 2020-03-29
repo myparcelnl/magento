@@ -27,7 +27,9 @@ class SupportTab extends \Magento\Backend\Block\AbstractBlock implements
      * Render fieldset html
      *
      * @param AbstractElement $element
+     *
      * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function render(AbstractElement $element)
     {
