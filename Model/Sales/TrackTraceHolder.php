@@ -304,8 +304,8 @@ class TrackTraceHolder
                 ->setAmount($product['qty'])
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
-                ->setClassification((int) $this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry('NL');
+                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
+                ->setCountry($this->getCountryOfOrigin($product['product_id']));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -334,13 +334,32 @@ class TrackTraceHolder
     }
 
     /**
+     * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
+     *
+     * @param $product_id
+     * @return string
+     */
+    public function getCountryOfOrigin(int $product_id): string
+    {
+        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
+        $productCountryOfManufacture = $product->getCountryOfManufacture();
+
+        if ($productCountryOfManufacture) {
+            return $productCountryOfManufacture;
+        }
+
+        return $this->helper->getGeneralConfig('basic_settings/country_of_origin');
+    }
+
+    /**
      * @param string $tableName
      * @param string $entityId
      * @param string $column
+     * @param bool $isMagentoAttr
      *
      * @return string|null
      */
-    private function hsCode(string $tableName, string $entityId, string $column): ?string
+    private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
         $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
         $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
@@ -350,6 +369,7 @@ class TrackTraceHolder
             $resource->getTableName('eav_attribute'),
             $column
         );
+
         $attributeValue = $this
             ->getValueFromAttribute(
                 $connection,
