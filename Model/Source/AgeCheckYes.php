@@ -48,7 +48,7 @@ class AgeCheckYes implements ArrayInterface
      */
     public function getDefault($option)
     {
-        $settings = self::$helper->getStandardConfig('options');
+        $settings = self::$helper->getStandardConfig('default_options');
 
         if ($settings[$option . '_active'] == '1') {
             return true;

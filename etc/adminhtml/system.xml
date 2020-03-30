@@ -101,7 +101,7 @@
                     <label>Automate 'Signature on receipt'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="signature_from_price" translate="label comment" type="text" sortOrder="205" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="signature_from_price" translate="label comment" type="text" sortOrder="204" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From price</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment>'Signature on receipt' operates above a certain order total amount</comment>
@@ -109,11 +109,76 @@
                         <field id="signature_active">1</field>
                     </depends>
                 </field>
-                <field id="insurance_500_active" translate="label" type="select" sortOrder="207" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="only_recipient_active" translate="label" type="select" sortOrder="205" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Home address only'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="only_recipient_from_price" translate="label comment" type="text" sortOrder="206" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Home address only' operates above a certain order total amount</comment>
+                    <depends>
+                        <field id="only_recipient_active">1</field>
+                    </depends>
+                </field>
+                <field id="return_active" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Return if no answer'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="return_from_price" translate="label comment" type="text" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Return if no answer' operates above a certain order total amount</comment>
+                    <depends>
+                        <field id="return_active">1</field>
+                    </depends>
+                </field>
+                <field id="large_format_active" translate="label" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Large format'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="large_format_from_price" translate="label comment" type="text" sortOrder="221" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Large format' operates above a certain order total amount</comment>
+                    <depends>
+                        <field id="large_format_active">1</field>
+                    </depends>
+                </field>
+                <field id="age_check_active" translate="label" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Age check 18+'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.</comment>
+                </field>
+                <field id="insurance_100_active" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Insurance € 100'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="insurance_100_from_price" translate="label comment" type="text" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.</comment>
+                    <depends>
+                        <field id="insurance_100_active">1</field>
+                    </depends>
+                </field>
+                <field id="insurance_250_active" translate="label" type="select" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Insurance € 250'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="insurance_250_from_price" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Insurance € 250' operates above a certain order total amount. Only for dutch shipments, shipments to outside of the EU are standard ensured up to € 200.</comment>
+                    <depends>
+                        <field id="insurance_250_active">1</field>
+                    </depends>
+                </field>
+                <field id="insurance_500_active" translate="label" type="select" sortOrder="260" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Insurance € 500'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="insurance_500_from_price" translate="label comment" type="text" sortOrder="209" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="insurance_500_from_price" translate="label comment" type="text" sortOrder="261" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From price</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment>'Insurance € 500' operates above a certain order total amount.</comment>
@@ -122,34 +187,34 @@
                     </depends>
                 </field>
             </group>
-            <group id="general" translate="label comment" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Basic settings</label>
-                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="213" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="2275" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Number of days</label>
                     <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
                     <comment>Show a delivery day in the checkout.</comment>
                 </field>
-                <field id="cutoff_time" translate="label comment" type="time" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Cut-off time</label>
                     <comment>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</comment>
                 </field>
-                <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="215" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Drop-off days</label>
                     <source_model>MyParcelNL\Magento\Model\Source\DropOffDays</source_model>
                     <comment>Select the days that you send the orders.</comment>
                     <can_be_empty>1</can_be_empty>
                 </field>
-                <field id="dropoff_delay" translate="label comment" type="select" sortOrder="217" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Dropoff-delay</label>
                     <comment>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
                 </field>
-                <field id="monday_delivery_active" translate="label comment" type="select" sortOrder="218" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="monday_delivery_active" translate="label comment" type="select" sortOrder="295" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Monday delivery</label>
                     <comment><![CDATA[Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations. Click <a href="https://blog.myparcel.nl/maandagbezorging" target="_blank">here</a> for more information concerning Monday delivery and the locations.]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="saturday_cutoff_time" translate="label comment" type="time" sortOrder="219" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="saturday_cutoff_time" translate="label comment" type="time" sortOrder="298" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Monday delivery cut-off time</label>
                     <depends>
                         <field id="monday_delivery_active">1</field>
@@ -157,20 +222,20 @@
                     <comment>If a request is made before this time on Saturday, Monday will be shown as the next possible delivery date.</comment>
                 </field>
             </group>
-            <group id="delivery" translate="label comment" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery settings</label>
-                <field id="active" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enabled PostNL delivery</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="signature_active" translate="label comment" type="select" sortOrder="226" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckYes</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="signature_fee" translate="label comment" type="text" sortOrder="229" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="signature_fee" translate="label comment" type="text" sortOrder="315" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>
@@ -178,14 +243,14 @@
                         <field id="signature_active">1</field>
                     </depends>
                 </field>
-                <field id="only_recipient_active" translate="label comment" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="only_recipient_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Home address only</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckYes</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="235" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Home address only fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>
@@ -194,14 +259,14 @@
                     </depends>
                 </field>
             </group>
-            <group id="digital_stamp" translate="label" type="text " sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="digital_stamp" translate="label" type="text " sortOrder="330" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Digital stamp settings</label>
-                <field id="active" translate="label" type="select" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label" type="select" sortOrder="335" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate digital stamp</label>
                     <comment>Select automatically digital stamp packages based on weight</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="default_weight" translate="label" type="select" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="default_weight" translate="label" type="select" sortOrder="340" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Default weight</label>
                     <comment>Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions</source_model>
@@ -209,7 +274,7 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="234" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="345" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Digital stamp fee</label>
                     <comment>Enter a basic price for a digital stamp. The regular price will not affect this price.</comment>
                     <depends>
@@ -217,21 +282,21 @@
                     </depends>
                 </field>
             </group>
-            <group id="mailbox" translate="label" type="text" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="mailbox" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Mailbox settings</label>
-                <field id="active" translate="label" type="select" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label" type="select" sortOrder="355" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate mailbox</label>
                     <comment>Select automatically mailbox packages based on weight or volume</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="weight" translate="label comment" type="text" sortOrder="244" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="weight" translate="label comment" type="text" sortOrder="360" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mailbox weight</label>
                     <comment>Besides assigning weights to all products, you can also specify a volume of each product.</comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="245" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="365" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mailbox fee</label>
                     <comment>Enter a basic price for a mailbox. The regular price will not affect this price.</comment>
                     <depends>
@@ -239,14 +304,14 @@
                     </depends>
                 </field>
             </group>
-            <group id="morning" translate="label comment" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="morning" translate="label comment" type="text" sortOrder="370" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Morning delivery active</label>
-                <field id="active" translate="label comment" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="375" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning delivery active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
                     <comment>If age check is active then the evening delivery is not possible</comment>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="380" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning delivery fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>
@@ -254,14 +319,14 @@
                     </depends>
                 </field>
             </group>
-            <group id="evening" translate="label comment" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="evening" translate="label comment" type="text" sortOrder="385" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Evening delivery</label>
-                <field id="active" translate="label comment" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="390" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening delivery active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
                     <comment>If age check is active then the evening delivery is not possible</comment>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="395" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening delivery fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>
@@ -269,13 +334,13 @@
                     </depends>
                 </field>
             </group>
-            <group id="pickup" translate="label comment" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Pickup at PostNL location</label>
-                <field id="active" translate="label comment" type="select" sortOrder="223" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="active" translate="label comment" type="select" sortOrder="405" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup active</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="229" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="fee" translate="label comment" type="text" sortOrder="410" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup fee</label>
                     <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
                     <depends>
