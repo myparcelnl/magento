@@ -193,8 +193,11 @@ class TrackTraceHolder
                 ->setPickupNumber($pickupLocationAdapter->getNumber())
                 ->setPickupCountry($pickupLocationAdapter->getCountry())
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
-                ->setPickupLocationCode($pickupLocationAdapter->getLocationCode())
-                ->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId());
+                ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
+
+              if ($pickupLocationAdapter->getPickupNetworkId()) {
+                  $this->consignment->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId());
+              }
         }
 
         $this->convertDataForCdCountry($magentoTrack)
