@@ -168,6 +168,11 @@ class Data extends AbstractHelper
     {
         $date          = strtotime($date);
         $delivery_date = date('Y-m-d H:i:s', $date);
+        $todayDate     = strtotime('now');
+
+        if ($date <= $todayDate) {
+            return date('Y-m-d H:i:s', strtotime('now +1 day'));
+        }
 
         return $delivery_date;
     }
