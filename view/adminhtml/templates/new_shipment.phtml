@@ -39,6 +39,18 @@
             <span><?=__('Signature on receipt') ?></span>
         </label>
     </div>
+    <div class="field choice admin__field admin__field-option field-mypa_only_recipient mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
+        <input id="mypa_only_recipient"
+               class="admin__control-checkbox"
+               name="mypa_only_recipient"
+               value="1"
+               type="checkbox"
+            <?= $block->getDefaultOption('only_recipient') == true ? 'checked="checked"' : '';?>
+        />
+        <label class="admin__field-label" for="mypa_only_recipient">
+            <span><?=__('Home address only') ?></span>
+        </label>
+    </div>
     <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
         <label class="admin__field-label" for="mypa_insurance" style="display: block">
             <span><?=__('Insured up to:') ?></span>
@@ -46,7 +58,18 @@
         <?php $defaultInsurance = $block->getDefaultInsurance();?>
         <select name="mypa_insurance" id="mypa_insurance" class="required product-custom-option admin__control-select" title="" >
             <option value="0" ><?=__('No insurance') ?></option>
+            <option value="100" <?= $defaultInsurance == 100 ? 'selected="selected"' : '';?> >€ 100</option>
+            <option value="250" <?= $defaultInsurance == 250 ? 'selected="selected"' : '';?> >€ 250</option>
             <option value="500" <?= $defaultInsurance == 500 ? 'selected="selected"' : '';?> >€ 500</option>
+            <option value="1000">€ 1000</option>
+            <option value="1500">€ 1500</option>
+            <option value="2000">€ 2000</option>
+            <option value="2500">€ 2500</option>
+            <option value="3000">€ 3000</option>
+            <option value="3500">€ 3500</option>
+            <option value="4000">€ 4000</option>
+            <option value="4500">€ 4500</option>
+            <option value="5000">€ 5000</option>
         </select>
     </div>
     <script type="text/x-magento-init">

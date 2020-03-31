@@ -84,6 +84,9 @@ class View extends AbstractOrder
                     if (key_exists('signature', $data['shipmentOptions']) && $data['shipmentOptions']['signature']) {
                         $html .= ', ' . __('Signature on receipt');
                     }
+                    if (key_exists('only_recipient', $data['shipmentOptions']) && $data['shipmentOptions']['only_recipient']) {
+                        $html .= ', ' . __('Home address only');
+                    }
                 }
             }
         }

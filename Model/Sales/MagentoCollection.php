@@ -81,6 +81,10 @@ class MagentoCollection implements MagentoCollectionInterface
         'carrier'                           => 'postnl',
         'positions'                         => null,
         'signature'                         => null,
+        'only_recipient'                    => null,
+        'return'                            => null,
+        'large_format'                      => null,
+        'age_check'                         => null,
         'insurance'                         => null,
     ];
 

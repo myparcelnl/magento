@@ -161,8 +161,14 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     public static function getMethods()
     {
         $methods = [
-            'signature' => 'delivery/signature_',
-            'pickup' => 'pickup/',
+            'signature_only_recip' => 'delivery/signature_and_only_recipient_',
+            'morning'              => 'morning/',
+            'morning_signature'    => 'morning_signature/',
+            'evening'              => 'evening/',
+            'evening_signature'    => 'evening_signature/',
+            'pickup'               => 'pickup/',
+            'mailbox'              => 'mailbox/',
+            'digital_stamp'        => 'digital_stamp/',
         ];
 
         return $methods;

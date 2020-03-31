@@ -128,6 +128,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             'pickup'             => 'pickup',
             'standard'           => 'delivery',
             'standard_signature' => 'delivery/signature',
+            'standard_only_recipient' => 'delivery/only_recipient',
         ];
     }
 

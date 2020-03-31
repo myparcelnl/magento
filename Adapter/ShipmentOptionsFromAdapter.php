@@ -16,8 +16,12 @@ class ShipmentOptionsFromAdapter extends AbstractShipmentOptionsAdapter
      */
     public function __construct(array $inputData)
     {
-        $options         = $inputData ?? [];
-        $this->signature = (bool) ($options['signature'] ?? false);
-        $this->insurance = (int) ($options['insurance'] ?? self::DEFAULT_INSURANCE);
+        $options              = $inputData ?? [];
+        $this->signature      = (bool) ($options['signature'] ?? false);
+        $this->only_recipient = (bool) ($options['only_recipient'] ?? false);
+        $this->large_format   = (bool) ($options['large_format'] ?? false);
+        $this->age_check      = (bool) ($options['age_check'] ?? false);
+        $this->return         = (bool) ($options['return'] ?? false);
+        $this->insurance      = (int) ($options['insurance'] ?? self::DEFAULT_INSURANCE);
     }
 }
