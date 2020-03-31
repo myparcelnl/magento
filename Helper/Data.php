@@ -164,7 +164,7 @@ class Data extends AbstractHelper
      *
      * @return string|null
      */
-    public function getDateFormat(?string $date): ?string
+    public function convertDeliveryDate(?string $date): ?string
     {
         $date          = strtotime($date);
         $delivery_date = date('Y-m-d H:i:s', $date);

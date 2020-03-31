@@ -178,7 +178,7 @@ class TrackTraceHolder
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($shipment->getOrder()->getIncrementId())
-            ->setDeliveryDate($this->helper->getDateFormat($deliveryOptionsAdapter->getDate()))
+            ->setDeliveryDate($this->helper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId())
             ->setPackageType($packageType)
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
