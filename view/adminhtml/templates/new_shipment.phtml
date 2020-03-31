@@ -51,6 +51,47 @@
             <span><?=__('Home address only') ?></span>
         </label>
     </div>
+    <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
+        <input id="mypa_return"
+               class="admin__control-checkbox"
+               name="mypa_return"
+               value="1"
+               type="checkbox"
+            <?= $block->getDefaultOption('return') == true ? 'checked="checked"' : '';?>
+        />
+        <label class="admin__field-label" for="mypa_return">
+            <span><?=__('Return if no answe') ?></span>
+        </label>
+    </div>
+
+
+    <div class="field choice admin__field admin__field-option field-mypa_large_format mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
+        <input id="mypa_large_format"
+               class="admin__control-checkbox"
+               name="mypa_large_format"
+               value="1"
+               type="checkbox"
+            <?= $block->getDefaultOption('large_format') == true ? 'checked="checked"' : '';?>
+        />
+        <label class="admin__field-label" for="mypa_return">
+            <span><?=__('Large package') ?></span>
+        </label>
+    </div>
+
+
+    <div class="field choice admin__field admin__field-option field-mypa_age_check mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
+        <input id="mypa_large_format"
+               class="admin__control-checkbox"
+               name="mypa_age_check"
+               value="1"
+               type="checkbox"
+            <?= $block->getDefaultOption('age_check') == true ? 'checked="checked"' : '';?>
+        />
+        <label class="admin__field-label" for="mypa_age_check">
+            <span><?=__('Age check 18+') ?></span>
+        </label>
+    </div>
+
     <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
         <label class="admin__field-label" for="mypa_insurance" style="display: block">
             <span><?=__('Insured up to:') ?></span>
