@@ -82,7 +82,7 @@ class OrdersAction extends Template
      */
     public function getAjaxUrlSendReturnMail()
     {
-        return $this->_urlBuilder->getUrl('myparcel/order/MyParcelReturnMail');
+        return $this->_urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail');
     }
 
     /**

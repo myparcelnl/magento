@@ -19,7 +19,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class MyParcelReturnMail extends \Magento\Framework\App\Action\Action
+class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
 {
     const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';

@@ -114,7 +114,7 @@ class TrackActions extends Column
                     ];
                     $item[$this->getData('name')]['action-myparcel_send_return_mail'] = [
                         'href' => $this->urlBuilder->getUrl(
-                            'myparcel/order/MyParcelReturnMail',
+                            'myparcel/order/SendMyParcelReturnMail',
                             [
                                 'selected_ids' => $item['entity_id'],
                             ]
