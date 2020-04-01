@@ -73,9 +73,9 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         /* @var \Magento\Quote\Model\Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
         /* @var \Magento\Sales\Model\Order $order */
-        $order      = $observer->getEvent()->getData('order');
+        $order = $observer->getEvent()->getData('order');
 
-        if ($order->getShippigAddress() == null) {
+        if ($order->getShippigAddress() === null) {
             return $this;
         }
 
@@ -109,11 +109,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
 
-        if ($this->array_like($shippingMethod, $myParcelMethods)) {
+        if ($this->isMyparcelRelated($shippingMethod, $myParcelMethods)) {
             return true;
         }
 
-        if ($this->array_like($shippingMethod, $this->parentMethods)) {
+        if ($this->isMyparcelRelated($shippingMethod, $this->parentMethods)) {
             return true;
         }
 
@@ -126,7 +126,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      *
      * @return bool
      */
-    private function array_like($input, $data)
+    private function isMyparcelRelated($input, $data)
     {
         $result = array_filter($data, function ($item) use ($input) {
             if (stripos($input, $item) !== false) {
