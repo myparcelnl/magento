@@ -20,11 +20,10 @@
 
 namespace MyParcelNL\Magento\Model\Quote;
 
-
 use Magento\Framework\Event\ObserverInterface;
+use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -66,6 +65,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     /**
      *
      * @param \Magento\Framework\Event\Observer $observer
+     *
      * @return $this
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
@@ -74,6 +74,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $quote = $observer->getEvent()->getData('quote');
         /* @var \Magento\Sales\Model\Order $order */
         $order      = $observer->getEvent()->getData('order');
+
+        if ($order->getShippigAddress() == null) {
+            return $this;
+        }
+
         $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
 
         $destinationCountry = $order->getShippingAddress()->getCountryId();
@@ -99,7 +104,8 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      *
      * @return bool
      */
-    private function isMyParcelMethod($quote) {
+    private function isMyParcelMethod($quote)
+    {
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
 
@@ -120,7 +126,8 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      *
      * @return bool
      */
-    private function array_like($input, $data) {
+    private function array_like($input, $data)
+    {
         $result = array_filter($data, function ($item) use ($input) {
             if (stripos($input, $item) !== false) {
                 return true;
