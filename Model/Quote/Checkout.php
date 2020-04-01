@@ -51,6 +51,7 @@ class Checkout
      * @param \MyParcelNL\Magento\Helper\Checkout        $helper
      * @param PackageRepository                          $package
      * @param \Magento\Store\Model\StoreManagerInterface $currency
+     *
      */
     public function __construct(
         Session $session,
@@ -122,19 +123,23 @@ class Checkout
 
         foreach ($carriersPath as $carrier) {
             $myParcelConfig["carrierSettings"][$carrier[self::selectCarriersArray]] = [
-                'allowDeliveryOptions' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/active'),
-                'allowSignature'       => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/signature_active'),
-                'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/only_recipient_active'),
-                'allowMorningDelivery' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'morning/active'),
-                'allowEveningDelivery' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'evening/active'),
-                'allowPickupLocations' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'pickup/active'),
+                'allowDeliveryOptions'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/active'),
+                'allowSignature'            => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/signature_active'),
+                'allowOnlyRecipient'        => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/only_recipient_active'),
+                'allowMorningDelivery'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'morning/active'),
+                'allowEveningDelivery'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'evening/active'),
+                'allowMailboxDelivery'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'mailbox/active'),
+                'allowDigitalStampDelivery' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'digital_stamp/active'),
+                'allowPickupLocations'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'pickup/active'),
 
-                'priceSignature'        => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'delivery/signature_fee', false),
-                'priceOnlyRecipient'    => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'delivery/only_recipient_fee', false),
-                'priceStandardDelivery' => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
-                'priceMorningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'morning/fee', false),
-                'priceEveningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'evening/fee', false),
-                'pricePickup'           => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'pickup/fee', false),
+                'priceSignature'            => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'delivery/signature_fee', false),
+                'priceOnlyRecipient'        => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'delivery/only_recipient_fee', false),
+                'priceStandardDelivery'     => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
+                'priceMorningDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'morning/fee', false),
+                'priceEveningDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'evening/fee', false),
+                'priceMailboxDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'mailbox/fee', false),
+                'priceDigitalStampDelivery' => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'digital_stamp/fee', false),
+                'pricePickup'               => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'pickup/fee', false),
 
                 'cutoffTime'          => $this->helper->getTimeConfig($carrier[self::selectCarrierPath], 'general/cutoff_time'),
                 'saturdayCutoffTime'  => $this->helper->getTimeConfig($carrier[self::selectCarrierPath], 'general/saturday_cutoff_time'),
@@ -194,6 +199,8 @@ class Checkout
             'deliveryStandardTitle'     => $this->helper->getGeneralConfig('delivery_titles/standard_delivery_title'),
             'deliveryMorningTitle'      => $this->helper->getGeneralConfig('delivery_titles/morning_title'),
             'deliveryEveningTitle'      => $this->helper->getGeneralConfig('delivery_titles/evening_title'),
+            'mailboxTitle'              => $this->helper->getGeneralConfig('delivery_titles/mailbox_title'),
+            'digitalStampTitle'         => $this->helper->getGeneralConfig('delivery_titles/digital_stamp_title'),
             'pickupTitle'               => $this->helper->getGeneralConfig('delivery_titles/pickup_title'),
             'pickupLocationsListButton' => $this->helper->getGeneralConfig('delivery_titles/pickup_list_button_title'),
             'pickupLocationsMapButton'  => $this->helper->getGeneralConfig('delivery_titles/pickup_map_button_title'),
