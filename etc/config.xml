@@ -24,6 +24,8 @@
                 <mailbox_title>Brievenbuspakje</mailbox_title>
                 <morning_title>Ochtendlevering</morning_title>
                 <evening_title>Avondlevering</evening_title>
+                <mailbox_title>Brievenbuspakje</mailbox_title>
+                <digital_stamp_title>Digitale postzegel</digital_stamp_title>
                 <pickup_title>Ophalen bij een PostNL locatie</pickup_title>
                 <pickup_list_button_title>List</pickup_list_button_title>
                 <pickup_map_button_title>Map</pickup_map_button_title>

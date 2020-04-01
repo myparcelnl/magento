@@ -27,7 +27,6 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 class Data extends AbstractHelper
 {
     const MODULE_NAME              = 'MyParcelNL_Magento';
-    const SDK_NAME                 = 'MyParcelNL_SDK';
     const XML_PATH_GENERAL         = 'myparcelnl_magento_general/';
     const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
     const XML_PATH_DPD_SETTINGS    = 'myparcelnl_magento_dpd_settings/';
