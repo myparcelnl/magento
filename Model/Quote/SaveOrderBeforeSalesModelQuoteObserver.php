@@ -72,7 +72,6 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     {
         /* @var \Magento\Quote\Model\Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
-        file_put_contents(time() . '_quote.json', json_encode($quote->getData()));
 
         /* @var \Magento\Sales\Model\Order $order */
         $order      = $observer->getEvent()->getData('order');
@@ -84,7 +83,8 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         ) {
             $order->setData(CheckoutAlias::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
         }
-        // @todo check delivery options from quote (step 2)
+
+
         if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS && $this->hasMyParcelDeliveryOptions($quote))) {
             $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS);
 
@@ -107,7 +107,6 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      */
     private function hasMyParcelDeliveryOptions($quote)
     {
-        file_put_contents(time() . '_hasMyParcelDeliveryOptions.json', json_encode($quote->getData()));
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
 
