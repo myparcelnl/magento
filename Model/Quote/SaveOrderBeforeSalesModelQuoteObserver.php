@@ -20,7 +20,9 @@
 
 namespace MyParcelNL\Magento\Model\Quote;
 
+use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Quote\Model\Quote;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
@@ -64,18 +66,18 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 
     /**
      *
-     * @param \Magento\Framework\Event\Observer $observer
+     * @param Observer $observer
      *
      * @return $this
      */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function execute(Observer $observer)
     {
-        /* @var \Magento\Quote\Model\Quote $quote */
+        /* @var Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
         /* @var \Magento\Sales\Model\Order $order */
         $order = $observer->getEvent()->getData('order');
 
-        if ($order->getShippigAddress() === null) {
+        if ($order->getShippingAddress() === null) {
             return $this;
         }
 
@@ -100,20 +102,20 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     }
 
     /**
-     * @param int $quote
+     * @param Quote $quote
      *
      * @return bool
      */
-    private function isMyParcelMethod(int $quote): ?bool
+    private function isMyParcelMethod(Quote $quote): bool
     {
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
 
-        if ($this->isMyparcelRelated($shippingMethod, $myParcelMethods)) {
+        if ($this->isMyParcelRelated($shippingMethod, $myParcelMethods)) {
             return true;
         }
 
-        if ($this->isMyparcelRelated($shippingMethod, $this->parentMethods)) {
+        if ($this->isMyParcelRelated($shippingMethod, $this->parentMethods)) {
             return true;
         }
 
@@ -121,12 +123,12 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     }
 
     /**
-     * @param int|null $input
-     * @param array    $data
+     * @param string $input
+     * @param array  $data
      *
      * @return bool
      */
-    private function isMyparcelRelated(?int $input, array $data): ?bool
+    private function isMyParcelRelated(string $input, array $data): bool
     {
         $result = array_filter(
             $data,
