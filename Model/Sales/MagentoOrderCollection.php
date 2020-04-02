@@ -182,7 +182,6 @@ class MagentoOrderCollection extends MagentoCollection
         $this->myParcelCollection = $newCollection;
 
         return $this;
-
     }
 
     /**
