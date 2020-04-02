@@ -92,7 +92,7 @@ class NewShipment implements ObserverInterface
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
 
         // The reason that $amount is hard coded is because this is part of multicollo, this is not possible in the Belguim plugin. However, a preparation has been made for this.
-        $amount  = $options['label_amount'];
+        $amount = $options['label_amount'];
         /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
@@ -106,7 +106,7 @@ class NewShipment implements ObserverInterface
 
             $trackTraceHolders[] = $trackTraceHolder;
 
-            $i ++;
+            $i++;
         }
 
         // All multicollo holders are the same, so use the first for the SDK

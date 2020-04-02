@@ -65,7 +65,7 @@ class MagentoOrderCollection extends MagentoCollection
         $orders = [];
         foreach ($ids as $orderId) {
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $orders[] = $objectManager->create('\Magento\Sales\Model\Order')->load($orderId);
+            $orders[]      = $objectManager->create('\Magento\Sales\Model\Order')->load($orderId);
         }
 
         $this->setOrderCollection($orders);
@@ -115,7 +115,7 @@ class MagentoOrderCollection extends MagentoCollection
             ) {
                 while ($i <= $this->getOption('label_amount')) {
                     $this->setNewMagentoTrack($shipment);
-                    $i ++;
+                    $i++;
                 }
             }
         }
@@ -336,7 +336,7 @@ class MagentoOrderCollection extends MagentoCollection
          */
         // Initialize the order shipment object
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
-        $shipment = $convertOrder->toShipment($order);
+        $shipment     = $convertOrder->toShipment($order);
 
         // Loop through order items
         foreach ($order->getAllItems() as $orderItem) {

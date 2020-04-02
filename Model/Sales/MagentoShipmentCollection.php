@@ -243,7 +243,7 @@ class MagentoShipmentCollection extends MagentoCollection
 
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $shipment
-         * @var Order $order
+         * @var Order                                                        $order
          */
         foreach ($this->getShipments() as $shipment) {
 

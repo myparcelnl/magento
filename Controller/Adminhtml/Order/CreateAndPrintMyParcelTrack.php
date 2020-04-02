@@ -23,7 +23,7 @@ use MyParcelNL\Sdk\src\Exception\MissingFieldException;
  */
 class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 {
-    const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
+    const PATH_MODEL_ORDER     = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
     /**
@@ -41,7 +41,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
 
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection = new MagentoOrderCollection(
+        $this->orderCollection       = new MagentoOrderCollection(
             $context->getObjectManager(),
             $this->getRequest(),
             null
@@ -102,8 +102,9 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             ->setOptionsFromParameters()
             ->setNewMagentoShipment();
 
-        if (!$this->orderCollection->hasShipment()) {
+        if (! $this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
+
             return $this;
         }
 
