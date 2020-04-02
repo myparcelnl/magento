@@ -15,13 +15,15 @@
                     "action_options": {
                         "request_type": true,
                         "package_type": true,
-                        "print_position": <?= $block->isCdCountry() == true ? 'false' : 'true'; ?>
+                        "print_position": <?= $block->isCdCountry() == true ? 'false' : 'true'; ?>,
+                        "label_amount": true
                     }
                 <?php else: ?>
                     "action_options": {
                         "request_type": false,
                         "package_type": false,
-                        "print_position": true
+                        "print_position": true,
+                         "label_amount": true
                     }
                 <?php endif; ?>
            }

@@ -6,6 +6,8 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Sdk\src\Exception\ApiException;
+use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 
 /**
  * Action to create and print MyParcel Track
@@ -54,7 +56,11 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     public function execute()
     {
-        $this->massAction();
+        try {
+            $this->massAction();
+        } catch (ApiException | MissingFieldException $e) {
+            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+        }
 
         return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
     }
@@ -64,12 +70,14 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws \Exception
      */
     private function massAction()
     {
         if ($this->orderCollection->apiKeyIsCorrect() !== true) {
-            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
+            $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
 
@@ -105,7 +113,10 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             ->createMyParcelConcepts()
             ->updateGridByOrder();
 
-        if ($this->orderCollection->getOption('request_type') == 'concept') {
+        if (
+            $this->orderCollection->getOption('request_type') == 'concept' ||
+            $this->orderCollection->myParcelCollection->isEmpty()
+        ) {
             return $this;
         }
 

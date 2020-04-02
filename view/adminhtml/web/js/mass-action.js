@@ -156,7 +156,7 @@ define(
                  */
                 _setActions: function () {
                     var parentThis = this;
-                    var actionOptions = ["request_type", "package_type", "print_position"];
+                    var actionOptions = ["request_type", "package_type", "print_position", "label_amount", "label_amount"];
 
                     actionOptions.forEach(function (option) {
                         if (!(option in parentThis.options['action_options']) || (parentThis.options['action_options'][option] == false)) {
@@ -223,6 +223,8 @@ define(
                  * @protected
                  */
                 _setMyParcelMassActionObserver: function () {
+                    var parentThis = this;
+
                     $("input[name='mypa_paper_size']").on(
                         "change",
                         function () {
@@ -244,7 +246,44 @@ define(
                             }
                         }
                     );
+
+                    $("select[name='mypa_label_amount']").on(
+                        "change",
+                        function () {
+                            var selectAmount = parseInt($("select[name='mypa_label_amount']").val());
+
+
+                            parentThis._setLabelPosition(selectAmount);
+                        }
+                    );
+
                     return this;
+                },
+
+                /**
+                 * @protected
+                 */
+                _setLabelPosition : function (selectAmount) {
+                    var totalAmount = selectAmount * this.selectedIds.length;
+                    $("input[id^=mypa_position-]").prop('checked', false);
+
+                    if (totalAmount != 0) {
+                        if (totalAmount >= 1) {
+                            $('#mypa_position-2').prop('checked', true);
+                        }
+
+                        if (totalAmount >= 2) {
+                            $('#mypa_position-4').prop('checked', true);
+                        }
+
+                        if (totalAmount >= 3) {
+                            $('#mypa_position-1').prop('checked', true);
+                        }
+
+                        if (totalAmount >= 4) {
+                            $('#mypa_position-3').prop('checked', true);
+                        }
+                    }
                 },
 
                 /**

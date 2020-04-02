@@ -82,8 +82,6 @@ class MagentoShipmentCollection extends MagentoCollection
      *
      * @return $this
      * @throws \Exception
-     *
-     * @todo; add filter carrier code
      */
     public function setMyParcelTrack()
     {
@@ -94,7 +92,8 @@ class MagentoShipmentCollection extends MagentoCollection
         foreach ($this->shipments as $shipment) {
             foreach ($this->getTrackByShipment($shipment)->getItems() as $magentoTrack) {
                 if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
-                    $this->myParcelCollection->addConsignment($this->createConsignmentAndGetTrackTraceHolder($magentoTrack));
+                    $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
+                    $this->myParcelCollection->addConsignment($consignment);
                 }
             }
         }
@@ -133,8 +132,6 @@ class MagentoShipmentCollection extends MagentoCollection
      * Create MyParcel concepts and update Magento Track
      *
      * @return $this
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws \Exception
      */
     public function createMyParcelConcepts()
@@ -148,12 +145,10 @@ class MagentoShipmentCollection extends MagentoCollection
          */
         foreach ($this->getShipments() as $shipment) {
             foreach ($shipment->getTracksCollection() as $track) {
-                $myParcelTrack = $this
-                    ->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId())->first();
-
+                $consignment = $this->myParcelCollection->getConsignmentByApiId($track->getData('myparcel_consignment_id'));
                 $track
-                    ->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId())
-                    ->setData('myparcel_status', $myParcelTrack->getStatus())
+                    ->setData('myparcel_consignment_id', $consignment->getMyParcelConsignmentId())
+                    ->setData('myparcel_status', $consignment->getStatus())
                     ->save(); // must
             }
         }
