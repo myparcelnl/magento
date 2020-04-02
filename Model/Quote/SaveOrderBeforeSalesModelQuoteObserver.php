@@ -100,11 +100,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     }
 
     /**
-     * @param $quote
+     * @param int $quote
      *
      * @return bool
      */
-    private function isMyParcelMethod($quote) : bool
+    private function isMyParcelMethod(int $quote): ?bool
     {
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
@@ -121,19 +121,23 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     }
 
     /**
-     * @param $input
-     * @param $data
+     * @param int|null $input
+     * @param array    $data
      *
      * @return bool
      */
-    private function isMyparcelRelated($input, $data) : bool
+    private function isMyparcelRelated(?int $input, array $data): ?bool
     {
-        $result = array_filter($data, function ($item) use ($input) {
-            if (stripos($input, $item) !== false) {
-                return true;
+        $result = array_filter(
+            $data,
+            function ($item) use ($input) {
+                if (stripos($input, $item) !== false) {
+                    return true;
+                }
+
+                return false;
             }
-            return false;
-        });
+        );
 
         return count($result) > 0;
     }
