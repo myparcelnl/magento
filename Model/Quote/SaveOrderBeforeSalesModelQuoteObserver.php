@@ -126,9 +126,9 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      * @param string $input
      * @param array  $data
      *
-     * @return bool
+     * @return int
      */
-    private function isMyParcelRelated(string $input, array $data): bool
+    private function isMyParcelRelated(string $input, array $data): int
     {
         $result = array_filter(
             $data,
