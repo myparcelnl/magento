@@ -39,6 +39,10 @@ class TrackAndTrace extends Column
         foreach ($dataSource['data']['items'] as & $item) {
             $addressParts = explode(",", $item['shipping_address']);
 
+            if (count($addressParts) < 3) {
+                continue;
+            }
+
             if (count($addressParts) === 4) {
                 [$company, $street, $city, $postalCode] = $addressParts;
             } else {
