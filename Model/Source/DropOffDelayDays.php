@@ -18,9 +18,8 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Magento\Eav\Model\Entity\Attribute\Source\AbstractSource;
 
-class DropOffDelayDays extends AbstractSource
+class DropOffDelayDays implements \Magento\Framework\Option\ArrayInterface
 {
     /**
      * Get all Drop off days
@@ -41,7 +40,7 @@ class DropOffDelayDays extends AbstractSource
         ];
 
         $x = 2;
-        while ($x <= 14) {
+        while($x <= 14) {
             $array[] = [
                 'value' => $x,
                 'label' => $x . ' ' . __('days')
@@ -50,16 +49,6 @@ class DropOffDelayDays extends AbstractSource
         }
 
         return $array;
-    }
-
-    /**
-     * Retrieve All options
-     *
-     * @return array
-     */
-    public function getAllOptions()
-    {
-        return $this->toOptionArray();
     }
 
     /**

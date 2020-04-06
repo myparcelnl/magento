@@ -30,8 +30,6 @@ use Magento\Framework\Setup\UpgradeDataInterface;
 class UpgradeData implements UpgradeDataInterface
 {
 
-    const groupName = 'MyParcel Options';
-
     /**
      * Category setup factory
      *
@@ -70,11 +68,10 @@ class UpgradeData implements UpgradeDataInterface
        $connection = $setup->getConnection();
        $table      = $setup->getTable('core_config_data');
 
-        /** @var EavSetup $eavSetup */
-        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
-
         if (version_compare($context->getVersion(), '2.1.23', '<=')) {
             $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
@@ -107,15 +104,19 @@ class UpgradeData implements UpgradeDataInterface
         // Set a new 'MyParcel options' group and place the option 'myparcel_fit_in_mailbox' standard on false by default
         if (version_compare($context->getVersion(), '2.5.0', '<=')) {
             $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
+            // Label of the group
+            $groupName = 'MyParcel Options';
             // get entity type id so that attribute are only assigned to catalog_product
             $entityTypeId = $eavSetup->getEntityTypeId('catalog_product');
             // Here we have fetched all attribute set as we want attribute group to show under all attribute set
             $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId);
 
             foreach ($attributeSetIds as $attributeSetId) {
-                $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::groupName, 19);
-                $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::groupName);
+                $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, $groupName, 19);
+                $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, $groupName);
 
                 // Add existing attribute to group
                 $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
@@ -126,13 +127,15 @@ class UpgradeData implements UpgradeDataInterface
         // Add the option 'Fit in digital stamp'
         if (version_compare($context->getVersion(), '2.5.0', '<=')) {
             $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => 'MyParcel Options',
                     'type'                    => 'int',
                     'backend'                 => '',
                     'frontend'                => '',
@@ -159,6 +162,8 @@ class UpgradeData implements UpgradeDataInterface
         // Add the option 'Fit in digital stamp' and 'myparcel_fit_in_mailbox' on default by false
         if (version_compare($context->getVersion(), '3.1.0', '<=')) {
             $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
@@ -187,13 +192,15 @@ class UpgradeData implements UpgradeDataInterface
         // The data in the database was not filled in correctly, that was the reason why DPZ and BBP were not visible in the settings.
         if (version_compare($context->getVersion(), '3.1.4', '<=')) {
             $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => 'MyParcel Options',
                     'type'                    => 'int',
                     'backend'                 => '',
                     'frontend'                => '',
@@ -221,7 +228,7 @@ class UpgradeData implements UpgradeDataInterface
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => 'MyParcel Options',
                     'type'                    => 'varchar',
                     'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
                     'label'                   => 'Fit in Mailbox',
@@ -248,13 +255,15 @@ class UpgradeData implements UpgradeDataInterface
         // Add the option 'HS code for products'
         if (version_compare($context->getVersion(), '3.2.0', '<=')) {
             $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_classification',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => 'MyParcel Options',
                     'note'                    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                     'type'                    => 'int',
                     'backend'                 => '',
@@ -280,13 +289,15 @@ class UpgradeData implements UpgradeDataInterface
 
             // Enable / Disable checkout with this product.
             $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_disable_checkout',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => 'MyParcel Options',
                     'note'                    => 'With this option you can disable the delivery options for this product.',
                     'type'                    => 'int',
                     'backend'                 => '',
@@ -312,13 +323,15 @@ class UpgradeData implements UpgradeDataInterface
 
             // Set a dropoff delay for this product.
             $setup->startSetup();
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_dropoff_delay',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => 'MyParcel Options',
                     'note'                    => 'This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.',
                     'type'                    => 'varchar',
                     'backend'                 => '',
@@ -361,24 +374,8 @@ class UpgradeData implements UpgradeDataInterface
         }
 
         if (version_compare($context->getVersion(), '4.0.0', '<=')) {
-
-            $setup->startSetup();
-               /** @var EavSetup $eavSetup */
-               $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
-
-               // get entity type id so that attribute are only assigned to catalog_product
-               $entityTypeId = $eavSetup->getEntityTypeId('catalog_product');
-               // Here we have fetched all attribute set as we want attribute group to show under all attribute set
-               $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId);
-
-               foreach ($attributeSetIds as $attributeSetId) {
-                   $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::groupName, 19);
-                   $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::groupName);
-
-                   // Add existing attribute to group
-                   $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
-                   $eavSetup->addAttributeToGroup($entityTypeId, $attributeSetId, $attributeGroupId, $attributeId, null);
-               }
+            $connection = $setup->getConnection();
+            $table    = $setup->getTable('core_config_data');
 
             if ($connection->isTableExists($table) == true) {
 
