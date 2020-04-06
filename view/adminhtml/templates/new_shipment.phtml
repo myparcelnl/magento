@@ -80,7 +80,7 @@
 
 
     <div class="field choice admin__field admin__field-option field-mypa_age_check mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <input id="mypa_large_format"
+        <input id="mypa_age_check"
                class="admin__control-checkbox"
                name="mypa_age_check"
                value="1"
@@ -90,6 +90,22 @@
         <label class="admin__field-label" for="mypa_age_check">
             <span><?=__('Age check 18+') ?></span>
         </label>
+    </div>
+
+    <div class="field choice admin__field admin__field-option field-mypa_age_check mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
+        <label class="admin__field-label" for="mypa_label_amount" style="display: block">
+            <span><?=__('Label amount:') ?></span>
+        </label>
+        <?php $label_amount = 1; ?>
+        <select name="mypa_label_amount" id="mypa_label_amount"
+                class="required product-custom-option admin__control-select" title="">
+            <?php
+            while ($label_amount <= 10) {
+                echo '<option value="' . $label_amount . '" >' . __($label_amount) . '</option>';
+                $label_amount ++;
+            }
+            ?>
+        </select>
     </div>
 
     <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">

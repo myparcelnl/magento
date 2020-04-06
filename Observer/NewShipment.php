@@ -51,14 +51,16 @@ class NewShipment implements ObserverInterface
 
     /**
      * NewShipment constructor.
+     *
+     * @param \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
      */
-    public function __construct()
+    public function __construct(MagentoOrderCollection $orderCollection = null)
     {
-        $this->objectManager = ObjectManager::getInstance();
-        $this->request = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
-        $this->modelTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
+        $this->objectManager   = ObjectManager::getInstance();
+        $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
+        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
+        $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
+        $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }
 
     /**
@@ -90,7 +92,7 @@ class NewShipment implements ObserverInterface
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
 
         // The reason that $amount is hard coded is because this is part of multicollo, this is not possible in the Belguim plugin. However, a preparation has been made for this.
-        $amount  = 1;
+        $amount = $options['label_amount'];
         /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
@@ -104,12 +106,11 @@ class NewShipment implements ObserverInterface
 
             $trackTraceHolders[] = $trackTraceHolder;
 
-            $i ++;
+            $i++;
         }
 
         // All multicollo holders are the same, so use the first for the SDK
         $firstTrackTraceHolder = $trackTraceHolders[0];
-
         $this->orderCollection->myParcelCollection
             ->addMultiCollo($firstTrackTraceHolder->consignment, $amount ?? self::DEFAULT_LABEL_AMOUNT)
             ->createConcepts()
@@ -139,8 +140,8 @@ class NewShipment implements ObserverInterface
     {
         $aHtml = $this->orderCollection->getHtmlForGridColumns($shipment->getOrder()->getId());
         $shipment->getOrder()
-            ->setData('track_status', $aHtml['track_status'])
-            ->setData('track_number', $aHtml['track_number'])
-        ->save();
+                 ->setData('track_status', $aHtml['track_status'])
+                 ->setData('track_number', $aHtml['track_number'])
+                 ->save();
     }
 }

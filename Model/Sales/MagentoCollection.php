@@ -15,6 +15,8 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
+use MyParcelNL\Magento\Observer\NewShipment;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -86,6 +88,7 @@ class MagentoCollection implements MagentoCollectionInterface
         'large_format'                      => null,
         'age_check'                         => null,
         'insurance'                         => null,
+        'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
     ];
 
     /**
@@ -132,6 +135,12 @@ class MagentoCollection implements MagentoCollectionInterface
             } else {
                 $this->options[$option] = $this->request->getParam('mypa_' . $option);
             }
+        }
+
+        $label_amount = $this->request->getParam('mypa_label_amount') ?? NewShipment::DEFAULT_LABEL_AMOUNT;
+
+        if ($label_amount) {
+            $this->options['label_amount'] = $label_amount;
         }
 
         // Remove position if paper size == A6
@@ -270,7 +279,7 @@ class MagentoCollection implements MagentoCollectionInterface
             ->setCarrierCode(TrackTraceHolder::MYPARCEL_CARRIER_CODE)
             ->setTitle(TrackTraceHolder::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber('Concept')
+            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY)
             ->save();
 
         return $track;
