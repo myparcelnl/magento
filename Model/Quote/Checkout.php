@@ -5,6 +5,7 @@ namespace MyParcelNL\Magento\Model\Quote;
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use \Magento\Store\Model\StoreManagerInterface;
 
@@ -36,12 +37,17 @@ class Checkout
     /**
      * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
      */
-    private $products;
+    private $cart;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     private $currency;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    private $carrier;
 
     /**
      * Checkout constructor.
@@ -62,9 +68,13 @@ class Checkout
     ) {
         $this->helper   = $helper;
         $this->quoteId  = $session->getQuoteId();
-        $this->products = $cart->getItems();
+        $this->cart     = $cart->getQuote();
         $this->package  = $package;
         $this->currency = $currency;
+
+
+        $this->package->setMailboxSettings();
+        $this->package->setDigitalStampSettings();
     }
 
     /**
@@ -118,6 +128,7 @@ class Checkout
      */
     private function getDeliveryData(): array
     {
+
         $carriersPath   = $this->get_carriers();
         $myParcelConfig = [];
 
@@ -128,7 +139,7 @@ class Checkout
                 'allowOnlyRecipient'        => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/only_recipient_active'),
                 'allowMorningDelivery'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'morning/active'),
                 'allowEveningDelivery'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'evening/active'),
-                'allowMailboxDelivery'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'mailbox/active'),
+                'allowMailboxDelivery'      => $this->package->isMailboxPackage($this->getMailboxData($carrier)),
                 'allowDigitalStampDelivery' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'digital_stamp/active'),
                 'allowPickupLocations'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'pickup/active'),
 
@@ -221,6 +232,26 @@ class Checkout
             'city'           => __('City'),
             'postcode'       => __('Postcode'),
             'houseNumber'    => __('House number'),
+        ];
+    }
+
+    /**
+     * @param $carrier
+     *
+     * @return array
+     */
+    private function getMailboxData($carrier)
+    {
+        $cart          = $this->cart->getAllItems();
+        $country       = $this->cart->getShippingAddress()->getCountryId();
+        $active        = $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'mailbox/active');
+        $defaultWeight = $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'mailbox/weight');
+
+        return [
+            'active'        => $active,
+            'cart'          => $cart,
+            'country'       => $country,
+            'defaultWeight' => $defaultWeight
         ];
     }
 }
