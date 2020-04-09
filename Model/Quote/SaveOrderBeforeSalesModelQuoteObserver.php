@@ -126,9 +126,9 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      * @param string $input
      * @param array  $data
      *
-     * @return mixed
+     * @return int
      */
-    private function isMyParcelRelated(string $input, array $data): mixed
+    private function isMyParcelRelated(string $input, array $data)
     {
         $result = array_filter(
             $data,
