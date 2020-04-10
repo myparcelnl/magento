@@ -152,22 +152,6 @@ class Package extends Data implements PackageInterface
         $this->digital_stamp_active = $digital_stamp_active;
     }
 
-//    /**
-//     * @return bool
-//     */
-//    public function isAllProductsFitInMailbox()
-//    {
-//        return $this->all_products_fit_in_mailbox;
-//    }
-
-    /**
-     * @return bool
-     */
-    public function isAllProductsFitInDigitalStamp()
-    {
-        return $this->all_products_fit_in_digital_stamp;
-    }
-
     /**
      * @param bool $all_products_fit_in_mailbox
      * @param null $package_type

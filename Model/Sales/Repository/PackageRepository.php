@@ -23,8 +23,8 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class PackageRepository extends Package
 {
-    const DEFAULT_MAILBOX_WEIGHT       = 2000;
-    const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
+    public const DEFAULT_MAILBOX_WEIGHT       = 2000;
+    public const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
 
     /**
      * Get package type
@@ -43,14 +43,18 @@ class PackageRepository extends Package
         return parent::getPackageType();
     }
 
-
-    public function isMailboxPackage($quote)
+    /**
+     * @param $quote
+     *
+     * @return bool
+     */
+    public function isMailboxOrDigitalStamp($quote)
     {
         $active        = $quote['active'];
-        $weight        = $this->getMailboxWeight($quote['cart']);
+        $weight        = $this->getProductsWeight($quote['cart']);
         $country       = $quote['country'];
         $defaultWeight = $quote['defaultWeight'];
-        $allPoductsfit = $this->isAllProductsFitInMailbox($quote['cart']);
+        $allPoductsfit = $this->isAllProductsFitIn($quote['cart'], $quote['packageType']);
 
         return $this->fitInMailbox($active, $country, $weight, $defaultWeight, $allPoductsfit);
     }
@@ -66,7 +70,6 @@ class PackageRepository extends Package
      */
     public function fitInMailbox(bool $active, string $country, int $weight, int $defaultWeight, bool $allPoductsfit): bool
     {
-
         if ($country !== 'NL') {
             return false;
         }
@@ -87,31 +90,6 @@ class PackageRepository extends Package
             if ($weight > $defaultWeight) {
                 return false;
             }
-        }
-
-
-        return true;
-    }
-
-    /**
-     * @return bool
-     */
-    public function fitInDigitalStamp()
-    {
-        if ($this->getCurrentCountry() !== 'NL') {
-            return false;
-        }
-
-        if ($this->isDigitalStampActive() === false) {
-            return false;
-        }
-
-        if ($this->isAllProductsFitInDigitalStamp() === false) {
-            return false;
-        }
-
-        if ($this->getWeight() > self::DEFAULT_DIGITAL_STAMP_WEIGHT) {
-            return false;
         }
 
         return true;
@@ -168,7 +146,7 @@ class PackageRepository extends Package
         return $this;
     }
 
-    public function getMailboxWeight($products)
+    public function getProductsWeight($products)
     {
         $weight = 0;
         foreach ($products as $item) {
@@ -181,13 +159,15 @@ class PackageRepository extends Package
     /**
      * @param $products
      *
+     * @param $packageType
+     *
      * @return bool
      */
-    public function isAllProductsFitInMailbox($products): bool
+    public function isAllProductsFitIn($products, $packageType): bool
     {
         $fitInMailbox = 0;
         foreach ($products as $item) {
-            $fitInMailbox += ($this->getAttributesProductsOptions($item, 'fit_in_mailbox') * $item->getQty());
+            $fitInMailbox += ($this->getAttributesProductsOptions($item, 'fit_in_' . $packageType) * $item->getQty());
 
             if ($fitInMailbox > 100) {
                 return false;

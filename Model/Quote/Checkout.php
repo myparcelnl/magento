@@ -11,9 +11,9 @@ use \Magento\Store\Model\StoreManagerInterface;
 
 class Checkout
 {
-    const selectCarriersArray = 0;
-    const selectCarrierPath   = 1;
-    const platform            = 'myparcel';
+    const SELECT_CARRIER_ARRAY = 0;
+    const SELECT_CARRIER_PATH  = 1;
+    const PLATFORM             = 'myparcel';
 
     /**
      * @var array
@@ -114,8 +114,8 @@ class Checkout
     {
         return [
             'allowRetry'                 => true,
-            'platform'                   => self::platform,
-            'carriers'                   => array_column($this->get_carriers(), self::selectCarriersArray),
+            'platform'                   => self::PLATFORM,
+            'carriers'                   => array_column($this->get_carriers(), self::SELECT_CARRIER_ARRAY),
             'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
             'pickupLocationsDefaultView' => $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view')
         ];
@@ -133,31 +133,31 @@ class Checkout
         $myParcelConfig = [];
 
         foreach ($carriersPath as $carrier) {
-            $myParcelConfig["carrierSettings"][$carrier[self::selectCarriersArray]] = [
-                'allowDeliveryOptions'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/active'),
-                'allowSignature'            => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/signature_active'),
-                'allowOnlyRecipient'        => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'delivery/only_recipient_active'),
-                'allowMorningDelivery'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'morning/active'),
-                'allowEveningDelivery'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'evening/active'),
-                'allowMailboxDelivery'      => $this->package->isMailboxPackage($this->getMailboxData($carrier)),
-                'allowDigitalStampDelivery' => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'digital_stamp/active'),
-                'allowPickupLocations'      => $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'pickup/active'),
+            $myParcelConfig["carrierSettings"][$carrier[self::SELECT_CARRIER_ARRAY]] = [
+                'allowDeliveryOptions'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
+                'allowSignature'            => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
+                'allowOnlyRecipient'        => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_active'),
+                'allowMorningDelivery'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'morning/active'),
+                'allowEveningDelivery'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'evening/active'),
+                'allowMailboxDelivery'      => $this->package->isMailboxOrDigitalStamp($this->getMailboxOrDigitalStampData($carrier, 'mailbox')),
+                'allowDigitalStampDelivery' => $this->package->isMailboxOrDigitalStamp($this->getMailboxOrDigitalStampData($carrier, 'digital_stamp')),
+                'allowPickupLocations'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
 
-                'priceSignature'            => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'delivery/signature_fee', false),
-                'priceOnlyRecipient'        => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'delivery/only_recipient_fee', false),
+                'priceSignature'            => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false),
+                'priceOnlyRecipient'        => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_fee', false),
                 'priceStandardDelivery'     => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
-                'priceMorningDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'morning/fee', false),
-                'priceEveningDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'evening/fee', false),
-                'priceMailboxDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'mailbox/fee', false),
-                'priceDigitalStampDelivery' => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'digital_stamp/fee', false),
-                'pricePickup'               => $this->helper->getMethodPriceFormat($carrier[self::selectCarrierPath], 'pickup/fee', false),
+                'priceMorningDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'morning/fee', false),
+                'priceEveningDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'evening/fee', false),
+                'priceMailboxDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
+                'priceDigitalStampDelivery' => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
+                'pricePickup'               => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee', false),
 
-                'cutoffTime'          => $this->helper->getTimeConfig($carrier[self::selectCarrierPath], 'general/cutoff_time'),
-                'saturdayCutoffTime'  => $this->helper->getTimeConfig($carrier[self::selectCarrierPath], 'general/saturday_cutoff_time'),
-                'deliveryDaysWindow'  => $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'general/deliverydays_window'),
-                'allowMondayDelivery' => $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'general/monday_delivery_active'),
-                'dropOffDays'         => $this->helper->getArrayConfig($carrier[self::selectCarrierPath], 'general/dropoff_days'),
-                'dropOffDelay'        => $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'general/dropoff_delay'),
+                'cutoffTime'          => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/cutoff_time'),
+                'saturdayCutoffTime'  => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/saturday_cutoff_time'),
+                'deliveryDaysWindow'  => $this->helper->getIntergerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/deliverydays_window'),
+                'allowMondayDelivery' => $this->helper->getIntergerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/monday_delivery_active'),
+                'dropOffDays'         => $this->helper->getArrayConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_days'),
+                'dropOffDelay'        => $this->helper->getIntergerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_delay'),
             ];
         }
 
@@ -188,8 +188,8 @@ class Checkout
         ];
 
         foreach ($carriersSettings as $carrier) {
-            if ($this->helper->getBoolConfig("{$carrier[self::selectCarrierPath]}", 'general/enabled') ||
-                $this->helper->getBoolConfig("{$carrier[self::selectCarrierPath]}", 'pickup/active')
+            if ($this->helper->getBoolConfig("{$carrier[self::SELECT_CARRIER_PATH]}", 'general/enabled') ||
+                $this->helper->getBoolConfig("{$carrier[self::SELECT_CARRIER_PATH]}", 'pickup/active')
             ) {
                 $carriers[] = $carrier;
             }
@@ -238,20 +238,34 @@ class Checkout
     /**
      * @param $carrier
      *
+     * @param $packageType
+     *
      * @return array
      */
-    private function getMailboxData($carrier)
+    private function getMailboxOrDigitalStampData($carrier, $packageType)
     {
-        $cart          = $this->cart->getAllItems();
-        $country       = $this->cart->getShippingAddress()->getCountryId();
-        $active        = $this->helper->getBoolConfig($carrier[self::selectCarrierPath], 'mailbox/active');
-        $defaultWeight = $this->helper->getIntergerConfig($carrier[self::selectCarrierPath], 'mailbox/weight');
+        $cart               = $this->cart->getAllItems();
+        $country            = $this->cart->getShippingAddress()->getCountryId();
+        $digitalStampActive = $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/active');
+        $mailboxActive      = $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'mailbox/active');
+        $active             = true;
+
+        if ($packageType === 'mailbox' && $digitalStampActive === true ||
+            $digitalStampActive === false ||
+            $mailboxActive === false
+        ) {
+            $active = false;
+        }
+
+        $mailboxWeight = $this->helper->getIntergerConfig($carrier[self::SELECT_CARRIER_PATH], $packageType . '/weight');
+        $defaultWeight = $mailboxWeight ? $mailboxWeight : PackageRepository::DEFAULT_DIGITAL_STAMP_WEIGHT;
 
         return [
             'active'        => $active,
             'cart'          => $cart,
             'country'       => $country,
-            'defaultWeight' => $defaultWeight
+            'defaultWeight' => $defaultWeight,
+            'packageType'   => $packageType
         ];
     }
 }
