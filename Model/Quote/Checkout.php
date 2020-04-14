@@ -72,7 +72,6 @@ class Checkout
         $this->package  = $package;
         $this->currency = $currency;
 
-
         $this->package->setMailboxSettings();
         $this->package->setDigitalStampSettings();
     }
@@ -134,13 +133,13 @@ class Checkout
 
         foreach ($carriersPath as $carrier) {
             $myParcelConfig["carrierSettings"][$carrier[self::SELECT_CARRIER_ARRAY]] = [
-                'packageType'               => $this->checkPackageType($carrier),
-                'allowDeliveryOptions'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
-                'allowSignature'            => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
-                'allowOnlyRecipient'        => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_active'),
-                'allowMorningDelivery'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'morning/active'),
-                'allowEveningDelivery'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'evening/active'),
-                'allowPickupLocations'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
+                'packageType'          => $this->checkPackageType($carrier),
+                'allowDeliveryOptions' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
+                'allowSignature'       => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
+                'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_active'),
+                'allowMorningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'morning/active'),
+                'allowEveningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'evening/active'),
+                'allowPickupLocations' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
 
                 'priceSignature'            => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false),
                 'priceOnlyRecipient'        => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_fee', false),
@@ -234,16 +233,20 @@ class Checkout
         ];
     }
 
-    public function checkPackageType($carrier)
+    /**
+     * @param $carrier
+     *
+     * @return string
+     */
+    public function checkPackageType(array $carrier): string
     {
-        $products     = $this->cart->getAllItems();
+        $products = $this->cart->getAllItems();
 
         $this->package->setCurrentCountry($this->cart->getShippingAddress()->getCountryId());
         $this->package->setDigitalStampActive($this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/active'));
         $this->package->setMailboxActive($this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'mailbox/active'));
         $this->package->setWeightFromQuoteProducts($products);
 
-        return$this->package->selectPackageType($products);
-
+        return $this->package->selectPackageType($products);
     }
 }

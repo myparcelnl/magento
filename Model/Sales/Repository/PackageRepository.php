@@ -20,6 +20,7 @@ namespace MyParcelNL\Magento\Model\Sales\Repository;
 
 
 use MyParcelNL\Magento\Model\Sales\Package;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class PackageRepository extends Package
 {
@@ -46,31 +47,31 @@ class PackageRepository extends Package
     /**
      * @param $products
      *
-     * @return mixed|string|null
+     * @return string
      */
     public function selectPackageType(array $products): string
     {
-        $packageTypes = ['mailbox', 'digital_stamp'];
-        $test  = 'package';
+        $packageTypes = AbstractConsignment::PACKAGE_TYPES_NAMES;
+        $package      = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
 
         if ($this->isMailboxActive() || $this->isDigitalStampActive()) {
             foreach ($products as $product) {
                 foreach ($packageTypes as $packageType) {
-                    $package = $this->isAllProductsFitIn($product, $packageType);
-                    $this->setAllProductsFitInPackageType($package, $packageType);
+                    $fitProduct = $this->isAllProductsFitIn($product, $packageType);
+                    $this->setAllProductsFitInPackageType($fitProduct, $packageType);
 
-                    if ($packageType === 'mailbox' && $package) {
-                        $test = $this->fitInMailbox() ? 'mailbox' : 'package';
+                    if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME && $fitProduct) {
+                        $package = $this->fitInMailbox() ? AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME : AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
                     }
 
-                    if ($packageType === 'digital_stamp' && $package) {
-                        $test = $this->fitInDigitalStamp() ? 'digital_stamp' : 'package';
+                    if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME && $fitProduct) {
+                        $package = $this->fitInDigitalStamp() ? AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME : AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
                     }
                 }
             }
         }
 
-        return $test;
+        return $package;
     }
 
 
@@ -156,6 +157,7 @@ class PackageRepository extends Package
      */
     public function setMailboxSettings()
     {
+
         $settings = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox');
 
         if ($settings === null) {
@@ -193,7 +195,7 @@ class PackageRepository extends Package
      */
     public function isAllProductsFitIn($products, $packageType): bool
     {
-        if ($packageType === 'mailbox') {
+        if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME ) {
             $mailboxProcent = $this->getMailboxProcent();
             $mailboxProcent += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
 
@@ -204,7 +206,7 @@ class PackageRepository extends Package
             $this->setMailboxProcent($mailboxProcent);
         }
 
-        if ($packageType === 'digital_stamp') {
+        if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME) {
             $fitInMailbox = $this->getAttributesProductsOptions($products, $packageType);
 
             if ($fitInMailbox == 0) {

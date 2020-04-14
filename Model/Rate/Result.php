@@ -290,7 +290,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    protected function getQuoteFromCardOrSession() {
+    private function getQuoteFromCardOrSession() {
         if ($this->quote->getQuoteId() != null &&
             $this->quote->getQuote() &&
             $this->quote->getQuote() instanceof Countable &&

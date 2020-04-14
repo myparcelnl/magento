@@ -60,6 +60,11 @@ class Package extends Data implements PackageInterface
     private $all_products_fit_in_mailbox = false;
 
     /**
+     * @var int
+     */
+    private $mailbox_procent = 0;
+
+    /**
      * @var bool
      */
     private $all_products_fit_in_digital_stamp = false;
@@ -78,11 +83,6 @@ class Package extends Data implements PackageInterface
      * @var int
      */
     private $package_type = null;
-
-    /**
-     * @var int
-     */
-    private $mailbox_procent = 0;
 
     /**
      * @return int
@@ -156,6 +156,7 @@ class Package extends Data implements PackageInterface
     {
         $this->mailbox_procent = $procent;
     }
+
     /**
      * @return bool
      */
