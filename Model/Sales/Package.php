@@ -57,12 +57,12 @@ class Package extends Data implements PackageInterface
     /**
      * @var bool
      */
-    private $all_products_fit_in_mailbox = true;
+    private $all_products_fit_in_mailbox = false;
 
     /**
      * @var bool
      */
-    private $all_products_fit_in_digital_stamp = true;
+    private $all_products_fit_in_digital_stamp = false;
 
     /**
      * @var bool
@@ -78,6 +78,11 @@ class Package extends Data implements PackageInterface
      * @var int
      */
     private $package_type = null;
+
+    /**
+     * @var int
+     */
+    private $mailbox_procent = 0;
 
     /**
      * @return int
@@ -123,6 +128,14 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
+    public function isAllProductsFitInMailbox()
+    {
+        return $this->all_products_fit_in_mailbox;
+    }
+
+    /**
+     * @return bool
+     */
     public function isMailboxActive()
     {
         return $this->mailbox_active;
@@ -134,6 +147,29 @@ class Package extends Data implements PackageInterface
     public function setMailboxActive($mailbox_active)
     {
         $this->mailbox_active = $mailbox_active;
+    }
+
+    /**
+     * @param $procent
+     */
+    public function setMailboxProcent($procent)
+    {
+        $this->mailbox_procent = $procent;
+    }
+    /**
+     * @return bool
+     */
+    public function getMailboxProcent()
+    {
+        return $this->mailbox_procent;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllProductsFitInDigitalStamp()
+    {
+        return $this->all_products_fit_in_digital_stamp;
     }
 
     /**
@@ -156,13 +192,13 @@ class Package extends Data implements PackageInterface
      * @param bool $all_products_fit_in_mailbox
      * @param null $package_type
      */
-    public function setAllProductsFitInMailbox($all_products_fit_in_mailbox, $package_type = null)
+    public function setAllProductsFitInPackageType($all_products_fit_in_mailbox, $package_type = null)
     {
-        if ($all_products_fit_in_mailbox === false && $package_type === null) {
+        if ($all_products_fit_in_mailbox === true && $package_type === 'mailbox') {
             $this->all_products_fit_in_mailbox = $all_products_fit_in_mailbox;
         }
 
-        if ($all_products_fit_in_mailbox === false && $package_type === 'digital_stamp') {
+        if ($all_products_fit_in_mailbox === true && $package_type === 'digital_stamp') {
             $this->all_products_fit_in_digital_stamp = $all_products_fit_in_mailbox;
         }
     }

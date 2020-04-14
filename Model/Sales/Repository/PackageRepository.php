@@ -44,52 +44,85 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param $quote
+     * @param $products
      *
+     * @return mixed|string|null
+     */
+    public function selectPackageType(array $products): string
+    {
+        $packageTypes = ['mailbox', 'digital_stamp'];
+        $test  = 'package';
+
+        if ($this->isMailboxActive() || $this->isDigitalStampActive()) {
+            foreach ($products as $product) {
+                foreach ($packageTypes as $packageType) {
+                    $package = $this->isAllProductsFitIn($product, $packageType);
+                    $this->setAllProductsFitInPackageType($package, $packageType);
+
+                    if ($packageType === 'mailbox' && $package) {
+                        $test = $this->fitInMailbox() ? 'mailbox' : 'package';
+                    }
+
+                    if ($packageType === 'digital_stamp' && $package) {
+                        $test = $this->fitInDigitalStamp() ? 'digital_stamp' : 'package';
+                    }
+                }
+            }
+        }
+
+        return $test;
+    }
+
+
+    /**
      * @return bool
      */
-    public function isMailboxOrDigitalStamp($quote)
+    public function fitInMailbox()
     {
-        $active        = $quote['active'];
-        $weight        = $this->getProductsWeight($quote['cart']);
-        $country       = $quote['country'];
-        $defaultWeight = $quote['defaultWeight'];
-        $allPoductsfit = $this->isAllProductsFitIn($quote['cart'], $quote['packageType']);
+        if ($this->getCurrentCountry() !== 'NL') {
+            return false;
+        }
 
-        return $this->fitInMailbox($active, $country, $weight, $defaultWeight, $allPoductsfit);
+        if ($this->isMailboxActive() === false) {
+            return false;
+        }
+
+        if ($this->isAllProductsFitInMailbox() === false) {
+            return false;
+        }
+
+        if ($this->getWeight() == false) {
+            return false;
+        }
+
+        if ($this->getMailboxProcent() < 100) {
+            if ($this->getWeight() > $this->getMaxWeight()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
-     * @param bool   $active
-     * @param string $country
-     * @param int    $weight
-     * @param int    $defaultWeight
-     * @param bool   $allPoductsfit
-     *
      * @return bool
      */
-    public function fitInMailbox(bool $active, string $country, int $weight, int $defaultWeight, bool $allPoductsfit): bool
+    public function fitInDigitalStamp()
     {
-        if ($country !== 'NL') {
+        if ($this->getCurrentCountry() !== 'NL') {
             return false;
         }
 
-        if (! $active) {
+        if ($this->isDigitalStampActive() === false) {
             return false;
         }
 
-        if (! $allPoductsfit) {
+        if ($this->isAllProductsFitInDigitalStamp() === false) {
             return false;
         }
 
-        if (! $weight) {
+        if ($this->getWeight() > self::DEFAULT_DIGITAL_STAMP_WEIGHT) {
             return false;
-        }
-
-        if ($allPoductsfit) {
-            if ($weight > $defaultWeight) {
-                return false;
-            }
         }
 
         return true;
@@ -123,11 +156,6 @@ class PackageRepository extends Package
      */
     public function setMailboxSettings()
     {
-
-//        alles multi carrier maken :
-//        if (array_key_exists($carrier, Data::CARRIERS_XML_PATH_MAP)) {
-//            return Data::CARRIERS_XML_PATH_MAP[$carrier];
-//        }
         $settings = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox');
 
         if ($settings === null) {
@@ -165,11 +193,21 @@ class PackageRepository extends Package
      */
     public function isAllProductsFitIn($products, $packageType): bool
     {
-        $fitInMailbox = 0;
-        foreach ($products as $item) {
-            $fitInMailbox += ($this->getAttributesProductsOptions($item, 'fit_in_' . $packageType) * $item->getQty());
+        if ($packageType === 'mailbox') {
+            $mailboxProcent = $this->getMailboxProcent();
+            $mailboxProcent += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
 
-            if ($fitInMailbox > 100) {
+            if ($mailboxProcent == 0 || $mailboxProcent > 100) {
+                return false;
+            }
+
+            $this->setMailboxProcent($mailboxProcent);
+        }
+
+        if ($packageType === 'digital_stamp') {
+            $fitInMailbox = $this->getAttributesProductsOptions($products, $packageType);
+
+            if ($fitInMailbox == 0) {
                 return false;
             }
         }
@@ -197,28 +235,6 @@ class PackageRepository extends Package
         $this->setDigitalStampActive($settings['active'] === '1');
         if ($this->isDigitalStampActive() === true) {
             $this->setMaxWeight((int) self::DEFAULT_DIGITAL_STAMP_WEIGHT);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Set weight depend on product setting 'Fit in digital stamp' and weight from product
-     *
-     * @param \Magento\Quote\Model\Quote\Item[] $products
-     *
-     * @return $this
-     */
-    public function setFitInDigitalStampFromQuoteProducts($products)
-    {
-        if (empty($products)) {
-            return $this;
-        }
-
-        foreach ($products as $product) {
-            if ($this->getAttributesProductsOptions($product, 'digital_stamp') === null) {
-                return $this->setAllProductsFitInMailbox(false, 'digital_stamp');
-            }
         }
 
         return $this;

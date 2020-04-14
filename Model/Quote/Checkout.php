@@ -134,13 +134,12 @@ class Checkout
 
         foreach ($carriersPath as $carrier) {
             $myParcelConfig["carrierSettings"][$carrier[self::SELECT_CARRIER_ARRAY]] = [
+                'packageType'               => $this->checkPackageType($carrier),
                 'allowDeliveryOptions'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
                 'allowSignature'            => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
                 'allowOnlyRecipient'        => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_active'),
                 'allowMorningDelivery'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'morning/active'),
                 'allowEveningDelivery'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'evening/active'),
-                'allowMailboxDelivery'      => $this->package->isMailboxOrDigitalStamp($this->getMailboxOrDigitalStampData($carrier, 'mailbox')),
-                'allowDigitalStampDelivery' => $this->package->isMailboxOrDigitalStamp($this->getMailboxOrDigitalStampData($carrier, 'digital_stamp')),
                 'allowPickupLocations'      => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
 
                 'priceSignature'            => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false),
@@ -235,37 +234,16 @@ class Checkout
         ];
     }
 
-    /**
-     * @param $carrier
-     *
-     * @param $packageType
-     *
-     * @return array
-     */
-    private function getMailboxOrDigitalStampData($carrier, $packageType)
+    public function checkPackageType($carrier)
     {
-        $cart               = $this->cart->getAllItems();
-        $country            = $this->cart->getShippingAddress()->getCountryId();
-        $digitalStampActive = $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/active');
-        $mailboxActive      = $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'mailbox/active');
-        $active             = true;
+        $products     = $this->cart->getAllItems();
 
-        if ($packageType === 'mailbox' && $digitalStampActive === true ||
-            $digitalStampActive === false ||
-            $mailboxActive === false
-        ) {
-            $active = false;
-        }
+        $this->package->setCurrentCountry($this->cart->getShippingAddress()->getCountryId());
+        $this->package->setDigitalStampActive($this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/active'));
+        $this->package->setMailboxActive($this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'mailbox/active'));
+        $this->package->setWeightFromQuoteProducts($products);
 
-        $mailboxWeight = $this->helper->getIntergerConfig($carrier[self::SELECT_CARRIER_PATH], $packageType . '/weight');
-        $defaultWeight = $mailboxWeight ? $mailboxWeight : PackageRepository::DEFAULT_DIGITAL_STAMP_WEIGHT;
+        return$this->package->selectPackageType($products);
 
-        return [
-            'active'        => $active,
-            'cart'          => $cart,
-            'country'       => $country,
-            'defaultWeight' => $defaultWeight,
-            'packageType'   => $packageType
-        ];
     }
 }
