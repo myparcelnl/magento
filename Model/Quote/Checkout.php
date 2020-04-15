@@ -181,8 +181,7 @@ class Checkout
     private function get_carriers(): array
     {
         $carriersSettings = [
-            ['postnl', Data::XML_PATH_POSTNL_SETTINGS],
-//            ['dpd', Data::XML_PATH_DPD_SETTINGS]
+            ['postnl', Data::XML_PATH_POSTNL_SETTINGS]
         ];
 
         foreach ($carriersSettings as $carrier) {

@@ -15,7 +15,6 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 /**
  * Class MagentoOrderCollection
