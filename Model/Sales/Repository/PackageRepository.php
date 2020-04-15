@@ -158,7 +158,12 @@ class PackageRepository extends Package
         return $this;
     }
 
-    public function getProductsWeight($products)
+    /**
+     * @param $products
+     *
+     * @return float|int
+     */
+    public function getProductsWeight(array $products)
     {
         $weight = 0;
         foreach ($products as $item) {
@@ -199,7 +204,6 @@ class PackageRepository extends Package
         return true;
     }
 
-
     /**
      * Init all digital stamp settings
      *
@@ -217,8 +221,8 @@ class PackageRepository extends Package
         }
 
         $this->setDigitalStampActive($settings['active'] === '1');
-        if ($this->isDigitalStampActive() === true) {
-            $this->setMaxWeight((int) self::DEFAULT_DIGITAL_STAMP_WEIGHT);
+        if ($this->isDigitalStampActive()) {
+            $this->setMaxWeight(self::DEFAULT_DIGITAL_STAMP_WEIGHT);
         }
 
         return $this;
@@ -273,6 +277,13 @@ class PackageRepository extends Package
         return $attributeValue;
     }
 
+    /**
+     * @param $connection
+     * @param $tableName
+     * @param $databaseColumn
+     *
+     * @return mixed
+     */
     private function getAttributeId($connection, $tableName, $databaseColumn)
     {
         $sql = $connection
@@ -283,6 +294,14 @@ class PackageRepository extends Package
         return $connection->fetchOne($sql);
     }
 
+    /**
+     * @param $connection
+     * @param $tableName
+     * @param $attributeId
+     * @param $entityId
+     *
+     * @return mixed
+     */
     private function getValueFromAttribute($connection, $tableName, $attributeId, $entityId)
     {
         $sql = $connection
