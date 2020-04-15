@@ -86,8 +86,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->package        = $package;
         $this->session        = $session;
         $this->quote          = $quote;
-
-        $this->parentMethods = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods', true));
+        $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods', true));
         $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
         $this->products = $this->getQuoteFromCardOrSession()->getItems();
     }
@@ -125,10 +124,16 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function getMethods(): array
     {
         return [
-            'pickup'             => 'pickup',
-            'standard'           => 'delivery',
-            'standard_signature' => 'delivery/signature',
+            'pickup'                  => 'pickup',
+            'standard'                => 'delivery',
+            'standard_signature'      => 'delivery/signature',
             'standard_only_recipient' => 'delivery/only_recipient',
+            'morning'                 => 'morning/',
+            'morning_signature'       => 'morning_signature/',
+            'evening'                 => 'evening/',
+            'evening_signature'       => 'evening_signature/',
+            'mailbox'                 => 'mailbox/',
+            'digital_stamp'           => 'digital_stamp/'
         ];
     }
 
@@ -183,8 +188,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function isSettingActive(string $map, string $settingPath): bool
     {
-        $settingName   = $this->getFullSettingPath($map, $settingPath);
-        $settingActive = $this->myParcelHelper->getConfigValue($settingName . 'active');
+        $settingName       = $this->getFullSettingPath($map, $settingPath);
+        $settingActive     = $this->myParcelHelper->getConfigValue($settingName . 'active');
         $baseSettingActive = '1';
 
         if (! $this->isBaseSetting($settingPath)) {
@@ -271,7 +276,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getPrice($settingPath): float
     {
-        $basePrice = $this->myParcelHelper->getBasePrice();
+        $basePrice  = $this->myParcelHelper->getBasePrice();
         $settingFee = (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
 
         return $basePrice + $settingFee;
@@ -285,12 +290,13 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    private function getQuoteFromCardOrSession() {
+    private function getQuoteFromCardOrSession()
+    {
         if ($this->quote->getQuoteId() != null &&
             $this->quote->getQuote() &&
             $this->quote->getQuote() instanceof Countable &&
             count($this->quote->getQuote())
-        ){
+        ) {
             return $this->quote->getQuote();
         }
 

@@ -28,11 +28,11 @@ interface PackageInterface
     /**
      * @param $weight
      */
-    public function setWeight($weight);
+    public function setWeight(int $weight);
     /**
      * @param int $weight
      */
-    public function addWeight($weight);
+    public function addWeight(int $weight);
     /**
      * @return bool
      */
@@ -40,7 +40,7 @@ interface PackageInterface
     /**
      * @param bool $all_products_fit
      */
-    public function setAllProductsFit($all_products_fit);
+    public function setAllProductsFit(bool $all_products_fit);
 
     /**
      * package = 1
@@ -53,7 +53,7 @@ interface PackageInterface
      *
      * @param int $package_type
      */
-    public function setPackageType($package_type);
+    public function setPackageType(int $package_type);
     /**
      * @return string
      */
@@ -62,5 +62,5 @@ interface PackageInterface
      * @param string $current_country
      * @return Package
      */
-    public function setCurrentCountry($current_country);
+    public function setCurrentCountry(string $current_country);
 }

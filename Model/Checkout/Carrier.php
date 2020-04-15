@@ -192,6 +192,9 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     private function addShippingMethods($result)
     {
         $products = $this->quote->getAllItems($result);
+        $this->package->setDigitalStampSettings();
+        $this->package->setMailboxSettings();
+
         if (count($products) > 0) {
             $this->package->setWeightFromQuoteProducts($products);
         }
