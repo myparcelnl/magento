@@ -95,7 +95,7 @@ class Package extends Data implements PackageInterface
     /**
      * @param $weight
      */
-    public function setWeight($weight)
+    public function setWeight(int $weight)
     {
         $this->weight = (int) $weight;
     }
@@ -103,7 +103,7 @@ class Package extends Data implements PackageInterface
     /**
      * @param int $weight
      */
-    public function addWeight($weight)
+    public function addWeight(int $weight)
     {
         $this->weight += (int) $weight;
     }
@@ -111,7 +111,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return int
      */
-    public function getMaxWeight()
+    public function getMaxWeight(): int
     {
         return (int) $this->max_weight;
     }
@@ -119,7 +119,7 @@ class Package extends Data implements PackageInterface
     /**
      * @param int $max_weight
      */
-    public function setMaxWeight($max_weight)
+    public function setMaxWeight(int $max_weight)
     {
         $this->max_weight = $max_weight;
     }
@@ -128,7 +128,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFitInMailbox()
+    public function isAllProductsFitInMailbox(): bool
     {
         return $this->all_products_fit_in_mailbox;
     }
@@ -136,7 +136,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isMailboxActive()
+    public function isMailboxActive(): bool
     {
         return $this->mailbox_active;
     }
@@ -144,15 +144,15 @@ class Package extends Data implements PackageInterface
     /**
      * @param bool $mailbox_active
      */
-    public function setMailboxActive($mailbox_active)
+    public function setMailboxActive(bool $mailbox_active)
     {
         $this->mailbox_active = $mailbox_active;
     }
 
     /**
-     * @param $procent
+     * @param float $procent
      */
-    public function setMailboxProcent($procent)
+    public function setMailboxProcent(float $procent)
     {
         $this->mailbox_procent = $procent;
     }
@@ -160,7 +160,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function getMailboxProcent()
+    public function getMailboxProcent(): bool
     {
         return $this->mailbox_procent;
     }
@@ -168,7 +168,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFitInDigitalStamp()
+    public function isAllProductsFitInDigitalStamp(): bool
     {
         return $this->all_products_fit_in_digital_stamp;
     }
@@ -176,7 +176,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isDigitalStampActive()
+    public function isDigitalStampActive(): bool
     {
         return $this->digital_stamp_active;
     }
@@ -184,7 +184,7 @@ class Package extends Data implements PackageInterface
     /**
      * @param bool $digital_stamp_active
      */
-    public function setDigitalStampActive($digital_stamp_active)
+    public function setDigitalStampActive(bool $digital_stamp_active)
     {
         $this->digital_stamp_active = $digital_stamp_active;
     }
@@ -193,7 +193,7 @@ class Package extends Data implements PackageInterface
      * @param bool $all_products_fit_in_mailbox
      * @param null $package_type
      */
-    public function setAllProductsFitInPackageType($all_products_fit_in_mailbox, $package_type = null)
+    public function setAllProductsFitInPackageType(bool $all_products_fit_in_mailbox, $package_type = null)
     {
         if ($all_products_fit_in_mailbox === true && $package_type === 'mailbox') {
             $this->all_products_fit_in_mailbox = $all_products_fit_in_mailbox;
@@ -207,7 +207,7 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFit()
+    public function isAllProductsFit(): bool
     {
         return $this->all_products_fit;
     }
@@ -215,12 +215,13 @@ class Package extends Data implements PackageInterface
     /**
      * @param bool $all_products_fit
      */
-    public function setAllProductsFit($all_products_fit)
+    public function setAllProductsFit(bool $all_products_fit)
     {
         if ($all_products_fit === false) {
             $this->all_products_fit = $all_products_fit;
         }
     }
+
 
     /**
      * package = 1
@@ -237,7 +238,7 @@ class Package extends Data implements PackageInterface
      *
      * @param int $package_type
      */
-    public function setPackageType($package_type)
+    public function setPackageType(int $package_type)
     {
         $this->package_type = $package_type;
     }
@@ -245,20 +246,16 @@ class Package extends Data implements PackageInterface
     /**
      * @return string
      */
-    public function getCurrentCountry()
+    public function getCurrentCountry(): string
     {
         return $this->current_country;
     }
 
     /**
      * @param string $current_country
-     *
-     * @return Package
      */
-    public function setCurrentCountry($current_country)
+    public function setCurrentCountry(string $current_country)
     {
         $this->current_country = $current_country;
-
-        return $this;
     }
 }
