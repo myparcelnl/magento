@@ -75,31 +75,21 @@ class PackageRepository extends Package
     }
 
 
+
     /**
      * @return bool
      */
     public function fitInMailbox()
     {
-        if ($this->getCurrentCountry() !== 'NL') {
+        if (
+            $this->getCurrentCountry() !== 'NL' ||
+            ! $this->isMailboxActive() ||
+            ! $this->isAllProductsFitInMailbox() ||
+            ! $this->getWeight() ||
+            $this->getMailboxProcent() < 100 &&
+            $this->getWeight() > $this->getMaxWeight()
+        ) {
             return false;
-        }
-
-        if (! $this->isMailboxActive()) {
-            return false;
-        }
-
-        if (! $this->isAllProductsFitInMailbox()) {
-            return false;
-        }
-
-        if (! $this->getWeight()) {
-            return false;
-        }
-
-        if ($this->getMailboxProcent() < 100) {
-            if ($this->getWeight() > $this->getMaxWeight()) {
-                return false;
-            }
         }
 
         return true;
@@ -110,19 +100,12 @@ class PackageRepository extends Package
      */
     public function fitInDigitalStamp()
     {
-        if ($this->getCurrentCountry() !== 'NL') {
-            return false;
-        }
-
-        if ($this->isDigitalStampActive() === false) {
-            return false;
-        }
-
-        if ($this->isAllProductsFitInDigitalStamp() === false) {
-            return false;
-        }
-
-        if ($this->getWeight() > self::DEFAULT_DIGITAL_STAMP_WEIGHT) {
+        if (
+            $this->getCurrentCountry() !== 'NL' ||
+            ! $this->isDigitalStampActive() ||
+            ! $this->isAllProductsFitInDigitalStamp() ||
+            $this->getWeight() > self::DEFAULT_DIGITAL_STAMP_WEIGHT
+        ) {
             return false;
         }
 
@@ -157,7 +140,6 @@ class PackageRepository extends Package
      */
     public function setMailboxSettings()
     {
-
         $settings = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox');
 
         if ($settings === null) {
