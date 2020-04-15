@@ -125,7 +125,6 @@ class PackageRepository extends Package
             return $this;
         }
 
-        $this->addWeight(0);
         foreach ($products as $product) {
             $this->setWeightFromOneQuoteProduct($product);
         }
