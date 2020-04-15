@@ -88,7 +88,7 @@ class PackageRepository extends Package
             return false;
         }
 
-        if ($this->isAllProductsFitInMailbox() === false) {
+        if (! $this->isAllProductsFitInMailbox()) {
             return false;
         }
 
