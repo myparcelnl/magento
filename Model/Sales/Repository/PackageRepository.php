@@ -84,7 +84,7 @@ class PackageRepository extends Package
             return false;
         }
 
-        if ($this->isMailboxActive() === false) {
+        if (! $this->isMailboxActive()) {
             return false;
         }
 
