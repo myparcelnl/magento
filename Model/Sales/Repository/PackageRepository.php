@@ -92,7 +92,7 @@ class PackageRepository extends Package
             return false;
         }
 
-        if ($this->getWeight() == false) {
+        if (! $this->getWeight()) {
             return false;
         }
 
