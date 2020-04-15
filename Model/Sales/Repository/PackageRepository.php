@@ -45,7 +45,7 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param $products
+     * @param array $products
      *
      * @return string
      */
@@ -74,12 +74,10 @@ class PackageRepository extends Package
         return $package;
     }
 
-
-
     /**
      * @return bool
      */
-    public function fitInMailbox()
+    public function fitInMailbox(): bool
     {
         if (
             $this->getCurrentCountry() !== 'NL' ||
@@ -98,7 +96,7 @@ class PackageRepository extends Package
     /**
      * @return bool
      */
-    public function fitInDigitalStamp()
+    public function fitInDigitalStamp(): bool
     {
         if (
             $this->getCurrentCountry() !== 'NL' ||
@@ -119,7 +117,7 @@ class PackageRepository extends Package
      *
      * @return $this
      */
-    public function setWeightFromQuoteProducts($products)
+    public function setWeightFromQuoteProducts(array $products)
     {
         if (empty($products)) {
             return $this;
@@ -160,9 +158,9 @@ class PackageRepository extends Package
     /**
      * @param $products
      *
-     * @return float|int
+     * @return float
      */
-    public function getProductsWeight(array $products)
+    public function getProductsWeight(array $products): float
     {
         $weight = 0;
         foreach ($products as $item) {
@@ -173,19 +171,19 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param $products
+     * @param        $products
      *
-     * @param $packageType
+     * @param string $packageType
      *
      * @return bool
      */
-    public function isAllProductsFitIn($products, $packageType): bool
+    public function isAllProductsFitIn($products, string $packageType): bool
     {
-        if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME ) {
+        if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
             $mailboxProcent = $this->getMailboxProcent();
             $mailboxProcent += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
 
-            if ($mailboxProcent == 0 || $mailboxProcent > 100) {
+            if ($mailboxProcent === 0 || $mailboxProcent > 100) {
                 return false;
             }
 
@@ -233,7 +231,7 @@ class PackageRepository extends Package
      *
      * @return null|int
      */
-    private function getAttributesProductsOptions($product, $column)
+    private function getAttributesProductsOptions($product, string $column): ?int
     {
         $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $column);
 
@@ -253,9 +251,9 @@ class PackageRepository extends Package
      * @param \Magento\Quote\Model\Quote\Item $product
      * @param string                          $column
      *
-     * @return array|null
+     * @return null|string
      */
-    private function getAttributesFromProduct($tableName, $product, $column)
+    private function getAttributesFromProduct(string $tableName, $product, string $column): ?string
     {
         /**
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
@@ -277,13 +275,13 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param $connection
-     * @param $tableName
-     * @param $databaseColumn
+     * @param        $connection
+     * @param string $tableName
+     * @param string $databaseColumn
      *
      * @return mixed
      */
-    private function getAttributeId($connection, $tableName, $databaseColumn)
+    private function getAttributeId($connection, string $tableName, string $databaseColumn)
     {
         $sql = $connection
             ->select('entity_type_id')
@@ -294,14 +292,14 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param $connection
-     * @param $tableName
-     * @param $attributeId
-     * @param $entityId
+     * @param        $connection
+     * @param string $tableName
+     * @param string $attributeId
+     * @param string $entityId
      *
      * @return mixed
      */
-    private function getValueFromAttribute($connection, $tableName, $attributeId, $entityId)
+    private function getValueFromAttribute($connection, string $tableName, string $attributeId, string $entityId)
     {
         $sql = $connection
             ->select()
