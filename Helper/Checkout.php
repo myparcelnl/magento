@@ -306,7 +306,7 @@ class Checkout extends Data
      *
      * @return float
      */
-    public function getIntergerConfig($carrier, $key)
+    public function getIntegerConfig($carrier, $key)
     {
         return (float) $this->getCarrierConfig($key, $carrier);
     }
