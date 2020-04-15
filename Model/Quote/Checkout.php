@@ -152,10 +152,10 @@ class Checkout
 
                 'cutoffTime'          => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/cutoff_time'),
                 'saturdayCutoffTime'  => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/saturday_cutoff_time'),
-                'deliveryDaysWindow'  => $this->helper->getIntergerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/deliverydays_window'),
-                'allowMondayDelivery' => $this->helper->getIntergerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/monday_delivery_active'),
+                'deliveryDaysWindow'  => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/deliverydays_window'),
+                'allowMondayDelivery' => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/monday_delivery_active'),
                 'dropOffDays'         => $this->helper->getArrayConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_days'),
-                'dropOffDelay'        => $this->helper->getIntergerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_delay'),
+                'dropOffDelay'        => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_delay'),
             ];
         }
 
