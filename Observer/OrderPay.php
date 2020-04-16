@@ -14,13 +14,11 @@
 
 namespace MyParcelNL\Magento\Observer;
 
-use Magento\Checkout\Controller\Action;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Sales\Model\ResourceModel\order\shipment\Collection;
 use MyParcelNL\Magento\Helper\Data;
@@ -80,7 +78,6 @@ class OrderPay implements ObserverInterface
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
         $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
-
         $this->orderFactory =$this->objectManager->get('\Magento\Sales\Model\Order');
     }
 
@@ -89,35 +86,37 @@ class OrderPay implements ObserverInterface
      *
      * @param Observer $observer
      *
-     * @return void
+     * @return OrderPay
      * @throws \Exception
      */
-    public function execute(Observer $observer)
+    public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        $orderIds = $observer->getEvent()->getOrderIds();
-        $lastorderId = $orderIds[0];
+        $order = $observer->getEvent()->getOrder();
+        if ($order instanceof \Magento\Framework\Model\AbstractModel) {
+            if ($order->getState() == 'pending' || $order->getState() == 'processing') {
+                $this->setMagentoAndMyParcelTrack(151); // dit is een order id wat ik al in mijn order grid had staan
+            }
+        }
 
-//        $shipment = $this->orderFactory->load($lastorderId);
-
-//        $shipmentid = $observer->getEvent()->getOrder();
-
-        $this->setMagentoAndMyParcelTrack(10); // dit is een order id wat ik al in mijn order grid had staan
+        return $this;
     }
 
     /**
      * Set MyParcel Tracks and update order grid
      *
-     * @param $shipmentIds
+     * @param $orderIds
      *
      * @return OrderPay
      * @throws LocalizedException
-     * @throws \Exception
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
     private function setMagentoAndMyParcelTrack($orderIds)
     {
         $this->addOrdersToCollection($orderIds);
 
         $this->orderCollection
+            ->setOptionsFromParameters()
             ->setNewMagentoShipment();
 
         if (!$this->orderCollection->hasShipment()) {
@@ -127,6 +126,8 @@ class OrderPay implements ObserverInterface
 
         $this->orderCollection
             ->setMagentoTrack()
+//            ->setMyParcelTrack() // todo hier komen errors
+//            ->createMyParcelConcepts()
             ->updateGridByOrder();
 
         if (
