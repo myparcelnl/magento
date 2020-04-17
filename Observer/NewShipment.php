@@ -75,7 +75,7 @@ class NewShipment implements ObserverInterface
     {
         if ($this->request->getParam('mypa_create_from_observer')) {
             $shipment = $observer->getEvent()->getShipment();
-            $this->setMagentoAndMyParcelTrack($orderId);
+            $this->setMagentoAndMyParcelTrack($shipment);
         }
     }
 
