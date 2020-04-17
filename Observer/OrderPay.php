@@ -108,8 +108,6 @@ class OrderPay implements ObserverInterface
      *
      * @return OrderPay
      * @throws LocalizedException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
     private function setMagentoAndMyParcelTrack($orderIds)
     {
