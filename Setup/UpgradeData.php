@@ -29,7 +29,6 @@ use Magento\Framework\Setup\UpgradeDataInterface;
  */
 class UpgradeData implements UpgradeDataInterface
 {
-
     const groupName = 'MyParcel Options';
 
     /**
@@ -63,12 +62,13 @@ class UpgradeData implements UpgradeDataInterface
      *
      * @param \Magento\Framework\Setup\ModuleDataSetupInterface $setup
      * @param \Magento\Framework\Setup\ModuleContextInterface   $context
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
-
-       $connection = $setup->getConnection();
-       $table      = $setup->getTable('core_config_data');
+        $connection = $setup->getConnection();
+        $table      = $setup->getTable('core_config_data');
 
         /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
@@ -361,24 +361,23 @@ class UpgradeData implements UpgradeDataInterface
         }
 
         if (version_compare($context->getVersion(), '4.0.0', '<=')) {
-
             $setup->startSetup();
-               /** @var EavSetup $eavSetup */
-               $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
-               // get entity type id so that attribute are only assigned to catalog_product
-               $entityTypeId = $eavSetup->getEntityTypeId('catalog_product');
-               // Here we have fetched all attribute set as we want attribute group to show under all attribute set
-               $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId);
+            // get entity type id so that attribute are only assigned to catalog_product
+            $entityTypeId = $eavSetup->getEntityTypeId('catalog_product');
+            // Here we have fetched all attribute set as we want attribute group to show under all attribute set
+            $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId);
 
-               foreach ($attributeSetIds as $attributeSetId) {
-                   $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::groupName, 19);
-                   $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::groupName);
+            foreach ($attributeSetIds as $attributeSetId) {
+                $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::groupName, 19);
+                $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::groupName);
 
-                   // Add existing attribute to group
-                   $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
-                   $eavSetup->addAttributeToGroup($entityTypeId, $attributeSetId, $attributeGroupId, $attributeId, null);
-               }
+                // Add existing attribute to group
+                $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
+                $eavSetup->addAttributeToGroup($entityTypeId, $attributeSetId, $attributeGroupId, $attributeId, null);
+            }
 
             if ($connection->isTableExists($table) == true) {
 
@@ -540,6 +539,6 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
-         $setup->endSetup();
+        $setup->endSetup();
     }
 }

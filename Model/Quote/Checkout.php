@@ -4,10 +4,10 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
-use \Magento\Store\Model\StoreManagerInterface;
 
 class Checkout
 {
@@ -111,10 +111,12 @@ class Checkout
      */
     private function getGeneralData()
     {
+        $disableCheckout = $this->package->getDisableCheckout();
+
         return [
             'allowRetry'                 => true,
             'platform'                   => self::PLATFORM,
-            'carriers'                   => array_column($this->get_carriers(), self::SELECT_CARRIER_ARRAY),
+            'carriers'                   => $disableCheckout ?: array_column($this->get_carriers(), self::SELECT_CARRIER_ARRAY),
             'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
             'pickupLocationsDefaultView' => $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view')
         ];
@@ -127,7 +129,6 @@ class Checkout
      */
     private function getDeliveryData(): array
     {
-
         $carriersPath   = $this->get_carriers();
         $myParcelConfig = [];
 
@@ -171,7 +172,6 @@ class Checkout
     {
         return $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/methods');
     }
-
 
     /**
      * Get the array of enabled carriers by checking if they have either delivery or pickup enabled.

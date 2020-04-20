@@ -20,6 +20,7 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
+use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Checkout extends Data
@@ -39,25 +40,31 @@ class Checkout extends Data
      * @var EstimateAddressInterfaceFactory
      */
     private $estimatedAddressFactory;
+    /**
+     * @var Package
+     */
+    private $package;
 
     /**
-     * @param Context $context
-     * @param ModuleListInterface $moduleList
+     * @param Context                         $context
+     * @param ModuleListInterface             $moduleList
      * @param EstimateAddressInterfaceFactory $estimatedAddressFactory
-     * @param ShippingMethodManagement $shippingMethodManagement
-     * @param CheckApiKeyService $checkApiKeyService
+     * @param ShippingMethodManagement        $shippingMethodManagement
+     * @param CheckApiKeyService              $checkApiKeyService
+     * @param Package                         $package
      */
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
         EstimateAddressInterfaceFactory $estimatedAddressFactory,
         ShippingMethodManagement $shippingMethodManagement,
-        CheckApiKeyService $checkApiKeyService
-    )
-    {
+        CheckApiKeyService $checkApiKeyService,
+        Package $package
+    ) {
         parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
-        $this->estimatedAddressFactory = $estimatedAddressFactory;
+        $this->estimatedAddressFactory  = $estimatedAddressFactory;
+        $this->package                  = $package;
     }
 
     /**
@@ -219,8 +226,8 @@ class Checkout extends Data
      *
      * @return string
      */
-    public function getMoneyFormat($value) {
-
+    public function getMoneyFormat($value)
+    {
         $value = number_format($value, 2, '.', ',');
 
         return $value;

@@ -18,14 +18,7 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\App\Helper\Context;
-use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
-use Psr\Log\LoggerInterface;
 
 class Package extends Data implements PackageInterface
 {
@@ -85,6 +78,11 @@ class Package extends Data implements PackageInterface
     private $package_type = null;
 
     /**
+     * @var bool
+     */
+    private $disableCheckout = false;
+
+    /**
      * @return int
      */
     public function getWeight()
@@ -109,6 +107,22 @@ class Package extends Data implements PackageInterface
     }
 
     /**
+     * @return bool
+     */
+    public function getDisableCheckout(): bool
+    {
+        return $this->disableCheckout;
+    }
+
+    /**
+     * @param bool $disableCheckout
+     */
+    public function setDisableCheckout(bool $disableCheckout)
+    {
+        $this->disableCheckout = $disableCheckout;
+    }
+
+    /**
      * @return int
      */
     public function getMaxWeight(): int
@@ -123,7 +137,6 @@ class Package extends Data implements PackageInterface
     {
         $this->max_weight = $max_weight;
     }
-
 
     /**
      * @return bool
@@ -221,7 +234,6 @@ class Package extends Data implements PackageInterface
             $this->all_products_fit = $all_products_fit;
         }
     }
-
 
     /**
      * package = 1

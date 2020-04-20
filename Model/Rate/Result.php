@@ -153,6 +153,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
+        $this->package->disableCheckoutWithProduct($this->products);
+
         if (empty($this->products)) {
             $this->package->setWeightFromQuoteProducts($this->products);
         }

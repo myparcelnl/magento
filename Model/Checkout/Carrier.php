@@ -141,7 +141,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
 
     public function collectRates(RateRequest $request)
     {
-        /** @var \Magento\Quote\Model\Quote\Address\RateRequest $result */
+        /** @var RateRequest $result */
         $result = $this->_rateFactory->create();
         $result = $this->addShippingMethods($result);
 
@@ -186,7 +186,8 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote\Address\RateRequest $result
+     * @param RateRequest $result
+     *
      * @return mixed
      */
     private function addShippingMethods($result)
@@ -194,6 +195,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         $products = $this->quote->getAllItems($result);
         $this->package->setDigitalStampSettings();
         $this->package->setMailboxSettings();
+        $this->package->disableCheckoutWithProduct($products);
 
         if (count($products) > 0) {
             $this->package->setWeightFromQuoteProducts($products);
@@ -211,7 +213,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     }
 
     /**
-     * @param $alias
+     * @param string $alias
      * @param string $settingPath
      *
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method

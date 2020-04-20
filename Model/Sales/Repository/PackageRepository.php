@@ -18,7 +18,7 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
-
+use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -26,6 +26,7 @@ class PackageRepository extends Package
 {
     public const DEFAULT_MAILBOX_WEIGHT       = 2000;
     public const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
+    public const DISABLED_CHECKOUT_ON          = true;
 
     /**
      * Get package type
@@ -108,6 +109,23 @@ class PackageRepository extends Package
         }
 
         return true;
+    }
+
+    /**
+ * @param \Magento\Quote\Model\Quote\Item[] $products
+ */
+    public function disableCheckoutWithProduct($products)
+    {
+        foreach ($products as $product) {
+            $getDisabledOption = (bool) $this->getAttributesProductsOptions($product, 'disable_checkout');
+
+            if ($getDisabledOption === self::DISABLED_CHECKOUT_ON) {
+                $this->setDisableCheckout(true);
+                break;
+            }
+        }
+
+        return;
     }
 
     /**
@@ -266,7 +284,9 @@ class PackageRepository extends Package
 
         $attributeId    = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
         $attributeValue = $this
-            ->getValueFromAttribute($connection, $resource->getTableName($tableName),
+            ->getValueFromAttribute(
+                $connection,
+                $resource->getTableName($tableName),
                 $attributeId,
                 $entityId
             );
