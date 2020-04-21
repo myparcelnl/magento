@@ -258,8 +258,8 @@ class TrackTraceHolder
             return '';
         }
 
-        $productInfo      = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
-        $deliveryDate     = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+        $productInfo  = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
+        $deliveryDate = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
 
         $labelDescription = str_replace(
             [
@@ -272,13 +272,30 @@ class TrackTraceHolder
             [
                 $order->getIncrementId(),
                 $deliveryDate,
-                $productInfo[0]['product_id'],
-                $productInfo[0]['name'],
-                (int) $productInfo[0]['qty']
+                $this->getProductInfo($productInfo, 'product_id'),
+                $this->getProductInfo($productInfo, 'name'),
+                $this->getProductInfo($productInfo, 'qty'),
             ],
-            $labelDescription);
+            $labelDescription
+        );
 
         return $labelDescription;
+    }
+
+    /**
+     * @param $productInfo
+     * @param $field
+     *
+     * @return mixed|null
+     */
+    private function getProductInfo($productInfo, $field)
+    {
+
+        if ($productInfo) {
+            return $productInfo[0][$field];
+        }
+
+        return null;
     }
 
     /**
@@ -337,11 +354,12 @@ class TrackTraceHolder
      * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
      *
      * @param $product_id
+     *
      * @return string
      */
     public function getCountryOfOrigin(int $product_id): string
     {
-        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
+        $product                     = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
         $productCountryOfManufacture = $product->getCountryOfManufacture();
 
         if ($productCountryOfManufacture) {
@@ -355,16 +373,16 @@ class TrackTraceHolder
      * @param string $tableName
      * @param string $entityId
      * @param string $column
-     * @param bool $isMagentoAttr
+     * @param bool   $isMagentoAttr
      *
      * @return string|null
      */
     private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
-        $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection     = $resource->getConnection();
-        $attributeId    = $this->getAttributeId(
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection    = $resource->getConnection();
+        $attributeId   = $this->getAttributeId(
             $connection,
             $resource->getTableName('eav_attribute'),
             $column

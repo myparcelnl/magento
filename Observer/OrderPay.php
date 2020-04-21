@@ -92,9 +92,11 @@ class OrderPay implements ObserverInterface
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
+        $orderid = $order->getId();
+
         if ($order instanceof \Magento\Framework\Model\AbstractModel) {
             if ($order->getState() == 'pending' || $order->getState() == 'processing') {
-                $this->setMagentoAndMyParcelTrack(151); // dit is een order id wat ik al in mijn order grid had staan
+                $this->setMagentoAndMyParcelTrack($orderid); // dit is een order id wat ik al in mijn order grid had staan
             }
         }
 
@@ -107,7 +109,9 @@ class OrderPay implements ObserverInterface
      * @param $orderIds
      *
      * @return OrderPay
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
     private function setMagentoAndMyParcelTrack($orderIds)
     {
@@ -117,15 +121,10 @@ class OrderPay implements ObserverInterface
             ->setOptionsFromParameters()
             ->setNewMagentoShipment();
 
-        if (!$this->orderCollection->hasShipment()) {
-            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
-            return $this;
-        }
-
         $this->orderCollection
             ->setMagentoTrack()
-//            ->setMyParcelTrack() // todo hier komen errors
-//            ->createMyParcelConcepts()
+            ->setMyParcelTrack()
+            ->createMyParcelConcepts()
             ->updateGridByOrder();
 
         if (
