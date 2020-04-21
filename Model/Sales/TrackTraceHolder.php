@@ -278,7 +278,7 @@ class TrackTraceHolder
                 $productInfo[0]['product_id'],
                 $productInfo[0]['name'],
                 (int) $productInfo[0]['qty'],
-                productInfo[0]['so_kortenaam'] ?? '',
+                $productInfo[0]['so_kortenaam'] ?? '',
                 $productInfo[0]['so_artikelnummerleverancier'] ?? ''
             ],
             $labelDescription);
