@@ -14,7 +14,7 @@
                 <weight_indication>gram</weight_indication>
                 <label_description>%order_nr%</label_description>
                 <country_of_origin>NL</country_of_origin>
-                <auto_export>0</auto_export>
+                <create_concept_after_invoice>0</create_concept_after_invoice>
             </basic_settings>
         </myparcelnl_magento_general>
         <myparcelnl_magento_standard>

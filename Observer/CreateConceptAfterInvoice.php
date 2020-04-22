@@ -14,18 +14,20 @@
 
 namespace MyParcelNL\Magento\Observer;
 
+use Exception;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order\Shipment\Track;
-use Magento\Sales\Model\ResourceModel\order\shipment\Collection;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelNL\Sdk\src\Exception\ApiException;
+use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 
-class OrderPay implements ObserverInterface
+class CreateConceptAfterInvoice implements ObserverInterface
 {
     const DEFAULT_LABEL_AMOUNT = 1;
 
@@ -86,12 +88,12 @@ class OrderPay implements ObserverInterface
      *
      * @param Observer $observer
      *
-     * @return OrderPay
-     * @throws \Exception
+     * @return CreateConceptAfterInvoice
+     * @throws Exception
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        if ($this->helper->getGeneralConfig('basic_settings/auto_export')) {
+        if ($this->helper->getGeneralConfig('basic_settings/create_concept_after_invoice')) {
             $order   = $observer->getEvent()->getOrder();
             $orderid = $order->getId();
 
@@ -110,10 +112,11 @@ class OrderPay implements ObserverInterface
      *
      * @param $orderIds
      *
-     * @return OrderPay
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @return CreateConceptAfterInvoice
+     * @throws LocalizedException
+     * @throws ApiException
+     * @throws MissingFieldException
+     * @throws Exception
      */
     private function setMagentoAndMyParcelTrack($orderIds)
     {
