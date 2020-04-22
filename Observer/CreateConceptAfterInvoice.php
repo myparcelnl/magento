@@ -20,7 +20,9 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Model\Order\Shipment\Track;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
@@ -64,14 +66,14 @@ class CreateConceptAfterInvoice implements ObserverInterface
     private $shipmentCollection;
 
     /**
-     * @var \Magento\Framework\Message\ManagerInterface
+     * @var ManagerInterface
      */
     protected $messageManager;
 
     /**
      * NewShipment constructor.
      *
-     * @param \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
+     * @param MagentoOrderCollection|null $orderCollection
      */
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
@@ -91,7 +93,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      * @return CreateConceptAfterInvoice
      * @throws Exception
      */
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function execute(Observer $observer)
     {
         if ($this->helper->getGeneralConfig('basic_settings/create_concept_after_invoice')) {
             $order   = $observer->getEvent()->getOrder();
@@ -151,7 +153,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
     private function addOrdersToCollection($orderIds)
     {
         /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+         * @var Collection $collection
          */
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
