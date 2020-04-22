@@ -78,7 +78,7 @@ class OrderPay implements ObserverInterface
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
         $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
-        $this->orderFactory =$this->objectManager->get('\Magento\Sales\Model\Order');
+        $this->orderFactory    = $this->objectManager->get('\Magento\Sales\Model\Order');
     }
 
     /**
@@ -91,12 +91,14 @@ class OrderPay implements ObserverInterface
      */
     public function execute(\Magento\Framework\Event\Observer $observer)
     {
-        $order = $observer->getEvent()->getOrder();
-        $orderid = $order->getId();
+        if ($this->helper->getGeneralConfig('basic_settings/auto_export')) {
+            $order   = $observer->getEvent()->getOrder();
+            $orderid = $order->getId();
 
-        if ($order instanceof \Magento\Framework\Model\AbstractModel) {
-            if ($order->getState() == 'pending' || $order->getState() == 'processing') {
-                $this->setMagentoAndMyParcelTrack($orderid); // dit is een order id wat ik al in mijn order grid had staan
+            if ($order instanceof \Magento\Framework\Model\AbstractModel) {
+                if ($order->getState() == 'pending' || $order->getState() == 'processing') {
+                    $this->setMagentoAndMyParcelTrack($orderid);
+                }
             }
         }
 
