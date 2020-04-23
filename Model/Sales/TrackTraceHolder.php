@@ -20,6 +20,7 @@ use Magento\Sales\Model\Order;
 use Magento\Tests\NamingConvention\true\mixed;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
@@ -111,7 +112,7 @@ class TrackTraceHolder
             ->setCarrierCode(self::MYPARCEL_CARRIER_CODE)
             ->setTitle(self::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber('concept');
+            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY);
 
         return $this;
     }
@@ -259,8 +260,8 @@ class TrackTraceHolder
             return '';
         }
 
-        $productInfo      = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
-        $deliveryDate     = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+        $productInfo  = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
+        $deliveryDate = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
 
         $labelDescription = str_replace(
             [
@@ -281,7 +282,8 @@ class TrackTraceHolder
                 $this->getProductInfo($productInfo, 'so_kortenaam'),
                 $this->getProductInfo($productInfo, 'so_artikelnummerleverancier')
             ],
-            $labelDescription);
+            $labelDescription
+        );
 
         return $labelDescription;
     }
@@ -324,8 +326,8 @@ class TrackTraceHolder
                 ->setAmount($product['qty'])
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
-                ->setClassification((int) $this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry('NL');
+                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
+                ->setCountry($this->getCountryOfOrigin($product['product_id']));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -354,22 +356,43 @@ class TrackTraceHolder
     }
 
     /**
+     * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
+     *
+     * @param $product_id
+     *
+     * @return string
+     */
+    public function getCountryOfOrigin(int $product_id): string
+    {
+        $product                     = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
+        $productCountryOfManufacture = $product->getCountryOfManufacture();
+
+        if ($productCountryOfManufacture) {
+            return $productCountryOfManufacture;
+        }
+
+        return $this->helper->getGeneralConfig('basic_settings/country_of_origin');
+    }
+
+    /**
      * @param string $tableName
      * @param string $entityId
      * @param string $column
+     * @param bool   $isMagentoAttr
      *
      * @return string|null
      */
-    private function hsCode(string $tableName, string $entityId, string $column): ?string
+    private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
-        $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection     = $resource->getConnection();
-        $attributeId    = $this->getAttributeId(
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection    = $resource->getConnection();
+        $attributeId   = $this->getAttributeId(
             $connection,
             $resource->getTableName('eav_attribute'),
             $column
         );
+
         $attributeValue = $this
             ->getValueFromAttribute(
                 $connection,
