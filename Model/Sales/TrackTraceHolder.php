@@ -288,7 +288,7 @@ class TrackTraceHolder
      *
      * @return mixed|null
      */
-    private function getProductInfo($productInfo, $field)
+    private function getProductInfo(array $productInfo, string $field): ?string
     {
 
         if ($productInfo) {
