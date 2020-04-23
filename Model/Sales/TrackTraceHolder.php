@@ -290,7 +290,6 @@ class TrackTraceHolder
      */
     private function getProductInfo($productInfo, $field)
     {
-
         if ($productInfo) {
             return $productInfo[0][$field];
         }
