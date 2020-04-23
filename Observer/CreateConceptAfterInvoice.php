@@ -14,20 +14,22 @@
 
 namespace MyParcelNL\Magento\Observer;
 
-use Magento\Checkout\Controller\Action;
+use Exception;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\Order\Shipment;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Model\Order\Shipment\Track;
-use Magento\Sales\Model\ResourceModel\order\shipment\Collection;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelNL\Sdk\src\Exception\ApiException;
+use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 
-class OrderPay implements ObserverInterface
+class CreateConceptAfterInvoice implements ObserverInterface
 {
     const DEFAULT_LABEL_AMOUNT = 1;
 
@@ -64,14 +66,14 @@ class OrderPay implements ObserverInterface
     private $shipmentCollection;
 
     /**
-     * @var \Magento\Framework\Message\ManagerInterface
+     * @var ManagerInterface
      */
     protected $messageManager;
 
     /**
      * NewShipment constructor.
      *
-     * @param \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
+     * @param MagentoOrderCollection|null $orderCollection
      */
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
@@ -80,8 +82,7 @@ class OrderPay implements ObserverInterface
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
         $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
-
-        $this->orderFactory =$this->objectManager->get('\Magento\Sales\Model\Order');
+        $this->orderFactory    = $this->objectManager->get('\Magento\Sales\Model\Order');
     }
 
     /**
@@ -89,44 +90,48 @@ class OrderPay implements ObserverInterface
      *
      * @param Observer $observer
      *
-     * @return void
-     * @throws \Exception
+     * @return CreateConceptAfterInvoice
+     * @throws Exception
      */
     public function execute(Observer $observer)
     {
-        $orderIds = $observer->getEvent()->getOrderIds();
-        $lastorderId = $orderIds[0];
+        if ($this->helper->getGeneralConfig('basic_settings/create_concept_after_invoice')) {
+            $order   = $observer->getEvent()->getOrder();
+            $orderid = $order->getId();
 
-//        $shipment = $this->orderFactory->load($lastorderId);
+            if ($order instanceof \Magento\Framework\Model\AbstractModel) {
+                if ($order->getState() == 'pending' || $order->getState() == 'processing') {
+                    $this->setMagentoAndMyParcelTrack($orderid);
+                }
+            }
+        }
 
-//        $shipmentid = $observer->getEvent()->getOrder();
-
-        $this->setMagentoAndMyParcelTrack(10); // dit is een order id wat ik al in mijn order grid had staan
+        return $this;
     }
 
     /**
      * Set MyParcel Tracks and update order grid
      *
-     * @param $shipmentIds
+     * @param $orderIds
      *
-     * @return OrderPay
+     * @return CreateConceptAfterInvoice
      * @throws LocalizedException
-     * @throws \Exception
+     * @throws ApiException
+     * @throws MissingFieldException
+     * @throws Exception
      */
     private function setMagentoAndMyParcelTrack($orderIds)
     {
         $this->addOrdersToCollection($orderIds);
 
         $this->orderCollection
+            ->setOptionsFromParameters()
             ->setNewMagentoShipment();
-
-        if (!$this->orderCollection->hasShipment()) {
-            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
-            return $this;
-        }
 
         $this->orderCollection
             ->setMagentoTrack()
+            ->setMyParcelTrack()
+            ->createMyParcelConcepts()
             ->updateGridByOrder();
 
         if (
@@ -148,7 +153,7 @@ class OrderPay implements ObserverInterface
     private function addOrdersToCollection($orderIds)
     {
         /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+         * @var Collection $collection
          */
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);

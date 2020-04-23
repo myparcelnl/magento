@@ -4,8 +4,8 @@
     <event name="sales_order_shipment_save_after">
         <observer name="mypa_save_shipment" instance="MyParcelNL\Magento\Observer\NewShipment" />
     </event>
-    <event name="sales_order_place_after">
-        <observer name="mypa_order_pay" instance="MyParcelNL\Magento\Observer\OrderPay" />
+    <event name="sales_order_save_after">
+        <observer name="mypa_create_concept_after_invoice" instance="MyParcelNL\Magento\Observer\CreateConceptAfterInvoice" />
     </event>
     <event name="sales_model_service_quote_submit_before">
         <observer name="mypa_sales_model_service_quote_submit_before" instance="MyParcelNL\Magento\Model\Quote\SaveOrderBeforeSalesModelQuoteObserver" />
