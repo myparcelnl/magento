@@ -278,12 +278,27 @@ class TrackTraceHolder
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
                 $this->getProductInfo($productInfo, 'qty'),
-                $this->getProductInfo($productInfo, 'so_kortenaam'),
-                $this->getProductInfo($productInfo, 'so_artikelnummerleverancier')
+                $this->getProductInfo($productInfo, 'so_kortenaam') ?? '',
+                $this->getProductInfo($productInfo, 'so_artikelnummerleverancier') ?? ''
             ],
             $labelDescription);
 
         return $labelDescription;
+    }
+
+    /**
+     * @param $productInfo
+     * @param $field
+     *
+     * @return string|null
+     */
+    private function getProductInfo(array $productInfo, string $field): ?string
+    {
+        if ($productInfo) {
+            return $productInfo[0][$field];
+        }
+
+        return null;
     }
 
     /**
