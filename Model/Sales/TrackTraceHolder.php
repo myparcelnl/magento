@@ -275,11 +275,11 @@ class TrackTraceHolder
             [
                 $order->getIncrementId(),
                 $deliveryDate,
-                $productInfo[0]['product_id'],
-                $productInfo[0]['name'],
-                (int) $productInfo[0]['qty'],
-                $productInfo[0]['so_kortenaam'] ?? '',
-                $productInfo[0]['so_artikelnummerleverancier'] ?? ''
+                $this->getProductInfo($productInfo, 'product_id'),
+                $this->getProductInfo($productInfo, 'name'),
+                $this->getProductInfo($productInfo, 'qty'),
+                $this->getProductInfo($productInfo, 'so_kortenaam'),
+                $this->getProductInfo($productInfo, 'so_artikelnummerleverancier')
             ],
             $labelDescription);
 
