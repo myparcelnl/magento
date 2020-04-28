@@ -202,7 +202,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         }
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-            $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath . 'active') === '1';
+            $active = 1;
             if ($active) {
                 $method = $this->getShippingMethod($alias, $settingPath);
                 $result->append($method);

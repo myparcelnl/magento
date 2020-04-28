@@ -111,12 +111,10 @@ class Checkout
      */
     private function getGeneralData()
     {
-        $disableCheckout = $this->package->getDisableCheckout();
-
         return [
             'allowRetry'                 => true,
             'platform'                   => self::PLATFORM,
-            'carriers'                   => $disableCheckout ?: array_column($this->get_carriers(), self::SELECT_CARRIER_ARRAY),
+            'carriers'                   => array_column($this->get_carriers(), self::SELECT_CARRIER_ARRAY),
             'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
             'pickupLocationsDefaultView' => $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view')
         ];
@@ -131,16 +129,17 @@ class Checkout
     {
         $carriersPath   = $this->get_carriers();
         $myParcelConfig = [];
+        $disableCheckout = $this->package->getDisableCheckout();
 
         foreach ($carriersPath as $carrier) {
             $myParcelConfig["carrierSettings"][$carrier[self::SELECT_CARRIER_ARRAY]] = [
                 'packageType'          => $this->checkPackageType($carrier),
-                'allowDeliveryOptions' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
+                'allowDeliveryOptions' => $disableCheckout ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
                 'allowSignature'       => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
                 'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_active'),
                 'allowMorningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'morning/active'),
                 'allowEveningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'evening/active'),
-                'allowPickupLocations' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
+                'allowPickupLocations' => $disableCheckout ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
 
                 'priceSignature'            => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false),
                 'priceOnlyRecipient'        => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_fee', false),
