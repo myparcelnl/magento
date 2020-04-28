@@ -19,17 +19,15 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
-use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractShipmentOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
  * Class TrackTraceHolder
@@ -42,6 +40,8 @@ class TrackTraceHolder
      */
     const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     const MYPARCEL_CARRIER_CODE = 'myparcel';
+    const ORDER_NUMBER          = '%order_nr%';
+    const DELIVERY_DATE         = '%delivery_date%';
 
     /**
      * @var ObjectManagerInterface
@@ -123,7 +123,7 @@ class TrackTraceHolder
      *
      * @return $this
      * @throws \Exception
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function convertDataFromMagentoToApi($magentoTrack, $options)
     {
@@ -178,7 +178,7 @@ class TrackTraceHolder
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($shipment->getOrder()->getIncrementId())
+            ->setLabelDescription($this->getLabelDescription($magentoTrack, $checkoutData))
             ->setDeliveryDate($this->helper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId())
             ->setPackageType($packageType)
@@ -202,9 +202,9 @@ class TrackTraceHolder
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
 
-              if ($pickupLocationAdapter->getPickupNetworkId()) {
-                  $this->consignment->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId());
-              }
+            if ($pickupLocationAdapter->getPickupNetworkId()) {
+                $this->consignment->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId());
+            }
         }
 
         $this->convertDataForCdCountry($magentoTrack)
@@ -219,7 +219,7 @@ class TrackTraceHolder
      * @param string $apiKey
      *
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function validateApiKey($apiKey)
     {
@@ -232,10 +232,40 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
+     * @param string|null             $checkoutData
+     *
+     * @return string
+     * @throws LocalizedException
+     */
+    public function getLabelDescription($magentoTrack, ?string $checkoutData): string
+    {
+        $order = $magentoTrack->getShipment()->getOrder();
+
+        $labelDescription = $this->helper->getGeneralConfig(
+            'basic_settings/label_description',
+            $order->getStoreId()
+        );
+
+        if (! $labelDescription) {
+            return '';
+        }
+
+        $deliveryDate     = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+        $labelDescription = str_replace(
+            [self::ORDER_NUMBER, self::DELIVERY_DATE],
+            [$order->getIncrementId(), $deliveryDate],
+            $labelDescription
+        );
+
+        return $labelDescription;
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
      *
      * @return $this
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws \Exception
      */
@@ -293,7 +323,6 @@ class TrackTraceHolder
             return (bool) $options[$optionKey];
         }
     }
-
 
     /**
      * @param $shipmentId

@@ -11,6 +11,7 @@
         <myparcelnl_magento_general>
             <print>
                 <paper_type>A4</paper_type>
+                <label_description>%order_nr%</label_description>
             </print>
             <shipping_methods>
                 <methods>tablerate</methods>

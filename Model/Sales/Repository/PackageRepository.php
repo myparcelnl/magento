@@ -18,7 +18,6 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
-
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -266,7 +265,9 @@ class PackageRepository extends Package
 
         $attributeId    = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
         $attributeValue = $this
-            ->getValueFromAttribute($connection, $resource->getTableName($tableName),
+            ->getValueFromAttribute(
+                $connection,
+                $resource->getTableName($tableName),
                 $attributeId,
                 $entityId
             );
