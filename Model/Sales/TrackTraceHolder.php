@@ -24,6 +24,7 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractShipmentOptionsAdapter;
+use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -266,9 +267,9 @@ class TrackTraceHolder
             [
                 $order->getIncrementId(),
                 $deliveryDate,
-                $productInfo[0]['product_id'],
-                $productInfo[0]['name'],
-                (int) $productInfo[0]['qty']
+                $this->getProductInfo($productInfo, 'product_id'),
+                $this->getProductInfo($productInfo, 'product_id'),
+                $this->getProductInfo($productInfo, 'qty'),
             ],
             $labelDescription
         );
@@ -277,12 +278,27 @@ class TrackTraceHolder
     }
 
     /**
+     * @param $productInfo
+     * @param $field
+     *
+     * @return string|null
+     */
+    private function getProductInfo(array $productInfo, string $field): ?string
+    {
+        if ($productInfo) {
+            return $productInfo[0][$field];
+        }
+
+        return null;
+    }
+
+    /**
      * @param Order\Shipment\Track $magentoTrack
      *
      * @return $this
      *
      * @throws LocalizedException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws MissingFieldException
      * @throws \Exception
      */
     private function convertDataForCdCountry($magentoTrack)
