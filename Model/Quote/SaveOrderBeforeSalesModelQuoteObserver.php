@@ -22,10 +22,11 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Quote\Model\Quote;
+use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Model\Checkout\Carrier;
-use MyParcelNL\Magento\Model\Checkout\DeliveryOptions;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutAlias;
+use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -64,17 +65,21 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 
     /**
      *
-     * @param \Magento\Framework\Event\Observer $observer
+     * @param Observer $observer
      *
      * @return $this
      */
     public function execute(Observer $observer)
     {
-        /* @var \Magento\Quote\Model\Quote $quote */
+        /* @var Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
 
-        /* @var \Magento\Sales\Model\Order $order */
-        $order      = $observer->getEvent()->getData('order');
+        /* @var Order $order */
+        $order = $observer->getEvent()->getData('order');
+        if ($order->getShippingAddress() === null) {
+            return $this;
+        }
+
         $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
 
         $destinationCountry = $order->getShippingAddress()->getCountryId();
@@ -83,7 +88,6 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         ) {
             $order->setData(CheckoutAlias::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
         }
-
 
         if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS && $this->hasMyParcelDeliveryOptions($quote))) {
             $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS);
@@ -101,7 +105,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quote
+     * @param Quote $quote
      *
      * @return bool
      */
@@ -110,11 +114,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
 
-        if ($this->arrayLike($shippingMethod, $myParcelMethods)) {
+        if ($this->isMyParcelRelated($shippingMethod, $myParcelMethods)) {
             return true;
         }
 
-        if ($this->arrayLike($shippingMethod, $this->parentMethods)) {
+        if ($this->isMyParcelRelated($shippingMethod, $this->parentMethods)) {
             return true;
         }
 
@@ -122,20 +126,23 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     }
 
     /**
-     * @param $input
-     * @param $data
+     * @param string $input
+     * @param array  $data
      *
-     * @return bool
+     * @return int
      */
-    private function arrayLike($input, $data)
+    private function isMyParcelRelated(string $input, array $data)
     {
-        $result = array_filter($data, function($item) use ($input) {
-            if (stripos($input, $item) !== false) {
-                return true;
-            }
+        $result = array_filter(
+            $data,
+            function ($item) use ($input) {
+                if (stripos($input, $item) !== false) {
+                    return true;
+                }
 
-            return false;
-        });
+                return false;
+            }
+        );
 
         return count($result) > 0;
     }
