@@ -35,10 +35,12 @@
                     <label>Label description</label>
                     <comment>This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.</comment>
                 </field>
-                <field id="create_concept_after_invoice" translate="label comment" type="select" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
-                        <label>Create Concept</label>
+                <field id="create_concept_after_invoice" translate="label comment" type="select" sortOrder="214"
+                               showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Create Concept</label>
                 <comment>Enable create label concept, when invoice is printed .</comment>
-                </field>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            </field>
             </group>
             <group id="shipping_methods" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery methods</label>
