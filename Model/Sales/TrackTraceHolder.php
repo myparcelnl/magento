@@ -247,15 +247,14 @@ class TrackTraceHolder
             return $this;
         }
 
-        $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
-
-        foreach ($products as $product) {
+        foreach($magentoTrack->getShipment()->getItems() as $item)
+        {
             $myParcelProduct = (new MyParcelCustomsItem())
-                ->setDescription($product['name'])
-                ->setAmount($product['qty'])
-                ->setWeight($this->getWeightTypeOfOption($product['weight']))
-                ->setItemValue($product['price'] * 100)
-                ->setClassification((int) $this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
+                ->setDescription($item->getName())
+                ->setAmount($item->getQty())
+                ->setWeight($this->getWeightTypeOfOption($item->getWeight()))
+                ->setItemValue($item->getPrice() * 100)
+                ->setClassification((int) $this->hsCode('catalog_product_entity_int', $item->getProductId(), 'classification'))
                 ->setCountry('NL');
 
             $this->consignment->addItem($myParcelProduct);
