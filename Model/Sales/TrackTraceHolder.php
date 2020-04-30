@@ -351,13 +351,13 @@ class TrackTraceHolder
     }
 
     /**
-     * @param object $connection
+     * @param $connection
      * @param string $tableName
      * @param string $databaseColumn
      *
      * @return mixed
      */
-    private function getAttributeId(object $connection, string $tableName, string $databaseColumn): string
+    private function getAttributeId($connection, string $tableName, string $databaseColumn): string
     {
         $sql = $connection
             ->select('entity_type_id')
@@ -368,7 +368,7 @@ class TrackTraceHolder
     }
 
     /**
-     * @param object $connection
+     * @param $connection
      * @param string $tableName
      *
      * @param string $attributeId
@@ -376,7 +376,7 @@ class TrackTraceHolder
      *
      * @return string|null
      */
-    private function getValueFromAttribute(object $connection, string $tableName, string $attributeId, string $entityId): ?string
+    private function getValueFromAttribute($connection, string $tableName, string $attributeId, string $entityId): ?string
     {
         $sql = $connection
             ->select()
