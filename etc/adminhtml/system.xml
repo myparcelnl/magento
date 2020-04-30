@@ -42,7 +42,7 @@
                 <field id="create_concept_after_invoice" translate="label comment" type="select" sortOrder="214"
                                showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Create Concept</label>
-                <comment>Enable create label concept, when invoice is printed .</comment>
+                <comment>Enable create label concept, when invoice is printed.</comment>
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             </field>
             </group>

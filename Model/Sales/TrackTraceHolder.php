@@ -316,12 +316,7 @@ class TrackTraceHolder
                     ->setWeight($product->getWeight() ?: 1)
                     ->setItemValue($this->getCentsByPrice($product->getPrice()))
                     ->setClassification(
-                        (int) $this->getAttributeValue(
-                        'catalog_product_entity_int',
-                        $product['product_id'],
-                        'classification'
-                    )
-                    )
+                        (int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
                     ->setCountry($this->getCountryOfOrigin($product['product_id']));
                 $this->consignment->addItem($myParcelProduct);
             }
@@ -335,13 +330,7 @@ class TrackTraceHolder
                 ->setAmount($product['qty'])
                 ->setWeight($product['weight'] ?: 1)
                 ->setItemValue($this->getCentsByPrice($product['price']))
-                ->setClassification(
-                    (int) $this->getAttributeValue(
-                    'catalog_product_entity_int',
-                    $product['product_id'],
-                    'classification'
-                )
-                )
+                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
                 ->setCountry($this->getCountryOfOrigin($product['product_id']));
 
             $this->consignment->addItem($myParcelProduct);
@@ -358,9 +347,7 @@ class TrackTraceHolder
      */
     public function getCountryOfOrigin(int $product_id): string
     {
-        $product = $this->objectManager->get(
-            'Magento\Catalog\Api\ProductRepositoryInterface'
-        )->getById($product_id);
+        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
         $productCountryOfManufacture = $product->getCountryOfManufacture();
 
         if ($productCountryOfManufacture) {

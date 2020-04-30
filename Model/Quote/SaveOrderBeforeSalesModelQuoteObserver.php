@@ -76,6 +76,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 
         /* @var Order $order */
         $order = $observer->getEvent()->getData('order');
+
         if ($order->getShippingAddress() === null) {
             return $this;
         }
@@ -83,6 +84,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
 
         $destinationCountry = $order->getShippingAddress()->getCountryId();
+
         if ($destinationCountry == AbstractConsignment::CC_NL &&
             ! SplitStreet::isCorrectStreet($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)
         ) {
@@ -136,6 +138,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $result = array_filter(
             $data,
             function ($item) use ($input) {
+
                 if (stripos($input, $item) !== false) {
                     return true;
                 }
