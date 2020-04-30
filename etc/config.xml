@@ -11,6 +11,9 @@
         <myparcelnl_magento_general>
             <print>
                 <paper_type>A4</paper_type>
+                <label_description>%order_nr%</label_description>
+                <country_of_origin>NL</country_of_origin>
+                <create_concept_after_invoice>0</create_concept_after_invoice>
             </print>
             <shipping_methods>
                 <methods>tablerate</methods>

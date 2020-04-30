@@ -34,6 +34,7 @@ API settings,API instellingen
 Go to the general settings in the back office of MyParcel to generate the API Key.,Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
 The API Key,Stel hier de API key in
 Default shipment settings,Standaard verzendinstellingen
+"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.","Deze beschrijving verschijnt op het verzendlabel. De volgende onderdelen kunnen worden gebruikt: %order_nr%, %delivery_date%, %product_id%, %productnaam%, %product_qty%."
 Print MyParcel labels directly,Print MyParcel labels direct
 Print settings,Print instellingen
 Paper type,Print oriëntatie
@@ -147,6 +148,7 @@ Thursday,donderdag
 Friday,vrijdag
 Saturday,zaterdag
 Sunday,zondag
+Enable create label concept, when invoice is printed., Maak concept labels aan, wanneer je een factuur afdrukt.
 
 
 
