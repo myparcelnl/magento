@@ -90,6 +90,7 @@ class Checkout
             'methods' => explode(';', $this->getDeliveryMethods()),
             'config'  => array_merge(
                 $this->getGeneralData(),
+                $this->getPackageType(),
                 $this->getDeliveryData()
             ),
             'strings' => $this->getDeliveryOptionsStrings(),
@@ -119,6 +120,27 @@ class Checkout
             'pickupLocationsDefaultView' => $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view')
         ];
     }
+    /**
+     * Get general data
+     *
+     * @return array)
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    private function getPackageType()
+    {
+        $carriersPath   = $this->get_carriers();
+        $packageType = [];
+
+        foreach ($carriersPath as $carrier) {
+            $packageType = [
+                'packageType'                => $this->checkPackageType($carrier),
+                'pricePackageTypeMailbox'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
+                'pricePackageTypeDigitalStamp' => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
+
+            ];
+        }
+        return $packageType;
+    }
 
     /**
      * Get delivery data
@@ -133,7 +155,6 @@ class Checkout
 
         foreach ($carriersPath as $carrier) {
             $myParcelConfig["carrierSettings"][$carrier[self::SELECT_CARRIER_ARRAY]] = [
-                'packageType'          => $this->checkPackageType($carrier),
                 'allowDeliveryOptions' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
                 'allowSignature'       => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
                 'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_active'),
@@ -146,8 +167,6 @@ class Checkout
                 'priceStandardDelivery'     => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
                 'priceMorningDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'morning/fee', false),
                 'priceEveningDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'evening/fee', false),
-                'priceMailboxDelivery'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
-                'priceDigitalStampDelivery' => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
                 'pricePickup'               => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee', false),
 
                 'cutoffTime'          => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/cutoff_time'),
@@ -185,7 +204,7 @@ class Checkout
         ];
 
         foreach ($carriersSettings as $carrier) {
-            if ($this->helper->getBoolConfig("{$carrier[self::SELECT_CARRIER_PATH]}", 'general/enabled') ||
+            if ($this->helper->getBoolConfig("{$carrier[self::SELECT_CARRIER_PATH]}", 'delivery/active') ||
                 $this->helper->getBoolConfig("{$carrier[self::SELECT_CARRIER_PATH]}", 'pickup/active')
             ) {
                 $carriers[] = $carrier;
