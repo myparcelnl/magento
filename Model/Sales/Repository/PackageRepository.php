@@ -73,6 +73,21 @@ class PackageRepository extends Package
         return $package;
     }
 
+
+    /**
+     * @param array $products
+     *
+     * @return bool
+     */
+    public function selectCheckoutDisabled(array $products): bool
+    {
+        foreach ($products as $product) {
+            $deliveryEnabled = $this->isDeliveryOptionsEnabled($product);
+        }
+
+        return $deliveryEnabled;
+    }
+
     /**
      * @return bool
      */
@@ -195,6 +210,17 @@ class PackageRepository extends Package
             if ($fitInMailbox == 0) {
                 return false;
             }
+        }
+
+        return true;
+    }
+
+    public function isDeliveryOptionsEnabled($products): bool
+    {
+        $deliveryEnabled = $this->getAttributesProductsOptions($products, 'disable_checkout');
+
+        if (! $deliveryEnabled) {
+            return false;
         }
 
         return true;
