@@ -79,13 +79,13 @@ class PackageRepository extends Package
      *
      * @return bool
      */
-    public function selectCheckoutDisabled(array $products): bool
+    public function productWithoutDeliveryOptions(array $products): bool
     {
         foreach ($products as $product) {
-            $deliveryEnabled = $this->isDeliveryOptionsEnabled($product);
+            $deliveryOptionsEnabled = $this->isDeliveryOptionsEnabled($product);
         }
 
-        return $deliveryEnabled;
+        return $deliveryOptionsEnabled;
     }
 
     /**
@@ -217,9 +217,9 @@ class PackageRepository extends Package
 
     public function isDeliveryOptionsEnabled($products): bool
     {
-        $deliveryEnabled = $this->getAttributesProductsOptions($products, 'disable_checkout');
+        $deliveryOptionsEnabled = $this->getAttributesProductsOptions($products, 'disable_checkout');
 
-        if (! $deliveryEnabled) {
+        if (! $deliveryOptionsEnabled) {
             return false;
         }
 

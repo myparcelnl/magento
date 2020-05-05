@@ -4,10 +4,10 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
-use \Magento\Store\Model\StoreManagerInterface;
 
 class Checkout
 {
@@ -154,12 +154,12 @@ class Checkout
 
         foreach ($carriersPath as $carrier) {
             $myParcelConfig["carrierSettings"][$carrier[self::SELECT_CARRIER_ARRAY]] = [
-                'allowDeliveryOptions' => $this->hideDeliveryOptions() ? false: $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
+                'allowDeliveryOptions' => $this->hideDeliveryOptionsForProduct() ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
                 'allowSignature'       => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
                 'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_active'),
                 'allowMorningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'morning/active'),
                 'allowEveningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'evening/active'),
-                'allowPickupLocations' => $this->hideDeliveryOptions() ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
+                'allowPickupLocations' => $this->hideDeliveryOptionsForProduct() ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
 
                 'priceSignature'        => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false),
                 'priceOnlyRecipient'    => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_fee', false),
@@ -189,7 +189,6 @@ class Checkout
     {
         return $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/methods');
     }
-
 
     /**
      * Get the array of enabled carriers by checking if they have either delivery or pickup enabled.
@@ -271,11 +270,10 @@ class Checkout
      *
      * @return bool
      */
-    public function hideDeliveryOptions(): bool
+    public function hideDeliveryOptionsForProduct(): bool
     {
         $products = $this->cart->getAllItems();
 
-        return $this->package->selectCheckoutDisabled($products);
+        return $this->package->productWithoutDeliveryOptions($products);
     }
-
 }
