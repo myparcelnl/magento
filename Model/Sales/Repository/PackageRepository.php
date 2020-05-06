@@ -27,6 +27,11 @@ class PackageRepository extends Package
     public const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
 
     /**
+     * @var bool
+     */
+    public $deliveryOptionsDisabled = false;
+
+    /**
      * Get package type
      *
      * If package type is not set, calculate package type
@@ -42,11 +47,6 @@ class PackageRepository extends Package
 
         return parent::getPackageType();
     }
-
-    /**
-     * @var bool
-     */
-    public $deliveryOptionsEnabled = false;
 
     /**
      * @param array $products
@@ -80,17 +80,16 @@ class PackageRepository extends Package
 
     /**
      * @param array $products
-     * @param bool  $deliveryOptionsEnabled
      *
-     * @return bool
+     * @return \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
      */
-    public function productWithoutDeliveryOptions(array $products, bool $deliveryOptionsEnabled): bool
+    public function productWithoutDeliveryOptions(array $products): self
     {
         foreach ($products as $product) {
-            $deliveryOptionsEnabled = $this->isDeliveryOptionsEnabled($product);
+            $this->isDeliveryOptionsDisabled($product);
         }
 
-        return $deliveryOptionsEnabled;
+        return $this;
     }
 
     /**
@@ -223,17 +222,17 @@ class PackageRepository extends Package
     /**
      * @param $products
      *
-     * @return bool
+     * @return \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
      */
-    public function isDeliveryOptionsEnabled($products): bool
+    public function isDeliveryOptionsDisabled($products)
     {
         $deliveryOptionsEnabled = $this->getAttributesProductsOptions($products, 'disable_checkout');
 
-        if (! $deliveryOptionsEnabled) {
-            return false;
+        if ($deliveryOptionsEnabled) {
+            $this->deliveryOptionsDisabled = true;
         }
 
-        return true;
+        return $this;
     }
 
     /**

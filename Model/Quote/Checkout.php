@@ -85,6 +85,7 @@ class Checkout
     public function getDeliveryOptions(): array
     {
         $this->helper->setBasePriceFromQuote($this->quoteId);
+        $this->hideDeliveryOptionsForProduct();
 
         $this->data = [
             'methods' => explode(';', $this->getDeliveryMethods()),
@@ -154,12 +155,12 @@ class Checkout
 
         foreach ($carriersPath as $carrier) {
             $myParcelConfig["carrierSettings"][$carrier[self::SELECT_CARRIER_ARRAY]] = [
-                'allowDeliveryOptions' => $this->hideDeliveryOptionsForProduct() ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
+                'allowDeliveryOptions' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
                 'allowSignature'       => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
                 'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_active'),
                 'allowMorningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'morning/active'),
                 'allowEveningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'evening/active'),
-                'allowPickupLocations' => $this->hideDeliveryOptionsForProduct() ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
+                'allowPickupLocations' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
 
                 'priceSignature'        => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false),
                 'priceOnlyRecipient'    => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_fee', false),
@@ -267,13 +268,13 @@ class Checkout
     }
 
     /**
-     *
-     * @return bool
+     * @return $this
      */
-    public function hideDeliveryOptionsForProduct(): bool
+    public function hideDeliveryOptionsForProduct()
     {
         $products = $this->cart->getAllItems();
+        $this->package->productWithoutDeliveryOptions($products);
 
-        return $this->package->productWithoutDeliveryOptions($products);
+        return $this;
     }
 }
