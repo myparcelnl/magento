@@ -44,6 +44,11 @@ class PackageRepository extends Package
     }
 
     /**
+     * @var bool
+     */
+    public $deliveryOptionsEnabled = false;
+
+    /**
      * @param array $products
      *
      * @return string
@@ -75,13 +80,12 @@ class PackageRepository extends Package
 
     /**
      * @param array $products
+     * @param bool  $deliveryOptionsEnabled
      *
      * @return bool
      */
-    public function productWithoutDeliveryOptions(array $products): bool
+    public function productWithoutDeliveryOptions(array $products, bool $deliveryOptionsEnabled): bool
     {
-        $deliveryOptionsEnabled = $this->isDeliveryOptionsEnabled($products);
-
         foreach ($products as $product) {
             $deliveryOptionsEnabled = $this->isDeliveryOptionsEnabled($product);
         }
