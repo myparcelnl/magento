@@ -83,7 +83,7 @@ class PackageRepository extends Package
      *
      * @return \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
      */
-    public function productWithoutDeliveryOptions(array $products): self
+    public function productWithoutDeliveryOptions(array $products)
     {
         foreach ($products as $product) {
             $this->isDeliveryOptionsDisabled($product);
