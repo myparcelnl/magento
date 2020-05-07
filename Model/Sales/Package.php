@@ -252,9 +252,9 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param string $current_country
+     * @param string|null $current_country
      */
-    public function setCurrentCountry(string $current_country)
+    public function setCurrentCountry(?string $current_country)
     {
         $this->current_country = $current_country;
     }
