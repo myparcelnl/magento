@@ -35,7 +35,7 @@ Print settings,Print instellingen
 Paper type,Print oriëntatie
 Select a standard orientation for printing labels.,Selecteer een standaard print ori&euml;ntatie voor het printen van labels.
 Default shipping options,Standaard verzendinstellingen
-"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.","Deze beschrijving verschijnt op het verzendlabel. De volgende onderdelen kunnen worden gebruikt: %order_nr%, %delivery_date%, %product_id%, %productnaam%, %product_qty%."
+"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%.","Deze beschrijving verschijnt op het verzendlabel. De volgende onderdelen kunnen worden gebruikt: %order_nr%, %delivery_date%, %product_id%, %productnaam%, %product_qty%, %article_short_name%, %article_number_supplier%."
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Vul hier uw standaard voorkeuren in voor uw verzendopties. Deze instellingen worden als default op al uw zendingen toegepast, indien van toepassing. Deze opties zijn later, per zending, uiteraard nog wel aan te passen tijdens het verwerken."
 Automate 'Home address only',Automatiseer 'Alleen huisadres'
 'Home address only' operates above a certain order total amount,'Alleen huisadres' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag

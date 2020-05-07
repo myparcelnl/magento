@@ -35,13 +35,15 @@ class TrackTraceHolder
     /**
      * Track title showing in Magento
      */
-    const MYPARCEL_TRACK_TITLE  = 'MyParcel';
-    const MYPARCEL_CARRIER_CODE = 'myparcelnl';
-    const ORDER_NUMBER          = '%order_nr%';
-    const DELIVERY_DATE         = '%delivery_date%';
-    const PRODUCT_ID            = '%product_id%';
-    const PRODUCT_NAME          = '%product_name%';
-    const PRODUCT_QTY           = '%product_qty%';
+    const MYPARCEL_TRACK_TITLE    = 'MyParcel';
+    const MYPARCEL_CARRIER_CODE   = 'myparcelnl';
+    const ORDER_NUMBER            = '%order_nr%';
+    const DELIVERY_DATE           = '%delivery_date%';
+    const PRODUCT_ID              = '%product_id%';
+    const PRODUCT_NAME            = '%product_name%';
+    const PRODUCT_QTY             = '%product_qty%';
+    const ARTICLE_SHORT_NAME      = '%article_short_name%';
+    const ARTICLE_NUMBER_SUPPLIER = '%article_number_supplier%';
 
     /**
      * @var ObjectManagerInterface
@@ -267,7 +269,9 @@ class TrackTraceHolder
                 self::DELIVERY_DATE,
                 self::PRODUCT_ID,
                 self::PRODUCT_NAME,
-                self::PRODUCT_QTY
+                self::PRODUCT_QTY,
+                self::ARTICLE_SHORT_NAME,
+                self::ARTICLE_NUMBER_SUPPLIER
             ],
             [
                 $order->getIncrementId(),
@@ -275,6 +279,8 @@ class TrackTraceHolder
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
                 $this->getProductInfo($productInfo, 'qty'),
+                $this->getProductInfo($productInfo, 'so_kortenaam'),
+                $this->getProductInfo($productInfo, 'so_artikelnummerleverancier')
             ],
             $labelDescription
         );
@@ -291,7 +297,7 @@ class TrackTraceHolder
     private function getProductInfo(array $productInfo, string $field): ?string
     {
         if ($productInfo) {
-            return $productInfo[0][$field];
+            return $productInfo[0][$field] ?? '';
         }
 
         return null;
