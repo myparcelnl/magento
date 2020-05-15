@@ -77,10 +77,10 @@
                     <label>Home address only title</label>
                     <comment>The times will be visible when nothing is filled in</comment>
                 </field>
-                <field id="digital_stamp_title" translate="label comment" type="text" sortOrder="225" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="digital_stamp" translate="label comment" type="text" sortOrder="225" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Digital stamp</label>
                 </field>
-                <field id="mailbox_title" translate="label comment" type="text" sortOrder="226" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="mailbox" translate="label comment" type="text" sortOrder="226" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mailbox</label>
                 </field>
                 <field id="morning_title" translate="label comment" type="text" sortOrder="227" showInDefault="1" showInWebsite="1" showInStore="1">
