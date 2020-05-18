@@ -164,18 +164,23 @@ class TrackTraceHolder
             ->setCompany($address->getCompany())
             ->setPerson($address->getName());
 
+        // hier moet je even kijken
+
         try {
             $this->consignment->setFullStreet($address->getData('street'));
         } catch (\Exception $e) {
             $errorHuman = 'An error has occurred while validating the address: ' . $address->getData('street') . '. Check number and number suffix.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman . '-' . $e);
+
+            $this->helper->setOrderStatus($magentoTrack->getOrderId(), \Magento\Sales\Model\Order::STATE_NEW);
         }
 
         if ($address->getPostcode() == null && $address->getCountryId() == 'NL') {
             $errorHuman = 'An error has occurred while validating the order number ' . $magentoTrack->getOrderId() . '. Postcode is required.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman);
+
         }
 
         $this->consignment

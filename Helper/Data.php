@@ -175,4 +175,11 @@ class Data extends AbstractHelper
 
         return $delivery_date;
     }
+
+    public function setOrderStatus($order_id, $status){
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $order = $objectManager->create('\Magento\Sales\Model\Order') ->load($order_id);
+        $order->setState($status)->setStatus($status);
+        $order->save();
+    }
 }
