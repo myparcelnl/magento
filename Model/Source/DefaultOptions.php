@@ -17,24 +17,23 @@ namespace MyParcelNL\Magento\Model\Source;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\Package;
 
 class DefaultOptions
 {
     /**
      * @var Data
      */
-    static private $helper;
+    private static $helper;
 
     /**
      * @var Order
      */
-    static private $order;
+    private static $order;
 
     /**
      * @var array
      */
-    static private $chosenOptions;
+    private static $chosenOptions;
 
     /**
      * Insurance constructor.
@@ -102,23 +101,4 @@ class DefaultOptions
 
         return 0;
     }
-
-    /**
-     * Get package type
-     *
-     * @return int 1
-     */
-    public function getPackageType()
-    {
-//        if ($this->isDigitalStampOrMailbox('mailbox') === true) {
-//            return Package::PACKAGE_TYPE_MAILBOX;
-//        }
-//
-//        if ($this->isDigitalStampOrMailbox('digital_stamp') === true) {
-//            return Package::PACKAGE_TYPE_DIGITAL_STAMP;
-//        }
-
-        return Package::PACKAGE_TYPE_NORMAL;
-    }
-
 }

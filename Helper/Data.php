@@ -20,8 +20,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DPDConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
@@ -174,5 +175,21 @@ class Data extends AbstractHelper
         }
 
         return $delivery_date;
+    }
+
+    /**
+     * Get delivery type and when it is null use 'standard'
+     *
+     * @param int|null $deliveryType
+     *
+     * @return int
+     */
+    public function checkDeliveryType(?int $deliveryType): int
+    {
+        if (! $deliveryType) {
+            return AbstractConsignment::DELIVERY_TYPE_STANDARD;
+        }
+
+        return $deliveryType;
     }
 }

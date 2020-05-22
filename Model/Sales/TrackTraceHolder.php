@@ -135,7 +135,6 @@ class TrackTraceHolder
         $shipment        = $magentoTrack->getShipment();
         $address         = $shipment->getShippingAddress();
         $checkoutData    = $shipment->getOrder()->getData('myparcel_delivery_options');
-        $packageType     = self::$defaultOptions->getPackageType();
         $deliveryOptions = json_decode($checkoutData, true);
 
         try {
@@ -185,8 +184,8 @@ class TrackTraceHolder
             ->setEmail($address->getEmail())
             ->setLabelDescription($this->getLabelDescription($magentoTrack, $checkoutData))
             ->setDeliveryDate($this->helper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
-            ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId())
-            ->setPackageType($packageType)
+            ->setDeliveryType($this->helper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
+            ->setPackageType($deliveryOptionsAdapter->getPackageTypeId())
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
@@ -207,8 +206,8 @@ class TrackTraceHolder
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
 
-            if ($pickupLocationAdapter->getPickupNetworkId()) {
-                $this->consignment->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId());
+            if ($pickupLocationAdapter->getRetailNetworkId()) {
+                $this->consignment->setReferenceId($pickupLocationAdapter->getRetailNetworkId());
             }
         }
 
@@ -316,7 +315,8 @@ class TrackTraceHolder
                     ->setWeight($product->getWeight() ?: 1)
                     ->setItemValue($this->getCentsByPrice($product->getPrice()))
                     ->setClassification(
-                        (int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
+                        (int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification')
+                    )
                     ->setCountry($this->getCountryOfOrigin($product['product_id']));
                 $this->consignment->addItem($myParcelProduct);
             }
