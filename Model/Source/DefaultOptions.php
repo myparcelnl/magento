@@ -17,6 +17,8 @@ namespace MyParcelNL\Magento\Model\Source;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\Package;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
 {
@@ -100,5 +102,51 @@ class DefaultOptions
         }
 
         return 0;
+    }
+
+    /**
+     * Get default of digital stamp weight
+     *
+     * @return bool
+     */
+    public function getDigitalStampDefaultWeight()
+    {
+        return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
+    }
+
+    /**
+     * Get package type
+     *
+     * @return int 1|2|3|4
+     */
+    public function getPackageType()
+    {
+        if ($this->isDigitalStampOrMailbox(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME)) {
+            return AbstractConsignment::PACKAGE_TYPE_MAILBOX;
+        }
+
+        if ($this->isDigitalStampOrMailbox(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME)) {
+            return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP;
+        }
+
+        return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+    }
+
+    private function isDigitalStampOrMailbox($option)
+    {
+        $country = self::$order->getShippingAddress()->getCountryId();
+        if ($country != 'NL') {
+            return false;
+        }
+
+        if (
+            is_array(self::$chosenOptions) &&
+            key_exists('packageType', self::$chosenOptions) &&
+            self::$chosenOptions['packageType'] === $option
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }

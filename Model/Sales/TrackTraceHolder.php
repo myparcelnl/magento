@@ -136,6 +136,7 @@ class TrackTraceHolder
         $address         = $shipment->getShippingAddress();
         $checkoutData    = $shipment->getOrder()->getData('myparcel_delivery_options');
         $deliveryOptions = json_decode($checkoutData, true);
+        $totalWeight     = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : (int) self::$defaultOptions->getDigitalStampDefaultWeight();
 
         try {
             // create new instance from known json
@@ -145,8 +146,15 @@ class TrackTraceHolder
             $deliveryOptions        = (new ConsignmentNormalizer((array) $deliveryOptions + $options))->normalize();
             $deliveryOptionsAdapter = new DeliveryOptionsFromOrderAdapter($deliveryOptions);
         }
+
         $pickupLocationAdapter  = $deliveryOptionsAdapter->getPickupLocation();
         $shippingOptionsAdapter = $deliveryOptionsAdapter->getShipmentOptions();
+
+        if ($options['package_type'] === 'default') {
+            $packageType = self::$defaultOptions->getPackageType();
+        } else {
+            $packageType = (int) $options['package_type'] ?: AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        }
 
         $apiKey = $this->helper->getGeneralConfig(
             'api/key',
@@ -185,7 +193,7 @@ class TrackTraceHolder
             ->setLabelDescription($this->getLabelDescription($magentoTrack, $checkoutData))
             ->setDeliveryDate($this->helper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($this->helper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
-            ->setPackageType($deliveryOptionsAdapter->getPackageTypeId())
+            ->setPackageType($packageType)
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
@@ -212,7 +220,7 @@ class TrackTraceHolder
         }
 
         $this->convertDataForCdCountry($magentoTrack)
-             ->calculateTotalWeight($magentoTrack);
+             ->calculateTotalWeight($magentoTrack, $totalWeight);
 
         return $this;
     }
@@ -236,7 +244,7 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     * @param string|null             $checkoutData
+     * @param string|null          $checkoutData
      *
      * @return string
      * @throws LocalizedException
@@ -343,11 +351,12 @@ class TrackTraceHolder
      * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
      *
      * @param $product_id
+     *
      * @return string
      */
     public function getCountryOfOrigin(int $product_id): string
     {
-        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
+        $product                     = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
         $productCountryOfManufacture = $product->getCountryOfManufacture();
 
         if ($productCountryOfManufacture) {
@@ -366,10 +375,10 @@ class TrackTraceHolder
      */
     private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
-        $objectManager  = ObjectManager::getInstance();
-        $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection     = $resource->getConnection();
-        $attributeId    = $this->getAttributeId(
+        $objectManager = ObjectManager::getInstance();
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection    = $resource->getConnection();
+        $attributeId   = $this->getAttributeId(
             $connection,
             $resource->getTableName('eav_attribute'),
             $column
@@ -510,7 +519,7 @@ class TrackTraceHolder
             return $this;
         }
 
-        $weightFromSettings = (int) self::$defaultOptions->getDigitalStampWeight();
+        $weightFromSettings = (int) self::$defaultOptions->getDigitalStampDefaultWeight();
         if ($weightFromSettings) {
             $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
 

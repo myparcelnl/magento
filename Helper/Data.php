@@ -103,34 +103,26 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get checkout setting
+     * Get carrier setting
      *
      * @param string $code
-     * @param null   $storeId
+     * @param        $carrier
      *
      * @return mixed
      */
-    public function getCarrierConfig($code, $storeId = null)
+    public function getCarrierConfig($code, $carrier)
     {
-        $settings = $this->getTmpScope();
+        $settings = $this->getConfigValue($carrier . $code);
         if ($settings == null) {
-            $value = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . $code);
+            $value = $this->getConfigValue($carrier . $code);
             if ($value != null) {
                 return $value;
             } else {
-                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_POSTNL_SETTINGS . $code);
+                $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
             }
         }
 
-        if (! is_array($settings)) {
-            $this->_logger->critical('No data in settings array');
-        }
-
-        if (! key_exists($code, $settings)) {
-            $this->_logger->critical('Can\'t get setting ' . $code);
-        }
-
-        return $settings[$code];
+        return $settings;
     }
 
     /**
