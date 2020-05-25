@@ -5,9 +5,15 @@
  * See COPYING.txt for license details.
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
+        <dev>
+            <js>
+                <minify_exclude>
+                    <leaflet>https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.js</leaflet>
+                </minify_exclude>
+            </js>
+        </dev>
         <myparcelnl_magento_general>
             <print>
                 <paper_type>A4</paper_type>
@@ -94,22 +100,6 @@
                 <fee>0</fee>
             </pickup>
         </myparcelnl_magento_postnl_settings>
-<!--        <myparcelnl_magento_dpd_settings>-->
-<!--            <general>-->
-<!--                <deliverydays_window>1</deliverydays_window>-->
-<!--                <cutoff_time>15,30,00</cutoff_time>-->
-<!--                <dropoff_days>1,2,3,4,5</dropoff_days>-->
-<!--                <dropoff_delay>0</dropoff_delay>-->
-<!--            </general>-->
-<!--            <delivery>-->
-<!--                <active>0</active>-->
-<!--            </delivery>-->
-<!--            <pickup>-->
-<!--                <active>1</active>-->
-<!--                <title>Ophalen bij een DPD locatie</title>-->
-<!--                <fee>0</fee>-->
-<!--            </pickup>-->
-<!--        </myparcelnl_magento_dpd_settings>-->
         <sales_email>
             <track>
                 <enabled>1</enabled>
