@@ -88,7 +88,6 @@ class Checkout
         $this->hideDeliveryOptionsForProduct();
 
         $this->data = [
-//            'methods' => explode(';', $this->getDeliveryMethods()),
             'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId)],
             'config'  => array_merge(
                 $this->getGeneralData(),

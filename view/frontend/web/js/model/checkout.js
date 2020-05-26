@@ -81,7 +81,6 @@ function(
      * @returns {Object} - The found rate, if any.
      */
     findRateByMethodCode: function(methodCode) {
-        console.log(methodCode);
         return Model.rates().find(function(rate) {
         return rate.method_code === methodCode;
       });
@@ -175,7 +174,6 @@ function(
      * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
      *  be left out.
      */
-    console.log(Model.configuration().methods);
       Model.allowedShippingMethods(Model.configuration().methods.filter(function(rate) {
       return !!Model.findRateByMethodCode(rate);
     }));

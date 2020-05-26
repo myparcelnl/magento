@@ -32,7 +32,7 @@ class Checkout extends Data
     public const FIELD_TRACK_STATUS     = 'track_status';
     public const DEFAULT_COUNTRY_CODE   = 'NL';
 
-    private $base_price;
+    private $base_price = 0;
 
     /**
      * @var ShippingMethodManagement
