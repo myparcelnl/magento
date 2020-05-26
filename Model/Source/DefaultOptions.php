@@ -132,7 +132,12 @@ class DefaultOptions
         return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
     }
 
-    private function isDigitalStampOrMailbox($option)
+    /**
+     * @param string $option
+     *
+     * @return bool
+     */
+    private function isDigitalStampOrMailbox(string $option): bool
     {
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
