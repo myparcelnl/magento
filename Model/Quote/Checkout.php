@@ -88,7 +88,8 @@ class Checkout
         $this->hideDeliveryOptionsForProduct();
 
         $this->data = [
-            'methods' => explode(';', $this->getDeliveryMethods()),
+//            'methods' => explode(';', $this->getDeliveryMethods()),
+            'methods' => ['bestway'],
             'config'  => array_merge(
                 $this->getGeneralData(),
                 $this->getPackageType(),
