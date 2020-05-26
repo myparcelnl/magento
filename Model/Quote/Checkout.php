@@ -89,7 +89,7 @@ class Checkout
 
         $this->data = [
 //            'methods' => explode(';', $this->getDeliveryMethods()),
-            'methods' => ['bestway'],
+            'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId)],
             'config'  => array_merge(
                 $this->getGeneralData(),
                 $this->getPackageType(),

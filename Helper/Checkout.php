@@ -16,10 +16,12 @@
 
 namespace MyParcelNL\Magento\Helper;
 
+use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
+use MyParcelNL\Magento\Model\Rate\Result;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Checkout extends Data
@@ -28,8 +30,9 @@ class Checkout extends Data
     public const FIELD_MYPARCEL_CARRIER = 'myparcel_carrier';
     public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
     public const FIELD_TRACK_STATUS     = 'track_status';
+    public const DEFAULT_COUNTRY_CODE   = 'NL';
 
-    private $base_price = 0;
+    private $base_price;
 
     /**
      * @var ShippingMethodManagement
@@ -41,23 +44,33 @@ class Checkout extends Data
     private $estimatedAddressFactory;
 
     /**
-     * @param Context $context
-     * @param ModuleListInterface $moduleList
+     * @var \Magento\Quote\Model\Quote
+     */
+    private $quote;
+
+    /**
+     * @param Context                         $context
+     * @param ModuleListInterface             $moduleList
      * @param EstimateAddressInterfaceFactory $estimatedAddressFactory
-     * @param ShippingMethodManagement $shippingMethodManagement
-     * @param CheckApiKeyService $checkApiKeyService
+     * @param ShippingMethodManagement        $shippingMethodManagement
+     * @param CheckApiKeyService              $checkApiKeyService
+     * @param Session                         $session
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
         EstimateAddressInterfaceFactory $estimatedAddressFactory,
         ShippingMethodManagement $shippingMethodManagement,
-        CheckApiKeyService $checkApiKeyService
-    )
-    {
+        CheckApiKeyService $checkApiKeyService,
+        Session $session
+    ) {
         parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
-        $this->estimatedAddressFactory = $estimatedAddressFactory;
+        $this->estimatedAddressFactory  = $estimatedAddressFactory;
+        $this->quote                    = $session->getQuote();
     }
 
     /**
@@ -86,7 +99,7 @@ class Checkout extends Data
     public function setBasePriceFromQuote($quoteId)
     {
         $price = $this->getParentRatePriceFromQuote($quoteId);
-        $this->setBasePrice((double)$price);
+        $this->setBasePrice((double) $price);
 
         return $this;
     }
@@ -146,22 +159,25 @@ class Checkout extends Data
         if ($quoteId == null) {
             return null;
         }
-
-        $parentMethods = explode(',', $this->getGeneralConfig('shipping_methods/methods'));
-
+        $parentCarriers = explode(',', $this->getGeneralConfig('shipping_methods/methods'));
+        $addressFromQuote = $this->quote->getShippingAddress();
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
-         * @var \Magento\Quote\Model\Cart\ShippingMethod[] $methods
+         * @var \Magento\Quote\Model\Cart\ShippingMethod[]       $methods
          */
         $estimatedAddress = $this->estimatedAddressFactory->create();
-        $estimatedAddress->setCountryId('NL');
-        $estimatedAddress->setPostcode('');
-        $estimatedAddress->setRegion('');
-        $estimatedAddress->setRegionId('');
-        $methods = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
+        $estimatedAddress->setCountryId($addressFromQuote->getCountryId() ?? self::DEFAULT_COUNTRY_CODE);
+        $estimatedAddress->setPostcode($addressFromQuote->getPostcode() ?? '');
+        $estimatedAddress->setRegion($addressFromQuote->getRegion() ?? '');
+        $estimatedAddress->setRegionId($addressFromQuote->getRegionId() ?? '');
+        $magentoMethods  = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
+        $myParcelMethods = array_keys(Result::getMethods());
 
-        foreach ($methods as $method) {
-            if (in_array($method->getCarrierCode(), $parentMethods)) {
+        foreach ($magentoMethods as $method) {
+            if (
+                in_array($method->getCarrierCode(), $parentCarriers) &&
+                ! in_array($method->getMethodCode(), $myParcelMethods)
+            ) {
                 return $method;
             }
         }
@@ -183,14 +199,14 @@ class Checkout extends Data
     public function getMethodPrice($carrier, $key, $addBasePrice = true)
     {
         $value = $this->getCarrierConfig($key, $carrier);
+
         if ($addBasePrice) {
             if ($value > 0) {
                 // Calculate value
                 $value = $this->getBasePrice() + $value;
             }
         }
-
-        return (float)$value;
+        return (float) $value;
     }
 
     /**
@@ -219,8 +235,8 @@ class Checkout extends Data
      *
      * @return string
      */
-    public function getMoneyFormat($value) {
-
+    public function getMoneyFormat($value)
+    {
         $value = number_format($value, 2, '.', ',');
 
         return $value;
