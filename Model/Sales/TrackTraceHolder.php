@@ -263,7 +263,7 @@ class TrackTraceHolder
         }
 
         $productInfo      = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
-        $deliveryDate     = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+        $deliveryDate     = date('d-m-Y', strtotime($this->helper->convertDeliveryDate($checkoutData)));
         $labelDescription = str_replace(
             [
                 self::ORDER_NUMBER,
