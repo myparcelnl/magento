@@ -18,23 +18,24 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
 {
     /**
      * @var Data
      */
-    static private $helper;
+    private static $helper;
 
     /**
      * @var Order
      */
-    static private $order;
+    private static $order;
 
     /**
      * @var array
      */
-    static private $chosenOptions;
+    private static $chosenOptions;
 
     /**
      * Insurance constructor.
@@ -104,21 +105,53 @@ class DefaultOptions
     }
 
     /**
+     * Get default of digital stamp weight
+     *
+     * @return bool
+     */
+    public function getDigitalStampDefaultWeight()
+    {
+        return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
+    }
+
+    /**
      * Get package type
      *
-     * @return int 1
+     * @return int 1|2|3|4
      */
     public function getPackageType()
     {
-//        if ($this->isDigitalStampOrMailbox('mailbox') === true) {
-//            return Package::PACKAGE_TYPE_MAILBOX;
-//        }
-//
-//        if ($this->isDigitalStampOrMailbox('digital_stamp') === true) {
-//            return Package::PACKAGE_TYPE_DIGITAL_STAMP;
-//        }
+        if ($this->isDigitalStampOrMailbox(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME)) {
+            return AbstractConsignment::PACKAGE_TYPE_MAILBOX;
+        }
 
-        return Package::PACKAGE_TYPE_NORMAL;
+        if ($this->isDigitalStampOrMailbox(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME)) {
+            return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP;
+        }
+
+        return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
     }
 
+    /**
+     * @param string $option
+     *
+     * @return bool
+     */
+    private function isDigitalStampOrMailbox(string $option): bool
+    {
+        $country = self::$order->getShippingAddress()->getCountryId();
+        if ($country != 'NL') {
+            return false;
+        }
+
+        if (
+            is_array(self::$chosenOptions) &&
+            key_exists('packageType', self::$chosenOptions) &&
+            self::$chosenOptions['packageType'] === $option
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 }
