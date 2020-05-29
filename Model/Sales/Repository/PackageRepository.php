@@ -25,6 +25,7 @@ class PackageRepository extends Package
 {
     public const DEFAULT_MAILBOX_WEIGHT       = 2000;
     public const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
+    public const DEFAULT_LARGE_FORMAT_WEIGHT  = 2300;
 
     /**
      * @var bool

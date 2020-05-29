@@ -528,15 +528,15 @@ class UpgradeData implements UpgradeDataInterface
                 }
 
                 // Insert postnl enabled data
-                $connection->insert(
-                    $table,
-                    [
-                        'scope'    => 'default',
-                        'scope_id' => 0,
-                        'path'     => 'myparcelnl_magento_postnl_settings/delivery/active',
-                        'value'    => 1
-                    ]
-                );
+//                $connection->insert(
+//                    $table,
+//                    [
+//                        'scope'    => 'default',
+//                        'scope_id' => 0,
+//                        'path'     => 'myparcelnl_magento_postnl_settings/delivery/active',
+//                        'value'    => 1
+//                    ]
+//                );
             }
         }
 

@@ -15,9 +15,11 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Exception;
+use Magento\Developer\Model\Logger\Handler\Debug;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Payment\Gateway\Http\Client\Zend;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Helper\Data;
@@ -190,7 +192,7 @@ class TrackTraceHolder
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
-            ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
+            ->setLargeFormat($this->checkLargeFormat($magentoTrack))
             ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
@@ -206,7 +208,6 @@ class TrackTraceHolder
                 ->setPickupCountry($pickupLocationAdapter->getCountry())
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
-
             if ($pickupLocationAdapter->getPickupNetworkId()) {
                 $this->consignment->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId());
             }
@@ -216,6 +217,15 @@ class TrackTraceHolder
              ->calculateTotalWeight($magentoTrack);
 
         return $this;
+    }
+
+    /**
+     *
+     * @return bool
+     */
+    private function checkLargeFormat(): bool
+    {
+        return self::$defaultOptions->getDefaultLargeFormat('large_format');
     }
 
     /**
@@ -237,7 +247,7 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     * @param string|null             $checkoutData
+     * @param string|null          $checkoutData
      *
      * @return string
      * @throws LocalizedException

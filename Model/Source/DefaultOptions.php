@@ -18,6 +18,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
+use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 
 class DefaultOptions
 {
@@ -74,6 +75,34 @@ class DefaultOptions
         if (isset($settings[$option . '_active']) &&
             $settings[$option . '_active'] == '1' &&
             $total > (int) $settings[$option . '_from_price']
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function getDefaultLargeFormat(string $option): bool
+    {
+        $price    = self::$order->getGrandTotal();
+        $weight   = self::$order->getWeight();
+
+        $settings = self::$helper->getStandardConfig('default_options');
+        if (isset($settings[$option . '_active']) &&
+            $settings[$option . '_active'] == 'weight' &&
+            $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
+        ) {
+            return true;
+        }
+
+        if (isset($settings[$option . '_active']) &&
+            $settings[$option . '_active'] == 'price' &&
+            $price >= $settings[$option . '_from_price']
         ) {
             return true;
         }

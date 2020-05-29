@@ -154,14 +154,14 @@
                 </field>
                 <field id="large_format_active" translate="label" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Large format'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>MyParcelNL\Magento\Model\Source\PackageTypeCheck</source_model>
                 </field>
                 <field id="large_format_from_price" translate="label comment" type="text" sortOrder="221" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From price</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <comment>'Large format' operates above a certain order total amount</comment>
                     <depends>
-                        <field id="large_format_active">1</field>
+                        <field id="large_format_active">price</field>
                     </depends>
                 </field>
                 <field id="age_check_active" translate="label" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -204,10 +204,6 @@
                     <depends>
                         <field id="insurance_500_active">1</field>
                     </depends>
-                </field>
-                <field id="large_package_type" translate="label" type="select" sortOrder="262" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Large package type'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
             <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
