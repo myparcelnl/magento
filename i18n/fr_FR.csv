@@ -11,6 +11,7 @@ status_10,Envoi retour livré
 status_11,Envoi retour au point de collecte
 status_12,Etiquette en franchise de port imprimée
 status_13,Crédité
+status_14, Imprimé - Tampon numérique
 status_30,Inactif - Concept
 status_31,Inactif - Prénotifié
 status_32,Inactif - Présenté chez MyParcel

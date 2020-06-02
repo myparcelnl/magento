@@ -137,8 +137,8 @@ class TrackTraceHolder
         $shipment        = $magentoTrack->getShipment();
         $address         = $shipment->getShippingAddress();
         $checkoutData    = $shipment->getOrder()->getData('myparcel_delivery_options');
-        $packageType     = self::$defaultOptions->getPackageType();
         $deliveryOptions = json_decode($checkoutData, true);
+        $totalWeight     = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight'] : (int) self::$defaultOptions->getDigitalStampDefaultWeight();
 
         try {
             // create new instance from known json
@@ -148,8 +148,15 @@ class TrackTraceHolder
             $deliveryOptions        = (new ConsignmentNormalizer((array) $deliveryOptions + $options))->normalize();
             $deliveryOptionsAdapter = new DeliveryOptionsFromOrderAdapter($deliveryOptions);
         }
+
         $pickupLocationAdapter  = $deliveryOptionsAdapter->getPickupLocation();
         $shippingOptionsAdapter = $deliveryOptionsAdapter->getShipmentOptions();
+
+        if ($options['package_type'] === 'default') {
+            $packageType = self::$defaultOptions->getPackageType();
+        } else {
+            $packageType = (int) $options['package_type'] ?: AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        }
 
         $apiKey = $this->helper->getGeneralConfig(
             'api/key',
@@ -187,7 +194,7 @@ class TrackTraceHolder
             ->setEmail($address->getEmail())
             ->setLabelDescription($this->getLabelDescription($magentoTrack, $checkoutData))
             ->setDeliveryDate($this->helper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
-            ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId())
+            ->setDeliveryType($this->helper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
             ->setPackageType($packageType)
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
@@ -208,13 +215,14 @@ class TrackTraceHolder
                 ->setPickupCountry($pickupLocationAdapter->getCountry())
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
-            if ($pickupLocationAdapter->getPickupNetworkId()) {
-                $this->consignment->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId());
+
+            if ($pickupLocationAdapter->getRetailNetworkId()) {
+                $this->consignment->setReferenceId($pickupLocationAdapter->getRetailNetworkId());
             }
         }
 
         $this->convertDataForCdCountry($magentoTrack)
-             ->calculateTotalWeight($magentoTrack);
+             ->calculateTotalWeight($magentoTrack, $totalWeight);
 
         return $this;
     }
@@ -266,7 +274,7 @@ class TrackTraceHolder
         }
 
         $productInfo      = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
-        $deliveryDate     = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+        $deliveryDate     = date('d-m-Y', strtotime($this->helper->convertDeliveryDate($checkoutData)));
         $labelDescription = str_replace(
             [
                 self::ORDER_NUMBER,
@@ -326,7 +334,8 @@ class TrackTraceHolder
                     ->setWeight($product->getWeight() ?: 1)
                     ->setItemValue($this->getCentsByPrice($product->getPrice()))
                     ->setClassification(
-                        (int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
+                        (int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification')
+                    )
                     ->setCountry($this->getCountryOfOrigin($product['product_id']));
                 $this->consignment->addItem($myParcelProduct);
             }
@@ -353,11 +362,12 @@ class TrackTraceHolder
      * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
      *
      * @param $product_id
+     *
      * @return string
      */
     public function getCountryOfOrigin(int $product_id): string
     {
-        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
+        $product                     = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
         $productCountryOfManufacture = $product->getCountryOfManufacture();
 
         if ($productCountryOfManufacture) {
@@ -376,10 +386,10 @@ class TrackTraceHolder
      */
     private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
-        $objectManager  = ObjectManager::getInstance();
-        $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection     = $resource->getConnection();
-        $attributeId    = $this->getAttributeId(
+        $objectManager = ObjectManager::getInstance();
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection    = $resource->getConnection();
+        $attributeId   = $this->getAttributeId(
             $connection,
             $resource->getTableName('eav_attribute'),
             $column
@@ -520,7 +530,7 @@ class TrackTraceHolder
             return $this;
         }
 
-        $weightFromSettings = (int) self::$defaultOptions->getDigitalStampWeight();
+        $weightFromSettings = (int) self::$defaultOptions->getDigitalStampDefaultWeight();
         if ($weightFromSettings) {
             $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
 

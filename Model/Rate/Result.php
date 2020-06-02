@@ -121,7 +121,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return array
      */
-    private function getMethods(): array
+    public static function getMethods(): array
     {
         return [
             'pickup'                  => 'pickup',
