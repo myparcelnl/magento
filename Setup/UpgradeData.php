@@ -528,18 +528,37 @@ class UpgradeData implements UpgradeDataInterface
                 }
 
                 // Insert postnl enabled data
-//                $connection->insert(
-//                    $table,
-//                    [
-//                        'scope'    => 'default',
-//                        'scope_id' => 0,
-//                        'path'     => 'myparcelnl_magento_postnl_settings/delivery/active',
-//                        'value'    => 1
-//                    ]
-//                );
+                $connection->insert(
+                    $table,
+                    [
+                        'scope'    => 'default',
+                        'scope_id' => 0,
+                        'path'     => 'myparcelnl_magento_postnl_settings/delivery/active',
+                        'value'    => 1
+                    ]
+                );
             }
         }
 
-         $setup->endSetup();
+        if (version_compare($context->getVersion(), '4.1.0', '<=')) {
+            // Add compatibility for new weight option for large format
+            $selectLargeFormatData = $connection->select()->from($table,
+                ['config_id', 'path', 'value']
+            )->where(
+                '`path` = "myparcelnl_magento_postnl_settings/default_options/large_format_active"'
+            );
+
+            $largeFormatData = $connection->fetchAll($selectLargeFormatData);
+
+            foreach ($largeFormatData as $value) {
+                if ($value['value'] === '1') {
+                    $bind  = ['path' => $value['path'], 'value' => 'price'];
+                    $where = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+            }
+        }
+
+        $setup->endSetup();
     }
 }
