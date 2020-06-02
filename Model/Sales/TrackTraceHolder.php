@@ -15,11 +15,9 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Exception;
-use Magento\Developer\Model\Logger\Handler\Debug;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
-use Magento\Payment\Gateway\Http\Client\Zend;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Helper\Data;
