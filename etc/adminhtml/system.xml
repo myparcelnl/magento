@@ -89,12 +89,6 @@
                 <field id="evening_title" translate="label comment" type="text" sortOrder="228" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Evening title</label>
                 </field>
-                <field id="mailbox_title" translate="label comment" type="text" sortOrder="229" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Mailbox title</label>
-                </field>
-                <field id="digital_stamp_title" translate="label comment" type="text" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Digital stamp title</label>
-                </field>
                 <field id="pickup_title" translate="label comment" type="text" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pickup title</label>
                 </field>
