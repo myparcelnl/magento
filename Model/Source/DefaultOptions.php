@@ -62,9 +62,9 @@ class DefaultOptions
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
-            key_exists('options', self::$chosenOptions) &&
-            key_exists($option, self::$chosenOptions['options']) &&
-            self::$chosenOptions['options'][$option] == true
+            key_exists('shipmentOptions', self::$chosenOptions) &&
+            key_exists($option, self::$chosenOptions['shipmentOptions']) &&
+            self::$chosenOptions['shipmentOptions'][$option] == true
         ) {
             return true;
         }
