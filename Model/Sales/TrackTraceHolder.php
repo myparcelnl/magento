@@ -198,7 +198,7 @@ class TrackTraceHolder
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
-            ->setAgeCheck($this->getValueOfOption($options, 'age_check', false))
+            ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
@@ -439,15 +439,13 @@ class TrackTraceHolder
      * @param      $options []
      * @param      $optionKey
      *
-     * @param bool $price
-     *
      * @return bool
      * @internal param $option
      */
-    private function getValueOfOption($options, $optionKey, $price = true)
+    private function getValueOfOption($options, $optionKey)
     {
         if ($options[$optionKey] === null) {
-            return (bool) self::$defaultOptions->getDefault($optionKey, $price);
+            return (bool) self::$defaultOptions->getDefault($optionKey);
         }
 
         return (bool) $options[$optionKey];
