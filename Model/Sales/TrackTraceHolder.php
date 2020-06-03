@@ -254,7 +254,7 @@ class TrackTraceHolder
         $order = $magentoTrack->getShipment()->getOrder();
 
         $labelDescription = $this->helper->getGeneralConfig(
-            'basic_settings/label_description',
+            'print/label_description',
             $order->getStoreId()
         );
 
@@ -276,13 +276,14 @@ class TrackTraceHolder
                 $order->getIncrementId(),
                 $deliveryDate,
                 $this->getProductInfo($productInfo, 'product_id'),
-                $this->getProductInfo($productInfo, 'product_id'),
+                $this->getProductInfo($productInfo, 'name'),
                 $this->getProductInfo($productInfo, 'qty'),
             ],
             $labelDescription
         );
 
-        return $labelDescription;
+
+        return (string) $labelDescription;
     }
 
     /**
