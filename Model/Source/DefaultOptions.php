@@ -70,7 +70,7 @@ class DefaultOptions
         }
 
         $total = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig('options');
+        $settings = self::$helper->getStandardConfig('default_options');
 
         if ($settings[$option . '_active'] == '1' &&
             (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
@@ -81,6 +81,19 @@ class DefaultOptions
         return false;
     }
 
+    /**
+     * Get default value of options without price check
+     *
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function getDefaultOptionsWithoutPrice(string $option): bool
+    {
+        $settings = self::$helper->getStandardConfig('default_options');
+
+        return $settings[$option . '_active'] === '1';
+    }
 
     /**
      * Get default value of insurance based on order grand total

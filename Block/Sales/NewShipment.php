@@ -78,6 +78,18 @@ class NewShipment extends AbstractItems
     }
 
     /**
+     * Get default value of age check
+     *
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function getDefaultOptionsWithoutPrice(string $option): bool
+    {
+        return $this->defaultOptions->getDefaultOptionsWithoutPrice($option);
+    }
+
+    /**
      * Get default value of insurance based on order grand total
      * @return int
      */
