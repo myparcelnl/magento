@@ -137,6 +137,7 @@ class Checkout
                 'packageType'                  => $this->checkPackageType($carrier),
                 'pricePackageTypeMailbox'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
                 'pricePackageTypeDigitalStamp' => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
+                'pricePickup'                  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee', true),
             ];
         }
 
@@ -167,7 +168,6 @@ class Checkout
                 'priceStandardDelivery' => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
                 'priceMorningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'morning/fee', false),
                 'priceEveningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'evening/fee', false),
-                'pricePickup'           => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee', false),
 
                 'cutoffTime'          => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/cutoff_time'),
                 'saturdayCutoffTime'  => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/saturday_cutoff_time'),
