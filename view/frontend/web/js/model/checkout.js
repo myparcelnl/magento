@@ -117,9 +117,11 @@ function(
         });
       }
 
-      rowsToHide.forEach(function(row) {
-        row.style.display = 'none';
-      });
+      if (quote.shippingAddress().countryId === 'NL' || quote.shippingAddress().countryId === 'BE'){
+        rowsToHide.forEach(function(row) {
+          row.style.display = 'none';
+        });
+      }
     },
 
     /**
