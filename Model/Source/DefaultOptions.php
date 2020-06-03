@@ -74,7 +74,7 @@ class DefaultOptions
 
         if (isset($settings[$option . '_active']) &&
             $settings[$option . '_active'] == '1' &&
-            $total > (int) $settings[$option . '_from_price']
+            (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
         ) {
             return true;
         }
