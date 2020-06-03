@@ -54,11 +54,13 @@ class DefaultOptions
     /**
      * Get default of the option
      *
-     * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param string $option 'only_recipient'|'signature'|'return'|'large_format'
+     *
+     * @param bool $price
      *
      * @return bool
      */
-    public function getDefault($option)
+    public function getDefault(string $option, bool $price)
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
@@ -74,7 +76,7 @@ class DefaultOptions
 
         if (isset($settings[$option . '_active']) &&
             $settings[$option . '_active'] == '1' &&
-            (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
+            $total > (int) $settings[$option . '_from_price'] || !$price
         ) {
             return true;
         }
