@@ -135,8 +135,8 @@ class Checkout
         foreach ($carriersPath as $carrier) {
             $packageType = [
                 'packageType'                  => $this->checkPackageType($carrier),
-                'pricePackageTypeMailbox'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
-                'pricePackageTypeDigitalStamp' => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
+                'pricePackageTypeMailbox'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', true),
+                'pricePackageTypeDigitalStamp' => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', true),
                 'pricePickup'                  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee', true),
             ];
         }
