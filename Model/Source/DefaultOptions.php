@@ -54,35 +54,33 @@ class DefaultOptions
     /**
      * Get default of the option
      *
-     * @param string $option 'only_recipient'|'signature'|'return'|'large_format'
-     *
-     * @param bool $price
+     * @param $option 'only_recipient'|'signature'|'return'|'large_format'
      *
      * @return bool
      */
-    public function getDefault(string $option, bool $price)
+    public function getDefault($option)
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
-            key_exists('shipmentOptions', self::$chosenOptions) &&
-            key_exists($option, self::$chosenOptions['shipmentOptions']) &&
-            self::$chosenOptions['shipmentOptions'][$option] == true
+            key_exists('options', self::$chosenOptions) &&
+            key_exists($option, self::$chosenOptions['options']) &&
+            self::$chosenOptions['options'][$option] == true
         ) {
             return true;
         }
 
-        $total    = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig('default_options');
+        $total = self::$order->getGrandTotal();
+        $settings = self::$helper->getStandardConfig('options');
 
-        if (isset($settings[$option . '_active']) &&
-            $settings[$option . '_active'] == '1' &&
-            $total > (int) $settings[$option . '_from_price'] || !$price
+        if ($settings[$option . '_active'] == '1' &&
+            (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
         ) {
             return true;
         }
 
         return false;
     }
+
 
     /**
      * Get default value of insurance based on order grand total
