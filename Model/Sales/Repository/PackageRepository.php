@@ -200,8 +200,10 @@ class PackageRepository extends Package
         if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
             $mailboxProcent = $this->getMailboxProcent();
             $mailboxProcent += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
+            $mailboxWeight = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox/weight');
+            $orderWeight = $this->getWeight();
 
-            if ($mailboxProcent === 0 || $mailboxProcent > 100) {
+            if (($mailboxProcent == 0 && $mailboxWeight < $orderWeight) || $mailboxProcent > 100 ){
                 return false;
             }
 
