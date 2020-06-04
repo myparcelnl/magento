@@ -199,8 +199,8 @@ class TrackTraceHolder
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
-            ->setLargeFormat($this->checkLargeFormat($magentoTrack))
-            ->setAgeCheck($this->getValueOfOption($options, 'age_check'))
+            ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
+            ->setAgeCheck($address->getCountryId() === 'NL' ? self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check') : false)
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
@@ -265,7 +265,7 @@ class TrackTraceHolder
         $order = $magentoTrack->getShipment()->getOrder();
 
         $labelDescription = $this->helper->getGeneralConfig(
-            'basic_settings/label_description',
+            'print/label_description',
             $order->getStoreId()
         );
 
@@ -287,13 +287,13 @@ class TrackTraceHolder
                 $order->getIncrementId(),
                 $deliveryDate,
                 $this->getProductInfo($productInfo, 'product_id'),
-                $this->getProductInfo($productInfo, 'product_id'),
+                $this->getProductInfo($productInfo, 'name'),
                 $this->getProductInfo($productInfo, 'qty'),
             ],
             $labelDescription
         );
 
-        return $labelDescription;
+        return (string) $labelDescription;
     }
 
     /**
@@ -446,20 +446,19 @@ class TrackTraceHolder
     /**
      * Get default value if option === null
      *
-     * @param $options []
-     * @param $optionKey
+     * @param      $options []
+     * @param      $optionKey
      *
      * @return bool
      * @internal param $option
-     *
      */
     private function getValueOfOption($options, $optionKey)
     {
         if ($options[$optionKey] === null) {
             return (bool) self::$defaultOptions->getDefault($optionKey);
-        } else {
-            return (bool) $options[$optionKey];
         }
+
+        return (bool) $options[$optionKey];
     }
 
     /**

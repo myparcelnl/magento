@@ -78,21 +78,20 @@
         </label>
     </div>
 
-
     <div class="field choice admin__field admin__field-option field-mypa_age_check mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
         <input id="mypa_age_check"
                class="admin__control-checkbox"
                name="mypa_age_check"
                value="1"
                type="checkbox"
-            <?= $block->getDefaultOption('age_check') == true ? 'checked="checked"' : '';?>
+            <?=$block->getDefaultOptionsWithoutPrice('age_check') == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label" for="mypa_age_check">
             <span><?=__('Age check 18+') ?></span>
         </label>
     </div>
 
-    <div class="field choice admin__field admin__field-option field-mypa_age_check mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
+    <div class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
         <label class="admin__field-label" for="mypa_label_amount" style="display: block">
             <span><?=__('Label amount:') ?></span>
         </label>

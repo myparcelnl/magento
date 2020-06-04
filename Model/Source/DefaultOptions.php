@@ -69,12 +69,11 @@ class DefaultOptions
             return true;
         }
 
-        $total    = self::$order->getGrandTotal();
+        $total = self::$order->getGrandTotal();
         $settings = self::$helper->getStandardConfig('default_options');
 
-        if (isset($settings[$option . '_active']) &&
-            $settings[$option . '_active'] == '1' &&
-            $total > (int) $settings[$option . '_from_price']
+        if ($settings[$option . '_active'] == '1' &&
+            (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
         ) {
             return true;
         }
@@ -83,6 +82,8 @@ class DefaultOptions
     }
 
     /**
+     * Get default value of options without price check
+     *
      * @param string $option
      *
      * @return bool
@@ -108,6 +109,12 @@ class DefaultOptions
         }
 
         return false;
+
+    public function getDefaultOptionsWithoutPrice(string $option): bool
+    {
+        $settings = self::$helper->getStandardConfig('default_options');
+
+        return $settings[$option . '_active'] === '1';
     }
 
     /**
