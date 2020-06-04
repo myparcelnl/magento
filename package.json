@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/myparcelnl/magento#readme",
   "dependencies": {
-    "@myparcel/checkout": "^3.1.4",
+    "@myparcel/delivery-options": "^3.3.0",
     "custom-event-polyfill": "^1.0.7"
   },
   "devDependencies": {

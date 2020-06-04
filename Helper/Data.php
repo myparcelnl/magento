@@ -20,8 +20,9 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DPDConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
@@ -102,34 +103,26 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get checkout setting
+     * Get carrier setting
      *
      * @param string $code
-     * @param null   $storeId
+     * @param        $carrier
      *
      * @return mixed
      */
-    public function getCarrierConfig($code, $storeId = null)
+    public function getCarrierConfig($code, $carrier)
     {
-        $settings = $this->getTmpScope();
+        $settings = $this->getConfigValue($carrier . $code);
         if ($settings == null) {
-            $value = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . $code);
+            $value = $this->getConfigValue($carrier . $code);
             if ($value != null) {
                 return $value;
             } else {
-                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_POSTNL_SETTINGS . $code);
+                $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
             }
         }
 
-        if (! is_array($settings)) {
-            $this->_logger->critical('No data in settings array');
-        }
-
-        if (! key_exists($code, $settings)) {
-            $this->_logger->critical('Can\'t get setting ' . $code);
-        }
-
-        return $settings[$code];
+        return $settings;
     }
 
     /**
@@ -176,9 +169,25 @@ class Data extends AbstractHelper
         return $delivery_date;
     }
 
+    /**
+     * Get delivery type and when it is null use 'standard'
+     *
+     * @param int|null $deliveryType
+     *
+     * @return int
+     */
+    public function checkDeliveryType(?int $deliveryType): int
+    {
+        if (! $deliveryType) {
+            return AbstractConsignment::DELIVERY_TYPE_STANDARD;
+        }
+
+        return $deliveryType;
+    }
+
     public function setOrderStatus($order_id, $status){
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $order = $objectManager->create('\Magento\Sales\Model\Order') ->load($order_id);
+        $order = $objectManager->create('\Magento\Sales\Model\Order')->load($order_id);
         $order->setState($status)->setStatus($status);
         $order->save();
     }

@@ -88,7 +88,7 @@ class Checkout
         $this->hideDeliveryOptionsForProduct();
 
         $this->data = [
-            'methods' => explode(';', $this->getDeliveryMethods()),
+            'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId)],
             'config'  => array_merge(
                 $this->getGeneralData(),
                 $this->getPackageType(),
@@ -135,8 +135,15 @@ class Checkout
         foreach ($carriersPath as $carrier) {
             $packageType = [
                 'packageType'                  => $this->checkPackageType($carrier),
-                'pricePackageTypeMailbox'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
+                'pricePackageTypeMailbox'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', true),
                 'pricePackageTypeDigitalStamp' => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
+                'pricePickup'                  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee', true),
+                'cutoffTime'                   => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/cutoff_time'),
+                'saturdayCutoffTime'           => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/saturday_cutoff_time'),
+                'deliveryDaysWindow'           => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/deliverydays_window'),
+                'allowMondayDelivery'          => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/monday_delivery_active'),
+                'dropOffDays'                  => $this->helper->getArrayConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_days'),
+                'dropOffDelay'                 => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_delay'),
             ];
         }
 
@@ -167,14 +174,6 @@ class Checkout
                 'priceStandardDelivery' => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
                 'priceMorningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'morning/fee', false),
                 'priceEveningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'evening/fee', false),
-                'pricePickup'           => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee', false),
-
-                'cutoffTime'          => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/cutoff_time'),
-                'saturdayCutoffTime'  => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/saturday_cutoff_time'),
-                'deliveryDaysWindow'  => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/deliverydays_window'),
-                'allowMondayDelivery' => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/monday_delivery_active'),
-                'dropOffDays'         => $this->helper->getArrayConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_days'),
-                'dropOffDelay'        => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_delay'),
             ];
         }
 

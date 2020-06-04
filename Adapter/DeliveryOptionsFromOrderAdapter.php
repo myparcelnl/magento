@@ -15,7 +15,7 @@ class DeliveryOptionsFromOrderAdapter extends AbstractDeliveryOptionsAdapter
     {
         $this->carrier         = $inputData['carrier'] ?? null;
         $this->date            = $originAdapter ?? null;
-        $this->deliveryType    = $inputData['deliveryType'] ??  null;
+        $this->deliveryType    = $inputData['deliveryType'] ?? null;
         $this->shipmentOptions = new ShipmentOptionsFromAdapter($inputData);
         $this->pickupLocation  = $originAdapter ?? null;
     }

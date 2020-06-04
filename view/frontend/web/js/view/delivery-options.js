@@ -188,7 +188,7 @@ define(
 
         checkout.convertDeliveryOptionsToShippingMethod(event.detail, {
           onSuccess: function(response) {
-            quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
+              quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
         });
       },
