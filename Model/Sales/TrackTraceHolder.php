@@ -363,7 +363,7 @@ class TrackTraceHolder
             return $productCountryOfManufacture;
         }
 
-        return $this->helper->getGeneralConfig('basic_settings/country_of_origin');
+        return $this->helper->getGeneralConfig('print/country_of_origin');
     }
 
     /**
