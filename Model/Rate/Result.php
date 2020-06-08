@@ -103,7 +103,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\Error) {
             $this->setError(true);
         }
-        if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
+        if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\Method) {
+            $this->_rates[] = $result;
+            $this->addMyParcelRates($result);
+        } elseif ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
             $this->_rates[] = $result;
         } elseif ($result instanceof \Magento\Shipping\Model\Rate\Result) {
             $rates = $result->getAllRates();
@@ -128,50 +131,44 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             'standard'                => 'delivery',
             'standard_signature'      => 'delivery/signature',
             'standard_only_recipient' => 'delivery/only_recipient',
-            'morning'                 => 'morning/',
-            'morning_signature'       => 'morning_signature/',
-            'evening'                 => 'evening/',
-            'evening_signature'       => 'evening_signature/',
-            'mailbox'                 => 'mailbox/',
-            'digital_stamp'           => 'digital_stamp/'
+            'morning'                 => 'morning',
+            'morning_signature'       => 'morning/signature',
+            'evening'                 => 'evening',
+            'evening_signature'       => 'evening/signature',
+            'mailbox'                 => 'mailbox',
+            'digital_stamp'           => 'digital_stamp'
         ];
     }
 
     /**
-     * Add MyParcel shipping rates.
+     * Add Myparcel shipping rates
      *
-     * @param Method $parentRate
+     * @param $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
-    private function addMyParcelRates($parentRate): void
+    private function addMyParcelRates($parentRate)
     {
         if ($this->myParcelRatesAlreadyAdded) {
             return;
         }
 
-        $currentCarrier = $parentRate->getData('carrier');
-        if (! in_array($currentCarrier, $this->parentMethods)) {
+        $parentShippingMethod = $parentRate->getData('carrier');
+        if (! in_array($parentShippingMethod, $this->parentMethods)) {
             return;
         }
 
-        if (empty($this->products)) {
-            $this->package->setWeightFromQuoteProducts($this->products);
-        }
-
         foreach ($this->getMethods() as $alias => $settingPath) {
-            foreach (Data::CARRIERS as $carrier) {
-                $map = Data::CARRIERS_XML_PATH_MAP[$carrier];
+            $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
 
-                if (! $this->isSettingActive($map, $settingPath)) {
-                    continue;
-                }
-
-                $method = $this->getShippingMethod(
-                    $this->getFullSettingPath($map, $settingPath),
-                    $parentRate
-                );
-
-                $this->append($method);
+            if (! $this->isSettingActive($map, $settingPath)) {
+                continue;
             }
+
+            $method = $this->getShippingMethod(
+                $this->getFullSettingPath($map, $settingPath),
+                $parentRate
+            );
+
+            $this->_rates[] = $method;
         }
 
         $this->myParcelRatesAlreadyAdded = true;

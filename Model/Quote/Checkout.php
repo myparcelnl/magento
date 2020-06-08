@@ -88,7 +88,7 @@ class Checkout
         $this->hideDeliveryOptionsForProduct();
 
         $this->data = [
-            'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId)],
+            'methods' => ['bestway'],
             'config'  => array_merge(
                 $this->getGeneralData(),
                 $this->getPackageType(),

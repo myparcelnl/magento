@@ -27,5 +27,10 @@ status_99,Inactive - Unknown
 myparcelnl_magento_postnl_settings/delivery_title, postnl delivery
 myparcelnl_magento_postnl_settings/pickup_title, postnl pickup location
 myparcelnl_magento_postnl_settings/delivery/signature_title, postnl delivery with signature
+myparcelnl_magento_postnl_settings/digital_stamp_title, postnl digital stamp
+myparcelnl_magento_postnl_settings/delivery/only_recipient_title, postnl delivery with only recipient
+myparcelnl_magento_postnl_settings/morning_title, postnl morning delivery
+myparcelnl_magento_postnl_settings/evening_title, postnl evening delivery
+myparcelnl_magento_postnl_settings/mailbox_title, postnl mailbox
 myparcelnl_magento_dpd_settings/delivery_title,  DPD delivery
 myparcelnl_magento_dpd_settings/pickup_title, DPD pickup location

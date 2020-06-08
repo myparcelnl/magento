@@ -81,7 +81,7 @@ function(
      * @returns {Object} - The found rate, if any.
      */
     findRateByMethodCode: function(methodCode) {
-        return Model.rates().find(function(rate) {
+      return Model.rates().find(function(rate) {
         return rate.method_code === methodCode;
       });
     },
@@ -117,7 +117,7 @@ function(
         });
       }
 
-      if (quote.shippingAddress().countryId === 'NL' || quote.shippingAddress().countryId === 'BE'){
+      if (quote.shippingAddress().countryId === 'NL' || quote.shippingAddress().countryId === 'BE') {
         rowsToHide.forEach(function(row) {
           row.style.display = 'none';
         });
