@@ -201,10 +201,8 @@ class Checkout extends Data
         $value = $this->getCarrierConfig($key, $carrier);
 
         if ($addBasePrice) {
-            if ($value > 0) {
-                // Calculate value
-                $value = $this->getBasePrice() + $value;
-            }
+            // Calculate value
+            $value = $this->getBasePrice() + $value;
         }
         return (float) $value;
     }
