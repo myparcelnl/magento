@@ -132,7 +132,8 @@ function(
      * @returns {Element}
      */
     getShippingMethodRow: function(shippingMethod) {
-      var classSelector = '.col.col-method[id*="' + shippingMethod + '"]';
+        console.log(shippingMethod);
+        var classSelector = '.col.col-method[id*="' + shippingMethod + '"]';
       var column = document.querySelector(classSelector);
 
       /**

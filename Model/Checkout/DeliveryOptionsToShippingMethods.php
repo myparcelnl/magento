@@ -39,7 +39,7 @@ class DeliveryOptionsToShippingMethods
     private function createShippingMethod(): void
     {
         $xmlPath               = $this->getCarrierXmlPath();
-        $deliveryType          = $this->createDeliveryTypeString();
+        $deliveryType          = $this->createDeliveryTypeString(); // hier moet je zijn
         $shipmentOptionsString = $this->createShipmentOptionsString();
 
         $this->shippingMethod = $xmlPath . $deliveryType . $shipmentOptionsString;
@@ -69,7 +69,18 @@ class DeliveryOptionsToShippingMethods
      */
     private function createDeliveryTypeString(): string
     {
-        return $this->deliveryOptions->isPickup() ? 'pickup' : 'delivery';
+        if ($this->deliveryOptions->isPickup()) {
+            return 'pickup';
+        }
+
+        switch ($this->deliveryOptions->getDeliveryType()) {
+            case 'morning':
+                return 'morning';
+            case 'evening':
+                return 'evening';
+            default:
+                return 'delivery';
+        }
     }
 
     /**
@@ -84,7 +95,7 @@ class DeliveryOptionsToShippingMethods
         $shipmentOptions = array_filter(
             $this->deliveryOptions->getShipmentOptions()->toArray(),
             function ($option) {
-                return $option !== false && $option !== null;
+                return $option === true;
             }
         );
 

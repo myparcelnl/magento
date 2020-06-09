@@ -185,10 +185,10 @@ define(
         if (JSON.stringify(deliveryOptions.deliveryOptions) === '{}') {
           return;
         }
-        console.log('jaaaaa');
+        // console.log('jaaaaa');
         checkout.convertDeliveryOptionsToShippingMethod(event.detail, {
           onSuccess: function(response) {
-            console.log(response);
+            // console.log(response);
 
             // quote.shippingMethod(deliveryOptions.getNewShippingMethod('myparcelnl_magento_postnl_settings/delivery/signature'));
             quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
@@ -203,7 +203,7 @@ define(
        */
       onShippingMethodUpdate: function(selectedShippingMethod) {
 
-        console.log(selectedShippingMethod);
+        // console.log(selectedShippingMethod);
         var newShippingMethod = selectedShippingMethod || {};
         var available = newShippingMethod.available || false;
         var methodEnabled = checkout.allowedShippingMethods().indexOf(newShippingMethod.method_code) > -1;

@@ -127,16 +127,24 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     public static function getMethods(): array
     {
         return [
-            'pickup'                  => 'pickup',
-            'standard'                => 'delivery',
-            'standard_signature'      => 'delivery/signature',
-            'standard_only_recipient' => 'delivery/only_recipient',
-            'morning'                 => 'morning',
-            'morning_signature'       => 'morning/signature',
-            'evening'                 => 'evening',
-            'evening_signature'       => 'evening/signature',
-            'mailbox'                 => 'mailbox',
-            'digital_stamp'           => 'digital_stamp'
+            'pickup' => 'pickup',
+
+            'standard'                          => 'delivery',
+            'standard_signature'                => 'delivery/signature',
+            'standard_only_recipient'           => 'delivery/only_recipient',
+            'standard_only_recipient_signature' => 'delivery/only_recipient/signature',
+
+            'morning_signature'                => 'morning/signature',
+            'morning_only_recipient'           => 'morning/only_recipient',
+            'morning_only_recipient_signature' => 'morning/only_recipient/signature',
+
+
+            'evening_signature'                => 'evening/signature',
+            'evening_only_recipient'           => 'evening/only_recipient',
+            'evening_only_recipient_signature' => 'evening/only_recipient/signature',
+
+            'mailbox'       => 'mailbox',
+            'digital_stamp' => 'digital_stamp'
         ];
     }
 
@@ -158,10 +166,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
         foreach ($this->getMethods() as $alias => $settingPath) {
             $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
-
-            if (! $this->isSettingActive($map, $settingPath)) {
-                continue;
-            }
 
             $method = $this->getShippingMethod(
                 $this->getFullSettingPath($map, $settingPath),
@@ -254,10 +258,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function createTitle($settingPath)
     {
-        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath . 'title');
+        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath);
 
         if ($title === null) {
-            $title = __(substr($settingPath, 0, strlen($settingPath) - 1) . '_title');
+            $title = __(substr($settingPath, 0, strlen($settingPath) - 1));
         }
 
         return $title;

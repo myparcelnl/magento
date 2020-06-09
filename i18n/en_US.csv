@@ -24,13 +24,18 @@ status_38,Inactive - Delivered - Package picked up
 status_39,Inactive - Return shipment delivered
 status_40,Inactive - Return shipment pickup location
 status_99,Inactive - Unknown
-myparcelnl_magento_postnl_settings/delivery_title, postnl delivery
-myparcelnl_magento_postnl_settings/pickup_title, postnl pickup location
-myparcelnl_magento_postnl_settings/delivery/signature_title, postnl delivery with signature
-myparcelnl_magento_postnl_settings/digital_stamp_title, postnl digital stamp
-myparcelnl_magento_postnl_settings/delivery/only_recipient_title, postnl delivery with only recipient
-myparcelnl_magento_postnl_settings/morning_title, postnl morning delivery
-myparcelnl_magento_postnl_settings/evening_title, postnl evening delivery
-myparcelnl_magento_postnl_settings/mailbox_title, postnl mailbox
-myparcelnl_magento_dpd_settings/delivery_title,  DPD delivery
-myparcelnl_magento_dpd_settings/pickup_title, DPD pickup location
+myparcelnl_magento_postnl_settings/pickup, PostNL pickup location
+myparcelnl_magento_postnl_settings/delivery, PostNL delivery
+myparcelnl_magento_postnl_settings/delivery/signature, PostNL delivery with signature
+myparcelnl_magento_postnl_settings/delivery/only_recipient, PostNL delivery with only recipient
+myparcelnl_magento_postnl_settings/delivery/only_recipient/signature, PostNL delivery with only recipient and signature
+myparcelnl_magento_postnl_settings/morning, PostNL morning delivery
+myparcelnl_magento_postnl_settings/morning/signature, PostNL morning delivery with signature
+myparcelnl_magento_postnl_settings/morning/only_recipient, PostNL morning delivery with only recipient
+myparcelnl_magento_postnl_settings/morning/only_recipient/signature, PostNL morning delivery with only recipient and signature
+myparcelnl_magento_postnl_settings/evening, PostNL evening delivery
+myparcelnl_magento_postnl_settings/evening/signature, PostNL evening delivery with signature
+myparcelnl_magento_postnl_settings/evening/only_recipient, PostNL evening delivery with only recipient
+myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL evening delivery with only recipient and signature
+myparcelnl_magento_postnl_settings/mailbox, PostNL mailbox
+myparcelnl_magento_postnl_settings/digital_stamp, PostNL digital stamp
