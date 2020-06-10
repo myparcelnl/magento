@@ -127,20 +127,17 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     public static function getMethods(): array
     {
         return [
-//            'pickup' => 'pickup',
-//
-//            'standard'                          => 'delivery',
-//            'standard_signature'                => 'delivery/signature',
-//            'standard_only_recipient'           => 'delivery/only_recipient',
-//            'standard_only_recipient_signature' => 'delivery/only_recipient/signature',
-            'morning_only_recipient'           => 'morning/only_recipient',
-            'morning_only_recipient_signature' => 'morning/only_recipient/signature',
-
-            'evening_only_recipient'           => 'evening/only_recipient',
-            'evening_only_recipient_signature' => 'evening/only_recipient/signature',
-
-            'mailbox'       => 'mailbox',
-            'digital_stamp' => 'digital_stamp'
+            'pickup'                            => 'pickup',
+            'standard'                          => 'delivery',
+            'standard_signature'                => 'delivery/signature',
+            'standard_only_recipient'           => 'delivery/only_recipient',
+            'standard_only_recipient_signature' => 'delivery/only_recipient/signature',
+            'morning_only_recipient'            => 'morning/only_recipient',
+            'morning_only_recipient_signature'  => 'morning/only_recipient/signature',
+            'evening_only_recipient'            => 'evening/only_recipient',
+            'evening_only_recipient_signature'  => 'evening/only_recipient/signature',
+            'mailbox'                           => 'mailbox',
+            'digital_stamp'                     => 'digital_stamp'
         ];
     }
 
@@ -275,17 +272,29 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     {
         $basePrice  = $this->myParcelHelper->getBasePrice();
         $settingFee = 0;
-        $pieces = explode("/", $settingPath);
+        $pieces     = explode("/", $settingPath);
 
-        if ($pieces[1] !== 'delivery'  && $pieces[1] !== 'pickup'&& isset($pieces[2])) {
-
-            $settingFee = (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . 'fee');
-            $pieces[1] = 'delivery';
-
-
+        if ($pieces[1] == 'delivery' && isset($pieces[2]) && isset($pieces[3])) {
+            $settingFee += (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . $pieces[2].'_'  . 'fee');
+            $settingFee += (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . $pieces[3]  . 'fee');
         }
+
+        if ($pieces[1] == 'morning' || $pieces[1] == 'evening') {
+            $settingFee = (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . 'fee');
+
+            if (isset($pieces[3])) {
+                $pieces[1] = 'delivery';
+            }
+            unset($pieces[2]);
+        }
+
+        if ($pieces[1] == 'mailbox' || $pieces[1] == 'digital_stamp') {
+            $basePrice = 0;
+        }
+
+
         $settingPath = implode("/", $pieces);
-        $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
+        $settingFee  += (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
 
         return $basePrice + $settingFee;
     }
