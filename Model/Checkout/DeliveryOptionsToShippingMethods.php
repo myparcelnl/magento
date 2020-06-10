@@ -73,6 +73,13 @@ class DeliveryOptionsToShippingMethods
             return 'pickup';
         }
 
+        switch ($this->deliveryOptions->getPackageType()) {
+            case 'mailbox':
+                return 'mailbox';
+            case 'digital_stamp':
+                return 'digital_stamp';
+        }
+
         switch ($this->deliveryOptions->getDeliveryType()) {
             case 'morning':
                 return 'morning';

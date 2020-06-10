@@ -251,13 +251,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function createTitle($settingPath)
     {
-        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath);
-
-        if ($title === null) {
-            $title = __(substr($settingPath, 0, strlen($settingPath) - 1));
-        }
-
-        return $title;
+        return __(substr($settingPath, 0, strlen($settingPath) - 1));
     }
 
     /**
