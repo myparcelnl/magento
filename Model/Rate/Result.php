@@ -127,19 +127,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     public static function getMethods(): array
     {
         return [
-            'pickup' => 'pickup',
-
-            'standard'                          => 'delivery',
-            'standard_signature'                => 'delivery/signature',
-            'standard_only_recipient'           => 'delivery/only_recipient',
-            'standard_only_recipient_signature' => 'delivery/only_recipient/signature',
-
-            'morning_signature'                => 'morning/signature',
+//            'pickup' => 'pickup',
+//
+//            'standard'                          => 'delivery',
+//            'standard_signature'                => 'delivery/signature',
+//            'standard_only_recipient'           => 'delivery/only_recipient',
+//            'standard_only_recipient_signature' => 'delivery/only_recipient/signature',
             'morning_only_recipient'           => 'morning/only_recipient',
             'morning_only_recipient_signature' => 'morning/only_recipient/signature',
 
-
-            'evening_signature'                => 'evening/signature',
             'evening_only_recipient'           => 'evening/only_recipient',
             'evening_only_recipient_signature' => 'evening/only_recipient/signature',
 
@@ -278,7 +274,18 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function getPrice($settingPath): float
     {
         $basePrice  = $this->myParcelHelper->getBasePrice();
-        $settingFee = (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
+        $settingFee = 0;
+        $pieces = explode("/", $settingPath);
+
+        if ($pieces[1] !== 'delivery'  && $pieces[1] !== 'pickup'&& isset($pieces[2])) {
+
+            $settingFee = (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . 'fee');
+            $pieces[1] = 'delivery';
+
+
+        }
+        $settingPath = implode("/", $pieces);
+        $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
 
         return $basePrice + $settingFee;
     }
