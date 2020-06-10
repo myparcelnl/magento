@@ -275,8 +275,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $pieces     = explode("/", $settingPath);
 
         if ($pieces[1] == 'delivery' && isset($pieces[2]) && isset($pieces[3])) {
-            $settingFee += (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . $pieces[2].'_'  . 'fee');
-            $settingFee += (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . $pieces[3]  . 'fee');
+            $settingFee += (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . $pieces[2] . '_' . 'fee');
+            $settingFee += (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . $pieces[3] . 'fee');
         }
 
         if ($pieces[1] == 'morning' || $pieces[1] == 'evening') {
@@ -291,7 +291,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         if ($pieces[1] == 'mailbox' || $pieces[1] == 'digital_stamp') {
             $basePrice = 0;
         }
-
 
         $settingPath = implode("/", $pieces);
         $settingFee  += (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
