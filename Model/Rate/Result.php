@@ -150,7 +150,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     {
         $selectedCountry = $this->session->getQuote()->getShippingAddress()->getCountryId();
 
-        if ($selectedCountry != 'NL' || $selectedCountry != 'BE') {
+        if ($selectedCountry != 'NL' && $selectedCountry != 'BE') {
             return;
         }
         if ($this->myParcelRatesAlreadyAdded) {
