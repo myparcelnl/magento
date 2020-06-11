@@ -42,6 +42,8 @@ define(
       updatedDeliveryOptionsEvent: 'myparcel_updated_delivery_options',
       updatedAddressEvent: 'myparcel_updated_address',
 
+      isUsingMyParcelMethod: true,
+
       /**
        * The selector of the field we use to get the delivery options data into the order.
        *
@@ -127,7 +129,7 @@ define(
        * @returns {String|undefined} - The house number, if found. Otherwise null.
        */
       getHouseNumber: function(address) {
-        var result = this.splitStreetRegex.exec(address);
+        var result = deliveryOptions.splitStreetRegex.exec(address);
         var numberIndex = 2;
         return result ? result[numberIndex] : null;
       },
@@ -149,6 +151,10 @@ define(
        * @param {Object?} address - Quote.shippingAddress from Magento.
        */
       updateAddress: function(address) {
+        if (!deliveryOptions.isUsingMyParcelMethod) {
+          return;
+        }
+
         window.MyParcelConfig.address = deliveryOptions.getAddress(address || quote.shippingAddress());
 
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
@@ -185,10 +191,13 @@ define(
         if (JSON.stringify(deliveryOptions.deliveryOptions) === '{}') {
           return;
         }
-        console.log('jaaaaa');
+
         checkout.convertDeliveryOptionsToShippingMethod(event.detail, {
           onSuccess: function(response) {
-            console.log(response);
+            if (!response.length) {
+              return;
+            }
+
             quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
         });
@@ -200,8 +209,6 @@ define(
        * @param {Object} selectedShippingMethod - The shipping method that was selected.
        */
       onShippingMethodUpdate: function(selectedShippingMethod) {
-
-        // console.log(selectedShippingMethod);
         var newShippingMethod = selectedShippingMethod || {};
         var available = newShippingMethod.available || false;
         var methodEnabled = checkout.allowedShippingMethods().indexOf(newShippingMethod.method_code) > -1;
@@ -222,6 +229,9 @@ define(
 
           if (!isMyParcelMethod && !methodEnabled) {
             deliveryOptions.triggerEvent(deliveryOptions.disableDeliveryOptionsEvent);
+            deliveryOptions.isUsingMyParcelMethod = false;
+          } else {
+            deliveryOptions.isUsingMyParcelMethod = true;
           }
         }
       },

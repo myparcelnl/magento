@@ -18,6 +18,10 @@ class ShippingMethods implements ShippingMethodsInterface
      */
     public function getFromDeliveryOptions($deliveryOptions): array
     {
+        if (! $deliveryOptions[0]) {
+            return [];
+        }
+
         try {
             $shipping = new DeliveryOptionsToShippingMethods($deliveryOptions[0]);
 
