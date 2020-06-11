@@ -39,7 +39,7 @@ class DeliveryOptionsToShippingMethods
     private function createShippingMethod(): void
     {
         $xmlPath               = $this->getCarrierXmlPath();
-        $deliveryType          = $this->createDeliveryTypeString(); // hier moet je zijn
+        $deliveryType          = $this->createDeliveryTypeString();
         $shipmentOptionsString = $this->createShipmentOptionsString();
 
         $this->shippingMethod = $xmlPath . $deliveryType . $shipmentOptionsString;
