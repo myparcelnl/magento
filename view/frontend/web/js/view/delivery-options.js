@@ -84,7 +84,7 @@ define(
         var hasRenderedDeliveryOptions = document.querySelector('.myparcel-delivery-options__table');
         var shippingMethodDiv = document.querySelector('#checkout-shipping-method-load');
         var deliveryOptionsDiv = document.createElement('div');
-
+        checkout.hideShippingMethods();
         deliveryOptions.rendered(false);
 
         /**
