@@ -159,7 +159,7 @@ class Checkout extends Data
         if ($quoteId == null) {
             return null;
         }
-        $parentCarriers = explode(',', $this->getGeneralConfig('shipping_methods/methods'));
+        $parentCarriers   = explode(',', $this->getGeneralConfig('shipping_methods/methods'));
         $addressFromQuote = $this->quote->getShippingAddress();
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
@@ -174,9 +174,14 @@ class Checkout extends Data
         $myParcelMethods = array_keys(Result::getMethods());
 
         foreach ($magentoMethods as $method) {
+
+            $methodCode       = explode("/", $method->getMethodCode());
+            $latestMethodCode = array_pop($methodCode);
+
+
             if (
                 in_array($method->getCarrierCode(), $parentCarriers) &&
-                ! in_array($method->getMethodCode(), $myParcelMethods)
+                ! in_array($latestMethodCode, $myParcelMethods)
             ) {
                 return $method;
             }
@@ -201,11 +206,10 @@ class Checkout extends Data
         $value = $this->getCarrierConfig($key, $carrier);
 
         if ($addBasePrice) {
-            if ($value > 0) {
-                // Calculate value
-                $value = $this->getBasePrice() + $value;
-            }
+            // Calculate value
+            $value = $this->getBasePrice() + $value;
         }
+
         return (float) $value;
     }
 

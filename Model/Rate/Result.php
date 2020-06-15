@@ -103,7 +103,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\Error) {
             $this->setError(true);
         }
-        if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
+        if ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\Method) {
+            $this->_rates[] = $result;
+            $this->addMyParcelRates($result);
+        } elseif ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
             $this->_rates[] = $result;
         } elseif ($result instanceof \Magento\Shipping\Model\Rate\Result) {
             $rates = $result->getAllRates();
@@ -124,54 +127,50 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     public static function getMethods(): array
     {
         return [
-            'pickup'                  => 'pickup',
-            'standard'                => 'delivery',
-            'standard_signature'      => 'delivery/signature',
-            'standard_only_recipient' => 'delivery/only_recipient',
-            'morning'                 => 'morning/',
-            'morning_signature'       => 'morning_signature/',
-            'evening'                 => 'evening/',
-            'evening_signature'       => 'evening_signature/',
-            'mailbox'                 => 'mailbox/',
-            'digital_stamp'           => 'digital_stamp/'
+            'pickup'                            => 'pickup',
+            'standard'                          => 'delivery',
+            'standard_signature'                => 'delivery/signature',
+            'standard_only_recipient'           => 'delivery/only_recipient',
+            'standard_only_recipient_signature' => 'delivery/only_recipient/signature',
+            'morning_only_recipient'            => 'morning/only_recipient',
+            'morning_only_recipient_signature'  => 'morning/only_recipient/signature',
+            'evening_only_recipient'            => 'evening/only_recipient',
+            'evening_only_recipient_signature'  => 'evening/only_recipient/signature',
+            'mailbox'                           => 'mailbox',
+            'digital_stamp'                     => 'digital_stamp'
         ];
     }
 
     /**
-     * Add MyParcel shipping rates.
+     * Add Myparcel shipping rates
      *
-     * @param Method $parentRate
+     * @param $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
-    private function addMyParcelRates($parentRate): void
+    private function addMyParcelRates($parentRate)
     {
+        $selectedCountry = $this->session->getQuote()->getShippingAddress()->getCountryId();
+
+        if ($selectedCountry != 'NL' && $selectedCountry != 'BE') {
+            return;
+        }
         if ($this->myParcelRatesAlreadyAdded) {
             return;
         }
 
-        $currentCarrier = $parentRate->getData('carrier');
-        if (! in_array($currentCarrier, $this->parentMethods)) {
+        $parentShippingMethod = $parentRate->getData('carrier');
+        if (! in_array($parentShippingMethod, $this->parentMethods)) {
             return;
         }
 
-        if (empty($this->products)) {
-            $this->package->setWeightFromQuoteProducts($this->products);
-        }
-
         foreach ($this->getMethods() as $alias => $settingPath) {
-            foreach (Data::CARRIERS as $carrier) {
-                $map = Data::CARRIERS_XML_PATH_MAP[$carrier];
+            $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
 
-                if (! $this->isSettingActive($map, $settingPath)) {
-                    continue;
-                }
+            $method = $this->getShippingMethod(
+                $this->getFullSettingPath($map, $settingPath),
+                $parentRate
+            );
 
-                $method = $this->getShippingMethod(
-                    $this->getFullSettingPath($map, $settingPath),
-                    $parentRate
-                );
-
-                $this->append($method);
-            }
+            $this->_rates[] = $method;
         }
 
         $this->myParcelRatesAlreadyAdded = true;
@@ -257,18 +256,13 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function createTitle($settingPath)
     {
-        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath . 'title');
-
-        if ($title === null) {
-            $title = __(substr($settingPath, 0, strlen($settingPath) - 1) . '_title');
-        }
-
-        return $title;
+        return __(substr($settingPath, 0, strlen($settingPath) - 1));
     }
 
     /**
      * Create price
      * Calculate price if multiple options are chosen
+     * @todo: Several improvements are possible within this method
      *
      * @param $settingPath
      *
@@ -276,8 +270,38 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getPrice($settingPath): float
     {
-        $basePrice  = $this->myParcelHelper->getBasePrice();
-        $settingFee = (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
+        $basePrice   = $this->myParcelHelper->getBasePrice();
+        $settingFee  = 0;
+
+        // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
+        $settingPath = explode("/", $settingPath);
+
+        // Check if the selected delivery options are delivery, only_recipient and signature
+        // delivery/only_recipient/signature
+        if ($settingPath[1] == 'delivery' && isset($settingPath[2]) && isset($settingPath[3])) {
+            $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . $settingPath[2] . '_' . 'fee');
+            $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . $settingPath[3] . 'fee');
+        }
+
+        // Check if the selected delivery is morning or evening and select the fee
+        if ($settingPath[1] == 'morning' || $settingPath[1] == 'evening') {
+            $settingFee = (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . 'fee');
+
+            // change delivery type if there is a signature selected
+            if (isset($settingPath[3])) {
+                $settingPath[1] = 'delivery';
+            }
+            // Unset only_recipient to select the correct price
+            unset($settingPath[2]);
+        }
+
+        // For mailbox and digital stamp the base price should not be calculated
+        if ($settingPath[1] == 'mailbox' || $settingPath[1] == 'digital_stamp') {
+            $basePrice = 0;
+        }
+
+        $settingPath = implode("/", $settingPath);
+        $settingFee  += (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
 
         return $basePrice + $settingFee;
     }

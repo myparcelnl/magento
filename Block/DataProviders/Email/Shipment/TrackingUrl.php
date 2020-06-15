@@ -6,7 +6,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl as MagentoTrackingUrl;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment\Track;
-use MyparcelNL\Sdk\src\Helper\TrackTraceUrl;
+use MyParcelNL\Sdk\src\Helper\TrackTraceUrl;
 
 /**
  * Shipment track info for email

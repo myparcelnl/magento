@@ -135,9 +135,9 @@ class Checkout
         foreach ($carriersPath as $carrier) {
             $packageType = [
                 'packageType'                  => $this->checkPackageType($carrier),
-                'pricePackageTypeMailbox'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', true),
+                'pricePackageTypeMailbox'      => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
                 'pricePackageTypeDigitalStamp' => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
-                'pricePickup'                  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee', true),
+                'pricePickup'                  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee'),
                 'cutoffTime'                   => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/cutoff_time'),
                 'saturdayCutoffTime'           => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/saturday_cutoff_time'),
                 'deliveryDaysWindow'           => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/deliverydays_window'),
@@ -172,8 +172,8 @@ class Checkout
                 'priceSignature'        => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false),
                 'priceOnlyRecipient'    => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_fee', false),
                 'priceStandardDelivery' => $this->helper->getMoneyFormat($this->helper->getBasePrice()),
-                'priceMorningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'morning/fee', false),
-                'priceEveningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'evening/fee', false),
+                'priceMorningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'morning/fee'),
+                'priceEveningDelivery'  => $this->helper->getMethodPriceFormat($carrier[self::SELECT_CARRIER_PATH], 'evening/fee'),
             ];
         }
 
