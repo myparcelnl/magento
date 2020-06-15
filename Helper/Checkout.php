@@ -175,13 +175,13 @@ class Checkout extends Data
 
         foreach ($magentoMethods as $method) {
 
-            $test1 = explode("/", $method->getMethodCode());
-            $test  = array_pop($test1);
+            $methodCode       = explode("/", $method->getMethodCode());
+            $latestMethodCode = array_pop($methodCode);
 
 
             if (
                 in_array($method->getCarrierCode(), $parentCarriers) &&
-                ! in_array($test, $myParcelMethods)
+                ! in_array($latestMethodCode, $myParcelMethods)
             ) {
                 return $method;
             }

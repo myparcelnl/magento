@@ -269,29 +269,37 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getPrice($settingPath): float
     {
-        $basePrice  = $this->myParcelHelper->getBasePrice();
-        $settingFee = 0;
-        $pieces     = explode("/", $settingPath);
+        $basePrice   = $this->myParcelHelper->getBasePrice();
+        $settingFee  = 0;
 
-        if ($pieces[1] == 'delivery' && isset($pieces[2]) && isset($pieces[3])) {
-            $settingFee += (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . $pieces[2] . '_' . 'fee');
-            $settingFee += (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . $pieces[3] . 'fee');
+        // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
+        $settingPath = explode("/", $settingPath);
+
+        // Check if the selected delivery options are delivery, only_recipient and signature
+        // delivery/only_recipient/signature
+        if ($settingPath[1] == 'delivery' && isset($settingPath[2]) && isset($settingPath[3])) {
+            $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . $settingPath[2] . '_' . 'fee');
+            $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . $settingPath[3] . 'fee');
         }
 
-        if ($pieces[1] == 'morning' || $pieces[1] == 'evening') {
-            $settingFee = (float) $this->myParcelHelper->getConfigValue($pieces[0] . '/' . $pieces[1] . '/' . 'fee');
+        // Check if the selected delivery is morning or evening and select the fee
+        if ($settingPath[1] == 'morning' || $settingPath[1] == 'evening') {
+            $settingFee = (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . 'fee');
 
-            if (isset($pieces[3])) {
-                $pieces[1] = 'delivery';
+            // change delivery type if there is a signature selected
+            if (isset($settingPath[3])) {
+                $settingPath[1] = 'delivery';
             }
-            unset($pieces[2]);
+            // Unset only_recipient to select the correct price
+            unset($settingPath[2]);
         }
 
-        if ($pieces[1] == 'mailbox' || $pieces[1] == 'digital_stamp') {
+        // For mailbox and digital stamp the base price should not be calculated
+        if ($settingPath[1] == 'mailbox' || $settingPath[1] == 'digital_stamp') {
             $basePrice = 0;
         }
 
-        $settingPath = implode("/", $pieces);
+        $settingPath = implode("/", $settingPath);
         $settingFee  += (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
 
         return $basePrice + $settingFee;
