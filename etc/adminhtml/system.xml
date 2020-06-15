@@ -33,7 +33,16 @@
                 </field>
                 <field id="label_description" translate="label comment" type="text" sortOrder="213" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Label description</label>
-                    <comment>This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.</comment>
+                    <comment>This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%.</comment>
+                </field>
+                <field id="country_of_origin" translate="label comment" type="text" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Country of origin</label>
+                    <comment>This country will appear on the international consignment labels. This is where your products are shipped from. You can use "NL", "BE", "DE" etc. This will be overridden by country of manufacture on product level.</comment>
+              </field>
+                <field id="create_concept_after_invoice" translate="label comment" type="select" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Auto export</label>
+                    <comment>Enable create label concept, when invoice is printed .</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="country_of_origin" translate="label comment" type="text" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Country of origin</label>

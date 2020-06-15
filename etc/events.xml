@@ -12,4 +12,3 @@
         <observer name="mypa_sales_model_service_quote_submit_before" instance="MyParcelNL\Magento\Model\Quote\SaveOrderBeforeSalesModelQuoteObserver"/>
     </event>
 </config>
-
