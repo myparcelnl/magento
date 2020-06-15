@@ -1,16 +1,5 @@
 <?php
-/**
- * All functions to handle insurance
- *
- * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
- *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
- * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
- * @since       File available since Release v0.1.0
- */
+
 
 namespace MyParcelNL\Magento\Model\Source;
 
@@ -19,20 +8,23 @@ use MyParcelNL\Magento\Model\Sales\Package;
 
 class DefaultOptions
 {
+    // Maximum characters length of company name.
+    const COMPANY_NAME_MAX_LENGTH = 50;
+
     /**
      * @var Data
      */
-    static private $helper;
+    private static $helper;
 
     /**
      * @var \Magento\Sales\Model\Order|\Magento\Quote\Model\Quote
      */
-    static private $order;
+    private static $order;
 
     /**
      * @var array
      */
-    static private $chosenOptions;
+    private static $chosenOptions;
 
     /**
      * Insurance constructor.
@@ -76,6 +68,20 @@ class DefaultOptions
         }
 
         return false;
+    }
+
+    /**
+     * @param $address
+     *
+     * @return string | null
+     */
+    public function getMaxCompanyName(?string $address): ?string
+    {
+        if (strlen($address) >= self::COMPANY_NAME_MAX_LENGTH) {
+            $address = substr($address, 0, 47) . '...';
+        }
+
+        return $address;
     }
 
     /**
@@ -128,8 +134,8 @@ class DefaultOptions
         return Package::PACKAGE_TYPE_NORMAL;
     }
 
-    private function isDigitalStampOrMailbox($option) {
-
+    private function isDigitalStampOrMailbox($option)
+    {
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
             return false;
@@ -144,7 +150,7 @@ class DefaultOptions
         ) {
             return true;
         }
-        
+
         return false;
     }
 }

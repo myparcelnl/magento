@@ -32,9 +32,10 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      * MyParcelSupportTab constructor
      *
      * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Framework\Registry $registry
-     * @param \Magento\Sales\Helper\Admin $adminHelper
-     * @param array $data
+     * @param \Magento\Framework\Registry             $registry
+     * @param \Magento\Sales\Helper\Admin             $adminHelper
+     * @param \MyParcelNL\Magento\Helper\Data         $helper
+     * @param array                                   $data
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,

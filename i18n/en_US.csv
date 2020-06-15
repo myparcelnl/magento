@@ -27,6 +27,5 @@ status_99,Inactive - Unknown
 delivery/signature_and_only_recipient_title,Do not deliver to the neighbors + signature
 morning/title,Morning delivery
 morning_signature/title,Morning delivery + signature
-pickup_express/title,Extra early at a PostNL location
 evening_signature/title,Evening delivery with signature
 evening/title,Evening delivery

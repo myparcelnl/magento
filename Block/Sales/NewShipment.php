@@ -16,7 +16,6 @@ namespace MyParcelNL\Magento\Block\Sales;
 
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use Magento\Framework\App\ObjectManager;
 
 class NewShipment extends AbstractItems
 {
@@ -105,7 +104,6 @@ class NewShipment extends AbstractItems
 
     /**
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCountry()
     {
