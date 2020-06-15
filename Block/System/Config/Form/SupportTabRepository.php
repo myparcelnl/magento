@@ -9,14 +9,16 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
  */
 
 namespace MyParcelNL\Magento\Block\System\Config\Form;
+
+use MyParcelNL\Magento\Helper\Data;
 
 class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
 {/**
@@ -52,6 +54,7 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      * Get the url of the stylesheet
      *
      * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getCssUrl()
     {
@@ -65,7 +68,7 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      *
      * @return string
      */
-    public function getVersion()
+    public function getModuleVersion()
     {
         return $this->helper->getVersion();
     }

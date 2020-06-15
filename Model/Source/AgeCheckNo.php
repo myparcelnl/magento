@@ -30,7 +30,6 @@ class AgeCheckNo implements ArrayInterface
      */
     static private $helper;
 
-
     /**
      * Insurance constructor.
      *
@@ -49,7 +48,7 @@ class AgeCheckNo implements ArrayInterface
      */
     public function getDefault($option)
     {
-        $settings = self::$helper->getStandardConfig('options');
+        $settings = self::$helper->getStandardConfig('default_options');
 
         return $settings[$option . '_active'] == '1';
     }

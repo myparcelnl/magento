@@ -2,27 +2,27 @@
     "name": "myparcelnl/magento",
     "description": "A Magento 2 module that creates MyParcel labels",
     "type": "magento2-module",
-    "version": "3.3.0",
+    "version": "4.0.0-beta.1",
     "homepage": "https://www.myparcel.nl",
-    "keywords": ["MyParcel", "My Parcel", "Post NL", "PostNL", "Magento 2"],
+    "keywords": ["MyParcel", "myparcel", "PostNL", "postnl", "Magento 2"],
     "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "Reindert Vetter",
-            "email": "support@myparcel.nl",
+            "email": "info@myparcel.nl",
             "homepage": "https://www.myparcel.nl",
             "role": "Developer"
         },
         {
             "name": "Richard Perdaan",
-            "email": "support@myparcel.nl",
+            "email": "info@myparcel.nl",
             "homepage": "https://www.myparcel.nl",
             "role": "Developer"
         }
     ],
     "require": {
         "php": "~5.6.5 || ^7.0",
-        "myparcelnl/sdk": "~3.1",
+        "myparcelnl/sdk": "~5.0",
         "magento/product-community-edition": "~2.3.0"
     },
     "require-dev": {

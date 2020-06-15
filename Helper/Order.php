@@ -7,7 +7,7 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2016 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
@@ -23,13 +23,13 @@ class Order extends AbstractHelper
     /**
      * Checks if the given shipping method is a pickup location
      *
-     * @param $method
+     * @param $myparcelDeliveryOptions
      *
      * @return bool
      */
-    public function isPickupLocation($method)
+    public function isPickupLocation($myparcelDeliveryOptions)
     {
-        if (strpos($method, 'pickup') !== false) {
+        if(is_array($myparcelDeliveryOptions) && key_exists('isPickup', $myparcelDeliveryOptions) && $myparcelDeliveryOptions['isPickup']){
             return true;
         }
 

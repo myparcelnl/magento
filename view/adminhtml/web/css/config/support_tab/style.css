@@ -62,9 +62,6 @@
     background: #f1f1f1;
     text-decoration: none;
 }
-.myparcel_progress_column_title {
-    border: 1px solid rgb(225, 228, 232);
-}
 .myparcel_column a:hover {
     text-decoration: none;
 }

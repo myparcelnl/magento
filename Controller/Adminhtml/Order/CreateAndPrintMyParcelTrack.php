@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
 use Magento\Framework\App\ResponseInterface;
@@ -17,15 +15,15 @@ use MyParcelNL\Sdk\src\Exception\MissingFieldException;
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
 class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 {
-    const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
+    const PATH_MODEL_ORDER     = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
     /**
@@ -43,7 +41,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
 
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection = new MagentoOrderCollection(
+        $this->orderCollection       = new MagentoOrderCollection(
             $context->getObjectManager(),
             $this->getRequest(),
             null
@@ -104,8 +102,9 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             ->setOptionsFromParameters()
             ->setNewMagentoShipment();
 
-        if (!$this->orderCollection->hasShipment()) {
+        if (! $this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
+
             return $this;
         }
 

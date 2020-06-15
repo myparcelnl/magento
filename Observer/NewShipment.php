@@ -5,8 +5,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
@@ -74,6 +74,7 @@ class NewShipment implements ObserverInterface
     public function execute(Observer $observer)
     {
         if ($this->request->getParam('mypa_create_from_observer')) {
+            $this->request->setParams(['myparcel_track_email' => true]);
             $shipment = $observer->getEvent()->getShipment();
             $this->setMagentoAndMyParcelTrack($shipment);
         }
@@ -89,7 +90,9 @@ class NewShipment implements ObserverInterface
     private function setMagentoAndMyParcelTrack(Shipment $shipment)
     {
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
-        $amount  = $options['label_amount'];
+
+        // The reason that $amount is hard coded is because this is part of multicollo, this is not possible in the Belguim plugin. However, a preparation has been made for this.
+        $amount = $options['label_amount'];
         /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
@@ -103,12 +106,11 @@ class NewShipment implements ObserverInterface
 
             $trackTraceHolders[] = $trackTraceHolder;
 
-            $i ++;
+            $i++;
         }
 
         // All multicollo holders are the same, so use the first for the SDK
         $firstTrackTraceHolder = $trackTraceHolders[0];
-
         $this->orderCollection->myParcelCollection
             ->addMultiCollo($firstTrackTraceHolder->consignment, $amount ?? self::DEFAULT_LABEL_AMOUNT)
             ->createConcepts()
@@ -137,7 +139,6 @@ class NewShipment implements ObserverInterface
     private function updateTrackGrid($shipment)
     {
         $aHtml = $this->orderCollection->getHtmlForGridColumns($shipment->getOrder()->getId());
-
         $shipment->getOrder()
                  ->setData('track_status', $aHtml['track_status'])
                  ->setData('track_number', $aHtml['track_number'])

@@ -9,8 +9,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl/magento
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 2.0.0
@@ -28,56 +28,32 @@ interface PackageInterface
     /**
      * @param $weight
      */
-    public function setWeight($weight);
+    public function setWeight(int $weight);
     /**
      * @param int $weight
      */
-    public function addWeight($weight);
+    public function addWeight(int $weight);
     /**
      * @return bool
      */
-    public function isMailboxActive();
+    public function isAllProductsFit();
     /**
-     * @param bool $mailbox_active
+     * @param bool $all_products_fit
      */
-    public function setMailboxActive($mailbox_active);
+    public function setAllProductsFit(bool $all_products_fit);
+
     /**
-     * @return bool
-     */
-    public function isAllProductsFitInMailbox();
-    /**
-     * @param bool $all_products_fit_in_mailbox
-     */
-    public function setAllProductsFitInMailbox($all_products_fit_in_mailbox);
-    /**
-     * @return bool
-     */
-    public function isShowMailboxWithOtherOptions();
-    /**
-     * @param bool $show_mailbox_with_other_options
-     * @return $this
-     */
-    public function setShowMailboxWithOtherOptions($show_mailbox_with_other_options);
-    /**
-     * @return int
-     */
-    public function getMaxWeight();
-    /**
-     * @param int $max_weight
-     */
-    public function setMaxWeight($max_weight);
-    /**
-     * package = 1, mailbox = 2, letter = 3
+     * package = 1
      *
      * @return int
      */
     public function getPackageType();
     /**
-     * package = 1, mailbox = 2, letter = 3
+     * package = 1
      *
      * @param int $package_type
      */
-    public function setPackageType($package_type);
+    public function setPackageType(int $package_type);
     /**
      * @return string
      */
@@ -86,5 +62,5 @@ interface PackageInterface
      * @param string $current_country
      * @return Package
      */
-    public function setCurrentCountry($current_country);
+    public function setCurrentCountry(string $current_country);
 }

@@ -13,8 +13,8 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
@@ -70,7 +70,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
         if ($this->orderCollection->apiKeyIsCorrect() !== true) {
-            $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
+            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
 

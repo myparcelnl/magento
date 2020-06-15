@@ -9,8 +9,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl/magento
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 2.0.0
@@ -57,17 +57,22 @@ class Package extends Data implements PackageInterface
     /**
      * @var bool
      */
-    private $all_products_fit_in_mailbox = true;
+    private $all_products_fit_in_mailbox = false;
+
+    /**
+     * @var int
+     */
+    private $mailbox_procent = 0;
 
     /**
      * @var bool
      */
-    private $all_products_fit_in_digital_stamp = true;
+    private $all_products_fit_in_digital_stamp = false;
 
     /**
      * @var bool
      */
-    private $show_mailbox_with_other_options = true;
+    private $all_products_fit = true;
 
     /**
      * @var string
@@ -80,11 +85,6 @@ class Package extends Data implements PackageInterface
     private $package_type = null;
 
     /**
-     * @var bool
-     */
-    private $disableCheckout = false;
-
-    /**
      * @return int
      */
     public function getWeight()
@@ -95,7 +95,7 @@ class Package extends Data implements PackageInterface
     /**
      * @param $weight
      */
-    public function setWeight($weight)
+    public function setWeight(int $weight)
     {
         $this->weight = (int) $weight;
     }
@@ -103,114 +103,15 @@ class Package extends Data implements PackageInterface
     /**
      * @param int $weight
      */
-    public function addWeight($weight)
+    public function addWeight(int $weight)
     {
         $this->weight += (int) $weight;
     }
 
     /**
-     * @return bool
-     */
-    public function isMailboxActive()
-    {
-        return $this->mailbox_active;
-    }
-
-    /**
-     * @param bool $mailbox_active
-     */
-    public function setMailboxActive($mailbox_active)
-    {
-        $this->mailbox_active = $mailbox_active;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isDigitalStampActive()
-    {
-        return $this->digital_stamp_active;
-    }
-
-    /**
-     * @param bool $digital_stamp_active
-     */
-    public function setDigitalStampActive($digital_stamp_active)
-    {
-        $this->digital_stamp_active = $digital_stamp_active;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isAllProductsFitInMailbox()
-    {
-        return $this->all_products_fit_in_mailbox;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isAllProductsFitInDigitalStamp()
-    {
-        return $this->all_products_fit_in_digital_stamp;
-    }
-
-    /**
-     * @param bool $all_products_fit_in_mailbox
-     * @param null $package_type
-     */
-    public function setAllProductsFitInMailbox($all_products_fit_in_mailbox, $package_type = null)
-    {
-        if ($all_products_fit_in_mailbox === false && $package_type === null) {
-            $this->all_products_fit_in_mailbox = $all_products_fit_in_mailbox;
-        }
-
-        if ($all_products_fit_in_mailbox === false && $package_type === 'digital_stamp') {
-            $this->all_products_fit_in_digital_stamp = $all_products_fit_in_mailbox;
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    public function isShowMailboxWithOtherOptions()
-    {
-        return $this->show_mailbox_with_other_options;
-    }
-
-    /**
-     * @param bool $show_mailbox_with_other_options
-     *
-     * @return $this
-     */
-    public function setShowMailboxWithOtherOptions($show_mailbox_with_other_options)
-    {
-        $this->show_mailbox_with_other_options = $show_mailbox_with_other_options;
-
-        return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function getDisableCheckout(): bool
-    {
-        return $this->disableCheckout;
-    }
-
-    /**
-     * @param bool $disableCheckout
-     */
-    public function setDisableCheckout(bool $disableCheckout)
-    {
-        $this->disableCheckout = $disableCheckout;
-    }
-
-    /**
      * @return int
      */
-    public function getMaxWeight()
+    public function getMaxWeight(): int
     {
         return (int) $this->max_weight;
     }
@@ -218,13 +119,112 @@ class Package extends Data implements PackageInterface
     /**
      * @param int $max_weight
      */
-    public function setMaxWeight($max_weight)
+    public function setMaxWeight(int $max_weight)
     {
         $this->max_weight = $max_weight;
     }
 
+
     /**
-     * package = 1, mailbox = 2, letter = 3, digital_stamp = 4
+     * @return bool
+     */
+    public function isAllProductsFitInMailbox(): bool
+    {
+        return $this->all_products_fit_in_mailbox;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMailboxActive(): bool
+    {
+        return $this->mailbox_active;
+    }
+
+    /**
+     * @param bool $mailbox_active
+     */
+    public function setMailboxActive(bool $mailbox_active)
+    {
+        $this->mailbox_active = $mailbox_active;
+    }
+
+    /**
+     * @param float $procent
+     */
+    public function setMailboxProcent(float $procent)
+    {
+        $this->mailbox_procent = $procent;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getMailboxProcent(): bool
+    {
+        return $this->mailbox_procent;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllProductsFitInDigitalStamp(): bool
+    {
+        return $this->all_products_fit_in_digital_stamp;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isDigitalStampActive(): bool
+    {
+        return $this->digital_stamp_active;
+    }
+
+    /**
+     * @param bool $digital_stamp_active
+     */
+    public function setDigitalStampActive(bool $digital_stamp_active)
+    {
+        $this->digital_stamp_active = $digital_stamp_active;
+    }
+
+    /**
+     * @param bool $all_products_fit_in_mailbox
+     * @param null $package_type
+     */
+    public function setAllProductsFitInPackageType(bool $all_products_fit_in_mailbox, $package_type = null)
+    {
+        if ($all_products_fit_in_mailbox === true && $package_type === 'mailbox') {
+            $this->all_products_fit_in_mailbox = $all_products_fit_in_mailbox;
+        }
+
+        if ($all_products_fit_in_mailbox === true && $package_type === 'digital_stamp') {
+            $this->all_products_fit_in_digital_stamp = $all_products_fit_in_mailbox;
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllProductsFit(): bool
+    {
+        return $this->all_products_fit;
+    }
+
+    /**
+     * @param bool $all_products_fit
+     */
+    public function setAllProductsFit(bool $all_products_fit)
+    {
+        if ($all_products_fit === false) {
+            $this->all_products_fit = $all_products_fit;
+        }
+    }
+
+
+    /**
+     * package = 1
      *
      * @return int
      */
@@ -234,11 +234,11 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * package = 1, mailbox = 2, letter = 3, digital_stamp = 4
+     * package = 1
      *
      * @param int $package_type
      */
-    public function setPackageType($package_type)
+    public function setPackageType(int $package_type)
     {
         $this->package_type = $package_type;
     }
@@ -246,20 +246,16 @@ class Package extends Data implements PackageInterface
     /**
      * @return string
      */
-    public function getCurrentCountry()
+    public function getCurrentCountry(): string
     {
         return $this->current_country;
     }
 
     /**
-     * @param string $current_country
-     *
-     * @return Package
+     * @param string|null $current_country
      */
-    public function setCurrentCountry($current_country)
+    public function setCurrentCountry(?string $current_country)
     {
         $this->current_country = $current_country;
-
-        return $this;
     }
 }

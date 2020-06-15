@@ -5,8 +5,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
@@ -15,6 +15,9 @@
 namespace MyParcelNL\Magento\Block\Sales;
 
 use Magento\Backend\Block\Template\Context;
+use Magento\Framework\Registry;
+use Magento\Sales\Model\Order\Shipment;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class ShipmentAction extends OrdersAction
 {
@@ -40,9 +43,9 @@ class ShipmentAction extends OrdersAction
      */
     public function __construct(
         Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Sales\Model\Order\Shipment $shipment,
-        \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment,
+        Registry $registry,
+        Shipment $shipment,
+        AbstractConsignment $consignment,
         array $data = []
     ) {
         // Set shipment and order

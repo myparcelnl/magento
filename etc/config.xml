@@ -5,96 +5,101 @@
  * See COPYING.txt for license details.
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
+        <dev>
+            <js>
+                <minify_exclude>
+                    <leaflet>https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet.js</leaflet>
+                </minify_exclude>
+            </js>
+        </dev>
         <myparcelnl_magento_general>
-            <basic_settings>
+            <print>
                 <paper_type>A4</paper_type>
-                <weight_indication>gram</weight_indication>
                 <label_description>%order_nr%</label_description>
                 <country_of_origin>NL</country_of_origin>
                 <create_concept_after_invoice>0</create_concept_after_invoice>
-            </basic_settings>
+            </print>
+            <shipping_methods>
+                <methods>tablerate</methods>
+            </shipping_methods>
+            <delivery_titles>
+                <delivery_title>Thuis of op het werk bezorgd</delivery_title>
+                <standard_delivery_title>Standaardlevering</standard_delivery_title>
+                <signature_title>Handtekening voor ontvangst</signature_title>
+                <only_recipient_title>Niet bij de buren bezorgen</only_recipient_title>
+                <digital_stamp_title>Digitale postzegel</digital_stamp_title>
+                <mailbox_title>Brievenbuspakje</mailbox_title>
+                <morning_title>Ochtendlevering</morning_title>
+                <evening_title>Avondlevering</evening_title>
+                <mailbox_title>Brievenbuspakje</mailbox_title>
+                <digital_stamp_title>Digitale postzegel</digital_stamp_title>
+                <pickup_title>Ophalen bij een PostNL locatie</pickup_title>
+                <pickup_list_button_title>List</pickup_list_button_title>
+                <pickup_map_button_title>Map</pickup_map_button_title>
+            </delivery_titles>
         </myparcelnl_magento_general>
-        <myparcelnl_magento_standard>
-            <options>
-                <only_recipient_active>0</only_recipient_active>
-                <only_recipient_from_price>1</only_recipient_from_price>
+        <myparcelnl_magento_postnl_settings>
+            <default_options>
                 <signature_active>0</signature_active>
                 <signature_from_price>1</signature_from_price>
+                <only_recipient_active>0</only_recipient_active>
+                <only_recipient_from_price>1</only_recipient_from_price>
                 <return_active>0</return_active>
                 <return_from_price>1</return_from_price>
                 <large_format_active>0</large_format_active>
                 <large_format_from_price>1</large_format_from_price>
                 <age_check_active>0</age_check_active>
-                <age_check_from_price>0</age_check_from_price>
                 <insurance_100_active>0</insurance_100_active>
                 <insurance_100_from_price>1</insurance_100_from_price>
                 <insurance_250_active>0</insurance_250_active>
                 <insurance_250_from_price>1</insurance_250_from_price>
                 <insurance_500_active>0</insurance_500_active>
                 <insurance_500_from_price>1</insurance_500_from_price>
-            </options>
-        </myparcelnl_magento_standard>
-        <myparcelnl_magento_checkout>
+            </default_options>
             <general>
-                <checkout_active>1</checkout_active>
-                <deliverydays_window>5</deliverydays_window>
+                <deliverydays_window>14</deliverydays_window>
                 <cutoff_time>15,30,00</cutoff_time>
+                <dropoff_days>1,2,3,4,5</dropoff_days>
                 <monday_delivery_active>0</monday_delivery_active>
                 <saturday_cutoff_time>14,30,00</saturday_cutoff_time>
-                <dropoff_days>1,2,3,4,5</dropoff_days>
                 <dropoff_delay>0</dropoff_delay>
-                <color_base>#01bbc5</color_base>
-                <color_select>#3399cc</color_select>
-                <shipping_methods>tablerate</shipping_methods>
             </general>
             <delivery>
-                <delivery_title>Thuis of op het werk bezorgd</delivery_title>
-                <standard_delivery_title>Standaardlevering</standard_delivery_title>
-                <only_recipient_active>1</only_recipient_active>
-                <only_recipient_title>Niet bij de buren bezorgen</only_recipient_title>
-                <only_recipient_fee>0.29</only_recipient_fee>
+                <active>1</active>
                 <signature_active>1</signature_active>
-                <signature_title>Handtekening voor ontvangst</signature_title>
                 <signature_fee>0.36</signature_fee>
-                <signature_and_only_recipient_fee>0.44</signature_and_only_recipient_fee>
+                <only_recipient_active>1</only_recipient_active>
+                <only_recipient_fee>0.29</only_recipient_fee>
+                <saturday_active>0</saturday_active>
+                <saturday_title>Zaterdaglevering</saturday_title>
+                <saturday_fee>2</saturday_fee>
             </delivery>
             <digital_stamp>
                 <active>0</active>
                 <default_weight>0</default_weight>
-                <title>Digitale postzegel</title>
                 <fee>0</fee>
             </digital_stamp>
             <mailbox>
                 <active>0</active>
                 <other_options>1</other_options>
-                <title>Brievenbuspakje</title>
                 <weight>2000</weight>
                 <fee>3.50</fee>
             </mailbox>
             <morning>
                 <active>1</active>
-                <title>Ochtendlevering</title>
                 <fee>10</fee>
             </morning>
             <evening>
                 <active>1</active>
-                <title>Avondlevering</title>
                 <fee>1.25</fee>
             </evening>
             <pickup>
                 <active>1</active>
-                <title>Ophalen bij een PostNL locatie</title>
                 <fee>0</fee>
             </pickup>
-            <belgium_pickup>
-                <active>1</active>
-                <title>Ophalen bij een PostNL locatie</title>
-                <fee>0</fee>
-            </belgium_pickup>
-        </myparcelnl_magento_checkout>
+        </myparcelnl_magento_postnl_settings>
         <sales_email>
             <track>
                 <enabled>1</enabled>

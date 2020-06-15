@@ -10,8 +10,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
@@ -58,7 +58,6 @@ class UpdateStatus
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Exception
      */
     public function execute()
     {
@@ -74,8 +73,7 @@ class UpdateStatus
     /**
      * Get all order to update the data
      *
-     * @return \MyParcelNL\Magento\Cron\UpdateStatus
-     * @throws \Exception
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function setOrdersToUpdate()
     {
@@ -113,8 +111,6 @@ class UpdateStatus
      * Get collection from order ids
      *
      * @param $orderIds int[]
-     *
-     * @throws \Exception
      */
     private function addOrdersToCollection($orderIds)
     {

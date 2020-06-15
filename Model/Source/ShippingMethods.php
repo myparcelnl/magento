@@ -9,8 +9,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
@@ -18,9 +18,8 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-
-use \Magento\Framework\App\Config\ScopeConfigInterface;
-use \Magento\Shipping\Model\Config;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Shipping\Model\Config;
 
 class ShippingMethods implements \Magento\Framework\Option\ArrayInterface
 {
@@ -40,8 +39,7 @@ class ShippingMethods implements \Magento\Framework\Option\ArrayInterface
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         Config $deliveryModelConfig
-    )
-    {
+    ) {
         $this->scopeConfig = $scopeConfig;
         $this->deliveryModelConfig = $deliveryModelConfig;
     }

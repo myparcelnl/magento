@@ -5,8 +5,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
@@ -62,7 +62,7 @@ class ShipmentsAction extends Template
      */
     public function getOrderAjaxUrl()
     {
-        return $this->_urlBuilder->getUrl('myparcelnl/order/CreateAndPrintMyParcelTrack');
+        return $this->_urlBuilder->getUrl('myparcel/order/CreateAndPrintMyParcelTrack');
     }
 
     /**
@@ -72,7 +72,7 @@ class ShipmentsAction extends Template
      */
     public function getShipmentAjaxUrl()
     {
-        return $this->_urlBuilder->getUrl('myparcelnl/shipment/CreateAndPrintMyParcelTrack');
+        return $this->_urlBuilder->getUrl('myparcel/shipment/CreateAndPrintMyParcelTrack');
     }
 
     /**
@@ -82,7 +82,7 @@ class ShipmentsAction extends Template
      */
     public function getAjaxUrlSendReturnMail()
     {
-        return $this->_urlBuilder->getUrl('myparcelnl/order/SendMyParcelReturnMail');
+        return $this->_urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail');
     }
 
     /**
@@ -90,9 +90,9 @@ class ShipmentsAction extends Template
      *
      * @return string
      */
-    public function getBasicSettings()
+    public function getPrintSettings()
     {
-        $settings = $this->helper->getGeneralConfig('basic_settings');
+        $settings = $this->helper->getGeneralConfig('print');
 
         return json_encode($settings);
     }
