@@ -27,6 +27,7 @@ class DeliverySettings implements DeliverySettingsInterface
 
     /**
      * Checkout constructor.
+     *
      * @param Checkout $settings
      */
     public function __construct(

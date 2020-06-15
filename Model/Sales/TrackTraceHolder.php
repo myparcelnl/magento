@@ -20,6 +20,7 @@ use Magento\Sales\Model\Order;
 use Magento\Tests\NamingConvention\true\mixed;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
@@ -34,8 +35,15 @@ class TrackTraceHolder
     /**
      * Track title showing in Magento
      */
-    const MYPARCEL_TRACK_TITLE  = 'MyParcel';
-    const MYPARCEL_CARRIER_CODE = 'myparcelnl';
+    const MYPARCEL_TRACK_TITLE    = 'MyParcel';
+    const MYPARCEL_CARRIER_CODE   = 'myparcelnl';
+    const ORDER_NUMBER            = '%order_nr%';
+    const DELIVERY_DATE           = '%delivery_date%';
+    const PRODUCT_ID              = '%product_id%';
+    const PRODUCT_NAME            = '%product_name%';
+    const PRODUCT_QTY             = '%product_qty%';
+    const ARTICLE_SHORT_NAME      = '%article_short_name%';
+    const ARTICLE_NUMBER_SUPPLIER = '%article_number_supplier%';
 
     /**
      * @var ObjectManagerInterface
@@ -104,7 +112,7 @@ class TrackTraceHolder
             ->setCarrierCode(self::MYPARCEL_CARRIER_CODE)
             ->setTitle(self::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber('concept');
+            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY);
 
         return $this;
     }
@@ -173,7 +181,7 @@ class TrackTraceHolder
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($magentoTrack->getShipment()->getOrder()->getIncrementId())
+            ->setLabelDescription($this->getLabelDescription($magentoTrack, $checkoutData))
             ->setDeliveryDate($this->convertDeliveryDate($checkoutData))
             ->setDeliveryType($deliveryType)
             ->setPickupAddressFromCheckout($checkoutData)
@@ -234,6 +242,69 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
+     * @param string|null          $checkoutData
+     *
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function getLabelDescription($magentoTrack, ?string $checkoutData): string
+    {
+        $order = $magentoTrack->getShipment()->getOrder();
+
+        $labelDescription = $this->helper->getGeneralConfig(
+            'basic_settings/label_description',
+            $order->getStoreId()
+        );
+
+        if (! $labelDescription) {
+            return '';
+        }
+
+        $productInfo  = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
+        $deliveryDate = date('d-m-Y', strtotime($this->convertDeliveryDate($checkoutData)));
+
+        $labelDescription = str_replace(
+            [
+                self::ORDER_NUMBER,
+                self::DELIVERY_DATE,
+                self::PRODUCT_ID,
+                self::PRODUCT_NAME,
+                self::PRODUCT_QTY,
+                self::ARTICLE_SHORT_NAME,
+                self::ARTICLE_NUMBER_SUPPLIER
+            ],
+            [
+                $order->getIncrementId(),
+                $deliveryDate,
+                $this->getProductInfo($productInfo, 'product_id'),
+                $this->getProductInfo($productInfo, 'name'),
+                $this->getProductInfo($productInfo, 'qty'),
+                $this->getProductInfo($productInfo, 'so_kortenaam'),
+                $this->getProductInfo($productInfo, 'so_artikelnummerleverancier')
+            ],
+            $labelDescription
+        );
+
+        return $labelDescription;
+    }
+
+    /**
+     * @param $productInfo
+     * @param $field
+     *
+     * @return string|null
+     */
+    private function getProductInfo(array $productInfo, string $field): ?string
+    {
+        if ($productInfo) {
+            return $productInfo[0][$field] ?? '';
+        }
+
+        return null;
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
      *
      * @return $this
      *
@@ -255,8 +326,8 @@ class TrackTraceHolder
                 ->setAmount($product['qty'])
                 ->setWeight($this->getWeightTypeOfOption($product['weight']))
                 ->setItemValue($product['price'] * 100)
-                ->setClassification((int) $this->hsCode('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry('NL');
+                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
+                ->setCountry($this->getCountryOfOrigin($product['product_id']));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -285,22 +356,43 @@ class TrackTraceHolder
     }
 
     /**
+     * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
+     *
+     * @param $product_id
+     *
+     * @return string
+     */
+    public function getCountryOfOrigin(int $product_id): string
+    {
+        $product                     = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')->getById($product_id);
+        $productCountryOfManufacture = $product->getCountryOfManufacture();
+
+        if ($productCountryOfManufacture) {
+            return $productCountryOfManufacture;
+        }
+
+        return $this->helper->getGeneralConfig('basic_settings/country_of_origin');
+    }
+
+    /**
      * @param string $tableName
      * @param string $entityId
      * @param string $column
+     * @param bool   $isMagentoAttr
      *
      * @return string|null
      */
-    private function hsCode(string $tableName, string $entityId, string $column): ?string
+    private function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
-        $objectManager  = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource       = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $connection     = $resource->getConnection();
-        $attributeId    = $this->getAttributeId(
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $connection    = $resource->getConnection();
+        $attributeId   = $this->getAttributeId(
             $connection,
             $resource->getTableName('eav_attribute'),
             $column
         );
+
         $attributeValue = $this
             ->getValueFromAttribute(
                 $connection,
