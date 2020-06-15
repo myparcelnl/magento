@@ -19,10 +19,10 @@
 namespace MyParcelNL\Magento\Model\Rate;
 
 use Countable;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use Magento\Checkout\Model\Session;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
-use Magento\Checkout\Model\Session;
+use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
@@ -106,7 +106,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             $this->addMyParcelRates($result);
         } elseif ($result instanceof \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult) {
             $this->_rates[] = $result;
-
         } elseif ($result instanceof \Magento\Shipping\Model\Rate\Result) {
             $rates = $result->getAllRates();
             foreach ($rates as $rate) {
@@ -179,6 +178,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         if (! in_array($currentCarrier, $this->parentMethods)) {
             return;
         }
+
+        $this->package->disableCheckoutWithProduct($this->products);
 
         $this->getDigitalStampProductSetting();
         if ($this->package->fitInDigitalStamp()) {
