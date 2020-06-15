@@ -262,6 +262,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Create price
      * Calculate price if multiple options are chosen
+     * @todo: Several improvements are possible within this method
      *
      * @param $settingPath
      *
