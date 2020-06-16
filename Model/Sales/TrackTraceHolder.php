@@ -231,6 +231,15 @@ class TrackTraceHolder
     }
 
     /**
+     *
+     * @return bool
+     */
+    private function checkLargeFormat(): bool
+    {
+        return self::$defaultOptions->getDefaultLargeFormat('large_format');
+    }
+
+    /**
      * Override to check if key isset
      *
      * @param string $apiKey

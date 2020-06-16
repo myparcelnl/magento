@@ -88,6 +88,28 @@ class DefaultOptions
      *
      * @return bool
      */
+    public function getDefaultLargeFormat(string $option): bool
+    {
+        $price    = self::$order->getGrandTotal();
+        $weight   = self::$order->getWeight();
+
+        $settings = self::$helper->getStandardConfig('default_options');
+        if (isset($settings[$option . '_active']) &&
+            $settings[$option . '_active'] == 'weight' &&
+            $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
+        ) {
+            return true;
+        }
+
+        if (isset($settings[$option . '_active']) &&
+            $settings[$option . '_active'] == 'price' &&
+            $price >= $settings[$option . '_from_price']
+        ) {
+            return true;
+        }
+
+        return false;
+
     public function getDefaultOptionsWithoutPrice(string $option): bool
     {
         $settings = self::$helper->getStandardConfig('default_options');

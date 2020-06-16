@@ -48,7 +48,7 @@
                 <only_recipient_from_price>1</only_recipient_from_price>
                 <return_active>0</return_active>
                 <return_from_price>1</return_from_price>
-                <large_format_active>0</large_format_active>
+                <large_format_active>No</large_format_active>
                 <large_format_from_price>1</large_format_from_price>
                 <age_check_active>0</age_check_active>
                 <insurance_100_active>0</insurance_100_active>
