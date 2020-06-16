@@ -8,7 +8,7 @@ use Magento\Framework\Option\ArrayInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
 
-class PackageTypeCheck implements ArrayInterface
+class LargeFormatOptions implements ArrayInterface
 {
     /**
      * @var Data
