@@ -89,6 +89,7 @@ class MagentoCollection implements MagentoCollectionInterface
         'age_check'                         => null,
         'insurance'                         => null,
         'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
+        'digital_stamp_weight'              => null,
     ];
 
     /**

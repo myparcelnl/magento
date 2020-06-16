@@ -61,7 +61,6 @@ class View extends AbstractOrder
 
         if ($this->helper->isPickupLocation($data)) {
             if (is_array($data) && key_exists('pickupLocation', $data)) {
-
                 $dateTime = date('d-m-Y H:i', strtotime($data['date']));
 
                 $html .= __($data['carrier'] . ' location:') . ' ' . $dateTime;
@@ -73,10 +72,12 @@ class View extends AbstractOrder
                 /** Old data from orders before version 1.6.0 */
                 $html .= __('MyParcel options data not found');
             }
-
-
         } else {
             if (is_array($data) && key_exists('date', $data)) {
+                if (key_exists('packageType', $data)) {
+                    $html .= __($data['packageType'] . ' ');
+                }
+
                 $dateTime = date('d-m-Y H:i', strtotime($data['date']));
                 $html .= __('Deliver:') . ' ' . $dateTime;
 

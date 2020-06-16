@@ -22,6 +22,7 @@ use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 
 class NewShipment extends AbstractItems
 {
@@ -86,12 +87,33 @@ class NewShipment extends AbstractItems
     }
 
     /**
+     * Get default value of age check
+     *
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function getDefaultOptionsWithoutPrice(string $option): bool
+    {
+        return $this->defaultOptions->getDefaultOptionsWithoutPrice($option);
+    }
+
+    /**
      * Get default value of insurance based on order grand total
      * @return int
      */
     public function getDefaultInsurance()
     {
         return $this->defaultOptions->getDefaultInsurance();
+    }
+
+    /**
+     * Get default value of insurance based on order grand total
+     * @return int
+     */
+    public function getDigitalStampWeight()
+    {
+        return $this->defaultOptions->getDigitalStampDefaultWeight();
     }
 
     /**
