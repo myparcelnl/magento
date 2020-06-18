@@ -149,11 +149,11 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * @param $orderIds
+     * @param array $orderIds
      *
      * @return array
      */
-    private function isCorrectAddress($orderIds): array
+    private function isCorrectAddress(array $orderIds): array
     {
         $objectManager = ObjectManager::getInstance();
         $order         = $objectManager->get('\Magento\Sales\Model\Order');

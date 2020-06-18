@@ -91,7 +91,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         try {
             $this->shipmentCollection
-                ->setOptionsFromParameters() // hierna moet de check gedaan worden of shipment gemaakt kan worden
+                ->setOptionsFromParameters()
                 ->setMagentoTrack()
                 ->setMyParcelTrack()
                 ->createMyParcelConcepts()
