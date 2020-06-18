@@ -25,7 +25,6 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutAlias;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
@@ -86,12 +85,16 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $postcode           = $order->getShippingAddress()->getPostcode();
         $destinationCountry = $order->getShippingAddress()->getCountryId();
 
+        if ($destinationCountry != AbstractConsignment::CC_NL && $destinationCountry != AbstractConsignment::CC_BE) {
+            return $this;
+        }
+
         if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
-            $order->setData(CheckoutAlias::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
+            $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
         }
 
         if (! ValidatePostalCode::validate($postcode, $destinationCountry)) {
-            $order->setData(CheckoutAlias::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
+            $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
         }
 
         if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS && $this->hasMyParcelDeliveryOptions($quote))) {
