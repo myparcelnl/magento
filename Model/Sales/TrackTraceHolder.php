@@ -178,7 +178,7 @@ class TrackTraceHolder
                 ->setFullStreet($address->getData('street'))
                 ->setPostalCode($address->getPostcode());
         } catch (\Exception $e) {
-            $errorHuman = 'An error has occurred while validating the order number ' . $shipment->getOrder()->getIncrementId() . '. Check address.';
+            $errorHuman = 'An error has occurred while validating order number ' . $shipment->getOrder()->getIncrementId() . '. Check address.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman . '-' . $e);
 
