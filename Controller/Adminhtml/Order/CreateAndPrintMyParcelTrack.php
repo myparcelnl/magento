@@ -100,7 +100,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
-        $orderIds = $this->isCorrectAddress($orderIds);
+        $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
         $this->orderCollection
@@ -153,7 +153,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      *
      * @return array
      */
-    private function isCorrectAddress(array $orderIds): array
+    private function filterCorrectAddress(array $orderIds): array
     {
         $objectManager = ObjectManager::getInstance();
         $order         = $objectManager->get('\Magento\Sales\Model\Order');
