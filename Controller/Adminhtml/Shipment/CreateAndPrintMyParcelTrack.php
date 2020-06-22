@@ -2,8 +2,8 @@
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Shipment;
 
-use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 
@@ -106,7 +106,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                 ->updateMagentoTrack()
                 ->sendTrackEmailFromShipments()
                 ->downloadPdfOfLabels();
-
         } catch (\Exception $e) {
             if (count($this->messageManager->getMessages()) == 0) {
                 $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));

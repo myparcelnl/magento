@@ -29,7 +29,7 @@ class Order extends AbstractHelper
      */
     public function isPickupLocation($myparcelDeliveryOptions)
     {
-        if(is_array($myparcelDeliveryOptions) && key_exists('isPickup', $myparcelDeliveryOptions) && $myparcelDeliveryOptions['isPickup']){
+        if (is_array($myparcelDeliveryOptions) && key_exists('isPickup', $myparcelDeliveryOptions) && $myparcelDeliveryOptions['isPickup']) {
             return true;
         }
 

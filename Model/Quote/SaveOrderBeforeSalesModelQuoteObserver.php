@@ -25,10 +25,10 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutAlias;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
-use MyParcelNL\Sdk\src\Helper\SplitStreet;
+use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
+use MyParcelNL\Sdk\src\Helper\ValidateStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
@@ -81,14 +81,20 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
             return $this;
         }
 
-        $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
-
+        $fullStreet         = implode(' ', $order->getShippingAddress()->getStreet());
+        $postcode           = $order->getShippingAddress()->getPostcode();
         $destinationCountry = $order->getShippingAddress()->getCountryId();
 
-        if ($destinationCountry == AbstractConsignment::CC_NL &&
-            ! SplitStreet::isCorrectStreet($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)
-        ) {
-            $order->setData(CheckoutAlias::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
+        if ($destinationCountry != AbstractConsignment::CC_NL && $destinationCountry != AbstractConsignment::CC_BE) {
+            return $this;
+        }
+
+        if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
+            $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
+        }
+
+        if (! ValidatePostalCode::validate($postcode, $destinationCountry)) {
+            $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
         }
 
         if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS && $this->hasMyParcelDeliveryOptions($quote))) {
@@ -138,7 +144,6 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $result = array_filter(
             $data,
             function ($item) use ($input) {
-
                 if (stripos($input, $item) !== false) {
                     return true;
                 }
