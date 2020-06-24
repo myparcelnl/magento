@@ -69,11 +69,11 @@ class DefaultOptions
             return true;
         }
 
-        $total = self::$order->getGrandTotal();
+        $total    = self::$order->getGrandTotal();
         $settings = self::$helper->getStandardConfig('default_options');
 
         if ($settings[$option . '_active'] == '1' &&
-            (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
+            (! $settings[$option . '_from_price'] || $total > (int) $settings[$option . '_from_price'])
         ) {
             return true;
         }
@@ -90,8 +90,8 @@ class DefaultOptions
      */
     public function getDefaultLargeFormat(string $option): bool
     {
-        $price    = self::$order->getGrandTotal();
-        $weight   = self::$order->getWeight();
+        $price  = self::$order->getGrandTotal();
+        $weight = self::$order->getWeight();
 
         $settings = self::$helper->getStandardConfig('default_options');
         if (isset($settings[$option . '_active']) &&
@@ -109,7 +109,13 @@ class DefaultOptions
         }
 
         return false;
+    }
 
+    /**
+     * @param string $option
+     *
+     * @return bool
+     */
     public function getDefaultOptionsWithoutPrice(string $option): bool
     {
         $settings = self::$helper->getStandardConfig('default_options');
