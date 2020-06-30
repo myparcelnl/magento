@@ -87,59 +87,63 @@ function(
     },
 
     /**
-     * Hide the shipping methods the delivery options should replace.
-     */
-    hideShippingMethods: function() {
-      var rowsToHide = [];
+      * Hide the shipping methods the delivery options should replace.
+      */
+     hideShippingMethods: function() {
+       var rowsToHide = [];
 
-      Model.rates().forEach(function(rate) {
-        var row = Model.getShippingMethodRow(rate.method_code);
+       Model.rates().forEach(function(rate) {
+        var rows = Model.getShippingMethodRows(rate.method_code);
 
-        if (!rate.available) {
-          return;
-        }
+         if (!rate.available) {
+           return;
+         }
 
-        if (rate.method_code.indexOf('myparcel') > -1 && row) {
-          rowsToHide.push(Model.getShippingMethodRow(rate.method_code));
-        }
-      });
+       if (rate.method_code.indexOf('myparcel') > -1 && rows.length) {
+           Model.getShippingMethodRows(rate.method_code).forEach(function(row) {
+             rowsToHide.push(row);
+           });
+         }
+       });
 
-      /**
-       * Only hide the allowed shipping method if the delivery options are present.
-       */
-      if (Model.hasDeliveryOptions()) {
-        Model.allowedShippingMethods().forEach(function(shippingMethod) {
-          var row = Model.getShippingMethodRow(shippingMethod);
+       /**
+        * Only hide the allowed shipping method if the delivery options are present.
+        */
+       if (Model.hasDeliveryOptions()) {
+         Model.allowedShippingMethods().forEach(function(shippingMethod) {
+           Model.getShippingMethodRows(shippingMethod).forEach(function(row) {
+             rowsToHide.push(row);
+           });
+         });
+       }
 
-          if (row) {
-            rowsToHide.push(row);
-          }
-        });
-      }
-
-      if (quote.shippingAddress().countryId === 'NL' || quote.shippingAddress().countryId === 'BE') {
-        rowsToHide.forEach(function(row) {
-          row.style.display = 'none';
-        });
-      }
-    },
+       if (quote.shippingAddress().countryId === 'NL' || quote.shippingAddress().countryId === 'BE') {
+         rowsToHide.forEach(function(row) {
+           row.style.display = 'none';
+         });
+       }
+     },
 
     /**
-     * Get a shipping method row by finding the column with a matching method_code and grabbing its parent.
-     *
-     * @param {String} shippingMethod - Shipping method to get the row of.
-     *
-     * @returns {Element}
-     */
-    getShippingMethodRow: function(shippingMethod) {
-      var classSelector = '.col.col-method[id^="label_method_' + shippingMethod + '"]';
-      var column = document.querySelector(classSelector);
+      * Get shipping method rows by finding the columns with a matching method_code and grabbing their parent.
+      *
+      * @param {String} shippingMethod - Shipping method to get the row(s) of.
+      *
+      * @returns {Element[]}
+      */
+    getShippingMethodRows: function(shippingMethod) {
+       var classSelector = '.col.col-method[id^="label_method_' + shippingMethod + '"]';
+       var columns = document.querySelectorAll(classSelector);
+       var elements = [];
 
-      /**
-       * Return column if it is undefined or else there would be an error trying to get the parentElement.
-       */
-      return column ? column.parentElement : column;
-    },
+       columns.forEach(function(column) {
+         if (column) {
+           elements.push(column.parentElement);
+         }
+       })
+
+       return elements;
+     },
 
     /**
      * Execute the delivery_options request to retrieve the settings object.

@@ -178,7 +178,6 @@ class Checkout extends Data
             $methodCode       = explode("/", $method->getMethodCode());
             $latestMethodCode = array_pop($methodCode);
 
-
             if (
                 in_array($method->getCarrierCode(), $parentCarriers) &&
                 ! in_array($latestMethodCode, $myParcelMethods)
@@ -193,7 +192,7 @@ class Checkout extends Data
     /**
      * Get MyParcel method/option price.
      *
-     *Check if total shipping price is not below 0 euro
+     * Check if total shipping price is not below 0 euro
      *
      * @param        $carrier
      * @param string $key
