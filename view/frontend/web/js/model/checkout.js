@@ -86,7 +86,7 @@ function(
       });
     },
 
-    /**
+     /**
       * Hide the shipping methods the delivery options should replace.
       */
      hideShippingMethods: function() {
