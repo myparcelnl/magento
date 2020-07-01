@@ -163,5 +163,3 @@ myparcelnl_magento_postnl_settings/evening/only_recipient, PostNL avond levering
 myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL avond levering met alleen huisadres en handtekening
 myparcelnl_magento_postnl_settings/mailbox, PostNL brievenbuspakje
 myparcelnl_magento_postnl_settings/digital_stamp, PostNL digitale postzegel
-
-
