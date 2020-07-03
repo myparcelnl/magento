@@ -155,8 +155,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
             if ($setup->getConnection()->isTableExists('quote') == true) {
                 $setup->getConnection()->changeColumn(
                     $setup->getTable('quote'),
+                    'delivery_options',
                     'myparcel_delivery_options',
-                    'myparcel_myparcel_delivery_options',
                     [
                         'type' => Table::TYPE_TEXT,
                         'nullable' => true,
