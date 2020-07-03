@@ -96,7 +96,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         if (version_compare($context->getVersion(), '2.1.10', '<=')) {
             $setup->getConnection()->addColumn(
                 $setup->getTable('quote'),
-                'delivery_options',
+                'myparcel_delivery_options',
                 [
                     'type'     => Table::TYPE_TEXT,
                     'nullable' => true,
@@ -106,7 +106,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
             $setup->getConnection()->addColumn(
                 $setup->getTable('sales_order'),
-                'delivery_options',
+                'myparcel_delivery_options',
                 [
                     'type'     => Table::TYPE_TEXT,
                     'nullable' => true,
