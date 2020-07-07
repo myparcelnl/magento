@@ -171,8 +171,6 @@ class TrackTraceHolder
             ->setCompany($address->getCompany())
             ->setPerson($address->getName());
 
-        // hier moet je even kijken
-
         try {
             $this->consignment
                 ->setFullStreet($address->getData('street'))
