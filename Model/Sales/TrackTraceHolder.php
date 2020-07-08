@@ -150,9 +150,10 @@ class TrackTraceHolder
         $pickupLocationAdapter  = $deliveryOptionsAdapter->getPickupLocation();
         $shippingOptionsAdapter = $deliveryOptionsAdapter->getShipmentOptions();
 
-        if ($options['package_type'] === 'default') {
-            $packageType = self::$defaultOptions->getPackageType();
-        } else {
+        // get packagetype from delivery_options and use it for process directly
+        $packageType = self::$defaultOptions->getPackageType();
+        // get packagetype from selected radio buttons and check if package type is set
+        if ($options['package_type'] && $options['package_type'] != 'default') {
             $packageType = (int) $options['package_type'] ?: AbstractConsignment::PACKAGE_TYPE_PACKAGE;
         }
 
