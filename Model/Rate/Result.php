@@ -28,6 +28,11 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
     /**
+     * @var bool
+     */
+    protected static $myParcelRatesAlreadyAdded = false;
+
+    /**
      * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
      */
     private $products;
@@ -47,10 +52,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private $parentMethods = [];
 
-    /**
-     * @var bool
-     */
-    private static $myParcelRatesAlreadyAdded = false;
     /**
      * @var Session
      */
