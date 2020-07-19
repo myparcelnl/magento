@@ -46,12 +46,52 @@ Country of origin,Land van oorsprong
 "This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dit land zal op de internationale verzendlabels verschijnen. Dit is waar uw producten vandaan komen. U kunt NL, BE, DE etc gebruiken. Dit wordt op productniveau overschreven door het land van fabricage."
 Create Concept,Concept maken
 "Enable create label concept, when invoice is printed.","Maak een concept zenging aan, wanneer er voor een bestelling is betaald."
+Delivery methods,Verzendmethodes
+Preferred pickup locations view,Weergave van voorkeur voor ophaallocaties
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Wanneer ophaallocaties zijn ingeschakeld, kan de gebruiker kiezen tussen kaart- of lijstweergave. Deze instelling bepaalt welke optie als eerste wordt geselecteerd bij het openen van de ophaallocaties."
+Show list first,Toon lijst eerst
+Show map first,Toon map eerst
 Default shipping options,Standaard verzendinstellingen
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Vul hier uw standaard voorkeuren in voor uw verzendopties. Deze instellingen worden als default op al uw zendingen toegepast, indien van toepassing. Deze opties zijn later, per zending, uiteraard nog wel aan te passen tijdens het verwerken."
 Automate 'Signature on receipt',Automatiseer 'Handtekening voor ontvangst'
-'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
+Automate 'Home address only',Automatiseer 'Alleen huisadres'
+Automate 'Return if no answer',Automatiseer 'Retour bij geen gehoor'
+Automate 'Large format',Automatiseer 'Groot pakket'
+Automate 'Age check 18+',Automatiseer 'Leeftijdscontrole 18+'
+Automate 'Insurance € 100',Automatiseer 'Verzekerd tot €100'
+Automate 'Insurance € 250',Automatiseer 'Verzekerd tot €250'
 Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
+Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Let op: Maandagbezorging is alleen mogelijk als het pakket op zaterdag voor 15.00 uur is afgeleverd op de daarvoor bestemde PostNL locaties.
+'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
+"The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.","De leeftijdscontrole is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ dient te tonen door middel van een identiteitsbewijs. Bij deze verzendoptie zijn alleen handtekening op ontvangstbewijs en thuisadres inbegrepen. De leeftijd van 18+ is verder uitgesloten van de bezorgopties 's morgens en' s avonds."
 "'Insurance € 500' operates above a certain order total amount.","'Verzekerd tot € 500' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag."
+Select automatically digital stamp packages based on weight,Selecteer automatisch digitale postzegelpakketten op basis van gewicht
+Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.,Prijs is afhankelijk van het gewicht. Zijn de gewichten correct ingevuld voor alle producten? Kies 'Geen standaardgewicht' om MyParcel het gewicht zelf te laten berekenen. Selecteer hier een standaardgewicht als de producten niet de juiste gewichten bevatten.
+Enter a basic price for a digital stamp. The regular price will not affect this price.,Voer een basisprijs in voor een digitale postzegel. De normale prijs heeft geen invloed op deze prijs.
+Mailbox settings,Brievenbuspakket instellingen
+Automate mailbox,Automatiseer brievenbuspakket
+Select automatically mailbox packages based on weight or volume,Selecteer automatisch mailboxpakketten op basis van gewicht of volume
+Mailbox weight, Brievenbuspakket gewicht
+Mailbox fee, brievenbuspakket kosten
+Enter a basic price for a mailbox. The regular price will not affect this price.,Voer een basisprijs in voor een mailbox. De normale prijs heeft geen invloed op deze prijs.
+Morning delivery,Ochtendlevering
+Evening delivery,Avondlevering
+Evening delivery fee,Avondlevering kosten
+Morning delivery active,Ochtendlevering ingeschakeld
+If age check is active then the evening delivery is not possible,Als de leeftijdscontrole actief is dan is avondbezorging niet mogelijk
+If age check is active then the morning delivery is not possible,Als de leeftijdscontrole actief is dan is ochtendbezorging niet mogelijk
+Morning delivery fee,Ochtendlevering kosten
+Evening delivery,Avondlevering
+Evening delivery active,Avondlevering ingeschakeld
+Monday delivery,Maandag levering
+Number of days,Aantal dagen
+Enabled PostNL delivery,PostNL levering ingeschakeld
+Home address only,Alleen huisadres
+Home address only fee,Alleen huisadres kosten
+Digital stamp settings,Digitalepostzegel instellingen
+Automate digital stamp,Automatiseer digitalepostzegel
+Default weight,Standaard gewicht
+Digital stamp fee,Digitalepostzegel kosten
 From price,Vanaf prijs
 Track number,Track nummer
 Track status,Track status
@@ -63,6 +103,7 @@ Insured up to:,Verzekeren tot:
 Download package label,Download pakket label
 Create new concept,Creëer nieuw concept
 Create shipment,Zending aanmaken
+During the transition phase the old Magento MyParcel extension can remain active. However you do need to turn off PakjeGemak in the old MyParcel extension.,Tijdens de overgangsfase kan de oude Magento MyParcel-extensie actief blijven. U moet PakjeGemak echter wel uitschakelen in de oude MyParcel-extensie.
 Please select an item from the list,Selecteer eerst een order uit de lijst
 Please check address,Controleer het adres
 No key found. Go to Configuration and then to MyParcel to enter the key.,Geen API key gevonden. Ga naar Configuratie en vervolgens naar MyParcel om de API key in te voeren.
@@ -115,7 +156,6 @@ Methods,Verzendmethode
 The extra myparcel options are added to this shipping method,De extra myparcel opties worden bij deze verzendmethode toegevoegd.
 Delivery title,Bezorg titel
 When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.,Wanneer ophaallocaties zijn ingeschakeld, kan de gebruiker kiezen tussen kaart of lijst. Deze instelling bepaalt welke optie als eerste wordt geselecteerd bij het openen van de ophaallocaties.
-Delivery title,Bezorg titelOphalen bij een PostNL locatie
 Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
@@ -130,8 +170,17 @@ Pickup at PostNL location,Ophalen bij een PostNL locatie
 List,Lijst
 Map,Kaart
 Pickup active,Ophalen actief
-Pickup titel,Ophalen titel
+Standard delivery Title,Standaard bezorg titel
+Signature on receipt title,Handtekening voor ontvangst titel
+Home address only title,Alleen huisadres titel
+Morning title,Ochtendlevering titel
+Evening title,Avondlevering titel
+Mailbox title,Brievenbuspakje titel
+Digital stamp title,Digitalepostzegel titel
+Pickup title,Ophalen bij locatie titel
 Pickup fee,Ophalen prijs
+Pickup list button text,Lijst ophalen knop tekst
+Pickup map button text,Map ophalen knop tekst
 Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
 Show a delivery day in the checkout.,Laat een bezorgdag zien in de checkout.
