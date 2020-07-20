@@ -37,7 +37,7 @@
                 </field>
                 <field id="country_of_origin" translate="label comment" type="text" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Country of origin</label>
-                    <comment>This country will appear on the international consignment labels. This is where your products are shipped from. You can use "NL", "BE", "DE" etc. This will be overridden by country of manufacture on product level.</comment>
+                    <comment>This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.</comment>
                 </field>
                 <field id="create_concept_after_invoice" translate="label comment" type="select" sortOrder="214" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Create Concept</label>
@@ -225,7 +225,7 @@
                 </field>
                 <field id="monday_delivery_active" translate="label comment" type="select" sortOrder="295" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Monday delivery</label>
-                    <comment><![CDATA[Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations. Click <a href="https://blog.myparcel.nl/maandagbezorging" target="_blank">here</a> for more information concerning Monday delivery and the locations.]]></comment>
+                    <comment>Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="saturday_cutoff_time" translate="label comment" type="time" sortOrder="298" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -319,11 +319,11 @@
                 </field>
             </group>
             <group id="morning" translate="label comment" type="text" sortOrder="370" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Morning delivery active</label>
+                <label>Morning delivery</label>
                 <field id="active" translate="label comment" type="select" sortOrder="375" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning delivery active</label>
                     <source_model>MyParcelNL\Magento\Model\Source\AgeCheckNo</source_model>
-                    <comment>If age check is active then the evening delivery is not possible</comment>
+                    <comment>If age check is active then the morning delivery is not possible</comment>
                 </field>
                 <field id="fee" translate="label comment" type="text" sortOrder="380" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Morning delivery fee</label>
