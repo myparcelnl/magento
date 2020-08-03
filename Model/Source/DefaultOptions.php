@@ -95,7 +95,7 @@ class DefaultOptions
             $company = substr($company, 0, 47) . '...';
         }
 
-        return $address;
+        return $company;
     }
 
     /**
