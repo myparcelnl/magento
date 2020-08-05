@@ -22,6 +22,9 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
 {
+    // Maximum characters length of company name.
+    const COMPANY_NAME_MAX_LENGTH = 50;
+
     /**
      * @var Data
      */
@@ -79,6 +82,20 @@ class DefaultOptions
         }
 
         return false;
+    }
+
+    /**
+     * @param string|null $company
+     *
+     * @return string|null
+     */
+    public function getMaxCompanyName(?string $company): ?string
+    {
+        if (strlen((string) $company) >= self::COMPANY_NAME_MAX_LENGTH) {
+            $company = substr($company, 0, 47) . '...';
+        }
+
+        return $company;
     }
 
     /**
