@@ -281,7 +281,7 @@ class TrackTraceHolder
             ],
             [
                 $order->getIncrementId(),
-                $deliveryDate,
+                $this->helper->convertDeliveryDate($checkoutData) ? $deliveryDate : '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
                 $this->getProductInfo($productInfo, 'qty'),

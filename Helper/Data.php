@@ -159,6 +159,10 @@ class Data extends AbstractHelper
      */
     public function convertDeliveryDate(?string $date): ?string
     {
+        if (! $date) {
+            return null;
+        }
+
         $date          = strtotime($date);
         $delivery_date = date('Y-m-d H:i:s', $date);
         $todayDate     = strtotime('now');
