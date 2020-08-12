@@ -153,28 +153,32 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]
             );
             if ($setup->getConnection()->isTableExists('quote') == true) {
-                $setup->getConnection()->changeColumn(
-                    $setup->getTable('quote'),
-                    'delivery_options',
-                    'myparcel_delivery_options',
-                    [
-                        'type' => Table::TYPE_TEXT,
-                        'nullable' => true,
-                        'comment'  => 'MyParcel delivery options',
-                    ]
-                );
+                if ($setup->getConnection()->tableColumnExists('quote', 'delivery_options') === true) {
+                    $setup->getConnection()->changeColumn(
+                        $setup->getTable('quote'),
+                        'delivery_options',
+                        'myparcel_delivery_options',
+                        [
+                            'type'     => Table::TYPE_TEXT,
+                            'nullable' => true,
+                            'comment'  => 'MyParcel delivery options',
+                        ]
+                    );
+                }
             }
             if ($setup->getConnection()->isTableExists('sales_order') == true) {
-                $setup->getConnection()->changeColumn(
-                    $setup->getTable('sales_order'),
-                    'delivery_options',
-                    'myparcel_delivery_options',
-                    [
-                        'type' => Table::TYPE_TEXT,
-                        'nullable' => true,
-                        'comment'  => 'MyParcel delivery options',
-                    ]
-                );
+                if ($setup->getConnection()->tableColumnExists('sales_order', 'delivery_options') === true) {
+                    $setup->getConnection()->changeColumn(
+                        $setup->getTable('sales_order'),
+                        'delivery_options',
+                        'myparcel_delivery_options',
+                        [
+                            'type'     => Table::TYPE_TEXT,
+                            'nullable' => true,
+                            'comment'  => 'MyParcel delivery options',
+                        ]
+                    );
+                }
             }
         }
         $setup->endSetup();
