@@ -533,7 +533,7 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` LIKE "myparcelnl_magento_postnl_settings/delivery/active"'
+                    '`path` = "myparcelnl_magento_postnl_settings/delivery/active"'
                 );
 
                 $deliveryActive = $connection->fetchAll($selectDeliveryActive) ?? [];
