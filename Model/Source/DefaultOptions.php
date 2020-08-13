@@ -91,7 +91,7 @@ class DefaultOptions
      */
     public function getMaxCompanyName(?string $company): ?string
     {
-        if ($company != null && (strlen($company) >= self::COMPANY_NAME_MAX_LENGTH)) {
+        if ($company !== null && (strlen($company) >= self::COMPANY_NAME_MAX_LENGTH)) {
             $company = substr($company, 0, 47) . '...';
         }
 
