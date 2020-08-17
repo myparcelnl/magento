@@ -15,6 +15,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 /**
  * Class MagentoOrderCollection
@@ -167,10 +168,9 @@ class MagentoOrderCollection extends MagentoCollection
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
                         $trackTraceHolder = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack);
-                        $this->myParcelCollection->addConsignment($trackTraceHolder->consignment);
+//                        $this->myParcelCollection->addConsignment($trackTraceHolder->consignment);
                     }
                 }
-
                 if (! empty($trackTraceHolder)) {
                     $consignment = $trackTraceHolder->consignment->setReferenceId($shipment->getEntityId());
                     $newCollection->addMultiCollo($consignment, $this->getOption('label_amount'));
@@ -178,8 +178,27 @@ class MagentoOrderCollection extends MagentoCollection
             }
         }
 
+
+
         $this->myParcelCollection = $newCollection;
 
+        if (true) {
+            $this->myParcelCollection
+                ->generateReturnConsignments(
+                    false,
+                    function(
+                        AbstractConsignment $returnConsignment,
+                        AbstractConsignment $parent
+                    ): AbstractConsignment {
+                        $returnConsignment->setLabelDescription(
+                            'Return: ' . $parent->getLabelDescription() .
+                            ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
+                        );
+
+                        return $returnConsignment;
+                    }
+                );
+        }
         return $this;
     }
 
@@ -263,7 +282,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function sendReturnLabelMails()
     {
-        $this->myParcelCollection->sendReturnLabelMails();
+        $this->myParcelCollection->generateReturnConsignments(true);
 
         return $this;
     }
@@ -317,7 +336,6 @@ class MagentoOrderCollection extends MagentoCollection
         return $this;
     }
 
-
     /**
      * This create a shipment. Observer/NewShipment() create Magento and MyParcel Track
      *
@@ -364,7 +382,6 @@ class MagentoOrderCollection extends MagentoCollection
             // Send email
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
                                 ->notify($shipment);
-
         } catch (\Exception $e) {
             throw new LocalizedException(
                 __($e->getMessage())
@@ -386,7 +403,6 @@ class MagentoOrderCollection extends MagentoCollection
          * @var $magentoTrack Order\Shipment\Track
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
-
             $trackCollection = $shipment->getAllTracks();
             foreach ($trackCollection as $magentoTrack) {
                 $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
