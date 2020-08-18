@@ -20,6 +20,7 @@
                 <label_description>%order_nr%</label_description>
                 <country_of_origin>NL</country_of_origin>
                 <create_concept_after_invoice>0</create_concept_after_invoice>
+                <retour_in_the_box>0</retour_in_the_box>
             </print>
             <shipping_methods>
                 <methods>tablerate</methods>

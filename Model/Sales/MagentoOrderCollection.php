@@ -14,6 +14,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Model\Source\RetourInTheBox;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -168,7 +169,6 @@ class MagentoOrderCollection extends MagentoCollection
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
                         $trackTraceHolder = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack);
-//                        $this->myParcelCollection->addConsignment($trackTraceHolder->consignment);
                     }
                 }
                 if (! empty($trackTraceHolder)) {
@@ -178,27 +178,12 @@ class MagentoOrderCollection extends MagentoCollection
             }
         }
 
-
-
         $this->myParcelCollection = $newCollection;
 
-        if (true) {
-            $this->myParcelCollection
-                ->generateReturnConsignments(
-                    false,
-                    function(
-                        AbstractConsignment $returnConsignment,
-                        AbstractConsignment $parent
-                    ): AbstractConsignment {
-                        $returnConsignment->setLabelDescription(
-                            'Return: ' . $parent->getLabelDescription() .
-                            ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
-                        );
-
-                        return $returnConsignment;
-                    }
-                );
+        if ($this->options['retour_in_the_box']) {
+            $this->addRetourInTheBox($this->options['retour_in_the_box']);
         }
+
         return $this;
     }
 
@@ -227,6 +212,40 @@ class MagentoOrderCollection extends MagentoCollection
         $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
 
         return $this;
+    }
+
+    /**
+     * @param string $retourOptions
+     *
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     */
+    public function addRetourInTheBox(string $retourOptions)
+    {
+        $this->myParcelCollection
+            ->generateReturnConsignments(
+                false,
+                function (
+                    AbstractConsignment $returnConsignment,
+                    AbstractConsignment $parent
+                ) use ($retourOptions): AbstractConsignment {
+                    $returnConsignment->setLabelDescription(
+                        'Return: ' . $parent->getLabelDescription() .
+                        ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
+                    );
+
+                    if (RetourInTheBox::EQUAL_TO_SHIPMENT === $retourOptions) {
+                        $returnConsignment->setOnlyRecipient($parent->isOnlyRecipient());
+                        $returnConsignment->setSignature($parent->isSignature());
+                        $returnConsignment->setAgeCheck($parent->hasAgeCheck());
+                        $returnConsignment->setReturn($parent->isReturn());
+                        $returnConsignment->setLargeFormat($parent->isLargeFormat());
+                        $returnConsignment->setInsurance($parent->getInsurance());
+                    }
+
+                    return $returnConsignment;
+                }
+            );
     }
 
     /**
