@@ -234,13 +234,13 @@ class MagentoOrderCollection extends MagentoCollection
                         ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
                     );
 
-                    if (RetourInTheBox::EQUAL_TO_SHIPMENT === $retourOptions) {
-                        $returnConsignment->setOnlyRecipient($parent->isOnlyRecipient());
-                        $returnConsignment->setSignature($parent->isSignature());
-                        $returnConsignment->setAgeCheck($parent->hasAgeCheck());
-                        $returnConsignment->setReturn($parent->isReturn());
-                        $returnConsignment->setLargeFormat($parent->isLargeFormat());
-                        $returnConsignment->setInsurance($parent->getInsurance());
+                    if (RetourInTheBox::NO_OPTIONS === $retourOptions) {
+                        $returnConsignment->setOnlyRecipient(false);
+                        $returnConsignment->setSignature(false);
+                        $returnConsignment->setAgeCheck(false);
+                        $returnConsignment->setReturn(false);
+                        $returnConsignment->setLargeFormat(false);
+                        $returnConsignment->setInsurance(false);
                     }
 
                     return $returnConsignment;
