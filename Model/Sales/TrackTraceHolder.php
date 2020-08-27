@@ -213,7 +213,7 @@ class TrackTraceHolder
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
 
             if ($pickupLocationAdapter->getRetailNetworkId()) {
-                $this->consignment->setReferenceId($pickupLocationAdapter->getRetailNetworkId());
+                $this->consignment->setRetailNetworkId($pickupLocationAdapter->getRetailNetworkId());
             }
         }
 
