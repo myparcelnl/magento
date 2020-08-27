@@ -160,7 +160,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         // Go through the selected orders and check if the address details are correct
         foreach ($orderIds as $orderId) {
             $orderData          = $order->load($orderId);
-            $fullStreet         = $order->getShippingAddress()->getStreet();
+            $fullStreet         = implode(" ", $order->getShippingAddress()->getStreet());
             $postcode           = $order->getShippingAddress()->getPostcode();
             $destinationCountry = $order->getShippingAddress()->getCountryId();
             $keyOrderId         = array_search($orderId, $orderIds);
@@ -170,7 +170,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                 continue;
             }
             // Validate the street and house number. If the address is wrong then get the orderId from the array and delete it.
-            if (! ValidateStreet::validate(array_shift($fullStreet), AbstractConsignment::CC_NL, $destinationCountry)) {
+            if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
                 $errorHuman = 'An error has occurred while validating the order number ' . $order->getIncrementId() . '. Check street.';
                 $this->messageManager->addErrorMessage($errorHuman);
 
