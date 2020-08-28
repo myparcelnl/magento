@@ -364,7 +364,7 @@ class TrackTraceHolder
     private function getWeightTypeOfOption(?string $weight): int
     {
         $weightType = $this->helper->getGeneralConfig(
-            'basic_settings/weight_indication'
+            'print/weight_indication'
         );
 
         if ($weightType != 'gram') {
