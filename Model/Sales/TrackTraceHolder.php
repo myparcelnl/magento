@@ -195,7 +195,7 @@ class TrackTraceHolder
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
-            ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
+            ->setLargeFormat($this->checkLargeFormat())
             ->setAgeCheck($address->getCountryId() === 'NL' ? self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check') : false)
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
