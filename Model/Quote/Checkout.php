@@ -29,6 +29,7 @@ class Checkout
      * @var \Magento\Quote\Model\Quote
      */
     private $quoteId;
+
     /**
      * @var PackageRepository
      */
