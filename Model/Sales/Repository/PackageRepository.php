@@ -201,10 +201,10 @@ class PackageRepository extends Package
         if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
             $mailboxProcent = $this->getMailboxProcent();
             $mailboxProcent += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
-            $mailboxWeight = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox/weight');
-            $orderWeight = $this->getWeight();
+            $mailboxWeight  = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox/weight');
+            $orderWeight    = $this->getWeight();
 
-            if (($mailboxProcent == 0 && $mailboxWeight < $orderWeight) || $mailboxProcent > 100 ){
+            if (($mailboxProcent == 0 && $mailboxWeight < $orderWeight) || $mailboxProcent > 100) {
                 return false;
             }
 
@@ -236,6 +236,26 @@ class PackageRepository extends Package
         }
 
         return $this;
+    }
+
+    /**
+     * @param array $products
+     *
+     * @return int|null
+     */
+    public function getProductDropOffDelay(array $products): ?int
+    {
+        $heightsDropOffDelay = null;
+
+        foreach ($products as $product) {
+            $dropOffDelay = $this->getAttributesProductsOptions($product, 'dropoff_delay');
+
+            if ($dropOffDelay >= $heightsDropOffDelay) {
+                $heightsDropOffDelay = $dropOffDelay;
+            }
+        }
+
+        return $heightsDropOffDelay > 0 ? $heightsDropOffDelay : null;
     }
 
     /**
@@ -271,7 +291,6 @@ class PackageRepository extends Package
     private function getAttributesProductsOptions($product, string $column): ?int
     {
         $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $column);
-
         if (empty($attributeValue)) {
             $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product, $column);
         }
@@ -296,10 +315,9 @@ class PackageRepository extends Package
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
          */
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-
-        $resource   = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $entityId   = $product->getProduct()->getEntityId();
-        $connection = $resource->getConnection();
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $entityId      = $product->getProduct()->getEntityId();
+        $connection    = $resource->getConnection();
 
         $attributeId    = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
         $attributeValue = $this
