@@ -190,12 +190,12 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param array  $products
+     * @param object  $products
      * @param string $packageType
      *
      * @return bool
      */
-    public function isAllProductsFitIn(array $products, string $packageType): bool
+    public function isAllProductsFitIn($products, string $packageType): bool
     {
         if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
             $mailboxPercentage = $this->getMailboxPercentage();
