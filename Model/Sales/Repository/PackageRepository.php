@@ -103,7 +103,7 @@ class PackageRepository extends Package
             ! $this->isMailboxActive() ||
             ! $this->isAllProductsFitInMailbox() ||
             ! $this->getWeight() ||
-            $this->getMailboxProcent() < 100 &&
+            $this->getMailboxPercentage() < 100 &&
             $this->getWeight() > $this->getMaxWeight()
         ) {
             return false;
@@ -190,25 +190,24 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param        $products
-     *
+     * @param array  $products
      * @param string $packageType
      *
      * @return bool
      */
-    public function isAllProductsFitIn($products, string $packageType): bool
+    public function isAllProductsFitIn(array $products, string $packageType): bool
     {
         if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
-            $mailboxProcent = $this->getMailboxProcent();
-            $mailboxProcent += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
-            $mailboxWeight  = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox/weight');
-            $orderWeight    = $this->getWeight();
+            $mailboxPercentage = $this->getMailboxPercentage();
+            $mailboxPercentage += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
+            $mailboxWeight     = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox/weight');
+            $orderWeight       = $this->getWeight();
 
-            if (($mailboxProcent == 0 && $mailboxWeight < $orderWeight) || $mailboxProcent > 100) {
+            if (($mailboxPercentage == 0 && $mailboxWeight < $orderWeight) || $mailboxPercentage > 100) {
                 return false;
             }
 
-            $this->setMailboxProcent($mailboxProcent);
+            $this->setMailboxPercentage($mailboxPercentage);
         }
 
         if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME) {
