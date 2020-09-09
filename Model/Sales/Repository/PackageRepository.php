@@ -245,17 +245,17 @@ class PackageRepository extends Package
      */
     public function getProductDropOffDelay(array $products): ?int
     {
-        $heightsDropOffDelay = null;
+        $highestDropOffDelay = null;
 
         foreach ($products as $product) {
             $dropOffDelay = $this->getAttributesProductsOptions($product, 'dropoff_delay');
 
-            if ($dropOffDelay >= $heightsDropOffDelay) {
-                $heightsDropOffDelay = $dropOffDelay;
+            if ($dropOffDelay >= $highestDropOffDelay) {
+                $highestDropOffDelay = $dropOffDelay;
             }
         }
 
-        return $heightsDropOffDelay > 0 ? $heightsDropOffDelay : null;
+        return $highestDropOffDelay > 0 ? $highestDropOffDelay : null;
     }
 
     /**
