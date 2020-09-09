@@ -103,7 +103,7 @@ class PackageRepository extends Package
             ! $this->isMailboxActive() ||
             ! $this->isAllProductsFitInMailbox() ||
             ! $this->getWeight() ||
-            $this->getMailboxProcent() < 100 &&
+            $this->getMailboxPercentage() < 100 &&
             $this->getWeight() > $this->getMaxWeight()
         ) {
             return false;
@@ -190,25 +190,24 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param        $products
-     *
+     * @param array  $products
      * @param string $packageType
      *
      * @return bool
      */
-    public function isAllProductsFitIn($products, string $packageType): bool
+    public function isAllProductsFitIn(array $products, string $packageType): bool
     {
         if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
-            $mailboxProcent = $this->getMailboxProcent();
-            $mailboxProcent += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
-            $mailboxWeight = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox/weight');
-            $orderWeight = $this->getWeight();
+            $mailboxPercentage = $this->getMailboxPercentage();
+            $mailboxPercentage += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
+            $mailboxWeight     = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox/weight');
+            $orderWeight       = $this->getWeight();
 
-            if (($mailboxProcent == 0 && $mailboxWeight < $orderWeight) || $mailboxProcent > 100 ){
+            if (($mailboxPercentage == 0 && $mailboxWeight < $orderWeight) || $mailboxPercentage > 100) {
                 return false;
             }
 
-            $this->setMailboxProcent($mailboxProcent);
+            $this->setMailboxPercentage($mailboxPercentage);
         }
 
         if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME) {
@@ -236,6 +235,26 @@ class PackageRepository extends Package
         }
 
         return $this;
+    }
+
+    /**
+     * @param array $products
+     *
+     * @return int|null
+     */
+    public function getProductDropOffDelay(array $products): ?int
+    {
+        $highestDropOffDelay = null;
+
+        foreach ($products as $product) {
+            $dropOffDelay = $this->getAttributesProductsOptions($product, 'dropoff_delay');
+
+            if ($dropOffDelay > $highestDropOffDelay) {
+                $highestDropOffDelay = $dropOffDelay;
+            }
+        }
+
+        return $highestDropOffDelay > 0 ? $highestDropOffDelay : null;
     }
 
     /**
@@ -271,7 +290,6 @@ class PackageRepository extends Package
     private function getAttributesProductsOptions($product, string $column): ?int
     {
         $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $column);
-
         if (empty($attributeValue)) {
             $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product, $column);
         }
@@ -296,10 +314,9 @@ class PackageRepository extends Package
          * @var \Magento\Catalog\Model\ResourceModel\Product $resourceModel
          */
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-
-        $resource   = $objectManager->get('Magento\Framework\App\ResourceConnection');
-        $entityId   = $product->getProduct()->getEntityId();
-        $connection = $resource->getConnection();
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $entityId      = $product->getProduct()->getEntityId();
+        $connection    = $resource->getConnection();
 
         $attributeId    = $this->getAttributeId($connection, $resource->getTableName('eav_attribute'), $column);
         $attributeValue = $this

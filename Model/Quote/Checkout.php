@@ -144,7 +144,7 @@ class Checkout
                 'deliveryDaysWindow'           => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/deliverydays_window'),
                 'allowMondayDelivery'          => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/monday_delivery_active'),
                 'dropOffDays'                  => $this->helper->getArrayConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_days'),
-                'dropOffDelay'                 => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_delay'),
+                'dropOffDelay'                 => $this->getDropOffDelay($carrier[self::SELECT_CARRIER_PATH], 'general/dropoff_delay'),
             ];
         }
 
@@ -265,6 +265,24 @@ class Checkout
         $this->package->setWeightFromQuoteProducts($products);
 
         return $this->package->selectPackageType($products);
+    }
+
+    /**
+     * @param string $carrierPath
+     * @param string $key
+     *
+     * @return int
+     */
+    public function getDropOffDelay(string $carrierPath, string $key): int
+    {
+        $products     = $this->cart->getAllItems();
+        $productDelay = $this->package->getProductDropOffDelay($products);
+
+        if (! $productDelay) {
+            $productDelay = $this->helper->getIntegerConfig($carrierPath, $key);
+        }
+
+        return (int) $productDelay;
     }
 
     /**
