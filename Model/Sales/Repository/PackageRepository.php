@@ -250,7 +250,7 @@ class PackageRepository extends Package
         foreach ($products as $product) {
             $dropOffDelay = $this->getAttributesProductsOptions($product, 'dropoff_delay');
 
-            if ($dropOffDelay >= $highestDropOffDelay) {
+            if ($dropOffDelay > $highestDropOffDelay) {
                 $highestDropOffDelay = $dropOffDelay;
             }
         }
