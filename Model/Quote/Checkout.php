@@ -273,7 +273,7 @@ class Checkout
      *
      * @return int
      */
-    public function getDropOffDelay(string $carrierPath, string $key)
+    public function getDropOffDelay(string $carrierPath, string $key): int
     {
         $products = $this->cart->getAllItems();
         $productDelay = $this->package->getProductDropOffDelay($products);
