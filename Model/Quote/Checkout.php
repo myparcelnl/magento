@@ -275,10 +275,10 @@ class Checkout
      */
     public function getDropOffDelay(string $carrierPath, string $key)
     {
-        $products = $this->cart->getAllItems();
+        $products     = $this->cart->getAllItems();
         $productDelay = $this->package->getProductDropOffDelay($products);
 
-        if (!$productDelay) {
+        if (! $productDelay) {
             $productDelay = $this->helper->getIntegerConfig($carrierPath, $key);
         }
 
