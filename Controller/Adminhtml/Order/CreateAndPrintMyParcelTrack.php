@@ -2,12 +2,16 @@
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
-use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
+use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
+use MyParcelNL\Sdk\src\Helper\ValidateStreet;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 /**
  * Action to create and print MyParcel Track
@@ -96,6 +100,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
+        $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
         $this->orderCollection
@@ -141,5 +146,45 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
+    }
+
+    /**
+     * @param array $orderIds
+     *
+     * @return array
+     */
+    private function filterCorrectAddress(array $orderIds): array
+    {
+        $objectManager = ObjectManager::getInstance();
+        $order         = $objectManager->get('\Magento\Sales\Model\Order');
+        // Go through the selected orders and check if the address details are correct
+        foreach ($orderIds as $orderId) {
+            $orderData          = $order->load($orderId);
+            $fullStreet         = implode(" ", $order->getShippingAddress()->getStreet());
+            $postcode           = $order->getShippingAddress()->getPostcode();
+            $destinationCountry = $order->getShippingAddress()->getCountryId();
+            $keyOrderId         = array_search($orderId, $orderIds);
+
+            // Check if country is not NL or BE
+            if ($destinationCountry != AbstractConsignment::CC_NL && $destinationCountry != AbstractConsignment::CC_BE) {
+                continue;
+            }
+            // Validate the street and house number. If the address is wrong then get the orderId from the array and delete it.
+            if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
+                $errorHuman = 'An error has occurred while validating the order number ' . $order->getIncrementId() . '. Check street.';
+                $this->messageManager->addErrorMessage($errorHuman);
+
+                unset($orderIds[$keyOrderId]);
+            }
+            // Validate the postcode. If the postcode is wrong then get the orderId from the array and delete it.
+            if (! ValidatePostalCode::validate($postcode, $destinationCountry)) {
+                $errorHuman = 'An error has occurred while validating the order number ' . $order->getIncrementId() . '. Check postcode.';
+                $this->messageManager->addErrorMessage($errorHuman);
+
+                unset($orderIds[$keyOrderId]);
+            }
+        }
+
+        return $orderIds;
     }
 }

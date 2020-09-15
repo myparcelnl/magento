@@ -28,6 +28,11 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
     /**
+     * @var bool
+     */
+    protected static $myParcelRatesAlreadyAdded = false;
+
+    /**
      * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
      */
     private $products;
@@ -47,10 +52,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private $parentMethods = [];
 
-    /**
-     * @var bool
-     */
-    private $myParcelRatesAlreadyAdded = false;
     /**
      * @var Session
      */
@@ -142,7 +143,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * Add Myparcel shipping rates
+     * Add MyParcel shipping rates
      *
      * @param $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
@@ -153,7 +154,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         if ($selectedCountry != 'NL' && $selectedCountry != 'BE') {
             return;
         }
-        if ($this->myParcelRatesAlreadyAdded) {
+
+        if ($this::$myParcelRatesAlreadyAdded) {
             return;
         }
 
@@ -164,16 +166,19 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
         foreach ($this->getMethods() as $alias => $settingPath) {
             $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
+            $active = $this->myParcelHelper->getBoolConfig($map, $settingPath . '/active');
 
-            $method = $this->getShippingMethod(
-                $this->getFullSettingPath($map, $settingPath),
-                $parentRate
-            );
+            if ($active) {
+                $method = $this->getShippingMethod(
+                    $this->getFullSettingPath($map, $settingPath),
+                    $parentRate
+                );
 
-            $this->_rates[] = $method;
+                $this->_rates[] = $method;
+            }
         }
 
-        $this->myParcelRatesAlreadyAdded = true;
+        $this::$myParcelRatesAlreadyAdded = true;
     }
 
     /**
@@ -262,16 +267,17 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Create price
      * Calculate price if multiple options are chosen
-     * @todo: Several improvements are possible within this method
      *
      * @param $settingPath
      *
      * @return float
+     * @todo: Several improvements are possible within this method
+     *
      */
     private function getPrice($settingPath): float
     {
-        $basePrice   = $this->myParcelHelper->getBasePrice();
-        $settingFee  = 0;
+        $basePrice  = $this->myParcelHelper->getBasePrice();
+        $settingFee = 0;
 
         // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
         $settingPath = explode("/", $settingPath);

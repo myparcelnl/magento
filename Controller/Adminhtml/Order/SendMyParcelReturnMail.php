@@ -100,7 +100,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
                 ->setLatestData()
                 ->sendReturnLabelMails();
         } catch (\Exception $e) {
-            if (count($this->messageManager->getMessages()) == 0) {
+            if (count($this->messageManager->getMessages()->getItems()) == 0) {
                 $this->messageManager->addErrorMessage(__('An error has occurred while sending mails with a return label. Please contact MyParcel.'));
                 $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
             }

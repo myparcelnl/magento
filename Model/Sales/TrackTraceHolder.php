@@ -150,10 +150,11 @@ class TrackTraceHolder
         $pickupLocationAdapter  = $deliveryOptionsAdapter->getPickupLocation();
         $shippingOptionsAdapter = $deliveryOptionsAdapter->getShipmentOptions();
 
-        if ($options['package_type'] === 'default') {
-            $packageType = self::$defaultOptions->getPackageType();
-        } else {
-            $packageType = (int) $options['package_type'] ?: AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        // get packagetype from delivery_options and use it for process directly
+        $packageType = self::$defaultOptions->getPackageType();
+        // get packagetype from selected radio buttons and check if package type is set
+        if ($options['package_type'] && $options['package_type'] != 'default') {
+            $packageType = $options['package_type'] ? $options['package_type'] : AbstractConsignment::PACKAGE_TYPE_PACKAGE;
         }
 
         $apiKey = $this->helper->getGeneralConfig(
@@ -168,30 +169,22 @@ class TrackTraceHolder
             ->setReferenceId($shipment->getEntityId())
             ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
-            ->setCompany($address->getCompany())
+            ->setCompany(self::$defaultOptions->getMaxCompanyName($address->getCompany()))
             ->setPerson($address->getName());
 
-        // hier moet je even kijken
-
         try {
-            $this->consignment->setFullStreet($address->getData('street'));
+            $this->consignment
+                ->setFullStreet($address->getData('street'))
+                ->setPostalCode($address->getPostcode());
         } catch (\Exception $e) {
-            $errorHuman = 'An error has occurred while validating the address: ' . $address->getData('street') . '. Check number and number suffix.';
+            $errorHuman = 'An error has occurred while validating order number ' . $shipment->getOrder()->getIncrementId() . '. Check address.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman . '-' . $e);
 
-            $this->helper->setOrderStatus($magentoTrack->getOrderId(), \Magento\Sales\Model\Order::STATE_NEW);
-        }
-
-        if ($address->getPostcode() == null && $address->getCountryId() == 'NL') {
-            $errorHuman = 'An error has occurred while validating the order number ' . $magentoTrack->getOrderId() . '. Postcode is required.';
-            $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
-            $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman);
-
+            $this->helper->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
 
         $this->consignment
-            ->setPostalCode($address->getPostcode())
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
@@ -202,7 +195,7 @@ class TrackTraceHolder
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
-            ->setLargeFormat($this->getValueOfOption($options, 'large_format'))
+            ->setLargeFormat($this->checkLargeFormat())
             ->setAgeCheck($address->getCountryId() === 'NL' ? self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check') : false)
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
@@ -220,7 +213,7 @@ class TrackTraceHolder
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
 
             if ($pickupLocationAdapter->getRetailNetworkId()) {
-                $this->consignment->setReferenceId($pickupLocationAdapter->getRetailNetworkId());
+                $this->consignment->setRetailNetworkId($pickupLocationAdapter->getRetailNetworkId());
             }
         }
 
@@ -228,6 +221,15 @@ class TrackTraceHolder
              ->calculateTotalWeight($magentoTrack, $totalWeight);
 
         return $this;
+    }
+
+    /**
+     *
+     * @return bool
+     */
+    private function checkLargeFormat(): bool
+    {
+        return self::$defaultOptions->getDefaultLargeFormat('large_format');
     }
 
     /**
@@ -279,7 +281,7 @@ class TrackTraceHolder
             ],
             [
                 $order->getIncrementId(),
-                $deliveryDate,
+                $this->helper->convertDeliveryDate($checkoutData) ? $deliveryDate : '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
                 $this->getProductInfo($productInfo, 'qty'),
@@ -337,14 +339,14 @@ class TrackTraceHolder
 
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
 
-        foreach ($products as $product) {
+        foreach ($magentoTrack->getShipment()->getItems() as $item) {
             $myParcelProduct = (new MyParcelCustomsItem())
-                ->setDescription($product['name'])
-                ->setAmount($product['qty'])
-                ->setWeight($this->getWeightTypeOfOption($product['weight']))
-                ->setItemValue($product['price'] * 100)
-                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry($this->getCountryOfOrigin($product['product_id']));
+                ->setDescription($item->getName())
+                ->setAmount($item->getQty())
+                ->setWeight($this->getWeightTypeOfOption($item->getWeight()))
+                ->setItemValue($item->getPrice() * 100)
+                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $item->getProductId(), 'classification'))
+                ->setCountry($this->getCountryOfOrigin($item->getProductId()));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -362,7 +364,7 @@ class TrackTraceHolder
     private function getWeightTypeOfOption(?string $weight): int
     {
         $weightType = $this->helper->getGeneralConfig(
-            'basic_settings/weight_indication'
+            'print/weight_indication'
         );
 
         if ($weightType != 'gram') {
@@ -427,7 +429,7 @@ class TrackTraceHolder
      *
      * @return mixed
      */
-    private function getAttributeId(object $connection, string $tableName, string $databaseColumn): string
+    private function getAttributeId($connection, string $tableName, string $databaseColumn): string
     {
         $sql = $connection
             ->select('entity_type_id')
@@ -446,7 +448,7 @@ class TrackTraceHolder
      *
      * @return string|null
      */
-    private function getValueFromAttribute(object $connection, string $tableName, string $attributeId, string $entityId): ?string
+    private function getValueFromAttribute($connection, string $tableName, string $attributeId, string $entityId): ?string
     {
         $sql = $connection
             ->select()

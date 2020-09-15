@@ -18,10 +18,14 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
+use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
 {
+    // Maximum characters length of company name.
+    const COMPANY_NAME_MAX_LENGTH = 50;
+
     /**
      * @var Data
      */
@@ -69,11 +73,11 @@ class DefaultOptions
             return true;
         }
 
-        $total = self::$order->getGrandTotal();
+        $total    = self::$order->getGrandTotal();
         $settings = self::$helper->getStandardConfig('default_options');
 
         if ($settings[$option . '_active'] == '1' &&
-            (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
+            (! $settings[$option . '_from_price'] || $total > (int) $settings[$option . '_from_price'])
         ) {
             return true;
         }
@@ -82,8 +86,50 @@ class DefaultOptions
     }
 
     /**
+     * @param string|null $company
+     *
+     * @return string|null
+     */
+    public function getMaxCompanyName(?string $company): ?string
+    {
+        if ($company !== null && (strlen($company) >= self::COMPANY_NAME_MAX_LENGTH)) {
+            $company = substr($company, 0, 47) . '...';
+        }
+
+        return $company;
+    }
+
+    /**
      * Get default value of options without price check
      *
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function getDefaultLargeFormat(string $option): bool
+    {
+        $price  = self::$order->getGrandTotal();
+        $weight = self::$order->getWeight();
+
+        $settings = self::$helper->getStandardConfig('default_options');
+        if (isset($settings[$option . '_active']) &&
+            $settings[$option . '_active'] == 'weight' &&
+            $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
+        ) {
+            return true;
+        }
+
+        if (isset($settings[$option . '_active']) &&
+            $settings[$option . '_active'] == 'price' &&
+            $price >= $settings[$option . '_from_price']
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * @param string $option
      *
      * @return bool

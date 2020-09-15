@@ -18,6 +18,7 @@ namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -158,6 +159,10 @@ class Data extends AbstractHelper
      */
     public function convertDeliveryDate(?string $date): ?string
     {
+        if (! $date) {
+            return null;
+        }
+
         $date          = strtotime($date);
         $delivery_date = date('Y-m-d H:i:s', $date);
         $todayDate     = strtotime('now');
@@ -185,10 +190,16 @@ class Data extends AbstractHelper
         return $deliveryType;
     }
 
-    public function setOrderStatus($order_id, $status){
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $order = $objectManager->create('\Magento\Sales\Model\Order')->load($order_id);
+    /**
+     * @param int    $order_id
+     * @param string $status
+     */
+    public function setOrderStatus(int $order_id, string $status)
+    {
+        $order = ObjectManager::getInstance()->create('\Magento\Sales\Model\Order')->load($order_id);
         $order->setState($status)->setStatus($status);
         $order->save();
+
+        return;
     }
 }

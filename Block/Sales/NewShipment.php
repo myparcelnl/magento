@@ -76,6 +76,15 @@ class NewShipment extends AbstractItems
     {
         return $this->defaultOptions->getDefault($option);
     }
+    /**
+     * @param string $option 'large_format'
+     *
+     * @return bool
+     */
+    public function getDefaultLargeFormat(string $option): bool
+    {
+        return $this->defaultOptions->getDefaultLargeFormat($option);
+    }
 
     /**
      * Get default value of age check
