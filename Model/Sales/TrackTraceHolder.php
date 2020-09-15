@@ -318,16 +318,14 @@ class TrackTraceHolder
             return $this;
         }
 
-        $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
-
-        foreach ($products as $product) {
+        foreach ($magentoTrack->getShipment()->getItems() as $item) {
             $myParcelProduct = (new MyParcelCustomsItem())
-                ->setDescription($product['name'])
-                ->setAmount($product['qty'])
-                ->setWeight($this->getWeightTypeOfOption($product['weight']))
-                ->setItemValue($product['price'] * 100)
-                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification'))
-                ->setCountry($this->getCountryOfOrigin($product['product_id']));
+                ->setDescription($item->getName())
+                ->setAmount($item->getQty())
+                ->setWeight($this->getWeightTypeOfOption($item->getWeight()))
+                ->setItemValue($item->getPrice() * 100)
+                ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $item->getProductId(), 'classification'))
+                ->setCountry($this->getCountryOfOrigin($item->getProductId()));
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -444,13 +442,13 @@ class TrackTraceHolder
     }
 
     /**
-     * @param object $connection
+     * @param $connection
      * @param string $tableName
      * @param string $databaseColumn
      *
      * @return mixed
      */
-    private function getAttributeId(object $connection, string $tableName, string $databaseColumn): string
+    private function getAttributeId($connection, string $tableName, string $databaseColumn): string
     {
         $sql = $connection
             ->select('entity_type_id')
@@ -461,7 +459,7 @@ class TrackTraceHolder
     }
 
     /**
-     * @param object $connection
+     * @param $connection
      * @param string $tableName
      *
      * @param string $attributeId
@@ -469,7 +467,7 @@ class TrackTraceHolder
      *
      * @return string|null
      */
-    private function getValueFromAttribute(object $connection, string $tableName, string $attributeId, string $entityId): ?string
+    private function getValueFromAttribute($connection, string $tableName, string $attributeId, string $entityId): ?string
     {
         $sql = $connection
             ->select()
