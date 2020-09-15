@@ -11,8 +11,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
@@ -23,17 +23,16 @@ namespace MyParcelNL\Magento\Model\Quote;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
+use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
-use MyParcelNL\Sdk\src\Helper\SplitStreet;
+use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
+use MyParcelNL\Sdk\src\Helper\ValidateStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 {
-    const FIELD_DELIVERY_OPTIONS = 'delivery_options';
-    const FIELD_DROP_OFF_DAY = 'drop_off_day';
-    const FIELD_TRACK_STATUS = 'track_status';
     /**
      * @var DeliveryRepository
      */
@@ -50,18 +49,18 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     /**
      * SaveOrderBeforeSalesModelQuoteObserver constructor.
      *
-     * @param DeliveryRepository                  $delivery
-     * @param AbstractConsignment                 $consignment
-     * @param \MyParcelNL\Magento\Helper\Checkout $checkoutHelper
+     * @param DeliveryRepository  $delivery
+     * @param AbstractConsignment $consignment
+     * @param Checkout            $checkoutHelper
      */
     public function __construct(
         DeliveryRepository $delivery,
         AbstractConsignment $consignment,
-        CheckoutHelper $checkoutHelper
+        Checkout $checkoutHelper
     ) {
         $this->delivery      = $delivery;
         $this->consignment   = $consignment;
-        $this->parentMethods = explode(',', $checkoutHelper->getCheckoutConfig('general/shipping_methods'));
+        $this->parentMethods = explode(',', $checkoutHelper->getGeneralConfig('shipping_methods/methods'));
     }
 
     /**
@@ -74,28 +73,40 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     {
         /* @var Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
-        /* @var \Magento\Sales\Model\Order $order */
+
+        /* @var Order $order */
         $order = $observer->getEvent()->getData('order');
 
         if ($order->getShippingAddress() === null) {
             return $this;
         }
 
-        $fullStreet = implode(' ', $order->getShippingAddress()->getStreet());
-
+        $fullStreet         = implode(' ', $order->getShippingAddress()->getStreet());
+        $postcode           = $order->getShippingAddress()->getPostcode();
         $destinationCountry = $order->getShippingAddress()->getCountryId();
-        if ($destinationCountry == AbstractConsignment::CC_NL &&
-            ! SplitStreet::isCorrectStreet($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)
-        ) {
-            $order->setData(self::FIELD_TRACK_STATUS, __('⚠️&#160; Please check address'));
+
+        if ($destinationCountry != AbstractConsignment::CC_NL && $destinationCountry != AbstractConsignment::CC_BE) {
+            return $this;
         }
 
-        if ($quote->hasData(self::FIELD_DELIVERY_OPTIONS) && $this->isMyParcelMethod($quote)) {
-            $jsonDeliveryOptions = $quote->getData(self::FIELD_DELIVERY_OPTIONS);
-            $order->setData(self::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
+        if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
+            $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
+        }
+
+        if (! ValidatePostalCode::validate($postcode, $destinationCountry)) {
+            $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
+        }
+
+        if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS && $this->hasMyParcelDeliveryOptions($quote))) {
+            $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS);
+
+            $order->setData(Checkout::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
 
             $dropOffDay = $this->delivery->getDropOffDayFromJson($jsonDeliveryOptions);
-            $order->setData(self::FIELD_DROP_OFF_DAY, $dropOffDay);
+            $order->setData(Checkout::FIELD_DROP_OFF_DAY, $dropOffDay);
+
+            $selectedCarrier = $this->delivery->getCarrierFromJson($jsonDeliveryOptions);
+            $order->setData(Checkout::FIELD_MYPARCEL_CARRIER, $selectedCarrier);
         }
 
         return $this;
@@ -106,7 +117,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      *
      * @return bool
      */
-    private function isMyParcelMethod(Quote $quote): bool
+    private function hasMyParcelDeliveryOptions($quote)
     {
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
@@ -119,7 +130,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
             return true;
         }
 
-        return false;
+        return array_key_exists('myparcel_delivery_options', $quote->getData());
     }
 
     /**

@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Update data for update
+ *
+ * If you want to add improvements, please create a fork in our GitHub:
+ * https://github.com/myparcelnl
+ *
+ * @author      Richard Perdaan <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
+ * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
+ * @link        https://github.com/myparcelnl/magento
+ * @since       File available since Release v3.0.0
+ */
+
 namespace MyParcelNL\Magento\Setup;
 
 use Magento\Catalog\Setup\CategorySetupFactory;
@@ -16,6 +29,9 @@ use Magento\Framework\Setup\UpgradeDataInterface;
  */
 class UpgradeData implements UpgradeDataInterface
 {
+
+    const groupName = 'MyParcel Options';
+
     /**
      * Category setup factory
      *
@@ -45,21 +61,20 @@ class UpgradeData implements UpgradeDataInterface
     /**
      * Upgrades data for a module
      *
-     * @param ModuleDataSetupInterface $setup
-     * @param ModuleContextInterface   $context
-     *
-     * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $setup
+     * @param \Magento\Framework\Setup\ModuleContextInterface   $context
      */
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
-        $connection = $setup->getConnection();
-        $table      = $setup->getTable('core_config_data');
+
+       $connection = $setup->getConnection();
+       $table      = $setup->getTable('core_config_data');
+
+        /** @var EavSetup $eavSetup */
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
         if (version_compare($context->getVersion(), '2.1.23', '<=')) {
             $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
@@ -92,19 +107,15 @@ class UpgradeData implements UpgradeDataInterface
         // Set a new 'MyParcel options' group and place the option 'myparcel_fit_in_mailbox' standard on false by default
         if (version_compare($context->getVersion(), '2.5.0', '<=')) {
             $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
-            // Label of the group
-            $groupName = 'MyParcel Options';
             // get entity type id so that attribute are only assigned to catalog_product
             $entityTypeId = $eavSetup->getEntityTypeId('catalog_product');
             // Here we have fetched all attribute set as we want attribute group to show under all attribute set
             $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId);
 
             foreach ($attributeSetIds as $attributeSetId) {
-                $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, $groupName, 19);
-                $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, $groupName);
+                $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::groupName, 19);
+                $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::groupName);
 
                 // Add existing attribute to group
                 $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
@@ -115,15 +126,13 @@ class UpgradeData implements UpgradeDataInterface
         // Add the option 'Fit in digital stamp'
         if (version_compare($context->getVersion(), '2.5.0', '<=')) {
             $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
-                    'group'                   => 'MyParcel Options',
+                    'group'                   => self::groupName,
                     'type'                    => 'int',
                     'backend'                 => '',
                     'frontend'                => '',
@@ -150,8 +159,6 @@ class UpgradeData implements UpgradeDataInterface
         // Add the option 'Fit in digital stamp' and 'myparcel_fit_in_mailbox' on default by false
         if (version_compare($context->getVersion(), '3.1.0', '<=')) {
             $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
@@ -180,15 +187,13 @@ class UpgradeData implements UpgradeDataInterface
         // The data in the database was not filled in correctly, that was the reason why DPZ and BBP were not visible in the settings.
         if (version_compare($context->getVersion(), '3.1.4', '<=')) {
             $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
-                    'group'                   => 'MyParcel Options',
+                    'group'                   => self::groupName,
                     'type'                    => 'int',
                     'backend'                 => '',
                     'frontend'                => '',
@@ -216,7 +221,7 @@ class UpgradeData implements UpgradeDataInterface
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 [
-                    'group'                   => 'MyParcel Options',
+                    'group'                   => self::groupName,
                     'type'                    => 'varchar',
                     'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
                     'label'                   => 'Fit in Mailbox',
@@ -243,15 +248,13 @@ class UpgradeData implements UpgradeDataInterface
         // Add the option 'HS code for products'
         if (version_compare($context->getVersion(), '3.2.0', '<=')) {
             $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_classification',
                 [
-                    'group'                   => 'MyParcel Options',
+                    'group'                   => self::groupName,
                     'note'                    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                     'type'                    => 'int',
                     'backend'                 => '',
@@ -277,15 +280,13 @@ class UpgradeData implements UpgradeDataInterface
 
             // Enable / Disable checkout with this product.
             $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_disable_checkout',
                 [
-                    'group'                   => 'MyParcel Options',
+                    'group'                   => self::groupName,
                     'note'                    => 'With this option you can disable the delivery options for this product.',
                     'type'                    => 'int',
                     'backend'                 => '',
@@ -311,15 +312,13 @@ class UpgradeData implements UpgradeDataInterface
 
             // Set a dropoff delay for this product.
             $setup->startSetup();
-            /** @var EavSetup $eavSetup */
-            $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
                 \Magento\Catalog\Model\Product::ENTITY,
                 'myparcel_dropoff_delay',
                 [
-                    'group'                   => 'MyParcel Options',
+                    'group'                   => self::groupName,
                     'note'                    => 'This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.',
                     'type'                    => 'varchar',
                     'backend'                 => '',
@@ -358,6 +357,217 @@ class UpgradeData implements UpgradeDataInterface
                 $bind     = ['path' => $fullPath, 'value' => $value['value']];
                 $where    = 'config_id = ' . $value['config_id'];
                 $connection->update($table, $bind, $where);
+            }
+        }
+
+        if (version_compare($context->getVersion(), '4.0.0', '<=')) {
+
+            $setup->startSetup();
+               /** @var EavSetup $eavSetup */
+               $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+               // get entity type id so that attribute are only assigned to catalog_product
+               $entityTypeId = $eavSetup->getEntityTypeId('catalog_product');
+               // Here we have fetched all attribute set as we want attribute group to show under all attribute set
+               $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId);
+
+               foreach ($attributeSetIds as $attributeSetId) {
+                   $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::groupName, 19);
+                   $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::groupName);
+
+                   // Add existing attribute to group
+                   $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
+                   $eavSetup->addAttributeToGroup($entityTypeId, $attributeSetId, $attributeGroupId, $attributeId, null);
+               }
+
+            if ($connection->isTableExists($table) == true) {
+
+                // Move shipping_methods to myparcelnl_magento_general
+                $selectShippingMethodSettings = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` = "myparcelnl_magento_checkout/general/shipping_methods"'
+                );
+
+                $shippingMethodData = $connection->fetchAll($selectShippingMethodSettings) ?? [];
+                foreach ($shippingMethodData as $value) {
+                    $fullPath = 'myparcelnl_magento_general/shipping_methods/methods';
+                    $bind     = ['path' => $fullPath, 'value' => $value['value']];
+                    $where    = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+
+                // Move default_delivery_title to general settings
+                $selectDefaultDeliveryTitle = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` = "myparcelnl_magento_checkout/delivery/standard_delivery_title"'
+                );
+
+                $defaultDeliveryTitle = $connection->fetchAll($selectDefaultDeliveryTitle) ?? [];
+                foreach ($defaultDeliveryTitle as $value) {
+                    $fullPath = 'myparcelnl_magento_general/delivery_titles/standard_delivery_title';
+                    $bind     = ['path' => $fullPath, 'value' => $value['value']];
+                    $where    = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+
+                // Move delivery_title to general settings
+                $selectDeliveryTitle = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` = "myparcelnl_magento_checkout/delivery/delivery_title"'
+                );
+
+                $deliveryTitle = $connection->fetchAll($selectDeliveryTitle) ?? [];
+                foreach ($deliveryTitle as $value) {
+                    $fullPath = 'myparcelnl_magento_general/delivery_titles/delivery_title';
+                    $bind     = ['path' => $fullPath, 'value' => $value['value']];
+                    $where    = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+
+                // Move signature_title to general settings
+                $selectSignatureTitle = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` = "myparcelnl_magento_checkout/delivery/delivery_title"'
+                );
+
+                $signatureTitle = $connection->fetchAll($selectSignatureTitle) ?? [];
+                foreach ($signatureTitle as $value) {
+                    $fullPath = 'myparcelnl_magento_general/delivery_titles/signature_title';
+                    $bind     = ['path' => $fullPath, 'value' => $value['value']];
+                    $where    = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+
+                // Move pickup_title to general settings
+                $selectPickupTitle = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` = "myparcelnl_magento_checkout/pickup/title"'
+                );
+
+                $pickupTitle = $connection->fetchAll($selectPickupTitle) ?? [];
+                foreach ($pickupTitle as $value) {
+                    $fullPath = 'myparcelnl_magento_general/delivery_titles/pickup_title';
+                    $bind     = ['path' => $fullPath, 'value' => $value['value']];
+                    $where    = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+
+                // Move insurance_500_active to carrier settings
+                $selectDefaultInsurance = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` LIKE "myparcelnl_magento_standard/options/insurance_500%"'
+                );
+
+                $insuranceData = $connection->fetchAll($selectDefaultInsurance) ?? [];
+                foreach ($insuranceData as $value) {
+                    $path    = $value['path'];
+                    $path    = explode("/", $path);
+                    $path[0] = 'myparcelnl_magento_postnl_settings';
+                    $path[1] = 'default_options';
+
+                    $fullPath = implode("/", $path);
+
+                    $bind  = ['path' => $fullPath, 'value' => $value['value']];
+                    $where = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+
+                // Move signature_active to carrier settings
+                $selectDefaultSignature = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` LIKE "myparcelnl_magento_standard/options/signature%"'
+                );
+
+                $signatureData = $connection->fetchAll($selectDefaultSignature) ?? [];
+                foreach ($signatureData as $value) {
+                    $path    = $value['path'];
+                    $path    = explode("/", $path);
+                    $path[0] = 'myparcelnl_magento_postnl_settings';
+                    $path[1] = 'default_options';
+
+                    $fullPath = implode("/", $path);
+
+                    $bind  = ['path' => $fullPath, 'value' => $value['value']];
+                    $where = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+
+                // Move myparcelnl_magento_checkout to myparcelnl_magento_postnl_settings
+                $selectCheckoutSettings = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` LIKE "myparcelnl_magento_checkout/%"'
+                );
+
+                $checkoutData = $connection->fetchAll($selectCheckoutSettings) ?? [];
+                foreach ($checkoutData as $value) {
+                    $path    = $value['path'];
+                    $path    = explode("/", $path);
+                    $path[0] = 'myparcelnl_magento_postnl_settings';
+
+                    $fullPath = implode("/", $path);
+
+                    $bind  = ['path' => $fullPath, 'value' => $value['value']];
+                    $where = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
+
+                // Insert postnl enabled data
+
+                $selectDeliveryActive = $connection->select()->from(
+                    $table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    '`path` = "myparcelnl_magento_postnl_settings/delivery/active"'
+                );
+
+                $deliveryActive = $connection->fetchAll($selectDeliveryActive) ?? [];
+
+                if (! $deliveryActive){
+                    $connection->insert(
+                        $table,
+                        [
+                            'scope'    => 'default',
+                            'scope_id' => 0,
+                            'path'     => 'myparcelnl_magento_postnl_settings/delivery/active',
+                            'value'    => 1
+                        ]
+                    );
+                }
+            }
+        }
+
+        if (version_compare($context->getVersion(), '4.1.0', '<=')) {
+            // Add compatibility for new weight option for large format
+            $selectLargeFormatData = $connection->select()->from($table,
+                ['config_id', 'path', 'value']
+            )->where(
+                '`path` = "myparcelnl_magento_postnl_settings/default_options/large_format_active"'
+            );
+
+            $largeFormatData = $connection->fetchAll($selectLargeFormatData);
+
+            foreach ($largeFormatData as $value) {
+                if ($value['value'] === '1') {
+                    $bind  = ['path' => $value['path'], 'value' => 'price'];
+                    $where = 'config_id = ' . $value['config_id'];
+                    $connection->update($table, $bind, $where);
+                }
             }
         }
 

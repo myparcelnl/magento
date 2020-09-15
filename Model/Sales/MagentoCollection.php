@@ -3,8 +3,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
@@ -34,11 +34,10 @@ class MagentoCollection implements MagentoCollectionInterface
     const PATH_ORDER_TRACK            = 'Magento\Sales\Model\Order\Shipment\Track';
     const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
     const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    const URL_SHOW_POSTNL_STATUS      = 'https://mijnpakket.postnl.nl/Inbox/Search';
     const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
 
     /**
-     * @var \MyParcelNL\Sdk\src\Helper\MyParcelCollection|\MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment[]
+     * @var MyParcelCollection
      */
     public $myParcelCollection;
 
@@ -81,9 +80,10 @@ class MagentoCollection implements MagentoCollectionInterface
         'create_track_if_one_already_exist' => true,
         'request_type'                      => 'download',
         'package_type'                      => 'default',
+        'carrier'                           => 'postnl',
         'positions'                         => null,
-        'only_recipient'                    => null,
         'signature'                         => null,
+        'only_recipient'                    => null,
         'return'                            => null,
         'large_format'                      => null,
         'age_check'                         => null,
@@ -113,7 +113,7 @@ class MagentoCollection implements MagentoCollectionInterface
         $this->helper             = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack         = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
-        $this->myParcelCollection = (new MyParcelCollection())->setUserAgent('Magento2', $this->helper->getVersion());
+        $this->myParcelCollection = (new MyParcelCollection())->setUserAgentArray(['Magento2'=> $this->helper->getVersion()]);
     }
 
     /**
@@ -201,7 +201,6 @@ class MagentoCollection implements MagentoCollectionInterface
     {
         return $this->helper->apiKeyIsCorrect();
     }
-
 
     /**
      * Update sales_order table

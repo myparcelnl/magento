@@ -7,7 +7,7 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2016 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
@@ -23,11 +23,14 @@ use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
 use MyParcelNL\Magento\Model\Rate\Result;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
-use MyParcelNL\Magento\Model\Sales\Package;
 
 class Checkout extends Data
 {
-    const DEFAULT_COUNTRY_CODE = 'NL';
+    public const FIELD_DROP_OFF_DAY     = 'drop_off_day';
+    public const FIELD_MYPARCEL_CARRIER = 'myparcel_carrier';
+    public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
+    public const FIELD_TRACK_STATUS     = 'track_status';
+    public const DEFAULT_COUNTRY_CODE   = 'NL';
 
     private $base_price = 0;
 
@@ -45,16 +48,13 @@ class Checkout extends Data
      */
     private $quote;
 
-    private $package;
-
     /**
-     * @param Context                                 $context
-     * @param ModuleListInterface                     $moduleList
-     * @param EstimateAddressInterfaceFactory         $estimatedAddressFactory
-     * @param ShippingMethodManagement                $shippingMethodManagement
-     * @param CheckApiKeyService                      $checkApiKeyService
-     * @param \MyParcelNL\Magento\Model\Sales\Package $package
-     * @param Session                                 $session
+     * @param Context                         $context
+     * @param ModuleListInterface             $moduleList
+     * @param EstimateAddressInterfaceFactory $estimatedAddressFactory
+     * @param ShippingMethodManagement        $shippingMethodManagement
+     * @param CheckApiKeyService              $checkApiKeyService
+     * @param Session                         $session
      *
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -65,13 +65,11 @@ class Checkout extends Data
         EstimateAddressInterfaceFactory $estimatedAddressFactory,
         ShippingMethodManagement $shippingMethodManagement,
         CheckApiKeyService $checkApiKeyService,
-        package $package,
         Session $session
     ) {
         parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->estimatedAddressFactory  = $estimatedAddressFactory;
-        $this->package                  = $package;
         $this->quote                    = $session->getQuote();
     }
 
@@ -161,8 +159,7 @@ class Checkout extends Data
         if ($quoteId == null) {
             return null;
         }
-        $parentCarriers   = explode(',', $this->getCheckoutConfig('general/shipping_methods'));
-        $checkoutActive   = $this->getCheckoutConfig('general/checkout_active');
+        $parentCarriers   = explode(',', $this->getGeneralConfig('shipping_methods/methods'));
         $addressFromQuote = $this->quote->getShippingAddress();
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
@@ -177,10 +174,13 @@ class Checkout extends Data
         $myParcelMethods = array_keys(Result::getMethods());
 
         foreach ($magentoMethods as $method) {
+
+            $methodCode       = explode("/", $method->getMethodCode());
+            $latestMethodCode = array_pop($methodCode);
+
             if (
-                $checkoutActive != '0' &&
                 in_array($method->getCarrierCode(), $parentCarriers) &&
-                ! in_array($method->getMethodCode(), $myParcelMethods)
+                ! in_array($latestMethodCode, $myParcelMethods)
             ) {
                 return $method;
             }
@@ -192,22 +192,19 @@ class Checkout extends Data
     /**
      * Get MyParcel method/option price.
      *
-     *Check if total shipping price is not below 0 euro
+     * Check if total shipping price is not below 0 euro
      *
+     * @param        $carrier
      * @param string $key
      * @param bool   $addBasePrice
      *
      * @return float
      */
-    public function getMethodPrice($key, $addBasePrice = true)
+    public function getMethodPrice($carrier, $key, $addBasePrice = true)
     {
-        $value = $this->getCheckoutConfig($key);
+        $value = $this->getCarrierConfig($key, $carrier);
 
         if ($addBasePrice) {
-            if ($this->getBasePrice() + $value < 0) {
-                return (float) 0;
-            }
-
             // Calculate value
             $value = $this->getBasePrice() + $value;
         }
@@ -218,15 +215,16 @@ class Checkout extends Data
     /**
      * Get MyParcel method/option price with EU format
      *
+     * @param        $carrier
      * @param string $key
      * @param bool   $addBasePrice
      * @param string $prefix
      *
      * @return string
      */
-    public function getMethodPriceFormat($key, $addBasePrice = true, $prefix = '')
+    public function getMethodPriceFormat($carrier, $key, $addBasePrice = true, $prefix = '')
     {
-        $value = $this->getMethodPrice($key, $addBasePrice);
+        $value = $this->getMethodPrice($carrier, $key, $addBasePrice);
         $value = $this->getMoneyFormat($value);
         $value = $prefix . $value;
 
@@ -242,8 +240,7 @@ class Checkout extends Data
      */
     public function getMoneyFormat($value)
     {
-        $value = number_format($value, 2, ',', '.');
-        $value = '&#8364; ' . (string) $value;
+        $value = number_format($value, 2, '.', ',');
 
         return $value;
     }
@@ -265,66 +262,71 @@ class Checkout extends Data
     /**
      * Get checkout setting
      *
+     * @param string $carrier
      * @param string $code
      * @param bool   $canBeNull
      *
      * @return mixed
      */
-    public function getCheckoutConfig($code, $canBeNull = false)
+    public function getCarrierConfig($code, $carrier = null, $canBeNull = false)
     {
-        $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
+        $value = $this->getConfigValue($carrier . $code);
         if (null != $value || $canBeNull) {
             return $value;
         }
 
-        $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+        $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
     }
 
     /**
      * Get bool of setting
      *
+     * @param string $carrier
      * @param string $key
      *
      * @return bool
      */
-    public function getBoolConfig($key)
+    public function getBoolConfig($carrier, $key)
     {
-        return $this->getCheckoutConfig($key) == "1" ? true : false;
+        return $this->getCarrierConfig($key, $carrier) == "1" ? true : false;
     }
 
     /**
      * Get time for delivery endpoint
      *
+     * @param        $carrier
      * @param string $key
      *
      * @return string
      */
-    public function getTimeConfig($key)
+    public function getTimeConfig($carrier, $key)
     {
-        return str_replace(',', ':', $this->getCheckoutConfig($key));
+        return str_replace(',', ':', $this->getCarrierConfig($key, $carrier));
     }
 
     /**
      * Get array for delivery endpoint
      *
+     * @param        $carrier
      * @param string $key
      *
      * @return string
      */
-    public function getArrayConfig($key)
+    public function getArrayConfig($carrier, $key)
     {
-        return str_replace(',', ';', $this->getCheckoutConfig($key));
+        return str_replace(',', ';', $this->getCarrierConfig($key, $carrier));
     }
 
     /**
      * Get array for delivery endpoint
      *
+     * @param string $carrier
      * @param string $key
      *
      * @return float
      */
-    public function getIntergerConfig($key)
+    public function getIntegerConfig($carrier, $key)
     {
-        return (float) $this->getCheckoutConfig($key);
+        return (float) $this->getCarrierConfig($key, $carrier);
     }
 }

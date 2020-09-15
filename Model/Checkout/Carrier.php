@@ -9,8 +9,8 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
@@ -18,22 +18,34 @@
 
 namespace MyParcelNL\Magento\Model\Checkout;
 
-use Magento\Quote\Model\Quote\Address\RateResult\Error;
+use Magento\CatalogInventory\Api\StockRegistryInterface;
+use Magento\Checkout\Model\Session;
+use Magento\Directory\Model\CountryFactory;
+use Magento\Directory\Model\CurrencyFactory;
+use Magento\Directory\Model\RegionFactory;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\DataObject;
+use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
+use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
-use Magento\Shipping\Model\Rate\Result;
-use Magento\Shipping\Model\Simplexml\Element;
-use Magento\Framework\Xml\Security;
+use Magento\Shipping\Model\Simplexml\ElementFactory;
+use Magento\Shipping\Model\Tracking\Result\ErrorFactory;
+use Magento\Shipping\Model\Tracking\Result\StatusFactory;
+use Magento\Shipping\Model\Tracking\ResultFactory;
+use Magento\Ups\Helper\Config;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrierOnline implements CarrierInterface
 {
     const CODE = 'mypa';
     protected $_code = self::CODE;
     protected $_localeFormat;
+    protected $configHelper;
 
     /**
      * @var \Magento\Quote\Model\Quote
@@ -73,24 +85,28 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      * @param Checkout                                                    $myParcelHelper
      * @param PackageRepository                                           $package
      * @param array                                                       $data
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function __construct(
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        ScopeConfigInterface $scopeConfig,
         \Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory $rateErrorFactory,
-        \Psr\Log\LoggerInterface $logger,
+        LoggerInterface $logger,
         Security $xmlSecurity,
-        \Magento\Shipping\Model\Simplexml\ElementFactory $xmlElFactory,
+        ElementFactory $xmlElFactory,
         \Magento\Shipping\Model\Rate\ResultFactory $rateFactory,
-        \Magento\Quote\Model\Quote\Address\RateResult\MethodFactory $rateMethodFactory,
-        \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory,
-        \Magento\Shipping\Model\Tracking\Result\ErrorFactory $trackErrorFactory,
-        \Magento\Shipping\Model\Tracking\Result\StatusFactory $trackStatusFactory,
-        \Magento\Directory\Model\RegionFactory $regionFactory,
-        \Magento\Directory\Model\CountryFactory $countryFactory,
-        \Magento\Directory\Model\CurrencyFactory $currencyFactory,
+        MethodFactory $rateMethodFactory,
+        ResultFactory $trackFactory,
+        ErrorFactory $trackErrorFactory,
+        StatusFactory $trackStatusFactory,
+        RegionFactory $regionFactory,
+        CountryFactory $countryFactory,
+        CurrencyFactory $currencyFactory,
         \Magento\Directory\Helper\Data $directoryData,
-        \Magento\CatalogInventory\Api\StockRegistryInterface $stockRegistry,
-        \Magento\Checkout\Model\Session $session,
+        StockRegistryInterface $stockRegistry,
+        Session $session,
+        Config $configHelper,
         Checkout $myParcelHelper,
         PackageRepository $package,
         array $data = []
@@ -113,13 +129,13 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             $stockRegistry,
             $data
         );
-        $this->quote          = $session->getQuote();
+        $this->quote = $session->getQuote();
+        $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
-        $this->package        = $package;
-        $this->package->setCurrentCountry($this->quote->getShippingAddress()->getCountryId());
+        $this->package = $package;
     }
 
-    protected function _doShipmentRequest(\Magento\Framework\DataObject $request)
+    protected function _doShipmentRequest(DataObject $request)
     {
     }
 
@@ -132,7 +148,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         return $result;
     }
 
-    public function proccessAdditionalValidation(\Magento\Framework\DataObject $request)
+    public function proccessAdditionalValidation(DataObject $request)
     {
         return true;
     }
@@ -145,8 +161,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     public static function getMethods()
     {
         $methods = [
-            'signature'            => 'delivery/signature_',
-            'only_recipient'       => 'delivery/only_recipient_',
             'signature_only_recip' => 'delivery/signature_and_only_recipient_',
             'morning'              => 'morning/',
             'morning_signature'    => 'morning_signature/',
@@ -167,26 +181,12 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     public function getAllowedMethods()
     {
-        if ($this->package->fitInDigitalStamp()) {
-            return ['digital_stamp' => 'digital_stamp/'];
-        }
-
-        if ($this->package->fitInMailbox() && $this->package->isShowMailboxWithOtherOptions() === false) {
-            return ['mailbox' => 'mailbox/'];
-        }
-
         $methods = self::getMethods();
-
-        if (! $this->package->fitInMailbox()) {
-            unset($methods['mailbox']);
-        }
-
         return $methods;
     }
 
     /**
      * @param \Magento\Quote\Model\Quote\Address\RateRequest $result
-     *
      * @return mixed
      */
     private function addShippingMethods($result)
@@ -195,12 +195,12 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         $this->package->setDigitalStampSettings();
         $this->package->setMailboxSettings();
 
-        $this->package->disableCheckoutWithProduct($products);
-        $this->package->setWeightFromQuoteProducts($products, 'fit_in_mailbox');
+        if (count($products) > 0) {
+            $this->package->setWeightFromQuoteProducts($products);
+        }
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-
-            $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'active') === '1';
+            $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath . 'active') === '1';
             if ($active) {
                 $method = $this->getShippingMethod($alias, $settingPath);
                 $result->append($method);
@@ -211,7 +211,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     }
 
     /**
-     * @param string $alias
+     * @param $alias
      * @param string $settingPath
      *
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
@@ -237,12 +237,11 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      * If no title isset in config, get title from translation
      *
      * @param $settingPath
-     *
      * @return \Magento\Framework\Phrase|mixed
      */
     private function createTitle($settingPath)
     {
-        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_CHECKOUT . $settingPath . 'title');
+        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath . 'title');
 
         if ($title === null) {
             $title = __($settingPath . 'title');
@@ -257,27 +256,13 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      *
      * @param $alias
      * @param $settingPath
-     *
      * @return float
      */
     private function createPrice($alias, $settingPath)
     {
         $price = 0;
-        if ($alias == 'morning_signature') {
-            $price += $this->myParcelHelper->getMethodPrice('morning/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
 
-            return $price;
-        }
-
-        if ($alias == 'evening_signature') {
-            $price += $this->myParcelHelper->getMethodPrice('evening/fee');
-            $price += $this->myParcelHelper->getMethodPrice('delivery/signature_fee', false);
-
-            return $price;
-        }
-
-        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias !== 'mailbox');
+        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias);
 
         return $price;
     }

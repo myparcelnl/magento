@@ -1,10 +1,25 @@
 <?php
-
+/**
+ * All functions to handle insurance
+ *
+ * If you want to add improvements, please create a fork in our GitHub:
+ * https://github.com/myparcelnl
+ *
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
+ * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
+ * @link        https://github.com/myparcelnl/magento
+ * @since       File available since Release v0.1.0
+ */
 
 namespace MyParcelNL\Magento\Model\Source;
 
+use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
+use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
 {
@@ -17,7 +32,7 @@ class DefaultOptions
     private static $helper;
 
     /**
-     * @var \Magento\Sales\Model\Order|\Magento\Quote\Model\Quote
+     * @var Order
      */
     private static $order;
 
@@ -29,15 +44,15 @@ class DefaultOptions
     /**
      * Insurance constructor.
      *
-     * @param \Magento\Sales\Model\Order|\Magento\Quote\Model\Quote $order
-     * @param Data $helper
+     * @param $order Order
+     * @param $helper Data
      */
-    public function __construct($order, Data $helper)
+    public function __construct(Order $order, Data $helper)
     {
         self::$helper = $helper;
-        self::$order = $order;
+        self::$order  = $order;
 
-        self::$chosenOptions = json_decode(self::$order->getData('delivery_options'), true);
+        self::$chosenOptions = json_decode(self::$order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true);
     }
 
     /**
@@ -51,18 +66,18 @@ class DefaultOptions
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
-            key_exists('options', self::$chosenOptions) &&
-            key_exists($option, self::$chosenOptions['options']) &&
-            self::$chosenOptions['options'][$option] == true
+            key_exists('shipmentOptions', self::$chosenOptions) &&
+            key_exists($option, self::$chosenOptions['shipmentOptions']) &&
+            self::$chosenOptions['shipmentOptions'][$option] == true
         ) {
             return true;
         }
 
-        $total = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig('options');
+        $total    = self::$order->getGrandTotal();
+        $settings = self::$helper->getStandardConfig('default_options');
 
         if ($settings[$option . '_active'] == '1' &&
-            (!$settings[$option . '_from_price'] || $total > (int)$settings[$option . '_from_price'])
+            (! $settings[$option . '_from_price'] || $total > (int) $settings[$option . '_from_price'])
         ) {
             return true;
         }
@@ -71,17 +86,59 @@ class DefaultOptions
     }
 
     /**
-     * @param $address
+     * @param string|null $company
      *
-     * @return string | null
+     * @return string|null
      */
-    public function getMaxCompanyName(?string $address): ?string
+    public function getMaxCompanyName(?string $company): ?string
     {
-        if (strlen($address) >= self::COMPANY_NAME_MAX_LENGTH) {
-            $address = substr($address, 0, 47) . '...';
+        if ($company !== null && (strlen($company) >= self::COMPANY_NAME_MAX_LENGTH)) {
+            $company = substr($company, 0, 47) . '...';
         }
 
-        return $address;
+        return $company;
+    }
+
+    /**
+     * Get default value of options without price check
+     *
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function getDefaultLargeFormat(string $option): bool
+    {
+        $price  = self::$order->getGrandTotal();
+        $weight = self::$order->getWeight();
+
+        $settings = self::$helper->getStandardConfig('default_options');
+        if (isset($settings[$option . '_active']) &&
+            $settings[$option . '_active'] == 'weight' &&
+            $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
+        ) {
+            return true;
+        }
+
+        if (isset($settings[$option . '_active']) &&
+            $settings[$option . '_active'] == 'price' &&
+            $price >= $settings[$option . '_from_price']
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function getDefaultOptionsWithoutPrice(string $option): bool
+    {
+        $settings = self::$helper->getStandardConfig('default_options');
+
+        return $settings[$option . '_active'] === '1';
     }
 
     /**
@@ -111,9 +168,9 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function getDigitalStampWeight()
+    public function getDigitalStampDefaultWeight()
     {
-        return self::$helper->getCheckoutConfig('digital_stamp/default_weight');
+        return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
     }
 
     /**
@@ -123,18 +180,23 @@ class DefaultOptions
      */
     public function getPackageType()
     {
-        if ($this->isDigitalStampOrMailbox('mailbox') === true) {
-            return Package::PACKAGE_TYPE_MAILBOX;
+        if ($this->isDigitalStampOrMailbox(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME)) {
+            return AbstractConsignment::PACKAGE_TYPE_MAILBOX;
         }
 
-        if ($this->isDigitalStampOrMailbox('digital_stamp') === true) {
-            return Package::PACKAGE_TYPE_DIGITAL_STAMP;
+        if ($this->isDigitalStampOrMailbox(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME)) {
+            return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP;
         }
 
-        return Package::PACKAGE_TYPE_NORMAL;
+        return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
     }
 
-    private function isDigitalStampOrMailbox($option)
+    /**
+     * @param string $option
+     *
+     * @return bool
+     */
+    private function isDigitalStampOrMailbox(string $option): bool
     {
         $country = self::$order->getShippingAddress()->getCountryId();
         if ($country != 'NL') {
@@ -143,10 +205,8 @@ class DefaultOptions
 
         if (
             is_array(self::$chosenOptions) &&
-            key_exists('time', self::$chosenOptions) &&
-            is_array(self::$chosenOptions['time']) &&
-            key_exists('price_comment', self::$chosenOptions['time'][0]) &&
-            self::$chosenOptions['time'][0]['price_comment'] == $option
+            key_exists('packageType', self::$chosenOptions) &&
+            self::$chosenOptions['packageType'] === $option
         ) {
             return true;
         }

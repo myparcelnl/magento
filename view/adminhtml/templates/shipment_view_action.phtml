@@ -3,29 +3,27 @@
    {
        ".page-footer": {
            "myparcelnl_massaction": {
-                "has_api_key": <?=$block->hasApiKey();?>,
-                "entity_id": <?=$block->getEntityId();?>,
-                "url": "<?=$block->getShipmentAjaxUrl();?>",
-                "url_send_return_mail": "<?=$block->getAjaxUrlSendReturnMail();?>",
-                "settings": <?=$block->getBasicSettings();?>,
+                "has_api_key": <?= $block->hasApiKey();?>,
+                "entity_id": <?= $block->getEntityId();?>,
+                "url": "<?= $block->getShipmentAjaxUrl(); ?>",
+                "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail(); ?>",
+                "settings": <?= $block->getPrintSettings(); ?>,
                 "button_present": true,
                 "button_send_return_mail_present": false,
-                "number_of_positions" : <?=$block->getNumberOfPrintPositions();?>,
+                "number_of_positions" : <?= $block->getNumberOfPrintPositions(); ?>,
                 <?php if ($block->hasTrack() == false): ?>
                     "action_options": {
                         "request_type": true,
                         "package_type": true,
-                        "package_type-mailbox": <?=$block->getCountry() == 'NL' ? 'true' : 'false';?>,
-                        "print_position": <?=$block->isCdCountry() == true ? 'false' : 'true';?>,
+                        "print_position": <?= $block->isCdCountry() == true ? 'false' : 'true'; ?>,
                         "label_amount": true
                     }
                 <?php else: ?>
                     "action_options": {
                         "request_type": false,
                         "package_type": false,
-                        "package_type-mailbox": false,
                         "print_position": true,
-                        "label_amount": true
+                         "label_amount": true
                     }
                 <?php endif; ?>
            }

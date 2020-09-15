@@ -7,7 +7,7 @@
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
+ * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2016 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
@@ -18,20 +18,28 @@ namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\DPDConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
-    const MODULE_NAME = 'MyParcelNL_Magento';
-    const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
-    const XML_PATH_STANDARD = 'myparcelnl_magento_standard/';
-    const XML_PATH_CHECKOUT = 'myparcelnl_magento_checkout/';
+    const MODULE_NAME              = 'MyParcelNL_Magento';
+    const XML_PATH_GENERAL         = 'myparcelnl_magento_general/';
+    const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
+    const XML_PATH_DPD_SETTINGS    = 'myparcelnl_magento_dpd_settings/';
 
-    /**
-     * @var ModuleListInterface
-     */
+    public const CARRIERS = [PostNLConsignment::CARRIER_NAME /*,DPDConsignment::CARRIER_NAME*/];
+
+    public const CARRIERS_XML_PATH_MAP = [
+        PostNLConsignment::CARRIER_NAME => Data::XML_PATH_POSTNL_SETTINGS,
+//        DPDConsignment::CARRIER_NAME   => Data::XML_PATH_DPD_SETTINGS,
+    ];
+
     private $moduleList;
 
     /**
@@ -42,18 +50,17 @@ class Data extends AbstractHelper
     /**
      * Get settings by field
      *
-     * @param Context $context
+     * @param Context             $context
      * @param ModuleListInterface $moduleList
-     * @param CheckApiKeyService $checkApiKeyService
+     * @param CheckApiKeyService  $checkApiKeyService
      */
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
         CheckApiKeyService $checkApiKeyService
-    )
-    {
+    ) {
         parent::__construct($context);
-        $this->moduleList = $moduleList;
+        $this->moduleList         = $moduleList;
         $this->checkApiKeyService = $checkApiKeyService;
     }
 
@@ -93,38 +100,30 @@ class Data extends AbstractHelper
      */
     public function getStandardConfig($code = '', $storeId = null)
     {
-        return $this->getConfigValue(self::XML_PATH_STANDARD . $code, $storeId);
+        return $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . $code, $storeId);
     }
 
     /**
-     * Get checkout setting
+     * Get carrier setting
      *
      * @param string $code
-     * @param null   $storeId
+     * @param        $carrier
      *
      * @return mixed
      */
-    public function getCheckoutConfig($code, $storeId = null)
+    public function getCarrierConfig($code, $carrier)
     {
-        $settings = null;
+        $settings = $this->getConfigValue($carrier . $code);
         if ($settings == null) {
-            $value = $this->getConfigValue(self::XML_PATH_CHECKOUT . $code);
+            $value = $this->getConfigValue($carrier . $code);
             if ($value != null) {
                 return $value;
             } else {
-                $this->_logger->critical('Can\'t get setting with path:' . self::XML_PATH_CHECKOUT . $code);
+                $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
             }
         }
 
-        if (!is_array($settings)) {
-            $this->_logger->critical('No data in settings array');
-        }
-
-        if (!key_exists($code, $settings)) {
-            $this->_logger->critical('Can\'t get setting ' . $code);
-        }
-
-        return $settings[$code];
+        return $settings;
     }
 
     /**
@@ -137,7 +136,7 @@ class Data extends AbstractHelper
         $moduleCode = self::MODULE_NAME;
         $moduleInfo = $this->moduleList->getOne($moduleCode);
 
-        return (string)$moduleInfo['setup_version'];
+        return (string) $moduleInfo['setup_version'];
     }
 
     /**
@@ -146,8 +145,61 @@ class Data extends AbstractHelper
     public function apiKeyIsCorrect()
     {
         $defaultApiKey = $this->getGeneralConfig('api/key');
-        $keyIsCorrect = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
+        $keyIsCorrect  = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
 
         return $keyIsCorrect;
+    }
+
+    /**
+     * Get date in YYYY-MM-DD HH:MM:SS format
+     *
+     * @param string|null $date
+     *
+     * @return string|null
+     */
+    public function convertDeliveryDate(?string $date): ?string
+    {
+        if (! $date) {
+            return null;
+        }
+
+        $date          = strtotime($date);
+        $delivery_date = date('Y-m-d H:i:s', $date);
+        $todayDate     = strtotime('now');
+
+        if ($date <= $todayDate) {
+            return date('Y-m-d H:i:s', strtotime('now +1 day'));
+        }
+
+        return $delivery_date;
+    }
+
+    /**
+     * Get delivery type and when it is null use 'standard'
+     *
+     * @param int|null $deliveryType
+     *
+     * @return int
+     */
+    public function checkDeliveryType(?int $deliveryType): int
+    {
+        if (! $deliveryType) {
+            return AbstractConsignment::DELIVERY_TYPE_STANDARD;
+        }
+
+        return $deliveryType;
+    }
+
+    /**
+     * @param int    $order_id
+     * @param string $status
+     */
+    public function setOrderStatus(int $order_id, string $status)
+    {
+        $order = ObjectManager::getInstance()->create('\Magento\Sales\Model\Order')->load($order_id);
+        $order->setState($status)->setStatus($status);
+        $order->save();
+
+        return;
     }
 }

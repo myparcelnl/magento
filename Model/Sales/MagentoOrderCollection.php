@@ -1,13 +1,10 @@
 <?php
-
-declare(strict_types=1);
-
 /**
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
@@ -117,7 +114,7 @@ class MagentoOrderCollection extends MagentoCollection
             ) {
                 while ($i <= $this->getOption('label_amount')) {
                     $this->setNewMagentoTrack($shipment);
-                    $i ++;
+                    $i++;
                 }
             }
         }
@@ -151,6 +148,7 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return $this
      * @throws \Exception
+     *
      */
     public function setMyParcelTrack()
     {
@@ -169,7 +167,7 @@ class MagentoOrderCollection extends MagentoCollection
                 foreach ($shipment->getTracksCollection() as $magentoTrack) {
                     if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
                         $trackTraceHolder = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack);
-                        break;
+                        $this->myParcelCollection->addConsignment($trackTraceHolder->consignment);
                     }
                 }
 
@@ -223,7 +221,6 @@ class MagentoOrderCollection extends MagentoCollection
     public function createMyParcelConcepts()
     {
         $this->myParcelCollection->createConcepts()->setLatestData();
-
         /**
          * @var Order                $order
          * @var Order\Shipment       $shipment
@@ -231,7 +228,6 @@ class MagentoOrderCollection extends MagentoCollection
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
             $consignments = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
-
             foreach ($shipment->getTracksCollection() as $mageTrack) {
                 if (! $consignment = $consignments->pop()) {
                     continue;
@@ -276,7 +272,6 @@ class MagentoOrderCollection extends MagentoCollection
      * Send multiple shipment emails with Track and trace variable
      *
      * @return $this
-     * @throws \Exception
      */
     public function sendTrackEmails()
     {
@@ -287,6 +282,9 @@ class MagentoOrderCollection extends MagentoCollection
         return $this;
     }
 
+    /**
+     * return void
+     */
     private function save()
     {
         foreach ($this->getOrders() as $order) {
@@ -300,7 +298,6 @@ class MagentoOrderCollection extends MagentoCollection
      * @param \Magento\Sales\Model\Order $order
      *
      * @return $this
-     * @throws \Exception
      */
     private function sendTrackEmailFromOrder(Order $order)
     {
@@ -380,7 +377,6 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Exception
      */
     public function updateMagentoTrack()
     {
@@ -396,10 +392,6 @@ class MagentoOrderCollection extends MagentoCollection
                 $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
                     $magentoTrack->getData('myparcel_consignment_id')
                 );
-
-                if (null === $myParcelTrack) {
-                    continue;
-                }
 
                 $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
 

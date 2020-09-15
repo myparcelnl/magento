@@ -2,10 +2,11 @@
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Shipment;
 
-use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
-use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
  * Action to create and print MyParcel Track
@@ -13,8 +14,8 @@ use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
- * @author      Reindert Vetter <reindert@myparcel.nl>
- * @copyright   2010-2017 MyParcel
+ * @author      Reindert Vetter <info@myparcel.nl>
+ * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
@@ -25,9 +26,9 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     const PATH_URI_SHIPMENT_INDEX = 'sales/shipment/index';
 
     /**
-     * @var MagentoShipmentCollection
+     * @var MagentoOrderCollection
      */
-    private $shipmentCollection;
+    private $orderCollection;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -39,7 +40,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
 
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->shipmentCollection = new MagentoShipmentCollection(
+        $this->orderCollection = new MagentoOrderCollection(
             $context->getObjectManager(),
             $this->getRequest(),
             null
@@ -49,8 +50,10 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     /**
      * Dispatch request
      *
-     * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return ResultInterface|ResponseInterface
+     * @throws LocalizedException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
     public function execute()
     {
@@ -64,11 +67,14 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      *
      * @return $this
      * @throws LocalizedException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \Exception
      */
     private function massAction()
     {
-        if ($this->shipmentCollection->apiKeyIsCorrect() !== true) {
-            $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
+        if ($this->orderCollection->apiKeyIsCorrect() !== true) {
+            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
 
@@ -76,57 +82,57 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         }
 
         if ($this->getRequest()->getParam('selected_ids')) {
-            $shipmentIds = explode(',', $this->getRequest()->getParam('selected_ids'));
+            $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
-            $shipmentIds = $this->getRequest()->getParam('selected');
+            $orderIds = $this->getRequest()->getParam('selected');
         }
 
-        if (empty($shipmentIds)) {
+        if (empty($orderIds)) {
             throw new LocalizedException(__('No items selected'));
         }
 
         $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
-        $this->addShipmentsToCollection($shipmentIds);
+        $this->addOrdersToCollection($orderIds);
 
-        try {
-            $this->shipmentCollection
-                ->setOptionsFromParameters()
-                ->setMagentoTrack()
-                ->setMyParcelTrack()
-                ->createMyParcelConcepts()
-                ->updateGridByShipment();
+        $this->orderCollection
+            ->setOptionsFromParameters()
+            ->setNewMagentoShipment();
 
-            if ($this->shipmentCollection->getOption('request_type') == 'concept') {
-                return $this;
-            }
-
-            $this->shipmentCollection
-                ->setPdfOfLabels()
-                ->updateMagentoTrack()
-                ->sendTrackEmailFromShipments()
-                ->downloadPdfOfLabels();
-
-        } catch (\Exception $e) {
-            if (count($this->messageManager->getMessages()->getItems()) == 0) {
-                $this->messageManager->addErrorMessage(__('An error has occurred while creating a MyParcel label. You may not have entered the correct API key. To get your personal API credentials you should contact MyParcel.'));
-                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
-            }
+        if (!$this->orderCollection->hasShipment()) {
+            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
+            return $this;
         }
+
+        $this->orderCollection
+            ->setMagentoTrack()
+            ->setMyParcelTrack()
+            ->createMyParcelConcepts()
+            ->updateGridByOrder();
+
+        if ($this->orderCollection->getOption('request_type') == 'concept') {
+            return $this;
+        }
+
+        $this->orderCollection
+            ->setPdfOfLabels()
+            ->updateMagentoTrack()
+            ->sendTrackEmails()
+            ->downloadPdfOfLabels();
 
         return $this;
     }
 
     /**
-     * @param $shipmentIds int[]
+     * @param $orderIds int[]
      */
-    private function addShipmentsToCollection($shipmentIds)
+    private function addOrdersToCollection($orderIds)
     {
         /**
-         * @var \Magento\Sales\Model\ResourceModel\order\shipment\Collection $collection
+         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
-        $collection = $this->_objectManager->get(MagentoShipmentCollection::PATH_MODEL_SHIPMENT);
-        $collection->addAttributeToFilter('entity_id', ['in' => $shipmentIds]);
-        $this->shipmentCollection->setShipmentCollection($collection);
+        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
+        $this->orderCollection->setOrderCollection($collection);
     }
 }

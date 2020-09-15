@@ -1,0 +1,19 @@
+{
+  "extends": "@myparcel/eslint-config/preset-default",
+  "overrides": [
+    {
+      "files": [
+        "postinstall.js"
+      ],
+      "extends": "@myparcel/eslint-config/preset-es6",
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "no-console": "off",
+        "max-len": "off",
+        "no-var": "off"
+      }
+    }
+  ]
+}

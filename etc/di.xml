@@ -7,12 +7,16 @@
                 <item name="track_status" xsi:type="string">sales_order.track_status</item>
                 <item name="track_number" xsi:type="string">sales_order.track_number</item>
                 <item name="drop_off_day" xsi:type="string">sales_order.drop_off_day</item>
+                <item name="myparcel_carrier" xsi:type="string">sales_order.myparcel_carrier</item>
             </argument>
         </arguments>
     </virtualType>
     <!-- API delivery settings -->
-    <preference for="MyParcelNL\Magento\Api\DeliverySettingsInterface"
-                type="MyParcelNL\Magento\Model\Checkout\DeliverySettings" />
+    <preference for="MyParcelNL\Magento\Api\DeliveryOptionsInterface"
+                type="MyParcelNL\Magento\Model\Checkout\DeliveryOptions" />
+    <!-- API shipping methods -->
+    <preference for="MyParcelNL\Magento\Api\ShippingMethodsInterface"
+                type="MyParcelNL\Magento\Model\Checkout\ShippingMethods" />
     <!-- Add print label button in order view -->
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
         <plugin name="mypa-massaction-button" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>
@@ -24,10 +28,6 @@
     <!-- Avoid default email is sent. With a MyParcel shipment, the mail should be sent only after the barcode exists. -->
     <type name="Magento\Sales\Model\Order\Email\Container\ShipmentIdentity">
         <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Model_Order_Email_Container_ShipmentIdentity" sortOrder="10" type="MyParcelNL\Magento\Plugin\Magento\Sales\Model\Order\Email\Container\ShipmentIdentity"/>
-    </type>
-    <!-- Add field delivery_options to order rest endpoint -->
-    <type name="Magento\Sales\Api\Data\OrderExtension">
-        <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Api_Data_OrderExtension" sortOrder="11" type="MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data\OrderExtension"/>
     </type>
     <!-- Save address information in checkout -->
     <type name="Magento\Checkout\Model\ShippingInformationManagement">

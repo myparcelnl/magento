@@ -1,6 +1,7 @@
 <?php
 
 namespace MyParcelNL\Magento\Api\Data;
+
 interface DeliveryOptions
 {
     const VALUE = 'value';
