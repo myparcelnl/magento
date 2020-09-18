@@ -44,7 +44,12 @@
                     <comment>Enable create label concept, when invoice is printed.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="retour_in_the_box" translate="label" type="select" sortOrder="215" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="weight_indication" translate="label comment" type="select" sortOrder="215" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>I use the following weight type</label>
+                    <comment>This is the type of weight that I use with my products.</comment>
+                    <source_model>MyParcelNL\Magento\Model\Source\WeightType</source_model>
+                </field>
+               <field id="retour_in_the_box" translate="label" type="select" sortOrder="216" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Retour in the box</label>
                     <source_model>MyParcelNL\Magento\Model\Source\RetourInTheBox</source_model>
                 </field>

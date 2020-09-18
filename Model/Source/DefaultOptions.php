@@ -18,6 +18,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
+use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
