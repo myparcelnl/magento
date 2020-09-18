@@ -217,10 +217,11 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * @param string $retourOptions
      *
+     * @return void
      * @throws \MyParcelNL\Sdk\src\Exception\ApiException
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
-    public function addRetourInTheBox(string $retourOptions)
+    public function addRetourInTheBox(string $retourOptions): void
     {
         $this->myParcelCollection
             ->generateReturnConsignments(
