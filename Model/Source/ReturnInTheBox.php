@@ -21,8 +21,8 @@ class ReturnInTheBox implements OptionSourceInterface
     {
         return [
             ['value' => self::NOT_ACTIVE, 'label' => __('No')],
-            ['value' => self::NO_OPTIONS, 'label' => __('No options')],
-            ['value' => self::EQUAL_TO_SHIPMENT, 'label' => __('Equal to shipment')]
+            ['value' => self::NO_OPTIONS, 'label' => __('Without options')],
+            ['value' => self::EQUAL_TO_SHIPMENT, 'label' => __('Options equal to shipment')]
         ];
     }
 
@@ -35,8 +35,8 @@ class ReturnInTheBox implements OptionSourceInterface
     {
         return [
             self::NOT_ACTIVE        => __('No'),
-            self::NO_OPTIONS        => __('No options'),
-            self::EQUAL_TO_SHIPMENT => __('Equal to shipment')
+            self::NO_OPTIONS        => __('Without options'),
+            self::EQUAL_TO_SHIPMENT => __('Options equal to shipment')
         ];
     }
 }
