@@ -12,6 +12,12 @@ class ReturnInTheBox implements OptionSourceInterface
     const NO_OPTIONS        = 'noOptions';
     const EQUAL_TO_SHIPMENT = 'equalToShipment';
 
+    const OPTIONS = [
+        self::NOT_ACTIVE        => 'No',
+        self::NO_OPTIONS        => 'Without options',
+        self::EQUAL_TO_SHIPMENT => 'Options equal to shipment'
+    ];
+
     /**
      * Options getter
      *
@@ -19,11 +25,13 @@ class ReturnInTheBox implements OptionSourceInterface
      */
     public function toOptionArray()
     {
-        return [
-            ['value' => self::NOT_ACTIVE, 'label' => __('No')],
-            ['value' => self::NO_OPTIONS, 'label' => __('Without options')],
-            ['value' => self::EQUAL_TO_SHIPMENT, 'label' => __('Options equal to shipment')]
-        ];
+        $optionArray = [];
+
+        foreach (self::OPTIONS as $key => $value) {
+            $optionArray[] = ['value' => $key, 'label' => $value];
+        }
+
+        return $optionArray;
     }
 
     /**
@@ -33,10 +41,12 @@ class ReturnInTheBox implements OptionSourceInterface
      */
     public function toArray()
     {
-        return [
-            self::NOT_ACTIVE        => __('No'),
-            self::NO_OPTIONS        => __('Without options'),
-            self::EQUAL_TO_SHIPMENT => __('Options equal to shipment')
-        ];
+        $optionArray = [];
+
+        foreach (self::OPTIONS as $key => $value) {
+            $optionArray[] = [$key => __($value)];
+        }
+
+        return $optionArray;
     }
 }
