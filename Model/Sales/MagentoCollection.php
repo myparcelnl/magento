@@ -15,7 +15,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
-use MyParcelNL\Magento\Model\Source\RetourInTheBox;
+use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
@@ -91,7 +91,7 @@ class MagentoCollection implements MagentoCollectionInterface
         'insurance'                         => null,
         'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
         'digital_stamp_weight'              => null,
-        'retour_in_the_box'                 => false,
+        'return_in_the_box'                 => false,
     ];
 
     /**
@@ -159,9 +159,9 @@ class MagentoCollection implements MagentoCollectionInterface
             $this->options['create_track_if_one_already_exist'] = false;
         }
 
-        $retourInTheBox = $this->helper->getGeneralConfig('print/retour_in_the_box');
-        if (RetourInTheBox::NO_OPTIONS === $retourInTheBox || RetourInTheBox::EQUAL_TO_SHIPMENT === $retourInTheBox) {
-            $this->options['retour_in_the_box'] = $retourInTheBox;
+        $returnInTheBox = $this->helper->getGeneralConfig('print/return_in_the_box');
+        if (ReturnInTheBox::NO_OPTIONS === $returnInTheBox || ReturnInTheBox::EQUAL_TO_SHIPMENT === $returnInTheBox) {
+            $this->options['return_in_the_box'] = $returnInTheBox;
         }
 
         return $this;

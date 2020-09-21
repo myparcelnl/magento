@@ -49,9 +49,9 @@
                     <comment>This is the type of weight that I use with my products.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\WeightType</source_model>
                 </field>
-               <field id="retour_in_the_box" translate="label" type="select" sortOrder="216" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Retour in the box</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\RetourInTheBox</source_model>
+               <field id="return_in_the_box" translate="label" type="select" sortOrder="216" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Print return label directly</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\ReturnInTheBox</source_model>
                 </field>
             </group>
             <group id="shipping_methods" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">

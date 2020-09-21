@@ -14,7 +14,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Source\RetourInTheBox;
+use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -180,8 +180,8 @@ class MagentoOrderCollection extends MagentoCollection
 
         $this->myParcelCollection = $newCollection;
 
-        if ($this->options['retour_in_the_box']) {
-            $this->addRetourInTheBox($this->options['retour_in_the_box']);
+        if ($this->options['return_in_the_box']) {
+            $this->addreturnInTheBox($this->options['return_in_the_box']);
         }
 
         return $this;
@@ -215,13 +215,13 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @param string $retourOptions
+     * @param string $returnOptions
      *
      * @return void
      * @throws \MyParcelNL\Sdk\src\Exception\ApiException
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
-    public function addRetourInTheBox(string $retourOptions): void
+    public function addReturnInTheBox(string $returnOptions): void
     {
         $this->myParcelCollection
             ->generateReturnConsignments(
@@ -229,13 +229,13 @@ class MagentoOrderCollection extends MagentoCollection
                 function (
                     AbstractConsignment $returnConsignment,
                     AbstractConsignment $parent
-                ) use ($retourOptions): AbstractConsignment {
+                ) use ($returnOptions): AbstractConsignment {
                     $returnConsignment->setLabelDescription(
                         'Return: ' . $parent->getLabelDescription() .
                         ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
                     );
 
-                    if (RetourInTheBox::NO_OPTIONS === $retourOptions) {
+                    if (ReturnInTheBox::NO_OPTIONS === $returnOptions) {
                         $returnConsignment->setOnlyRecipient(false);
                         $returnConsignment->setSignature(false);
                         $returnConsignment->setAgeCheck(false);

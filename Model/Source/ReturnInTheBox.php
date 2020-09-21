@@ -6,7 +6,7 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 
-class RetourInTheBox implements OptionSourceInterface
+class ReturnInTheBox implements OptionSourceInterface
 {
     const NOT_ACTIVE        = 'notActive';
     const NO_OPTIONS        = 'noOptions';
