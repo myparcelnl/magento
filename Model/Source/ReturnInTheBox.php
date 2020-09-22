@@ -23,7 +23,7 @@ class ReturnInTheBox implements OptionSourceInterface
      *
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
         $optionArray = [];
 
@@ -39,7 +39,7 @@ class ReturnInTheBox implements OptionSourceInterface
      *
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
         $optionArray = [];
 
