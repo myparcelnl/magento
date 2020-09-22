@@ -14,7 +14,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
+use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
