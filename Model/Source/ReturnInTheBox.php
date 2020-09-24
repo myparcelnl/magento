@@ -28,7 +28,7 @@ class ReturnInTheBox implements OptionSourceInterface
         $optionArray = [];
 
         foreach (self::OPTIONS as $key => $value) {
-            $optionArray[] = ['value' => $key, 'label' => $value];
+            $optionArray[] = ['value' => $key, 'label' => __($value)];
         }
 
         return $optionArray;
