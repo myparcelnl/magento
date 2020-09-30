@@ -99,13 +99,14 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 
         if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS && $this->hasMyParcelDeliveryOptions($quote))) {
             $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS);
+            $deliveryOptions     = json_decode($jsonDeliveryOptions, true) ?? [];
 
             $order->setData(Checkout::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
 
-            $dropOffDay = $this->delivery->getDropOffDayFromJson($jsonDeliveryOptions);
+            $dropOffDay = $this->delivery->getDropOffDayFromDeliveryOptions($deliveryOptions);
             $order->setData(Checkout::FIELD_DROP_OFF_DAY, $dropOffDay);
 
-            $selectedCarrier = $this->delivery->getCarrierFromJson($jsonDeliveryOptions);
+            $selectedCarrier = $this->delivery->getCarrierFromDeliveryOptions($deliveryOptions);
             $order->setData(Checkout::FIELD_MYPARCEL_CARRIER, $selectedCarrier);
         }
 
