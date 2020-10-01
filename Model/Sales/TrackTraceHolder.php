@@ -284,7 +284,7 @@ class TrackTraceHolder
                 $this->helper->convertDeliveryDate($checkoutData) ? $deliveryDate : '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
-                $this->getProductInfo($productInfo, 'qty'),
+                round($this->getProductInfo($productInfo, 'qty'), 0),
             ],
             $labelDescription
         );
