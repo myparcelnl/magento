@@ -157,6 +157,10 @@ class TrackTraceHolder
             $packageType = $options['package_type'] ? $options['package_type'] : AbstractConsignment::PACKAGE_TYPE_PACKAGE;
         }
 
+        if (is_string($packageType)) {
+            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+        }
+
         $apiKey = $this->helper->getGeneralConfig(
             'api/key',
             $shipment->getOrder()->getStoreId()
