@@ -115,7 +115,7 @@ class MagentoCollection implements MagentoCollectionInterface
         $this->helper             = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack         = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
-        $this->myParcelCollection = (new MyParcelCollection())->setUserAgentArray(['Magento2'=> $this->helper->getVersion()]);
+        $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(['Magento2'=> $this->helper->getVersion()]);
     }
 
     /**
