@@ -65,7 +65,7 @@ class TrackActions extends Column
             if (! isset($item[ShippingStatus::NAME])) {
                 $item[$this->getData('name')]['action-download_package_label']       = [
                     'href'   => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                        'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids'      => $item['entity_id'],
                             'mypa_package_type' => 1,
@@ -77,7 +77,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-download_digital_stamp_label'] = [
                     'href'   => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                        'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids'      => $item['entity_id'],
                             'mypa_package_type' => 4,
@@ -89,7 +89,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-download_mailbox_label']       = [
                     'href'   => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                        'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids'      => $item['entity_id'],
                             'mypa_package_type' => 2,
@@ -101,7 +101,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-download_letter_label']        = [
                     'href'   => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                        'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids'      => $item['entity_id'],
                             'mypa_package_type' => 3,
@@ -113,7 +113,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-create_concept']               = [
                     'href'   => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                        'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids'      => $item['entity_id'],
                             'mypa_request_type' => 'concept',
@@ -135,7 +135,7 @@ class TrackActions extends Column
             } else {
                 $item[$this->getData('name')]['action-download_package_label']    = [
                     'href'   => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/CreateAndPrintMyParcelTrack',
+                        'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
                             'selected_ids'      => $item['entity_id'],
                             'mypa_package_type' => 1,
@@ -147,7 +147,7 @@ class TrackActions extends Column
                 ];
                 $item[$this->getData('name')]['action-myparcel_send_return_mail'] = [
                     'href'   => $this->urlBuilder->getUrl(
-                        'myparcelnl/order/SendMyParcelReturnMail',
+                        'myparcel/order/SendMyParcelReturnMail',
                         [
                             'selected_ids' => $item['entity_id'],
                         ]
