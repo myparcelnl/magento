@@ -98,7 +98,7 @@ class Package extends Data implements PackageInterface
      */
     public function addWeight(float $weight)
     {
-        $this->weight +=  $weight;
+        $this->weight += $weight;
     }
 
     /**
