@@ -79,7 +79,7 @@ class OrderExtension
             return null;
         }
 
-        return $result[0]['delivery_options'];
+        return $result[0]['myparcel_delivery_options'];
     }
 
     /**
