@@ -9,8 +9,8 @@
 
 namespace MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data;
 
-use Magento\Framework\HTTP\PhpEnvironment\Request;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\HTTP\PhpEnvironment\Request;
 use MyParcelNL\Sdk\src\Support\Arr;
 
 class OrderExtension
@@ -75,7 +75,7 @@ class OrderExtension
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
-        if (empty($result)){
+        if (empty($result)) {
             return null;
         }
 
