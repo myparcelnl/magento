@@ -9,7 +9,6 @@
 
 namespace MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data;
 
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\HTTP\PhpEnvironment\Request;
 use MyParcelNL\Sdk\src\Support\Arr;
 
@@ -58,11 +57,9 @@ class OrderExtension
         $explodePath = explode('/', $path);
 
         if (empty($explodePath[self::ENTITY_ID_POSITION])) {
-            $searchColumn = self::INCREMENT_ID;
-            $searchValue  = $this->getIdByIncrementId();
+            [$searchColumn, $searchValue] = $this->getIdByIncrementId();
         } else {
-            $searchColumn = self::ENTITY_ID;
-            $searchValue  = $explodePath[self::ENTITY_ID_POSITION];
+            [$searchColumn, $searchValue] = $this->getIdByEntityId($explodePath[self::ENTITY_ID_POSITION]);
         }
 
         if (empty($searchValue)) {
@@ -77,21 +74,31 @@ class OrderExtension
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
-        if (empty($result)) {
+        if (empty($result)){
             return null;
         }
 
-        return $result[0]['myparcel_delivery_options'];
+        return $result[0]['delivery_options'];
     }
 
     /**
-     * @return mixed
+     * @param $entityId
+     *
+     * @return array
+     */
+    private function getIdByEntityId($entityId)
+    {
+        return [self::ENTITY_ID, $entityId];
+    }
+
+    /**
+     * @return array
      */
     private function getIdByIncrementId()
     {
         $searchValue = $this->request->getQueryValue('searchCriteria');
         $searchValue = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
 
-        return $searchValue;
+        return [self::INCREMENT_ID, $searchValue];
     }
 }
