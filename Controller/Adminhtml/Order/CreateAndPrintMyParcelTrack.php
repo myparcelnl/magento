@@ -167,10 +167,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             $destinationCountry = $order->getShippingAddress()->getCountryId();
             $keyOrderId         = array_search($orderId, $orderIds);
 
-            // Check if country is not NL or BE
-            if ($destinationCountry != AbstractConsignment::CC_NL && $destinationCountry != AbstractConsignment::CC_BE) {
-                continue;
-            }
             // Validate the street and house number. If the address is wrong then get the orderId from the array and delete it.
             if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
                 $errorHuman = 'An error has occurred while validating the order number ' . $order->getIncrementId() . '. Check street.';
