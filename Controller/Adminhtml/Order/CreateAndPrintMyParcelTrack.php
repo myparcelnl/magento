@@ -103,10 +103,12 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
+
+
         $this->orderCollection
             ->setOptionsFromParameters()
             ->setNewMagentoShipment();
-        
+
         $this->orderCollection->reload();
 
         if (! $this->orderCollection->hasShipment()) {
