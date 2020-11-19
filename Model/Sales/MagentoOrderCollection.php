@@ -29,6 +29,10 @@ class MagentoOrderCollection extends MagentoCollection
      * @var \Magento\Sales\Model\ResourceModel\Order\Collection
      */
     private $orders = null;
+    /**
+     * @var \Magento\InventoryApi\Api\SourceRepositoryInterface $sourceRepository
+     */
+    private $sourceRepository;
 
     /**
      * Get all Magento orders
@@ -388,15 +392,35 @@ class MagentoOrderCollection extends MagentoCollection
 
             // Add shipment item to shipment
             $shipment->addItem($shipmentItem);
+
+            // Register shipment
+            $shipment->register();
+            $shipment->getOrder()->setIsInProcess(true);
+
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $sourceList    = $objectManager->get('\Magento\Inventory\Model\ResourceModel\Source\Collection');
+            $sourceListArr = $sourceList->load();
+            $i             = 1;
+
+            $sourceList = [];
+            foreach ($sourceListArr as $sourceItemName) {
+                $sourceCode = $sourceItemName->getSourceCode();
+                $sourceName = $sourceItemName->getName();
+
+                if ($sourceName === $orderItem->getSku()) {
+                    $sourceAllList[] = $sourceCode;
+                }
+
+                $i++;
+            }
         }
-
-        // Register shipment
-        $shipment->register();
-        $shipment->getOrder()->setIsInProcess(true);
-
+        var_dump($sourceAllList);
+        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
+        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
         try {
             // Save created shipment and order
             $transaction = $this->objectManager->create('Magento\Framework\DB\Transaction');
+            $shipment->getExtensionAttributes()->setSourceCode('MSI1234');
             $transaction->addObject($shipment)->addObject($shipment->getOrder())->save();
 
             // Send email
