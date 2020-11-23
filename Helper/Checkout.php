@@ -213,39 +213,6 @@ class Checkout extends Data
     }
 
     /**
-     * Get MyParcel method/option price with EU format
-     *
-     * @param        $carrier
-     * @param string $key
-     * @param bool   $addBasePrice
-     * @param string $prefix
-     *
-     * @return string
-     */
-    public function getMethodPriceFormat($carrier, $key, $addBasePrice = true, $prefix = '')
-    {
-        $value = $this->getMethodPrice($carrier, $key, $addBasePrice);
-        $value = $this->getMoneyFormat($value);
-        $value = $prefix . $value;
-
-        return $value;
-    }
-
-    /**
-     * Get price in EU format
-     *
-     * @param float $value
-     *
-     * @return string
-     */
-    public function getMoneyFormat($value)
-    {
-        $value = number_format($value, 2, '.', ',');
-
-        return $value;
-    }
-
-    /**
      * Get shipping price
      *
      * @param $price
