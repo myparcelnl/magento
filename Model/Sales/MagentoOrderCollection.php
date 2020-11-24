@@ -29,10 +29,6 @@ class MagentoOrderCollection extends MagentoCollection
      * @var \Magento\Sales\Model\ResourceModel\Order\Collection
      */
     private $orders = null;
-    /**
-     * @var \Magento\InventoryApi\Api\SourceRepositoryInterface $sourceRepository
-     */
-    private $sourceRepository;
 
     /**
      * Get all Magento orders
