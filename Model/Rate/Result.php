@@ -166,9 +166,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
         foreach ($this->getMethods() as $alias => $settingPath) {
             $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
-            $active = $this->myParcelHelper->getBoolConfig($map, $settingPath . '/active');
-
-            if ($active) {
                 $method = $this->getShippingMethod(
                     $this->getFullSettingPath($map, $settingPath),
                     $parentRate
@@ -176,7 +173,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
                 $this->_rates[] = $method;
             }
-        }
 
         $this::$myParcelRatesAlreadyAdded = true;
     }

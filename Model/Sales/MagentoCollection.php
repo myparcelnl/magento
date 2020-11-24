@@ -14,7 +14,8 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\magento\Model\Order\Email\Sender\TrackSender;
+use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
+use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
@@ -90,6 +91,7 @@ class MagentoCollection implements MagentoCollectionInterface
         'insurance'                         => null,
         'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
         'digital_stamp_weight'              => null,
+        'return_in_the_box'                 => false,
     ];
 
     /**
@@ -113,7 +115,7 @@ class MagentoCollection implements MagentoCollectionInterface
         $this->helper             = $objectManagerInterface->create(self::PATH_HELPER_DATA);
         $this->modelTrack         = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
-        $this->myParcelCollection = (new MyParcelCollection())->setUserAgentArray(['Magento2'=> $this->helper->getVersion()]);
+        $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(['Magento2'=> $this->helper->getVersion()]);
     }
 
     /**
@@ -155,6 +157,11 @@ class MagentoCollection implements MagentoCollectionInterface
 
         if ($this->request->getParam('mypa_request_type') != 'concept') {
             $this->options['create_track_if_one_already_exist'] = false;
+        }
+
+        $returnInTheBox = $this->helper->getGeneralConfig('print/return_in_the_box');
+        if (ReturnInTheBox::NO_OPTIONS === $returnInTheBox || ReturnInTheBox::EQUAL_TO_SHIPMENT === $returnInTheBox) {
+            $this->options['return_in_the_box'] = $returnInTheBox;
         }
 
         return $this;

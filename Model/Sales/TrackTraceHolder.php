@@ -157,6 +157,10 @@ class TrackTraceHolder
             $packageType = $options['package_type'] ? $options['package_type'] : AbstractConsignment::PACKAGE_TYPE_PACKAGE;
         }
 
+        if (!is_numeric($packageType)) {
+            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+        }
+
         $apiKey = $this->helper->getGeneralConfig(
             'api/key',
             $shipment->getOrder()->getStoreId()
@@ -284,7 +288,7 @@ class TrackTraceHolder
                 $this->helper->convertDeliveryDate($checkoutData) ? $deliveryDate : '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
-                $this->getProductInfo($productInfo, 'qty'),
+                round($this->getProductInfo($productInfo, 'qty'), 0),
             ],
             $labelDescription
         );
@@ -327,7 +331,7 @@ class TrackTraceHolder
                 $myParcelProduct = (new MyParcelCustomsItem())
                     ->setDescription($product->getName())
                     ->setAmount($product->getQty())
-                    ->setWeight($product->getWeight() ?: 1)
+                    ->setWeight($this->getWeightTypeOfOption($product->getWeight()) ?: 1)
                     ->setItemValue($this->getCentsByPrice($product->getPrice()))
                     ->setClassification(
                         (int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification')
@@ -343,7 +347,7 @@ class TrackTraceHolder
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($item->getName())
                 ->setAmount($item->getQty())
-                ->setWeight($this->getWeightTypeOfOption($item->getWeight()))
+                ->setWeight($this->getWeightTypeOfOption($item->getWeight() * $item->getQty()))
                 ->setItemValue($item->getPrice() * 100)
                 ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $item->getProductId(), 'classification'))
                 ->setCountry($this->getCountryOfOrigin($item->getProductId()));

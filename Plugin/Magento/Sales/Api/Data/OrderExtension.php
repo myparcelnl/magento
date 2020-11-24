@@ -45,7 +45,7 @@ class OrderExtension
      *
      * @return string|null
      */
-    public function afterGetDeliveryOptions()
+    public function afterGetDeliveryOptions(): ?string
     {
         if (strpos($this->request->getPathInfo(), "/rest/V1/orders") === false) {
             return null;
@@ -57,12 +57,10 @@ class OrderExtension
         $path        = $this->request->getPathInfo();
         $explodePath = explode('/', $path);
 
-        if (empty($explodePath[self::ENTITY_ID_POSITION])) {
-            $searchColumn = self::INCREMENT_ID;
-            $searchValue  = $this->getIdByIncrementId();
+        if (! is_numeric(end($explodePath))) {
+            [$searchColumn, $searchValue] = $this->useIncrementId();
         } else {
-            $searchColumn = self::ENTITY_ID;
-            $searchValue  = $explodePath[self::ENTITY_ID_POSITION];
+            [$searchColumn, $searchValue] = $this->useEntityId(end($explodePath));
         }
 
         if (empty($searchValue)) {
@@ -85,13 +83,23 @@ class OrderExtension
     }
 
     /**
-     * @return mixed
+     * @param int $entityId
+     *
+     * @return array
      */
-    private function getIdByIncrementId()
+    private function useEntityId(int $entityId): array
+    {
+        return [self::ENTITY_ID, $entityId];
+    }
+
+    /**
+     * @return array
+     */
+    private function useIncrementId(): array
     {
         $searchValue = $this->request->getQueryValue('searchCriteria');
         $searchValue = Arr::get($searchValue, 'filterGroups.0.filters.0.value');
 
-        return $searchValue;
+        return [self::INCREMENT_ID, $searchValue];
     }
 }

@@ -185,23 +185,7 @@ define(
                     $('#mypa_package_type-default').prop('checked', true).trigger('change');
                     $('#paper_size-' + this.options.settings['paper_type']).prop('checked', true).trigger('change');
 
-                    if (selectAmount != 0) {
-                        if (selectAmount >= 1) {
-                            $('#mypa_position-2').prop('checked', true);
-                        }
-
-                        if (selectAmount >= 2) {
-                            $('#mypa_position-4').prop('checked', true);
-                        }
-
-                        if (selectAmount >= 3) {
-                            $('#mypa_position-1').prop('checked', true);
-                        }
-
-                        if (selectAmount >= 4) {
-                            $('#mypa_position-3').prop('checked', true);
-                        }
-                    }
+                    this._getLabelPosition(selectAmount);
 
                     return this;
                 },
@@ -265,20 +249,27 @@ define(
                     var totalAmount = selectAmount * this.selectedIds.length;
                     $("input[id^=mypa_position-]").prop('checked', false);
 
-                    if (totalAmount != 0) {
-                        if (totalAmount >= 1) {
+                    this._getLabelPosition(totalAmount);
+                },
+
+                /**
+                 * @protected
+                 */
+                _getLabelPosition: function (selectAmount) {
+                    if (selectAmount != 0) {
+                        if (selectAmount >= 1) {
                             $('#mypa_position-2').prop('checked', true);
                         }
 
-                        if (totalAmount >= 2) {
+                        if (selectAmount >= 2) {
                             $('#mypa_position-4').prop('checked', true);
                         }
 
-                        if (totalAmount >= 3) {
+                        if (selectAmount >= 3) {
                             $('#mypa_position-1').prop('checked', true);
                         }
 
-                        if (totalAmount >= 4) {
+                        if (selectAmount >= 4) {
                             $('#mypa_position-3').prop('checked', true);
                         }
                     }

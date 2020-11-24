@@ -18,14 +18,7 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-
-use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\App\Helper\Context;
-use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
-use Psr\Log\LoggerInterface;
 
 class Package extends Data implements PackageInterface
 {
@@ -85,7 +78,7 @@ class Package extends Data implements PackageInterface
     private $package_type = null;
 
     /**
-     * @return int
+     * @return float
      */
     public function getWeight()
     {
@@ -93,19 +86,19 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param $weight
+     * @param float $weight
      */
-    public function setWeight(int $weight)
+    public function setWeight(float $weight)
     {
-        $this->weight = (int) $weight;
+        $this->weight = $weight;
     }
 
     /**
-     * @param int $weight
+     * @param float $weight
      */
-    public function addWeight(int $weight)
+    public function addWeight(float $weight)
     {
-        $this->weight += (int) $weight;
+        $this->weight += $weight;
     }
 
     /**
@@ -117,13 +110,12 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param int $max_weight
+     * @param float $max_weight
      */
-    public function setMaxWeight(int $max_weight)
+    public function setMaxWeight(float $max_weight)
     {
         $this->max_weight = $max_weight;
     }
-
 
     /**
      * @return bool
@@ -221,7 +213,6 @@ class Package extends Data implements PackageInterface
             $this->all_products_fit = $all_products_fit;
         }
     }
-
 
     /**
      * package = 1

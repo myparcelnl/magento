@@ -22,17 +22,17 @@ namespace MyParcelNL\Magento\Model\Sales;
 interface PackageInterface
 {
     /**
-     * @return int
+     * @return float
      */
     public function getWeight();
     /**
      * @param $weight
      */
-    public function setWeight(int $weight);
+    public function setWeight(float $weight);
     /**
-     * @param int $weight
+     * @param float $weight
      */
-    public function addWeight(int $weight);
+    public function addWeight(float $weight);
     /**
      * @return bool
      */
