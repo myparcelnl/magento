@@ -418,7 +418,7 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return string
      */
-    public function getMultiStockInventory($orderItem, $source = ''): string
+    public function getMultiStockInventory($orderItem, string $source = ''): string
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $sourceList    = $objectManager->get('\Magento\Inventory\Model\ResourceModel\Source\Collection');
