@@ -397,30 +397,13 @@ class MagentoOrderCollection extends MagentoCollection
             $shipment->register();
             $shipment->getOrder()->setIsInProcess(true);
 
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $sourceList    = $objectManager->get('\Magento\Inventory\Model\ResourceModel\Source\Collection');
-            $sourceListArr = $sourceList->load();
-            $i             = 1;
-
-            $sourceList = [];
-            foreach ($sourceListArr as $sourceItemName) {
-                $sourceCode = $sourceItemName->getSourceCode();
-                $sourceName = $sourceItemName->getName();
-
-                if ($sourceName === $orderItem->getSku()) {
-                    $sourceAllList[] = $sourceCode;
-                }
-
-                $i++;
-            }
+            $source = $this->getMultiStockInventory($orderItem);
+            $shipment->getExtensionAttributes()->setSourceCode($source);
         }
-        var_dump($sourceAllList);
-        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
-        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
+
         try {
             // Save created shipment and order
             $transaction = $this->objectManager->create('Magento\Framework\DB\Transaction');
-            $shipment->getExtensionAttributes()->setSourceCode('MSI1234');
             $transaction->addObject($shipment)->addObject($shipment->getOrder())->save();
 
             // Send email
@@ -431,6 +414,30 @@ class MagentoOrderCollection extends MagentoCollection
                 __($e->getMessage())
             );
         }
+    }
+
+    /**
+     * @param object $orderItem
+     * @param string $source
+     *
+     * @return string
+     */
+    public function getMultiStockInventory($orderItem, $source = ''): string
+    {
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $sourceList    = $objectManager->get('\Magento\Inventory\Model\ResourceModel\Source\Collection');
+        $sourceListArr = $sourceList->load();
+
+        foreach ($sourceListArr as $sourceItemName) {
+            $sourceCode = $sourceItemName->getSourceCode();
+            $sourceName = $sourceItemName->getName();
+
+            if ($sourceName === $orderItem->getSku()) {
+                $source = $sourceCode;
+            }
+        }
+
+        return $source;
     }
 
     /**
