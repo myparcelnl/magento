@@ -416,11 +416,10 @@ class MagentoOrderCollection extends MagentoCollection
 
     /**
      * @param object $orderItem
-     * @param string $defaultSource
      *
      * @return string
      */
-    public function getMultiStockInventory($orderItem, string $defaultSource = ''): string
+    public function getMultiStockInventory($orderItem): string
     {
         $objectManager = ObjectManager::getInstance();
         $sourceList    = $objectManager->get(Collection::class);
@@ -431,7 +430,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
         }
 
-        return $defaultSource;
+        return '';
     }
 
     /**
