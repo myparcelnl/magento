@@ -129,25 +129,6 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @return array|\Magento\Sales\Model\ResourceModel\order\shipment\Collection
-     */
-    private function getShipmentsCollection()
-    {
-        if ($this->orders == null) {
-            return [];
-        }
-
-        $shipments = [];
-        foreach ($this->getOrders() as $order) {
-            foreach ($order->getShipmentsCollection() as $shipment) {
-                $shipments[] = $shipment;
-            }
-        }
-
-        return $shipments;
-    }
-
-    /**
      * Add MyParcel Track from Magento Track
      *
      * @return $this
@@ -324,6 +305,108 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
+     * Update all the tracks that made created via the API
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function updateMagentoTrack()
+    {
+        /**
+         * @var $order        Order
+         * @var $shipment     Order\Shipment
+         * @var $magentoTrack Order\Shipment\Track
+         */
+        foreach ($this->getShipmentsCollection() as $shipment) {
+            $trackCollection = $shipment->getAllTracks();
+            foreach ($trackCollection as $magentoTrack) {
+                $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
+                    $magentoTrack->getData('myparcel_consignment_id')
+                );
+
+                $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
+
+                if ($myParcelTrack->getBarcode()) {
+                    $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
+                }
+                $magentoTrack->save();
+            }
+        }
+
+        $this->updateGridByOrder();
+
+        return $this;
+    }
+
+    /**
+     * Update column track_status in sales_order_grid
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function updateGridByOrder()
+    {
+        if (empty($this->getOrders())) {
+            throw new LocalizedException(__('MagentoOrderCollection::order array is empty'));
+        }
+
+        /**
+         * @var Order $order
+         */
+        foreach ($this->getOrders() as $order) {
+            $aHtml = $this->getHtmlForGridColumns($order->getId());
+
+            if ($aHtml['track_status']) {
+                $order->setData('track_status', $aHtml['track_status']);
+            }
+            if ($aHtml['track_number']) {
+                $order->setData('track_number', $aHtml['track_number']);
+            }
+        }
+
+        $this->save();
+
+        return $this;
+    }
+
+    /**
+     * Check if there is 1 shipment in all orders
+     *
+     * @return bool
+     */
+    public function hasShipment()
+    {
+        /** @var $order Order */
+        /** @var Order\Shipment $shipment */
+        foreach ($this->getOrders() as $order) {
+            if ($order->hasShipments()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return array|\Magento\Sales\Model\ResourceModel\order\shipment\Collection
+     */
+    private function getShipmentsCollection()
+    {
+        if ($this->orders == null) {
+            return [];
+        }
+
+        $shipments = [];
+        foreach ($this->getOrders() as $order) {
+            foreach ($order->getShipmentsCollection() as $shipment) {
+                $shipments[] = $shipment;
+            }
+        }
+
+        return $shipments;
+    }
+
+    /**
      * return void
      */
     private function save()
@@ -419,7 +502,7 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return string
      */
-    public function getMultiStockInventory($orderItem): string
+    private function getMultiStockInventory($orderItem): string
     {
         $objectManager = ObjectManager::getInstance();
         $sourceList    = $objectManager->get(Collection::class);
@@ -431,88 +514,5 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         return '';
-    }
-
-    /**
-     * Update all the tracks that made created via the API
-     *
-     * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function updateMagentoTrack()
-    {
-        /**
-         * @var $order        Order
-         * @var $shipment     Order\Shipment
-         * @var $magentoTrack Order\Shipment\Track
-         */
-        foreach ($this->getShipmentsCollection() as $shipment) {
-            $trackCollection = $shipment->getAllTracks();
-            foreach ($trackCollection as $magentoTrack) {
-                $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
-                    $magentoTrack->getData('myparcel_consignment_id')
-                );
-
-                $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
-
-                if ($myParcelTrack->getBarcode()) {
-                    $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
-                }
-                $magentoTrack->save();
-            }
-        }
-
-        $this->updateGridByOrder();
-
-        return $this;
-    }
-
-    /**
-     * Update column track_status in sales_order_grid
-     *
-     * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function updateGridByOrder()
-    {
-        if (empty($this->getOrders())) {
-            throw new LocalizedException(__('MagentoOrderCollection::order array is empty'));
-        }
-
-        /**
-         * @var Order $order
-         */
-        foreach ($this->getOrders() as $order) {
-            $aHtml = $this->getHtmlForGridColumns($order->getId());
-
-            if ($aHtml['track_status']) {
-                $order->setData('track_status', $aHtml['track_status']);
-            }
-            if ($aHtml['track_number']) {
-                $order->setData('track_number', $aHtml['track_number']);
-            }
-        }
-
-        $this->save();
-
-        return $this;
-    }
-
-    /**
-     * Check if there is 1 shipment in all orders
-     *
-     * @return bool
-     */
-    public function hasShipment()
-    {
-        /** @var $order Order */
-        /** @var Order\Shipment $shipment */
-        foreach ($this->getOrders() as $order) {
-            if ($order->hasShipments()) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
