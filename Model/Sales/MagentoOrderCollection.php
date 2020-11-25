@@ -424,9 +424,8 @@ class MagentoOrderCollection extends MagentoCollection
     {
         $objectManager = ObjectManager::getInstance();
         $sourceList    = $objectManager->get(Collection::class);
-        $sourceListArr = $sourceList->load();
 
-        foreach ($sourceListArr as $sourceItemName) {
+        foreach ($sourceList->load() as $sourceItemName) {
             if ($sourceItemName->getName() === $orderItem->getSku()) {
                 return $sourceItemName->getSourceCode();
             }
