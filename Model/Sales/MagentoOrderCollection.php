@@ -12,7 +12,9 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Inventory\Model\ResourceModel\Source\Collection;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
@@ -389,13 +391,13 @@ class MagentoOrderCollection extends MagentoCollection
             // Add shipment item to shipment
             $shipment->addItem($shipmentItem);
 
-            // Register shipment
-            $shipment->register();
-            $shipment->getOrder()->setIsInProcess(true);
-
             $source = $this->getMultiStockInventory($orderItem);
             $shipment->getExtensionAttributes()->setSourceCode($source);
         }
+
+        // Register shipment
+        $shipment->register();
+        $shipment->getOrder()->setIsInProcess(true);
 
         try {
             // Save created shipment and order
@@ -414,26 +416,23 @@ class MagentoOrderCollection extends MagentoCollection
 
     /**
      * @param object $orderItem
-     * @param string $source
+     * @param string $defaultSource
      *
      * @return string
      */
-    public function getMultiStockInventory($orderItem, string $source = ''): string
+    public function getMultiStockInventory($orderItem, string $defaultSource = ''): string
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $sourceList    = $objectManager->get('\Magento\Inventory\Model\ResourceModel\Source\Collection');
+        $objectManager = ObjectManager::getInstance();
+        $sourceList    = $objectManager->get(Collection::class);
         $sourceListArr = $sourceList->load();
 
         foreach ($sourceListArr as $sourceItemName) {
-            $sourceCode = $sourceItemName->getSourceCode();
-            $sourceName = $sourceItemName->getName();
-
-            if ($sourceName === $orderItem->getSku()) {
-                $source = $sourceCode;
+            if ($sourceItemName->getName() === $orderItem->getSku()) {
+                return $sourceItemName->getSourceCode();
             }
         }
 
-        return $source;
+        return $defaultSource;
     }
 
     /**
