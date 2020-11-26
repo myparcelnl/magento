@@ -28,11 +28,6 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
     /**
-     * @var bool
-     */
-    protected static $myParcelRatesAlreadyAdded = false;
-
-    /**
      * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
      */
     private $products;
@@ -87,7 +82,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->package        = $package;
         $this->session        = $session;
         $this->quote          = $quote;
-        $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods', true));
+        $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods'));
         $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
         $this->products = $this->getQuoteFromCardOrSession()->getItems();
     }
@@ -150,12 +145,9 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function addMyParcelRates($parentRate)
     {
         $selectedCountry = $this->session->getQuote()->getShippingAddress()->getCountryId();
+        $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
 
         if ($selectedCountry != 'NL' && $selectedCountry != 'BE') {
-            return;
-        }
-
-        if ($this::$myParcelRatesAlreadyAdded) {
             return;
         }
 
@@ -165,16 +157,21 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         foreach ($this->getMethods() as $alias => $settingPath) {
-            $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
-                $method = $this->getShippingMethod(
-                    $this->getFullSettingPath($map, $settingPath),
-                    $parentRate
-                );
-
-                $this->_rates[] = $method;
+            // hasMyParcelRateMethods en dan terug bool
+            foreach ($this->_rates as $rate) {
+                if ($rate->getData('method_title') === $this->createTitle($settingPath)) {
+                    return;
+                }
             }
+            // tot hier in nieuwe method
 
-        $this::$myParcelRatesAlreadyAdded = true;
+            $method = $this->getShippingMethod(
+                $this->getFullSettingPath($map, $settingPath),
+                $parentRate
+            );
+
+            $this->_rates[] = $method;
+        }
     }
 
     /**
