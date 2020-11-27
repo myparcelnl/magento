@@ -140,12 +140,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Add MyParcel shipping rates
      *
-     * @param $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
+     * @param \Magento\Quote\Model\Quote\Address\RateResult\Method $parentRate
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    private function addMyParcelRates($parentRate)
+    private function addMyParcelRates(Method $parentRate): void
     {
         $selectedCountry = $this->session->getQuote()->getShippingAddress()->getCountryId();
-        $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
+        $map             = Data::CARRIERS_XML_PATH_MAP['postnl'];
 
         if ($selectedCountry != 'NL' && $selectedCountry != 'BE') {
             return;
@@ -157,13 +160,9 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         foreach ($this->getMethods() as $alias => $settingPath) {
-            // hasMyParcelRateMethods en dan terug bool
-            foreach ($this->_rates as $rate) {
-                if ($rate->getData('method_title') === $this->createTitle($settingPath)) {
-                    return;
-                }
+            if ($this->hasMyParcelRate($settingPath)) {
+                return;
             }
-            // tot hier in nieuwe method
 
             $method = $this->getShippingMethod(
                 $this->getFullSettingPath($map, $settingPath),
@@ -172,6 +171,22 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
             $this->_rates[] = $method;
         }
+    }
+
+    /**
+     * @param $settingPath
+     *
+     * @return bool
+     */
+    private function hasMyParcelRate(string $settingPath): bool
+    {
+        foreach ($this->_rates as $rate) {
+            if ($rate->getData('method_title') === $this->createTitle($settingPath)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
