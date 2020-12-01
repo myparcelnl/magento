@@ -144,6 +144,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
+     *
+     * @return void
      */
     private function addMyParcelRates(Method $parentRate): void
     {
