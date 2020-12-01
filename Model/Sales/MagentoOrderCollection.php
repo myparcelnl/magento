@@ -310,13 +310,8 @@ class MagentoOrderCollection extends MagentoCollection
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function updateMagentoTrack()
+    public function updateMagentoTrack(): self
     {
-        /**
-         * @var $order        Order
-         * @var $shipment     Order\Shipment
-         * @var $magentoTrack Order\Shipment\Track
-         */
         foreach ($this->getShipmentsCollection() as $shipment) {
             $trackCollection = $shipment->getAllTracks();
             foreach ($trackCollection as $magentoTrack) {
@@ -344,15 +339,12 @@ class MagentoOrderCollection extends MagentoCollection
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function updateGridByOrder()
+    public function updateGridByOrder(): self
     {
         if (empty($this->getOrders())) {
             throw new LocalizedException(__('MagentoOrderCollection::order array is empty'));
         }
 
-        /**
-         * @var Order $order
-         */
         foreach ($this->getOrders() as $order) {
             $aHtml = $this->getHtmlForGridColumns($order->getId());
 
@@ -374,10 +366,8 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return bool
      */
-    public function hasShipment()
+    public function hasShipment(): bool
     {
-        /** @var $order Order */
-        /** @var Order\Shipment $shipment */
         foreach ($this->getOrders() as $order) {
             if ($order->hasShipments()) {
                 return true;
@@ -388,11 +378,11 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @return array|\Magento\Sales\Model\ResourceModel\order\shipment\Collection
+     * @return array
      */
-    private function getShipmentsCollection()
+    private function getShipmentsCollection(): array
     {
-        if ($this->orders == null) {
+        if (!isset($this->orders)) {
             return [];
         }
 
@@ -409,7 +399,7 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * return void
      */
-    private function save()
+    private function save(): void
     {
         foreach ($this->getOrders() as $order) {
             $order->save();
@@ -423,7 +413,7 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return $this
      */
-    private function sendTrackEmailFromOrder(Order $order)
+    private function sendTrackEmailFromOrder(Order $order): self
     {
         /**
          * @var \Magento\Sales\Model\Order\Shipment $shipment
@@ -513,6 +503,6 @@ class MagentoOrderCollection extends MagentoCollection
             }
         }
 
-        return '';
+        return 'default';
     }
 }
