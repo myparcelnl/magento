@@ -150,7 +150,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function addMyParcelRates(Method $parentRate): void
     {
         $selectedCountry = $this->session->getQuote()->getShippingAddress()->getCountryId();
-        $map             = Data::CARRIERS_XML_PATH_MAP['postnl'];
 
         if ($selectedCountry != 'NL' && $selectedCountry != 'BE') {
             return;
@@ -161,22 +160,24 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        foreach ($this->getMethods() as $alias => $settingPath) {
-            if ($this->hasMyParcelRate($settingPath)) {
-                return;
+        foreach ($this->getMethods() as $settingPath) {
+            foreach (Data::CARRIERS as $carrier) {
+                if ($this->hasMyParcelRate($settingPath)) {
+                    return;
+                }
+
+                $method = $this->getShippingMethod(
+                    $this->getFullSettingPath(Data::CARRIERS_XML_PATH_MAP[$carrier], $settingPath),
+                    $parentRate
+                );
+
+                $this->_rates[] = $method;
             }
-
-            $method = $this->getShippingMethod(
-                $this->getFullSettingPath($map, $settingPath),
-                $parentRate
-            );
-
-            $this->_rates[] = $method;
         }
     }
 
     /**
-     * @param $settingPath
+     * @param string $settingPath
      *
      * @return bool
      */
