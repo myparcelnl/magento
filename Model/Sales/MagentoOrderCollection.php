@@ -12,6 +12,7 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Inventory\Model\ResourceModel\Source\Collection;
@@ -496,9 +497,10 @@ class MagentoOrderCollection extends MagentoCollection
     {
         $objectManager = ObjectManager::getInstance();
         $sourceList    = $objectManager->get(Collection::class);
+        $product       = $objectManager->get(ProductRepositoryInterface::class)->getById($orderItem->getProductId());
 
         foreach ($sourceList->load() as $sourceItemName) {
-            if ($sourceItemName->getName() === $orderItem->getSku()) {
+            if ($sourceItemName->getName() === $product->getMetaTitle()) {
                 return $sourceItemName->getSourceCode();
             }
         }
