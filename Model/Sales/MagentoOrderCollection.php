@@ -12,10 +12,8 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Inventory\Model\ResourceModel\Source\Collection;
+use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
@@ -32,6 +30,17 @@ class MagentoOrderCollection extends MagentoCollection
      * @var \Magento\Sales\Model\ResourceModel\Order\Collection
      */
     private $orders = null;
+
+    /**
+     * @var \MyParcelNL\Magento\Model\Source\SourceItem
+     */
+    private $SourceItem;
+
+    public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
+    {
+        parent::__construct($objectManager, $request, $areaList);
+        $this->SourceItem = $objectManager->get(\MyParcelNL\Magento\Model\Source\SourceItem::class);
+    }
 
     /**
      * Get all Magento orders
@@ -495,16 +504,14 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private function getMultiStockInventory($orderItem): string
     {
-        $objectManager = ObjectManager::getInstance();
-        $sourceList    = $objectManager->get(Collection::class);
-        $product       = $objectManager->get(ProductRepositoryInterface::class)->getById($orderItem->getProductId());
+        $sku = $orderItem->getSku();
+        $result = $this->SourceItem->getSourceItemDetailBySKU($sku);
 
-        foreach ($sourceList->load() as $sourceItemName) {
-            if ($sourceItemName->getName() === $product->getMetaTitle()) {
-                return $sourceItemName->getSourceCode();
+        foreach ($result as $item) {
+            if ($item->getSourceCode() !== 'default') {
+                return $item->getSourceCode();
             }
         }
-
         return 'default';
     }
 }
