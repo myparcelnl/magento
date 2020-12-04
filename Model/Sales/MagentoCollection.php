@@ -97,24 +97,24 @@ class MagentoCollection implements MagentoCollectionInterface
     /**
      * CreateAndPrintMyParcelTrack constructor.
      *
-     * @param ObjectManagerInterface                  $objectManagerInterface
+     * @param ObjectManagerInterface                  $objectManager
      * @param \Magento\Framework\App\RequestInterface $request
      * @param null                                    $areaList
      */
-    public function __construct(ObjectManagerInterface $objectManagerInterface, $request = null, $areaList = null)
+    public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
     {
         // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
         if ($areaList) {
             $this->areaList = $areaList;
         }
 
-        $this->objectManager = $objectManagerInterface;
+        $this->objectManager = $objectManager;
         $this->request       = $request;
         $this->trackSender   = $this->objectManager->get('MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender');
 
-        $this->helper             = $objectManagerInterface->create(self::PATH_HELPER_DATA);
-        $this->modelTrack         = $objectManagerInterface->create(self::PATH_ORDER_TRACK);
-        $this->messageManager     = $objectManagerInterface->create(self::PATH_MANAGER_INTERFACE);
+        $this->helper             = $objectManager->create(self::PATH_HELPER_DATA);
+        $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
+        $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(['Magento2'=> $this->helper->getVersion()]);
     }
 
