@@ -97,6 +97,10 @@ class NewShipment implements ObserverInterface
         $trackTraceHolders = [];
         $i                 = 1;
 
+        if (isset($options['carrier']) && $options['carrier'] === false) {
+            unset($options['carrier']);
+        }
+
         while ($i <= $amount) {
 
             // Set MyParcel options
