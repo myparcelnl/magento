@@ -42,6 +42,9 @@ define(
       updatedDeliveryOptionsEvent: 'myparcel_updated_delivery_options',
       updatedAddressEvent: 'myparcel_updated_address',
 
+      disableDelivery: 'myparcel-delivery-options__delivery--deliver',
+      disablePickup: 'myparcel-delivery-options__delivery--pickup',
+
       isUsingMyParcelMethod: true,
 
       /**
@@ -201,6 +204,25 @@ define(
             quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
         });
+
+        deliveryOptions.disabledDeliveryPickupRadio();
+      },
+
+      /**
+       * Note: If you only have one option, so either "delivery" or "pickup", the option will appear disabled.
+       * Until there's a built in solution, there's the following workaround.
+       */
+      disabledDeliveryPickupRadio: function () {
+        var delivery = document.getElementById(deliveryOptions.disableDelivery);
+        var pickup   = document.getElementById(deliveryOptions.disablePickup);
+
+        if (delivery) {
+          delivery.disabled = false;
+        }
+
+        if (pickup) {
+          pickup.disabled = false;
+        }
       },
 
       /**
