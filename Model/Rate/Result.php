@@ -28,11 +28,6 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
     /**
-     * @var bool
-     */
-    protected static $myParcelRatesAlreadyAdded = false;
-
-    /**
      * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
      */
     private $products;
@@ -87,7 +82,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->package        = $package;
         $this->session        = $session;
         $this->quote          = $quote;
-        $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods', true));
+        $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods'));
         $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
         $this->products = $this->getQuoteFromCardOrSession()->getItems();
     }
@@ -145,17 +140,18 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Add MyParcel shipping rates
      *
-     * @param $parentRate \Magento\Quote\Model\Quote\Address\RateResult\Method
+     * @param \Magento\Quote\Model\Quote\Address\RateResult\Method $parentRate
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     *
+     * @return void
      */
-    private function addMyParcelRates($parentRate)
+    private function addMyParcelRates(Method $parentRate): void
     {
         $selectedCountry = $this->session->getQuote()->getShippingAddress()->getCountryId();
 
         if ($selectedCountry != 'NL' && $selectedCountry != 'BE') {
-            return;
-        }
-
-        if ($this::$myParcelRatesAlreadyAdded) {
             return;
         }
 
@@ -164,17 +160,36 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        foreach ($this->getMethods() as $alias => $settingPath) {
-            $map = Data::CARRIERS_XML_PATH_MAP['postnl'];
+        foreach ($this->getMethods() as $settingPath) {
+            foreach (Data::CARRIERS as $carrier) {
+                if ($this->hasMyParcelRate($settingPath)) {
+                    return;
+                }
+
                 $method = $this->getShippingMethod(
-                    $this->getFullSettingPath($map, $settingPath),
+                    $this->getFullSettingPath(Data::CARRIERS_XML_PATH_MAP[$carrier], $settingPath),
                     $parentRate
                 );
 
                 $this->_rates[] = $method;
             }
+        }
+    }
 
-        $this::$myParcelRatesAlreadyAdded = true;
+    /**
+     * @param string $settingPath
+     *
+     * @return bool
+     */
+    private function hasMyParcelRate(string $settingPath): bool
+    {
+        foreach ($this->_rates as $rate) {
+            if ($rate->getData('method_title') === $this->createTitle($settingPath)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
