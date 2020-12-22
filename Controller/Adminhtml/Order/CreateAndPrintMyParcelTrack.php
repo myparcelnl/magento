@@ -106,7 +106,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $this->orderCollection
             ->setOptionsFromParameters()
             ->setNewMagentoShipment();
-        
+
         $this->orderCollection->reload();
 
         if (! $this->orderCollection->hasShipment()) {
