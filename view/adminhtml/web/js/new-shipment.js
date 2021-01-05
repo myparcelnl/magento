@@ -3,9 +3,7 @@ define(
     function ($) {
         'use strict';
 
-        return function NewShipment(options, element)
-        {
-
+        return function NewShipment(options, element) {
             var model = {
 
                 /**
@@ -27,6 +25,8 @@ define(
                  */
                 _setOptionsObserver: function () {
                     var parentThis = this;
+                    var carrierAmount = $(':input[name="mypa_carrier"]').length;
+
                     $("input[name='mypa_create_from_observer']").on(
                         "change",
                         function () {
@@ -42,17 +42,14 @@ define(
                         }
                     );
 
+                    if (carrierAmount <= 1) {
+                        parentThis._checkOptionsField();
+                    }
+
                     $("#mypa_carrier_postnl").click(
                         function () {
+                            console.log('sdasd');
                             parentThis._checkOptionsField();
-                        }
-                    );
-
-                    $("#mypa_carrier_DPD").click(
-                        function () {
-                            if ($('#mypa_carrier_DPD').prop("checked", true)) {
-                                $('.mypa-option-toggle').slideUp();
-                            }
                         }
                     );
 
