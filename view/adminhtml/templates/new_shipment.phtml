@@ -1,22 +1,23 @@
 <?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */ ?>
 <?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $jsonDeliveryOptions */ ?>
-    <input name="mypa_extra_options_checkboxes_in_form"
-           value="1"
-           type="hidden"
-    />
-    <!-- MyParcel options -->
-    <div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
-        <input id="mypa_create_from_observer"
-               class="admin__control-checkbox"
-               name="mypa_create_from_observer"
-               value="1"
-               type="checkbox"
-               checked="checked"
-        />
-        <label class="admin__field-label"
-               for="mypa_create_from_observer">
-            <span><?=__('Create MyParcel consignment') ?></span></label>
-    </div>
+<input name="mypa_extra_options_checkboxes_in_form"
+       value="1"
+       type="hidden"
+/>
+<!-- MyParcel options -->
+<div
+    class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
+  <input id="mypa_create_from_observer"
+         class="admin__control-checkbox"
+         name="mypa_create_from_observer"
+         value="1"
+         type="checkbox"
+         checked="checked"
+  />
+  <label class="admin__field-label"
+         for="mypa_create_from_observer">
+    <span><?=__('Create MyParcel consignment')?></span></label>
+</div>
 
 
 <?php
@@ -27,16 +28,26 @@ class newShipment
 {
     public function __construct()
     {
-        $packageTypes = ['Package', 'Digital Stamp', 'Mailbox', 'Letter'];
-        $deliveryOptions = ['Signature on receipt','Home address only','Return if no answer','Large package','Age check 18+'];
         $carriers = [
             'PostNL' => [
-                'Package' => ['sdasdas','sadasdad'],
-                'Digital Stamp' => ['sdasdas','sadasdad'],
-                'Mailbox' => ['sdasdas','sadasdad'],
-                'Letter' => ['sdasdas','sadasdad']
+                'Package' => [
+                    'signature'      => 'Signature on receipt',
+                    'only_recipient' => 'Home address only',
+                    'return'         => 'Return if no answer',
+                    'large_format'   => 'Large Format',
+                    'age_check'      => 'Age check 18+'
+                ],
+                'Digital Stamp' => [
+                    'adsa' => 'sadsasa',
+                ],
+                'Mailbox' => [
+                    'asddsa' => 'sdassd',
+                ],
+                'Letter' => [
+                    'sdasa' => 'saasdsat',
+                ],
             ],
-            'DPD'    => ['Package']
+            'DPD'    => ['Package' => 'sadsaads']
         ];
 
         $this->carriers($carriers);
@@ -61,49 +72,49 @@ class newShipment
             $this->packageTypes($packageTypes);
         }
     }
+
     public function packageTypes($packageTypes)
     {
         foreach ($packageTypes as $packageType => $deliveryOption) {
             $packageTypeLowerCase = strtolower($packageType);
             echo "
-                <div class='field field-mypa_" . $packageTypeLowerCase . "_type mypa-option-toggle' style='display:none; padding-left: 30px; margin-top: 10px;'>
-                    <div class='admin__field-control'>
-                        <div class='admin__field admin__field-option'>
-                            <input type='radio' class='admin__control-radio' id='mypa_" . $packageTypeLowerCase . "_type-package' name='mypa_package_type' value=" . $packageTypeLowerCase . ">
-                            <label class='admin__field-label' for='mypa_package_type-" . $packageTypeLowerCase . "'>" . $packageType . "</label>
-                        </div>
-                
+            <div class='field field-mypa_" . $packageTypeLowerCase . "_type mypa_package-toggle' style='display:none; padding-left: 30px; margin-top: 10px;'>
+                <div class='admin__field-control'>
+                    <div class='admin__field admin__field-option'>
+                        <input type='radio' class='admin__control-radio' id='mypa_" . $packageTypeLowerCase . "_type' name='mypa_package_type' value=" . $packageTypeLowerCase . ">
+                        <label class='admin__field-label' for='mypa_package_type-" . $packageTypeLowerCase . "'>" . $packageType . "</label>
                     </div>
                 </div>
+            </div>
             ";
-//            $this->deliveryOptions($deliveryOption);
+            $this->deliveryOptions($deliveryOption);
         }
     }
+
     public function deliveryOptions($deliveryOptions)
     {
-        foreach ($deliveryOptions as $deliveryOption) {
+        foreach ((array) $deliveryOptions as $deliveryOption => $optionsName) {
             echo "
-                <div class='field choice admin__field admin__field-option field-mypa_large_format mypa_package-toggle mypa-option-toggle' style='display:none; padding-left: 60px;'>
-                    <input id='mypa_large_format' class='admin__control-checkbox' name='mypa_large_format' value='1' type='checkbox'/>
-                    <label class='admin__field-label' for='mypa_return'>
-                        <span>" . $deliveryOption . "</span>
-                    </label>
-                </div>
-            ";
+            <div class='field choice admin__field admin__field-option field-mypa_" . $deliveryOption . " mypa-option-toggle' style='display:none; padding-left: 60px;'>
+                <input id='mypa_" . $deliveryOption . "' class='admin__control-checkbox' name='mypa_" . $deliveryOption . "' value='1' type='checkbox'/>
+                <label class='admin__field-label' for='mypa_" . $deliveryOption . "'>
+                    <span>" . $optionsName . "</span>
+                </label>
+            </div>
+        ";
         }
     }
 }
 ?>
 
 
-
 <script type="text/x-magento-init">
-       {
-           ".page-footer": {
-               "myparcelnl_newshipment": {}
-            }
-       }
-    </script>
+  {
+     ".page-footer": {
+         "myparcelnl_newshipment": {}
+      }
+  }
+</script>
 
 
 <br><br><br><br><br><br><br><br><br><br><br><br>
@@ -111,8 +122,8 @@ class newShipment
 <!--    <div class="field field-mypa_package_type mypa-option-toggle" style="display:none; padding-left: 30px; margin-top: 10px;">-->
 <!--        <div class="admin__field-control">-->
 <!--            <div class="admin__field admin__field-option">-->
-<!--                <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa_package_type" value="package" --><?//=$block->getPackageType() !== 1 ?: 'checked="checked"';?><!-->-->
-<!--                <label class="admin__field-label" for="mypa_package_type-package">--><?//=__('Package');?><!--</label>-->
+<!--                <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa_package_type" value="package" --><?php //=$block->getPackageType() !== 1 ?: 'checked="checked"';?><!-->-->
+<!--                <label class="admin__field-label" for="mypa_package_type-package">--><?php //=__('Package');?><!--</label>-->
 <!--            </div>-->
 <!---->
 <!---->
@@ -123,10 +134,10 @@ class newShipment
 <!--                       name="mypa_signature"-->
 <!--                       value="1"-->
 <!--                       type="checkbox"-->
-<!--			        --><?//= $block->getDefaultOption('signature') == true ? 'checked="checked"' : '';?>
+<!--			        --><?php //= $block->getDefaultOption('signature') == true ? 'checked="checked"' : '';?>
 <!--                />-->
 <!--                <label class="admin__field-label" for="mypa_signature">-->
-<!--                  <span>--><?//=__('Signature on receipt') ?><!--</span>-->
+<!--                  <span>--><?php //=__('Signature on receipt')?><!--</span>-->
 <!--                </label>-->
 <!--              </div>-->
 <!--              <div class="field choice admin__field admin__field-option field-mypa_only_recipient mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">-->
@@ -135,10 +146,10 @@ class newShipment
 <!--                       name="mypa_only_recipient"-->
 <!--                       value="1"-->
 <!--                       type="checkbox"-->
-<!--			        --><?//= $block->getDefaultOption('only_recipient') == true ? 'checked="checked"' : '';?>
+<!--			        --><?php //= $block->getDefaultOption('only_recipient') == true ? 'checked="checked"' : '';?>
 <!--                />-->
 <!--                <label class="admin__field-label" for="mypa_only_recipient">-->
-<!--                  <span>--><?//=__('Home address only') ?><!--</span>-->
+<!--                  <span>--><?php //=__('Home address only')?><!--</span>-->
 <!--                </label>-->
 <!--              </div>-->
 <!--              <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">-->
@@ -147,10 +158,10 @@ class newShipment
 <!--                       name="mypa_return"-->
 <!--                       value="1"-->
 <!--                       type="checkbox"-->
-<!--			        --><?//= $block->getDefaultOption('return') == true ? 'checked="checked"' : '';?>
+<!--			        --><?php //= $block->getDefaultOption('return') == true ? 'checked="checked"' : '';?>
 <!--                />-->
 <!--                <label class="admin__field-label" for="mypa_return">-->
-<!--                  <span>--><?//=__('Return if no answe') ?><!--</span>-->
+<!--                  <span>--><?php //=__('Return if no answe')?><!--</span>-->
 <!--                </label>-->
 <!--              </div>-->
 <!---->
@@ -161,10 +172,10 @@ class newShipment
 <!--                       name="mypa_large_format"-->
 <!--                       value="1"-->
 <!--                       type="checkbox"-->
-<!--			        --><?//= $block->getDefaultLargeFormat('large_format') == true ? 'checked="checked"' : '';?>
+<!--			        --><?php //= $block->getDefaultLargeFormat('large_format') == true ? 'checked="checked"' : '';?>
 <!--                />-->
 <!--                <label class="admin__field-label" for="mypa_return">-->
-<!--                  <span>--><?//=__('Large package') ?><!--</span>-->
+<!--                  <span>--><?php //=__('Large package')?><!--</span>-->
 <!--                </label>-->
 <!--              </div>-->
 <!---->
@@ -174,16 +185,16 @@ class newShipment
 <!--                       name="mypa_age_check"-->
 <!--                       value="1"-->
 <!--                       type="checkbox"-->
-<!--			        --><?//=$block->getDefaultOptionsWithoutPrice('age_check') == true ? 'checked="checked"' : '';?>
+<!--			        --><?php //=$block->getDefaultOptionsWithoutPrice('age_check') == true ? 'checked="checked"' : '';?>
 <!--                />-->
 <!--                <label class="admin__field-label" for="mypa_age_check">-->
-<!--                  <span>--><?//=__('Age check 18+') ?><!--</span>-->
+<!--                  <span>--><?php //=__('Age check 18+')?><!--</span>-->
 <!--                </label>-->
 <!--              </div>-->
 <!---->
 <!--              <div class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">-->
 <!--                <label class="admin__field-label" for="mypa_label_amount" style="display: block">-->
-<!--                  <span>--><?//=__('Label amount:') ?><!--</span>-->
+<!--                  <span>--><?php //=__('Label amount:')?><!--</span>-->
 <!--                </label>-->
 <!--		          --><?php //$label_amount = 1;?>
 <!--                <select name="mypa_label_amount" id="mypa_label_amount"-->
@@ -199,14 +210,14 @@ class newShipment
 <!---->
 <!--              <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">-->
 <!--                <label class="admin__field-label" for="mypa_insurance" style="display: block">-->
-<!--                  <span>--><?//=__('Insured up to:') ?><!--</span>-->
+<!--                  <span>--><?php //=__('Insured up to:')?><!--</span>-->
 <!--                </label>-->
 <!--		          --><?php //$defaultInsurance = $block->getDefaultInsurance();?>
 <!--                <select name="mypa_insurance" id="mypa_insurance" class="required product-custom-option admin__control-select" title="" >-->
-<!--                  <option value="0" >--><?//=__('No insurance') ?><!--</option>-->
-<!--                  <option value="100" --><?//= $defaultInsurance == 100 ? 'selected="selected"' : '';?><!-- >€ 100</option>-->
-<!--                  <option value="250" --><?//= $defaultInsurance == 250 ? 'selected="selected"' : '';?><!-- >€ 250</option>-->
-<!--                  <option value="500" --><?//= $defaultInsurance == 500 ? 'selected="selected"' : '';?><!-- >€ 500</option>-->
+<!--                  <option value="0" >--><?php //=__('No insurance')?><!--</option>-->
+<!--                  <option value="100" --><?php //= $defaultInsurance == 100 ? 'selected="selected"' : '';?><!-- >€ 100</option>-->
+<!--                  <option value="250" --><?php //= $defaultInsurance == 250 ? 'selected="selected"' : '';?><!-- >€ 250</option>-->
+<!--                  <option value="500" --><?php //= $defaultInsurance == 500 ? 'selected="selected"' : '';?><!-- >€ 500</option>-->
 <!--                  <option value="1000">€ 1000</option>-->
 <!--                  <option value="1500">€ 1500</option>-->
 <!--                  <option value="2000">€ 2000</option>-->
@@ -229,26 +240,26 @@ class newShipment
 <!---->
 <!--            --><?php //if ($block->getCountry() == 'NL'):?>
 <!--                <div class="admin__field admin__field-option">-->
-<!--                    <input type="radio" class="admin__control-radio" id="mypa_package_type-digital_stamp" name="mypa_package_type" value="digital_stamp" --><?//=$block->getPackageType() !== 4 ?: 'checked="checked"';?><!-->-->
-<!--                    <label class="admin__field-label" for="mypa_package_type-digital_stamp">--><?//=__('Digital stamp');?><!--</label>-->
+<!--                    <input type="radio" class="admin__control-radio" id="mypa_package_type-digital_stamp" name="mypa_package_type" value="digital_stamp" --><?php //=$block->getPackageType() !== 4 ?: 'checked="checked"';?><!-->-->
+<!--                    <label class="admin__field-label" for="mypa_package_type-digital_stamp">--><?php //=__('Digital stamp');?><!--</label>-->
 <!--                    --><?php //$weight = $block->getDigitalStampWeight();?>
 <!--                    <select name="mypa_digital_stamp_weight" id="mypa_digital_stamp_weight" class="required product-custom-option admin__control-select" title="" >-->
-<!--                        <option value="0" --><?//= $weight == 0 ? 'selected="selected"' : '';?><!-- >No standard weight</option>-->
-<!--                        <option value="20" --><?//= $weight == 20 ? 'selected="selected"' : '';?><!-- >0 - 20 gram</option>-->
-<!--                        <option value="50" --><?//= $weight == 50 ? 'selected="selected"' : '';?><!-- >20 - 50 gram</option>-->
-<!--                        <option value="100" --><?//= $weight == 100 ? 'selected="selected"' : '';?><!-- >50 - 100 gram</option>-->
-<!--                        <option value="350" --><?//= $weight == 350 ? 'selected="selected"' : '';?><!-- >100 - 350 gram</option>-->
-<!--                        <option value="2000" --><?//= $weight == 2000 ? 'selected="selected"' : '';?><!-- >350 - 2000 gram</option>-->
+<!--                        <option value="0" --><?php //= $weight == 0 ? 'selected="selected"' : '';?><!-- >No standard weight</option>-->
+<!--                        <option value="20" --><?php //= $weight == 20 ? 'selected="selected"' : '';?><!-- >0 - 20 gram</option>-->
+<!--                        <option value="50" --><?php //= $weight == 50 ? 'selected="selected"' : '';?><!-- >20 - 50 gram</option>-->
+<!--                        <option value="100" --><?php //= $weight == 100 ? 'selected="selected"' : '';?><!-- >50 - 100 gram</option>-->
+<!--                        <option value="350" --><?php //= $weight == 350 ? 'selected="selected"' : '';?><!-- >100 - 350 gram</option>-->
+<!--                        <option value="2000" --><?php //= $weight == 2000 ? 'selected="selected"' : '';?><!-- >350 - 2000 gram</option>-->
 <!--                    </select>-->
 <!--                </div>-->
 <!--                <div class="admin__field admin__field-option">-->
-<!--                    <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="mailbox" --><?//=$block->getPackageType() !== 2 ?: 'checked="checked"';?><!-->-->
-<!--                    <label class="admin__field-label" for="mypa_package_type-mailbox">--><?//=__('Mailbox');?><!--</label>-->
+<!--                    <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="mailbox" --><?php //=$block->getPackageType() !== 2 ?: 'checked="checked"';?><!-->-->
+<!--                    <label class="admin__field-label" for="mypa_package_type-mailbox">--><?php //=__('Mailbox');?><!--</label>-->
 <!--                </div>-->
 <!--            --><?php //endif;?>
 <!--            <div class="admin__field admin__field-option">-->
-<!--                <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa_package_type" value="letter" --><?//=$block->getPackageType() !== 3 ?: 'checked="checked"';?><!-->-->
-<!--                <label class="admin__field-label" for="mypa_package_type-letter">--><?//=__('Letter');?><!--</label>-->
+<!--                <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa_package_type" value="letter" --><?php //=$block->getPackageType() !== 3 ?: 'checked="checked"';?><!-->-->
+<!--                <label class="admin__field-label" for="mypa_package_type-letter">--><?php //=__('Letter');?><!--</label>-->
 <!--            </div>-->
 <!--        </div>-->
 <!--    </div>-->

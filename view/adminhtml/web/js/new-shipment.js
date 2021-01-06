@@ -33,22 +33,29 @@ define(
                             if ($('#mypa_create_from_observer').prop('checked')) {
                                 $('.mypa_carrier-toggle').slideDown();
                                 parentThis._checkCarrierField();
-                                parentThis._checkOptionsField();
+                                parentThis._checkPackageTypeField();
 
                             } else {
                                 $('.mypa-option-toggle').slideUp();
+                                $('.mypa_package-toggle').slideUp();
                                 $('.mypa_carrier-toggle').slideUp();
                             }
                         }
                     );
 
                     if (carrierAmount <= 1) {
-                        parentThis._checkOptionsField();
+                        parentThis._checkPackageTypeField();
                     }
 
                     $("#mypa_carrier_postnl").click(
                         function () {
-                            console.log('sdasd');
+                            parentThis._checkPackageTypeField();
+                        }
+                    );
+
+                    $("input[name='mypa_package_type']").on(
+                        "change",
+                        function () {
                             parentThis._checkOptionsField();
                         }
                     );
@@ -63,8 +70,14 @@ define(
                     return this;
                 },
 
-                _checkOptionsField: function () {
+                _checkPackageTypeField: function () {
                     if ($('#mypa_carrier_postnl').prop("checked", true)) {
+                        $('.mypa_package-toggle').slideDown();
+                    }
+                },
+
+                _checkOptionsField: function () {
+                    if ($('#mypa_package_type').prop("checked", true)) {
                         $('.mypa-option-toggle').slideDown();
                     }
                 },
