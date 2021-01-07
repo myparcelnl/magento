@@ -23,12 +23,8 @@ class newShipment
                 'Digital Stamp' => [
                     'adsa' => 'sadsasa',
                 ],
-                'Mailbox' => [
-                    'asddsa' => 'sdassd',
-                ],
-                'Letter' => [
-                    'sdasa' => 'saasdsat',
-                ],
+                'Mailbox',
+                'Letter',
             ],
             'DPD'    => ['Package' => 'sadsaads']
         ];
@@ -70,6 +66,10 @@ class newShipment
     public function packageTypes($packageTypes)
     {
         foreach ($packageTypes as $packageType => $deliveryOption) {
+            if (is_numeric($packageType)) {
+                $packageType = $deliveryOption;
+            }
+
             $packageTypeLowerCase = str_replace(" ", "_", strtolower($packageType));
             echo "
                 <div class='field field-mypa_" . $packageTypeLowerCase . "_type mypa_package-toggle' style='display:none; padding-left: 30px; margin-top: 10px;'>
@@ -82,13 +82,15 @@ class newShipment
                 </div>
             ";
 
-            $this->deliveryOptions($deliveryOption);
+            if (is_array($deliveryOption)) {
+                $this->deliveryOptions($deliveryOption);
+            }
         }
     }
 
     public function deliveryOptions($deliveryOptions)
     {
-        foreach ((array) $deliveryOptions as $deliveryOption => $optionsName) {
+        foreach ($deliveryOptions as $deliveryOption => $optionsName) {
             echo "
             <div class='field choice admin__field admin__field-option field-mypa_" . $deliveryOption . " mypa-option-toggle' style='display:none; padding-left: 60px;'>
                 <input id='mypa_" . $deliveryOption . "' class='admin__control-checkbox' name='mypa_" . $deliveryOption . "' value='1' type='checkbox'/>
