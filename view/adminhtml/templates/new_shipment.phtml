@@ -1,24 +1,7 @@
 <?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */ ?>
 <?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $jsonDeliveryOptions */ ?>
-<input name="mypa_extra_options_checkboxes_in_form"
-       value="1"
-       type="hidden"
-/>
-<!-- MyParcel options -->
-<div
-    class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
-  <input id="mypa_create_from_observer"
-         class="admin__control-checkbox"
-         name="mypa_create_from_observer"
-         value="1"
-         type="checkbox"
-         checked="checked"
-  />
-  <label class="admin__field-label"
-         for="mypa_create_from_observer">
-    <span><?=__('Create MyParcel consignment')?></span></label>
-</div>
 
+<input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden"/>
 
 <?php
 
@@ -50,7 +33,18 @@ class newShipment
             'DPD'    => ['Package' => 'sadsaads']
         ];
 
+        $this->createConsignment();
         $this->carriers($carriers);
+    }
+
+    public function createConsignment()
+    {
+        echo "
+            <div class='field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle'>
+                <input id='mypa_create_from_observer' class='admin__control-checkbox' name='mypa_create_from_observer' value='1' type='checkbox' checked='checked'/>
+                <label class='admin__field-label' for='mypa_create_from_observer'><span>" . __('Create MyParcel consignment') . "</span></label>
+            </div>
+        ";
     }
 
     public function carriers($carriers)
@@ -78,15 +72,16 @@ class newShipment
         foreach ($packageTypes as $packageType => $deliveryOption) {
             $packageTypeLowerCase = str_replace(" ", "_", strtolower($packageType));
             echo "
-            <div class='field field-mypa_" . $packageTypeLowerCase . "_type mypa_package-toggle' style='display:none; padding-left: 30px; margin-top: 10px;'>
-                <div class='admin__field-control'>
-                    <div class='admin__field admin__field-option'>
-                        <input type='radio' class='admin__control-radio' id='mypa_package_type-" . $packageTypeLowerCase . "' name='mypa_package_type' value=" . $packageTypeLowerCase . ">
-                        <label class='admin__field-label' for='mypa_package_type'>" . $packageType . "</label>
+                <div class='field field-mypa_" . $packageTypeLowerCase . "_type mypa_package-toggle' style='display:none; padding-left: 30px; margin-top: 10px;'>
+                    <div class='admin__field-control'>
+                        <div class='admin__field admin__field-option'>
+                            <input type='radio' class='admin__control-radio' id='mypa_package_type-" . $packageTypeLowerCase . "' name='mypa_package_type' value=" . $packageTypeLowerCase . ">
+                            <label class='admin__field-label' for='mypa_package_type'>" . $packageType . "</label>
+                        </div>
                     </div>
                 </div>
-            </div>
             ";
+
             $this->deliveryOptions($deliveryOption);
         }
     }
