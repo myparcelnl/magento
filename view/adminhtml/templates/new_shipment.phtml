@@ -76,13 +76,13 @@ class newShipment
     public function packageTypes($packageTypes)
     {
         foreach ($packageTypes as $packageType => $deliveryOption) {
-            $packageTypeLowerCase = strtolower($packageType);
+            $packageTypeLowerCase = str_replace(" ", "_", strtolower($packageType));
             echo "
             <div class='field field-mypa_" . $packageTypeLowerCase . "_type mypa_package-toggle' style='display:none; padding-left: 30px; margin-top: 10px;'>
                 <div class='admin__field-control'>
                     <div class='admin__field admin__field-option'>
-                        <input type='radio' class='admin__control-radio' id='mypa_" . $packageTypeLowerCase . "_type' name='mypa_package_type' value=" . $packageTypeLowerCase . ">
-                        <label class='admin__field-label' for='mypa_package_type-" . $packageTypeLowerCase . "'>" . $packageType . "</label>
+                        <input type='radio' class='admin__control-radio' id='mypa_package_type-" . $packageTypeLowerCase . "' name='mypa_package_type' value=" . $packageTypeLowerCase . ">
+                        <label class='admin__field-label' for='mypa_package_type'>" . $packageType . "</label>
                     </div>
                 </div>
             </div>
