@@ -331,7 +331,7 @@ class TrackTraceHolder
                 $myParcelProduct = (new MyParcelCustomsItem())
                     ->setDescription($product->getName())
                     ->setAmount($product->getQty())
-                    ->setWeight($this->getWeightTypeOfOption($product->getWeight()) ?: 1)
+                    ->setWeight($this->helper->getWeightTypeOfOption($product->getWeight()) ?: 1)
                     ->setItemValue($this->getCentsByPrice($product->getPrice()))
                     ->setClassification(
                         (int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification')
@@ -347,7 +347,7 @@ class TrackTraceHolder
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($item->getName())
                 ->setAmount($item->getQty())
-                ->setWeight($this->getWeightTypeOfOption($item->getWeight() * $item->getQty()))
+                ->setWeight($this->helper->getWeightTypeOfOption($item->getWeight() * $item->getQty()))
                 ->setItemValue($item->getPrice() * 100)
                 ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $item->getProductId(), 'classification'))
                 ->setCountry($this->getCountryOfOrigin($item->getProductId()));
@@ -356,26 +356,6 @@ class TrackTraceHolder
         }
 
         return $this;
-    }
-
-    /**
-     * Get the correct weight type
-     *
-     * @param string|null $weight
-     *
-     * @return int
-     */
-    private function getWeightTypeOfOption(?string $weight): int
-    {
-        $weightType = $this->helper->getGeneralConfig(
-            'print/weight_indication'
-        );
-
-        if ($weightType != 'gram') {
-            return (int) ($weight * 1000);
-        }
-
-        return (int) $weight ?: 1000;
     }
 
     /**

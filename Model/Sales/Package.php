@@ -33,9 +33,14 @@ class Package extends Data implements PackageInterface
     private $weight = 0;
 
     /**
-     * @var int
+     * @var float
      */
-    private $max_weight = 0;
+    private $maxMailBoxWeight = 0;
+
+    /**
+     * @var float
+     */
+    private $maxDigitalStampWeight = 0;
 
     /**
      * @var bool
@@ -56,11 +61,6 @@ class Package extends Data implements PackageInterface
      * @var int
      */
     private $mailbox_percentage = 0;
-
-    /**
-     * @var bool
-     */
-    private $all_products_fit_in_digital_stamp = false;
 
     /**
      * @var bool
@@ -102,19 +102,35 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @return int
+     * @return float
      */
-    public function getMaxWeight(): int
+    public function getMaxMailboxWeight(): float
     {
-        return (int) $this->max_weight;
+        return $this->maxMailBoxWeight;
     }
 
     /**
      * @param float $max_weight
      */
-    public function setMaxWeight(float $max_weight)
+    public function setMaxMailboxWeight(float $max_weight)
     {
-        $this->max_weight = $max_weight;
+        $this->maxMailBoxWeight = $max_weight;
+    }
+
+    /**
+     * @return float
+     */
+    public function getMaxDigitalStampWeight(): float
+    {
+        return $this->maxDigitalStampWeight;
+    }
+
+    /**
+     * @param float $max_weight
+     */
+    public function setMaxDigitalStampWeight(float $max_weight)
+    {
+        $this->maxDigitalStampWeight = $max_weight;
     }
 
     /**
@@ -160,14 +176,6 @@ class Package extends Data implements PackageInterface
     /**
      * @return bool
      */
-    public function isAllProductsFitInDigitalStamp(): bool
-    {
-        return $this->all_products_fit_in_digital_stamp;
-    }
-
-    /**
-     * @return bool
-     */
     public function isDigitalStampActive(): bool
     {
         return $this->digital_stamp_active;
@@ -179,21 +187,6 @@ class Package extends Data implements PackageInterface
     public function setDigitalStampActive(bool $digital_stamp_active)
     {
         $this->digital_stamp_active = $digital_stamp_active;
-    }
-
-    /**
-     * @param bool $all_products_fit_in_mailbox
-     * @param null $package_type
-     */
-    public function setAllProductsFitInPackageType(bool $all_products_fit_in_mailbox, $package_type = null)
-    {
-        if ($all_products_fit_in_mailbox === true && $package_type === 'mailbox') {
-            $this->all_products_fit_in_mailbox = $all_products_fit_in_mailbox;
-        }
-
-        if ($all_products_fit_in_mailbox === true && $package_type === 'digital_stamp') {
-            $this->all_products_fit_in_digital_stamp = $all_products_fit_in_mailbox;
-        }
     }
 
     /**

@@ -202,4 +202,24 @@ class Data extends AbstractHelper
 
         return;
     }
+
+    /**
+     * Get the correct weight type
+     *
+     * @param string|null $weight
+     *
+     * @return int
+     */
+    public function getWeightTypeOfOption(?string $weight): int
+    {
+        $weightType = $this->getGeneralConfig(
+            'print/weight_indication'
+        );
+
+        if ($weightType === 'kilo') {
+            return (int) ($weight * 1000);
+        }
+
+        return (int) $weight ?: 1000;
+    }
 }
