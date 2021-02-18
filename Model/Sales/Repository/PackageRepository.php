@@ -23,9 +23,9 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class PackageRepository extends Package
 {
-    public const MAXIMUM_MAILBOX_WEIGHT       = 2000;
-    public const MAXIMUM_DIGITAL_STAMP_WEIGHT = 2000;
-    public const MAXIMUM_LARGE_FORMAT_WEIGHT  = 2300;
+    public const DEFAULT_MAXIMUM_MAILBOX_WEIGHT = 2000;
+    public const MAXIMUM_DIGITAL_STAMP_WEIGHT   = 2000;
+    public const DEFAULT_LARGE_FORMAT_WEIGHT    = 2300;
 
     /**
      * @var bool
@@ -44,7 +44,7 @@ class PackageRepository extends Package
      *
      * @return int 1|3
      */
-    public function getPackageType()
+    public function getPackageType(): int
     {
         // return type if type is set
         if (parent::getPackageType() !== null) {
@@ -66,7 +66,7 @@ class PackageRepository extends Package
         if ($this->isMailboxActive() || $this->isDigitalStampActive()) {
             foreach ($products as $product) {
                 $digitalStamp = $this->getAttributesProductsOptions($product, 'digital_stamp');
-                $mailBox      = $this->getAttributesProductsOptions($product, 'fit_in_mailbox');
+                $mailbox      = $this->getAttributesProductsOptions($product, 'fit_in_mailbox');
                 $isPackage    = true;
 
                 if ($digitalStamp && $this->fitInDigitalStamp()) {
@@ -75,7 +75,7 @@ class PackageRepository extends Package
                     continue;
                 }
 
-                if (isset($mailBox) && $this->fitInMailbox($product, $mailBox)) {
+                if (isset($mailbox) && $this->fitInMailbox($product, $mailbox)) {
                     $packageType[] = AbstractConsignment::PACKAGE_TYPE_MAILBOX;
                     $isPackage     = false;
                     continue;
@@ -102,7 +102,7 @@ class PackageRepository extends Package
      *
      * @return \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
      */
-    public function productWithoutDeliveryOptions(array $products)
+    public function productWithoutDeliveryOptions(array $products): PackageRepository
     {
         foreach ($products as $product) {
             $this->isDeliveryOptionsDisabled($product);
@@ -113,14 +113,13 @@ class PackageRepository extends Package
 
     /**
      * @param $product
-     * @param $mailBox
+     * @param $mailbox
      *
      * @return bool
      */
-    public function fitInMailbox($product, $mailBox): bool
+    public function fitInMailbox($product, $mailbox): bool
     {
-        $mailboxPercentage    = $this->getMailboxPercentage();
-        $mailboxPercentage    += $mailBox * $product->getQty();
+        $mailboxPercentage    = $this->getMailboxPercentage() + $mailbox * $product->getQty();
         $maximumMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
         $orderWeight          = $this->getWeightTypeOfOption($this->getWeight());
         if (
@@ -196,7 +195,7 @@ class PackageRepository extends Package
         $this->setMailboxActive($settings['active'] === '1');
         if ($this->isMailboxActive() === true) {
             $weight = str_replace(',', '.', $settings['weight']);
-            $this->setMaxMailboxWeight($weight ?: self::MAXIMUM_MAILBOX_WEIGHT);
+            $this->setMaxMailboxWeight($weight ?: self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT);
         }
 
         return $this;

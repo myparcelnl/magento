@@ -114,7 +114,7 @@ class DefaultOptions
         $settings = self::$helper->getStandardConfig('default_options');
         if (isset($settings[$option . '_active']) &&
             $settings[$option . '_active'] == 'weight' &&
-            $weight >= PackageRepository::MAXIMUM_LARGE_FORMAT_WEIGHT
+            $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
         ) {
             return true;
         }

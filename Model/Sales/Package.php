@@ -45,42 +45,37 @@ class Package extends Data implements PackageInterface
     /**
      * @var bool
      */
-    private $mailbox_active = false;
+    private $mailboxActive = false;
 
     /**
      * @var bool
      */
-    private $digital_stamp_active = false;
-
-    /**
-     * @var bool
-     */
-    private $all_products_fit_in_mailbox = false;
+    private $digitalStampActive = false;
 
     /**
      * @var int
      */
-    private $mailbox_percentage = 0;
+    private $mailboxPercentage = 0;
 
     /**
      * @var bool
      */
-    private $all_products_fit = true;
+    private $allProductsFit = true;
 
     /**
      * @var string
      */
-    private $current_country = 'NL';
+    private $currentCountry = 'NL';
 
     /**
      * @var int
      */
-    private $package_type = null;
+    private $packageType = null;
 
     /**
      * @return float
      */
-    public function getWeight()
+    public function getWeight(): float
     {
         return $this->weight;
     }
@@ -88,7 +83,7 @@ class Package extends Data implements PackageInterface
     /**
      * @param float $weight
      */
-    public function setWeight(float $weight)
+    public function setWeight(float $weight): void
     {
         $this->weight = $weight;
     }
@@ -96,7 +91,7 @@ class Package extends Data implements PackageInterface
     /**
      * @param float $weight
      */
-    public function addWeight(float $weight)
+    public function addWeight(float $weight): void
     {
         $this->weight += $weight;
     }
@@ -112,7 +107,7 @@ class Package extends Data implements PackageInterface
     /**
      * @param float $max_weight
      */
-    public function setMaxMailboxWeight(float $max_weight)
+    public function setMaxMailboxWeight(float $max_weight): void
     {
         $this->maxMailBoxWeight = $max_weight;
     }
@@ -126,19 +121,11 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param float $max_weight
+     * @param float $maxWeight
      */
-    public function setMaxDigitalStampWeight(float $max_weight)
+    public function setMaxDigitalStampWeight(float $maxWeight): void
     {
-        $this->maxDigitalStampWeight = $max_weight;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isAllProductsFitInMailbox(): bool
-    {
-        return $this->all_products_fit_in_mailbox;
+        $this->maxDigitalStampWeight = $maxWeight;
     }
 
     /**
@@ -146,23 +133,23 @@ class Package extends Data implements PackageInterface
      */
     public function isMailboxActive(): bool
     {
-        return $this->mailbox_active;
+        return $this->mailboxActive;
     }
 
     /**
-     * @param bool $mailbox_active
+     * @param bool $mailboxActive
      */
-    public function setMailboxActive(bool $mailbox_active)
+    public function setMailboxActive(bool $mailboxActive): void
     {
-        $this->mailbox_active = $mailbox_active;
+        $this->mailboxActive = $mailboxActive;
     }
 
     /**
      * @param float $percentage
      */
-    public function setMailboxPercentage(float $percentage)
+    public function setMailboxPercentage(float $percentage): void
     {
-        $this->mailbox_percentage = $percentage;
+        $this->mailboxPercentage = $percentage;
     }
 
     /**
@@ -170,7 +157,7 @@ class Package extends Data implements PackageInterface
      */
     public function getMailboxPercentage(): bool
     {
-        return $this->mailbox_percentage;
+        return $this->mailboxPercentage;
     }
 
     /**
@@ -178,15 +165,15 @@ class Package extends Data implements PackageInterface
      */
     public function isDigitalStampActive(): bool
     {
-        return $this->digital_stamp_active;
+        return $this->digitalStampActive;
     }
 
     /**
-     * @param bool $digital_stamp_active
+     * @param bool $digitalStampActive
      */
-    public function setDigitalStampActive(bool $digital_stamp_active)
+    public function setDigitalStampActive(bool $digitalStampActive): void
     {
-        $this->digital_stamp_active = $digital_stamp_active;
+        $this->digitalStampActive = $digitalStampActive;
     }
 
     /**
@@ -194,37 +181,36 @@ class Package extends Data implements PackageInterface
      */
     public function isAllProductsFit(): bool
     {
-        return $this->all_products_fit;
+        return $this->allProductsFit;
     }
 
+
     /**
-     * @param bool $all_products_fit
+     * @param bool $allProductsFit
      */
-    public function setAllProductsFit(bool $all_products_fit)
+    public function setAllProductsFit(bool $allProductsFit): void
     {
-        if ($all_products_fit === false) {
-            $this->all_products_fit = $all_products_fit;
+        if ($allProductsFit === false) {
+            $this->allProductsFit = $allProductsFit;
         }
     }
 
     /**
-     * package = 1
-     *
      * @return int
      */
-    public function getPackageType()
+    public function getPackageType(): int
     {
-        return $this->package_type;
+        return $this->packageType;
     }
 
     /**
-     * package = 1
+     * @param int $packageType
      *
-     * @param int $package_type
+     * @return int
      */
-    public function setPackageType(int $package_type)
+    public function setPackageType(int $packageType): int
     {
-        $this->package_type = $package_type;
+        $this->packageType = $packageType;
     }
 
     /**
@@ -232,14 +218,14 @@ class Package extends Data implements PackageInterface
      */
     public function getCurrentCountry(): string
     {
-        return $this->current_country;
+        return $this->currentCountry;
     }
 
     /**
-     * @param string|null $current_country
+     * @param string|null $currentCountry
      */
-    public function setCurrentCountry(?string $current_country)
+    public function setCurrentCountry(?string $currentCountry): void
     {
-        $this->current_country = $current_country;
+        $this->currentCountry = $currentCountry;
     }
 }
