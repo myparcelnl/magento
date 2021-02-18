@@ -19,7 +19,8 @@
   "homepage": "https://github.com/myparcelnl/magento#readme",
   "dependencies": {
     "@myparcel/delivery-options": "^3.3.0",
-    "custom-event-polyfill": "^1.0.7"
+    "custom-event-polyfill": "^1.0.7",
+    "object-path": "^0.11.5"
   },
   "devDependencies": {
     "@myparcel/eslint-config": "^1.0.4",

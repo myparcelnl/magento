@@ -8,6 +8,7 @@ define(
     'MyParcelNL_Magento/js/polyfill/array_prototype_find',
     'MyParcelNL_Magento/js/vendor/myparcel',
     'MyParcelNL_Magento/js/vendor/polyfill-custom-event',
+    'MyParcelNL_Magento/js/vendor/object-path',
     'leaflet',
     'vue2leaflet',
   ],
@@ -20,6 +21,7 @@ define(
     array_prototype_find,
     myparcel,
     CustomEvent,
+    objectPath,
     leaflet,
     vue2leaflet
   ) {
@@ -37,6 +39,7 @@ define(
       hideDeliveryOptionsEvent: 'myparcel_hide_delivery_options',
       renderDeliveryOptionsEvent: 'myparcel_render_delivery_options',
       showDeliveryOptionsEvent: 'myparcel_show_delivery_options',
+      updateConfigEvent: 'myparcel_update_config',
       updateDeliveryOptionsEvent: 'myparcel_update_delivery_options',
 
       updatedDeliveryOptionsEvent: 'myparcel_updated_delivery_options',
@@ -53,6 +56,15 @@ define(
        * @type {String}
        */
       hiddenDataInput: '[name="myparcel_delivery_options"]',
+
+      /**
+       * Maps shipping method codes to prices in the delivery options config.
+       */
+      methodCodeDeliveryOptionsConfigMap: {
+        'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
+        'myparcelnl_magento_postnl_settings/morning': 'config.carrierSettings.postnl.priceMorningDelivery',
+        'myparcelnl_magento_postnl_settings/evening': 'config.carrierSettings.postnl.priceEveningDelivery',
+      },
 
       /**
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
@@ -212,9 +224,9 @@ define(
        * Note: If you only have one option, so either "delivery" or "pickup", the option will appear disabled.
        * Until there's a built in solution, there's the following workaround.
        */
-      disabledDeliveryPickupRadio: function () {
+      disabledDeliveryPickupRadio: function() {
         var delivery = document.getElementById(deliveryOptions.disableDelivery);
-        var pickup   = document.getElementById(deliveryOptions.disablePickup);
+        var pickup = document.getElementById(deliveryOptions.disablePickup);
 
         if (delivery) {
           delivery.disabled = false;
@@ -245,6 +257,8 @@ define(
         if (!available) {
           return;
         }
+
+        deliveryOptions.updatePricesInDeliveryOptions(selectedShippingMethod);
 
         if (JSON.stringify(deliveryOptions.shippingMethod) !== JSON.stringify(newShippingMethod)) {
           deliveryOptions.shippingMethod = newShippingMethod;
@@ -285,6 +299,25 @@ define(
           });
 
           return newShippingMethod.length ? newShippingMethod[0] : null;
+        }
+      },
+
+      updatePricesInDeliveryOptions: function(selectedShippingMethod) {
+        var shippingMethod = selectedShippingMethod.method_code;
+        var priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[shippingMethod];
+        var hasKey = objectPath.has(window.MyParcelConfig, priceOption);
+
+        if (!hasKey) {
+          console.error('key does not exist');
+          return;
+        }
+
+        var existingPrice = objectPath.get(window.MyParcelConfig, priceOption);
+
+        if (existingPrice && existingPrice !== selectedShippingMethod.price_incl_tax) {
+          objectPath.set(window.MyParcelConfig, priceOption, selectedShippingMethod.price_incl_tax);
+
+          deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
         }
       },
     };
