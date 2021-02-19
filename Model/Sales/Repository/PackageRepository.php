@@ -112,12 +112,12 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param $product
-     * @param $mailbox
+     * @param object $product
+     * @param int    $mailbox
      *
      * @return bool
      */
-    public function fitInMailbox($product, $mailbox): bool
+    public function fitInMailbox($product, int $mailbox): bool
     {
         $mailboxPercentage    = $this->getMailboxPercentage() + $mailbox * $product->getQty();
         $maximumMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
