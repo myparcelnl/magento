@@ -28,15 +28,12 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
-    const MODULE_NAME              = 'MyParcelNL_Magento';
-    const XML_PATH_GENERAL         = 'myparcelnl_magento_general/';
-    const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
-
-    const DEFAULT_WEIGHT           = 1000;
-
-    public const CARRIERS = [PostNLConsignment::CARRIER_NAME];
-
-    public const CARRIERS_XML_PATH_MAP = [
+    public const MODULE_NAME              = 'MyParcelNL_Magento';
+    public const XML_PATH_GENERAL         = 'myparcelnl_magento_general/';
+    public const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
+    public const DEFAULT_WEIGHT           = 1000;
+    public const CARRIERS                 = [PostNLConsignment::CARRIER_NAME];
+    public const CARRIERS_XML_PATH_MAP    = [
         PostNLConsignment::CARRIER_NAME => Data::XML_PATH_POSTNL_SETTINGS,
     ];
 
