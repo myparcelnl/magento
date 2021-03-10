@@ -8,6 +8,7 @@ define(
     'MyParcelNL_Magento/js/polyfill/array_prototype_find',
     'MyParcelNL_Magento/js/vendor/myparcel',
     'MyParcelNL_Magento/js/vendor/polyfill-custom-event',
+    'MyParcelNL_Magento/js/vendor/object-path',
     'leaflet',
     'vue2leaflet',
   ],
@@ -20,6 +21,7 @@ define(
     array_prototype_find,
     myparcel,
     CustomEvent,
+    objectPath,
     leaflet,
     vue2leaflet
   ) {
@@ -37,6 +39,7 @@ define(
       hideDeliveryOptionsEvent: 'myparcel_hide_delivery_options',
       renderDeliveryOptionsEvent: 'myparcel_render_delivery_options',
       showDeliveryOptionsEvent: 'myparcel_show_delivery_options',
+      updateConfigEvent: 'myparcel_update_config',
       updateDeliveryOptionsEvent: 'myparcel_update_delivery_options',
 
       updatedDeliveryOptionsEvent: 'myparcel_updated_delivery_options',
@@ -53,6 +56,29 @@ define(
        * @type {String}
        */
       hiddenDataInput: '[name="myparcel_delivery_options"]',
+
+      methodCodeStandardDelivery: 'myparcelnl_magento_postnl_settings/delivery',
+
+      /**
+       * Maps shipping method codes to prices in the delivery options config.
+       */
+      methodCodeDeliveryOptionsConfigMap: {
+        'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
+        'myparcelnl_magento_postnl_settings/morning/only_recipient': 'config.carrierSettings.postnl.priceMorningDelivery',
+        'myparcelnl_magento_postnl_settings/evening/only_recipient': 'config.carrierSettings.postnl.priceEveningDelivery',
+        'myparcelnl_magento_postnl_settings/pickup': 'config.carrierSettings.postnl.pricePickup',
+        'myparcelnl_magento_postnl_settings/morning/only_recipient/signature': 'config.carrierSettings.postnl.priceMorningSignature',
+        'myparcelnl_magento_postnl_settings/evening/only_recipient/signature': 'config.carrierSettings.postnl.priceEveningSignature',
+        'myparcelnl_magento_postnl_settings/delivery/only_recipient/signature': 'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
+      },
+
+      /**
+       * Maps shipping method codes to prices in the delivery options config.
+       */
+      methodCodeShipmentOptionsConfigMap: {
+        'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
+        'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
+         },
 
       /**
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
@@ -212,9 +238,9 @@ define(
        * Note: If you only have one option, so either "delivery" or "pickup", the option will appear disabled.
        * Until there's a built in solution, there's the following workaround.
        */
-      disabledDeliveryPickupRadio: function () {
+      disabledDeliveryPickupRadio: function() {
         var delivery = document.getElementById(deliveryOptions.disableDelivery);
-        var pickup   = document.getElementById(deliveryOptions.disablePickup);
+        var pickup = document.getElementById(deliveryOptions.disablePickup);
 
         if (delivery) {
           delivery.disabled = false;
@@ -245,6 +271,8 @@ define(
         if (!available) {
           return;
         }
+
+        deliveryOptions.updatePricesInDeliveryOptions(selectedShippingMethod);
 
         if (JSON.stringify(deliveryOptions.shippingMethod) !== JSON.stringify(newShippingMethod)) {
           deliveryOptions.shippingMethod = newShippingMethod;
@@ -287,6 +315,64 @@ define(
           return newShippingMethod.length ? newShippingMethod[0] : null;
         }
       },
+
+      updatePricesInDeliveryOptions: function(selectedShippingMethod) {
+        var isShipmentOption = deliveryOptions.methodCodeShipmentOptionsConfigMap.hasOwnProperty(selectedShippingMethod.method_code);
+        var priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[selectedShippingMethod.method_code];
+        var addBasePrice = false;
+
+        if (isShipmentOption) {
+          priceOption = deliveryOptions.methodCodeShipmentOptionsConfigMap[selectedShippingMethod.method_code];
+          addBasePrice = true;
+        }
+
+        deliveryOptions.priceDeliveryOptions(selectedShippingMethod, priceOption, addBasePrice);
+      },
+
+      /**
+       * @param {Object} shippingMethod
+       * @param {String} priceOption
+       * @param {Boolean} addBasePrice
+       */
+      priceDeliveryOptions: function(shippingMethod, priceOption, addBasePrice) {
+        var hasKey = objectPath.has(window.MyParcelConfig, priceOption);
+
+        if (!hasKey) {
+          // eslint-disable-next-line no-console
+          console.error('key does not exist');
+          return;
+        }
+
+        var existingPrice = objectPath.get(window.MyParcelConfig, priceOption, null);
+        var shippingMethodPrice = shippingMethod.price_incl_tax;
+
+        if (addBasePrice) {
+          var baseShippingMethod = checkout.findRateByMethodCode(deliveryOptions.methodCodeStandardDelivery);
+          shippingMethodPrice -= baseShippingMethod.price_incl_tax;
+          shippingMethodPrice = deliveryOptions.roundNumber(shippingMethodPrice, 2);
+        }
+
+        if (existingPrice && existingPrice !== shippingMethodPrice) {
+          objectPath.set(window.MyParcelConfig, priceOption, shippingMethodPrice);
+
+          deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
+        }
+      },
+
+      /**
+       * For use when magic decimals appear...
+       *
+       * @param {Number} number
+       * @param {Number} decimals
+       * @returns {Number}
+       *
+       * @see https://stackoverflow.com/a/10474209
+       */
+      roundNumber: function(number, decimals) {
+        var newNumber = Number(String(number)).toFixed(decimals);
+        return parseFloat(newNumber);
+      },
+
     };
 
     return deliveryOptions;

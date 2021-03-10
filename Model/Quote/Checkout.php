@@ -6,7 +6,6 @@ use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 
 class Checkout
@@ -136,9 +135,6 @@ class Checkout
         foreach ($carriersPath as $carrier) {
             $packageType = [
                 'packageType'                  => $this->checkPackageType($carrier),
-                'pricePackageTypeMailbox'      => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
-                'pricePackageTypeDigitalStamp' => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
-                'pricePickup'                  => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee'),
                 'cutoffTime'                   => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/cutoff_time'),
                 'saturdayCutoffTime'           => $this->helper->getTimeConfig($carrier[self::SELECT_CARRIER_PATH], 'general/saturday_cutoff_time'),
                 'deliveryDaysWindow'           => $this->helper->getIntegerConfig($carrier[self::SELECT_CARRIER_PATH], 'general/deliverydays_window'),
@@ -162,6 +158,12 @@ class Checkout
         $myParcelConfig = [];
 
         foreach ($carriersPath as $carrier) {
+            $basePrice        = $this->helper->getBasePrice();
+            $morningFee       = $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'morning/fee');
+            $eveningFee       = $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'evening/fee');
+            $signatureFee     = $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false);
+            $onlyRecipientFee = $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_fee', false);
+
             $myParcelConfig["carrierSettings"][$carrier[self::SELECT_CARRIER_ARRAY]] = [
                 'allowDeliveryOptions' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/active'),
                 'allowSignature'       => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_active'),
@@ -170,11 +172,20 @@ class Checkout
                 'allowEveningDelivery' => $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'evening/active'),
                 'allowPickupLocations' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'pickup/active'),
 
-                'priceSignature'        => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'delivery/signature_fee', false),
-                'priceOnlyRecipient'    => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'delivery/only_recipient_fee', false),
-                'priceStandardDelivery' => $this->helper->getBasePrice(),
-                'priceMorningDelivery'  => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'morning/fee'),
-                'priceEveningDelivery'  => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'evening/fee'),
+                'priceSignature'        => $signatureFee,
+                'priceOnlyRecipient'    => $onlyRecipientFee,
+                'priceStandardDelivery' => $basePrice,
+                'priceMorningDelivery'  => $morningFee,
+                'priceEveningDelivery'  => $eveningFee,
+
+                'priceMorningSignature'          => ($morningFee + $signatureFee),
+                'priceEveningSignature'          => ($eveningFee + $signatureFee),
+                'priceSignatureAndOnlyRecipient' => ($basePrice + $signatureFee + $onlyRecipientFee),
+
+                'pricePickup'                  => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'pickup/fee'),
+                'pricePackageTypeMailbox'      => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'mailbox/fee', false),
+                'pricePackageTypeDigitalStamp' => $this->helper->getMethodPrice($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/fee', false),
+
             ];
         }
 
