@@ -369,7 +369,7 @@ class PackageRepository extends Package
     private function setWeightFromOneQuoteProduct($product)
     {
         if ($product->getWeight() > 0) {
-            $this->addWeight($product->getWeight() * $product->getQty());
+            $this->setWeight($product->getWeight() * $product->getQty());
         } else {
             $this->setAllProductsFit(false);
         }

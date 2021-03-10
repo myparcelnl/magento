@@ -24,14 +24,10 @@ use Magento\Quote\Model\Quote\Address\RateResult\Method;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
-    /**
-     * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
-     */
-    private $products;
-
     /**
      * @var Checkout
      */
@@ -51,6 +47,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * @var Session
      */
     private $session;
+
     /**
      * @var \Magento\Backend\Model\Session\Quote
      */
@@ -84,7 +81,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->quote          = $quote;
         $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods'));
         $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
-        $this->products = $this->getQuoteFromCardOrSession()->getItems();
     }
 
     /**
@@ -93,6 +89,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * @param \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult|\Magento\Shipping\Model\Rate\Result $result
      *
      * @return $this
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function append($result)
     {
@@ -151,7 +149,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     {
         $selectedCountry = $this->session->getQuote()->getShippingAddress()->getCountryId();
 
-        if ($selectedCountry != 'NL' && $selectedCountry != 'BE') {
+        if (AbstractConsignment::CC_NL !== $selectedCountry && AbstractConsignment::CC_BE !== $selectedCountry) {
             return;
         }
 
@@ -166,12 +164,15 @@ class Result extends \Magento\Shipping\Model\Rate\Result
                     return;
                 }
 
-                $method = $this->getShippingMethod(
-                    $this->getFullSettingPath(Data::CARRIERS_XML_PATH_MAP[$carrier], $settingPath),
-                    $parentRate
-                );
+                $fullPath = $this->getFullSettingPath(Data::CARRIERS_XML_PATH_MAP[$carrier], $settingPath);
+                if ($fullPath) {
+                    $method = $this->getShippingMethod(
+                        $fullPath,
+                        $parentRate
+                    );
 
-                $this->_rates[] = $method;
+                    $this->_rates[] = $method;
+                }
             }
         }
     }
@@ -196,37 +197,85 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * Check if a given map/setting combination is active. If the setting is not a top level setting its parent group
      * will be checked for an "active" setting. If this is disabled this will return false;
      *
-     * @param        $map
+     * @param string $map
      * @param string $settingPath
+     * @param string $separator
      *
      * @return bool
      */
-    private function isSettingActive(string $map, string $settingPath): bool
+    private function isSettingActive(string $map, string $settingPath, string $separator): bool
     {
-        $settingName       = $this->getFullSettingPath($map, $settingPath);
-        $settingActive     = $this->myParcelHelper->getConfigValue($settingName . 'active');
-        $baseSettingActive = '1';
-
-        if (! $this->isBaseSetting($settingPath)) {
-            $baseSetting = $map . explode("/", $settingPath)[0];
-
-            $baseSettingActive = $this->myParcelHelper->getConfigValue($baseSetting . '/active');
+        $basePath      = explode("/", $settingPath);
+        // Check if morning or evening delivery are active.
+        if ('morning' === $basePath[0] || 'evening' === $basePath[0]) {
+            return (bool) $this->myParcelHelper->getConfigValue($map . $basePath[0] . '/active');
+        }
+        // Check if the setting has an additional option like signature or only_recipient and see if it is active.
+        if (count($basePath) === 2) {
+            return $this->hasSettingAdditionalOption($basePath, $map, $separator);
+        }
+        // Check if there are multiple additional options like signature and only_recipient and check if they are both active.
+        if (count($basePath) === 3) {
+            return $this->hasSettingAdditionalOptions($basePath, $map, $separator);
         }
 
-        return $settingActive === '1' && $baseSettingActive === '1';
+        return (bool) $this->myParcelHelper->getConfigValue($map . $settingPath . $separator . 'active');
+    }
+
+    /**
+     * @param array  $basePath
+     * @param string $map
+     * @param string $separator
+     *
+     * @return bool
+     */
+    private function hasSettingAdditionalOption(array $basePath, string $map, string $separator): bool
+    {
+        [$base, $setting] = $basePath;
+        $activeSetting = $map . $base . '/' . $setting . $separator . 'active';
+
+        return (bool) $this->myParcelHelper->getConfigValue($activeSetting);
+    }
+
+    /**
+     * @param array  $basePath
+     * @param string $map
+     * @param string $separator
+     * @param bool   $activeSetting
+     *
+     * @return bool
+     */
+    private function hasSettingAdditionalOptions(array $basePath, string $map, string $separator, bool $activeSetting = false): bool
+    {
+        $base = array_shift($basePath);
+
+        foreach ($basePath as $setting) {
+            $activeSetting = (bool) $this->myParcelHelper->getConfigValue($map . $base . '/' . $setting . $separator . 'active');
+
+            if (! $activeSetting) {
+                break;
+            }
+        }
+
+        return $activeSetting;
     }
 
     /**
      * @param string $map
      * @param string $settingPath
      *
-     * @return string
+     * @return string|null
      */
-    private function getFullSettingPath(string $map, string $settingPath): string
+    private function getFullSettingPath(string $map, string $settingPath): ?string
     {
-        $separator = $this->isBaseSetting($settingPath) ? '/' : '_';
+        $separator        = $this->isBaseSetting($settingPath) ? '/' : '_';
+        $activeSetting    = $this->isSettingActive($map, $settingPath, $separator);
 
-        return $map . $settingPath . $separator;
+        if ($activeSetting) {
+            return $map . $settingPath . $separator;
+        }
+
+        return null;
     }
 
     /**
@@ -240,8 +289,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param string $settingPath
-     * @param Method $parentRate
+     * @param string|null $settingPath
+     * @param Method|null $parentRate
      *
      * @return Method
      */

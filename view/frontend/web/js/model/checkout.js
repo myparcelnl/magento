@@ -132,7 +132,7 @@ define([
        * @returns {Element[]}
        */
       getShippingMethodRows: function (shippingMethod) {
-        var classSelector = '.col.col-method[id^="label_method_' + shippingMethod + '"]';
+        var classSelector = '[id^="label_method_' + shippingMethod + '"]';
         var columns = document.querySelectorAll(classSelector);
         var elements = [];
 
