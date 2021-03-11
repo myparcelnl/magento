@@ -64,6 +64,8 @@ define(
        */
       methodCodeDeliveryOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
+        'myparcelnl_magento_postnl_settings/mailbox': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
+        'myparcelnl_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
         'myparcelnl_magento_postnl_settings/morning/only_recipient': 'config.carrierSettings.postnl.priceMorningDelivery',
         'myparcelnl_magento_postnl_settings/evening/only_recipient': 'config.carrierSettings.postnl.priceEveningDelivery',
         'myparcelnl_magento_postnl_settings/pickup': 'config.carrierSettings.postnl.pricePickup',
@@ -78,7 +80,7 @@ define(
       methodCodeShipmentOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
-         },
+      },
 
       /**
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
