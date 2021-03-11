@@ -205,18 +205,18 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function isSettingActive(string $map, string $settingPath, string $separator): bool
     {
-        $basePath      = explode("/", $settingPath);
+        $settingPathParts = explode("/", $settingPath);
         // Check if morning or evening delivery are active.
-        if ('morning' === $basePath[0] || 'evening' === $basePath[0]) {
-            return (bool) $this->myParcelHelper->getConfigValue($map . $basePath[0] . '/active');
+        if ('morning' === $settingPathParts[0] || 'evening' === $settingPathParts[0]) {
+            return (bool) $this->myParcelHelper->getConfigValue($map . $settingPathParts[0] . '/active');
         }
         // Check if the setting has an additional option like signature or only_recipient and see if it is active.
-        if (count($basePath) === 2) {
-            return $this->hasSettingAdditionalOption($basePath, $map, $separator);
+        if (count($settingPathParts) === 2) {
+            return $this->hasSettingAdditionalOption($settingPathParts, $map, $separator);
         }
         // Check if there are multiple additional options like signature and only_recipient and check if they are both active.
-        if (count($basePath) === 3) {
-            return $this->hasSettingAdditionalOptions($basePath, $map, $separator);
+        if (count($settingPathParts) === 3) {
+            return $this->hasSettingAdditionalOptions($settingPathParts, $map, $separator);
         }
 
         return (bool) $this->myParcelHelper->getConfigValue($map . $settingPath . $separator . 'active');
@@ -232,32 +232,32 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function hasSettingAdditionalOption(array $basePath, string $map, string $separator): bool
     {
         [$base, $setting] = $basePath;
-        $activeSetting = $map . $base . '/' . $setting . $separator . 'active';
+        $settingActive = $map . $base . '/' . $setting . $separator . 'active';
 
-        return (bool) $this->myParcelHelper->getConfigValue($activeSetting);
+        return (bool) $this->myParcelHelper->getConfigValue($settingActive);
     }
 
     /**
      * @param array  $basePath
      * @param string $map
      * @param string $separator
-     * @param bool   $activeSetting
+     * @param bool   $settingActive
      *
      * @return bool
      */
-    private function hasSettingAdditionalOptions(array $basePath, string $map, string $separator, bool $activeSetting = false): bool
+    private function hasSettingAdditionalOptions(array $basePath, string $map, string $separator, bool $settingActive = false): bool
     {
         $base = array_shift($basePath);
 
         foreach ($basePath as $setting) {
-            $activeSetting = (bool) $this->myParcelHelper->getConfigValue($map . $base . '/' . $setting . $separator . 'active');
+            $settingActive = (bool) $this->myParcelHelper->getConfigValue($map . $base . '/' . $setting . $separator . 'active');
 
-            if (! $activeSetting) {
+            if (! $settingActive) {
                 break;
             }
         }
 
-        return $activeSetting;
+        return $settingActive;
     }
 
     /**
@@ -268,10 +268,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getFullSettingPath(string $map, string $settingPath): ?string
     {
-        $separator        = $this->isBaseSetting($settingPath) ? '/' : '_';
-        $activeSetting    = $this->isSettingActive($map, $settingPath, $separator);
+        $separator     = $this->isBaseSetting($settingPath) ? '/' : '_';
+        $settingActive = $this->isSettingActive($map, $settingPath, $separator);
 
-        if ($activeSetting) {
+        if ($settingActive) {
             return $map . $settingPath . $separator;
         }
 
