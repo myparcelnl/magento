@@ -206,8 +206,13 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function isSettingActive(string $map, string $settingPath, string $separator): bool
     {
         $settingPathParts = explode("/", $settingPath);
-        // Check if morning or evening delivery are active.
-        if ('morning' === $settingPathParts[0] || 'evening' === $settingPathParts[0]) {
+        $activeDelivery   = (bool) $this->myParcelHelper->getConfigValue($map . 'delivery/active');
+        // Check if delivery is active.
+        if ('delivery' === $settingPathParts[0]) {
+            return $activeDelivery;
+        }
+        // Check if delivery, morning or evening delivery are active.
+        if ($activeDelivery && ('morning' === $settingPathParts[0] || 'evening' === $settingPathParts[0])) {
             return (bool) $this->myParcelHelper->getConfigValue($map . $settingPathParts[0] . '/active');
         }
         // Check if the setting has an additional option like signature or only_recipient and see if it is active.
