@@ -34,6 +34,11 @@ function(
     hasDeliveryOptions: ko.observable(false),
 
     /**
+     *
+     */
+    countryId: ko.observable(null),
+
+    /**
      * Initialize by requesting the MyParcel settings configuration from Magento.
      */
     initialize: function() {
@@ -59,7 +64,24 @@ function(
       Model.compute.subscribe(_.debounce(Model.hideShippingMethods));
       Model.allowedShippingMethods.subscribe(_.debounce(updateHasDeliveryOptions));
 
-      doRequest(Model.getMagentoSettings, {onSuccess: Model.onInitializeSuccess});
+      // Model.allowedPackageTypes = Model.configuration().allowedPackageTypes;
+
+      doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onInitializeSuccess});
+
+      Model.countryId(quote.shippingAddress.countryId);
+
+      quote.shippingAddress.subscribe(function (shippingAddress) {
+        if (shippingAddress.countryId !== Model.countryId()) {
+          doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onReFetchDeliveryOptionsConfig});
+        }
+
+        Model.countryId(shippingAddress.countryId);
+      });
+    },
+
+    onReFetchDeliveryOptionsConfig: function(response) {
+      window.MyParcelConfig = response[0].data;
+      Model.configuration(response[0].data);
     },
 
     /**
@@ -150,8 +172,18 @@ function(
      *
      * @returns {XMLHttpRequest}
      */
-    getMagentoSettings: function() {
+    getDeliveryOptionsConfig: function() {
       return sendRequest('rest/V1/delivery_options/get');
+    },
+
+    /**
+     * @returns {XMLHttpRequest}
+     */
+    calculatePackageType: function() {
+      return sendRequest('rest/V1/package_type/post', 'POST', {
+        carrier: '',
+        countryId: Model.countryId(),
+      });
     },
 
     /**

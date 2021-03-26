@@ -141,6 +141,7 @@ define(
        * Add event listeners to shipping methods and address as well as the delivery options module.
        */
       addListeners: function() {
+        checkout.configuration.subscribe(deliveryOptions.updateConfig);
         quote.shippingAddress.subscribe(deliveryOptions.updateAddress);
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
 
@@ -373,6 +374,10 @@ define(
         return parseFloat(newNumber);
       },
 
+      updateConfig: function() {
+        console.log('update conig');
+        deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
+      }
     };
 
     return deliveryOptions;
