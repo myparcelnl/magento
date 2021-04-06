@@ -125,7 +125,7 @@ class Checkout
     /**
      * Get general data
      *
-     * @return array)
+     * @return array
      */
     private function getPackageType()
     {
@@ -207,7 +207,7 @@ class Checkout
      *
      * @return array
      */
-    private function get_carriers(): array
+    public function get_carriers(): array
     {
         $carriersSettings = [
             ['postnl', Data::XML_PATH_POSTNL_SETTINGS]
@@ -262,15 +262,17 @@ class Checkout
     }
 
     /**
-     * @param $carrier
+     * @param array  $carrier
+     * @param string $country
      *
      * @return string
      */
-    public function checkPackageType(array $carrier): string
+    public function checkPackageType(array $carrier, string $country = 'NL'): string
     {
         $products = $this->cart->getAllItems();
+        $country  = $country ?? $this->cart->getShippingAddress()->getCountryId();
 
-        $this->package->setCurrentCountry($this->cart->getShippingAddress()->getCountryId());
+        $this->package->setCurrentCountry($country);
         $this->package->setDigitalStampActive($this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'digital_stamp/active'));
         $this->package->setMailboxActive($this->helper->getBoolConfig($carrier[self::SELECT_CARRIER_PATH], 'mailbox/active'));
         $this->package->setWeightFromQuoteProducts($products);
