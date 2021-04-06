@@ -180,10 +180,13 @@ function(
      * @returns {XMLHttpRequest}
      */
     calculatePackageType: function() {
-      return sendRequest('rest/V1/package_type/post', 'POST', {
-        carrier: '',
-        countryId: Model.countryId(),
-      });
+      return sendRequest(
+        'rest/V1/package_type',
+        'POST',
+        {
+          countryId: Model.countryId(),
+        }
+      );
     },
 
     /**
