@@ -254,7 +254,7 @@
                 </field>
                 <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckYes</source_model>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
@@ -269,7 +269,7 @@
                 </field>
                 <field id="only_recipient_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Home address only</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\AgeCheckYes</source_model>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
