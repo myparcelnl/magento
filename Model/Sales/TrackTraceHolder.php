@@ -179,7 +179,7 @@ class TrackTraceHolder
         try {
             $this->consignment
                 ->setFullStreet($address->getData('street'))
-                ->setPostalCode($address->getPostcode());
+                ->setPostalCode(preg_replace('/\s+/', '', $address->getPostcode()));
         } catch (\Exception $e) {
             $errorHuman = 'An error has occurred while validating order number ' . $shipment->getOrder()->getIncrementId() . '. Check address.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
