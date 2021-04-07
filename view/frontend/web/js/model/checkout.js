@@ -63,8 +63,8 @@ function(
 
       Model.compute.subscribe(_.debounce(Model.hideShippingMethods));
       Model.allowedShippingMethods.subscribe(_.debounce(updateHasDeliveryOptions));
-
       // Model.allowedPackageTypes = Model.configuration().allowedPackageTypes;
+      // doRequest(Model.calculatePackageType, {onSuccess: Model.updateConfig});
 
       doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onInitializeSuccess});
 
