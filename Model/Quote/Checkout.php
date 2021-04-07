@@ -262,12 +262,12 @@ class Checkout
     }
 
     /**
-     * @param array  $carrier
-     * @param string $country
+     * @param array       $carrier
+     * @param string|null $country
      *
      * @return string
      */
-    public function checkPackageType(array $carrier, string $country = 'NL'): string
+    public function checkPackageType(array $carrier, string $country = null): string
     {
         $products = $this->cart->getAllItems();
         $country  = $country ?? $this->cart->getShippingAddress()->getCountryId();
