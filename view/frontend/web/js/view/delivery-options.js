@@ -379,9 +379,8 @@ define(
       },
 
       updateConfig: function() {
-        console.log('updateConfig');
         deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
-      }
+      },
     };
 
     return deliveryOptions;

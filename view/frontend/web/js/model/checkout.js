@@ -34,9 +34,14 @@ function(
     hasDeliveryOptions: ko.observable(false),
 
     /**
-     *
+     * The country code.
      */
     countryId: ko.observable(null),
+
+    /**
+     * Best package type.
+     */
+    bestPackageType: 'package',
 
     /**
      * Initialize by requesting the MyParcel settings configuration from Magento.
@@ -63,14 +68,11 @@ function(
 
       Model.compute.subscribe(_.debounce(Model.hideShippingMethods));
       Model.allowedShippingMethods.subscribe(_.debounce(updateHasDeliveryOptions));
-      // Model.allowedPackageTypes = Model.configuration().allowedPackageTypes;
-      // doRequest(Model.calculatePackageType, {onSuccess: Model.updateConfig});
 
+      Model.countryId(quote.shippingAddress().countryId);
       doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onInitializeSuccess});
 
-      Model.countryId(quote.shippingAddress.countryId);
-
-      quote.shippingAddress.subscribe(function (shippingAddress) {
+      quote.shippingAddress.subscribe(function(shippingAddress) {
         if (shippingAddress.countryId !== Model.countryId()) {
           doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onReFetchDeliveryOptionsConfig});
         }
@@ -80,8 +82,24 @@ function(
     },
 
     onReFetchDeliveryOptionsConfig: function(response) {
-      window.MyParcelConfig = response[0].data;
-      Model.configuration(response[0].data);
+      var configuration = response[0].data;
+
+      doRequest(function() {
+        return sendRequest(
+          'rest/V1/package_type',
+          'GET',
+          {
+            carrier: configuration.config.carriers[0],
+            countryCode: Model.countryId(),
+          }
+        );
+      },
+      {
+        onSuccess: function(response) {
+          Model.bestPackageType = response;
+          Model.setDeliveryOptionsConfig(configuration);
+        },
+      });
     },
 
     /**
@@ -90,8 +108,7 @@ function(
      * @param {Array} response - Response from request.
      */
     onInitializeSuccess: function(response) {
-      window.MyParcelConfig = response[0].data;
-      Model.configuration(response[0].data);
+      Model.onReFetchDeliveryOptionsConfig(response);
       Model.hideShippingMethods();
     },
 
@@ -177,14 +194,16 @@ function(
     },
 
     /**
+     * @param {String} carrier
      * @returns {XMLHttpRequest}
      */
-    calculatePackageType: function() {
+    calculatePackageType: function(carrier) {
       return sendRequest(
         'rest/V1/package_type',
-        'POST',
+        'GET',
         {
-          countryId: Model.countryId(),
+          carrier: carrier,
+          countryCode: Model.countryId(),
         }
       );
     },
@@ -206,10 +225,33 @@ function(
         }, handlers
       );
     },
+
+    setDeliveryOptionsConfig: function(data) {
+      data.config.packageType = Model.bestPackageType;
+      window.MyParcelConfig = data;
+      Model.configuration(data);
+    },
+
+    /**
+     * @param carrier
+     */
+    updatePackageType: function(carrier) {
+      doRequest(function() {
+        return Model.calculatePackageType(carrier);
+      },
+      {
+        onSuccess: function(response) {
+          Model.bestPackageType = response;
+        },
+      });
+    },
   };
 
   return Model;
 
+  /**
+   *
+   */
   function updateAllowedShippingMethods() {
     /**
      * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
@@ -220,6 +262,9 @@ function(
     }));
   }
 
+  /**
+   *
+   */
   function updateHasDeliveryOptions() {
     var isAllowed = false;
 
@@ -282,20 +327,31 @@ function(
    *
    * @param {String} endpoint - Endpoint to use.
    * @param {String} [method='GET'] - Request method.
-   * @param {String} [body={}] - Request body.
+   * @param {Object} [options={}] - Request body or params.
    *
    * @returns {XMLHttpRequest}
    */
-  function sendRequest(endpoint, method, body) {
+  function sendRequest(endpoint, method, options) {
     var url = mageUrl.build(endpoint);
     var request = new XMLHttpRequest();
+    var query = [];
 
     method = method || 'GET';
-    body = body || {};
+    options = options || {};
+
+    if (method === 'GET') {
+      for (var key in options) {
+        query.push(key + '=' + encodeURIComponent(options[key]));
+      }
+    }
+
+    if (query.length) {
+      url += '?' + query.join('&');
+    }
 
     request.open(method, url, true);
     request.setRequestHeader('Content-Type', 'application/json');
-    request.send(body);
+    request.send(options);
 
     return request;
   }

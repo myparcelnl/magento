@@ -28,12 +28,12 @@ class PackageType implements PackageTypeInterface
     }
 
     /**
-     *
+     * @param string $carrier
      * @param string $countryCode
      *
      * @return string
      */
-    public function getPackageType(string $countryCode): string
+    public function getPackageType(string $carrier, string $countryCode): string
     {
         $carriersPath = $this->settings->get_carriers();
         $packageType  = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
