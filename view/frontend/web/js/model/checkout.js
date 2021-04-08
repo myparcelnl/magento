@@ -249,9 +249,6 @@ function(
 
   return Model;
 
-  /**
-   *
-   */
   function updateAllowedShippingMethods() {
     /**
      * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
@@ -262,9 +259,6 @@ function(
     }));
   }
 
-  /**
-   *
-   */
   function updateHasDeliveryOptions() {
     var isAllowed = false;
 
