@@ -132,7 +132,7 @@ function(
      * @returns {Element[]}
      */
     getShippingMethodRows: function(shippingMethod) {
-      var classSelector = '.col.col-method[id^="label_method_' + shippingMethod + '"]';
+      var classSelector = '[id^="label_method_' + shippingMethod + '"]';
       var columns = document.querySelectorAll(classSelector);
       var elements = [];
 
@@ -209,17 +209,17 @@ function(
   /**
    * Request function. Executes a request and given handlers.
    *
-   * @param {function} request - The request to execute.
+   * @param {Function} request - The request to execute.
    * @param {Object} handlers - Object with handlers to run on different outcomes of the request.
-   * @property {function} handlers.onSuccess - Function to run on Success handler.
-   * @property {function} handlers.onError - Function to run on Error handler.
-   * @property {function} handlers.always - Function to always run.
+   * @property {Function} handlers.onSuccess - Function to run on Success handler.
+   * @property {Function} handlers.onError - Function to run on Error handler.
+   * @property {Function} handlers.always - Function to always run.
    */
   function doRequest(request, handlers) {
     /**
      * Execute a given handler by name if it exists in handlers.
      *
-     * @param {string} handlerName - Name of the handler to check for.
+     * @param {String} handlerName - Name of the handler to check for.
      * @param {*?} params - Parameters to pass to the handler.
      * @returns {*}
      */

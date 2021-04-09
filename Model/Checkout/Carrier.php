@@ -191,13 +191,8 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     private function addShippingMethods($result)
     {
-        $products = $this->quote->getAllItems($result);
         $this->package->setDigitalStampSettings();
         $this->package->setMailboxSettings();
-
-        if (count($products) > 0) {
-            $this->package->setWeightFromQuoteProducts($products);
-        }
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
             $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath . 'active') === '1';
