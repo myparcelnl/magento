@@ -14,17 +14,17 @@ class PackageType implements PackageTypeInterface
     /**
      * @var Checkout
      */
-    private $settings;
+    private $checkout;
 
     /**
      * Checkout constructor.
      *
-     * @param Checkout $settings
+     * @param Checkout $checkout
      */
     public function __construct(
-        Checkout $settings
+        Checkout $checkout
     ) {
-        $this->settings = $settings;
+        $this->checkout = $checkout;
     }
 
     /**
@@ -35,13 +35,6 @@ class PackageType implements PackageTypeInterface
      */
     public function getPackageType(string $carrier, string $countryCode): string
     {
-        $carriersPath = $this->settings->get_carriers();
-        $packageType  = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-
-        foreach ($carriersPath as $carrier) {
-            $packageType = $this->settings->checkPackageType($carrier, $countryCode);
-        }
-
-        return $packageType;
+        return $this->checkout->checkPackageType($carrier, $countryCode);
     }
 }

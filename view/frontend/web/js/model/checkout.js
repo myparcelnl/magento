@@ -41,7 +41,7 @@ function(
     /**
      * Best package type.
      */
-    bestPackageType: 'package',
+    bestPackageType: null,
 
     /**
      * Initialize by requesting the MyParcel settings configuration from Magento.
@@ -83,16 +83,10 @@ function(
 
     onReFetchDeliveryOptionsConfig: function(response) {
       var configuration = response[0].data;
+      var carrier = configuration.config.carriers[0];
 
       doRequest(function() {
-        return sendRequest(
-          'rest/V1/package_type',
-          'GET',
-          {
-            carrier: configuration.config.carriers[0],
-            countryCode: Model.countryId(),
-          }
-        );
+        return Model.calculatePackageType(carrier);
       },
       {
         onSuccess: function(response) {
@@ -226,6 +220,9 @@ function(
       );
     },
 
+    /**
+     * @param {Array} data - Update MyParcelConfig.
+     */
     setDeliveryOptionsConfig: function(data) {
       data.config.packageType = Model.bestPackageType;
       window.MyParcelConfig = data;
@@ -233,7 +230,7 @@ function(
     },
 
     /**
-     * @param carrier
+     * @param {String} carrier
      */
     updatePackageType: function(carrier) {
       doRequest(function() {
