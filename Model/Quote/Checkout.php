@@ -10,7 +10,7 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 
 class Checkout
 {
-    const PLATFORM = 'myparcel';
+    private const PLATFORM = 'myparcel';
 
     /**
      * @var array
@@ -130,7 +130,7 @@ class Checkout
         $activeCarriers = $this->getActiveCarriers();
         $carrierPath    = data::CARRIERS_XML_PATH_MAP;
 
-        $packageType  = [];
+        $packageType = [];
         foreach ($activeCarriers as $carrier) {
             $packageType = [
                 'packageType'                  => $this->checkPackageType($carrier, null),
