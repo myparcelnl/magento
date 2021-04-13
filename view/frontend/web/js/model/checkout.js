@@ -221,7 +221,7 @@ function(
     },
 
     /**
-     * @param {Array} data - Update MyParcelConfig.
+     * @param {Object} data - Update MyParcelConfig.
      */
     setDeliveryOptionsConfig: function(data) {
       data.config.packageType = Model.bestPackageType;
