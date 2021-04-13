@@ -83,7 +83,7 @@ function(
 
     onReFetchDeliveryOptionsConfig: function(response) {
       var configuration = response[0].data;
-      var carrier = configuration.config.carriers[0];
+      var carrier = Object.keys(configuration.config.carrierSettings)[0];
 
       doRequest(function() {
         return Model.calculatePackageType(carrier);
