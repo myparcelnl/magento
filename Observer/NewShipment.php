@@ -97,7 +97,7 @@ class NewShipment implements ObserverInterface
         $trackTraceHolders = [];
         $i                 = 1;
 
-        if (isset($options['carrier']) && $options['carrier'] === false) {
+        if (isset($options['carrier']) && false === $options['carrier']) {
             unset($options['carrier']);
         }
 
