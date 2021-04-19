@@ -32,6 +32,7 @@ myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
 Version and support,Versie en support
 General settings,Algemene instellingen
 API settings,API instellingen
+MyParcel NL Settings,MyParcel NL instellingen
 Go to the general settings in the back office of MyParcel to generate the API Key.,Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
 The API Key,Stel hier de API key in
 Default shipment settings,Standaard verzendinstellingen
