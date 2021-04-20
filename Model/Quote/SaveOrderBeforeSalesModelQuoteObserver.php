@@ -97,7 +97,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
             $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
         }
 
-        if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS && $this->hasMyParcelDeliveryOptions($quote))) {
+        if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS) && $this->hasMyParcelDeliveryOptions($quote)) {
             $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS);
             $deliveryOptions     = json_decode($jsonDeliveryOptions, true) ?? [];
 
