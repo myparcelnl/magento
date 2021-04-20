@@ -28,12 +28,13 @@ $_order = $block->getOrder() ?>
                     <td><?= $block->escapeHtml($_item->getTitle()) ?></td>
                     <td>
                         <?php
+                        $trackingUrl = $block->getTrackingUrl();
                         // If the tracking number is equal to the "empty" value don't render a link.
-                        if ($_item->getNumber() === TrackAndTrace::VALUE_EMPTY) : ?>
+                        if (! $trackingUrl || $_item->getNumber() === TrackAndTrace::VALUE_EMPTY) : ?>
                             <?= $block->escapeHtml($_item->getNumber()) ?>
                         <?php else : ?>
                             <a
-                                href="<?= $block->escapeUrl($block->getTrackingUrl()->getUrl($_item)) ?>"
+                                href="<?= $block->escapeUrl($trackingUrl->getUrl($_item)) ?>"
                                 target="_blank">
                                 <?= $block->escapeHtml($_item->getNumber()) ?>
                             </a>
