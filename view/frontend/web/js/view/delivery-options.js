@@ -348,6 +348,7 @@ define(
 
         var existingPrice = objectPath.get(window.MyParcelConfig, priceOption, null);
         var shippingMethodPrice = shippingMethod.price_incl_tax;
+        var isMyParcelMethod = shippingMethod.method_code.indexOf('myparcel') > -1;
 
         if (addBasePrice) {
           var baseShippingMethod = checkout.findRateByMethodCode(deliveryOptions.methodCodeStandardDelivery);
@@ -355,7 +356,7 @@ define(
           shippingMethodPrice = deliveryOptions.roundNumber(shippingMethodPrice, 2);
         }
 
-        if (existingPrice && existingPrice !== shippingMethodPrice) {
+        if (existingPrice && existingPrice !== shippingMethodPrice && isMyParcelMethod) {
           objectPath.set(window.MyParcelConfig, priceOption, shippingMethodPrice);
 
           deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
