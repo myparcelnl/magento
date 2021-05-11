@@ -10,9 +10,9 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class TrackAndTrace extends Column
 {
-    public const NAME        = 'track_number';
-    public const VALUE_EMPTY = '–';
-    private const KEY_POSTCODE    = 0;
+    public const NAME          = 'track_number';
+    public const VALUE_EMPTY   = '–';
+    private const KEY_POSTCODE = 0;
 
     /**
      * Script tag to unbind the click event from the td wrapping the barcode link.
@@ -68,17 +68,13 @@ class TrackAndTrace extends Column
     /**
      * @param array $orderData
      *
-     * @return mixed
+     * @return string
      */
     public function getCountryWithEntityId(array $orderData): string
     {
         $order     = (ObjectManager::getInstance())->create(Order::class)->load($orderData['entity_id']);
         $countryId = $order->getShippingAddress()->getCountryId();
 
-        if (! $countryId) {
-            $countryId = AbstractConsignment::CC_NL;
-        }
-
-        return $countryId;
+        return $countryId ?? AbstractConsignment::CC_NL;
     }
 }
