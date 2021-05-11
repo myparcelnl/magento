@@ -263,7 +263,7 @@ define(
         var newShippingMethod = selectedShippingMethod || {};
         var available = newShippingMethod.available || false;
         var methodEnabled = checkout.allowedShippingMethods().indexOf(newShippingMethod.method_code) > -1;
-        var isMyParcelMethod = available ? newShippingMethod.method_code.indexOf('myparcel') > -1 : false;
+        var isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(newShippingMethod);
 
         checkout.hideShippingMethods();
 
@@ -348,7 +348,7 @@ define(
 
         var existingPrice = objectPath.get(window.MyParcelConfig, priceOption, null);
         var shippingMethodPrice = shippingMethod.price_incl_tax;
-        var isMyParcelMethod = shippingMethod.method_code.indexOf('myparcel') > -1;
+        var isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(shippingMethod);
 
         if (addBasePrice) {
           var baseShippingMethod = checkout.findRateByMethodCode(deliveryOptions.methodCodeStandardDelivery);
@@ -361,6 +361,14 @@ define(
 
           deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
         }
+      },
+
+      /**
+       * @param {Object} shippingMethod
+       * @returns {Boolean}
+       */
+      isMyParcelShippingMethod: function(shippingMethod) {
+        return shippingMethod.available && shippingMethod.method_code.indexOf('myparcel') !== -1;
       },
 
       /**
