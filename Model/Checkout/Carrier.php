@@ -34,7 +34,6 @@ use Magento\Shipping\Model\Simplexml\ElementFactory;
 use Magento\Shipping\Model\Tracking\Result\ErrorFactory;
 use Magento\Shipping\Model\Tracking\Result\StatusFactory;
 use Magento\Shipping\Model\Tracking\ResultFactory;
-use Magento\Ups\Helper\Config;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
@@ -45,7 +44,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
     const CODE = 'mypa';
     protected $_code = self::CODE;
     protected $_localeFormat;
-    protected $configHelper;
 
     /**
      * @var \Magento\Quote\Model\Quote
@@ -81,7 +79,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      * @param \Magento\Directory\Helper\Data                              $directoryData
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface        $stockRegistry
      * @param \Magento\Checkout\Model\Session                             $session
-     * @param Config                                                      $configHelper
      * @param Checkout                                                    $myParcelHelper
      * @param PackageRepository                                           $package
      * @param array                                                       $data
@@ -106,7 +103,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         \Magento\Directory\Helper\Data $directoryData,
         StockRegistryInterface $stockRegistry,
         Session $session,
-        Config $configHelper,
         Checkout $myParcelHelper,
         PackageRepository $package,
         array $data = []
@@ -130,7 +126,6 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
             $data
         );
         $this->quote = $session->getQuote();
-        $this->configHelper = $configHelper;
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
     }
