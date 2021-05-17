@@ -66,6 +66,8 @@ define(
         'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
         'myparcelnl_magento_postnl_settings/mailbox': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
         'myparcelnl_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
+        'myparcelnl_magento_postnl_settings/morning': 'config.carrierSettings.postnl.priceMorningDelivery',
+        'myparcelnl_magento_postnl_settings/evening': 'config.carrierSettings.postnl.priceEveningDelivery',
         'myparcelnl_magento_postnl_settings/morning/only_recipient': 'config.carrierSettings.postnl.priceMorningDelivery',
         'myparcelnl_magento_postnl_settings/evening/only_recipient': 'config.carrierSettings.postnl.priceEveningDelivery',
         'myparcelnl_magento_postnl_settings/pickup': 'config.carrierSettings.postnl.pricePickup',
