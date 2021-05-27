@@ -110,10 +110,12 @@ class TrackSender extends Sender
      * corresponding cron job.
      *
      * @param Shipment $shipment
-     * @param bool $forceSyncMode
+     * @param bool     $forceSyncMode
+     *
      * @return bool
+     * @throws \Exception
      */
-    public function send(Shipment $shipment, $forceSyncMode = false)
+    public function send(Shipment $shipment, $forceSyncMode = false): bool
     {
         $shipment->setSendEmail(true);
 
@@ -121,20 +123,20 @@ class TrackSender extends Sender
             $order = $shipment->getOrder();
 
             $transport = [
-                'order' => $order,
-                'order_id' => $order->getId(),
-                'shipment' => $shipment,
-                'shipment_id' => $shipment->getId(),
-                'comment' => $shipment->getCustomerNoteNotify() ? $shipment->getCustomerNote() : '',
-                'billing' => $order->getBillingAddress(),
-                'payment_html' => $this->getPaymentHtml($order),
-                'store' => $order->getStore(),
+                'order'                    => $order,
+                'order_id'                 => $order->getId(),
+                'shipment'                 => $shipment,
+                'shipment_id'              => $shipment->getId(),
+                'comment'                  => $shipment->getCustomerNoteNotify() ? $shipment->getCustomerNote() : '',
+                'billing'                  => $order->getBillingAddress(),
+                'payment_html'             => $this->getPaymentHtml($order),
+                'store'                    => $order->getStore(),
                 'formattedShippingAddress' => $this->getFormattedShippingAddress($order),
-                'formattedBillingAddress' => $this->getFormattedBillingAddress($order),
-                'order_data' => [
-                    'customer_name' => $order->getCustomerName(),
-                    'is_not_virtual' => $order->getIsNotVirtual(),
-                    'email_customer_note' => $order->getEmailCustomerNote(),
+                'formattedBillingAddress'  => $this->getFormattedBillingAddress($order),
+                'order_data'               => [
+                    'customer_name'         => $order->getCustomerName(),
+                    'is_not_virtual'        => $order->getIsNotVirtual(),
+                    'email_customer_note'   => $order->getEmailCustomerNote(),
                     'frontend_status_label' => $order->getFrontendStatusLabel()
                 ]
             ];
