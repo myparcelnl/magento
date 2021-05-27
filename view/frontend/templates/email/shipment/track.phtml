@@ -5,16 +5,17 @@
 
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
-?>
-<?php /* @var \Magento\Framework\View\Element\Template $block */ ?>
-<?php $_shipment = $block->getShipment() ?>
-<?php
-/* @var \Magento\Sales\Model\Order $_order */
-$_order = $block->getOrder() ?>
-<?php if ($_shipment && $_order) : ?><?php $trackCollection = $_order->getTracksCollection($_shipment->getId()) ?>
+/* @var \Magento\Framework\View\Element\Template $block */
+$_shipment = $block->getShipment();
 
-    <?php if ($trackCollection) : ?>
-        <br />
+/* @var \Magento\Sales\Model\Order $_order */
+$_order = $block->getOrder();
+
+if ($_shipment && $_order) :
+    $trackCollection = $_order->getTracksCollection($_shipment->getId());
+
+    if ($trackCollection) : ?>
+        <br/>
         <table class="shipment-track">
             <thead>
             <tr>
@@ -33,9 +34,8 @@ $_order = $block->getOrder() ?>
                         if (! $trackingUrl || $_item->getNumber() === TrackAndTrace::VALUE_EMPTY) : ?>
                             <?= $block->escapeHtml($_item->getNumber()) ?>
                         <?php else : ?>
-                            <a
-                                href="<?= $block->escapeUrl($trackingUrl->getUrl($_item)) ?>"
-                                target="_blank">
+                            <a href="<?= $block->escapeUrl($trackingUrl->getUrl($_item)) ?>"
+                               target="_blank">
                                 <?= $block->escapeHtml($_item->getNumber()) ?>
                             </a>
                         <?php endif; ?>
@@ -44,4 +44,6 @@ $_order = $block->getOrder() ?>
             <?php endforeach ?>
             </tbody>
         </table>
-    <?php endif; ?><?php endif; ?>
+    <?php endif;
+endif; ?>
+
