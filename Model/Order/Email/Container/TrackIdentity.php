@@ -14,14 +14,14 @@ class TrackIdentity extends Container implements IdentityInterface
     /**
      * Configuration paths
      */
-    const XML_PATH_EMAIL_COPY_METHOD = 'sales_email/shipment/copy_method';
-    const XML_PATH_EMAIL_COPY_TO = 'sales_email/shipment/copy_to';
-    const XML_PATH_EMAIL_IDENTITY = 'sales_email/track/identity';
-    const XML_PATH_EMAIL_ENABLED = 'sales_email/track/enabled';
-    const XML_PATH_EMAIL_GUEST_TEMPLATE = 'sales_email/track/guest_template';
-    const XML_PATH_EMAIL_TEMPLATE = 'sales_email/track/template';
+    const XML_PATH_EMAIL_COPY_METHOD             = 'sales_email/shipment/copy_method';
+    const XML_PATH_EMAIL_COPY_TO                 = 'sales_email/shipment/copy_to';
+    const XML_PATH_EMAIL_IDENTITY                = 'sales_email/track/identity';
+    const XML_PATH_EMAIL_ENABLED                 = 'sales_email/track/enabled';
+    const XML_PATH_EMAIL_GUEST_TEMPLATE          = 'sales_email/track/guest_template';
+    const XML_PATH_EMAIL_TEMPLATE                = 'sales_email/track/template';
     const XML_PATH_EMAIL_SHIPMENT_GUEST_TEMPLATE = 'sales_email/shipment/guest_template';
-    const XML_PATH_EMAIL_SHIPMENT_TEMPLATE = 'sales_email/shipment/template';
+    const XML_PATH_EMAIL_SHIPMENT_TEMPLATE       = 'sales_email/shipment/template';
 
     /**
      * Is email enabled
@@ -45,7 +45,7 @@ class TrackIdentity extends Container implements IdentityInterface
     public function getEmailCopyTo()
     {
         $data = $this->getConfigValue(self::XML_PATH_EMAIL_COPY_TO, $this->getStore()->getStoreId());
-        if (!empty($data)) {
+        if (! empty($data)) {
             return explode(',', $data);
         }
         return false;
