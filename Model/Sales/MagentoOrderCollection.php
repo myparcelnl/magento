@@ -329,11 +329,18 @@ class MagentoOrderCollection extends MagentoCollection
                     $magentoTrack->getData('myparcel_consignment_id')
                 );
 
-                $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
+                if (! $myParcelTrack) {
+                    continue;
+                }
 
-                if ($myParcelTrack->getBarcode()) {
+                if (! empty($myParcelTrack->getStatus())) {
+                    $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
+                }
+
+                if (! empty($myParcelTrack->getBarcode())) {
                     $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
                 }
+
                 $magentoTrack->save();
             }
         }
