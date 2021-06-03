@@ -333,11 +333,11 @@ class MagentoOrderCollection extends MagentoCollection
                     continue;
                 }
 
-                if (! empty($myParcelTrack->getStatus())) {
+                if ($myParcelTrack->getStatus()) {
                     $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
                 }
 
-                if (! empty($myParcelTrack->getBarcode())) {
+                if ($myParcelTrack->getBarcode()) {
                     $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
                 }
 
