@@ -185,7 +185,6 @@ class Checkout
                 'pricePickup'                  => $this->helper->getMethodPrice($carrierPath[$carrier], 'pickup/fee'),
                 'pricePackageTypeMailbox'      => $this->helper->getMethodPrice($carrierPath[$carrier], 'mailbox/fee', false),
                 'pricePackageTypeDigitalStamp' => $this->helper->getMethodPrice($carrierPath[$carrier], 'digital_stamp/fee', false),
-
             ];
         }
 
