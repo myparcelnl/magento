@@ -28,16 +28,13 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
-    const MODULE_NAME              = 'MyParcelNL_Magento';
-    const XML_PATH_GENERAL         = 'myparcelnl_magento_general/';
-    const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
-    const XML_PATH_DPD_SETTINGS    = 'myparcelnl_magento_dpd_settings/';
-
-    public const CARRIERS = [PostNLConsignment::CARRIER_NAME /*,DPDConsignment::CARRIER_NAME*/];
-
-    public const CARRIERS_XML_PATH_MAP = [
+    public const MODULE_NAME              = 'MyParcelNL_Magento';
+    public const XML_PATH_GENERAL         = 'myparcelnl_magento_general/';
+    public const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
+    public const DEFAULT_WEIGHT           = 1000;
+    public const CARRIERS                 = [PostNLConsignment::CARRIER_NAME];
+    public const CARRIERS_XML_PATH_MAP    = [
         PostNLConsignment::CARRIER_NAME => Data::XML_PATH_POSTNL_SETTINGS,
-//        DPDConsignment::CARRIER_NAME   => Data::XML_PATH_DPD_SETTINGS,
     ];
 
     private $moduleList;
@@ -194,12 +191,30 @@ class Data extends AbstractHelper
      * @param int    $order_id
      * @param string $status
      */
-    public function setOrderStatus(int $order_id, string $status)
+    public function setOrderStatus(int $order_id, string $status): void
     {
         $order = ObjectManager::getInstance()->create('\Magento\Sales\Model\Order')->load($order_id);
         $order->setState($status)->setStatus($status);
         $order->save();
 
         return;
+    }
+
+    /**
+     * Get the correct weight type
+     *
+     * @param string|null $weight
+     *
+     * @return int
+     */
+    public function getWeightTypeOfOption(?string $weight): int
+    {
+        $weightType = $this->getGeneralConfig('print/weight_indication');
+
+        if ('kilo' === $weightType) {
+            return (int) ($weight * 1000);
+        }
+
+        return (int) $weight ?: self::DEFAULT_WEIGHT;
     }
 }

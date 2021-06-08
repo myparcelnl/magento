@@ -163,7 +163,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         foreach ($orderIds as $orderId) {
             $orderData          = $order->load($orderId);
             $fullStreet         = implode(" ", $order->getShippingAddress()->getStreet());
-            $postcode           = $order->getShippingAddress()->getPostcode();
+            $postcode           = preg_replace('/\s+/', '', $order->getShippingAddress()->getPostcode());
             $destinationCountry = $order->getShippingAddress()->getCountryId();
             $keyOrderId         = array_search($orderId, $orderIds);
 

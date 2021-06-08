@@ -13,4 +13,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route url="/V1/package_type" method="GET">
+        <service class="MyParcelNL\Magento\Api\PackageTypeInterface" method="getPackageType"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>

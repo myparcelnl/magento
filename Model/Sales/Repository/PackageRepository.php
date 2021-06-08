@@ -23,14 +23,19 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class PackageRepository extends Package
 {
-    public const DEFAULT_MAILBOX_WEIGHT       = 2000;
-    public const DEFAULT_DIGITAL_STAMP_WEIGHT = 2000;
-    public const DEFAULT_LARGE_FORMAT_WEIGHT  = 2300;
+    public const DEFAULT_MAXIMUM_MAILBOX_WEIGHT = 2000;
+    public const MAXIMUM_DIGITAL_STAMP_WEIGHT   = 2000;
+    public const DEFAULT_LARGE_FORMAT_WEIGHT    = 2300;
 
     /**
      * @var bool
      */
     public $deliveryOptionsDisabled = false;
+
+    /**
+     * @var bool
+     */
+    public $isPackage = true;
 
     /**
      * Get package type
@@ -39,7 +44,7 @@ class PackageRepository extends Package
      *
      * @return int 1|3
      */
-    public function getPackageType()
+    public function getPackageType(): int
     {
         // return type if type is set
         if (parent::getPackageType() !== null) {
@@ -56,27 +61,40 @@ class PackageRepository extends Package
      */
     public function selectPackageType(array $products): string
     {
-        $packageTypes = AbstractConsignment::PACKAGE_TYPES_NAMES;
-        $package      = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+        $packageType = [];
 
         if ($this->isMailboxActive() || $this->isDigitalStampActive()) {
             foreach ($products as $product) {
-                foreach ($packageTypes as $packageType) {
-                    $fitProduct = $this->isAllProductsFitIn($product, $packageType);
-                    $this->setAllProductsFitInPackageType($fitProduct, $packageType);
+                $digitalStamp = $this->getAttributesProductsOptions($product, 'digital_stamp');
+                $mailbox      = $this->getAttributesProductsOptions($product, 'fit_in_mailbox');
+                $isPackage    = true;
 
-                    if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME && $fitProduct) {
-                        $package = $this->fitInMailbox() ? AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME : AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-                    }
+                if ($digitalStamp && $this->fitInDigitalStamp()) {
+                    $packageType[] = AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP;
+                    $isPackage     = false;
+                    continue;
+                }
 
-                    if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME && $fitProduct) {
-                        $package = $this->fitInDigitalStamp() ? AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME : AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-                    }
+                if (isset($mailbox) && $this->fitInMailbox($product, $mailbox)) {
+                    $packageType[] = AbstractConsignment::PACKAGE_TYPE_MAILBOX;
+                    $isPackage     = false;
+                    continue;
+                }
+
+                if ($isPackage) {
+                    $packageType[] = AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+                    break;
                 }
             }
         }
 
-        return $package;
+        // Sort an array in reverse order, so that the largest package type appears at the bottom of the array
+        rsort($packageType);
+
+        $packageType      = array_pop($packageType);
+        $packageTypeNames = array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP);
+
+        return $packageTypeNames[$packageType] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
     }
 
     /**
@@ -84,7 +102,7 @@ class PackageRepository extends Package
      *
      * @return \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
      */
-    public function productWithoutDeliveryOptions(array $products)
+    public function productWithoutDeliveryOptions(array $products): PackageRepository
     {
         foreach ($products as $product) {
             $this->isDeliveryOptionsDisabled($product);
@@ -94,22 +112,29 @@ class PackageRepository extends Package
     }
 
     /**
+     * @param object $product
+     * @param int    $mailbox
+     *
      * @return bool
      */
-    public function fitInMailbox(): bool
+    public function fitInMailbox($product, int $mailbox): bool
     {
+        $mailboxPercentage    = $this->getMailboxPercentage() + $mailbox * $product->getQty();
+        $maximumMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
+        $orderWeight          = $this->getWeightTypeOfOption($this->getWeight());
         if (
-            $this->getCurrentCountry() !== 'NL' ||
-            ! $this->isMailboxActive() ||
-            ! $this->isAllProductsFitInMailbox() ||
-            ! $this->getWeight() ||
-            $this->getMailboxPercentage() < 100 &&
-            $this->getWeight() > $this->getMaxWeight()
+            $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
+            $this->isMailboxActive() &&
+            $orderWeight &&
+            ($mailboxPercentage === 0 || $mailboxPercentage <= 100) &&
+            $orderWeight <= $maximumMailboxWeight
         ) {
-            return false;
+            $this->setMailboxPercentage($mailboxPercentage);
+
+            return true;
         }
 
-        return true;
+        return false;
     }
 
     /**
@@ -117,16 +142,17 @@ class PackageRepository extends Package
      */
     public function fitInDigitalStamp(): bool
     {
-        if (
-            $this->getCurrentCountry() !== 'NL' ||
-            ! $this->isDigitalStampActive() ||
-            ! $this->isAllProductsFitInDigitalStamp() ||
-            $this->getWeight() > self::DEFAULT_DIGITAL_STAMP_WEIGHT
-        ) {
-            return false;
-        }
+        $orderWeight               = $this->getWeightTypeOfOption($this->getWeight());
+        $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
-        return true;
+        if (
+            $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
+            $this->isDigitalStampActive() &&
+            $orderWeight <= $maximumDigitalStampWeight
+        ) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -168,7 +194,8 @@ class PackageRepository extends Package
 
         $this->setMailboxActive($settings['active'] === '1');
         if ($this->isMailboxActive() === true) {
-            $this->setMaxWeight((int) $settings['weight'] ?: self::DEFAULT_MAILBOX_WEIGHT);
+            $weight = str_replace(',', '.', $settings['weight']);
+            $this->setMaxMailboxWeight($weight ?: self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT);
         }
 
         return $this;
@@ -187,38 +214,6 @@ class PackageRepository extends Package
         }
 
         return $weight;
-    }
-
-    /**
-     * @param object  $products
-     * @param string $packageType
-     *
-     * @return bool
-     */
-    public function isAllProductsFitIn($products, string $packageType): bool
-    {
-        if ($packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
-            $mailboxPercentage = $this->getMailboxPercentage();
-            $mailboxPercentage += ($this->getAttributesProductsOptions($products, 'fit_in_' . $packageType) * $products->getQty());
-            $mailboxWeight     = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox/weight');
-            $orderWeight       = $this->getWeight();
-
-            if (($mailboxPercentage == 0 && $mailboxWeight < $orderWeight) || $mailboxPercentage > 100) {
-                return false;
-            }
-
-            $this->setMailboxPercentage($mailboxPercentage);
-        }
-
-        if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME) {
-            $fitInMailbox = $this->getAttributesProductsOptions($products, $packageType);
-
-            if ($fitInMailbox == 0) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -275,7 +270,7 @@ class PackageRepository extends Package
 
         $this->setDigitalStampActive($settings['active'] === '1');
         if ($this->isDigitalStampActive()) {
-            $this->setMaxWeight(self::DEFAULT_DIGITAL_STAMP_WEIGHT);
+            $this->setMaxDigitalStampWeight(self::MAXIMUM_DIGITAL_STAMP_WEIGHT);
         }
 
         return $this;
@@ -294,7 +289,7 @@ class PackageRepository extends Package
             $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product, $column);
         }
 
-        if ($attributeValue) {
+        if (isset($attributeValue)) {
             return (int) $attributeValue;
         }
 

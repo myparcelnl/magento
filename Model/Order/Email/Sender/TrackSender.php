@@ -110,25 +110,35 @@ class TrackSender extends Sender
      * corresponding cron job.
      *
      * @param Shipment $shipment
-     * @param bool $forceSyncMode
+     * @param bool     $forceSyncMode
+     *
      * @return bool
+     * @throws \Exception
      */
-    public function send(Shipment $shipment, $forceSyncMode = false)
+    public function send(Shipment $shipment, $forceSyncMode = false): bool
     {
         $shipment->setSendEmail(true);
 
-        if (!$this->globalConfig->getValue('sales_email/general/async_sending') || $forceSyncMode) {
+        if (! $this->globalConfig->getValue('sales_email/general/async_sending') || $forceSyncMode) {
             $order = $shipment->getOrder();
 
             $transport = [
-                'order' => $order,
-                'shipment' => $shipment,
-                'comment' => $shipment->getCustomerNoteNotify() ? $shipment->getCustomerNote() : '',
-                'billing' => $order->getBillingAddress(),
-                'payment_html' => $this->getPaymentHtml($order),
-                'store' => $order->getStore(),
+                'order'                    => $order,
+                'order_id'                 => $order->getId(),
+                'shipment'                 => $shipment,
+                'shipment_id'              => $shipment->getId(),
+                'comment'                  => $shipment->getCustomerNoteNotify() ? $shipment->getCustomerNote() : '',
+                'billing'                  => $order->getBillingAddress(),
+                'payment_html'             => $this->getPaymentHtml($order),
+                'store'                    => $order->getStore(),
                 'formattedShippingAddress' => $this->getFormattedShippingAddress($order),
-                'formattedBillingAddress' => $this->getFormattedBillingAddress($order)
+                'formattedBillingAddress'  => $this->getFormattedBillingAddress($order),
+                'order_data'               => [
+                    'customer_name'         => $order->getCustomerName(),
+                    'is_not_virtual'        => $order->getIsNotVirtual(),
+                    'email_customer_note'   => $order->getEmailCustomerNote(),
+                    'frontend_status_label' => $order->getFrontendStatusLabel()
+                ]
             ];
 
             $this->eventManager->dispatch(

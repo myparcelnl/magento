@@ -2,20 +2,22 @@
 
 namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
 use Magento\Ui\Component\Listing\Columns\Column;
 use MyParcelNL\Sdk\src\Helper\TrackTraceUrl;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class TrackAndTrace extends Column
 {
-    const NAME = 'track_number';
-
-    const VALUE_EMPTY = '–';
+    public const NAME          = 'track_number';
+    public const VALUE_EMPTY   = '–';
+    private const KEY_POSTCODE = 0;
 
     /**
      * Script tag to unbind the click event from the td wrapping the barcode link.
      */
-    const SCRIPT_UNBIND_CLICK = "<script type='text/javascript'>jQuery('.myparcel-barcode-link').closest('td').unbind('click');</script>";
+    private const SCRIPT_UNBIND_CLICK = "<script type='text/javascript'>jQuery('.myparcel-barcode-link').closest('td').unbind('click');</script>";
 
     /**
      * Set column MyParcel barcode to order grid
@@ -43,11 +45,7 @@ class TrackAndTrace extends Column
                 continue;
             }
 
-            if (count($addressParts) === 4) {
-                [$company, $street, $city, $postalCode] = $addressParts;
-            } else {
-                [$street, $city, $postalCode] = $addressParts;
-            }
+            $postalCode = array_slice($addressParts, -1)[self::KEY_POSTCODE];
 
             // Stop if either the barcode or postal code is missing.
             if (! $item['track_number'] || $item['track_number'] === self::VALUE_EMPTY || ! $postalCode) {
@@ -55,14 +53,28 @@ class TrackAndTrace extends Column
             }
 
             $trackNumber = $item['track_number'];
-            $data = $this->getData('name');
+            $countryId   = $this->getCountryWithEntityId($item);
+            $data        = $this->getData('name');
 
             // Render the T&T as a link and add the script to remove the click handler.
-            $trackTrace = (new TrackTraceUrl())->create($trackNumber, $postalCode);
+            $trackTrace  = (new TrackTraceUrl())->create($trackNumber, $postalCode, $countryId);
             $item[$data] = "<a class=\"myparcel-barcode-link\" target=\"_blank\" href=\"$trackTrace\">$trackNumber</a>";
             $item[$data] .= self::SCRIPT_UNBIND_CLICK;
         }
 
         return $dataSource;
+    }
+
+    /**
+     * @param array $orderData
+     *
+     * @return string
+     */
+    public function getCountryWithEntityId(array $orderData): string
+    {
+        $order     = (ObjectManager::getInstance())->create(Order::class)->load($orderData['entity_id']);
+        $countryId = $order->getShippingAddress()->getCountryId();
+
+        return $countryId ?? AbstractConsignment::CC_NL;
     }
 }

@@ -32,10 +32,11 @@ myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
 Version and support,Versie en support
 General settings,Algemene instellingen
 API settings,API instellingen
+MyParcel NL Settings,MyParcel NL instellingen
 Go to the general settings in the back office of MyParcel to generate the API Key.,Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
 The API Key,Stel hier de API key in
 Default shipment settings,Standaard verzendinstellingen
-"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.","Deze beschrijving verschijnt op het verzendlabel. De volgende onderdelen kunnen worden gebruikt: %order_nr%, %delivery_date%, %product_id%, %productnaam%, %product_qty%."
+"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.","Deze beschrijving verschijnt op het verzendlabel. De volgende onderdelen kunnen worden gebruikt: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%."
 Print MyParcel labels directly,Print MyParcel labels direct
 Print settings,Print instellingen
 Paper type,Print oriëntatie
@@ -50,7 +51,7 @@ Delivery methods,Verzendmethodes
 Preferred pickup locations view,Weergave van voorkeur voor ophaallocaties
 "When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Wanneer ophaallocaties zijn ingeschakeld, kan de gebruiker kiezen tussen kaart- of lijstweergave. Deze instelling bepaalt welke optie als eerste wordt geselecteerd bij het openen van de ophaallocaties."
 Show list first,Toon lijst eerst
-Show map first,Toon map eerst
+Show map first,Toon kaart eerst
 Default shipping options,Standaard verzendinstellingen
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Vul hier uw standaard voorkeuren in voor uw verzendopties. Deze instellingen worden als default op al uw zendingen toegepast, indien van toepassing. Deze opties zijn later, per zending, uiteraard nog wel aan te passen tijdens het verwerken."
 Automate 'Signature on receipt',Automatiseer 'Handtekening voor ontvangst'
@@ -101,6 +102,9 @@ Package,Pakket
 Signature on receipt,Handtekening voor ontvangst
 Insured up to:,Verzekeren tot:
 Download package label,Download pakket label
+Download digital stamp label,Download digitalepostzegel label
+Download mailbox label,Download brievenbuspakje label
+Download letter label,Download ongefrankeerd label
 Create new concept,Creëer nieuw concept
 Create shipment,Zending aanmaken
 During the transition phase the old Magento MyParcel extension can remain active. However you do need to turn off PakjeGemak in the old MyParcel extension.,Tijdens de overgangsfase kan de oude Magento MyParcel-extensie actief blijven. U moet PakjeGemak echter wel uitschakelen in de oude MyParcel-extensie.
@@ -180,7 +184,7 @@ Digital stamp title,Digitalepostzegel titel
 Pickup title,Ophalen bij locatie titel
 Pickup fee,Ophalen prijs
 Pickup list button text,Lijst ophalen knop tekst
-Pickup map button text,Map ophalen knop tekst
+Pickup map button text,Kaart ophalen knop tekst
 Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
 Show a delivery day in the checkout.,Laat een bezorgdag zien in de checkout.

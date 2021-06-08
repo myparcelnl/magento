@@ -18,11 +18,12 @@
   },
   "homepage": "https://github.com/myparcelnl/magento#readme",
   "dependencies": {
-    "@myparcel/delivery-options": "^3.3.0",
-    "custom-event-polyfill": "^1.0.7"
+    "@myparcel/delivery-options": "^4.0.0",
+    "custom-event-polyfill": "^1.0.7",
+    "object-path": "^0.11.5"
   },
   "devDependencies": {
-    "@myparcel/eslint-config": "^1.0.4",
+    "@myparcel/eslint-config": "^3.0.2",
     "@types/knockout": "^3.4.66"
   }
 }
