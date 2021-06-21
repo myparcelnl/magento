@@ -13,9 +13,11 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Module\Manager as ManagerAlias;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
+use MyParcelNL\Magento\Model\Source\SourceItem as SourceItemAlias;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -32,14 +34,23 @@ class MagentoOrderCollection extends MagentoCollection
     private $orders = null;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\SourceItem
+     * @var SourceItemAlias
      */
-    private $SourceItem;
+    private $sourceItem = null;
+
+    /**
+     * @var ManagerAlias
+     */
+    private $moduleManager;
 
     public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
     {
         parent::__construct($objectManager, $request, $areaList);
-        $this->SourceItem = $objectManager->get(\MyParcelNL\Magento\Model\Source\SourceItem::class);
+
+        $this->objectManager = $objectManager;
+        $this->moduleManager = $objectManager->get(ManagerAlias::class);
+
+        $this->isInventoryApiEnabled();
     }
 
     /**
@@ -399,7 +410,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private function getShipmentsCollection(): array
     {
-        if (!isset($this->orders)) {
+        if (! isset($this->orders)) {
             return [];
         }
 
@@ -481,8 +492,10 @@ class MagentoOrderCollection extends MagentoCollection
             // Add shipment item to shipment
             $shipment->addItem($shipmentItem);
 
-            $source = $this->getMultiStockInventory($orderItem);
-            $shipment->getExtensionAttributes()->setSourceCode($source);
+            if ($this->sourceItem) {
+                $source = $this->getMultiStockInventory($orderItem);
+                $shipment->getExtensionAttributes()->setSourceCode($source);
+            }
         }
 
         // Register shipment
@@ -505,20 +518,35 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @param object $orderItem
+     * @param \Magento\Sales\Model\Order\Item $orderItem
      *
      * @return string
      */
-    private function getMultiStockInventory($orderItem): string
+    private function getMultiStockInventory(\Magento\Sales\Model\Order\Item $orderItem): string
     {
-        $sku = $orderItem->getSku();
-        $result = $this->SourceItem->getSourceItemDetailBySKU($sku);
+        $sku    = $orderItem->getSku();
+        $result = $this->sourceItem->getSourceItemDetailBySKU($sku);
 
         foreach ($result as $item) {
             if ($item->getSourceCode() !== 'default') {
                 return $item->getSourceCode();
             }
         }
+
         return 'default';
+    }
+
+    /**
+     * Check if the module Magento_InventoryApi is activated.
+     * Some customers have removed the Magento_InventoryApi from their system.
+     * That causes problems with the Multi Stock Inventory
+     *
+     * @return void
+     */
+    private function isInventoryApiEnabled(): void
+    {
+        if ($this->moduleManager->isEnabled('Magento_InventoryApi')) {
+            $this->sourceItem = $this->objectManager->get(SourceItemAlias::class);
+        }
     }
 }
