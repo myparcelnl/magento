@@ -13,11 +13,11 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Module\Manager as ManagerAlias;
+use Magento\Framework\Module\Manager as Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
-use MyParcelNL\Magento\Model\Source\SourceItem as SourceItemAlias;
+use MyParcelNL\Magento\Model\Source\SourceItem as SourceItem;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -34,12 +34,12 @@ class MagentoOrderCollection extends MagentoCollection
     private $orders = null;
 
     /**
-     * @var SourceItemAlias
+     * @var SourceItem
      */
     private $sourceItem = null;
 
     /**
-     * @var ManagerAlias
+     * @var Manager
      */
     private $moduleManager;
 
@@ -48,9 +48,9 @@ class MagentoOrderCollection extends MagentoCollection
         parent::__construct($objectManager, $request, $areaList);
 
         $this->objectManager = $objectManager;
-        $this->moduleManager = $objectManager->get(ManagerAlias::class);
+        $this->moduleManager = $objectManager->get(Manager::class);
 
-        $this->isInventoryApiEnabled();
+        $this->setSourceItemWhenInventoryApiEnabled();
     }
 
     /**
@@ -543,10 +543,10 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return void
      */
-    private function isInventoryApiEnabled(): void
+    private function setSourceItemWhenInventoryApiEnabled(): void
     {
         if ($this->moduleManager->isEnabled('Magento_InventoryApi')) {
-            $this->sourceItem = $this->objectManager->get(SourceItemAlias::class);
+            $this->sourceItem = $this->objectManager->get(SourceItem::class);
         }
     }
 }
