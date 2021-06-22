@@ -13,11 +13,11 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Module\Manager as Manager;
+use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
-use MyParcelNL\Magento\Model\Source\SourceItem as SourceItem;
+use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
