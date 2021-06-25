@@ -24,6 +24,7 @@ status_38,Inactif - Envoi retiré au point de collecte
 status_39,Inactif - Envoi retour livré
 status_40,Inactif - Envoi retour au point de collecte
 status_99,Inactif - Statut inconnu
+myparcelnl_magento_error_no_shipments_to_process, Non-pas d' envois MyParcel à traiter.
 Version and support,Version et support
 General settings,Paramètres généraux
 API settings,Paramètres API
@@ -33,7 +34,7 @@ Default shipment settings,Paramètres d'expédition standards
 Print MyParcel labels directly,Imprimez directement les étiquettes MyParcel
 Print settings,Paramètres d'impression
 Paper type,Orientation de l'impression
-Select a standard orientation for printing labels.,Sélectionnez une orientation standard pour l'impression des étiquettes.ntatie voor het printen van labels.
+Select a standard orientation for printing labels.,Sélectionnez une orientation standard pour l'impression des étiquettes.
 Default shipping options,Options d'expédition standards
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Indiquez ici vos préférences standards quant aux options d'expédition. S'ils sont d'application, ces paramètres seront utilisés par défaut pour tous vos envois. Ces options peuvent bien sûr toujours être modifiées lors du traitement."
 Automate 'Signature on receipt',Automatisation de la 'Signature pour réception'

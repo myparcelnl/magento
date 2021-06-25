@@ -29,6 +29,7 @@ myparcelnl_magento_postnl_settings/pickup_title, postnl ophaallocatie
 myparcelnl_magento_postnl_settings/delivery/signature_title, postnl bezorging met handtekening
 myparcelnl_magento_dpd_settings/delivery_title,  DPD bezorging
 myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
+myparcelnl_magento_error_no_shipments_to_process, Geen MyParcel zendingen om te verwerken.
 Version and support,Versie en support
 General settings,Algemene instellingen
 API settings,API instellingen

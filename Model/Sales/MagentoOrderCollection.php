@@ -263,7 +263,20 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function createMyParcelConcepts()
     {
-        $this->myParcelCollection->createConcepts()->setLatestData();
+        if (! count($this->myParcelCollection)) {
+            $this->messageManager->addWarningMessage(__('myparcelnl_magento_error_no_shipments_to_process'));
+            return $this;
+        }
+
+        try {
+            $this->myParcelCollection->createConcepts();
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+            return $this;
+        }
+
+        $this->myParcelCollection->setLatestData();
+
         /**
          * @var Order                $order
          * @var Order\Shipment       $shipment

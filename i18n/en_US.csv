@@ -37,3 +37,4 @@ myparcelnl_magento_postnl_settings/evening/only_recipient, PostNL evening delive
 myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL evening delivery with only recipient and signature
 myparcelnl_magento_postnl_settings/mailbox, PostNL mailbox
 myparcelnl_magento_postnl_settings/digital_stamp, PostNL digital stamp
+myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
