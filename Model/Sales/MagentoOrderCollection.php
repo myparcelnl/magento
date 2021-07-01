@@ -261,7 +261,7 @@ class MagentoOrderCollection extends MagentoCollection
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws \Exception
      */
-    public function createMyParcelConcepts()
+    public function createMyParcelConcepts(): self
     {
         if (! count($this->myParcelCollection)) {
             $this->messageManager->addWarningMessage(__('myparcelnl_magento_error_no_shipments_to_process'));
