@@ -185,11 +185,18 @@ define(
        * @param {Object?} address - Quote.shippingAddress from Magento.
        */
       updateAddress: function(address) {
+        var newAddress;
+
         if (!deliveryOptions.isUsingMyParcelMethod) {
           return;
         }
 
-        window.MyParcelConfig.address = deliveryOptions.getAddress(address || quote.shippingAddress());
+        newAddress = deliveryOptions.getAddress(address || quote.shippingAddress());
+        if (JSON.stringify(newAddress) === JSON.stringify(window.MyParcelConfig.address)) {
+          return;
+        }
+
+        window.MyParcelConfig.address = newAddress;
 
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
       },
@@ -232,7 +239,11 @@ define(
               return;
             }
 
-            quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
+            try {
+              quote.shippingMethod._latestValue.carrier_code = 'please_trigger_the_shipping-information_update';
+            } finally {
+              quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
+            }
           },
         });
 
