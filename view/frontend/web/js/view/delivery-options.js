@@ -3,6 +3,7 @@ define(
     'underscore',
     'ko',
     'Magento_Checkout/js/model/shipping-rate-registry',
+    'Magento_Checkout/js/action/select-shipping-method',
     'Magento_Checkout/js/model/quote',
     'MyParcelNL_Magento/js/model/checkout',
     'MyParcelNL_Magento/js/polyfill/array_prototype_find',
@@ -16,6 +17,7 @@ define(
     _,
     ko,
     shippingRateRegistry,
+    selectShippingMethodAction,
     quote,
     checkout,
     array_prototype_find,
@@ -65,7 +67,7 @@ define(
       methodCodeDeliveryOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
         'myparcelnl_magento_postnl_settings/mailbox': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
-        'myparcelnl_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
+        'myparcelnl_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeDigitalStamp',
         'myparcelnl_magento_postnl_settings/morning': 'config.carrierSettings.postnl.priceMorningDelivery',
         'myparcelnl_magento_postnl_settings/evening': 'config.carrierSettings.postnl.priceEveningDelivery',
         'myparcelnl_magento_postnl_settings/morning/only_recipient': 'config.carrierSettings.postnl.priceMorningDelivery',
@@ -220,8 +222,8 @@ define(
        * Triggered when the delivery options have been updated. Put the received data in the created data input. Then
        * do the request that tells us which shipping method needs to be selected.
        *
-       * Before setting the selected method on the quote, make sure the change event will be triggered by setting a dummy
-       * carrier_code, so listening checkouts can get shipping-information and update their data and display accordingly.
+       * Prior to setting the shipping method on the quote, set it to null to make sure the change event is triggered,
+       * for checkout plugins and the like that need to update totals instantly.
        *
        * @param {CustomEvent} event - The event that was sent.
        */
@@ -242,9 +244,8 @@ define(
               return;
             }
 
-            if (quote.shippingMethod()) {
-              quote.shippingMethod().carrier_code = 'myparcel_dummy_carrier_code';
-            }
+            selectShippingMethodAction(null);
+
             quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
         });
@@ -290,7 +291,8 @@ define(
           return;
         }
 
-        deliveryOptions.updatePricesInDeliveryOptions(selectedShippingMethod);
+        //deliveryOptions.updatePriceInDeliveryOptions(selectedShippingMethod);
+        deliveryOptions.updatePricesInDeliveryOptions();
 
         if (JSON.stringify(deliveryOptions.shippingMethod) !== JSON.stringify(newShippingMethod)) {
           deliveryOptions.shippingMethod = newShippingMethod;
@@ -334,7 +336,13 @@ define(
         }
       },
 
-      updatePricesInDeliveryOptions: function(selectedShippingMethod) {
+      updatePricesInDeliveryOptions: function() {
+        checkout.rates().forEach(function(rate) {
+          deliveryOptions.updatePriceInDeliveryOptions(rate);
+        });
+      },
+
+      updatePriceInDeliveryOptions: function(selectedShippingMethod) {
         var isShipmentOption = deliveryOptions.methodCodeShipmentOptionsConfigMap.hasOwnProperty(selectedShippingMethod.method_code);
         var priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[selectedShippingMethod.method_code];
         var addBasePrice = false;
