@@ -238,17 +238,14 @@ define(
 
         checkout.convertDeliveryOptionsToShippingMethod(event.detail, {
           onSuccess: function(response) {
-            if (! response.length) {
+            if (!response.length) {
               return;
             }
 
-            try {
-              if (quote.shippingMethod()) {
-                quote.shippingMethod().carrier_code = 'myparcel_dummy_carrier_code';
-              }
-            } finally {
-              quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
+            if (quote.shippingMethod()) {
+              quote.shippingMethod().carrier_code = 'myparcel_dummy_carrier_code';
             }
+            quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
         });
 

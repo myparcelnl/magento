@@ -11,8 +11,16 @@ use MyParcelNL\Magento\Api\ShippingMethodsInterface;
  */
 class ShippingMethods implements ShippingMethodsInterface
 {
+    /**
+     * @var \Magento\Checkout\Model\Session
+     */
     private $session;
 
+    /**
+     * ShippingMethods constructor.
+     *
+     * @param \Magento\Checkout\Model\Session $session
+     */
     public function __construct(Session $session)
     {
         $this->session = $session;
