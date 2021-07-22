@@ -218,7 +218,10 @@ define(
 
       /**
        * Triggered when the delivery options have been updated. Put the received data in the created data input. Then
-       *  do the request that tells us which shipping method needs to be selected.
+       * do the request that tells us which shipping method needs to be selected.
+       *
+       * Before setting the selected method on the quote, make sure the change event will be triggered by setting a dummy
+       * carrier_code, so listening checkouts can get shipping-information and update their data and display accordingly.
        *
        * @param {CustomEvent} event - The event that was sent.
        */
@@ -235,12 +238,14 @@ define(
 
         checkout.convertDeliveryOptionsToShippingMethod(event.detail, {
           onSuccess: function(response) {
-            if (!response.length) {
+            if (! response.length) {
               return;
             }
 
             try {
-              quote.shippingMethod._latestValue.carrier_code = 'please_trigger_the_shipping-information_update';
+              if (quote.shippingMethod()) {
+                quote.shippingMethod().carrier_code = 'myparcel_dummy_carrier_code';
+              }
             } finally {
               quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
             }

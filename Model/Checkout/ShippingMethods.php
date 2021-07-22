@@ -29,10 +29,9 @@ class ShippingMethods implements ShippingMethodsInterface
         if (! $deliveryOptions[0]) {
             return [];
         }
-        $deliveryOptions = $deliveryOptions[0];
 
         try {
-            $shipping = new DeliveryOptionsToShippingMethods($deliveryOptions);
+            $shipping = new DeliveryOptionsToShippingMethods($deliveryOptions[0]);
 
             $response = [
                 'root' => [
@@ -46,14 +45,27 @@ class ShippingMethods implements ShippingMethodsInterface
             ];
         }
 
-        $quote = $this->session->getQuote();
-        $quote->addData(['myparcel_delivery_options'=> json_encode($deliveryOptions)]);
-        $quote->save();
-        $response[] = [
-            'delivery_options'=>$deliveryOptions,
-            'message'=>'shipping method persisted in quote ' . $quote->getId()
-        ];
+        $response[] = $this->persistDeliveryOptions($deliveryOptions[0]);
 
         return $response;
+    }
+
+    /**
+     * @param array $deliveryOptions
+     *
+     * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function persistDeliveryOptions(array $deliveryOptions): array
+    {
+        $quote = $this->session->getQuote();
+        $quote->addData(['myparcel_delivery_options' => json_encode($deliveryOptions)]);
+        $quote->save();
+
+        return [
+            'delivery_options' => $deliveryOptions,
+            'message'          => 'Delivery options persisted in quote ' . $quote->getId(),
+        ];
     }
 }
