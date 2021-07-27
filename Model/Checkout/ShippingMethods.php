@@ -34,14 +34,12 @@ class ShippingMethods implements ShippingMethodsInterface
      */
     public function getFromDeliveryOptions(array $deliveryOptions): array
     {
-        if (! $deliveryOptions) {
+        if (! $deliveryOptions[0]) {
             return [];
         }
 
-        $deliveryOptions = $deliveryOptions[0];
-
         try {
-            $shipping = new DeliveryOptionsToShippingMethods($deliveryOptions);
+            $shipping = new DeliveryOptionsToShippingMethods($deliveryOptions[0]);
 
             $response = [
                 'root' => [
@@ -55,7 +53,7 @@ class ShippingMethods implements ShippingMethodsInterface
             ];
         }
 
-        $response[] = $this->persistDeliveryOptions($deliveryOptions);
+        $response[] = $this->persistDeliveryOptions($deliveryOptions[0]);
 
         return $response;
     }

@@ -29,10 +29,11 @@ define(
   ) {
     'use strict';
 
+    var deliveryOptions;
     // HACK: without this the pickup locations map doesn't work as RequireJS messes with any global variables.
     window.Vue2Leaflet = vue2leaflet;
 
-    var deliveryOptions = {
+    deliveryOptions = {
       rendered: ko.observable(false),
 
       splitStreetRegex: /(.*?)\s?(\d{1,4})[/\s-]{0,2}([A-z]\d{1,3}|-\d{1,4}|\d{2}\w{1,2}|[A-z][A-z\s]{0,3})?$/,
@@ -55,7 +56,7 @@ define(
       /**
        * The selector of the field we use to get the delivery options data into the order.
        *
-       * @type {String}
+       * @type {string}
        */
       hiddenDataInput: '[name="myparcel_delivery_options"]',
 
@@ -67,15 +68,21 @@ define(
       methodCodeDeliveryOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
         'myparcelnl_magento_postnl_settings/mailbox': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
-        'myparcelnl_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeDigitalStamp',
+        'myparcelnl_magento_postnl_settings/digital_stamp':
+          'config.carrierSettings.postnl.pricePackageTypeDigitalStamp',
         'myparcelnl_magento_postnl_settings/morning': 'config.carrierSettings.postnl.priceMorningDelivery',
         'myparcelnl_magento_postnl_settings/evening': 'config.carrierSettings.postnl.priceEveningDelivery',
-        'myparcelnl_magento_postnl_settings/morning/only_recipient': 'config.carrierSettings.postnl.priceMorningDelivery',
-        'myparcelnl_magento_postnl_settings/evening/only_recipient': 'config.carrierSettings.postnl.priceEveningDelivery',
+        'myparcelnl_magento_postnl_settings/morning/only_recipient':
+          'config.carrierSettings.postnl.priceMorningDelivery',
+        'myparcelnl_magento_postnl_settings/evening/only_recipient':
+          'config.carrierSettings.postnl.priceEveningDelivery',
         'myparcelnl_magento_postnl_settings/pickup': 'config.carrierSettings.postnl.pricePickup',
-        'myparcelnl_magento_postnl_settings/morning/only_recipient/signature': 'config.carrierSettings.postnl.priceMorningSignature',
-        'myparcelnl_magento_postnl_settings/evening/only_recipient/signature': 'config.carrierSettings.postnl.priceEveningSignature',
-        'myparcelnl_magento_postnl_settings/delivery/only_recipient/signature': 'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
+        'myparcelnl_magento_postnl_settings/morning/only_recipient/signature':
+          'config.carrierSettings.postnl.priceMorningSignature',
+        'myparcelnl_magento_postnl_settings/evening/only_recipient/signature':
+          'config.carrierSettings.postnl.priceEveningSignature',
+        'myparcelnl_magento_postnl_settings/delivery/only_recipient/signature':
+          'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
       },
 
       /**
@@ -83,7 +90,8 @@ define(
        */
       methodCodeShipmentOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
-        'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
+        'myparcelnl_magento_postnl_settings/delivery/only_recipient':
+          'config.carrierSettings.postnl.priceOnlyRecipient',
       },
 
       /**
@@ -160,9 +168,9 @@ define(
       /**
        * Run the split street regex on the given full address to extract the house number and return it.
        *
-       * @param {String} address - Full address.
+       * @param {string} address - Full address.
        *
-       * @returns {String|undefined} - The house number, if found. Otherwise null.
+       * @returns {string|undefined} - The house number, if found. Otherwise null.
        */
       getHouseNumber: function(address) {
         var result = deliveryOptions.splitStreetRegex.exec(address);
@@ -173,7 +181,7 @@ define(
       /**
        * Trigger an event on the document body.
        *
-       * @param {String} identifier - Name of the event.
+       * @param {string} identifier - Name of the event.
        */
       triggerEvent: function(identifier) {
         var event = document.createEvent('HTMLEvents');
@@ -194,13 +202,47 @@ define(
         }
 
         newAddress = deliveryOptions.getAddress(address || quote.shippingAddress());
-        if (JSON.stringify(newAddress) === JSON.stringify(window.MyParcelConfig.address)) {
+        if (deliveryOptions.shallowObjectsAreTheSame(newAddress, window.MyParcelConfig.address)) {
           return;
         }
 
         window.MyParcelConfig.address = newAddress;
 
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
+      },
+
+      /**
+       * Checks the first level properties of two objects to see whether they are the same.
+       *
+       * @param {Object} object1
+       * @param {Object} object2
+       * @returns {boolean}
+       */
+      shallowObjectsAreTheSame: function(object1, object2) {
+        var property;
+        var propertiesChecked = [];
+
+        if (typeof object1 !== 'object' || typeof object2 !== 'object') {
+          return false;
+        }
+
+        for (property in object1) {
+          if (object1.hasOwnProperty(property)) {
+            if (object2.hasOwnProperty(property) && object1[property] === object2[property]) {
+              propertiesChecked.push(property);
+            } else {
+              return false;
+            }
+          }
+        }
+
+        for (property in object2) {
+          if (object2.hasOwnProperty(property) && !propertiesChecked.includes(property)) {
+            return false;
+          }
+        }
+
+        return true;
       },
 
       /**
@@ -308,7 +350,7 @@ define(
       /**
        * Get the new shipping method that should be saved.
        *
-       * @param {String} methodCode - Method code to use to find a method.
+       * @param {string} methodCode - Method code to use to find a method.
        *
        * @returns {Object}
        */
@@ -336,7 +378,7 @@ define(
       },
 
       /**
-       * Updates prices in deliveryOptions object from checkout rates
+       * Updates prices in deliveryOptions object from checkout rates.
        */
       updatePricesInDeliveryOptions: function() {
         checkout.rates().forEach(function(rate) {
@@ -345,17 +387,18 @@ define(
       },
 
       /**
-       * Takes a shippingMethod (or rate) from checkout and puts its price in the deliveryOptions object for that method
+       * Takes a shippingMethod (rate) from checkout and puts its price in the deliveryOptions object for that method.
        *
-       * @param selectedShippingMethod
+       * @param {Object} selectedShippingMethod
        */
       updatePriceInDeliveryOptions: function(selectedShippingMethod) {
-        var isShipmentOption = deliveryOptions.methodCodeShipmentOptionsConfigMap.hasOwnProperty(selectedShippingMethod.method_code);
-        var priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[selectedShippingMethod.method_code];
+        var methodCode = selectedShippingMethod.method_code;
+        var isShipmentOption = deliveryOptions.methodCodeShipmentOptionsConfigMap.hasOwnProperty(methodCode);
+        var priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[methodCode];
         var addBasePrice = false;
 
         if (isShipmentOption) {
-          priceOption = deliveryOptions.methodCodeShipmentOptionsConfigMap[selectedShippingMethod.method_code];
+          priceOption = deliveryOptions.methodCodeShipmentOptionsConfigMap[methodCode];
           addBasePrice = true;
         }
 
@@ -364,11 +407,15 @@ define(
 
       /**
        * @param {Object} shippingMethod
-       * @param {String} priceOption
-       * @param {Boolean} addBasePrice
+       * @param {string} priceOption
+       * @param {boolean} addBasePrice
        */
       priceDeliveryOptions: function(shippingMethod, priceOption, addBasePrice) {
         var hasKey = objectPath.has(window.MyParcelConfig, priceOption);
+        var existingPrice;
+        var shippingMethodPrice;
+        var isMyParcelMethod;
+        var baseShippingMethod;
 
         if (!hasKey) {
           // eslint-disable-next-line no-console
@@ -376,12 +423,12 @@ define(
           return;
         }
 
-        var existingPrice = objectPath.get(window.MyParcelConfig, priceOption, null);
-        var shippingMethodPrice = shippingMethod.price_incl_tax;
-        var isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(shippingMethod);
+        existingPrice = objectPath.get(window.MyParcelConfig, priceOption, null);
+        shippingMethodPrice = shippingMethod.price_incl_tax;
+        isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(shippingMethod);
 
         if (addBasePrice) {
-          var baseShippingMethod = checkout.findRateByMethodCode(deliveryOptions.methodCodeStandardDelivery);
+          baseShippingMethod = checkout.findRateByMethodCode(deliveryOptions.methodCodeStandardDelivery);
           shippingMethodPrice -= baseShippingMethod.price_incl_tax;
           shippingMethodPrice = deliveryOptions.roundNumber(shippingMethodPrice, 2);
         }
@@ -395,7 +442,7 @@ define(
 
       /**
        * @param {Object} shippingMethod
-       * @returns {Boolean}
+       * @returns {boolean}
        */
       isMyParcelShippingMethod: function(shippingMethod) {
         return shippingMethod.available && shippingMethod.method_code.indexOf('myparcel') !== -1;
@@ -404,9 +451,9 @@ define(
       /**
        * For use when magic decimals appear...
        *
-       * @param {Number} number
-       * @param {Number} decimals
-       * @returns {Number}
+       * @param {number} number
+       * @param {number} decimals
+       * @returns {number}
        *
        * @see https://stackoverflow.com/a/10474209
        */
