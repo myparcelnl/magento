@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use \Magento\Framework\Data\OptionSourceInterface;
+use Magento\Framework\Data\OptionSourceInterface;
 
 class ExportMode implements OptionSourceInterface
 {
