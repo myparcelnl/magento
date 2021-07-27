@@ -15,7 +15,7 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Magento\Framework\Option\ArrayInterface;
+use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
 
@@ -23,7 +23,7 @@ use MyParcelNL\Magento\Helper\Data;
  * @api
  * @since 100.0.2
  */
-class AgeCheckYes implements ArrayInterface
+class AgeCheckYes implements OptionSourceInterface
 {
     /**
      * @var Data

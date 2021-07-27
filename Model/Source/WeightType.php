@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Magento\Framework\Option\ArrayInterface;
+use Magento\Framework\Data\OptionSourceInterface;
 
-class WeightType implements ArrayInterface
+class WeightType implements OptionSourceInterface
 {
     /**
      * Options getter
