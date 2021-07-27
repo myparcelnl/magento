@@ -27,19 +27,21 @@ class ShippingMethods implements ShippingMethodsInterface
     }
 
     /**
-     * @param mixed $deliveryOptions
+     * @param array[] $deliveryOptions indexed array holding 1 deliveryOptions object
      *
-     * @return mixed[]
+     * @return array[]
      * @throws Exception
      */
-    public function getFromDeliveryOptions($deliveryOptions): array
+    public function getFromDeliveryOptions(array $deliveryOptions): array
     {
-        if (! $deliveryOptions[0]) {
+        if (! $deliveryOptions) {
             return [];
         }
 
+        $deliveryOptions = $deliveryOptions[0];
+
         try {
-            $shipping = new DeliveryOptionsToShippingMethods($deliveryOptions[0]);
+            $shipping = new DeliveryOptionsToShippingMethods($deliveryOptions);
 
             $response = [
                 'root' => [
@@ -53,7 +55,7 @@ class ShippingMethods implements ShippingMethodsInterface
             ];
         }
 
-        $response[] = $this->persistDeliveryOptions($deliveryOptions[0]);
+        $response[] = $this->persistDeliveryOptions($deliveryOptions);
 
         return $response;
     }

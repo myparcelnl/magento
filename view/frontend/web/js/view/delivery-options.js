@@ -291,7 +291,6 @@ define(
           return;
         }
 
-        //deliveryOptions.updatePriceInDeliveryOptions(selectedShippingMethod);
         deliveryOptions.updatePricesInDeliveryOptions();
 
         if (JSON.stringify(deliveryOptions.shippingMethod) !== JSON.stringify(newShippingMethod)) {
@@ -336,12 +335,20 @@ define(
         }
       },
 
+      /**
+       * Updates prices in deliveryOptions object from checkout rates
+       */
       updatePricesInDeliveryOptions: function() {
         checkout.rates().forEach(function(rate) {
           deliveryOptions.updatePriceInDeliveryOptions(rate);
         });
       },
 
+      /**
+       * Takes a shippingMethod (or rate) from checkout and puts its price in the deliveryOptions object for that method
+       *
+       * @param selectedShippingMethod
+       */
       updatePriceInDeliveryOptions: function(selectedShippingMethod) {
         var isShipmentOption = deliveryOptions.methodCodeShipmentOptionsConfigMap.hasOwnProperty(selectedShippingMethod.method_code);
         var priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[selectedShippingMethod.method_code];

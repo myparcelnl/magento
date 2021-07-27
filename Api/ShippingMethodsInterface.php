@@ -8,10 +8,10 @@ namespace MyParcelNL\Magento\Api;
 interface ShippingMethodsInterface
 {
     /**
-     * @param mixed $deliveryOptions
+     * @param array $deliveryOptions
      *
-     * @return mixed[]
+     * @return array[]
      * @api
      */
-    public function getFromDeliveryOptions($deliveryOptions);
+    public function getFromDeliveryOptions(array $deliveryOptions): array;
 }
