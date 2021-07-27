@@ -35,6 +35,9 @@
                     <label>Paper type</label>
                     <comment>Select a standard orientation for printing labels.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\PaperType</source_model>
+                    <depends>
+                        <field id="export_mode">shipments</field>
+                    </depends>
                 </field>
                 <field id="label_description" translate="label comment" type="text" sortOrder="213" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Label description</label>
