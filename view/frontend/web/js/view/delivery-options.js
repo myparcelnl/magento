@@ -202,47 +202,13 @@ define(
         }
 
         newAddress = deliveryOptions.getAddress(address || quote.shippingAddress());
-        if (deliveryOptions.shallowObjectsAreTheSame(newAddress, window.MyParcelConfig.address)) {
+        if (_.isEqual(newAddress, window.MyParcelConfig.address)) {
           return;
         }
 
         window.MyParcelConfig.address = newAddress;
 
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
-      },
-
-      /**
-       * Checks the first level properties of two objects to see whether they are the same.
-       *
-       * @param {Object} object1
-       * @param {Object} object2
-       * @returns {boolean}
-       */
-      shallowObjectsAreTheSame: function(object1, object2) {
-        var property;
-        var propertiesChecked = [];
-
-        if (typeof object1 !== 'object' || typeof object2 !== 'object') {
-          return false;
-        }
-
-        for (property in object1) {
-          if (object1.hasOwnProperty(property)) {
-            if (object2.hasOwnProperty(property) && object1[property] === object2[property]) {
-              propertiesChecked.push(property);
-            } else {
-              return false;
-            }
-          }
-        }
-
-        for (property in object2) {
-          if (object2.hasOwnProperty(property) && !propertiesChecked.includes(property)) {
-            return false;
-          }
-        }
-
-        return true;
       },
 
       /**
