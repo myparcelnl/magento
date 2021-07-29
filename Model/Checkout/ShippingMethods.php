@@ -27,12 +27,12 @@ class ShippingMethods implements ShippingMethodsInterface
     }
 
     /**
-     * @param array[] $deliveryOptions indexed array holding 1 deliveryOptions object
+     * @param mixed $deliveryOptions indexed array holding 1 deliveryOptions object
      *
      * @return array[]
      * @throws Exception
      */
-    public function getFromDeliveryOptions(array $deliveryOptions): array
+    public function getFromDeliveryOptions($deliveryOptions): array
     {
         if (! $deliveryOptions[0]) {
             return [];
