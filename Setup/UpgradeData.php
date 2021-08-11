@@ -571,6 +571,40 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
+        // Add the option 'Age check' to products option
+        if (version_compare($context->getVersion(), '4.2.0', '<=')) {
+            $setup->startSetup();
+
+            // Add attributes to the eav/attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_agecheck',
+                [
+                    'group'                   => self::groupName,
+                    'note'                    => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery',
+                    'type'                    => 'varchar',
+                    'backend'                 => '',
+                    'frontend'                => '',
+                    'label'                   => 'Age check',
+                    'input'                   => 'select',
+                    'class'                   => '',
+                    'source'                  => 'MyParcelNL\Magento\Model\Source\AgeCheckOptions',
+                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible'                 => true,
+                    'required'                => false,
+                    'user_defined'            => true,
+                    'default'                 => null,
+                    'searchable'              => false,
+                    'filterable'              => false,
+                    'comparable'              => false,
+                    'visible_on_front'        => false,
+                    'used_in_product_listing' => true,
+                    'unique'                  => false,
+                    'apply_to'                => '',
+                ]
+            );
+        }
+
         $setup->endSetup();
     }
 }

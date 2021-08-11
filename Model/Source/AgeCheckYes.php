@@ -68,6 +68,9 @@ class AgeCheckYes implements ArrayInterface
             return [['value' => 1, 'label' => __('Yes')]];
         }
 
-        return [['value' => 1, 'label' => __('Yes')], ['value' => 0, 'label' => __('No')]];
+        return [
+            ['value' => 1, 'label' => __('Yes')],
+            ['value' => 0, 'label' => __('No')]
+        ];
     }
 }
