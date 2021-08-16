@@ -19,9 +19,40 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Eav\Model\Entity\Attribute\Source\AbstractSource;
+use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Helper\Data;
 
 class AgeCheckOptions extends AbstractSource
 {
+    /**
+     * @var Data
+     */
+    static private $helper;
+    /**
+     * Insurance constructor.
+     *
+     * @param $order Order
+     * @param $helper Data
+     */
+    public function __construct(Data $helper)
+    {
+        self::$helper = $helper;
+    }
+    /**
+     * @param $option
+     *
+     * @return bool
+     */
+    public function getDefault($option)
+    {
+        $settings = self::$helper->getStandardConfig('default_options');
+
+        if ($settings[$option . '_active'] == '1') {
+            return true;
+        }
+
+        return false;
+    }
     /**
      * Get age check options
      *
@@ -29,8 +60,10 @@ class AgeCheckOptions extends AbstractSource
      */
     public function getOptionArray()
     {
+        if ($this->getDefault('age_check')) {
+            return [['value' => 1, 'label' => __('Yes')]];
+        }
         return [
-            ['value' => null, 'label'=>__('Default')],
             ['value' => 1, 'label'=>__('Yes')],
             ['value' => 0, 'label'=>__('No')],
         ];
