@@ -78,4 +78,20 @@ class AgeCheckOptions extends AbstractSource
     {
         return $this->getOptionArray();
     }
+
+    /**
+     * Get options in "key-value" format
+     *
+     * @return array
+     */
+    public function toArray()
+    {
+        $array = [];
+
+        foreach ($this->toOptionArray() as $option) {
+            $array[] = $option['label'];
+        }
+
+        return $array;
+    }
 }

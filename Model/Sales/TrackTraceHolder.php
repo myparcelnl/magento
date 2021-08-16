@@ -200,7 +200,7 @@ class TrackTraceHolder
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->checkLargeFormat())
-            ->setAgeCheck($address->getCountryId() === 'NL' ? self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check') : false)
+            ->setAgeCheck($address->getCountryId() === 'NL' && self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check'))
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
