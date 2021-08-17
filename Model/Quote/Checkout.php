@@ -77,16 +77,18 @@ class Checkout
     /**
      * Get settings for MyParcel delivery options
      *
+     * @param array $forAddress associative array holding the latest address from the client
+     *
      * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getDeliveryOptions(): array
+    public function getDeliveryOptions(array $forAddress = []): array
     {
         $this->helper->setBasePriceFromQuote($this->quoteId);
         $this->hideDeliveryOptionsForProduct();
 
         $this->data = [
-            'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId)],
+            'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId, $forAddress)],
             'config'  => array_merge(
                 $this->getGeneralData(),
                 $this->getPackageType(),
@@ -94,6 +96,7 @@ class Checkout
             ),
             'strings' => $this->getDeliveryOptionsStrings(),
         ];
+        $this->data['forAddress'] = $forAddress;
 
         return [
             'root' => [

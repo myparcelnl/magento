@@ -43,4 +43,15 @@ class DeliveryOptions implements DeliveryOptionsInterface
     {
         return $this->settings->getDeliveryOptions();
     }
+
+    /**
+     * @param array $shippingAddress
+     *
+     * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function configForShippingAddress($shippingAddress): array
+    {
+        return $this->settings->getDeliveryOptions($shippingAddress[0]);
+    }
 }

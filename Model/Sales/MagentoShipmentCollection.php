@@ -151,7 +151,7 @@ class MagentoShipmentCollection extends MagentoCollection
                     ->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId())->first();
 
                 $track
-                    ->setData('myparcel_consignment_id', $myParcelTrack->getMyParcelConsignmentId())
+                    ->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId())
                     ->setData('myparcel_status', $myParcelTrack->getStatus())
                     ->save(); // must
             }

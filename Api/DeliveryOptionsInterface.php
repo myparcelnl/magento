@@ -25,4 +25,15 @@ interface DeliveryOptionsInterface
      * @api
      */
     public function get();
+
+    /**
+     * Return delivery options suitable for the supplied shippingAddress
+     *
+     * @param mixed $shippingAddress indexed array holding one shippingAddress object
+     *
+     * @return mixed
+     * @api
+     */
+    public function configForShippingAddress($shippingAddress);
+
 }

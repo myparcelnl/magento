@@ -337,10 +337,16 @@ define(
       },
 
       /**
-       * Updates prices in deliveryOptions object from checkout rates.
+       * Updates prices in deliveryOptions object for rates that are in the current quote.
        */
       updatePricesInDeliveryOptions: function() {
+        var quoteCarrierCode = quote.shippingMethod().carrier_code;
+
         checkout.rates().forEach(function(rate) {
+          if (rate.carrier_code !== quoteCarrierCode) {
+            return;
+          }
+
           deliveryOptions.updatePriceInDeliveryOptions(rate);
         });
       },
@@ -422,6 +428,9 @@ define(
       },
 
       updateConfig: function() {
+        if (!window.MyParcelConfig.hasOwnProperty('address')) {
+          window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
+        }
         deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
       },
     };
