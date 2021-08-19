@@ -72,7 +72,9 @@ function(
       Model.countryId(quote.shippingAddress().countryId);
       doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onInitializeSuccess});
 
-      quote.shippingAddress.subscribe(function(shippingAddress) {
+      quote.billingAddress.subscribe(function() {
+        var shippingAddress = quote.shippingAddress();
+
         if (shippingAddress.countryId !== Model.countryId()) {
           doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onReFetchDeliveryOptionsConfig});
         }
@@ -184,7 +186,11 @@ function(
      * @returns {XMLHttpRequest}
      */
     getDeliveryOptionsConfig: function() {
-      return sendRequest('rest/V1/delivery_options/get');
+      return sendRequest(
+        'rest/V1/delivery_options/config',
+        'POST',
+        JSON.stringify({shippingAddress: [quote.shippingAddress()]})
+      );
     },
 
     /**

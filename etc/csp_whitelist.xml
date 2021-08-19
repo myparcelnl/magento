@@ -21,5 +21,10 @@
                 <value id="myparcel-api" type="host">api.myparcel.nl</value>
             </values>
         </policy>
+        <policy id="img-src">
+            <values>
+                <value id="myparcel-assets" type="host">assets.myparcel.nl</value>
+            </values>
+        </policy>
     </policies>
 </csp_whitelist>

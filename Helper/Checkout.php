@@ -124,10 +124,10 @@ class Checkout extends Data
      *
      * @return string
      */
-    public function getParentMethodNameFromQuote($quoteId)
+    public function getParentMethodNameFromQuote($quoteId, array $forAddress): ?string
     {
-        $method = $this->getParentRateFromQuote($quoteId);
-        if ($method === null) {
+        $method = $this->getParentRateFromQuote($quoteId, $forAddress);
+        if (null === $method) {
             return null;
         }
 
@@ -137,39 +137,20 @@ class Checkout extends Data
     /**
      * @param \Magento\Quote\Model\Quote $quoteId
      *
-     * @return string
+     * @return \Magento\Quote\Model\Cart\ShippingMethod|null
      */
-    public function getParentCarrierNameFromQuote($quoteId)
+    public function getParentRateFromQuote($quoteId, array $forAddress = [])
     {
-        $method = $this->getParentRateFromQuote($quoteId);
-        if ($method === null) {
-            return null;
-        }
-
-        return $method->getCarrierCode();
-    }
-
-    /**
-     * @param \Magento\Quote\Model\Quote $quoteId
-     *
-     * @return \Magento\Quote\Model\Cart\ShippingMethod $methods
-     */
-    public function getParentRateFromQuote($quoteId)
-    {
-        if ($quoteId == null) {
+        if (null === $quoteId) {
             return null;
         }
         $parentCarriers   = explode(',', $this->getGeneralConfig('shipping_methods/methods'));
-        $addressFromQuote = $this->quote->getShippingAddress();
+
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
          * @var \Magento\Quote\Model\Cart\ShippingMethod[]       $methods
          */
-        $estimatedAddress = $this->estimatedAddressFactory->create();
-        $estimatedAddress->setCountryId($addressFromQuote->getCountryId() ?? self::DEFAULT_COUNTRY_CODE);
-        $estimatedAddress->setPostcode($addressFromQuote->getPostcode() ?? '');
-        $estimatedAddress->setRegion($addressFromQuote->getRegion() ?? '');
-        $estimatedAddress->setRegionId($addressFromQuote->getRegionId() ?? '');
+        $estimatedAddress = $this->getEstimatedAddress($forAddress, $this->quote->getShippingAddress());
         $magentoMethods  = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
         $myParcelMethods = array_keys(Result::getMethods());
 
@@ -187,6 +168,33 @@ class Checkout extends Data
         }
 
         return null;
+    }
+
+    /**
+     * @param array                              $fromClient
+     * @param \Magento\Quote\Model\Quote\Address $fromQuote
+     *
+     * @return \Magento\Quote\Api\Data\EstimateAddressInterface
+     */
+    private function getEstimatedAddress(
+        array $fromClient,
+        \Magento\Quote\Model\Quote\Address $fromQuote
+    ): \Magento\Quote\Api\Data\EstimateAddressInterface
+    {
+        $address = $this->estimatedAddressFactory->create();
+
+        if (isset($fromClient['countryId'])) {
+            $address->setCountryId($fromClient['countryId'] ?? self::DEFAULT_COUNTRY_CODE);
+            $address->setPostcode($fromClient['postcode'] ??  '');
+            $address->setRegion($fromClient['region'] ??  '');
+        } else {
+            $address->setCountryId($fromQuote->getCountryId() ?? self::DEFAULT_COUNTRY_CODE);
+            $address->setPostcode($fromQuote->getPostcode() ?? '');
+            $address->setRegion($fromQuote->getRegion() ?? '');
+            $address->setRegionId($fromQuote->getRegionId() ?? 0);
+        }
+
+        return $address;
     }
 
     /**

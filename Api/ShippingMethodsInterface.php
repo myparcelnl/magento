@@ -10,8 +10,8 @@ interface ShippingMethodsInterface
     /**
      * @param mixed $deliveryOptions
      *
-     * @return mixed[]
+     * @return array[]
      * @api
      */
-    public function getFromDeliveryOptions($deliveryOptions);
+    public function getFromDeliveryOptions($deliveryOptions): array;
 }
