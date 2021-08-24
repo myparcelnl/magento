@@ -204,7 +204,8 @@ class TrackTraceHolder
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
-            ->setInvoice($magentoTrack->getShipment()->getOrder()->getIncrementId());
+            ->setInvoice($magentoTrack->getShipment()->getOrder()->getIncrementId())
+            ->setSaveRecipientAddress(false);
 
         if ($deliveryOptionsAdapter->isPickup()) {
             $this->consignment
