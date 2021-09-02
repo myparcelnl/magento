@@ -166,14 +166,14 @@ class Checkout
             $eveningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'evening/fee');
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
-            $ageCheckActive   = $this->checkAgeCheck($carrierPath[$carrier]);
+            $isAgeCheckActive = $this->isAgeCheckActive($carrierPath[$carrier]);
 
             $myParcelConfig["carrierSettings"][$carrier] = [
                 'allowDeliveryOptions' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
                 'allowSignature'       => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/signature_active'),
                 'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
-                'allowMorningDelivery' => $ageCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
-                'allowEveningDelivery' => $ageCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
+                'allowMorningDelivery' => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
+                'allowEveningDelivery' => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
                 'allowPickupLocations' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'pickup/active'),
 
                 'priceSignature'        => $signatureFee,
@@ -285,7 +285,7 @@ class Checkout
     /**
      * @return bool
      */
-    public function checkAgeCheck($carrierPath): bool
+    public function isAgeCheckActive($carrierPath): bool
     {
         $products    = $this->cart->getAllItems();
         $hasAgeCheck = $this->package->getAgeCheck($products, $carrierPath);
