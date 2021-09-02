@@ -166,13 +166,14 @@ class Checkout
             $eveningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'evening/fee');
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
+            $ageCheckActive   = $this->checkAgeCheck($carrierPath[$carrier]);
 
             $myParcelConfig["carrierSettings"][$carrier] = [
                 'allowDeliveryOptions' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
                 'allowSignature'       => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/signature_active'),
                 'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
-                'allowMorningDelivery' => $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
-                'allowEveningDelivery' => $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
+                'allowMorningDelivery' => $ageCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
+                'allowEveningDelivery' => $ageCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
                 'allowPickupLocations' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'pickup/active'),
 
                 'priceSignature'        => $signatureFee,
@@ -278,7 +279,18 @@ class Checkout
         $this->package->setMailboxActive($this->helper->getBoolConfig($carrierPath[$carrier], 'mailbox/active'));
         $this->package->setWeightFromQuoteProducts($products);
 
-        return $this->package->selectPackageType($products);
+        return $this->package->selectPackageType($products, $carrierPath[$carrier]);
+    }
+
+    /**
+     * @return bool
+     */
+    public function checkAgeCheck($carrierPath): bool
+    {
+        $products    = $this->cart->getAllItems();
+        $hasAgeCheck = $this->package->getAgeCheck($products, $carrierPath);
+
+        return $hasAgeCheck;
     }
 
     /**

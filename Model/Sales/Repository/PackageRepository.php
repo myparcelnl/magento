@@ -55,12 +55,18 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param array $products
+     * @param array  $products
+     * @param string $carrierPath
      *
      * @return string
      */
-    public function selectPackageType(array $products): string
+    public function selectPackageType(array $products, string $carrierPath): string
     {
+        // When age check is enabled, only packagetype 'package' is possible
+        if ($this->getAgeCheck($products, $carrierPath)){
+            return AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+        }
+
         $packageType = [];
 
         if ($this->isMailboxActive() || $this->isDigitalStampActive()) {
@@ -250,6 +256,25 @@ class PackageRepository extends Package
         }
 
         return $highestDropOffDelay > 0 ? $highestDropOffDelay : null;
+    }
+
+    /**
+     * @param array  $products
+     * @param string $carrierPath
+     *
+     * @return bool
+     */
+    public function getAgeCheck(array $products, string $carrierPath): bool
+    {
+        foreach ($products as $product) {
+            $productAgeCheck  = (bool) $this->getAttributesProductsOptions($product, 'age_check');
+
+            if ($productAgeCheck) {
+                return true;
+            }
+        }
+
+        return (bool) $this->getConfigValue($carrierPath . 'default_options/age_check_active');
     }
 
     /**

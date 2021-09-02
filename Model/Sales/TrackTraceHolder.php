@@ -161,6 +161,8 @@ class TrackTraceHolder
             $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
         }
 
+        $packageType = $this->getAgeCheck($magentoTrack, $address) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE : $packageType;
+
         $apiKey = $this->helper->getGeneralConfig(
             'api/key',
             $shipment->getOrder()->getStoreId()
@@ -200,7 +202,7 @@ class TrackTraceHolder
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->checkLargeFormat())
-            ->setAgeCheck($address->getCountryId() === 'NL' ? self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check') : false)
+            ->setAgeCheck($this->getAgeCheck($magentoTrack, $address))
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
@@ -234,6 +236,50 @@ class TrackTraceHolder
     private function checkLargeFormat(): bool
     {
         return self::$defaultOptions->getDefaultLargeFormat('large_format');
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
+     * @param object               $address
+     *
+     * @return bool
+     * @throws LocalizedException
+     */
+    private function getAgeCheck($magentoTrack, $address): bool
+    {
+        if ($address->getCountryId() !== AbstractConsignment::CC_NL) {
+            return false;
+        }
+
+        $ageCheckOfProduct    = $this->getAgeCheckOfProduct($magentoTrack);
+        $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check');
+
+        return $ageCheckOfProduct ?? $ageCheckFromSettings;
+    }
+
+    /**
+     * @param Order\Shipment\Track $magentoTrack
+     *
+     * @return bool
+     * @throws LocalizedException
+     */
+    private function getAgeCheckOfProduct($magentoTrack): ?bool
+    {
+        $products = $magentoTrack->getShipment()->getItems();
+
+        $hasAgeCheck = false;
+
+        foreach ($products as $product) {
+            $productAgeCheck = $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'age_check');
+
+            if (! isset($productAgeCheck)) {
+                $hasAgeCheck = null;
+            } elseif ($productAgeCheck === '1') {
+                return true;
+            }
+        }
+
+        return $hasAgeCheck;
     }
 
     /**
