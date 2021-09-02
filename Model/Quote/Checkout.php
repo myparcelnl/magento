@@ -283,9 +283,11 @@ class Checkout
     }
 
     /**
+     * @param string $carrierPath
+     *
      * @return bool
      */
-    public function isAgeCheckActive($carrierPath): bool
+    public function isAgeCheckActive(string $carrierPath): bool
     {
         $products    = $this->cart->getAllItems();
         $hasAgeCheck = $this->package->getAgeCheck($products, $carrierPath);
