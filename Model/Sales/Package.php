@@ -205,10 +205,8 @@ class Package extends Data implements PackageInterface
 
     /**
      * @param int $packageType
-     *
-     * @return int
      */
-    public function setPackageType(int $packageType): int
+    public function setPackageType(int $packageType): void
     {
         $this->packageType = $packageType;
     }
