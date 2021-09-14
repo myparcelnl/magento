@@ -16,10 +16,17 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
+use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
+use MyParcelNL\Sdk\src\Model\Fulfilment\Order as fulfilmentOrder;
+use MyParcelNL\Sdk\src\Model\Recipient;
+use MyParcelNL\Sdk\src\Support\Collection;
+
 
 /**
  * Class MagentoOrderCollection
@@ -43,7 +50,18 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private $moduleManager;
 
-    public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
+    private $order;
+    /**
+     * @var Recipient
+     */
+    private $billingRecipient;
+
+    /**
+     * @var Recipient
+     */
+    private $shippingRecipient;
+
+    public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null )
     {
         parent::__construct($objectManager, $request, $areaList);
 
@@ -189,6 +207,112 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         return $this;
+    }
+
+    /**
+     * Add MyParcel Track from Magento Track
+     *
+     * @return $this
+     * @throws \Exception
+     *
+     */
+    public function setFulfilment()
+    {
+        $apiKey          = $this->getApiKey();
+        $orderCollection = (new OrderCollection())->setApiKey($apiKey);
+        $orderLines = new Collection();
+
+        foreach ($this->getOrders() as $magentoOrder) {
+            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'];
+            $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
+            $deliveryOptionsAdapter  = DeliveryOptionsAdapterFactory::create((array)$deliveryOptions);
+            $this->order            = $magentoOrder;
+
+            $this->setBillingRecipient();
+            $this->setShippingRecipient();
+
+            $order = (new fulfilmentOrder())
+                ->setStatus($this->order->getStatus())
+                ->setDeliveryOptions($deliveryOptionsAdapter)
+                ->setInvoiceAddress($this->getBillingRecipient())
+                ->setRecipient($this->getShippingRecipient())
+                ->setOrderDate($this->helper->convertDeliveryDate($this->order->getCreatedAt()))
+                ->setExternalIdentifier($this->order->getEntityId());
+
+            foreach ($this->order->getItems() as $magentoOrderItem) {
+                $orderLine = new OrderLineOptionsFromOrderAdapter($magentoOrderItem);
+
+                $orderLines->push($orderLine);
+            }
+
+            $order->setOrderLines($orderLines);
+            $orderCollection->push($order);
+        }
+
+        $this->myParcelCollection = $orderCollection->save();
+
+        return $this;
+    }
+
+    /**
+     * @return self
+     */
+    public function setBillingRecipient(): self
+    {
+        $this->billingRecipient = (new Recipient())
+            ->setCc($this->order->getBillingAddress()->getCountryId())
+            ->setCity($this->order->getBillingAddress()->getCity())
+            ->setCompany($this->order->getBillingAddress()->getCompany())
+            ->setEmail($this->order->getBillingAddress()->getEmail())
+            ->setPerson($this->getFullCustomerName())
+            ->setPhone($this->order->getBillingAddress()->getTelephone())
+            ->setPostalCode($this->order->getBillingAddress()->getPostcode())
+            ->setStreet(implode(' ', $this->order->getBillingAddress()->getStreet()));
+
+        return $this;
+    }
+
+    /**
+     * @return \MyParcelNL\Sdk\src\Model\Recipient|null
+     */
+    public function getBillingRecipient(): ?Recipient
+    {
+        return $this->billingRecipient;
+    }
+
+    /**
+     * @return self
+     */
+    public function setShippingRecipient(): self
+    {
+        $this->shippingRecipient = (new Recipient())
+            ->setCc($this->order->getShippingAddress()->getCountryId())
+            ->setCity($this->order->getShippingAddress()->getCity())
+            ->setCompany($this->order->getShippingAddress()->getCompany())
+            ->setEmail($this->order->getShippingAddress()->getEmail())
+            ->setPerson($this->getFullCustomerName())
+            ->setPostalCode($this->order->getShippingAddress()->getPostcode())
+            ->setStreet(implode(' ', $this->order->getShippingAddress()->getStreet()));
+
+        return $this;
+    }
+
+    /**
+     * @return \MyParcelNL\Sdk\src\Model\Recipient|null
+     */
+    public function getShippingRecipient(): ?Recipient
+    {
+        return $this->shippingRecipient;
+    }
+
+
+    public function getFullCustomerName():string
+    {
+        $firstName = $this->order->getBillingAddress()->getFirstname();
+        $middleName = $this->order->getBillingAddress()->getMiddlename();
+        $lastName = $this->order->getBillingAddress()->getLastname();
+
+        return $firstName .' '. $middleName .' '. $lastName;
     }
 
     /**

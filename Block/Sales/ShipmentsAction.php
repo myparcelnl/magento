@@ -50,9 +50,7 @@ class ShipmentsAction extends Template
      */
     public function hasApiKey()
     {
-        $apiKey = $this->helper->getGeneralConfig('api/key');
-
-        return $apiKey == '' ? 'false' : 'true';
+        return $this->helper->hasApiKey();
     }
 
     /**

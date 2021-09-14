@@ -41,13 +41,17 @@ class TrackTraceHolder
     /**
      * Track title showing in Magento
      */
-    const MYPARCEL_TRACK_TITLE  = 'MyParcel';
-    const MYPARCEL_CARRIER_CODE = 'myparcel';
-    const ORDER_NUMBER          = '%order_nr%';
-    const DELIVERY_DATE         = '%delivery_date%';
-    const PRODUCT_ID            = '%product_id%';
-    const PRODUCT_NAME          = '%product_name%';
-    const PRODUCT_QTY           = '%product_qty%';
+    public const MYPARCEL_TRACK_TITLE  = 'MyParcel';
+    public const MYPARCEL_CARRIER_CODE = 'myparcel';
+
+    public const EXPORT_MODE_PPS       = 'pps';
+    public const EXPORT_MODE_SHIPMENTS = 'shipments';
+
+    private const ORDER_NUMBER          = '%order_nr%';
+    private const DELIVERY_DATE         = '%delivery_date%';
+    private const PRODUCT_ID            = '%product_id%';
+    private const PRODUCT_NAME          = '%product_name%';
+    private const PRODUCT_QTY           = '%product_qty%';
 
     /**
      * @var ObjectManagerInterface

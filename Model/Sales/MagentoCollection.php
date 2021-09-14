@@ -204,7 +204,26 @@ class MagentoCollection implements MagentoCollectionInterface
         return $this;
     }
 
-    public function apiKeyIsCorrect()
+    /**
+     * @return string
+     */
+    public function getApiKey(): string
+    {
+        return $this->helper->getApiKey();
+    }
+
+    /**
+     * @return string
+     */
+    public function getExportMode(): string
+    {
+        return $this->helper->getExportMode();
+    }
+
+    /**
+     * @return bool
+     */
+    public function apiKeyIsCorrect(): bool
     {
         return $this->helper->apiKeyIsCorrect();
     }
