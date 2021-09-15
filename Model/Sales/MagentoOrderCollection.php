@@ -61,7 +61,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private $shippingRecipient;
 
-    public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null )
+    public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
     {
         parent::__construct($objectManager, $request, $areaList);
 
@@ -220,13 +220,13 @@ class MagentoOrderCollection extends MagentoCollection
     {
         $apiKey          = $this->getApiKey();
         $orderCollection = (new OrderCollection())->setApiKey($apiKey);
-        $orderLines = new Collection();
+        $orderLines      = new Collection();
 
         foreach ($this->getOrders() as $magentoOrder) {
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'];
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $deliveryOptionsAdapter  = DeliveryOptionsAdapterFactory::create((array)$deliveryOptions);
-            $this->order            = $magentoOrder;
+            $this->order             = $magentoOrder;
 
             $this->setBillingRecipient();
             $this->setShippingRecipient();
@@ -306,13 +306,13 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
 
-    public function getFullCustomerName():string
+    public function getFullCustomerName(): string
     {
-        $firstName = $this->order->getBillingAddress()->getFirstname();
+        $firstName  = $this->order->getBillingAddress()->getFirstname();
         $middleName = $this->order->getBillingAddress()->getMiddlename();
-        $lastName = $this->order->getBillingAddress()->getLastname();
+        $lastName   = $this->order->getBillingAddress()->getLastname();
 
-        return $firstName .' '. $middleName .' '. $lastName;
+        return $firstName . ' ' . $middleName . ' ' . $lastName;
     }
 
     /**
