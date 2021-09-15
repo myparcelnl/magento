@@ -251,7 +251,7 @@ class TrackTraceHolder
             return false;
         }
 
-        $ageCheckOfProduct    = $this->getAgeCheckOfProduct($magentoTrack);
+        $ageCheckOfProduct    = $this->getAgeCheckFromProduct($magentoTrack);
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check');
 
         return $ageCheckOfProduct ?? $ageCheckFromSettings;
@@ -263,10 +263,9 @@ class TrackTraceHolder
      * @return bool
      * @throws LocalizedException
      */
-    private function getAgeCheckOfProduct($magentoTrack): ?bool
+    private function getAgeCheckFromProduct($magentoTrack): ?bool
     {
-        $products = $magentoTrack->getShipment()->getItems();
-
+        $products    = $magentoTrack->getShipment()->getItems();
         $hasAgeCheck = false;
 
         foreach ($products as $product) {

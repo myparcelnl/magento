@@ -63,7 +63,7 @@ class PackageRepository extends Package
     public function selectPackageType(array $products, string $carrierPath): string
     {
         // When age check is enabled, only packagetype 'package' is possible
-        if ($this->getAgeCheck($products, $carrierPath)){
+        if ($this->getAgeCheck($products, $carrierPath)) {
             return AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
         }
 

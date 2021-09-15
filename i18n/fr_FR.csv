@@ -100,7 +100,7 @@ Saturday title,Samedi - titre
 Dropoff-delay,Délai
 No delay,Pas de délai
 "This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.","Cette option vous permet de définir le nombre de jours dont vous avez besoin pour (recevoir,) emballer et présenter le produit à postnl, à partir du moment de la commande."
-The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can not be combined with morning or evening delivery., De leeftijdscontrole is bedoeld voor pakketzendingen waarbij de ontvanger 18+ dient te tonen door middel van een legitimatiebewijs. Deze optie is niet te combineren met ochtend- of avondbezorging.
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery., Le contrôle d'âge est destiné aux envois de colis pour lesquels le destinataire doit montrer qu'ils ont plus de 18 ans au moyen d'une preuve d'identité. Cette option ne peut pas être combinée avec la livraison le matin ou le soir.
 Methods,Mode d'expédition
 The extra myparcel options are added to this shipping method,Les options Myparcel complémentaires seront ajoutées à ce mode d'expédition
 Delivery title,Livraison - titre

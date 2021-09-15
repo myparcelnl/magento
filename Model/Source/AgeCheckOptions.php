@@ -9,12 +9,12 @@ class AgeCheckOptions extends AbstractSource
     /**
      * @return array
      */
-    public function getOptionArray()
+    public function getOptionArray(): array
     {
         return [
-            ['value' => null, 'label'=>__('Default')],
-            ['value' => '0', 'label'=>__('No')],
-            ['value' => '1', 'label'=>__('Yes')],
+            ['value' => null, 'label' => __('Default')],
+            ['value' => '0', 'label' => __('No')],
+            ['value' => '1', 'label' => __('Yes')],
         ];
     }
 
@@ -23,7 +23,7 @@ class AgeCheckOptions extends AbstractSource
      *
      * @return array
      */
-    public function getAllOptions()
+    public function getAllOptions(): array
     {
         return $this->getOptionArray();
     }
