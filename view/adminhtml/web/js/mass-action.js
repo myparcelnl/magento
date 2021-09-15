@@ -125,12 +125,11 @@ define(
                         }
                     );
 
-                  if (parentThis._getPPSExportMode()) {
-                    $('#mypa_container-request_type').hide();
-                    $('#mypa_container-label_amount').hide();
-                    $('#mypa_container-print_position').hide();
-                  }
-
+                    if (parentThis._getPPSExportMode()) {
+                      $('#mypa_container-request_type').hide();
+                      $('#mypa_container-label_amount').hide();
+                      $('#mypa_container-print_position').hide();
+                    }
                 },
 
                 /**
@@ -282,14 +281,14 @@ define(
                     }
                 },
 
-              /**
-               * @protected
-               */
-              _getPPSExportMode: function () {
-                var exportMode = this.options.settings['export_mode'];
+                /**
+                 * @protected
+                 */
+                _getPPSExportMode: function () {
+                  var exportMode = this.options.settings['export_mode'];
 
-                return exportMode === 'pps';
-              },
+                  return exportMode === 'pps';
+                },
 
                 /**
                  * Create consignment

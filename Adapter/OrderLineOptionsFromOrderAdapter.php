@@ -28,6 +28,7 @@ class OrderLineOptionsFromOrderAdapter extends OrderLine
     protected function prepareItemData($magentoOrderItem): array
     {
         $magentoItemData = $magentoOrderItem->getData();
+
         $price = (int) ($magentoItemData['price'] * 100.0);
         $vat   = (int) ($magentoItemData['tax_amount'] * 100.0);
 
