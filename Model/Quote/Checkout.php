@@ -7,6 +7,7 @@ use Magento\Checkout\Model\Session;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 
 class Checkout
 {
@@ -189,6 +190,15 @@ class Checkout
                 'pricePackageTypeMailbox'      => $this->helper->getMethodPrice($carrierPath[$carrier], 'mailbox/fee', false),
                 'pricePackageTypeDigitalStamp' => $this->helper->getMethodPrice($carrierPath[$carrier], 'digital_stamp/fee', false),
             ];
+
+            if (PostNLConsignment::CARRIER_NAME === $carrier) {
+                $ageCheck = $this->helper->getBoolConfig($carrierPath[$carrier], 'default_options/age_check_active');
+
+                if (true === $ageCheck) {
+                    $myParcelConfig["carrierSettings"][$carrier]['allowMorningDelivery'] = false;
+                    $myParcelConfig["carrierSettings"][$carrier]['allowEveningDelivery'] = false;
+                }
+            }
         }
 
         return $myParcelConfig;
