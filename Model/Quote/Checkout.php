@@ -195,8 +195,8 @@ class Checkout
                 $ageCheck = $this->helper->getBoolConfig($carrierPath[$carrier], 'default_options/age_check_active');
 
                 if (true === $ageCheck) {
-                    $myParcelConfig["carrierSettings"][$carrier]['allowMorningDelivery'] = false;
-                    $myParcelConfig["carrierSettings"][$carrier]['allowEveningDelivery'] = false;
+                    $myParcelConfig['carrierSettings'][$carrier]['allowMorningDelivery'] = false;
+                    $myParcelConfig['carrierSettings'][$carrier]['allowEveningDelivery'] = false;
                 }
             }
         }
