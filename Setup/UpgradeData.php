@@ -571,6 +571,28 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
+        if (version_compare($context->getVersion(), '4.2.0', '<')) {
+            // set new allow_show_delivery_date based on current deliverydays_window
+            $selectDeliveryDaysWindow = $connection->select()->from($table,
+                ['config_id', 'path', 'value']
+            )->where(
+                '`path` = "myparcelnl_magento_postnl_settings/general/deliverydays_window"'
+            );
+            $allowShowDeliveryDatePath = 'myparcelnl_magento_postnl_settings/general/allow_show_delivery_date';
+
+            $deliveryDaysWindows = $connection->fetchAll($selectDeliveryDaysWindow);
+
+            foreach ($deliveryDaysWindows as $deliveryDaysWindowOption) {
+                $allowValue = '1';
+                if ('hide' === $deliveryDaysWindowOption['value']) {
+                    $allowValue = '0';
+                }
+                $bind  = ['path' => $allowShowDeliveryDatePath, 'value' => $allowValue];
+                $where = 'config_id = ' . $deliveryDaysWindowOption['config_id'];
+                $connection->update($table, $bind, $where);
+            }
+        }
+
         $setup->endSetup();
     }
 }

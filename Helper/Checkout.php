@@ -269,27 +269,35 @@ class Checkout extends Data
     /**
      * Get time for delivery endpoint
      *
-     * @param        $carrier
+     * @param string $carrier
      * @param string $key
      *
      * @return string
      */
-    public function getTimeConfig($carrier, $key)
+    public function getTimeConfig(string $carrier, string $key):string
     {
-        return str_replace(',', ':', $this->getCarrierConfig($key, $carrier));
+        $timeAsString   = str_replace(',', ':', $this->getCarrierConfig($key, $carrier));
+        $timeComponents = explode(':', $timeAsString);
+        if (count($timeComponents) > 2) {
+            $timeAsString = $timeComponents[0] . ':' . $timeComponents[1];
+        }
+
+        return $timeAsString;
     }
 
     /**
      * Get array for delivery endpoint
      *
-     * @param        $carrier
+     * @param string $carrier
      * @param string $key
      *
-     * @return string
+     * @return array
      */
-    public function getArrayConfig($carrier, $key)
+    public function getArrayConfig(string $carrier, string $key): array
     {
-        return str_replace(',', ';', $this->getCarrierConfig($key, $carrier));
+        return array_map(static function($val) {
+            return (is_numeric($val)) ? (int) $val : $val;
+        }, explode(',', $this->getCarrierConfig($key, $carrier)));
     }
 
     /**

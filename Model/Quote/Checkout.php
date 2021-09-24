@@ -119,7 +119,7 @@ class Checkout
             'platform'                   => self::PLATFORM,
             'carriers'                   => $this->getActiveCarriers(),
             'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
-            'pickupLocationsDefaultView' => $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view')
+            'pickupLocationsDefaultView' => $this->helper->getCarrierConfig('shipping_methods/pickup_locations_view', Data::XML_PATH_GENERAL)
         ];
     }
 
@@ -131,18 +131,11 @@ class Checkout
     private function getPackageType(): array
     {
         $activeCarriers = $this->getActiveCarriers();
-        $carrierPath    = data::CARRIERS_XML_PATH_MAP;
 
         $packageType = [];
         foreach ($activeCarriers as $carrier) {
             $packageType = [
                 'packageType'                  => $this->checkPackageType($carrier, null),
-                'cutoffTime'                   => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/cutoff_time'),
-                'saturdayCutoffTime'           => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/saturday_cutoff_time'),
-                'deliveryDaysWindow'           => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/deliverydays_window'),
-                'allowMondayDelivery'          => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/monday_delivery_active'),
-                'dropOffDays'                  => $this->helper->getArrayConfig($carrierPath[$carrier], 'general/dropoff_days'),
-                'dropOffDelay'                 => $this->getDropOffDelay($carrierPath[$carrier], 'general/dropoff_delay'),
             ];
         }
 
@@ -158,7 +151,7 @@ class Checkout
     {
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
-        $carrierPath    = data::CARRIERS_XML_PATH_MAP;
+        $carrierPath    = Data::CARRIERS_XML_PATH_MAP;
 
         foreach ($activeCarriers as $carrier) {
             $basePrice        = $this->helper->getBasePrice();
@@ -167,13 +160,21 @@ class Checkout
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
 
-            $myParcelConfig["carrierSettings"][$carrier] = [
-                'allowDeliveryOptions' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
-                'allowSignature'       => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/signature_active'),
-                'allowOnlyRecipient'   => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
-                'allowMorningDelivery' => $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
-                'allowEveningDelivery' => $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
-                'allowPickupLocations' => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'pickup/active'),
+            $myParcelConfig['carrierSettings'][$carrier] = [
+                'allowDeliveryOptions'  => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
+                'allowSignature'        => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/signature_active'),
+                'allowOnlyRecipient'    => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
+                'allowMorningDelivery'  => $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
+                'allowEveningDelivery'  => $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
+                'allowPickupLocations'  => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'pickup/active'),
+                'allowShowDeliveryDate' => $this->helper->getBoolConfig($carrierPath[$carrier], 'general/allow_show_delivery_date'),
+                'allowMondayDelivery'   => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/monday_delivery_active'),
+
+                'cutoffTime'            => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/cutoff_time'),
+                'saturdayCutoffTime'    => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/saturday_cutoff_time'),
+                'deliveryDaysWindow'    => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/deliverydays_window'),
+                'dropOffDays'           => $this->helper->getArrayConfig($carrierPath[$carrier], 'general/dropoff_days'),
+                'dropOffDelay'          => $this->getDropOffDelay($carrierPath[$carrier], 'general/dropoff_delay'),
 
                 'priceSignature'        => $signatureFee,
                 'priceOnlyRecipient'    => $onlyRecipientFee,
