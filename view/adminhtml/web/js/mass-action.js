@@ -97,7 +97,7 @@ define(
                         return this;
                     }
 
-                    if (('has_api_key' in this.options) && (this.options['has_api_key'] == false)) {
+                    if (('has_api_key' in this.options) && (false === this.options['has_api_key'])) {
                         alert({title: $.mage.__('No key found. Go to Configuration and then to MyParcel to enter the key.')});
 
                         return this;
@@ -125,7 +125,7 @@ define(
                         }
                     );
 
-                    if (parentThis._getPPSExportMode()) {
+                    if (parentThis._usePPSExportMode()) {
                       $('#mypa_container-request_type').hide();
                       $('#mypa_container-label_amount').hide();
                       $('#mypa_container-print_position').hide();
@@ -284,7 +284,7 @@ define(
                 /**
                  * @protected
                  */
-                _getPPSExportMode: function () {
+                _usePPSExportMode: function () {
                   var exportMode = this.options.settings['export_mode'];
 
                   return exportMode === 'pps';

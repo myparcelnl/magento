@@ -141,10 +141,9 @@ class Data extends AbstractHelper
      */
     public function apiKeyIsCorrect(): bool
     {
-        $defaultApiKey = $this->getApiKey();
-        $keyIsCorrect  = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
+        $apiKey = $this->getApiKey();
 
-        return $keyIsCorrect;
+        return $this->checkApiKeyService->setApiKey($apiKey)->apiKeyIsCorrect();
     }
 
     /**

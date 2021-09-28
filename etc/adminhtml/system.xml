@@ -28,7 +28,7 @@
                 <label>Print settings</label>
                 <field id="export_mode" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mode</label>
-                    <comment>With 'Export complete order', MyParcel will export every order in its entirety to the back office for further processing.</comment>
+                    <comment>With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\ExportMode</source_model>
                 </field>
                 <field id="paper_type" translate="label comment" type="select" sortOrder="212" showInDefault="1" showInWebsite="1" showInStore="1">
