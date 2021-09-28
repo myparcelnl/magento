@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Adapter;
 
 use MyParcelNL\Sdk\src\Model\Fulfilment\OrderLine;
-use MyParcelNL\Sdk\src\Model\Fulfilment\Product;
 
 class OrderLineOptionsFromOrderAdapter extends OrderLine
 {
     /**
-     * OrderLineFromWooCommerce constructor.
+     * OrderLineFromMagento constructor.
      *
      * @param object $magentoOrderItem
      */

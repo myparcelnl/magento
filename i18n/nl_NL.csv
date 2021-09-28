@@ -47,7 +47,7 @@ Label description,Label omschrijving
 Country of origin,Land van oorsprong
 "This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dit land zal op de internationale verzendlabels verschijnen. Dit is waar uw producten vandaan komen. U kunt NL, BE, DE etc gebruiken. Dit wordt op productniveau overschreven door het land van fabricage."
 Create Concept,Concept maken
-"Enable create label concept, when invoice is printed.","Maak een concept zenging aan, wanneer er voor een bestelling is betaald."
+"Enable create label concept, when invoice is printed.","Maak een concept zending aan, wanneer er voor een bestelling is betaald."
 Delivery methods,Verzendmethodes
 Preferred pickup locations view,Weergave van voorkeur voor ophaallocaties
 "When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Wanneer ophaallocaties zijn ingeschakeld, kan de gebruiker kiezen tussen kaart- of lijstweergave. Deze instelling bepaalt welke optie als eerste wordt geselecteerd bij het openen van de ophaallocaties."
