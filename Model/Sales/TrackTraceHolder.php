@@ -215,7 +215,10 @@ class TrackTraceHolder
                 ->setPickupNumber($pickupLocationAdapter->getNumber())
                 ->setPickupCountry($pickupLocationAdapter->getCountry())
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
-                ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
+                ->setPickupLocationCode($pickupLocationAdapter->getLocationCode())
+                ->setAgeCheck(self::$defaultOptions->getPickupOptionsWithoutPrice('age_check'))
+                ->setLargeFormat($this->checkPickupLargeFormat())
+                ->setInsurance($options['insurance'] ?? self::$defaultOptions->getPickupDefaultInsurance());
 
             if ($pickupLocationAdapter->getRetailNetworkId()) {
                 $this->consignment->setRetailNetworkId($pickupLocationAdapter->getRetailNetworkId());
@@ -226,6 +229,15 @@ class TrackTraceHolder
              ->calculateTotalWeight($magentoTrack, $totalWeight);
 
         return $this;
+    }
+
+    /**
+     *
+     * @return bool
+     */
+    private function checkPickupLargeFormat(): bool
+    {
+        return self::$defaultOptions->getDefaultLargeFormat('large_format', 'pickup');
     }
 
     /**

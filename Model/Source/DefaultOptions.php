@@ -56,13 +56,25 @@ class DefaultOptions
     }
 
     /**
+     * @param string $option
+     *
+     * @return bool
+     */
+    public function getPickupOptionsWithoutPrice(string $option): bool
+    {
+        $settings = self::$helper->getStandardConfig('pickup');
+
+        return $settings[$option . '_active'] === '1';
+    }
+
+    /**
      * Get default of the option
      *
      * @param $option 'only_recipient'|'signature'|'return'|'large_format'
      *
      * @return bool
      */
-    public function getDefault($option)
+    public function getDefault($option, string $section = 'default_options')
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
@@ -74,7 +86,7 @@ class DefaultOptions
         }
 
         $total    = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig($section);
 
         if ($settings[$option . '_active'] == '1' &&
             (! $settings[$option . '_from_price'] || $total > (int) $settings[$option . '_from_price'])
@@ -106,12 +118,12 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function getDefaultLargeFormat(string $option): bool
+    public function getDefaultLargeFormat(string $option, string $section = 'default_options'): bool
     {
         $price  = self::$order->getGrandTotal();
         $weight = self::$order->getWeight();
 
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig($section);
         if (isset($settings[$option . '_active']) &&
             $settings[$option . '_active'] == 'weight' &&
             $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
@@ -139,6 +151,28 @@ class DefaultOptions
         $settings = self::$helper->getStandardConfig('default_options');
 
         return $settings[$option . '_active'] === '1';
+    }
+
+    /**
+     * Get default value of insurance based on order grand total
+     *
+     * @return int
+     */
+    public function getPickupDefaultInsurance()
+    {
+        if ($this->getDefault('insurance_500', 'pickup')) {
+            return 500;
+        }
+
+        if ($this->getDefault('insurance_250', 'pickup')) {
+            return 250;
+        }
+
+        if ($this->getDefault('insurance_100', 'pickup')) {
+            return 100;
+        }
+
+        return 0;
     }
 
     /**
