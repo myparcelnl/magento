@@ -371,6 +371,59 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
+                <field id="large_format_active" translate="label" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Large format'</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\LargeFormatOptions</source_model>
+                </field>
+                <field id="large_format_from_price" translate="label comment" type="text" sortOrder="221" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Large format' operates above a certain order total amount</comment>
+                    <depends>
+                        <field id="large_format_active">price</field>
+                    </depends>
+                </field>
+                <field id="age_check_active" translate="label" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Age check 18+'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.</comment>
+                </field>
+                <field id="insurance_100_active" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Insurance € 100'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="insurance_100_from_price" translate="label comment" type="text" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.</comment>
+                    <depends>
+                        <field id="insurance_100_active">1</field>
+                    </depends>
+                </field>
+                <field id="insurance_250_active" translate="label" type="select" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Insurance € 250'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="insurance_250_from_price" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Insurance € 250' operates above a certain order total amount. Only for dutch shipments, shipments to outside of the EU are standard ensured up to € 200.</comment>
+                    <depends>
+                        <field id="insurance_250_active">1</field>
+                    </depends>
+                </field>
+                <field id="insurance_500_active" translate="label" type="select" sortOrder="260" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Insurance € 500'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="insurance_500_from_price" translate="label comment" type="text" sortOrder="261" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Insurance € 500' operates above a certain order total amount.</comment>
+                    <depends>
+                        <field id="insurance_500_active">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
 <!--        <section id="myparcelnl_magento_dpd_settings" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">-->
