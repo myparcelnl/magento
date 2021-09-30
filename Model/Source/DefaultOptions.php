@@ -71,6 +71,7 @@ class DefaultOptions
      * Get default of the option
      *
      * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param string $section section id of a the configuration file of the settings
      *
      * @return bool
      */
