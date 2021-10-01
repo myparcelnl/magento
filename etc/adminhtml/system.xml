@@ -224,7 +224,7 @@
                         <field id="allow_show_delivery_date">1</field>
                     </depends>
                     <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
-                    <comment>How many days in the future to choose from in the checkout.</comment>
+                    <comment>Amount of days in the future customers can choose from in the checkout.</comment>
                 </field>
                 <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Cut-off time</label>
