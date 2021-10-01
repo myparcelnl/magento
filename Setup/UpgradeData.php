@@ -580,7 +580,7 @@ class UpgradeData implements UpgradeDataInterface
             );
             $allowShowDeliveryDatePath = 'myparcelnl_magento_postnl_settings/general/allow_show_delivery_date';
 
-            $connection->delete($table, ['path = ?' => $allowShowDeliveryDatePath]); // remove any old entry
+            $connection->delete($table, ['path = ?' => $allowShowDeliveryDatePath]);
 
             $deliveryDaysWindows = $connection->fetchAll($selectDeliveryDaysWindow);
 
@@ -590,7 +590,6 @@ class UpgradeData implements UpgradeDataInterface
                     $allowValue = '0';
                 }
                 $bind  = ['path' => $allowShowDeliveryDatePath, 'value' => $allowValue];
-                //$where = 'config_id = ' . $deliveryDaysWindowOption['config_id'];
                 $connection->insert($table, $bind);
             }
         }
