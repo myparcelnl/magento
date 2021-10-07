@@ -64,7 +64,7 @@ class DefaultOptions
     {
         $settings = self::$helper->getStandardConfig('pickup');
 
-        return $settings[$option . '_active'] === '1';
+        return '1' === $settings[$option . '_active'];
     }
 
     /**
@@ -116,6 +116,7 @@ class DefaultOptions
      * Get default value of options without price check
      *
      * @param string $option
+     * @param string $section
      *
      * @return bool
      */
@@ -159,7 +160,7 @@ class DefaultOptions
      *
      * @return int
      */
-    public function getPickupDefaultInsurance()
+    public function getPickupDefaultInsurance(): int
     {
         if ($this->getDefault('insurance_500', 'pickup')) {
             return 500;

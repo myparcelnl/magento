@@ -232,7 +232,6 @@ class TrackTraceHolder
     }
 
     /**
-     *
      * @return bool
      */
     private function checkPickupLargeFormat(): bool
@@ -241,7 +240,6 @@ class TrackTraceHolder
     }
 
     /**
-     *
      * @return bool
      */
     private function checkLargeFormat(): bool
