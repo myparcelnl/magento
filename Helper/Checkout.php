@@ -274,12 +274,13 @@ class Checkout extends Data
      *
      * @return string
      */
-    public function getTimeConfig(string $carrier, string $key):string
+    public function getTimeConfig(string $carrier, string $key): string
     {
         $timeAsString   = str_replace(',', ':', $this->getCarrierConfig($key, $carrier));
         $timeComponents = explode(':', $timeAsString);
-        if (count($timeComponents) > 2) {
-            $timeAsString = $timeComponents[0] . ':' . $timeComponents[1];
+        if (count($timeComponents) >= 3) {
+            [$hours, $minutes] = $timeComponents;
+            $timeAsString = $hours . ':' . $minutes;
         }
 
         return $timeAsString;
@@ -296,7 +297,7 @@ class Checkout extends Data
     public function getArrayConfig(string $carrier, string $key): array
     {
         return array_map(static function($val) {
-            return (is_numeric($val)) ? (int) $val : $val;
+            return is_numeric($val) ? (int) $val : $val;
         }, explode(',', $this->getCarrierConfig($key, $carrier)));
     }
 
