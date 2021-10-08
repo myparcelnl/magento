@@ -130,7 +130,7 @@ class TrackTraceHolder
      * @throws \Exception
      * @throws LocalizedException
      */
-    public function convertDataFromMagentoToApi($magentoTrack, $options)
+    public function convertDataFromMagentoToApi($magentoTrack, array $options)
     {
         $shipment        = $magentoTrack->getShipment();
         $address         = $shipment->getShippingAddress();
@@ -150,18 +150,7 @@ class TrackTraceHolder
         $pickupLocationAdapter  = $deliveryOptionsAdapter->getPickupLocation();
         $shippingOptionsAdapter = $deliveryOptionsAdapter->getShipmentOptions();
 
-        // get packagetype from delivery_options and use it for process directly
-        $packageType = self::$defaultOptions->getPackageType();
-        // get packagetype from selected radio buttons and check if package type is set
-        if ($options['package_type'] && $options['package_type'] != 'default') {
-            $packageType = $options['package_type'] ? $options['package_type'] : AbstractConsignment::PACKAGE_TYPE_PACKAGE;
-        }
-
-        if (!is_numeric($packageType)) {
-            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
-        }
-
-        $packageType = $this->getAgeCheck($magentoTrack, $address) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE : $packageType;
+        $packageType = $this->getPackageType($options, $magentoTrack, $address);
 
         $apiKey = $this->helper->getGeneralConfig(
             'api/key',
@@ -230,6 +219,30 @@ class TrackTraceHolder
     }
 
     /**
+     * @param  array                 $options
+     * @param  Order\Shipment\Track  $magentoTrack
+     * @param  object                $address
+     *
+     * @return int
+     * @throws LocalizedException
+     */
+    private function getPackageType(array $options, $magentoTrack, $address): int
+    {
+        // get packagetype from delivery_options and use it for process directly
+        $packageType = self::$defaultOptions->getPackageType();
+        // get packagetype from selected radio buttons and check if package type is set
+        if ($options['package_type'] && $options['package_type'] != 'default') {
+            $packageType = $options['package_type'] ? $options['package_type'] : AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        }
+
+        if (! is_numeric($packageType)) {
+            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+        }
+
+        return $this->getAgeCheck($magentoTrack, $address) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE : $packageType;
+    }
+
+    /**
      *
      * @return bool
      */
@@ -239,13 +252,13 @@ class TrackTraceHolder
     }
 
     /**
-     * @param Order\Shipment\Track $magentoTrack
-     * @param object               $address
+     * @param  Order\Shipment\Track  $magentoTrack
+     * @param  object                $address
      *
      * @return bool
      * @throws LocalizedException
      */
-    private function getAgeCheck($magentoTrack, $address): bool
+    private function getAgeCheck(Order\Shipment\Track $magentoTrack, $address): bool
     {
         if ($address->getCountryId() !== AbstractConsignment::CC_NL) {
             return false;
@@ -258,7 +271,7 @@ class TrackTraceHolder
     }
 
     /**
-     * @param Order\Shipment\Track $magentoTrack
+     * @param  Order\Shipment\Track  $magentoTrack
      *
      * @return bool
      * @throws LocalizedException
@@ -273,7 +286,7 @@ class TrackTraceHolder
 
             if (! isset($productAgeCheck)) {
                 $hasAgeCheck = null;
-            } elseif ($productAgeCheck === '1') {
+            } elseif ('1' === $productAgeCheck) {
                 return true;
             }
         }
