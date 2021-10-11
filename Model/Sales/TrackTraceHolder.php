@@ -19,6 +19,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -123,14 +124,14 @@ class TrackTraceHolder
     /**
      * Set all data to MyParcel object
      *
-     * @param Order\Shipment\Track $magentoTrack
-     * @param array                $options
+     * @param  Order\Shipment\Track  $magentoTrack
+     * @param  array                 $options
      *
      * @return $this
      * @throws \Exception
      * @throws LocalizedException
      */
-    public function convertDataFromMagentoToApi($magentoTrack, $options)
+    public function convertDataFromMagentoToApi(Track $magentoTrack, array $options): self
     {
         $shipment        = $magentoTrack->getShipment();
         $address         = $shipment->getShippingAddress();
@@ -150,16 +151,7 @@ class TrackTraceHolder
         $pickupLocationAdapter  = $deliveryOptionsAdapter->getPickupLocation();
         $shippingOptionsAdapter = $deliveryOptionsAdapter->getShipmentOptions();
 
-        // get packagetype from delivery_options and use it for process directly
-        $packageType = self::$defaultOptions->getPackageType();
-        // get packagetype from selected radio buttons and check if package type is set
-        if ($options['package_type'] && $options['package_type'] != 'default') {
-            $packageType = $options['package_type'] ? $options['package_type'] : AbstractConsignment::PACKAGE_TYPE_PACKAGE;
-        }
-
-        if (!is_numeric($packageType)) {
-            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
-        }
+        $packageType = $this->getPackageType($options, $magentoTrack, $address);
 
         $apiKey = $this->helper->getGeneralConfig(
             'api/key',
@@ -200,7 +192,7 @@ class TrackTraceHolder
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->checkLargeFormat())
-            ->setAgeCheck($address->getCountryId() === 'NL' ? self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check') : false)
+            ->setAgeCheck($this->getAgeCheck($magentoTrack, $address))
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
@@ -229,12 +221,79 @@ class TrackTraceHolder
     }
 
     /**
+     * @param  array                 $options
+     * @param  Order\Shipment\Track  $magentoTrack
+     * @param  object                $address
+     *
+     * @return int
+     * @throws LocalizedException
+     */
+    private function getPackageType(array $options, Track $magentoTrack, $address): int
+    {
+        // get packagetype from delivery_options and use it for process directly
+        $packageType = self::$defaultOptions->getPackageType();
+        // get packagetype from selected radio buttons and check if package type is set
+        if ($options['package_type'] && $options['package_type'] != 'default') {
+            $packageType = $options['package_type'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        }
+
+        if (! is_numeric($packageType)) {
+            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+        }
+
+        return $this->getAgeCheck($magentoTrack, $address) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE : $packageType;
+    }
+
+    /**
      *
      * @return bool
      */
     private function checkLargeFormat(): bool
     {
         return self::$defaultOptions->getDefaultLargeFormat('large_format');
+    }
+
+    /**
+     * @param  Order\Shipment\Track  $magentoTrack
+     * @param  object                $address
+     *
+     * @return bool
+     * @throws LocalizedException
+     */
+    private function getAgeCheck(Track $magentoTrack, $address): bool
+    {
+        if ($address->getCountryId() !== AbstractConsignment::CC_NL) {
+            return false;
+        }
+
+        $ageCheckOfProduct    = $this->getAgeCheckFromProduct($magentoTrack);
+        $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check');
+
+        return $ageCheckOfProduct ?? $ageCheckFromSettings;
+    }
+
+    /**
+     * @param  Order\Shipment\Track  $magentoTrack
+     *
+     * @return bool
+     * @throws LocalizedException
+     */
+    private function getAgeCheckFromProduct($magentoTrack): ?bool
+    {
+        $products    = $magentoTrack->getShipment()->getItems();
+        $hasAgeCheck = false;
+
+        foreach ($products as $product) {
+            $productAgeCheck = $this->getAttributeValue('catalog_product_entity_varchar', $product['product_id'], 'age_check');
+
+            if (! isset($productAgeCheck)) {
+                $hasAgeCheck = null;
+            } elseif ($productAgeCheck) {
+                return true;
+            }
+        }
+
+        return $hasAgeCheck;
     }
 
     /**
@@ -261,7 +320,7 @@ class TrackTraceHolder
      * @return string
      * @throws LocalizedException
      */
-    public function getLabelDescription($magentoTrack, ?string $checkoutData): string
+    public function getLabelDescription(Track $magentoTrack, ?string $checkoutData): string
     {
         $order = $magentoTrack->getShipment()->getOrder();
 
@@ -518,7 +577,7 @@ class TrackTraceHolder
      * @throws LocalizedException
      * @throws \Exception
      */
-    private function calculateTotalWeight($magentoTrack, int $totalWeight = 0): self
+    private function calculateTotalWeight(Track $magentoTrack, int $totalWeight = 0): self
     {
         if ($this->consignment->getPackageType() !== AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
             return $this;

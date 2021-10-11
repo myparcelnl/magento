@@ -571,7 +571,38 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
-        if (version_compare($context->getVersion(), '4.2.0', '<')) {
+        if (version_compare($context->getVersion(), '4.2.0', '<=')) {
+            $setup->startSetup();
+
+            // Add attributes to the eav/attribute
+            $eavSetup->addAttribute(
+                \Magento\Catalog\Model\Product::ENTITY,
+                'myparcel_age_check',
+                [
+                    'group'                   => self::groupName,
+                    'note'                    => "The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery.",
+                    'type'                    => 'varchar',
+                    'backend'                 => '',
+                    'frontend'                => '',
+                    'label'                   => 'Age check 18+',
+                    'input'                   => 'select',
+                    'class'                   => '',
+                    'source'                  => 'MyParcelNL\Magento\Model\Source\AgeCheckOptions',
+                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'visible'                 => true,
+                    'required'                => false,
+                    'user_defined'            => true,
+                    'default'                 => null,
+                    'searchable'              => false,
+                    'filterable'              => false,
+                    'comparable'              => false,
+                    'visible_on_front'        => false,
+                    'used_in_product_listing' => true,
+                    'unique'                  => false,
+                    'apply_to'                => '',
+                ]
+            );
+
             // set new allow_show_delivery_date based on current deliverydays_window
             $selectDeliveryDaysWindow = $connection->select()->from($table,
                 ['config_id', 'path', 'value']
@@ -592,6 +623,7 @@ class UpgradeData implements UpgradeDataInterface
                 $bind  = ['path' => $allowShowDeliveryDatePath, 'value' => $allowValue];
                 $connection->insert($table, $bind);
             }
+
         }
 
         $setup->endSetup();
