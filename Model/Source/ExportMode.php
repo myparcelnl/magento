@@ -10,8 +10,6 @@ use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 class ExportMode implements OptionSourceInterface
 {
     /**
-     * Options getter
-     *
      * @return array
      */
     public function toOptionArray(): array
@@ -29,8 +27,6 @@ class ExportMode implements OptionSourceInterface
     }
 
     /**
-     * Get options in "key-value" format
-     *
      * @return array
      */
     public function toArray(): array

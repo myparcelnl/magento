@@ -23,7 +23,7 @@ use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
-use MyParcelNL\Sdk\src\Model\Fulfilment\Order as fulfilmentOrder;
+use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
 
@@ -41,23 +41,24 @@ class MagentoOrderCollection extends MagentoCollection
     private $orders = null;
 
     /**
-     * @var SourceItem
+     * @var \MyParcelNL\Magento\Model\Source\SourceItem
      */
     private $sourceItem = null;
 
     /**
-     * @var Manager
+     * @var \Magento\Framework\Module\Manager
      */
     private $moduleManager;
 
     private $order;
+
     /**
-     * @var Recipient
+     * @var \MyParcelNL\Sdk\src\Model\Recipient
      */
     private $billingRecipient;
 
     /**
-     * @var Recipient
+     * @var \MyParcelNL\Sdk\src\Model\Recipient
      */
     private $shippingRecipient;
 
@@ -210,8 +211,6 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Add MyParcel Track from Magento Track
-     *
      * @return $this
      * @throws \Exception
      *
@@ -225,13 +224,13 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'];
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
-            $deliveryOptionsAdapter  = DeliveryOptionsAdapterFactory::create((array)$deliveryOptions);
+            $deliveryOptionsAdapter  = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
             $this->order             = $magentoOrder;
 
             $this->setBillingRecipient();
             $this->setShippingRecipient();
 
-            $order = (new fulfilmentOrder())
+            $order = (new FulfilmentOrder())
                 ->setStatus($this->order->getStatus())
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
@@ -305,7 +304,9 @@ class MagentoOrderCollection extends MagentoCollection
         return $this->shippingRecipient;
     }
 
-
+    /**
+     * @return string
+     */
     public function getFullCustomerName(): string
     {
         $firstName  = $this->order->getBillingAddress()->getFirstname();
