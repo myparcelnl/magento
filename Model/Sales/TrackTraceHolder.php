@@ -44,6 +44,7 @@ class TrackTraceHolder
     public const MYPARCEL_CARRIER_CODE  = 'myparcel';
     public const EXPORT_MODE_PPS        = 'pps';
     public const EXPORT_MODE_SHIPMENTS  = 'shipments';
+
     private const ORDER_NUMBER          = '%order_nr%';
     private const DELIVERY_DATE         = '%delivery_date%';
     private const PRODUCT_ID            = '%product_id%';
@@ -230,7 +231,6 @@ class TrackTraceHolder
     }
 
     /**
-     *
      * @return bool
      */
     private function checkLargeFormat(): bool

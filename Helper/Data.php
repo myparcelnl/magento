@@ -147,9 +147,9 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @return string
+     * @return null|string
      */
-    public function getApiKey(): string
+    public function getApiKey(): ?string
     {
         return $this->getGeneralConfig('api/key');
     }
@@ -238,7 +238,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     *
      * @return string
      */
     public function getExportMode(): string

@@ -127,7 +127,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
                 ->updateGridByOrder();
 
             if (
-                $this->orderCollection->getOption('request_type') == 'concept' ||
+                'concept' === $this->orderCollection->getOption('request_type') ||
                 $this->orderCollection->myParcelCollection->isEmpty()
             ) {
                 return $this;

@@ -9,8 +9,6 @@ use MyParcelNL\Sdk\src\Model\Fulfilment\OrderLine;
 class OrderLineOptionsFromOrderAdapter extends OrderLine
 {
     /**
-     * OrderLineFromMagento constructor.
-     *
      * @param object $magentoOrderItem
      */
     public function __construct($magentoOrderItem)
