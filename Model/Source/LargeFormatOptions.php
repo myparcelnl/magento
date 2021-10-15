@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Magento\Framework\Option\ArrayInterface;
+use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
 
-class LargeFormatOptions implements ArrayInterface
+class LargeFormatOptions implements OptionSourceInterface
 {
     /**
      * @var Data

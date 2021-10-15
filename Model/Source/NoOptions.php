@@ -15,13 +15,13 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Magento\Framework\Option\ArrayInterface;
+use Magento\Framework\Data\OptionSourceInterface;
 
 /**
  * @api
  * @since 100.0.2
  */
-class NoOptions implements ArrayInterface
+class NoOptions implements OptionSourceInterface
 {
     /**
      * Options getter

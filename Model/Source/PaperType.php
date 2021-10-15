@@ -14,9 +14,9 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Magento\Framework\Option\ArrayInterface;
+use Magento\Framework\Data\OptionSourceInterface;
 
-class PaperType implements ArrayInterface
+class PaperType implements OptionSourceInterface
 {
     /**
      * Options getter

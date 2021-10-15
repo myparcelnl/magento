@@ -139,12 +139,31 @@ class Data extends AbstractHelper
     /**
      * Check if api key is correct
      */
-    public function apiKeyIsCorrect()
+    public function apiKeyIsCorrect(): bool
     {
-        $defaultApiKey = $this->getGeneralConfig('api/key');
-        $keyIsCorrect  = $this->checkApiKeyService->setApiKey($defaultApiKey)->apiKeyIsCorrect();
+        $apiKey = $this->getApiKey();
 
-        return $keyIsCorrect;
+        return $this->checkApiKeyService->setApiKey($apiKey)->apiKeyIsCorrect();
+    }
+
+    /**
+     * @return null|string
+     */
+    public function getApiKey(): ?string
+    {
+        return $this->getGeneralConfig('api/key');
+    }
+
+    /**
+     * Check if global API Key isset
+     *
+     * @return bool
+     */
+    public function hasApiKey(): bool
+    {
+        $apiKey = $this->getApiKey();
+
+        return isset($apiKey);
     }
 
     /**
@@ -216,5 +235,13 @@ class Data extends AbstractHelper
         }
 
         return (int) $weight ?: self::DEFAULT_WEIGHT;
+    }
+
+    /**
+     * @return string
+     */
+    public function getExportMode(): string
+    {
+        return $this->getGeneralConfig('print/export_mode');
     }
 }
