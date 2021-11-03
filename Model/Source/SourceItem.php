@@ -29,7 +29,7 @@ class SourceItem
         Manager $moduleManager
     ) {
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->moduleManager = $moduleManager;
+        $this->moduleManager         = $moduleManager;
         $this->setSourceItemRepositoryWhenInventoryApiEnabled();
     }
 
@@ -47,10 +47,8 @@ class SourceItem
                 ->create();
 
             return $this->sourceItemRepository->getList($searchCriteria)->getItems();
-        } else {
-            return [];
-        }
-
+        } 
+        return [];        
     }
 
     /**
@@ -60,7 +58,7 @@ class SourceItem
      *
      * @return void
      */
-    private function setSourceItemRepositoryWhenInventoryApiEnabled()
+    private function setSourceItemRepositoryWhenInventoryApiEnabled(): void
     {
         if ($this->moduleManager->isEnabled('Magento_InventoryApi')) {
             $this->sourceItemRepository = $this->objectManager->get(SourceItemRepositoryInterface::class);
