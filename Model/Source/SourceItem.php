@@ -3,6 +3,7 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Module\Manager;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\SourceItemRepositoryInterface;
 
@@ -14,30 +15,55 @@ class SourceItem
     private $searchCriteriaBuilder;
 
     /**
+     * @var Manager
+     */
+    private $moduleManager;
+
+    /**
      * @var SourceItemRepositoryInterface
      */
-    private $sourceItemRepository;
+    private $sourceItemRepository = null;
 
     public function __construct(
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        SourceItemRepositoryInterface $sourceItemRepository
+        Manager $moduleManager
     ) {
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->sourceItemRepository = $sourceItemRepository;
+        $this->moduleManager = $moduleManager;
+        $this->setSourceItemRepositoryWhenInventoryApiEnabled();
     }
 
     /**
      * Retrieves links that are assigned to $stockId
      *
      * @param string $sku
-     * @return SourceItemInterface[]
+     * @return SourceItemInterface[]|array
      */
     public function getSourceItemDetailBySKU(string $sku): array
     {
-        $searchCriteria = $this->searchCriteriaBuilder
-            ->addFilter(SourceItemInterface::SKU, $sku)
-            ->create();
+        if ($this->sourceItemRepository) {
+            $searchCriteria = $this->searchCriteriaBuilder
+                ->addFilter(SourceItemInterface::SKU, $sku)
+                ->create();
 
-        return $this->sourceItemRepository->getList($searchCriteria)->getItems();
+            return $this->sourceItemRepository->getList($searchCriteria)->getItems();
+        } else {
+            return [];
+        }
+
+    }
+
+    /**
+     * Check if the module Magento_InventoryApi is activated.
+     * Some customers have removed the Magento_InventoryApi from their system.
+     * That causes problems with the Multi Stock Inventory
+     *
+     * @return void
+     */
+    private function setSourceItemRepositoryWhenInventoryApiEnabled()
+    {
+        if ($this->moduleManager->isEnabled('Magento_InventoryApi')) {
+            $this->sourceItemRepository = $this->objectManager->get(SourceItemRepositoryInterface::class);
+        }
     }
 }
