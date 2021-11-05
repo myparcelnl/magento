@@ -63,7 +63,8 @@ class OrderExtension
             [$searchColumn, $searchValue] = $this->useEntityId(end($explodePath));
         }
 
-        if (empty($searchValue)) {
+        // Ensure that the search value is numeric or textual to prevent SQL injections
+        if (preg_match('/^[a-zA-Z-0-9-_]+$/', $searchValue) < 1) {
             return '';
         }
 
@@ -71,7 +72,13 @@ class OrderExtension
         $sql = $connection
             ->select('myparcel_delivery_options')
             ->from($tableName)
-            ->where($searchColumn . ' = ' . (int) $searchValue);
+            ->where(
+                sprintf(
+                    '%s = "%s"',
+                    $searchColumn,
+                    $searchValue
+                )
+            );
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
