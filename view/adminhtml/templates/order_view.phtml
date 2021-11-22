@@ -3,6 +3,9 @@
  * Copyright © 2016 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
+
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+
 // @codingStandardsIgnoreFile
 ?>
 <?php /** @var $block \MyParcelNL\Magento\Block\Sales\View */ ?>
@@ -39,7 +42,7 @@
     </div>
     <div class="admin__page-section-item-content">
         <div style="float: left; margin-right: 10px;">
-            <?php echo $order->getData('track_number');?>
+            <?php echo TrackAndTrace::getTrackAndTraceLinksAsHtml($order) ;?>
         </div>
         <div style="float: left;">
             <?php echo $order->getData('track_status');?>
