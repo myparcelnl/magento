@@ -37,10 +37,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      * @var DeliveryRepository
      */
     private $delivery;
-    /**
-     * @var AbstractConsignment
-     */
-    private $consignment;
+
     /**
      * @var array
      */
@@ -50,16 +47,13 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      * SaveOrderBeforeSalesModelQuoteObserver constructor.
      *
      * @param DeliveryRepository  $delivery
-     * @param AbstractConsignment $consignment
      * @param Checkout            $checkoutHelper
      */
     public function __construct(
         DeliveryRepository $delivery,
-        AbstractConsignment $consignment,
         Checkout $checkoutHelper
     ) {
         $this->delivery      = $delivery;
-        $this->consignment   = $consignment;
         $this->parentMethods = explode(',', $checkoutHelper->getGeneralConfig('shipping_methods/methods'));
     }
 
