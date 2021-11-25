@@ -64,7 +64,7 @@ class TrackAndTrace extends Column
     }
 
     /**
-     * @param array $orderData
+     * @param int $entityId
      *
      * @return \Magento\Sales\Model\Order
      */
