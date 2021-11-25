@@ -107,11 +107,11 @@ class TrackAndTrace extends Column
             }
             $trackTrace  = TrackTraceUrl::create($trackNumber, $postCode, $countryId);
 
-            $html .= '<a class="myparcel-barcode-link" target="_blank" href="';
-            $html .= $trackTrace;
-            $html .= '">';
-            $html .= $trackNumber;
-            $html .= '</a><br/>';
+            $html .= sprintf(
+                '<a class="myparcel-barcode-link" target="_blank" href="%1$s">%2$s</a><br/>',
+                $trackTrace,
+                $trackNumber
+            );
         }
 
         return $html;
