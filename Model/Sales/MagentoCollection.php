@@ -115,7 +115,9 @@ class MagentoCollection implements MagentoCollectionInterface
         $this->helper             = $objectManager->create(self::PATH_HELPER_DATA);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
-        $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(['Magento2'=> $this->helper->getVersion()]);
+        $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
+            ['Magento2' => $this->helper->getVersion()]
+        );
     }
 
     /**
@@ -269,7 +271,7 @@ class MagentoCollection implements MagentoCollectionInterface
             $columnHtml['track_status'] = implode('<br>', $data['track_status']);
         }
         if ($data['track_number']) {
-            $columnHtml['track_number'] = implode('<br>', $data['track_number']);
+            $columnHtml['track_number'] = json_encode($data['track_number']);
         }
 
         return $columnHtml;
