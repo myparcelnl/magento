@@ -21,7 +21,6 @@ use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
@@ -357,9 +356,9 @@ class MagentoOrderCollection extends MagentoCollection
             ->generateReturnConsignments(
                 false,
                 function (
-                    BaseConsignment $returnConsignment,
-                    BaseConsignment $parent
-                ) use ($returnOptions): BaseConsignment {
+                    AbstractConsignment $returnConsignment,
+                    AbstractConsignment $parent
+                ) use ($returnOptions): AbstractConsignment {
                     $returnConsignment->setLabelDescription(
                         'Return: ' . $parent->getLabelDescription() .
                         ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
