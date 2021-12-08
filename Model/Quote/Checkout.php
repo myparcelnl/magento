@@ -10,7 +10,8 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 
 class Checkout
 {
-    private const PLATFORM = 'myparcel';
+    private const PLATFORM             = 'myparcel';
+    private const PACKAGE_TYPE_MAILBOX = 'mailbox';
 
     /**
      * @var array
@@ -160,7 +161,7 @@ class Checkout
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
             $isAgeCheckActive = $this->isAgeCheckActive($carrierPath[$carrier]);
-            $mailboxPackage   = $this->getPackageType()['packageType'] === 'mailbox';
+            $isMailboxPackage = $this->getPackageType()['packageType'] === self::PACKAGE_TYPE_MAILBOX;
             $showPickup       = $this->helper->getBoolConfig($carrierPath[$carrier], 'mailbox/pickup_mailbox');
 
             $myParcelConfig['carrierSettings'][$carrier] = [
@@ -169,7 +170,7 @@ class Checkout
                 'allowOnlyRecipient'    => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
                  'allowMorningDelivery' => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
                 'allowEveningDelivery'  => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
-                'allowPickupLocations'  => $this->package->deliveryOptionsDisabled || ($mailboxPackage && !$showPickup) ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'pickup/active'),
+                'allowPickupLocations'  => $this->isPickupAllowed($isMailboxPackage, $showPickup, $carrierPath[$carrier]),
                 'allowShowDeliveryDate' => $this->helper->getBoolConfig($carrierPath[$carrier], 'general/allow_show_delivery_date'),
                 'allowMondayDelivery'   => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/monday_delivery_active'),
 
@@ -199,7 +200,7 @@ class Checkout
     }
 
     /**
-     * Get the a list of the shipping methods.
+     * Get a list of the shipping methods.
      *
      * @return string
      */
@@ -325,5 +326,21 @@ class Checkout
         $this->package->productWithoutDeliveryOptions($products);
 
         return $this;
+    }
+
+    /**
+     * @param  bool   $isMailboxPackage
+     * @param  bool   $showPickup
+     * @param  string $carrier
+     *
+     * @return bool
+     */
+    private function isPickupAllowed(bool $isMailboxPackage, bool $showPickup, string $carrier): bool
+    {
+        return ! ($this->package->deliveryOptionsDisabled || ($isMailboxPackage && ! $showPickup))
+            && $this->helper->getBoolConfig(
+                $carrier,
+                'pickup/active'
+            );
     }
 }
