@@ -15,7 +15,7 @@
 namespace MyParcelNL\Magento\Block\Sales;
 
 use Magento\Backend\Block\Template\Context;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
 use \Magento\Framework\Registry;
 
 class OrderAction extends OrdersAction
@@ -25,20 +25,20 @@ class OrderAction extends OrdersAction
      */
     private $order;
     /**
-     * @var \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment
+     * @var \MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment
      */
     private $consignment;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Registry $registry
-     * @param \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment
+     * @param \MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment $consignment
      * @param array $data
      */
     public function __construct(
         Context $context,
         Registry $registry,
-        AbstractConsignment $consignment,
+        BaseConsignment $consignment,
         array $data = []
     ) {
         // Set order

@@ -17,7 +17,7 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Registry;
 use Magento\Sales\Model\Order\Shipment;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
 
 class ShipmentAction extends OrdersAction
 {
@@ -30,7 +30,7 @@ class ShipmentAction extends OrdersAction
      */
     private $shipment;
     /**
-     * @var \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment
+     * @var \MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment
      */
     private $consignment;
 
@@ -38,14 +38,14 @@ class ShipmentAction extends OrdersAction
      * @param Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Sales\Model\Order\Shipment $shipment
-     * @param \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment
+     * @param \MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment $consignment
      * @param array $data
      */
     public function __construct(
         Context $context,
         Registry $registry,
         Shipment $shipment,
-        AbstractConsignment $consignment,
+        BaseConsignment $consignment,
         array $data = []
     ) {
         // Set shipment and order

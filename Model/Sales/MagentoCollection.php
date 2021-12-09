@@ -19,7 +19,7 @@ use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
 
 /**
  * Class MagentoOrderCollection
@@ -194,12 +194,12 @@ class MagentoCollection implements MagentoCollectionInterface
     /**
      * Add MyParcel consignment to collection
      *
-     * @param $consignment AbstractConsignment
+     * @param $consignment BaseConsignment
      *
      * @return $this
      * @throws \Exception
      */
-    public function addConsignment(AbstractConsignment $consignment)
+    public function addConsignment(BaseConsignment $consignment)
     {
         $this->myParcelCollection->addConsignment($consignment);
 
