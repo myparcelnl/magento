@@ -161,8 +161,6 @@ class Checkout
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
             $isAgeCheckActive = $this->isAgeCheckActive($carrierPath[$carrier]);
-            $isMailboxPackage = $this->getPackageType()['packageType'] === self::PACKAGE_TYPE_MAILBOX;
-            $showPickup       = $this->helper->getBoolConfig($carrierPath[$carrier], 'mailbox/pickup_mailbox');
 
             $myParcelConfig['carrierSettings'][$carrier] = [
                 'allowDeliveryOptions'  => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
@@ -170,7 +168,7 @@ class Checkout
                 'allowOnlyRecipient'    => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
                  'allowMorningDelivery' => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
                 'allowEveningDelivery'  => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
-                'allowPickupLocations'  => $this->isPickupAllowed($isMailboxPackage, $showPickup, $carrierPath[$carrier]),
+                'allowPickupLocations'  => $this->isPickupAllowed($carrierPath[$carrier]),
                 'allowShowDeliveryDate' => $this->helper->getBoolConfig($carrierPath[$carrier], 'general/allow_show_delivery_date'),
                 'allowMondayDelivery'   => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/monday_delivery_active'),
 
@@ -335,12 +333,13 @@ class Checkout
      *
      * @return bool
      */
-    private function isPickupAllowed(bool $isMailboxPackage, bool $showPickup, string $carrier): bool
+    private function isPickupAllowed(string $carrier): bool
     {
-        return ! ($this->package->deliveryOptionsDisabled || ($isMailboxPackage && ! $showPickup))
-            && $this->helper->getBoolConfig(
-                $carrier,
-                'pickup/active'
-            );
+        $isMailboxPackage     = $this->getPackageType()['packageType'] === self::PACKAGE_TYPE_MAILBOX;
+        $pickupEnabled        = $this->helper->getBoolConfig($carrier, 'pickup/active');
+        $showPickupForMailbox = $this->helper->getBoolConfig($carrier, 'mailbox/pickup_mailbox');
+        $showPickup           = ! $isMailboxPackage || $showPickupForMailbox;
+
+        return ! $this->package->deliveryOptionsDisabled && $pickupEnabled && $showPickup;
     }
 }
