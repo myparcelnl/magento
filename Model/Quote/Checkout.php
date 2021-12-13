@@ -335,7 +335,7 @@ class Checkout
      */
     private function isPickupAllowed(string $carrier): bool
     {
-        $isMailboxPackage     = $this->getPackageType()['packageType'] === self::PACKAGE_TYPE_MAILBOX;
+        $isMailboxPackage     = self::PACKAGE_TYPE_MAILBOX === $this->getPackageType()['packageType'];
         $pickupEnabled        = $this->helper->getBoolConfig($carrier, 'pickup/active');
         $showPickupForMailbox = $this->helper->getBoolConfig($carrier, 'mailbox/pickup_mailbox');
         $showPickup           = ! $isMailboxPackage || $showPickupForMailbox;
