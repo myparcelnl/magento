@@ -58,12 +58,13 @@ class UpdateStatus
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
     public function execute()
     {
         $this->setOrdersToUpdate();
         $this->orderCollection
-            ->setMyParcelTrack()
+            ->setNewMyParcelTracks() // JOERI dit zou de myparcelcollection moeten vullen met relevante consignments...
             ->setLatestData()
             ->updateMagentoTrack();
 

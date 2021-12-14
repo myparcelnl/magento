@@ -99,15 +99,18 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             ->setOptionsFromParameters();
 
         $this->shipmentCollection
+            ->syncMagentoToMyparcel()
             ->setMagentoTrack()
-            ->setMyParcelTrack()
-            ->createMyParcelConcepts();
+            ->setNewMyParcelTracks()
+            ->createMyParcelConcepts()
+            ->updateMagentoTrack();
 
-        if ($this->shipmentCollection->getOption('request_type') == 'concept') {
+        if ('concept' === $this->shipmentCollection->getOption('request_type')) {
             return $this;
         }
 
         $this->shipmentCollection
+            ->addReturnShipments()
             ->setPdfOfLabels()
             ->updateMagentoTrack()
             ->downloadPdfOfLabels();

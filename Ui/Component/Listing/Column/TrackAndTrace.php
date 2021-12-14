@@ -39,6 +39,9 @@ class TrackAndTrace extends Column
          * @var Order\Shipment\Track[] $tracks
          */
         foreach ($dataSource['data']['items'] as & $item) {
+//            $order = (ObjectManager::getInstance())->create(Order::class)->load($item['entity_id']);
+//            $item['track_number'] = json_encode($order->getTracksCollection()->toArray());
+//            continue;
             $addressParts = explode(",", $item['shipping_address']);
 
             if (count($addressParts) < 3) {

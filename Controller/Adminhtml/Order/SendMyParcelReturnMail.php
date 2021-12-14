@@ -96,7 +96,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
 
         try {
             $this->orderCollection
-                ->setMyParcelTrack()
+                ->setNewMyParcelTracks()
                 ->setLatestData()
                 ->sendReturnLabelMails();
         } catch (\Exception $e) {

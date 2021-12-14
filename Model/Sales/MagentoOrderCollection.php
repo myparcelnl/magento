@@ -1,14 +1,4 @@
 <?php
-/**
- * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
- *
- * @author      Reindert Vetter <info@myparcel.nl>
- * @copyright   2010-2019 MyParcel
- * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
- * @since       File available since Release v0.1.0
- */
 
 namespace MyParcelNL\Magento\Model\Sales;
 
@@ -17,11 +7,8 @@ use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
-use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
-use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\Recipient;
@@ -62,6 +49,13 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private $shippingRecipient;
 
+    /**
+     * CreateAndPrintMyParcelTrack constructor.
+     *
+     * @param ObjectManagerInterface                  $objectManager
+     * @param \Magento\Framework\App\RequestInterface $request
+     * @param null                                    $areaList
+     */
     public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
     {
         parent::__construct($objectManager, $request, $areaList);
@@ -175,39 +169,9 @@ class MagentoOrderCollection extends MagentoCollection
      * @throws \Exception
      *
      */
-    public function setMyParcelTrack()
+    public function setNewMyParcelTracks(): self
     {
-        $newCollection = new MyParcelCollection();
-
-        /**
-         * @var Order                $order
-         * @var Order\Shipment       $shipment
-         * @var Order\Shipment\Track $magentoTrack
-         */
-        foreach ($this->getOrders() as $order) {
-            if ($order->getShipmentsCollection()->getSize() == 0) {
-                $this->messageManager->addErrorMessage(self::ERROR_ORDER_HAS_NO_SHIPMENT);
-            }
-            foreach ($order->getShipmentsCollection() as $shipment) {
-                foreach ($shipment->getTracksCollection() as $magentoTrack) {
-                    if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
-                        $trackTraceHolder = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack);
-                    }
-                }
-                if (! empty($trackTraceHolder)) {
-                    $consignment = $trackTraceHolder->consignment->setReferenceId($shipment->getEntityId());
-                    $newCollection->addMultiCollo($consignment, $this->getOption('label_amount'));
-                }
-            }
-        }
-
-        $this->myParcelCollection = $newCollection;
-
-        if ($this->options['return_in_the_box']) {
-            $this->addreturnInTheBox($this->options['return_in_the_box']);
-        }
-
-        return $this;
+        return $this->setNewMyParcelTracksByShipment($this->getShipmentsCollection());
     }
 
     /**
@@ -344,87 +308,6 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @param string $returnOptions
-     *
-     * @return void
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     */
-    public function addReturnInTheBox(string $returnOptions): void
-    {
-        $this->myParcelCollection
-            ->generateReturnConsignments(
-                false,
-                function (
-                    AbstractConsignment $returnConsignment,
-                    AbstractConsignment $parent
-                ) use ($returnOptions): AbstractConsignment {
-                    $returnConsignment->setLabelDescription(
-                        'Return: ' . $parent->getLabelDescription() .
-                        ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
-                    );
-
-                    if (ReturnInTheBox::NO_OPTIONS === $returnOptions) {
-                        $returnConsignment->setOnlyRecipient(false);
-                        $returnConsignment->setSignature(false);
-                        $returnConsignment->setAgeCheck(false);
-                        $returnConsignment->setReturn(false);
-                        $returnConsignment->setLargeFormat(false);
-                        $returnConsignment->setInsurance(false);
-                    }
-
-                    return $returnConsignment;
-                }
-            );
-    }
-
-    /**
-     * Create MyParcel concepts and update Magento Track
-     *
-     * @return $this
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     * @throws \Exception
-     */
-    public function createMyParcelConcepts(): self
-    {
-        if (! count($this->myParcelCollection)) {
-            $this->messageManager->addWarningMessage(__('myparcelnl_magento_error_no_shipments_to_process'));
-            return $this;
-        }
-
-        try {
-            $this->myParcelCollection->createConcepts();
-        } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
-            return $this;
-        }
-
-        $this->myParcelCollection->setLatestData();
-
-        /**
-         * @var Order                $order
-         * @var Order\Shipment       $shipment
-         * @var Order\Shipment\Track $mageTrack
-         */
-        foreach ($this->getShipmentsCollection() as $shipment) {
-            $consignments = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
-            foreach ($shipment->getTracksCollection() as $mageTrack) {
-                if (! $consignment = $consignments->pop()) {
-                    continue;
-                }
-
-                $mageTrack
-                    ->setData('myparcel_consignment_id', $consignment->getConsignmentId())
-                    ->setData('myparcel_status', $consignment->getStatus())
-                    ->save(); // must
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * Update MyParcel collection
      *
      * @return $this
@@ -467,64 +350,19 @@ class MagentoOrderCollection extends MagentoCollection
      * Update all the tracks that made created via the API
      *
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
     public function updateMagentoTrack(): self
     {
-        foreach ($this->getShipmentsCollection() as $shipment) {
-            $trackCollection = $shipment->getAllTracks();
-            foreach ($trackCollection as $magentoTrack) {
-                $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
-                    $magentoTrack->getData('myparcel_consignment_id')
-                );
-
-                if (! $myParcelTrack) {
-                    continue;
-                }
-
-                if ($myParcelTrack->getStatus()) {
-                    $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
-                }
-
-                if ($myParcelTrack->getBarcode()) {
-                    $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
-                }
-
-                $magentoTrack->save();
-            }
-        }
-
-        $this->updateGridByOrder();
-
-        return $this;
+        return $this->updateMagentoTrackByShipment($this->getShipmentsCollection());
     }
 
     /**
-     * Update column track_status in sales_order_grid
-     *
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function updateGridByOrder(): self
+    public function syncMagentoToMyparcel(): self
     {
-        if (empty($this->getOrders())) {
-            throw new LocalizedException(__('MagentoOrderCollection::order array is empty'));
-        }
-
-        foreach ($this->getOrders() as $order) {
-            $aHtml = $this->getHtmlForGridColumns($order->getId());
-
-            if ($aHtml['track_status']) {
-                $order->setData('track_status', $aHtml['track_status']);
-            }
-            if ($aHtml['track_number']) {
-                $order->setData('track_number', $aHtml['track_number']);
-            }
-        }
-
-        $this->save();
-
-        return $this;
+        return $this->syncMagentoToMyParcelForShipments($this->getShipmentsCollection());
     }
 
     /**

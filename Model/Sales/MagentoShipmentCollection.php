@@ -1,18 +1,6 @@
 <?php
-/**
- * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
- *
- * @author      Reindert Vetter <info@myparcel.nl>
- * @copyright   2010-2019 MyParcel
- * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
- * @link        https://github.com/myparcelnl/magento
- * @since       File available since Release v0.1.0
- */
-
 namespace MyParcelNL\Magento\Model\Sales;
 
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 
 /**
@@ -73,7 +61,6 @@ class MagentoShipmentCollection extends MagentoCollection
 
         $this->getShipments()->save();
 
-
         return $this;
     }
 
@@ -83,22 +70,9 @@ class MagentoShipmentCollection extends MagentoCollection
      * @return $this
      * @throws \Exception
      */
-    public function setMyParcelTrack()
+    public function setNewMyParcelTracks(): self
     {
-        /**
-         * @var Order\Shipment       $shipment
-         * @var Order\Shipment\Track $magentoTrack
-         */
-        foreach ($this->shipments as $shipment) {
-            foreach ($this->getTrackByShipment($shipment)->getItems() as $magentoTrack) {
-                if ($magentoTrack->getCarrierCode() == TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
-                    $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
-                    $this->myParcelCollection->addConsignment($consignment);
-                }
-            }
-        }
-
-        return $this;
+        return $this->setNewMyParcelTracksByShipment($this->shipments);
     }
 
     /**
@@ -124,38 +98,6 @@ class MagentoShipmentCollection extends MagentoCollection
     {
         $inlineDownload = $this->options['request_type'] == 'open_new_tab';
         $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
-
-        return $this;
-    }
-
-    /**
-     * Create MyParcel concepts and update Magento Track
-     *
-     * @return $this
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     * @throws \Exception
-     */
-    public function createMyParcelConcepts()
-    {
-        $this->myParcelCollection->createConcepts()->setLatestData();
-
-        /**
-         * @var Order                $order
-         * @var Order\Shipment       $shipment
-         * @var Order\Shipment\Track $track
-         */
-        foreach ($this->getShipments() as $shipment) {
-            foreach ($shipment->getTracksCollection() as $track) {
-                $myParcelTrack = $this
-                    ->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId())->first();
-
-                $track
-                    ->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId())
-                    ->setData('myparcel_status', $myParcelTrack->getStatus())
-                    ->save(); // must
-            }
-        }
 
         return $this;
     }
@@ -200,69 +142,18 @@ class MagentoShipmentCollection extends MagentoCollection
      * Update all the tracks that made created via the API
      *
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Exception
      */
-    public function updateMagentoTrack()
+    public function updateMagentoTrack(): self
     {
-        /**
-         * @var $order        Order
-         * @var $shipment     Order\Shipment
-         * @var $magentoTrack Order\Shipment\Track
-         */
-        foreach ($this->getShipments() as $shipment) {
-
-            $trackCollection = $shipment->getAllTracks();
-            foreach ($trackCollection as $magentoTrack) {
-                $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
-                    $magentoTrack->getData('myparcel_consignment_id')
-                );
-
-                $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
-
-                if ($myParcelTrack->getBarcode()) {
-                    $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
-                }
-                $magentoTrack->save();
-            }
-        }
-
-        $this->updateGridByShipment();
-
-        return $this;
+        return $this->updateMagentoTrackByShipment($this->getShipments());
     }
 
     /**
-     * Update column track_status in sales_order_grid
-     *
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Exception
      */
-    public function updateGridByShipment()
+    public function syncMagentoToMyparcel(): self
     {
-        if (empty($this->getShipments())) {
-            throw new LocalizedException(__('MagentoOrderCollection::shipment array is empty'));
-        }
-
-        /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $shipment
-         * @var Order                                                        $order
-         */
-        foreach ($this->getShipments() as $shipment) {
-
-            $order = $shipment->getOrder();
-            $aHtml = $this->getHtmlForGridColumns($order->getId());
-
-            if ($aHtml['track_status']) {
-                $order->setData('track_status', $aHtml['track_status']);
-            }
-            if ($aHtml['track_number']) {
-                $order->setData('track_number', $aHtml['track_number']);
-            }
-            $order->save();
-        }
-
-        return $this;
+        return $this->syncMagentoToMyParcelForShipments($this->getShipments());
     }
 }
