@@ -64,7 +64,7 @@ class UpdateStatus
     {
         $this->setOrdersToUpdate();
         $this->orderCollection
-            ->setNewMyParcelTracks() // JOERI dit zou de myparcelcollection moeten vullen met relevante consignments...
+            ->setNewMyParcelTracks()
             ->setLatestData()
             ->updateMagentoTrack();
 

@@ -57,11 +57,11 @@
                     <comment>This is the type of weight that I use with my products.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\WeightType</source_model>
                 </field>
-               <field id="return_in_the_box" translate="label comment" type="select" sortOrder="216" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Print return label directly</label>
-                    <comment>Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.</comment>
-                    <source_model>MyParcelNL\Magento\Model\Source\ReturnInTheBox</source_model>
-                </field>
+<!--               <field id="return_in_the_box" translate="label comment" type="select" sortOrder="216" showInDefault="1" showInWebsite="1" showInStore="1">-->
+<!--                    <label>Print return label directly</label>-->
+<!--                    <comment>Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.</comment>-->
+<!--                    <source_model>MyParcelNL\Magento\Model\Source\ReturnInTheBox</source_model>-->
+<!--                </field>-->
             </group>
             <group id="shipping_methods" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery methods</label>

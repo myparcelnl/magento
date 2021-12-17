@@ -96,6 +96,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
 
         try {
             $this->orderCollection
+                ->syncMagentoToMyparcel()
                 ->setNewMyParcelTracks()
                 ->setLatestData()
                 ->sendReturnLabelMails();

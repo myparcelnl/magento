@@ -369,6 +369,7 @@ class MagentoCollection implements MagentoCollectionInterface
                 }
             }
         }
+
         try {
             $this->myParcelCollection->addConsignmentByConsignmentIds(
                 $consignmentIds,
@@ -416,43 +417,43 @@ class MagentoCollection implements MagentoCollectionInterface
      */
     public function setNewMyParcelTracksByShipment($shipments): self
     {
-        $parents = []; // TODO JOERI Ediefy the code of this method
+        $multiColloConsignments = [];
         /**
          * @var Order\Shipment       $shipment
          * @var Order\Shipment\Track $magentoTrack
          */
         foreach ($shipments as $shipment) {
-            foreach ($this->getTrackByShipment($shipment)->getItems() as $magentoTrack) {
-            //foreach ($shipment->getAllTracks() as $magentoTrack) {
-                if ($magentoTrack->getData('myparcel_consignment_id')) {
+            $magentoTracks = $this->getTrackByShipment($shipment)->getItems();
+
+            foreach ($magentoTracks as $magentoTrack) {
+                if ($magentoTrack->getData('myparcel_consignment_id')
+                    || TrackTraceHolder::MYPARCEL_CARRIER_CODE !== $magentoTrack->getCarrierCode()) {
                     continue;
                 }
 
-                if ($magentoTrack->getCarrierCode() === TrackTraceHolder::MYPARCEL_CARRIER_CODE) {
+                $parentId = $magentoTrack->getData('parent_id');
 
-                    $parentId = $magentoTrack->getData('parent_id');
-
-                    if (isset($parents[$parentId])) {
-                        $parents[$parentId]['colli']++;
-                    } else {
-                        $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
-
-                        $parents[$parentId] = [
-                            'consignment' => $consignment,
-                            'colli'       => 1,
-                        ];
-                    }
+                if (isset($multiColloConsignments[$parentId])) {
+                    $multiColloConsignments[$parentId]['colli']++;
+                    continue;
                 }
+
+                $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
+
+                $multiColloConsignments[$parentId] = [
+                    'consignment' => $consignment,
+                    'colli'       => 1,
+                ];
             }
         }
 
-        foreach ($parents as $index => $arr) {
-            $consignment = $arr['consignment'];
-            if (1 === $arr['colli']) {
+        foreach ($multiColloConsignments as $multiColloConsignment) {
+            $consignment = $multiColloConsignment['consignment'];
+            if (1 === $multiColloConsignment['colli']) {
                 $this->myParcelCollection->addConsignment($consignment);
-            } else {
-                $this->myParcelCollection->addMultiCollo($consignment, (int) $arr['colli']);
+                continue;
             }
+            $this->myParcelCollection->addMultiCollo($consignment, (int) $multiColloConsignment['colli']);
         }
 
         return $this;
@@ -476,7 +477,7 @@ class MagentoCollection implements MagentoCollectionInterface
                         'Return: ' . $parent->getLabelDescription() .
                         ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
                     );
-                    $returnConsignment->setReferenceId($parent->getReferenceId());
+                    $returnConsignment->setReferenceIdentifier($parent->getReferenceIdentifier());
 
                     if (ReturnInTheBox::NO_OPTIONS === $returnOptions) {
                         $returnConsignment->setOnlyRecipient(false);
@@ -500,36 +501,26 @@ class MagentoCollection implements MagentoCollectionInterface
      */
     protected function updateMagentoTrackByShipment($shipments): self
     {
-        //echo ' <textarea cols="100" rows="60">'; // JOERI
         /**
          * @var Order\Shipment       $shipment
          * @var Order\Shipment\Track $magentoTrack
          */
         foreach ($shipments as $shipment) {
-            //echo get_class($shipment) . ': ' . $shipment->getId() . " \n"; // JOERI
             $consignments    = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
-            //echo 'entity_id: ' . $shipment->getEntityId() . '  ' . $this->myParcelCollection->count() . "\n"; // JOERI
-//            foreach ($this->myParcelCollection as $joeri) {
-//                echo get_class($joeri) . ': ' . $joeri->getConsignmentId() . ', barcode: ' . $joeri->getBarcode() . " \n";
-//            }
-            $trackCollection = $this->getTrackByShipment($shipment)->getItems(); // this gets the tracks
-            //$trackCollection = $shipment->getAllTracks(); // this does not (??)
+            $trackCollection = $this->getTrackByShipment($shipment)->getItems();
+
             foreach ($trackCollection as $magentoTrack) {
-                //echo $magentoTrack->getData('myparcel_consignment_id') . " \n"; // JOERI
                 $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
                     $magentoTrack->getData('myparcel_consignment_id')
                 );
 
                 if (! $myParcelTrack) {
                     if ($consignments->isEmpty()) {
-                        //echo 'consignments R empty' . " \n"; // JOERI
                         continue;
                     }
                     $myParcelTrack = $consignments->pop();
                     $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId());
-                    //echo 'NIEUWE: ' . $myParcelTrack->getConsignmentId() . " \n"; // JOERI
                 }
-                //echo 'BESTAANDE: ' . $myParcelTrack->getConsignmentId() . " \n"; // JOERI
 
                 if ($myParcelTrack->getStatus()) {
                     $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
@@ -537,22 +528,26 @@ class MagentoCollection implements MagentoCollectionInterface
 
                 if ($myParcelTrack->getBarcode()) {
                     $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
-                    //echo 'barcode: ' . $myParcelTrack->getBarcode() . " \n"; // JOERI
                 }
 
                 $magentoTrack->save();
             }
         }
-        //die(' </textarea> WOEFDRAM OUWE'); // JOERI
 
         return $this->updateOrderGridByShipment($shipments);
     }
 
+    /**
+     * @return $this
+     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     */
     public function addReturnShipments(): self
-    { // can only be called once
-        // check if there are shipments at all before return in the box
+    {
         $returnInTheBoxOptions = $this->options['return_in_the_box'] ?? null;
-        if ($returnInTheBoxOptions) {
+
+        if ($returnInTheBoxOptions && $this->myParcelCollection->isNotEmpty()) {
             $this->addReturnInTheBox($returnInTheBoxOptions);
         }
 
@@ -576,10 +571,7 @@ class MagentoCollection implements MagentoCollectionInterface
          * @var Order                                                        $order
          */
         foreach ($shipments as $shipment) {
-            if (! $shipment) {
-                continue;
-            }
-            if (! method_exists($shipment, 'getOrder')) {
+            if (! $shipment || ! method_exists($shipment, 'getOrder')) {
                 continue;
             }
 
