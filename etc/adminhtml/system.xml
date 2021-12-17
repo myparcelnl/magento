@@ -343,6 +343,15 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
+                <field id="pickup_mailbox" translate="label comment" type="select" sortOrder="366" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show pickup option</label>
+                    <comment>Show pickup option even when the package fits in mailbox</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="myparcelnl_magento_postnl_settings/pickup/active">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="morning" translate="label comment" type="text" sortOrder="370" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Morning delivery</label>
