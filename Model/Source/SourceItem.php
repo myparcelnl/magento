@@ -22,7 +22,7 @@ class SourceItem
     /**
      * @var SourceItemRepositoryInterface
      */
-    private $sourceItemRepository = null;
+    private $sourceItemRepository;
 
     public function __construct(
         SearchCriteriaBuilder $searchCriteriaBuilder,
