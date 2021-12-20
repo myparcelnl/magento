@@ -64,6 +64,7 @@ class UpdateStatus
     {
         $this->setOrdersToUpdate();
         $this->orderCollection
+            ->syncMagentoToMyparcel()
             ->setNewMyParcelTracks()
             ->setLatestData()
             ->updateMagentoTrack();
