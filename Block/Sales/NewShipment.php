@@ -22,7 +22,6 @@ use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 
 class NewShipment extends AbstractItems
 {
@@ -41,6 +40,8 @@ class NewShipment extends AbstractItems
      */
     private $defaultOptions;
 
+    public $form;
+
     /**
      * @param \Magento\Backend\Block\Template\Context                   $context
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface      $stockRegistry
@@ -58,6 +59,7 @@ class NewShipment extends AbstractItems
         // Set order
         $this->order = $registry->registry('current_shipment')->getOrder();
         $this->objectManager = $objectManager;
+        $this->form = new NewShipmentForm();
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,
