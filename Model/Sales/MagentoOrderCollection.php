@@ -10,6 +10,7 @@ use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
+use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
@@ -50,8 +51,6 @@ class MagentoOrderCollection extends MagentoCollection
     private $shippingRecipient;
 
     /**
-     * CreateAndPrintMyParcelTrack constructor.
-     *
      * @param ObjectManagerInterface                  $objectManager
      * @param \Magento\Framework\App\RequestInterface $request
      * @param null                                    $areaList
@@ -79,11 +78,11 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Set Magento collection
      *
-     * @param $orderCollection \Magento\Sales\Model\ResourceModel\Order\Collection|Order[]
+     * @param \Magento\Sales\Model\ResourceModel\Order\Collection|Order[] $orderCollection
      *
      * @return $this
      */
-    public function setOrderCollection($orderCollection)
+    public function setOrderCollection($orderCollection): self
     {
         $this->orders = $orderCollection;
 
@@ -95,7 +94,7 @@ class MagentoOrderCollection extends MagentoCollection
      *
      * @return $this
      */
-    public function reload()
+    public function reload(): self
     {
         $ids = $this->orders->getAllIds();
 
@@ -160,18 +159,6 @@ class MagentoOrderCollection extends MagentoCollection
         $this->save();
 
         return $this;
-    }
-
-    /**
-     * Add MyParcel Track from Magento Track
-     *
-     * @return $this
-     * @throws \Exception
-     *
-     */
-    public function setNewMyParcelTracks(): self
-    {
-        return $this->setNewMyParcelTracksByShipment($this->getShipmentsCollection());
     }
 
     /**
@@ -347,25 +334,6 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Update all the tracks that made created via the API
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    public function updateMagentoTrack(): self
-    {
-        return $this->updateMagentoTrackByShipment($this->getShipmentsCollection());
-    }
-
-    /**
-     * @return $this
-     */
-    public function syncMagentoToMyparcel(): self
-    {
-        return $this->syncMagentoToMyParcelForShipments($this->getShipmentsCollection());
-    }
-
-    /**
      * Check if there is 1 shipment in all orders
      *
      * @return bool
@@ -382,22 +350,19 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @return array
+     * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
      */
-    private function getShipmentsCollection(): array
+    protected function getShipmentsCollection(): \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
     {
-        if (! isset($this->orders)) {
-            return [];
-        }
-
-        $shipments = [];
+        $orderIds = [];
         foreach ($this->getOrders() as $order) {
-            foreach ($order->getShipmentsCollection() as $shipment) {
-                $shipments[] = $shipment;
-            }
+            $orderIds[] = $order->getEntityId();
         }
 
-        return $shipments;
+        $shipmentsCollection = $this->objectManager->get(MagentoShipmentCollection::PATH_MODEL_SHIPMENT);
+        $shipmentsCollection->addAttributeToFilter('order_id', ['in' => $orderIds]);
+
+        return $shipmentsCollection;
     }
 
     /**

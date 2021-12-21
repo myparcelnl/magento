@@ -27,16 +27,16 @@ use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
  *
  * @package MyParcelNL\Magento\Model\Sales
  */
-class MagentoCollection implements MagentoCollectionInterface
+abstract class MagentoCollection implements MagentoCollectionInterface
 {
-    const PATH_HELPER_DATA            = 'MyParcelNL\Magento\Helper\Data';
-    const PATH_MODEL_ORDER            = '\Magento\Sales\Model\ResourceModel\Order\Collection';
-    const PATH_MODEL_SHIPMENT         = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
-    const PATH_ORDER_GRID             = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
-    const PATH_ORDER_TRACK            = 'Magento\Sales\Model\Order\Shipment\Track';
-    const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
-    const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
+    public const PATH_HELPER_DATA            = 'MyParcelNL\Magento\Helper\Data';
+    public const PATH_MODEL_ORDER            = '\Magento\Sales\Model\ResourceModel\Order\Collection';
+    public const PATH_MODEL_SHIPMENT         = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
+    public const PATH_ORDER_GRID             = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
+    public const PATH_ORDER_TRACK            = 'Magento\Sales\Model\Order\Shipment\Track';
+    public const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
+    public const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
+    public const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
 
     /**
      * @var MyParcelCollection
@@ -96,8 +96,6 @@ class MagentoCollection implements MagentoCollectionInterface
     ];
 
     /**
-     * CreateAndPrintMyParcelTrack constructor.
-     *
      * @param ObjectManagerInterface                  $objectManager
      * @param \Magento\Framework\App\RequestInterface $request
      * @param null                                    $areaList
@@ -352,23 +350,11 @@ class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @param $shipments
-     *
      * @return $this
      */
-    protected function syncMagentoToMyParcelForShipments($shipments): self
+    public function syncMagentoToMyparcel(): self
     {
-        $consignmentIds = [];
-
-        foreach ($shipments as $shipment) {
-            $trackCollection = $shipment->getAllTracks();
-            foreach ($trackCollection as $magentoTrack) {
-                $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
-                if ($consignmentId) {
-                    $consignmentIds[] = $consignmentId;
-                }
-            }
-        }
+        $consignmentIds = $this->getMyparcelConsignmentIdsForShipments();
 
         try {
             $this->myParcelCollection->addConsignmentByConsignmentIds(
@@ -383,8 +369,6 @@ class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * Create MyParcel concepts
-     *
      * @return $this
      * @throws \MyParcelNL\Sdk\src\Exception\ApiException
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
@@ -415,8 +399,10 @@ class MagentoCollection implements MagentoCollectionInterface
      * @return $this
      * @throws \Exception
      */
-    public function setNewMyParcelTracksByShipment($shipments): self
+    public function setNewMyParcelTracks(): self
     {
+        $shipments = $this->getShipmentsCollection();
+
         $multiColloConsignments = [];
         /**
          * @var Order\Shipment       $shipment
@@ -494,17 +480,13 @@ class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @param \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection|array $shipments
-     *
      * @return $this
      * @throws \Exception
      */
-    protected function updateMagentoTrackByShipment($shipments): self
+    public function updateMagentoTrack(): self
     {
-        /**
-         * @var Order\Shipment       $shipment
-         * @var Order\Shipment\Track $magentoTrack
-         */
+        $shipments = $this->getShipmentsCollection();
+
         foreach ($shipments as $shipment) {
             $consignments    = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
             $trackCollection = $this->getTrackByShipment($shipment)->getItems();
@@ -534,7 +516,7 @@ class MagentoCollection implements MagentoCollectionInterface
             }
         }
 
-        return $this->updateOrderGridByShipment($shipments);
+        return $this->updateOrderGrid();
     }
 
     /**
@@ -555,21 +537,19 @@ class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @param $shipments
+     * @param \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $shipments
      *
      * @return $this
      * @throws \Exception
      */
-    protected function updateOrderGridByShipment($shipments): self
+    protected function updateOrderGrid(): self
     {
+        $shipments = $this->getShipmentsCollection();
+
         if (! $shipments) {
             return $this;
         }
 
-        /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $shipment
-         * @var Order                                                        $order
-         */
         foreach ($shipments as $shipment) {
             if (! $shipment || ! method_exists($shipment, 'getOrder')) {
                 continue;
@@ -590,6 +570,8 @@ class MagentoCollection implements MagentoCollectionInterface
         return $this;
     }
 
+    abstract protected function getShipmentsCollection(): \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection;
+
     /**
      * @param $orderId
      *
@@ -608,5 +590,26 @@ class MagentoCollection implements MagentoCollectionInterface
         $tracks     = $conn->fetchAll($select);
 
         return $tracks;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getMyparcelConsignmentIdsForShipments(): array
+    {
+        $shipments = $this->getShipmentsCollection();
+
+        $consignmentIds = [];
+
+        foreach ($shipments as $shipment) {
+            $trackCollection = $shipment->getAllTracks();
+            foreach ($trackCollection as $magentoTrack) {
+                $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+                if ($consignmentId) {
+                    $consignmentIds[] = $consignmentId;
+                }
+            }
+        }
+        return $consignmentIds;
     }
 }

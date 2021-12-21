@@ -16,11 +16,18 @@ class MagentoShipmentCollection extends MagentoCollection
     private $shipments = null;
 
     /**
+     * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
+     */
+    public function getShipments()
+    {
+        return $this->getShipmentsCollection();
+    }
+    /**
      * Get all Magento shipments
      *
      * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
      */
-    public function getShipments()
+    protected function getShipmentsCollection(): \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
     {
         return $this->shipments;
     }
@@ -28,11 +35,13 @@ class MagentoShipmentCollection extends MagentoCollection
     /**
      * Set Magento collection
      *
-     * @param $shipmentCollection \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
+     * @param \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $shipmentCollection
      *
      * @return $this
      */
-    public function setShipmentCollection($shipmentCollection)
+    public function setShipmentCollection(
+        \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $shipmentCollection
+    ): self
     {
         $this->shipments = $shipmentCollection;
 
@@ -45,13 +54,13 @@ class MagentoShipmentCollection extends MagentoCollection
      * @return $this
      * @throws \Exception
      */
-    public function setMagentoTrack()
+    public function setMagentoTrack(): self
     {
         /**
          * @var Order          $order
          * @var Order\Shipment $shipment
          */
-        foreach ($this->getShipments() as $shipment) {
+        foreach ($this->getShipmentsCollection() as $shipment) {
             if ($this->shipmentHasTrack($shipment) == false ||
                 $this->getOption('create_track_if_one_already_exist')
             ) {
@@ -59,20 +68,9 @@ class MagentoShipmentCollection extends MagentoCollection
             }
         }
 
-        $this->getShipments()->save();
+        $this->getShipmentsCollection()->save();
 
         return $this;
-    }
-
-    /**
-     * Add MyParcel Track from Magento Track
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    public function setNewMyParcelTracks(): self
-    {
-        return $this->setNewMyParcelTracksByShipment($this->shipments);
     }
 
     /**
@@ -136,24 +134,5 @@ class MagentoShipmentCollection extends MagentoCollection
         }
 
         return $this;
-    }
-
-    /**
-     * Update all the tracks that made created via the API
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    public function updateMagentoTrack(): self
-    {
-        return $this->updateMagentoTrackByShipment($this->getShipments());
-    }
-
-    /**
-     * @return $this
-     */
-    public function syncMagentoToMyparcel(): self
-    {
-        return $this->syncMagentoToMyParcelForShipments($this->getShipments());
     }
 }
