@@ -48,7 +48,7 @@ class SourceItem
 
             return $this->sourceItemRepository->getList($searchCriteria)->getItems();
         } 
-        return [];        
+        return [];
     }
 
     /**
