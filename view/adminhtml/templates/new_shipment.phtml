@@ -53,10 +53,10 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
             $country = $block->getCountry();
             foreach ($abstractConsignment->getAllowedPackageTypes() as $packageType) {
                 $packageTypeName = $packageType;
-                $packageType     = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+                $packageTypeId   = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
                 if ('NL' !== $country
                     && in_array(
-                        $packageType,
+                        $packageTypeId,
                         [
                             AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP,
                             AbstractConsignment::PACKAGE_TYPE_MAILBOX,
@@ -64,7 +64,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     )) {
                     continue;
                 }
-                $packageTypeHuman = $block->getNewShipmentForm()::PACKAGE_TYPE_HUMAN_MAP[$packageType] ?? $packageTypeName;
+                $packageTypeHuman = $block->getNewShipmentForm()::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId] ?? $packageTypeName;
                 ?>
                 <div class="admin__field admin__field-option">
                     <input
@@ -72,23 +72,21 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         class="admin__control-radio"
                         id="mypa_package_type-<?= $packageTypeName ?>_<?= $carrierName ?>"
                         name="mypa_package_type"
-                        value="<?= $packageType ?>"
-                        <?= $block->getPackageType() !== $packageType
-                            ?: 'checked="checked"' ?>>
+                        value="<?= $packageTypeName ?>">
                     <label
                         class="admin__field-label"
                         for="mypa_package_type-<?= $packageTypeName ?>_<?= $carrierName ?>"><?= __(
                             $packageTypeHuman
                         ) ?></label>
                     <?php
-                    if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP === $packageType) {
+                    if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP === $packageTypeId) {
                     $weight = $block->getDigitalStampWeight(); ?>
                     <select
                         name="mypa_digital_stamp_weight"
                         id="mypa_digital_stamp_weight_<?= $carrierName ?>"
                         class="required product-custom-option admin__control-select"
                         style="display:none;margin: 10px 0 0 30px"
-                        data-for_mypa_package_type="<?= $packageType ?>"
+                        data-for_mypa_package_type="<?= $packageTypeName ?>"
                         title="">
                         <option value="0">No standard weight</option>
                         <option
@@ -133,17 +131,17 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle
     mypa-option-toggle"
                     style="display:none;padding-left: 30px;"
-                    data-for_mypa_package_type="<?= $packageType ?>">
+                    data-for_mypa_package_type="<?= $packageTypeName ?>">
                     <label
                         class="admin__field-label"
-                        for="mypa_label_amount_<?= $carrierName ?>_<?= $packageType ?>"
+                        for="mypa_label_amount_<?= $carrierName ?>_<?= $packageTypeId ?>"
                         style="display: block">
                         <span><?= __('Label amount:') ?></span>
                     </label>
                     <?php $label_amount = 1; ?>
                     <select
                         name="mypa_label_amount"
-                        id="mypa_label_amount_<?= $carrierName ?>_<?= $packageType ?>"
+                        id="mypa_label_amount_<?= $carrierName ?>_<?= $packageTypeId ?>"
                         class="required product-custom-option admin__control-select"
                         title="">
                         <?php
@@ -159,7 +157,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     continue;
                 }
                 try {
-                    $abstractConsignment->setPackageType($packageType);
+                    $abstractConsignment->setPackageType($packageTypeId);
                 } catch (\Exception $e) {
                     continue;
                 }
@@ -174,10 +172,10 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
-                        data-for_mypa_package_type="<?= $packageType ?>"
+                        data-for_mypa_package_type="<?= $packageTypeName ?>"
                         style="display:none; padding-left: 30px;">
                         <input
-                            id="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageType ?>"
+                            id="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>"
                             class="admin__control-checkbox"
                             name="mypa_<?= $shipmentOption ?>"
                             value="1"
@@ -186,7 +184,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                                 ? 'checked="checked"'
                                 : '' ?>
                         />
-                        <label class="admin__field-label" for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageType ?>">
+                        <label class="admin__field-label" for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
                             <span><?= $block->getNewShipmentForm()->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption
                                 ?></span>
                         </label>
@@ -201,7 +199,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                 ?>
                 <div
                     class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
-                    data-for_mypa_package_type="<?= $packageType ?>"
+                    data-for_mypa_package_type="<?= $packageTypeName ?>"
                     style="display:none; padding-left: 30px;">
                     <label class="admin__field-label" for="mypa_insurance" style="display: block">
                         <span><?= __('Insured up to:') ?></span>
@@ -237,7 +235,8 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
 <script type="text/x-magento-init">
        {
            ".page-footer": {
-               "myparcelnl_newshipment": { "carrier": "postnl", "packageType":<?= $block->getPackageType() ?>}
+               "myparcelnl_newshipment": { "carrier": "postnl", "packageType":"<?=
+array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
             }
        }
 </script>

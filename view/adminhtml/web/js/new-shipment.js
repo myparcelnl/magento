@@ -15,7 +15,7 @@ define(
           var carriers = document.querySelectorAll('[name="mypa_carrier"]'),
             packageTypes = document.querySelectorAll('[name="mypa_package_type"]');
           this.mypa_carrier = options.carrier || 'postnl';
-          this.mypa_package_type = options.packageType || 1;
+          this.mypa_package_type = options.packageType || 'package';
           this.initializeSelectors(carriers);
           this.initializeSelectors(packageTypes);
 
@@ -48,15 +48,15 @@ define(
           for (i = 0, len = elements.length; i < len; ++i) {
             element = elements[i];
             if (element.getAttribute('data-for_' + name) === value) {
-              element.style.display = 'inherit';
               radio = element.querySelector('[type="radio"]');
+              this.toggleElement(element, true);
               if (radio) {
                 setTimeout(function(radio) {
                   self.clickActiveSelector(radio);
                 }, timeoutForLoadingSequence, radio);
               }
             } else {
-              element.style.display = 'none';
+              this.toggleElement(element, false);
             }
           }
         },
@@ -65,9 +65,39 @@ define(
             radio.click();
           }
         },
+        toggleElement: function(element, visibility) {
+          var inputs = element.getElementsByTagName('input'),
+            selects = element.getElementsByTagName('select');
+          element.style.display = visibility ? 'inherit' : 'none';
+          if (visibility) {
+            this.setEnabled(inputs, selects);
+          } else {
+            this.setDisabled(inputs, selects);
+          }
+        },
+        // todo the shipment options form elements must be disabled for non-active carriers also directly after loading
+        // todo refactor setEnabled and setDisabled because of duplicate code
+        setEnabled: function() {
+          var type, i, len, elements;
+          for (type in arguments) {
+            elements = arguments[type];
+            for (i = 0, len = elements.length; i < len; ++i) {
+              elements[i].removeAttribute('disabled');
+            }
+          }
+        },
+        setDisabled: function() {
+          var type, i, len, elements;
+          for (type in arguments) {
+            elements = arguments[type];
+            for (i = 0, len = elements.length; i < len; ++i) {
+              elements[i].setAttribute('disabled', 'disabled');
+            }
+          }
+        },
       };
 
       return model.initialize(options);
     };
-  }
+  },
 );
