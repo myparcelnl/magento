@@ -26,6 +26,8 @@ class DefaultOptions
     // Maximum characters length of company name.
     const COMPANY_NAME_MAX_LENGTH = 50;
 
+    private const INSURANCE_AMOUNT_BELGIUM = 500;
+
     /**
      * @var Data
      */
@@ -150,7 +152,7 @@ class DefaultOptions
         $shippingAddress = self::$order->getShippingAddress();
 
         if ($shippingAddress && AbstractConsignment::CC_BE === $shippingAddress->getCountryId()) {
-            return $this->getDefault('insurance_belgium') ? 500 : 0;
+            return $this->getDefault('insurance_belgium') ? self::INSURANCE_AMOUNT_BELGIUM : 0;
         }
 
         if ($this->getDefault('insurance_500')) {
