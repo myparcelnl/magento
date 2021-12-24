@@ -29,14 +29,14 @@ use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
  */
 abstract class MagentoCollection implements MagentoCollectionInterface
 {
-    public const PATH_HELPER_DATA            = 'MyParcelNL\Magento\Helper\Data';
+    public const PATH_HELPER_DATA            = '\MyParcelNL\Magento\Helper\Data';
     public const PATH_MODEL_ORDER            = '\Magento\Sales\Model\ResourceModel\Order\Collection';
     public const PATH_MODEL_SHIPMENT         = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
-    public const PATH_ORDER_GRID             = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
-    public const PATH_ORDER_TRACK            = 'Magento\Sales\Model\Order\Shipment\Track';
-    public const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
-    public const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
     public const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
+
+    private const PATH_ORDER_TRACK            = '\Magento\Sales\Model\Order\Shipment\Track';
+    private const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
+    private const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
 
     /**
      * @var MyParcelCollection
