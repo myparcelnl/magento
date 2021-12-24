@@ -40,7 +40,10 @@ class NewShipment extends AbstractItems
      */
     private $defaultOptions;
 
-    public $form;
+    /**
+     * @var \MyParcelNL\Magento\Block\Sales\NewShipmentForm
+     */
+    private $form;
 
     /**
      * @param \Magento\Backend\Block\Template\Context                   $context
@@ -142,5 +145,13 @@ class NewShipment extends AbstractItems
     public function getChosenOptions()
     {
         return json_decode($this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true);
+    }
+
+    /**
+     * @return \MyParcelNL\Magento\Block\Sales\NewShipmentForm
+     */
+    public function getNewShipmentForm(): NewShipmentForm
+    {
+        return $this->form;
     }
 }

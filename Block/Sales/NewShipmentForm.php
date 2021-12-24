@@ -12,36 +12,48 @@ class NewShipmentForm
 {
     public const ALLOWED_CARRIER_CLASSES = [
         CarrierPostNL::class,
-        CarrierRedJePakketje::class,
     ];
 
-    public function __construct()
-    {
-    }
+    public const PACKAGE_TYPE_HUMAN_MAP = [
+        AbstractConsignment::PACKAGE_TYPE_PACKAGE       => 'Package',
+        AbstractConsignment::PACKAGE_TYPE_MAILBOX       => 'Mailbox',
+        AbstractConsignment::PACKAGE_TYPE_LETTER        => 'Letter',
+        AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => 'Digital stamp',
+    ];
 
-    public function doIt()
+    /**
+     * @var array
+     */
+    private $shipmentOptionsHumanMap;
+
+    /**
+     * @return AbstractConsignment[]
+     * @throws \Exception
+     */
+    public function getCarrierSpecificAbstractConsignments(): array
     {
+        $returnArray = [];
+
         foreach (self::ALLOWED_CARRIER_CLASSES as $carrier) {
-            try {
-                $this->writeOutCarrier(ConsignmentFactory::createFromCarrier(CarrierFactory::create($carrier)));
-            } catch (\Exception $e) {
-                $this->writeMessage($e->getMessage());
-            }
+            $returnArray[] = ConsignmentFactory::createFromCarrier(CarrierFactory::create($carrier));
         }
+
+        return $returnArray;
     }
 
-    private function writeOutCarrier(AbstractConsignment $consignment)
+    /**
+     * @param array $map
+     */
+    public function setShipmentOptionsHumanMap(array $map): void
     {
-        echo '<h1>' . $consignment->getCarrierName() . '</h1>';
-        echo $consignment->getAllowedPackageTypes();
-//        $consignment->getAllowedExtraOptions();
-//        $consignment->getInsurancePossibilities();
-//        $consignment->getAllowedDeliveryTypes();
-//        $consignment->getAllowedShipmentOptions();
+        $this->shipmentOptionsHumanMap = $map;
     }
 
-    private function writeMessage(string $message)
+    /**
+     * @return array
+     */
+    public function getShipmentOptionsHumanMap(): array
     {
-        echo '<strong>' . $message . '</strong>';
+        return $this->shipmentOptionsHumanMap;
     }
 }

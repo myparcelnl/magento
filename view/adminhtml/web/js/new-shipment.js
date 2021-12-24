@@ -1,84 +1,73 @@
 define(
-    ['jquery'],
-    function ($) {
-        'use strict';
+  function() {
+    'use strict';
 
-        return function NewShipment(options, element)
-        {
+    return function NewShipment(options) {
+      var model = {
 
-            var model = {
+        /**
+         * Initializes observable properties.
+         *
+         * @param {Object} options - Values carrier and packageType, supplied by new_shipment.phtml.
+         * @returns {NewShipment} Chainable.
+         */
+        initialize: function(options) {
+          var carriers = document.querySelectorAll('[name="mypa_carrier"]'),
+            packageTypes = document.querySelectorAll('[name="mypa_package_type"]');
+          this.mypa_carrier = options.carrier || 'postnl';
+          this.mypa_package_type = options.packageType || 1;
+          this.initializeSelectors(carriers);
+          this.initializeSelectors(packageTypes);
 
-                /**
-                 * Initializes observable properties.
-                 *
-                 * @returns {NewShipment} Chainable.
-                 */
-                initialize: function (options, element) {
-                    this.options = options;
-                    this.element = element;
-                    this._setOptionsObserver();
-                    return this;
-                },
+          return this;
+        },
+        initializeSelectors: function(selectors) {
+          var self = this,
+            i,
+            len,
+            selector;
+          for (i = 0, len = selectors.length; i < len; ++i) {
+            selector = selectors[i];
+            selector.addEventListener('change', function() {
+              self.showForSelector(this);
+            });
+            if (this.mypa_carrier === selector.value) {
+              selector.click();
+            }
+          }
+        },
+        showForSelector: function(radio) {
+          var name = radio.name,
+            value = radio.value,
+            elements = document.querySelectorAll('[data-for_' + name + ']'),
+            timeoutForLoadingSequence = 300,
+            i,
+            len,
+            element,
+            self = this;
+          for (i = 0, len = elements.length; i < len; ++i) {
+            element = elements[i];
+            if (element.getAttribute('data-for_' + name) === value) {
+              element.style.display = 'inherit';
+              radio = element.querySelector('[type="radio"]');
+              if (radio) {
+                setTimeout(function(radio) {
+                  self.clickActiveSelector(radio);
+                }, timeoutForLoadingSequence, radio);
+              }
+            } else {
+              element.style.display = 'none';
+            }
+          }
+        },
+        clickActiveSelector: function(radio) {
+          if (radio.value === this.mypa_package_type.toString()) {
+            radio.click();
+          }
+        },
+      };
 
-                /**
-                 * MyParcel action observer
-                 *
-                 * @protected
-                 */
-                _setOptionsObserver: function () {
-                    var parentThis = this;
-                    $("input[name='mypa_create_from_observer']").on(
-                        "change",
-                        function () {
-                            if ($('#mypa_create_from_observer').prop('checked')) {
-                                $('.mypa_carrier-toggle').slideDown();
-                                parentThis._checkCarrierField();
-                                parentThis._checkOptionsField();
-
-                            } else {
-                                $('.mypa-option-toggle').slideUp();
-                                $('.mypa_carrier-toggle').slideUp();
-                            }
-                        }
-                    );
-
-                    $("#mypa_carrier_postnl").click(
-                        function () {
-                            parentThis._checkOptionsField();
-                        }
-                    );
-
-                    $("#mypa_carrier_DPD").click(
-                        function () {
-                            if ($('#mypa_carrier_DPD').prop("checked", true)) {
-                                $('.mypa-option-toggle').slideUp();
-                            }
-                        }
-                    );
-
-                    $("input[name='mypa_carrier']").on(
-                        "change",
-                        function () {
-                            parentThis._checkCarrierField();
-                        }
-                    );
-
-                    return this;
-                },
-
-                _checkOptionsField: function () {
-                    if ($('#mypa_carrier_postnl').prop("checked", true)) {
-                        $('.mypa-option-toggle').slideDown();
-                    }
-                },
-
-                _checkCarrierField: function () {
-                    $('.mypa_carrier-toggle').show();
-                }
-            };
-
-            model.initialize(options, element);
-            return model;
-        };
-    }
+      return model.initialize(options);
+    };
+  }
 );
