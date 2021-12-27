@@ -247,18 +247,23 @@ class MagentoCollection implements MagentoCollectionInterface
             $areaObject = $this->areaList->getArea(\Magento\Framework\App\Area::AREA_ADMINHTML);
             $areaObject->load(\Magento\Framework\App\Area::PART_TRANSLATE);
         }
-        $tracks = $this->getTracksCollectionByOrderId($orderId);
 
+        return $this->getHtmlForGridColumnsByTracks($this->getTracksCollectionByOrderId($orderId));
+    }
+
+    /**
+     * @param Order\Shipment\Track[]|\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection $tracks
+     *
+     * @return string[]
+     */
+    public function getHtmlForGridColumnsByTracks($tracks): array
+    {
         $data       = ['track_status' => [], 'track_number' => []];
         $columnHtml = ['track_status' => '', 'track_number' => ''];
 
-        /**
-         * @var Order\Shipment       $shipment
-         * @var Order\Shipment\Track $track
-         */
         foreach ($tracks as $track) {
             // Set all Track data in array
-            if ($track['myparcel_status'] !== null) {
+            if (null !== $track['myparcel_status']) {
                 $data['track_status'][] = __('status_' . $track['myparcel_status']);
             }
             if ($track['track_number']) {
