@@ -12,7 +12,6 @@ class NewShipmentForm
 {
     public const ALLOWED_CARRIER_CLASSES = [
         CarrierPostNL::class,
-        CarrierRedJePakketje::class,
     ];
 
     public const PACKAGE_TYPE_HUMAN_MAP = [
