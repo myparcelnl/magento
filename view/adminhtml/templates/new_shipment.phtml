@@ -1,6 +1,8 @@
 <?php
 /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */
+
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+
 ?>
 <input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden" /><!-- MyParcel options -->
 <div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
@@ -16,16 +18,18 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
     </label>
 </div>
 <?php
-$block->getNewShipmentForm()->setShipmentOptionsHumanMap(
-    [
-        AbstractConsignment::SHIPMENT_OPTION_SIGNATURE      => __('Signature on receipt'),
-        AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT => __('Home address only'),
-        AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK      => __('Age check 18+'),
-        AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT   => __('Large package'),
-        AbstractConsignment::SHIPMENT_OPTION_RETURN         => __('Return if no answer'),
-    ]
-);
-foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
+$block->getNewShipmentForm()
+    ->setShipmentOptionsHumanMap(
+        [
+            AbstractConsignment::SHIPMENT_OPTION_SIGNATURE      => __('Signature on receipt'),
+            AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT => __('Home address only'),
+            AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK      => __('Age check 18+'),
+            AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT   => __('Large package'),
+            AbstractConsignment::SHIPMENT_OPTION_RETURN         => __('Return if no answer'),
+        ]
+    );
+foreach ($block->getNewShipmentForm()
+             ->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
     $carrier      = $abstractConsignment->getCarrier();
     $carrierName  = $carrier->getName();
     $carrierHuman = $carrier->getHuman();
@@ -46,8 +50,9 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
         </div>
     </div>
     <div
-        class="field field-mypa_package_type" data-for_mypa_carrier="<?= $carrierName ?>"
-        style="margin: 10px 0 0 30px;display:none;">
+        class="field field-mypa_package_type"
+        data-for_mypa_carrier="<?= $carrierName ?>"
+        style="margin: 10px 0 0 30px;">
         <div class="admin__field-control">
             <?php
             $country = $block->getCountry();
@@ -64,7 +69,9 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     )) {
                     continue;
                 }
-                $packageTypeHuman = $block->getNewShipmentForm()::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId] ?? $packageTypeName;
+                $packageTypeHuman = $block->getNewShipmentForm()::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId]
+                    ??
+                    $packageTypeName;
                 ?>
                 <div class="admin__field admin__field-option">
                     <input
@@ -80,42 +87,43 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         ) ?></label>
                     <?php
                     if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP === $packageTypeId) {
-                    $weight = $block->getDigitalStampWeight(); ?>
-                    <select
-                        name="mypa_digital_stamp_weight"
-                        id="mypa_digital_stamp_weight_<?= $carrierName ?>"
-                        class="required product-custom-option admin__control-select"
-                        style="display:none;margin: 10px 0 0 30px"
-                        data-for_mypa_package_type="<?= $packageTypeName ?>"
-                        title="">
-                        <option value="0">No standard weight</option>
-                        <option
-                            value="20" <?= '20' === $weight
-                            ? 'selected="selected"'
-                            : '' ?> >0 - 20 gram
-                        </option>
-                        <option
-                            value="50" <?= '50' === $weight
-                            ? 'selected="selected"'
-                            : '' ?> >20 - 50 gram
-                        </option>
-                        <option
-                            value="100" <?= '100' === $weight
-                            ? 'selected="selected"'
-                            : '' ?> >50 - 100 gram
-                        </option>
-                        <option
-                            value="350" <?= '350' === $weight
-                            ? 'selected="selected"'
-                            : '' ?> >100 - 350 gram
-                        </option>
-                        <option
-                            value="2000" <?= '2000' === $weight
-                            ? 'selected="selected"'
-                            : '' ?> >350 - 2000 gram
-                        </option>
-                    </select>
-                    <?php
+                        $weight = $block->getDigitalStampWeight(); ?>
+                        <span data-for_mypa_package_type="<?= $packageTypeName ?>">
+                            <select
+                                name="mypa_digital_stamp_weight"
+                                id="mypa_digital_stamp_weight_<?= $carrierName ?>"
+                                class="required product-custom-option admin__control-select"
+                                style="margin: 10px 0 0 30px"
+                                title="">
+                                <option value="0">No standard weight</option>
+                                <option
+                                    value="20" <?= '20' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >0 - 20 gram
+                                </option>
+                                <option
+                                    value="50" <?= '50' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >20 - 50 gram
+                                </option>
+                                <option
+                                    value="100" <?= '100' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >50 - 100 gram
+                                </option>
+                                <option
+                                    value="350" <?= '350' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >100 - 350 gram
+                                </option>
+                                <option
+                                    value="2000" <?= '2000' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >350 - 2000 gram
+                                </option>
+                            </select>
+                        </span>
+                        <?php
                     } // end only digital stamp
                     ?>
                 </div>
@@ -126,12 +134,14 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     continue;
                 }
                 $carrierName = $carrier->getName();
+
+                if (AbstractConsignment::CC_NL !== $block->getCountry()) {
+                    continue;
+                }
                 ?>
                 <div
                     class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle
-    mypa-option-toggle"
-                    style="display:none;padding-left: 30px;"
-                    data-for_mypa_package_type="<?= $packageTypeName ?>">
+    mypa-option-toggle" style="padding-left: 30px;" data-for_mypa_package_type="<?= $packageTypeName ?>">
                     <label
                         class="admin__field-label"
                         for="mypa_label_amount_<?= $carrierName ?>_<?= $packageTypeId ?>"
@@ -153,9 +163,6 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     </select>
                 </div>
                 <?php
-                if (AbstractConsignment::CC_NL !== $block->getCountry()) {
-                    continue;
-                }
                 try {
                     $abstractConsignment->setPackageType($packageTypeId);
                 } catch (\Exception $e) {
@@ -173,7 +180,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     <div
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
                         data-for_mypa_package_type="<?= $packageTypeName ?>"
-                        style="display:none; padding-left: 30px;">
+                        style="padding-left:30px;">
                         <input
                             id="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>"
                             class="admin__control-checkbox"
@@ -184,9 +191,11 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                                 ? 'checked="checked"'
                                 : '' ?>
                         />
-                        <label class="admin__field-label" for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
-                            <span><?= $block->getNewShipmentForm()->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption
-                                ?></span>
+                        <label
+                            class="admin__field-label"
+                            for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
+                            <span><?= $block->getNewShipmentForm()
+                                          ->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?></span>
                         </label>
                     </div>
 
@@ -200,7 +209,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                 <div
                     class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
                     data-for_mypa_package_type="<?= $packageTypeName ?>"
-                    style="display:none; padding-left: 30px;">
+                    style="padding-left:30px;">
                     <label class="admin__field-label" for="mypa_insurance" style="display: block">
                         <span><?= __('Insured up to:') ?></span>
                     </label>
@@ -233,10 +242,12 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
 } // end foreach carrier
 ?>
 <script type="text/x-magento-init">
-       {
-           ".page-footer": {
-               "myparcelnl_newshipment": { "carrier": "postnl", "packageType":"<?=
-array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
-            }
-       }
+{
+    ".page-footer": {
+        "myparcelnl_newshipment": {
+            "carrier": "postnl",
+            "packageType":"<?= array_flip(
+            AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
+    }
+}
 </script>
