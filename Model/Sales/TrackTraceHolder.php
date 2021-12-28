@@ -213,8 +213,7 @@ class TrackTraceHolder
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
 
             if ($isBE) {
-                $this->consignment->setLargeFormat(false)
-                    ->setInsurance(null);
+                $this->consignment->setInsurance(null);
             }
 
             if ($pickupLocationAdapter->getRetailNetworkId()) {
