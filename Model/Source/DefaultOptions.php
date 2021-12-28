@@ -26,6 +26,8 @@ class DefaultOptions
     // Maximum characters length of company name.
     const COMPANY_NAME_MAX_LENGTH = 50;
 
+    private const INSURANCE_AMOUNT_BELGIUM = 500;
+
     /**
      * @var Data
      */
@@ -62,13 +64,13 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function getDefault($option)
+    public function getDefault($option): bool
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
-            key_exists('shipmentOptions', self::$chosenOptions) &&
-            key_exists($option, self::$chosenOptions['shipmentOptions']) &&
-            self::$chosenOptions['shipmentOptions'][$option] == true
+            array_key_exists('shipmentOptions', self::$chosenOptions) &&
+            array_key_exists($option, self::$chosenOptions['shipmentOptions']) &&
+            self::$chosenOptions['shipmentOptions'][$option]
         ) {
             return true;
         }
@@ -76,13 +78,12 @@ class DefaultOptions
         $total    = self::$order->getGrandTotal();
         $settings = self::$helper->getStandardConfig('default_options');
 
-        if ($settings[$option . '_active'] == '1' &&
-            (! $settings[$option . '_from_price'] || $total > (int) $settings[$option . '_from_price'])
-        ) {
-            return true;
+        if (! isset($settings[$option . '_active'])) {
+            return false;
         }
 
-        return false;
+        return '1' === $settings[$option . '_active']
+            && (! ($settings[$option . '_from_price'] ?? false) || $total > (int) $settings[$option . '_from_price']);
     }
 
     /**
@@ -146,8 +147,14 @@ class DefaultOptions
      *
      * @return int
      */
-    public function getDefaultInsurance()
+    public function getDefaultInsurance(): int
     {
+        $shippingAddress = self::$order->getShippingAddress();
+
+        if ($shippingAddress && AbstractConsignment::CC_BE === $shippingAddress->getCountryId()) {
+            return $this->getDefault('insurance_belgium') ? self::INSURANCE_AMOUNT_BELGIUM : 0;
+        }
+
         if ($this->getDefault('insurance_500')) {
             return 500;
         }

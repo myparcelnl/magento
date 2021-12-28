@@ -26,6 +26,27 @@
         </div>
     </div>
 
+<?php if ('BE' === $block->getCountry()): ?>
+    <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
+        <input id="mypa_insurance"
+            class="admin__control-checkbox"
+            name="mypa_insurance"
+            value="500"
+            type="checkbox"
+            <?= $block->getDefaultOptionsWithoutPrice('insurance_belgium') ? 'checked="checked"' : '';?>
+        />
+        <label class="admin__field-label" for="mypa_insurance">
+            <span><?=__('Insure shipment') ?></span>
+        </label>
+    </div>
+    <script type="text/x-magento-init">
+       {
+           ".page-footer": {
+               "myparcelnl_newshipment": {}
+            }
+       }
+    </script>
+<?php endif; ?>
 <?php if ($block->getCountry() == 'NL'): ?>
     <div class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
         <input id="mypa_signature"
@@ -60,7 +81,7 @@
             <?= $block->getDefaultOption('return') == true ? 'checked="checked"' : '';?>
         />
         <label class="admin__field-label" for="mypa_return">
-            <span><?=__('Return if no answe') ?></span>
+            <span><?=__('Return if no answer') ?></span>
         </label>
     </div>
 

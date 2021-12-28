@@ -196,9 +196,7 @@ class TrackTraceHolder
             ->setReturn($this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->checkLargeFormat())
             ->setAgeCheck($this->getAgeCheck($magentoTrack, $address))
-            ->setInsurance(
-                $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
-            )
+            ->setInsurance($options['insurance'] ?? self::$defaultOptions->getDefaultInsurance())
             ->setInvoice($magentoTrack->getShipment()->getOrder()->getIncrementId())
             ->setSaveRecipientAddress(false);
 
