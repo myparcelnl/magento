@@ -183,6 +183,8 @@ class TrackTraceHolder
             $this->helper->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
 
+        $isBE = AbstractConsignment::CC_BE === $address->getCountryId();
+
         $this->consignment
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
@@ -191,9 +193,9 @@ class TrackTraceHolder
             ->setDeliveryDate($this->helper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($this->helper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
             ->setPackageType($packageType)
-            ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
-            ->setSignature($this->getValueOfOption($options, 'signature'))
-            ->setReturn($this->getValueOfOption($options, 'return'))
+            ->setOnlyRecipient(! $isBE && $this->getValueOfOption($options, 'only_recipient'))
+            ->setSignature(! $isBE && $this->getValueOfOption($options, 'signature'))
+            ->setReturn(! $isBE && $this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->checkLargeFormat())
             ->setAgeCheck($this->getAgeCheck($magentoTrack, $address))
             ->setInsurance($options['insurance'] ?? self::$defaultOptions->getDefaultInsurance())
@@ -209,6 +211,11 @@ class TrackTraceHolder
                 ->setPickupCountry($pickupLocationAdapter->getCountry())
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode());
+
+            if ($isBE) {
+                $this->consignment->setLargeFormat(false)
+                    ->setInsurance(null);
+            }
 
             if ($pickupLocationAdapter->getRetailNetworkId()) {
                 $this->consignment->setRetailNetworkId($pickupLocationAdapter->getRetailNetworkId());
