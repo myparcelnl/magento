@@ -53,6 +53,12 @@ class TrackTraceHolder
     private const PRODUCT_QTY           = '%product_qty%';
 
     /**
+     * Maximum characters length of item description.
+     */
+    public const ITEM_DESCRIPTION_MAX_LENGTH  = 50;
+    public const ORDER_DESCRIPTION_MAX_LENGTH = 45;
+
+    /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
@@ -359,6 +365,11 @@ class TrackTraceHolder
             $labelDescription
         );
 
+
+        if (strlen($labelDescription) > self::ORDER_DESCRIPTION_MAX_LENGTH) {
+            return substr($labelDescription, 0, 42) . "...";
+        }
+
         return (string) $labelDescription;
     }
 
@@ -394,8 +405,13 @@ class TrackTraceHolder
 
         if ($products = $magentoTrack->getShipment()->getData('items')) {
             foreach ($products as $product) {
+
+                if (strlen($product->getName()) > self::ITEM_DESCRIPTION_MAX_LENGTH) {
+                    $description = substr_replace($product->getName(), '...', self::ITEM_DESCRIPTION_MAX_LENGTH - 3);
+                }
+
                 $myParcelProduct = (new MyParcelCustomsItem())
-                    ->setDescription($product->getName())
+                    ->setDescription($description)
                     ->setAmount($product->getQty())
                     ->setWeight($this->helper->getWeightTypeOfOption($product->getWeight()) ?: 1)
                     ->setItemValue($this->getCentsByPrice($product->getPrice()))
@@ -410,8 +426,13 @@ class TrackTraceHolder
         $products = $this->getItemsCollectionByShipmentId($magentoTrack->getShipment()->getId());
 
         foreach ($magentoTrack->getShipment()->getItems() as $item) {
+
+            if (strlen($item->getName()) > self::ITEM_DESCRIPTION_MAX_LENGTH) {
+                $description = substr_replace($item->getName(), '...', self::ITEM_DESCRIPTION_MAX_LENGTH - 3);
+            }
+
             $myParcelProduct = (new MyParcelCustomsItem())
-                ->setDescription($item->getName())
+                ->setDescription($description)
                 ->setAmount($item->getQty())
                 ->setWeight($this->helper->getWeightTypeOfOption($item->getWeight() * $item->getQty()))
                 ->setItemValue($item->getPrice() * 100)
