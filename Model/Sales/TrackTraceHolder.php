@@ -281,7 +281,7 @@ class TrackTraceHolder
         $ageCheckOfProduct    = $this->getAgeCheckFromProduct($magentoTrack);
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check');
 
-        return $ageCheckOfProduct ?? $ageCheckFromSettings;
+        return $ageCheckOfProduct ?: $ageCheckFromSettings;
     }
 
     /**
