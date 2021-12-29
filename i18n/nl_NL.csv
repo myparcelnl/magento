@@ -191,7 +191,8 @@ Pickup list button text,Lijst ophalen knop tekst
 Pickup map button text,Kaart ophalen knop tekst
 Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
-Show a delivery day in the checkout.,Laat een bezorgdag zien in de checkout.
+Show a delivery date in the checkout.,Laat een bezorgdag zien in de checkout.
+Amount of days in the future customers can choose from in the checkout., Aantal dagen in de toekomst waar klanten uit kunnen kiezen bij het afrekenen.
 You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,U hebt niet de juiste API-sleutel ingevoerd. Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
 Address details are not entered,Adresgegevens zijn niet ingevuld
 The times will be visible when nothing is filled in,De tijden zullen zichtbaar zijn wanneer niets is ingevuld
