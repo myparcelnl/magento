@@ -46,7 +46,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
             <?php
             $country = $block->getCountry();
             foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
-                $packageTypeId   = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
+                $packageTypeId = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
                 if (AbstractConsignment::CC_NL !== $country
                     && in_array(
                         $packageTypeId,
@@ -161,7 +161,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         || ! $abstractConsignment->canHaveShipmentOption($shipmentOption)) {
                         continue;
                     }
-                    $isActive = ('large_format' === $shipmentOption)
+                    $isActive = ($abstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $shipmentOption)
                         ? $block->getDefaultLargeFormat($shipmentOption)
                         : $block->getDefaultOption($shipmentOption);
                     ?>
@@ -191,39 +191,38 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     <?php
                 }
 
-                if (! $abstractConsignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_INSURANCE)) {
-                    continue;
-                }
-                ?>
-                <div
-                    class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
-                    data-for_mypa_package_type="<?= $packageTypeName ?>"
-                    style="padding-left:30px;">
-                    <label class="admin__field-label" for="mypa_insurance" style="display: block">
-                        <span><?= __('Insured up to:') ?></span>
-                    </label>
-                    <?php $defaultInsurance = $block->getDefaultInsurance(); ?>
-                    <select
-                        name="mypa_insurance"
-                        id="mypa_insurance"
-                        class="required product-custom-option admin__control-select"
-                        title="">
-                        <option value="0"><?= __('No insurance') ?></option>
-                        <?php
-                        foreach ($abstractConsignment->getInsurancePossibilities() as $insurancePossibility) {
-                            printf(
-                                '<option value="%1$s" %2$s>€ %1$s</option>',
-                                $insurancePossibility,
-                                $insurancePossibility === $defaultInsurance
-                                    ? 'selected="selected"'
-                                    : ''
-                            );
-                        }
-                        ?>
-                    </select>
-                </div>
+                if ($abstractConsignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_INSURANCE)) {
+                    ?>
+                    <div
+                        class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
+                        data-for_mypa_package_type="<?= $packageTypeName ?>"
+                        style="padding-left:30px;">
+                        <label class="admin__field-label" for="mypa_insurance" style="display: block">
+                            <span><?= __('Insured up to:') ?></span>
+                        </label>
+                        <?php $defaultInsurance = $block->getDefaultInsurance(); ?>
+                        <select
+                            name="mypa_insurance"
+                            id="mypa_insurance"
+                            class="required product-custom-option admin__control-select"
+                            title="">
+                            <option value="0"><?= __('No insurance') ?></option>
+                            <?php
+                            foreach ($abstractConsignment->getInsurancePossibilities() as $insurancePossibility) {
+                                printf(
+                                    '<option value="%1$s" %2$s>€ %1$s</option>',
+                                    $insurancePossibility,
+                                    $insurancePossibility === $defaultInsurance
+                                        ? 'selected="selected"'
+                                        : ''
+                                );
+                            }
+                            ?>
+                        </select>
+                    </div>
 
-                <?php
+                    <?php
+                } // end can have insurance
             } // end foreach packageType
             ?>
         </div>
@@ -236,8 +235,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
     ".page-footer": {
         "myparcelnl_newshipment": {
             "carrier": "postnl",
-            "packageType":"<?= array_flip(
-            AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
+            "packageType":"<?= array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
     }
 }
 </script>

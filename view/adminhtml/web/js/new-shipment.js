@@ -12,8 +12,8 @@ define(
          * @returns {NewShipment} Chainable.
          */
         initialize: function(options) {
-          var carriers = document.querySelectorAll('[name="mypa_carrier"]'),
-            packageTypes = document.querySelectorAll('[name="mypa_package_type"]');
+          var carriers = document.querySelectorAll('[name="mypa_carrier"]');
+          var packageTypes = document.querySelectorAll('[name="mypa_package_type"]');
           this.mypa_carrier = options.carrier || 'postnl';
           this.mypa_package_type = options.packageType || 'package';
           this.leaveAllVisible = false;
@@ -23,10 +23,10 @@ define(
           return this;
         },
         initializeSelectors: function(selectors) {
-          var self = this,
-            i,
-            len,
-            selector;
+          var self = this;
+          var i;
+          var len;
+          var selector;
           for (i = 0, len = selectors.length; i < len; ++i) {
             selector = selectors[i];
             selector.addEventListener('click', function() {
@@ -38,13 +38,13 @@ define(
           }
         },
         showForSelector: function(radio) {
-          var name = radio.name,
-            value = radio.value,
-            elements = document.querySelectorAll('[data-for_' + name + ']'),
-            timeoutForLoadingSequence = 300,
-            i,
-            len,
-            element;
+          var name = radio.name;
+          var value = radio.value;
+          var elements = document.querySelectorAll('[data-for_' + name + ']');
+          var timeoutForLoadingSequence = 300;
+          var i;
+          var len;
+          var element;
           this[name] = value;
           for (i = 0, len = elements.length; i < len; ++i) {
             element = elements[i];
@@ -68,16 +68,16 @@ define(
           }
         },
         toggleElement: function(element, visibility) {
-          var inputs = element.getElementsByTagName('input'),
-            selects = element.getElementsByTagName('select');
+          var inputs = element.getElementsByTagName('input');
+          var selects = element.getElementsByTagName('select');
           element.style.display = visibility || this.leaveAllVisible ? 'inherit' : 'none';
           this.onEachElement(visibility ? this.setEnabled : this.setDisabled, inputs, selects);
         },
         onEachElement: function(callback) {
-          var argumentCount,
-            argumentInput,
-            i,
-            len;
+          var argumentCount;
+          var argumentInput;
+          var i;
+          var len;
           for (argumentCount in arguments) {
             argumentInput = arguments[argumentCount];
             if (callback === argumentInput) {
@@ -98,5 +98,5 @@ define(
 
       return model.initialize(options);
     };
-  },
+  }
 );
