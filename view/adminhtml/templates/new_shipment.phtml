@@ -18,18 +18,7 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
     </label>
 </div>
 <?php
-$block->getNewShipmentForm()
-    ->setShipmentOptionsHumanMap(
-        [
-            AbstractConsignment::SHIPMENT_OPTION_SIGNATURE      => __('Signature on receipt'),
-            AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT => __('Home address only'),
-            AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK      => __('Age check 18+'),
-            AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT   => __('Large package'),
-            AbstractConsignment::SHIPMENT_OPTION_RETURN         => __('Return if no answer'),
-        ]
-    );
-foreach ($block->getNewShipmentForm()
-             ->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
+foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
     $carrier      = $abstractConsignment->getCarrier();
     $carrierName  = $carrier->getName();
     $carrierHuman = $carrier->getHuman();
@@ -56,10 +45,9 @@ foreach ($block->getNewShipmentForm()
         <div class="admin__field-control">
             <?php
             $country = $block->getCountry();
-            foreach ($abstractConsignment->getAllowedPackageTypes() as $packageType) {
-                $packageTypeName = $packageType;
-                $packageTypeId   = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
-                if ('NL' !== $country
+            foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
+                $packageTypeId   = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
+                if (AbstractConsignment::CC_NL !== $country
                     && in_array(
                         $packageTypeId,
                         [
@@ -195,7 +183,8 @@ foreach ($block->getNewShipmentForm()
                             class="admin__field-label"
                             for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
                             <span><?= $block->getNewShipmentForm()
-                                          ->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?></span>
+                                          ->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?>
+                            </span>
                         </label>
                     </div>
 
@@ -222,12 +211,13 @@ foreach ($block->getNewShipmentForm()
                         <option value="0"><?= __('No insurance') ?></option>
                         <?php
                         foreach ($abstractConsignment->getInsurancePossibilities() as $insurancePossibility) {
-                            ?>
-                            <option
-                                value="<?= $insurancePossibility ?>" <?= $insurancePossibility === $defaultInsurance
-                                ? 'selected="selected"'
-                                : '' ?> >€ <?= $insurancePossibility ?></option>
-                            <?php
+                            printf(
+                                '<option value="%1$s" %2$s>€ %1$s</option>',
+                                $insurancePossibility,
+                                $insurancePossibility === $defaultInsurance
+                                    ? 'selected="selected"'
+                                    : ''
+                            );
                         }
                         ?>
                     </select>

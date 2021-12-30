@@ -60,9 +60,9 @@ class NewShipment extends AbstractItems
         ObjectManagerInterface $objectManager
     ) {
         // Set order
-        $this->order = $registry->registry('current_shipment')->getOrder();
+        $this->order         = $registry->registry('current_shipment')->getOrder();
         $this->objectManager = $objectManager;
-        $this->form = new NewShipmentForm();
+        $this->form          = new NewShipmentForm();
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,

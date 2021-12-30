@@ -26,6 +26,17 @@ class NewShipmentForm
      */
     private $shipmentOptionsHumanMap;
 
+
+    public function __construct()
+    {
+        $this->shipmentOptionsHumanMap = [
+            AbstractConsignment::SHIPMENT_OPTION_SIGNATURE      => __('Signature on receipt'),
+            AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT => __('Home address only'),
+            AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK      => __('Age check 18+'),
+            AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT   => __('Large package'),
+            AbstractConsignment::SHIPMENT_OPTION_RETURN         => __('Return if no answer'),
+        ];
+    }
     /**
      * @return AbstractConsignment[]
      * @throws \Exception
@@ -39,14 +50,6 @@ class NewShipmentForm
         }
 
         return $returnArray;
-    }
-
-    /**
-     * @param array $map
-     */
-    public function setShipmentOptionsHumanMap(array $map): void
-    {
-        $this->shipmentOptionsHumanMap = $map;
     }
 
     /**
