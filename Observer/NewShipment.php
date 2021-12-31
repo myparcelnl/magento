@@ -140,9 +140,9 @@ class NewShipment implements ObserverInterface
      *
      * @throws \Exception
      */
-    private function updateTrackGrid($shipment)
+    private function updateTrackGrid($shipment): void
     {
-        $aHtml = $this->orderCollection->getHtmlForGridColumns($shipment->getOrder()->getId());
+        $aHtml = $this->orderCollection->getHtmlForGridColumnsByTracks($shipment->getTracksCollection());
         $shipment->getOrder()
                  ->setData('track_status', $aHtml['track_status'])
                  ->setData('track_number', $aHtml['track_number'])
