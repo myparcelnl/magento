@@ -179,7 +179,7 @@ class Data extends AbstractHelper
             return null;
         }
 
-        $checkoutDate = json_decode($date, true)['date'];
+        $checkoutDate = json_decode($date, true)['date'] ?? substr($date, 0, 10);
         $deliveryDate = strtotime(date('Y-m-d', strtotime($checkoutDate)));
         $currentDate  = strtotime(date('Y-m-d'));
 
