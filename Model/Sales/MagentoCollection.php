@@ -501,6 +501,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                         continue;
                     }
                     $myParcelTrack = $consignments->pop();
+
+                    if (! $myParcelTrack->getConsignmentId()) {
+                        continue;
+                    }
                     $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId());
                 }
 
