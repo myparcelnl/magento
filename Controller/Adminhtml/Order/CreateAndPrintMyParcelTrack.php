@@ -7,6 +7,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
@@ -115,25 +116,29 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             return $this;
         }
 
-        $this->orderCollection
-            ->setMagentoTrack()
-            ->setMyParcelTrack()
-            ->createMyParcelConcepts()
-            ->updateGridByOrder();
+        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+            $this->orderCollection->setFulfilment();
+        } else {
 
-        if (
-            $this->orderCollection->getOption('request_type') == 'concept' ||
-            $this->orderCollection->myParcelCollection->isEmpty()
-        ) {
-            return $this;
+            $this->orderCollection
+                ->setMagentoTrack()
+                ->setMyParcelTrack()
+                ->createMyParcelConcepts()
+                ->updateGridByOrder();
+
+            if (
+                'concept' === $this->orderCollection->getOption('request_type') ||
+                $this->orderCollection->myParcelCollection->isEmpty()
+            ) {
+                return $this;
+            }
+
+            $this->orderCollection
+                ->setPdfOfLabels()
+                ->updateMagentoTrack()
+                ->sendTrackEmails()
+                ->downloadPdfOfLabels();
         }
-
-        $this->orderCollection
-            ->setPdfOfLabels()
-            ->updateMagentoTrack()
-            ->sendTrackEmails()
-            ->downloadPdfOfLabels();
-
         return $this;
     }
 

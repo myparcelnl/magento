@@ -26,10 +26,18 @@
             </group>
             <group id="print" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Print settings</label>
-                <field id="paper_type" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
+<!--                <field id="export_mode" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">-->
+<!--                    <label>Mode</label>-->
+<!--                    <comment>With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.</comment>-->
+<!--                    <source_model>MyParcelNL\Magento\Model\Source\ExportMode</source_model>-->
+<!--                </field>-->
+                <field id="paper_type" translate="label comment" type="select" sortOrder="212" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Paper type</label>
                     <comment>Select a standard orientation for printing labels.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\PaperType</source_model>
+<!--                    <depends>-->
+<!--                        <field id="export_mode">shipments</field>-->
+<!--                    </depends>-->
                 </field>
                 <field id="label_description" translate="label comment" type="text" sortOrder="213" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Label description</label>
@@ -210,13 +218,25 @@
                         <field id="insurance_500_active">1</field>
                     </depends>
                 </field>
+                <field id="insurance_belgium_active" translate="label" type="select" sortOrder="265" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate 'Insure shipments to Belgium'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
             <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Basic settings</label>
-                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="2275" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show delivery date</label>
+                    <comment>Show a delivery date in the checkout.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="276" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Number of days</label>
+                    <depends>
+                        <field id="allow_show_delivery_date">1</field>
+                    </depends>
                     <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
-                    <comment>Show a delivery day in the checkout.</comment>
+                    <comment>Amount of days in the future customers can choose from in the checkout.</comment>
                 </field>
                 <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Cut-off time</label>
@@ -325,6 +345,15 @@
                     <comment>Enter a basic price for a mailbox. The regular price will not affect this price.</comment>
                     <depends>
                         <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="pickup_mailbox" translate="label comment" type="select" sortOrder="366" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show pickup option</label>
+                    <comment>Show pickup option even when the package fits in mailbox</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="myparcelnl_magento_postnl_settings/pickup/active">1</field>
                     </depends>
                 </field>
             </group>

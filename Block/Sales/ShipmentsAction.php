@@ -48,11 +48,9 @@ class ShipmentsAction extends Template
      *
      * @return bool
      */
-    public function hasApiKey()
+    public function hasApiKey(): bool
     {
-        $apiKey = $this->helper->getGeneralConfig('api/key');
-
-        return $apiKey == '' ? 'false' : 'true';
+        return $this->helper->hasApiKey();
     }
 
     /**
@@ -60,7 +58,7 @@ class ShipmentsAction extends Template
      *
      * @return string
      */
-    public function getOrderAjaxUrl()
+    public function getOrderAjaxUrl(): string
     {
         return $this->_urlBuilder->getUrl('myparcel/order/CreateAndPrintMyParcelTrack');
     }
@@ -70,7 +68,7 @@ class ShipmentsAction extends Template
      *
      * @return string
      */
-    public function getShipmentAjaxUrl()
+    public function getShipmentAjaxUrl(): string
     {
         return $this->_urlBuilder->getUrl('myparcel/shipment/CreateAndPrintMyParcelTrack');
     }
@@ -80,7 +78,7 @@ class ShipmentsAction extends Template
      *
      * @return string
      */
-    public function getAjaxUrlSendReturnMail()
+    public function getAjaxUrlSendReturnMail(): string
     {
         return $this->_urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail');
     }
@@ -90,7 +88,7 @@ class ShipmentsAction extends Template
      *
      * @return string
      */
-    public function getPrintSettings()
+    public function getPrintSettings(): string
     {
         $settings = $this->helper->getGeneralConfig('print');
 

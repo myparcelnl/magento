@@ -19,7 +19,7 @@ use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
 
 /**
  * Class MagentoOrderCollection
@@ -115,7 +115,9 @@ class MagentoCollection implements MagentoCollectionInterface
         $this->helper             = $objectManager->create(self::PATH_HELPER_DATA);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
-        $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(['Magento2'=> $this->helper->getVersion()]);
+        $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
+            ['Magento2' => $this->helper->getVersion()]
+        );
     }
 
     /**
@@ -192,19 +194,38 @@ class MagentoCollection implements MagentoCollectionInterface
     /**
      * Add MyParcel consignment to collection
      *
-     * @param $consignment AbstractConsignment
+     * @param $consignment BaseConsignment
      *
      * @return $this
      * @throws \Exception
      */
-    public function addConsignment(AbstractConsignment $consignment)
+    public function addConsignment(BaseConsignment $consignment)
     {
         $this->myParcelCollection->addConsignment($consignment);
 
         return $this;
     }
 
-    public function apiKeyIsCorrect()
+    /**
+     * @return string
+     */
+    public function getApiKey(): string
+    {
+        return $this->helper->getApiKey();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getExportMode(): ?string
+    {
+        return $this->helper->getExportMode();
+    }
+
+    /**
+     * @return bool
+     */
+    public function apiKeyIsCorrect(): bool
     {
         return $this->helper->apiKeyIsCorrect();
     }
@@ -250,7 +271,7 @@ class MagentoCollection implements MagentoCollectionInterface
             $columnHtml['track_status'] = implode('<br>', $data['track_status']);
         }
         if ($data['track_number']) {
-            $columnHtml['track_number'] = implode('<br>', $data['track_number']);
+            $columnHtml['track_number'] = json_encode($data['track_number']);
         }
 
         return $columnHtml;

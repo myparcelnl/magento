@@ -48,11 +48,9 @@ class OrdersAction extends Template
      *
      * @return bool
      */
-    public function hasApiKey()
+    public function hasApiKey(): bool
     {
-        $apiKey = $this->helper->getGeneralConfig('api/key');
-
-        return $apiKey == '' ? 'false' : 'true';
+        return $this->helper->hasApiKey();
     }
 
     /**
