@@ -19,6 +19,7 @@ use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
 
 /**
@@ -26,16 +27,16 @@ use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
  *
  * @package MyParcelNL\Magento\Model\Sales
  */
-class MagentoCollection implements MagentoCollectionInterface
+abstract class MagentoCollection implements MagentoCollectionInterface
 {
-    const PATH_HELPER_DATA            = 'MyParcelNL\Magento\Helper\Data';
-    const PATH_MODEL_ORDER            = '\Magento\Sales\Model\ResourceModel\Order\Collection';
-    const PATH_MODEL_SHIPMENT         = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
-    const PATH_ORDER_GRID             = '\Magento\Sales\Model\ResourceModel\Order\Grid\Collection';
-    const PATH_ORDER_TRACK            = 'Magento\Sales\Model\Order\Shipment\Track';
-    const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
-    const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
+    public const PATH_HELPER_DATA            = '\MyParcelNL\Magento\Helper\Data';
+    public const PATH_MODEL_ORDER            = '\Magento\Sales\Model\ResourceModel\Order\Collection';
+    public const PATH_MODEL_SHIPMENT         = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
+    public const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
+
+    private const PATH_ORDER_TRACK            = '\Magento\Sales\Model\Order\Shipment\Track';
+    private const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
+    private const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
 
     /**
      * @var MyParcelCollection
@@ -95,8 +96,6 @@ class MagentoCollection implements MagentoCollectionInterface
     ];
 
     /**
-     * CreateAndPrintMyParcelTrack constructor.
-     *
      * @param ObjectManagerInterface                  $objectManager
      * @param \Magento\Framework\App\RequestInterface $request
      * @param null                                    $areaList
@@ -356,6 +355,233 @@ class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
+     * @return $this
+     */
+    public function syncMagentoToMyparcel(): self
+    {
+        $consignmentIds = $this->getMyparcelConsignmentIdsForShipments();
+
+        try {
+            $this->myParcelCollection->addConsignmentByConsignmentIds(
+                $consignmentIds,
+                $this->getApiKey()
+            );
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \Exception
+     */
+    public function createMyParcelConcepts(): self
+    {
+        if (! count($this->myParcelCollection)) {
+            $this->messageManager->addWarningMessage(__('myparcelnl_magento_error_no_shipments_to_process'));
+            return $this;
+        }
+
+        try {
+            $this->myParcelCollection->createConcepts();
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+            return $this;
+        }
+
+        $this->myParcelCollection->setLatestData();
+
+        return $this;
+    }
+
+    /**
+     * Add MyParcel Track from Magento Track
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    public function setNewMyParcelTracks(): self
+    {
+        $shipments = $this->getShipmentsCollection();
+
+        $multiColloConsignments = [];
+        /**
+         * @var Order\Shipment       $shipment
+         * @var Order\Shipment\Track $magentoTrack
+         */
+        foreach ($shipments as $shipment) {
+            $magentoTracks = $this->getTrackByShipment($shipment)->getItems();
+
+            foreach ($magentoTracks as $magentoTrack) {
+                if ($magentoTrack->getData('myparcel_consignment_id')
+                    || TrackTraceHolder::MYPARCEL_CARRIER_CODE !== $magentoTrack->getCarrierCode()) {
+                    continue;
+                }
+
+                $parentId = $magentoTrack->getData('parent_id');
+
+                if (isset($multiColloConsignments[$parentId])) {
+                    $multiColloConsignments[$parentId]['colli']++;
+                    continue;
+                }
+
+                $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
+
+                $multiColloConsignments[$parentId] = [
+                    'consignment' => $consignment,
+                    'colli'       => 1,
+                ];
+            }
+        }
+
+        foreach ($multiColloConsignments as $multiColloConsignment) {
+            $consignment = $multiColloConsignment['consignment'];
+            if (1 === $multiColloConsignment['colli']) {
+                $this->myParcelCollection->addConsignment($consignment);
+                continue;
+            }
+            $this->myParcelCollection->addMultiCollo($consignment, (int) $multiColloConsignment['colli']);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     */
+    public function addReturnInTheBox(string $returnOptions): void
+    {
+        $this->myParcelCollection
+            ->generateReturnConsignments(
+                false,
+                function (
+                    AbstractConsignment $returnConsignment,
+                    AbstractConsignment $parent
+                ) use ($returnOptions): AbstractConsignment {
+                    $returnConsignment->setLabelDescription(
+                        'Return: ' . $parent->getLabelDescription() .
+                        ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
+                    );
+                    $returnConsignment->setReferenceIdentifier($parent->getReferenceIdentifier());
+
+                    if (ReturnInTheBox::NO_OPTIONS === $returnOptions) {
+                        $returnConsignment->setOnlyRecipient(false);
+                        $returnConsignment->setSignature(false);
+                        $returnConsignment->setAgeCheck(false);
+                        $returnConsignment->setReturn(false);
+                        $returnConsignment->setLargeFormat(false);
+                        $returnConsignment->setInsurance(false);
+                    }
+
+                    return $returnConsignment;
+                }
+            );
+    }
+
+    /**
+     * @return $this
+     * @throws \Exception
+     */
+    public function updateMagentoTrack(): self
+    {
+        $shipments = $this->getShipmentsCollection();
+
+        foreach ($shipments as $shipment) {
+            $consignments    = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
+            $trackCollection = $this->getTrackByShipment($shipment)->getItems();
+
+            foreach ($trackCollection as $magentoTrack) {
+                $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
+                    $magentoTrack->getData('myparcel_consignment_id')
+                );
+
+                if (! $myParcelTrack) {
+                    if ($consignments->isEmpty()) {
+                        continue;
+                    }
+                    $myParcelTrack = $consignments->pop();
+
+                    if (! $myParcelTrack->getConsignmentId()) {
+                        continue;
+                    }
+                    $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId());
+                }
+
+                if ($myParcelTrack->getStatus()) {
+                    $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
+                }
+
+                if ($myParcelTrack->getBarcode()) {
+                    $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
+                }
+
+                $magentoTrack->save();
+            }
+        }
+
+        return $this->updateOrderGrid();
+    }
+
+    /**
+     * @return $this
+     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     */
+    public function addReturnShipments(): self
+    {
+        $returnInTheBoxOptions = $this->options['return_in_the_box'] ?? null;
+
+        if ($returnInTheBoxOptions && $this->myParcelCollection->isNotEmpty()) {
+            $this->addReturnInTheBox($returnInTheBoxOptions);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $shipments
+     *
+     * @return $this
+     * @throws \Exception
+     */
+    protected function updateOrderGrid(): self
+    {
+        $shipments = $this->getShipmentsCollection();
+
+        if (! $shipments) {
+            return $this;
+        }
+
+        foreach ($shipments as $shipment) {
+            if (! $shipment || ! method_exists($shipment, 'getOrder')) {
+                continue;
+            }
+
+            $order = $shipment->getOrder();
+            $aHtml = $this->getHtmlForGridColumns($order->getId());
+
+            if ($aHtml['track_status']) {
+                $order->setData('track_status', $aHtml['track_status']);
+            }
+            if ($aHtml['track_number']) {
+                $order->setData('track_number', $aHtml['track_number']);
+            }
+            $order->save();
+        }
+
+        return $this;
+    }
+
+    abstract protected function getShipmentsCollection(): \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection;
+
+    /**
      * @param $orderId
      *
      * @return array
@@ -373,5 +599,26 @@ class MagentoCollection implements MagentoCollectionInterface
         $tracks     = $conn->fetchAll($select);
 
         return $tracks;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getMyparcelConsignmentIdsForShipments(): array
+    {
+        $shipments = $this->getShipmentsCollection();
+
+        $consignmentIds = [];
+
+        foreach ($shipments as $shipment) {
+            $trackCollection = $shipment->getAllTracks();
+            foreach ($trackCollection as $magentoTrack) {
+                $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+                if ($consignmentId) {
+                    $consignmentIds[] = $consignmentId;
+                }
+            }
+        }
+        return $consignmentIds;
     }
 }

@@ -129,18 +129,8 @@ class CreateConceptAfterInvoice implements ObserverInterface
 
         $this->orderCollection
             ->setMagentoTrack()
-            ->setMyParcelTrack()
+            ->setNewMyParcelTracks()
             ->createMyParcelConcepts()
-            ->updateGridByOrder();
-
-        if (
-            $this->orderCollection->getOption('request_type') == 'concept' ||
-            $this->orderCollection->myParcelCollection->isEmpty()
-        ) {
-            return $this;
-        }
-
-        $this->orderCollection
             ->updateMagentoTrack();
 
         return $this;

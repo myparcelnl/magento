@@ -58,12 +58,14 @@ class UpdateStatus
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
     public function execute()
     {
         $this->setOrdersToUpdate();
         $this->orderCollection
-            ->setMyParcelTrack()
+            ->syncMagentoToMyparcel()
+            ->setNewMyParcelTracks()
             ->setLatestData()
             ->updateMagentoTrack();
 
