@@ -179,15 +179,15 @@ class Data extends AbstractHelper
             return null;
         }
 
-        $date          = strtotime($date);
-        $delivery_date = date('Y-m-d H:i:s', $date);
-        $todayDate     = strtotime('now');
+        $checkoutDate = json_decode($date, true)['date'] ?? substr($date, 0, 10);
+        $deliveryDate = strtotime(date('Y-m-d', strtotime($checkoutDate)));
+        $currentDate  = strtotime(date('Y-m-d'));
 
-        if ($date <= $todayDate) {
+        if ($deliveryDate <= $currentDate) {
             return date('Y-m-d H:i:s', strtotime('now +1 day'));
         }
 
-        return $delivery_date;
+        return $checkoutDate;
     }
 
     /**
