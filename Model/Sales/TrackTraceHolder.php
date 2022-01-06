@@ -194,9 +194,15 @@ class TrackTraceHolder
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
-            ->setLargeFormat($this->checkLargeFormat())
-            ->setAgeCheck($this->getAgeCheck($magentoTrack, $address))
-            ->setInsurance($options['insurance'] ?? self::$defaultOptions->getDefaultInsurance())
+            ->setLargeFormat(
+                $this->getValueOfOptionWhenSet($options, 'large_format')
+                ?? $this->checkLargeFormat())
+            ->setAgeCheck(
+                $this->getValueOfOptionWhenSet($options, 'age_check')
+                ?? $this->getAgeCheck($magentoTrack, $address))
+            ->setInsurance(
+                $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
+            )
             ->setInvoice($magentoTrack->getShipment()->getOrder()->getIncrementId())
             ->setSaveRecipientAddress(false);
 
@@ -504,21 +510,32 @@ class TrackTraceHolder
     }
 
     /**
-     * Get default value if option === null
+     * Get default value if option === null or not present in $options
      *
-     * @param      $options []
-     * @param      $optionKey
+     * @param array  $options
+     * @param string $key
      *
      * @return bool
      * @internal param $option
      */
-    private function getValueOfOption($options, $optionKey)
+    private function getValueOfOption(array $options, string $key): bool
     {
-        if ($options[$optionKey] === null) {
-            return (bool) self::$defaultOptions->getDefault($optionKey);
+        return $this->getValueOfOptionWhenSet($options, $key) ?? self::$defaultOptions->getDefault($key);
+    }
+
+    /**
+     * @param array  $options
+     * @param string $key
+     *
+     * @return bool|null boolean value of the option named $key, or null when not set in $options
+     */
+    private function getValueOfOptionWhenSet(array $options, string $key): ?bool
+    {
+        if (! isset($options[$key]) || ! array_key_exists($key, $options)) {
+            return null;
         }
 
-        return (bool) $options[$optionKey];
+        return (bool) $options[$key];
     }
 
     /**
