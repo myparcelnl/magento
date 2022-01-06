@@ -23,7 +23,8 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
     $carrierName  = $carrier->getName();
     $carrierHuman = $carrier->getHuman();
     ?>
-    <div class="field field-mypa_carrier_<?= $carrierName ?> mypa_carrier-toggle mypa-options" style="margin-top: 10px;">
+    <div class="field field-mypa_carrier_<?= $carrierName ?> mypa_carrier-toggle js--mypa-options" style="margin-top:
+    10px;">
         <div class="admin__field-control">
             <div class="admin__field admin__field-option">
                 <input
@@ -39,7 +40,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
         </div>
     </div>
     <div
-        class="field field-mypa_package_type mypa-options"
+        class="field field-mypa_package_type js--mypa-options"
         data-for_mypa_carrier="<?= $carrierName ?>"
         style="margin: 10px 0 0 30px;">
         <div class="admin__field-control">

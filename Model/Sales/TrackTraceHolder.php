@@ -194,12 +194,8 @@ class TrackTraceHolder
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
             ->setReturn($this->getValueOfOption($options, 'return'))
-            ->setLargeFormat(
-                $this->getValueOfOptionWhenSet($options, 'large_format')
-                ?? $this->checkLargeFormat())
-            ->setAgeCheck(
-                $this->getValueOfOptionWhenSet($options, 'age_check')
-                ?? $this->getAgeCheck($magentoTrack, $address))
+            ->setLargeFormat($this->checkLargeFormat($options))
+            ->setAgeCheck($this->getAgeCheck($magentoTrack, $address, $options))
             ->setInsurance(
                 $options['insurance'] !== null ? $options['insurance'] : self::$defaultOptions->getDefaultInsurance()
             )
@@ -254,28 +250,31 @@ class TrackTraceHolder
     /**
      * @return bool
      */
-    private function checkLargeFormat(): bool
+    private function checkLargeFormat(array $options): bool
     {
-        return self::$defaultOptions->getDefaultLargeFormat('large_format');
+        return $this->getValueOfOptionWhenSet($options, 'large_format')
+            ?? self::$defaultOptions->getDefaultLargeFormat('large_format');
     }
 
     /**
-     * @param  Order\Shipment\Track  $magentoTrack
-     * @param  object                $address
+     * @param Order\Shipment\Track $magentoTrack
+     * @param object               $address
+     * @param array                $options
      *
      * @return bool
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function getAgeCheck(Track $magentoTrack, $address): bool
+    private function getAgeCheck(Track $magentoTrack, $address, array $options = []): bool
     {
         if ($address->getCountryId() !== AbstractConsignment::CC_NL) {
             return false;
         }
 
+        $ageCheckFromOptions  = $this->getValueOfOptionWhenSet($options, 'age_check');
         $ageCheckOfProduct    = $this->getAgeCheckFromProduct($magentoTrack);
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check');
 
-        return $ageCheckOfProduct ?? $ageCheckFromSettings;
+        return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
 
     /**

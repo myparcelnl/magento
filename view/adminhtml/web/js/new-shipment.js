@@ -20,7 +20,7 @@ define(
           this.leaveAllVisible = false;
           this.initializeSelectors(carriers);
           this.initializeSelectors(packageTypes);
-          this.initializeToggle(toggleMyParcel, 'mypa-options');
+          this.initializeToggle(toggleMyParcel, 'js--mypa-options');
 
           return this;
         },
