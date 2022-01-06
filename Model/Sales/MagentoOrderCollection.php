@@ -418,6 +418,13 @@ class MagentoOrderCollection extends MagentoCollection
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
         $shipment     = $convertOrder->toShipment($order);
 
+        $shipmentAttributes = $shipment->getExtensionAttributes();
+
+        if (method_exists($shipmentAttributes, 'setSourceCode')) {
+            $shipmentAttributes->setSourceCode($this->sourceItem->getSource($order, $order->getAllItems()));
+            $shipment->setExtensionAttributes($shipmentAttributes);
+        }
+
         // Loop through order items
         foreach ($order->getAllItems() as $orderItem) {
             // Check if order item has qty to ship or is virtual
@@ -432,11 +439,6 @@ class MagentoOrderCollection extends MagentoCollection
 
             // Add shipment item to shipment
             $shipment->addItem($shipmentItem);
-
-            if ($this->sourceItem) {
-                $source = $this->getMultiStockInventory($orderItem);
-                $shipment->getExtensionAttributes()->setSourceCode($source);
-            }
         }
 
         // Register shipment

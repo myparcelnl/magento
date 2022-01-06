@@ -214,9 +214,9 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getExportMode(): string
+    public function getExportMode(): ?string
     {
         return $this->helper->getExportMode();
     }

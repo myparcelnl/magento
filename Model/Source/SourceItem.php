@@ -5,6 +5,7 @@ namespace MyParcelNL\Magento\Model\Source;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\InventoryApi\Api\Data\SourceItemInterface;
 use Magento\InventoryApi\Api\SourceItemRepositoryInterface;
+use Magento\Sales\Model\Order\ShipmentFactory;
 
 class SourceItem
 {
@@ -18,12 +19,19 @@ class SourceItem
      */
     private $sourceItemRepository;
 
+    /**
+     * @var ShipmentFactory
+     */
+    private $shipmentFactory;
+
     public function __construct(
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        SourceItemRepositoryInterface $sourceItemRepository
+        SourceItemRepositoryInterface $sourceItemRepository,
+        ShipmentFactory $shipmentFactory
     ) {
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->sourceItemRepository = $sourceItemRepository;
+        $this->shipmentFactory = $shipmentFactory;
     }
 
     /**
@@ -39,5 +47,28 @@ class SourceItem
             ->create();
 
         return $this->sourceItemRepository->getList($searchCriteria)->getItems();
+    }
+
+    /**
+     * Magento uses an afterCreate plugin on the shipmentFactory to set the SourceCode. In the default flow Magento
+     * runs this code when you open the Create Shipment page. This behaviour doesn't occur in this flow, so we force
+     * that flow to happen here.
+     *
+     * @param $order
+     * @param $shipmentItems
+     *
+     * @return Shipment
+     */
+    public function getSource($order, $shipmentItems)
+    {
+        /** @var Shipment $shipment */
+        $shipment = $this->shipmentFactory->create(
+            $order,
+            $shipmentItems
+        );
+
+        $extensionAttributes = $shipment->getExtensionAttributes();
+
+        return $extensionAttributes->getSourceCode();
     }
 }
