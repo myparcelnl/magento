@@ -14,13 +14,26 @@ define(
         initialize: function(options) {
           var carriers = document.querySelectorAll('[name="mypa_carrier"]');
           var packageTypes = document.querySelectorAll('[name="mypa_package_type"]');
+          var toggleMyParcel = document.getElementById('mypa_create_from_observer');
           this.mypa_carrier = options.carrier || 'postnl';
           this.mypa_package_type = options.packageType || 'package';
           this.leaveAllVisible = false;
           this.initializeSelectors(carriers);
           this.initializeSelectors(packageTypes);
+          this.initializeToggle(toggleMyParcel, 'mypa-options');
 
           return this;
+        },
+        initializeToggle: function(checkbox, classNameWillBeToggled) {
+          var self = this;
+          checkbox.addEventListener('click', function() {
+            var elements = document.getElementsByClassName(classNameWillBeToggled);
+            var i;
+            var len;
+            for (i = 0, len = elements.length; i < len; ++i) {
+              self.toggleElement(elements[i], this.checked);
+            }
+          });
         },
         initializeSelectors: function(selectors) {
           var self = this;
