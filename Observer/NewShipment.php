@@ -87,15 +87,15 @@ class NewShipment implements ObserverInterface
      *
      * @throws \Exception
      */
-    private function setMagentoAndMyParcelTrack(Shipment $shipment)
+    private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
+        $amount  = $options['label_amount'];
 
-        // The reason that $amount is hard coded is because this is part of multicollo, this is not possible in the Belguim plugin. However, a preparation has been made for this.
-        $amount = $options['label_amount'];
         /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
+        $useMultiCollo     = 'NL' === $shipment->getShippingAddress()->getCountryId() && 'postnl' === $options['carrier'] ?? '' && $amount > 1;
 
         if (isset($options['carrier']) && false === $options['carrier']) {
             unset($options['carrier']);
@@ -111,14 +111,22 @@ class NewShipment implements ObserverInterface
             $trackTraceHolders[] = $trackTraceHolder;
 
             $i++;
+
+            if ($useMultiCollo) {
+                continue;
+            }
+            $this->orderCollection->myParcelCollection->addConsignment($trackTraceHolder->consignment);
         }
 
-        // All multicollo holders are the same, so use the first for the SDK
-        $firstTrackTraceHolder = $trackTraceHolders[0];
-        $this->orderCollection->myParcelCollection
-            ->addMultiCollo($firstTrackTraceHolder->consignment, $amount ?? self::DEFAULT_LABEL_AMOUNT)
-            ->createConcepts()
-            ->setLatestData();
+        if ($useMultiCollo) {
+            $firstTrackTraceHolder = $trackTraceHolders[0];
+            $this->orderCollection->myParcelCollection->addMultiCollo(
+                $firstTrackTraceHolder->consignment,
+                $amount ?? self::DEFAULT_LABEL_AMOUNT
+            );
+        }
+
+        $this->orderCollection->myParcelCollection->createConcepts()->setLatestData();
 
         foreach ($this->orderCollection->myParcelCollection as $consignment) {
             $trackTraceHolder = array_pop($trackTraceHolders);
