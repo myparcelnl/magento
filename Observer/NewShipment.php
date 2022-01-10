@@ -110,17 +110,16 @@ class NewShipment implements ObserverInterface
                 ->createTrackTraceFromShipment($shipment);
             $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
 
-            $trackTraceHolders[] = $trackTraceHolder;
-
             if (1 === $i && $this->canUseMultiCollo($trackTraceHolder->consignment)) {
                 $useMultiCollo = true;
             }
 
-            $i++;
-
             if (! $useMultiCollo) {
                 $this->orderCollection->myParcelCollection->addConsignment($trackTraceHolder->consignment);
             }
+
+            $trackTraceHolders[] = $trackTraceHolder;
+            $i++;
         }
 
         if ($useMultiCollo) {
@@ -131,7 +130,9 @@ class NewShipment implements ObserverInterface
             );
         }
 
-        $this->orderCollection->myParcelCollection->createConcepts()->setLatestData();
+        $this->orderCollection->myParcelCollection
+            ->createConcepts()
+            ->setLatestData();
 
         foreach ($this->orderCollection->myParcelCollection as $consignment) {
             $trackTraceHolder = array_pop($trackTraceHolders);
