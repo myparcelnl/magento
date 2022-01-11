@@ -19,6 +19,7 @@ use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
 
@@ -438,16 +439,45 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             }
         }
 
+        return $this->addGroupedConsignments($multiColloConsignments);
+    }
+
+    /**
+     * @param array $multiColloConsignments
+     *
+     * @return $this
+     */
+    protected function addGroupedConsignments(array $multiColloConsignments): self
+    {
         foreach ($multiColloConsignments as $multiColloConsignment) {
             $consignment = $multiColloConsignment['consignment'];
-            if (1 === $multiColloConsignment['colli']) {
-                $this->myParcelCollection->addConsignment($consignment);
+            $quantity    = $multiColloConsignment['colli'];
+
+            if (1 < $quantity && $this->canUseMultiCollo($consignment)) {
+                $this->myParcelCollection->addMultiCollo($consignment, $quantity);
                 continue;
             }
-            $this->myParcelCollection->addMultiCollo($consignment, (int) $multiColloConsignment['colli']);
+
+            $this->addConsignmentMultipleTimes($consignment, $quantity);
         }
 
         return $this;
+    }
+
+    /**
+     * @param \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment
+     * @param int                                                       $quantity
+     *
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     */
+    protected function addConsignmentMultipleTimes(AbstractConsignment $consignment, int $quantity): void
+    {
+        $i = 0;
+
+        while ($i < $quantity) {
+            $this->myParcelCollection->addConsignment($consignment);
+            ++$i;
+        }
     }
 
     /**
@@ -620,5 +650,21 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             }
         }
         return $consignmentIds;
+    }
+
+    /**
+     * @param \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment
+     *
+     * @return bool whether $consignment properties allow for multicollo shipments
+     */
+    public function canUseMultiCollo(AbstractConsignment $consignment): bool
+    {
+        $carrier = $consignment->getCarrierId();
+        $country = $consignment->getCountry();
+        $package = $consignment->getPackageType();
+
+        return $consignment::CC_NL === $country
+            && CarrierPostNL::ID === $carrier
+            && $consignment::PACKAGE_TYPE_PACKAGE === $package;
     }
 }
