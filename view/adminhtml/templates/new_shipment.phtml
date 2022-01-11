@@ -1,200 +1,242 @@
-<?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */ ?>
-<?php /** @var MyParcelNL\Magento\Block\Sales\NewShipment $jsonDeliveryOptions */ ?>
-    <input name="mypa_extra_options_checkboxes_in_form"
-           value="1"
-           type="hidden"
-    />
-    <!-- MyParcel options -->
-    <div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
-        <input id="mypa_create_from_observer"
-               class="admin__control-checkbox"
-               name="mypa_create_from_observer"
-               value="1"
-               type="checkbox"
-               checked="checked"
-        />
-        <label class="admin__field-label"
-               for="mypa_create_from_observer">
-            <span><?=__('Create MyParcel consignment') ?></span></label>
-    </div>
-    <div class="field field-mypa_carrier_postnl mypa_carrier-toggle" style="margin-top: 10px;">
+<?php
+/** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */
+
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+
+?>
+<input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden" /><!-- MyParcel options -->
+<div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
+    <input
+        id="mypa_create_from_observer"
+        class="admin__control-checkbox"
+        name="mypa_create_from_observer"
+        value="1"
+        type="checkbox"
+        checked="checked" />
+    <label class="admin__field-label" for="mypa_create_from_observer">
+        <span><?= __('Create MyParcel consignment') ?></span>
+    </label>
+</div>
+<?php
+foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
+    $carrier      = $abstractConsignment->getCarrier();
+    $carrierName  = $carrier->getName();
+    $carrierHuman = $carrier->getHuman();
+    ?>
+    <div class="field field-mypa_carrier_<?= $carrierName ?> mypa_carrier-toggle js--mypa-options" style="margin-top:
+    10px;">
         <div class="admin__field-control">
             <div class="admin__field admin__field-option">
-                <input type="radio" class="admin__control-radio" id="mypa_carrier_postnl" name="mypa_carrier" value="postnl">
-                <label class="admin__field-label" for="mypa_carrier"><?=__('PostNL');?></label>
+                <input
+                    type="radio"
+                    class="admin__control-radio"
+                    id="mypa_carrier_<?= $carrierName ?>"
+                    name="mypa_carrier"
+                    value="<?= $carrierName ?>">
+                <label class="admin__field-label" for="mypa_carrier_<?= $carrierName ?>"><?= __(
+                        $carrierHuman
+                    ) ?></label>
             </div>
         </div>
     </div>
-
-<?php if ('BE' === $block->getCountry()): ?>
-    <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <input id="mypa_insurance"
-            class="admin__control-checkbox"
-            name="mypa_insurance"
-            value="500"
-            type="checkbox"
-            <?= $block->getDefaultOptionsWithoutPrice('insurance_belgium') ? 'checked="checked"' : '';?>
-        />
-        <label class="admin__field-label" for="mypa_insurance">
-            <span><?=__('Insure shipment') ?></span>
-        </label>
-    </div>
-    <script type="text/x-magento-init">
-       {
-           ".page-footer": {
-               "myparcelnl_newshipment": {}
-            }
-       }
-    </script>
-<?php endif; ?>
-<?php if ($block->getCountry() == 'NL'): ?>
-    <div class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <input id="mypa_signature"
-               class="admin__control-checkbox"
-               name="mypa_signature"
-               value="1"
-               type="checkbox"
-            <?= $block->getDefaultOption('signature') == true ? 'checked="checked"' : '';?>
-        />
-        <label class="admin__field-label" for="mypa_signature">
-            <span><?=__('Signature on receipt') ?></span>
-        </label>
-    </div>
-    <div class="field choice admin__field admin__field-option field-mypa_only_recipient mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <input id="mypa_only_recipient"
-               class="admin__control-checkbox"
-               name="mypa_only_recipient"
-               value="1"
-               type="checkbox"
-            <?= $block->getDefaultOption('only_recipient') == true ? 'checked="checked"' : '';?>
-        />
-        <label class="admin__field-label" for="mypa_only_recipient">
-            <span><?=__('Home address only') ?></span>
-        </label>
-    </div>
-    <div class="field choice admin__field admin__field-option field-mypa_return mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <input id="mypa_return"
-               class="admin__control-checkbox"
-               name="mypa_return"
-               value="1"
-               type="checkbox"
-            <?= $block->getDefaultOption('return') == true ? 'checked="checked"' : '';?>
-        />
-        <label class="admin__field-label" for="mypa_return">
-            <span><?=__('Return if no answer') ?></span>
-        </label>
-    </div>
-
-
-    <div class="field choice admin__field admin__field-option field-mypa_large_format mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <input id="mypa_large_format"
-               class="admin__control-checkbox"
-               name="mypa_large_format"
-               value="1"
-               type="checkbox"
-            <?= $block->getDefaultLargeFormat('large_format') == true ? 'checked="checked"' : '';?>
-        />
-        <label class="admin__field-label" for="mypa_return">
-            <span><?=__('Large package') ?></span>
-        </label>
-    </div>
-
-    <div class="field choice admin__field admin__field-option field-mypa_age_check mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <input id="mypa_age_check"
-               class="admin__control-checkbox"
-               name="mypa_age_check"
-               value="1"
-               type="checkbox"
-            <?=$block->getDefaultOptionsWithoutPrice('age_check') == true ? 'checked="checked"' : '';?>
-        />
-        <label class="admin__field-label" for="mypa_age_check">
-            <span><?=__('Age check 18+') ?></span>
-        </label>
-    </div>
-
-    <div class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <label class="admin__field-label" for="mypa_label_amount" style="display: block">
-            <span><?=__('Label amount:') ?></span>
-        </label>
-        <?php $label_amount = 1; ?>
-        <select name="mypa_label_amount" id="mypa_label_amount"
-                class="required product-custom-option admin__control-select" title="">
-            <?php
-            while ($label_amount <= 10) {
-                echo '<option value="' . $label_amount . '" >' . __($label_amount) . '</option>';
-                $label_amount ++;
-            }
-            ?>
-        </select>
-    </div>
-
-    <div class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle" style="display:none; padding-left: 30px;">
-        <label class="admin__field-label" for="mypa_insurance" style="display: block">
-            <span><?=__('Insured up to:') ?></span>
-        </label>
-        <?php $defaultInsurance = $block->getDefaultInsurance();?>
-        <select name="mypa_insurance" id="mypa_insurance" class="required product-custom-option admin__control-select" title="" >
-            <option value="0" ><?=__('No insurance') ?></option>
-            <option value="100" <?= $defaultInsurance == 100 ? 'selected="selected"' : '';?> >€ 100</option>
-            <option value="250" <?= $defaultInsurance == 250 ? 'selected="selected"' : '';?> >€ 250</option>
-            <option value="500" <?= $defaultInsurance == 500 ? 'selected="selected"' : '';?> >€ 500</option>
-            <option value="1000">€ 1000</option>
-            <option value="1500">€ 1500</option>
-            <option value="2000">€ 2000</option>
-            <option value="2500">€ 2500</option>
-            <option value="3000">€ 3000</option>
-            <option value="3500">€ 3500</option>
-            <option value="4000">€ 4000</option>
-            <option value="4500">€ 4500</option>
-            <option value="5000">€ 5000</option>
-        </select>
-    </div>
-    <script type="text/x-magento-init">
-       {
-           ".page-footer": {
-               "myparcelnl_newshipment": {}
-            }
-       }
-    </script>
-<?php endif; ?>
-
-<!--    <div class="field field-mypa_carrier_DPD mypa_carrier-toggle" style="margin-top: 10px;">-->
-<!--        <div class="admin__field-control">-->
-<!--            <div class="admin__field admin__field-option">-->
-<!--                <input type="radio" class="admin__control-radio" id="mypa_carrier_DPD" name="mypa_carrier" value="dpd">-->
-<!--                <label class="admin__field-label" for="mypa_carrier">--><?//=__('DPD');?><!--</label>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-    <div class="field field-mypa_package_type" style="margin-top: 10px;">
+    <div
+        class="field field-mypa_package_type js--mypa-options"
+        data-for_mypa_carrier="<?= $carrierName ?>"
+        style="margin: 10px 0 0 30px;">
         <div class="admin__field-control">
-            <div class="admin__field admin__field-option">
-                <input type="radio" class="admin__control-radio" id="mypa_package_type-package" name="mypa_package_type" value="package" <?=$block->getPackageType() !== 1 ?: 'checked="checked"';?>>
-                <label class="admin__field-label" for="mypa_package_type-package"><?=__('Package');?></label>
-            </div>
-            <?php if ($block->getCountry() == 'NL'): ?>
+            <?php
+            $country = $block->getCountry();
+            foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
+                $packageTypeId = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
+                if (AbstractConsignment::CC_NL !== $country
+                    && in_array(
+                        $packageTypeId,
+                        [
+                            AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP,
+                            AbstractConsignment::PACKAGE_TYPE_MAILBOX,
+                        ]
+                    )) {
+                    continue;
+                }
+                $packageTypeHuman = $block->getNewShipmentForm()::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId]
+                    ??
+                    $packageTypeName;
+                ?>
                 <div class="admin__field admin__field-option">
-                    <input type="radio" class="admin__control-radio" id="mypa_package_type-digital_stamp" name="mypa_package_type" value="digital_stamp" <?=$block->getPackageType() !== 4 ?: 'checked="checked"';?>>
-                    <label class="admin__field-label" for="mypa_package_type-digital_stamp"><?=__('Digital stamp');?></label>
-                    <?php $weight = $block->getDigitalStampWeight();?>
-                    <select name="mypa_digital_stamp_weight" id="mypa_digital_stamp_weight" class="required product-custom-option admin__control-select" title="" >
-                        <option value="0" <?= $weight == 0 ? 'selected="selected"' : '';?> >No standard weight</option>
-                        <option value="20" <?= $weight == 20 ? 'selected="selected"' : '';?> >0 - 20 gram</option>
-                        <option value="50" <?= $weight == 50 ? 'selected="selected"' : '';?> >20 - 50 gram</option>
-                        <option value="100" <?= $weight == 100 ? 'selected="selected"' : '';?> >50 - 100 gram</option>
-                        <option value="350" <?= $weight == 350 ? 'selected="selected"' : '';?> >100 - 350 gram</option>
-                        <option value="2000" <?= $weight == 2000 ? 'selected="selected"' : '';?> >350 - 2000 gram</option>
+                    <input
+                        type="radio"
+                        class="admin__control-radio"
+                        id="mypa_package_type-<?= $packageTypeName ?>_<?= $carrierName ?>"
+                        name="mypa_package_type"
+                        value="<?= $packageTypeName ?>">
+                    <label
+                        class="admin__field-label"
+                        for="mypa_package_type-<?= $packageTypeName ?>_<?= $carrierName ?>"><?= __(
+                            $packageTypeHuman
+                        ) ?></label>
+                    <?php
+                    if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP === $packageTypeId) {
+                        $weight = $block->getDigitalStampWeight(); ?>
+                        <span data-for_mypa_package_type="<?= $packageTypeName ?>">
+                            <select
+                                name="mypa_digital_stamp_weight"
+                                id="mypa_digital_stamp_weight_<?= $carrierName ?>"
+                                class="required product-custom-option admin__control-select"
+                                style="margin: 10px 0 0 30px"
+                                title="">
+                                <option value="0">No standard weight</option>
+                                <option
+                                    value="20" <?= '20' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >0 - 20 gram
+                                </option>
+                                <option
+                                    value="50" <?= '50' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >20 - 50 gram
+                                </option>
+                                <option
+                                    value="100" <?= '100' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >50 - 100 gram
+                                </option>
+                                <option
+                                    value="350" <?= '350' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >100 - 350 gram
+                                </option>
+                                <option
+                                    value="2000" <?= '2000' === $weight
+                                    ? 'selected="selected"'
+                                    : '' ?> >350 - 2000 gram
+                                </option>
+                            </select>
+                        </span>
+                        <?php
+                    } // end only digital stamp
+                    ?>
+                </div>
+
+                <?php
+                $carrier = $abstractConsignment->getCarrier();
+                if (! $carrier) {
+                    continue;
+                }
+                $carrierName = $carrier->getName();
+
+                if (AbstractConsignment::CC_NL !== $block->getCountry()) {
+                    continue;
+                }
+                ?>
+                <div
+                    class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle
+    mypa-option-toggle" style="padding-left: 30px;" data-for_mypa_package_type="<?= $packageTypeName ?>">
+                    <label
+                        class="admin__field-label"
+                        for="mypa_label_amount_<?= $carrierName ?>_<?= $packageTypeId ?>"
+                        style="display: block">
+                        <span><?= __('Label amount:') ?></span>
+                    </label>
+                    <?php $label_amount = 1; ?>
+                    <select
+                        name="mypa_label_amount"
+                        id="mypa_label_amount_<?= $carrierName ?>_<?= $packageTypeId ?>"
+                        class="required product-custom-option admin__control-select"
+                        title="">
+                        <?php
+                        while ($label_amount <= 10) {
+                            echo '<option value="' . $label_amount . '" >' . __($label_amount) . '</option>';
+                            $label_amount++;
+                        }
+                        ?>
                     </select>
                 </div>
-                <div class="admin__field admin__field-option">
-                    <input type="radio" class="admin__control-radio" id="mypa_package_type-mailbox" name="mypa_package_type" value="mailbox" <?=$block->getPackageType() !== 2 ?: 'checked="checked"';?>>
-                    <label class="admin__field-label" for="mypa_package_type-mailbox"><?=__('Mailbox');?></label>
-                </div>
-            <?php endif;?>
-            <div class="admin__field admin__field-option">
-                <input type="radio" class="admin__control-radio" id="mypa_package_type-letter" name="mypa_package_type" value="letter" <?=$block->getPackageType() !== 3 ?: 'checked="checked"';?>>
-                <label class="admin__field-label" for="mypa_package_type-letter"><?=__('Letter');?></label>
-            </div>
+                <?php
+                try {
+                    $abstractConsignment->setPackageType($packageTypeId);
+                } catch (\Exception $e) {
+                    continue;
+                }
+                foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
+                    if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
+                        || ! $abstractConsignment->canHaveShipmentOption($shipmentOption)) {
+                        continue;
+                    }
+                    $isActive = ($abstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $shipmentOption)
+                        ? $block->getDefaultLargeFormat($shipmentOption)
+                        : $block->getDefaultOption($shipmentOption);
+                    ?>
+                    <div
+                        class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
+                        data-for_mypa_package_type="<?= $packageTypeName ?>"
+                        style="padding-left:30px;">
+                        <input
+                            id="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>"
+                            class="admin__control-checkbox"
+                            name="mypa_<?= $shipmentOption ?>"
+                            value="1"
+                            type="checkbox"
+                            <?= $isActive
+                                ? 'checked="checked"'
+                                : '' ?>
+                        />
+                        <label
+                            class="admin__field-label"
+                            for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
+                            <span><?= $block->getNewShipmentForm()
+                                          ->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?>
+                            </span>
+                        </label>
+                    </div>
+
+                    <?php
+                }
+
+                if ($abstractConsignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_INSURANCE)) {
+                    ?>
+                    <div
+                        class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
+                        data-for_mypa_package_type="<?= $packageTypeName ?>"
+                        style="padding-left:30px;">
+                        <label class="admin__field-label" for="mypa_insurance" style="display: block">
+                            <span><?= __('Insured up to:') ?></span>
+                        </label>
+                        <?php $defaultInsurance = $block->getDefaultInsurance(); ?>
+                        <select
+                            name="mypa_insurance"
+                            id="mypa_insurance"
+                            class="required product-custom-option admin__control-select"
+                            title="">
+                            <option value="0"><?= __('No insurance') ?></option>
+                            <?php
+                            foreach ($abstractConsignment->getInsurancePossibilities() as $insurancePossibility) {
+                                printf(
+                                    '<option value="%1$s" %2$s>€ %1$s</option>',
+                                    $insurancePossibility,
+                                    $insurancePossibility === $defaultInsurance
+                                        ? 'selected="selected"'
+                                        : ''
+                                );
+                            }
+                            ?>
+                        </select>
+                    </div>
+
+                    <?php
+                } // end can have insurance
+            } // end foreach packageType
+            ?>
         </div>
     </div>
-
+    <?php
+} // end foreach carrier
+?>
+<script type="text/x-magento-init">
+{
+    ".page-footer": {
+        "myparcelnl_newshipment": {
+            "carrier": "postnl",
+            "packageType":"<?= array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
+    }
+}
+</script>

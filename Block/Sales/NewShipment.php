@@ -22,7 +22,6 @@ use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 
 class NewShipment extends AbstractItems
 {
@@ -42,6 +41,11 @@ class NewShipment extends AbstractItems
     private $defaultOptions;
 
     /**
+     * @var \MyParcelNL\Magento\Block\Sales\NewShipmentForm
+     */
+    private $form;
+
+    /**
      * @param \Magento\Backend\Block\Template\Context                   $context
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface      $stockRegistry
      * @param \Magento\CatalogInventory\Api\StockConfigurationInterface $stockConfiguration
@@ -56,8 +60,9 @@ class NewShipment extends AbstractItems
         ObjectManagerInterface $objectManager
     ) {
         // Set order
-        $this->order = $registry->registry('current_shipment')->getOrder();
+        $this->order         = $registry->registry('current_shipment')->getOrder();
         $this->objectManager = $objectManager;
+        $this->form          = new NewShipmentForm();
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,
@@ -140,5 +145,13 @@ class NewShipment extends AbstractItems
     public function getChosenOptions()
     {
         return json_decode($this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true);
+    }
+
+    /**
+     * @return \MyParcelNL\Magento\Block\Sales\NewShipmentForm
+     */
+    public function getNewShipmentForm(): NewShipmentForm
+    {
+        return $this->form;
     }
 }
