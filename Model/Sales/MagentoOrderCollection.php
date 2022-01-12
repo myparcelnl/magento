@@ -7,6 +7,9 @@ use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Helper\ShipmentOptions;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
@@ -14,6 +17,7 @@ use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
 
@@ -168,17 +172,31 @@ class MagentoOrderCollection extends MagentoCollection
      * @throws \Exception
      *
      */
-    public function setFulfilment()
+    public function setFulfilment(): self
     {
         $apiKey          = $this->getApiKey();
         $orderCollection = (new OrderCollection())->setApiKey($apiKey);
         $orderLines      = new Collection();
 
         foreach ($this->getOrders() as $magentoOrder) {
-            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'];
+            $defaultOptions          = new DefaultOptions($magentoOrder, $this->helper);
+            $shipmentOptionsHelper   = new ShipmentOptions(
+                $defaultOptions,
+                $this->helper,
+                $magentoOrder,
+                $this->objectManager,
+                $this->options
+            );
+            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
-            $deliveryOptionsAdapter  = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
-            $this->order             = $magentoOrder;
+
+            if (isset($deliveryOptions['isPickup'])) {
+                $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME ;
+            }
+
+            $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
+            $deliveryOptionsAdapter             = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+            $this->order                        = $magentoOrder;
 
             $this->setBillingRecipient();
             $this->setShippingRecipient();
@@ -190,6 +208,21 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->helper->convertDeliveryDate($this->order->getCreatedAt()))
                 ->setExternalIdentifier($this->order->getIncrementId());
+
+            if ($deliveryOptionsAdapter->isPickup()) {
+                $pickupData     = $deliveryOptionsAdapter->getPickupLocation();
+                $pickupLocation = new PickupLocation([
+                    'cc'                => $pickupData->getCountry(),
+                    'city'              => $pickupData->getCity(),
+                    'postal_code'       => $pickupData->getPostalCode(),
+                    'street'            => $pickupData->getStreet(),
+                    'number'            => $pickupData->getNumber(),
+                    'location_name'     => $pickupData->getLocationName(),
+                    'location_code'     => $pickupData->getLocationCode(),
+                    'retail_network_id' => $pickupData->getRetailNetworkId(),
+                ]);
+                $order->setPickupLocation($pickupLocation);
+            }
 
             foreach ($this->order->getItems() as $magentoOrderItem) {
                 $orderLine = new OrderLineOptionsFromOrderAdapter($magentoOrderItem);
@@ -291,7 +324,7 @@ class MagentoOrderCollection extends MagentoCollection
      * @return $this
      * @throws \Exception
      */
-    public function setPdfOfLabels()
+    public function setPdfOfLabels(): self
     {
         $this->myParcelCollection->setPdfOfLabels($this->options['positions']);
 
@@ -304,9 +337,9 @@ class MagentoOrderCollection extends MagentoCollection
      * @return $this
      * @throws \Exception
      */
-    public function downloadPdfOfLabels()
+    public function downloadPdfOfLabels(): self
     {
-        $inlineDownload = $this->options['request_type'] == 'open_new_tab';
+        $inlineDownload = 'open_new_tab' === $this->options['request_type'];
         $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
 
         return $this;
@@ -328,7 +361,7 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * @return $this
      * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException|\MyParcelNL\Sdk\src\Exception\AccountNotActiveException
      */
     public function sendReturnLabelMails()
     {
