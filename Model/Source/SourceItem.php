@@ -57,18 +57,17 @@ class SourceItem
      * @param $order
      * @param $shipmentItems
      *
-     * @return Shipment
      */
     public function getSource($order, $shipmentItems)
     {
-        /** @var Shipment $shipment */
         $shipment = $this->shipmentFactory->create(
             $order,
             $shipmentItems
         );
 
         $extensionAttributes = $shipment->getExtensionAttributes();
-
+//        var_dump($extensionAttributes->getSourceCode());
+//        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
         return $extensionAttributes->getSourceCode();
     }
 }

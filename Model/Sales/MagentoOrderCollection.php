@@ -439,6 +439,7 @@ class MagentoOrderCollection extends MagentoCollection
 
             // Add shipment item to shipment
             $shipment->addItem($shipmentItem);
+//            $this->getMultiStockInventory($orderItem);
         }
 
         // Register shipment
@@ -471,10 +472,12 @@ class MagentoOrderCollection extends MagentoCollection
         $result = $this->sourceItem->getSourceItemDetailBySKU($sku);
 
         foreach ($result as $item) {
-            if ($item->getSourceCode() !== 'default') {
-                return $item->getSourceCode();
-            }
+            var_dump($item->getSourceCode());
+//            if ($item->getSourceCode() !== 'default') {
+//                return $item->getSourceCode();
+//            }
         }
+        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
 
         return 'default';
     }
