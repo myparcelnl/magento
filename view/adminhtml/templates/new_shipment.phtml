@@ -123,10 +123,6 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     continue;
                 }
                 $carrierName = $carrier->getName();
-
-                if (AbstractConsignment::CC_NL !== $block->getCountry()) {
-                    continue;
-                }
                 ?>
                 <div
                     class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle
@@ -152,6 +148,10 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     </select>
                 </div>
                 <?php
+                if (AbstractConsignment::CC_NL !== $block->getCountry()) {
+                    continue;
+                }
+
                 try {
                     $abstractConsignment->setPackageType($packageTypeId);
                 } catch (\Exception $e) {

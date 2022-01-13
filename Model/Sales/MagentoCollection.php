@@ -663,7 +663,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $country = $consignment->getCountry();
         $package = $consignment->getPackageType();
 
-        return $consignment::CC_NL === $country
+        return ($consignment::CC_NL === $country || $consignment::CC_BE === $country)
             && CarrierPostNL::ID === $carrier
             && $consignment::PACKAGE_TYPE_PACKAGE === $package;
     }
