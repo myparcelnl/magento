@@ -183,17 +183,20 @@ class TrackTraceHolder
             $this->helper->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
 
+        $deliveryType = $this->helper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId());
+
         $this->consignment
             ->setCity($address->getCity())
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($this->getLabelDescription($magentoTrack, $checkoutData))
             ->setDeliveryDate($this->helper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
-            ->setDeliveryType($this->helper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
+            ->setDeliveryType($deliveryType)
             ->setPackageType($packageType)
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
-            ->setReturn($this->getValueOfOption($options, 'return'))
+            ->setReturn($deliveryType !== AbstractConsignment::DELIVERY_TYPE_PICKUP
+                && $this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->checkLargeFormat($options))
             ->setAgeCheck($this->getAgeCheck($magentoTrack, $address, $options))
             ->setInsurance(
