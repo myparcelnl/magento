@@ -187,7 +187,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->helper->convertDeliveryDate($this->order->getCreatedAt()))
-                ->setExternalIdentifier($this->order->getEntityId());
+                ->setExternalIdentifier($this->order->getIncrementId());
 
             foreach ($this->order->getItems() as $magentoOrderItem) {
                 $orderLine = new OrderLineOptionsFromOrderAdapter($magentoOrderItem);
