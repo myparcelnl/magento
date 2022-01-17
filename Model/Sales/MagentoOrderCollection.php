@@ -238,7 +238,8 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setShippingRecipient(): self
     {
-        $formattedDeliveryOptions = json_decode($this->order['myparcel_delivery_options'], true);
+        $myparcelDeliveryOptions  = $this->order['myparcel_delivery_options'] ?? '';
+        $formattedDeliveryOptions = json_decode($myparcelDeliveryOptions, true);
         $carrier                  = ConsignmentFactory::createByCarrierName($formattedDeliveryOptions['carrier']);
         $street                   = implode(
             ' ',
