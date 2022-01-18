@@ -20,8 +20,6 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipment implements ObserverInterface
 {
@@ -110,7 +108,7 @@ class NewShipment implements ObserverInterface
                 ->createTrackTraceFromShipment($shipment);
             $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
 
-            if (1 === $i && $this->canUseMultiCollo($trackTraceHolder->consignment)) {
+            if (1 === $i && $this->orderCollection->canUseMultiCollo($trackTraceHolder->consignment)) {
                 $useMultiCollo = true;
             }
 
@@ -143,23 +141,6 @@ class NewShipment implements ObserverInterface
         }
 
         $this->updateTrackGrid($shipment);
-    }
-
-
-    /**
-     * @param \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment
-     *
-     * @return bool whether $consignment properties allow for multicollo shipments
-     */
-    private function canUseMultiCollo(AbstractConsignment $consignment): bool
-    {
-        $carrier = $consignment->getCarrierId();
-        $country = $consignment->getCountry();
-        $package = $consignment->getPackageType();
-
-        return $consignment::CC_NL === $country
-            && CarrierPostNL::ID === $carrier
-            && $consignment::PACKAGE_TYPE_PACKAGE === $package;
     }
 
     /**
