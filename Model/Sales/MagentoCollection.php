@@ -543,7 +543,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId());
                 }
 
-                if (isset($myParcelTrack->status)) {
+                if ($myParcelTrack->status) {
                     $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
                 }
 

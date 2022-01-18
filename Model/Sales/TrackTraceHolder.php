@@ -195,7 +195,7 @@ class TrackTraceHolder
             ->setPackageType($packageType)
             ->setOnlyRecipient($this->getValueOfOption($options, 'only_recipient'))
             ->setSignature($this->getValueOfOption($options, 'signature'))
-            ->setReturn($deliveryType !== AbstractConsignment::DELIVERY_TYPE_PICKUP
+            ->setReturn(AbstractConsignment::DELIVERY_TYPE_PICKUP !== $deliveryType
                 && $this->getValueOfOption($options, 'return'))
             ->setLargeFormat($this->checkLargeFormat($options))
             ->setAgeCheck($this->getAgeCheck($magentoTrack, $address, $options))
