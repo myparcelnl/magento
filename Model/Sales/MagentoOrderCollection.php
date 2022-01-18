@@ -8,6 +8,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Model\Source\SourceItem;
+use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
@@ -175,7 +176,16 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'];
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
-            $deliveryOptionsAdapter  = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+
+            try {
+                // create new instance from known json
+                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+            } catch (\BadMethodCallException $e) {
+                // create new instance from unknown json data
+                $deliveryOptions        = (new ConsignmentNormalizer((array) $deliveryOptions))->normalize();
+                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create($deliveryOptions);
+            }
+
             $this->order             = $magentoOrder;
 
             $this->setBillingRecipient();
@@ -186,7 +196,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
-                ->setOrderDate($this->helper->convertDeliveryDate($this->order->getCreatedAt()))
+                ->setOrderDate($this->order->getCreatedAt())
                 ->setExternalIdentifier($this->order->getIncrementId());
 
             foreach ($this->order->getItems() as $magentoOrderItem) {
