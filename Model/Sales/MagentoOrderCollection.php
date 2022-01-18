@@ -186,7 +186,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
-                ->setOrderDate($this->helper->convertDeliveryDate($this->order->getCreatedAt()))
+                ->setOrderDate($this->order->getCreatedAt())
                 ->setExternalIdentifier($this->order->getIncrementId());
 
             foreach ($this->order->getItems() as $magentoOrderItem) {
