@@ -52,9 +52,9 @@ class MagentoOrderCollection extends MagentoCollection
     private $shippingRecipient;
 
     /**
-     * @param  ObjectManagerInterface  $objectManager
-     * @param  null                    $request
-     * @param  null                    $areaList
+     * @param  ObjectManagerInterface                   $objectManager
+     * @param  \Magento\Framework\App\RequestInterface  $request
+     * @param  null                                     $areaList
      */
     public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
     {
