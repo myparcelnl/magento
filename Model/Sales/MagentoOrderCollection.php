@@ -8,8 +8,11 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Model\Source\SourceItem;
+use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
+use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
+use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
@@ -185,7 +188,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->helper->convertDeliveryDate($this->order->getCreatedAt()))
-                ->setExternalIdentifier($this->order->getEntityId());
+                ->setExternalIdentifier($this->order->getIncrementId());
 
             foreach ($this->order->getItems() as $magentoOrderItem) {
                 $orderLine = new OrderLineOptionsFromOrderAdapter($magentoOrderItem);
@@ -230,17 +233,33 @@ class MagentoOrderCollection extends MagentoCollection
 
     /**
      * @return self
+     * @throws \Exception
      */
     public function setShippingRecipient(): self
     {
+        $myparcelDeliveryOptions  = $this->order['myparcel_delivery_options'] ?? '';
+        $formattedDeliveryOptions = json_decode($myparcelDeliveryOptions, true);
+        $carrier                  = ConsignmentFactory::createByCarrierName($formattedDeliveryOptions['carrier']);
+        $street                   = implode(
+            ' ',
+            $this->order->getShippingAddress()
+                ->getStreet()
+        );
+
+        $country     = $this->order->getShippingAddress()->getCountryId();
+        $streetParts = SplitStreet::splitStreet($street, $carrier->getLocalCountryCode(), $country);
+
         $this->shippingRecipient = (new Recipient())
-            ->setCc($this->order->getShippingAddress()->getCountryId())
+            ->setCc($country)
             ->setCity($this->order->getShippingAddress()->getCity())
             ->setCompany($this->order->getShippingAddress()->getCompany())
             ->setEmail($this->order->getShippingAddress()->getEmail())
             ->setPerson($this->getFullCustomerName())
             ->setPostalCode($this->order->getShippingAddress()->getPostcode())
-            ->setStreet(implode(' ', $this->order->getShippingAddress()->getStreet()));
+            ->setStreet($streetParts->getStreet())
+            ->setNumber($streetParts->getNumber())
+            ->setNumberSuffix($streetParts->getNumberSuffix())
+            ->setBoxNumber($streetParts->getBoxNumber());
 
         return $this;
     }

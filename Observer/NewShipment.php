@@ -87,15 +87,15 @@ class NewShipment implements ObserverInterface
      *
      * @throws \Exception
      */
-    private function setMagentoAndMyParcelTrack(Shipment $shipment)
+    private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
+        $amount  = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
 
-        // The reason that $amount is hard coded is because this is part of multicollo, this is not possible in the Belguim plugin. However, a preparation has been made for this.
-        $amount = $options['label_amount'];
         /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
+        $useMultiCollo     = false;
 
         if (isset($options['carrier']) && false === $options['carrier']) {
             unset($options['carrier']);
@@ -108,15 +108,27 @@ class NewShipment implements ObserverInterface
                 ->createTrackTraceFromShipment($shipment);
             $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
 
-            $trackTraceHolders[] = $trackTraceHolder;
+            if (1 === $i && $this->orderCollection->canUseMultiCollo($trackTraceHolder->consignment)) {
+                $useMultiCollo = true;
+            }
 
+            if (! $useMultiCollo) {
+                $this->orderCollection->myParcelCollection->addConsignment($trackTraceHolder->consignment);
+            }
+
+            $trackTraceHolders[] = $trackTraceHolder;
             $i++;
         }
 
-        // All multicollo holders are the same, so use the first for the SDK
-        $firstTrackTraceHolder = $trackTraceHolders[0];
+        if ($useMultiCollo) {
+            $firstTrackTraceHolder = $trackTraceHolders[0];
+            $this->orderCollection->myParcelCollection->addMultiCollo(
+                $firstTrackTraceHolder->consignment,
+                $amount
+            );
+        }
+
         $this->orderCollection->myParcelCollection
-            ->addMultiCollo($firstTrackTraceHolder->consignment, $amount ?? self::DEFAULT_LABEL_AMOUNT)
             ->createConcepts()
             ->setLatestData();
 
