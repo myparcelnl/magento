@@ -10,11 +10,9 @@ use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
-use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
-
 
 /**
  * Class MagentoOrderCollection
@@ -51,9 +49,9 @@ class MagentoOrderCollection extends MagentoCollection
     private $shippingRecipient;
 
     /**
-     * @param ObjectManagerInterface                  $objectManager
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param null                                    $areaList
+     * @param  ObjectManagerInterface  $objectManager
+     * @param  null                    $request
+     * @param  null                    $areaList
      */
     public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
     {
@@ -439,7 +437,6 @@ class MagentoOrderCollection extends MagentoCollection
 
             // Add shipment item to shipment
             $shipment->addItem($shipmentItem);
-//            $this->getMultiStockInventory($orderItem);
         }
 
         // Register shipment
@@ -455,31 +452,15 @@ class MagentoOrderCollection extends MagentoCollection
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
                                 ->notify($shipment);
         } catch (\Exception $e) {
-            throw new LocalizedException(
-                __($e->getMessage())
-            );
+
+            if (preg_match('/' . MagentoOrderCollection::DEFAULT_ERROR_ORDER_HAS_NO_SOURCE . '/', $e->getMessage())) {
+                $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SOURCE));
+            } else {
+                $this->messageManager->addErrorMessage(__($e->getMessage()));
+            }
+
+            $this->objectManager->get('Psr\Log\LoggerInterface')->critical($e);
         }
-    }
-
-    /**
-     * @param \Magento\Sales\Model\Order\Item $orderItem
-     *
-     * @return string
-     */
-    private function getMultiStockInventory(\Magento\Sales\Model\Order\Item $orderItem): string
-    {
-        $sku    = $orderItem->getSku();
-        $result = $this->sourceItem->getSourceItemDetailBySKU($sku);
-
-        foreach ($result as $item) {
-            var_dump($item->getSourceCode());
-//            if ($item->getSourceCode() !== 'default') {
-//                return $item->getSourceCode();
-//            }
-        }
-        exit("\n|-------------\n" . __FILE__ . ':' . __LINE__ . "\n|-------------\n");
-
-        return 'default';
     }
 
     /**
