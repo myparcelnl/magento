@@ -176,6 +176,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'];
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
+            $deliveryOptions['date'] = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
 
             try {
                 // create new instance from known json
