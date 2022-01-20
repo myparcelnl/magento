@@ -217,7 +217,7 @@ class ShipmentOptions
      *
      * @return bool|null boolean value of the option named $key, or null when not set in $options
      */
-    private function getValueOfOptionWhenSet(string $key): ?bool
+    public function getValueOfOptionWhenSet(string $key): ?bool
     {
         if (! isset($this->options[$key]) || ! array_key_exists($key, $this->options)) {
             return null;
