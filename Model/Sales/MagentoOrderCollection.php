@@ -6,6 +6,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
@@ -14,7 +15,7 @@ use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
-
+use Magento\Framework\App\Config\ScopeConfigInterface;
 
 /**
  * Class MagentoOrderCollection
@@ -175,6 +176,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'];
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
+            $deliveryOptions['date'] = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
             $deliveryOptionsAdapter  = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
             $this->order             = $magentoOrder;
 
@@ -186,7 +188,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
-                ->setOrderDate($this->order->getCreatedAt())
+                ->setOrderDate($this->getLocalCreatedAtDate())
                 ->setExternalIdentifier($this->order->getIncrementId());
 
             foreach ($this->order->getItems() as $magentoOrderItem) {
@@ -202,6 +204,29 @@ class MagentoOrderCollection extends MagentoCollection
         $this->myParcelCollection = $orderCollection->save();
 
         return $this;
+    }
+
+    /**
+     * @param  string $format
+     *
+     * @return string
+     */
+    public function getLocalCreatedAtDate(string $format = 'Y-m-d H:i:s'): string
+    {
+        $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
+
+        $datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
+        $timezone = $scopeConfig->getValue(
+            'general/locale/timezone',
+            ScopeInterface::SCOPE_STORE,
+            $this->order->getStoreId()
+        );
+
+        if ($timezone) {
+            $storeTime = new \DateTimeZone($timezone);
+            $datetime->setTimezone($storeTime);
+        }
+        return $datetime->format($format);
     }
 
     /**
