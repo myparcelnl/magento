@@ -214,9 +214,8 @@ class MagentoOrderCollection extends MagentoCollection
     public function getLocalCreatedAtDate(string $format = 'Y-m-d H:i:s'): string
     {
         $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
-
-        $datetime = \DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
-        $timezone = $scopeConfig->getValue(
+        $datetime    = \DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
+        $timezone    = $scopeConfig->getValue(
             'general/locale/timezone',
             ScopeInterface::SCOPE_STORE,
             $this->order->getStoreId()
@@ -226,6 +225,7 @@ class MagentoOrderCollection extends MagentoCollection
             $storeTime = new \DateTimeZone($timezone);
             $datetime->setTimezone($storeTime);
         }
+
         return $datetime->format($format);
     }
 
