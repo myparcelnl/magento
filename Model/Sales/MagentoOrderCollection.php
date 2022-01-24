@@ -11,6 +11,7 @@ use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
+use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
@@ -191,11 +192,12 @@ class MagentoOrderCollection extends MagentoCollection
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
 
-            if (isset($deliveryOptions['isPickup'])) {
+            if (! empty($deliveryOptions['isPickup'])) {
                 $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME ;
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
+            $deliveryOptions['date']            = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
             $deliveryOptionsAdapter             = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
             $this->order                        = $magentoOrder;
 
