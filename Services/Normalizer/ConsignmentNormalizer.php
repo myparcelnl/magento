@@ -22,9 +22,9 @@ class ConsignmentNormalizer
     public function normalize(): array
     {
         $data                 = $this->data;
-        $data['carrier']      = $data['carrier'] ?: PostNLConsignment::CARRIER_NAME;
+        $data['carrier']      = $data['carrier'] ?? PostNLConsignment::CARRIER_NAME;
         $data['deliveryType'] = $data['deliveryType'] ?? AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME;
-        $data['package_type'] = $data['package_type'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        $data['packageType']  = $data['package_type'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
 
         return $data;
     }
