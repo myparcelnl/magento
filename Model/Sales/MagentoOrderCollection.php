@@ -193,8 +193,8 @@ class MagentoOrderCollection extends MagentoCollection
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
 
-            if (! empty($deliveryOptions['isPickup'])) {
-                $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME ;
+            if ($deliveryOptions['isPickup']) {
+                $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
@@ -205,8 +205,9 @@ class MagentoOrderCollection extends MagentoCollection
                 $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
             } catch (\BadMethodCallException $e) {
                 // create new instance from unknown json data
-                $deliveryOptions        = (new ConsignmentNormalizer((array) $deliveryOptions))->normalize();
-                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create($deliveryOptions);
+                $deliveryOptions                = (new ConsignmentNormalizer((array) $deliveryOptions))->normalize();
+                $deliveryOptions['packageType'] = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+                $deliveryOptionsAdapter         = DeliveryOptionsAdapterFactory::create($deliveryOptions);
             }
 
             $this->order = $magentoOrder;

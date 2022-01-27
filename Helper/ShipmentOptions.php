@@ -220,11 +220,11 @@ class ShipmentOptions
      */
     public static function getValueOfOptionWhenSet(array $options, string $key): ?bool
     {
-        if (! isset($options[$key]) || ! array_key_exists($key, $options)) {
-            return null;
+        if ($options[$key] || array_key_exists($key, $options)) {
+            return (bool)$options[$key];
         }
 
-        return (bool) $options[$key];
+        return null;
     }
 
     /**
