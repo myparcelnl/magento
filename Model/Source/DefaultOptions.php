@@ -24,7 +24,7 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 class DefaultOptions
 {
     // Maximum characters length of company name.
-    const COMPANY_NAME_MAX_LENGTH = 50;
+    private const COMPANY_NAME_MAX_LENGTH = 50;
 
     private const INSURANCE_AMOUNT_BELGIUM = 500;
 
@@ -114,14 +114,14 @@ class DefaultOptions
 
         $settings = self::$helper->getStandardConfig('default_options');
         if (isset($settings[$option . '_active']) &&
-            $settings[$option . '_active'] == 'weight' &&
+             'weight' === $settings[$option . '_active'] &&
             $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
         ) {
             return true;
         }
 
         if (isset($settings[$option . '_active']) &&
-            $settings[$option . '_active'] == 'price' &&
+            'price' === $settings[$option . '_active'] &&
             $price >= $settings[$option . '_from_price']
         ) {
             return true;
@@ -139,7 +139,7 @@ class DefaultOptions
     {
         $settings = self::$helper->getStandardConfig('default_options');
 
-        return $settings[$option . '_active'] === '1';
+        return '1' === $settings[$option . '_active'];
     }
 
     /**
@@ -175,49 +175,38 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function getDigitalStampDefaultWeight()
+    public function getDigitalStampDefaultWeight(): bool
     {
         return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
     }
 
     /**
-     * Get package type
+     * Get package type ID as an int by default
      *
-     * @return int 1|2|3|4
+     * @return int
      */
-    public function getPackageType()
+    public function getPackageType(): int
     {
-        if ($this->isDigitalStampOrMailbox(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME)) {
-            return AbstractConsignment::PACKAGE_TYPE_MAILBOX;
-        }
+        $country      = self::$order->getShippingAddress()->getCountryId();
+        $isNL         = AbstractConsignment::CC_NL === $country;
+        $keyIsPresent = array_key_exists('packageType', self::$chosenOptions);
+        $packageType  = self::$chosenOptions['packageType'];
 
-        if ($this->isDigitalStampOrMailbox(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME)) {
-            return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP;
+        if ($isNL && $keyIsPresent) {
+            return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
         }
 
         return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
     }
 
     /**
-     * @param string $option
+     * Get package type name as a string by default
      *
-     * @return bool
+     * @return string
      */
-    private function isDigitalStampOrMailbox(string $option): bool
+    public function getPackageTypeName(): string
     {
-        $country = self::$order->getShippingAddress()->getCountryId();
-        if ($country != 'NL') {
-            return false;
-        }
-
-        if (
-            is_array(self::$chosenOptions) &&
-            key_exists('packageType', self::$chosenOptions) &&
-            self::$chosenOptions['packageType'] === $option
-        ) {
-            return true;
-        }
-
-        return false;
+        $packageTypesMap = array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP);
+        return $packageTypesMap[$this->getPackageType()];
     }
 }
