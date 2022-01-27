@@ -6,6 +6,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -21,7 +22,7 @@ use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
-
+use Magento\Framework\App\Config\ScopeConfigInterface;
 
 /**
  * Class MagentoOrderCollection
@@ -190,6 +191,7 @@ class MagentoOrderCollection extends MagentoCollection
             );
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
+            $deliveryOptions['date'] = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
 
             if (isset($deliveryOptions['isPickup'])) {
                 $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME ;
@@ -198,7 +200,7 @@ class MagentoOrderCollection extends MagentoCollection
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
             $deliveryOptionsAdapter             = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
             $this->order                        = $magentoOrder;
-
+          
             $this->setBillingRecipient();
             $this->setShippingRecipient();
 
@@ -207,7 +209,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
-                ->setOrderDate($this->helper->convertDeliveryDate($this->order->getCreatedAt()))
+                ->setOrderDate($this->getLocalCreatedAtDate())
                 ->setExternalIdentifier($this->order->getIncrementId());
 
             if ($deliveryOptionsAdapter->isPickup()) {
@@ -238,6 +240,29 @@ class MagentoOrderCollection extends MagentoCollection
         $this->myParcelCollection = $orderCollection->save();
 
         return $this;
+    }
+
+    /**
+     * @param  string $format
+     *
+     * @return string
+     */
+    public function getLocalCreatedAtDate(string $format = 'Y-m-d H:i:s'): string
+    {
+        $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
+        $datetime    = \DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
+        $timezone    = $scopeConfig->getValue(
+            'general/locale/timezone',
+            ScopeInterface::SCOPE_STORE,
+            $this->order->getStoreId()
+        );
+
+        if ($timezone) {
+            $storeTime = new \DateTimeZone($timezone);
+            $datetime->setTimezone($storeTime);
+        }
+
+        return $datetime->format($format);
     }
 
     /**
