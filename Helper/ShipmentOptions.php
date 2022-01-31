@@ -113,7 +113,7 @@ class ShipmentOptions
             return false;
         }
 
-        $ageCheckFromOptions  = self::getValueOfOptionWhenSet($this->options, 'age_check');
+        $ageCheckFromOptions  = self::getValueOfOptionWhenSet('age_check', $this->options);
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice(self::AGE_CHECK);
 
@@ -153,7 +153,7 @@ class ShipmentOptions
      *
      * @return null|string
      */
-    private static function getAttributeValue(string $tableName, string $entityId, string $column): ?string
+    public static function getAttributeValue(string $tableName, string $entityId, string $column): ?string
     {
         $objectManager = ObjectManager::getInstance();
         $resource      = $objectManager->get(ResourceConnection::class);
@@ -218,13 +218,13 @@ class ShipmentOptions
      *
      * @return bool|null boolean value of the option named $key, or null when not set in $options
      */
-    public static function getValueOfOptionWhenSet(array $options, string $key): ?bool
+    public static function getValueOfOptionWhenSet(string $key, $options): ?bool
     {
-        if ($options[$key] || array_key_exists($key, $options)) {
-            return (bool)$options[$key];
+        if (! isset($options[$key]) || ! array_key_exists($key, $options)) {
+            return null;
         }
 
-        return null;
+        return (bool) $options[$key];
     }
 
     /**
@@ -232,8 +232,7 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        return self::getValueOfOptionWhenSet($this->options, 'large_format')
-            ?? self::$defaultOptions->getDefaultLargeFormat(self::LARGE_FORMAT);
+        return $this->optionIsEnabled(self::LARGE_FORMAT);
     }
 
     /**

@@ -8,6 +8,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
@@ -200,8 +201,6 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
-            $deliveryOptions['date']            = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
-
             try {
                 // create new instance from known json
                 $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
@@ -212,7 +211,7 @@ class MagentoOrderCollection extends MagentoCollection
                 $deliveryOptionsAdapter         = DeliveryOptionsAdapterFactory::create($deliveryOptions);
             }
 
-            $this->order = $magentoOrder;
+            $this->order                        = $magentoOrder;
 
             $this->setBillingRecipient();
             $this->setShippingRecipient($deliveryOptionsAdapter);
@@ -247,6 +246,8 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $order->setOrderLines($orderLines);
+            $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order, $this->objectManager);
+            $order->setCustomsDeclaration($customsDeclarationAdapter->createCustomsDeclaration());
             $orderCollection->push($order);
         }
 
@@ -312,7 +313,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setShippingRecipient(AbstractDeliveryOptionsAdapter $deliveryOptions): self
     {
-        $carrier                  = ConsignmentFactory::createByCarrierName($deliveryOptions->getCarrier());
+        $carrier                  = ConsignmentFactory::createByCarrierName('postnl');
         $street                   = implode(
             ' ',
             $this->order->getShippingAddress()
