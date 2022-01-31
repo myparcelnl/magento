@@ -7,10 +7,12 @@ use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
+use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
@@ -196,7 +198,16 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
-            $deliveryOptionsAdapter             = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+            try {
+                // create new instance from known json
+                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+            } catch (\BadMethodCallException $e) {
+                // create new instance from unknown json data
+                $deliveryOptions                = (new ConsignmentNormalizer((array) $deliveryOptions))->normalize();
+                $deliveryOptions['packageType'] = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+                $deliveryOptionsAdapter         = DeliveryOptionsAdapterFactory::create($deliveryOptions);
+            }
+
             $this->order                        = $magentoOrder;
 
             $this->setBillingRecipient();
@@ -232,6 +243,8 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $order->setOrderLines($orderLines);
+            $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order, $this->objectManager);
+            $order->setCustomsDeclaration($customsDeclarationAdapter->createCustomsDeclaration());
             $orderCollection->push($order);
         }
 
@@ -272,9 +285,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setShippingRecipient(): self
     {
-        $myparcelDeliveryOptions  = $this->order['myparcel_delivery_options'] ?? '';
-        $formattedDeliveryOptions = json_decode($myparcelDeliveryOptions, true);
-        $carrier                  = ConsignmentFactory::createByCarrierName($formattedDeliveryOptions['carrier']);
+        $carrier                  = ConsignmentFactory::createByCarrierName('postnl');
         $street                   = implode(
             ' ',
             $this->order->getShippingAddress()
