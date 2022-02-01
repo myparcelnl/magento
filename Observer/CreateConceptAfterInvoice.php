@@ -95,7 +95,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        if ($this->helper->getGeneralConfig('basic_settings/create_concept_after_invoice')) {
+        if ($this->helper->getGeneralConfig('print/create_concept_after_invoice')) {
             $order   = $observer->getEvent()->getOrder();
             $orderId = $order->getId();
 
