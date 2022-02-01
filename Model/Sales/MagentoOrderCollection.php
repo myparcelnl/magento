@@ -193,7 +193,7 @@ class MagentoOrderCollection extends MagentoCollection
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
 
-            if ($deliveryOptions['isPickup']) {
+            if ($deliveryOptions && $deliveryOptions['isPickup']) {
                 $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
             }
 
