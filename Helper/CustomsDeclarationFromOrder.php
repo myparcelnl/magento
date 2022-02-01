@@ -10,6 +10,7 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use MyParcelNL\Sdk\src\Support\Str;
 
 class CustomsDeclarationFromOrder
 {
@@ -111,10 +112,6 @@ class CustomsDeclarationFromOrder
      */
     public function getItemDescription($description): string
     {
-        if (strlen($description) > AbstractConsignment::DESCRIPTION_MAX_LENGTH) {
-            $description = substr_replace($description, '...', AbstractConsignment::DESCRIPTION_MAX_LENGTH - 3);
-        }
-
-        return $description;
+        return Str::limit($description, AbstractConsignment::DESCRIPTION_MAX_LENGTH);
     }
 }
