@@ -253,7 +253,7 @@ class TrackTraceHolder
             $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
         }
 
-        return $this->getAgeCheck($magentoTrack, $address) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE : $packageType;
+        return $this->getAgeCheck($magentoTrack, $address, $options) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE : $packageType;
     }
 
     /**
@@ -270,7 +270,7 @@ class TrackTraceHolder
             return false;
         }
 
-        $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet('age_check');
+        $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet($options, 'age_check');
         $ageCheckOfProduct    = ShipmentOptions::getAgeCheckFromProduct($magentoTrack);
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check');
 
@@ -410,7 +410,9 @@ class TrackTraceHolder
             return $this;
         }
 
-        if ($products = $magentoTrack->getShipment()->getData('items')) {
+        $products = $magentoTrack->getShipment()
+            ->getData('items');
+        if ($products) {
             foreach ($products as $product) {
                 $totalWeight += $product->consignment->getWeight();
             }

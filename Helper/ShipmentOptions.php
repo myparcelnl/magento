@@ -113,7 +113,7 @@ class ShipmentOptions
             return false;
         }
 
-        $ageCheckFromOptions  = $this->getValueOfOptionWhenSet('age_check');
+        $ageCheckFromOptions  = self::getValueOfOptionWhenSet($this->options, 'age_check');
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice(self::AGE_CHECK);
 
@@ -213,17 +213,18 @@ class ShipmentOptions
     }
 
     /**
+     * @param  array  $options
      * @param  string $key
      *
      * @return bool|null boolean value of the option named $key, or null when not set in $options
      */
-    public function getValueOfOptionWhenSet(string $key): ?bool
+    public static function getValueOfOptionWhenSet(array $options, string $key): ?bool
     {
-        if (! isset($this->options[$key]) || ! array_key_exists($key, $this->options)) {
-            return null;
+        if ($options[$key] || array_key_exists($key, $options)) {
+            return (bool)$options[$key];
         }
 
-        return (bool) $this->options[$key];
+        return null;
     }
 
     /**
@@ -231,7 +232,7 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        return $this->getValueOfOptionWhenSet('large_format')
+        return self::getValueOfOptionWhenSet($this->options, 'large_format')
             ?? self::$defaultOptions->getDefaultLargeFormat(self::LARGE_FORMAT);
     }
 
