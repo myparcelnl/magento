@@ -25,6 +25,7 @@ use Magento\Sales\Model\ResourceModel\Order\Collection;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 
@@ -94,15 +95,17 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        if ($this->helper->getGeneralConfig('basic_settings/create_concept_after_invoice')) {
+        if ($this->helper->getGeneralConfig('print/create_concept_after_invoice')) {
             $order   = $observer->getEvent()->getOrder();
-            $orderid = $order->getId();
+            $orderId = $order->getId();
 
-            if ($order instanceof \Magento\Framework\Model\AbstractModel) {
-                if ($order->getState() == 'pending' || $order->getState() == 'processing') {
-                    $this->setMagentoAndMyParcelTrack($orderid);
+            if (($order instanceof \Magento\Framework\Model\AbstractModel)
+                && in_array(
+                    $order->getState(),
+                    ['pending', 'processing']
+                )) {
+                    $this->exportAccordingToMode($orderId);
                 }
-            }
         }
 
         return $this;
@@ -119,13 +122,19 @@ class CreateConceptAfterInvoice implements ObserverInterface
      * @throws MissingFieldException
      * @throws Exception
      */
-    private function setMagentoAndMyParcelTrack($orderIds)
+    private function exportAccordingToMode($orderIds)
     {
         $this->addOrdersToCollection($orderIds);
 
         $this->orderCollection
             ->setOptionsFromParameters()
             ->setNewMagentoShipment();
+
+        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+            $this->orderCollection->setFulfilment();
+
+            return $this;
+        }
 
         $this->orderCollection
             ->setMagentoTrack()
