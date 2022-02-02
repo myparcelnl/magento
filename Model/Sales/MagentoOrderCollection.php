@@ -193,14 +193,12 @@ class MagentoOrderCollection extends MagentoCollection
             );
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
-            $deliveryOptions['date'] = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
 
             if ($deliveryOptions && $deliveryOptions['isPickup']) {
                 $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
-            $deliveryOptions['date']            = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
 
             try {
                 // create new instance from known json
