@@ -12,6 +12,8 @@ use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
+use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
@@ -193,16 +195,27 @@ class MagentoOrderCollection extends MagentoCollection
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $deliveryOptions['date'] = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
 
-            if (isset($deliveryOptions['isPickup'])) {
-                $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME ;
+            if ($deliveryOptions && $deliveryOptions['isPickup']) {
+                $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
-            $deliveryOptionsAdapter             = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
-            $this->order                        = $magentoOrder;
-          
+            $deliveryOptions['date']            = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
+
+            try {
+                // create new instance from known json
+                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+            } catch (\BadMethodCallException $e) {
+                // create new instance from unknown json data
+                $deliveryOptions                = (new ConsignmentNormalizer((array) $deliveryOptions))->normalize();
+                $deliveryOptions['packageType'] = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+                $deliveryOptionsAdapter         = DeliveryOptionsAdapterFactory::create($deliveryOptions);
+            }
+
+            $this->order = $magentoOrder;
+
             $this->setBillingRecipient();
-            $this->setShippingRecipient();
+            $this->setShippingRecipient($deliveryOptionsAdapter);
 
             $order = (new FulfilmentOrder())
                 ->setStatus($this->order->getStatus())
@@ -292,14 +305,14 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
+     * @param  \MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter $deliveryOptions
+     *
      * @return self
      * @throws \Exception
      */
-    public function setShippingRecipient(): self
+    public function setShippingRecipient(AbstractDeliveryOptionsAdapter $deliveryOptions): self
     {
-        $myparcelDeliveryOptions  = $this->order['myparcel_delivery_options'] ?? '';
-        $formattedDeliveryOptions = json_decode($myparcelDeliveryOptions, true);
-        $carrier                  = ConsignmentFactory::createByCarrierName($formattedDeliveryOptions['carrier']);
+        $carrier                  = ConsignmentFactory::createByCarrierName($deliveryOptions->getCarrier());
         $street                   = implode(
             ' ',
             $this->order->getShippingAddress()

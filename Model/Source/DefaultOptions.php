@@ -189,11 +189,14 @@ class DefaultOptions
     {
         $country      = self::$order->getShippingAddress()->getCountryId();
         $isNL         = AbstractConsignment::CC_NL === $country;
-        $keyIsPresent = array_key_exists('packageType', self::$chosenOptions);
-        $packageType  = self::$chosenOptions['packageType'];
 
-        if ($isNL && $keyIsPresent) {
-            return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+        if (self::$chosenOptions) {
+            $keyIsPresent = array_key_exists('packageType', self::$chosenOptions);
+            $packageType  = self::$chosenOptions['packageType'];
+
+            if ($isNL && $keyIsPresent) {
+                return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+            }
         }
 
         return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
