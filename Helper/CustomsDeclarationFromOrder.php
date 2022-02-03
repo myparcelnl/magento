@@ -92,11 +92,11 @@ class CustomsDeclarationFromOrder
     }
 
     /**
-     * @param $product
+     * @param  \Magento\Catalog\Model\Product $product
      *
      * @return int
      */
-    public function getHsCode($product): int
+    public function getHsCode(Product $product): int
     {
         return (int) ShipmentOptions::getAttributeValue(
             'catalog_product_entity_int',
@@ -106,11 +106,11 @@ class CustomsDeclarationFromOrder
     }
 
     /**
-     * @param $description
+     * @param  string $description
      *
      * @return string
      */
-    public function getItemDescription($description): string
+    public function getItemDescription(string $description): string
     {
         return Str::limit($description, AbstractConsignment::DESCRIPTION_MAX_LENGTH);
     }
