@@ -213,12 +213,12 @@ class ShipmentOptions
     }
 
     /**
-     * @param  array  $options
      * @param  string $key
+     * @param  array  $options
      *
      * @return bool|null boolean value of the option named $key, or null when not set in $options
      */
-    public static function getValueOfOptionWhenSet(string $key, $options): ?bool
+    public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
     {
         if ($options[$key] || array_key_exists($key, $options)) {
             return (bool)$options[$key];
