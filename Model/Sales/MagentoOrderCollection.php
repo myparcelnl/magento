@@ -247,7 +247,9 @@ class MagentoOrderCollection extends MagentoCollection
 
             $order->setOrderLines($orderLines);
             $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order, $this->objectManager);
-            $order->setCustomsDeclaration($customsDeclarationAdapter->createCustomsDeclaration());
+            $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
+            $order->setCustomsDeclaration($customsDeclaration);
+            $order->setWeight($customsDeclaration->getWeight());
             $orderCollection->push($order);
         }
 

@@ -11,10 +11,16 @@ use MyParcelNL\Sdk\src\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use MyParcelNL\Sdk\src\Support\Str;
+use MyParcelNL\Magento\Helper\Data;
 
 class CustomsDeclarationFromOrder
 {
     private const CURRENCY_EURO = 'EUR';
+
+    /**
+     * @var mixed
+     */
+    private $helper;
 
     /**
      * @var \Magento\Framework\App\ObjectManager
@@ -34,6 +40,7 @@ class CustomsDeclarationFromOrder
     {
         $this->order         = $order;
         $this->objectManager = $objectManager;
+        $this->helper        = $this->objectManager->get(Data::class);
     }
 
     /**
@@ -53,13 +60,13 @@ class CustomsDeclarationFromOrder
                 continue;
             }
 
-            $totalWeight += $product->getWeight();
+            $totalWeight += $this->helper->getWeightTypeOfOption($product->getWeight() * $item->getQtyShipped());
             $description = Str::limit($product->getName(), AbstractConsignment::DESCRIPTION_MAX_LENGTH);
 
             $customsItem = (new MyParcelCustomsItem())
                 ->setDescription($description)
                 ->setAmount($item->getQtyShipped())
-                ->setWeight($product->getWeight())
+                ->setWeight($this->helper->getWeightTypeOfOption($product->getWeight()))
                 ->setItemValueArray([
                     'amount'   => TrackTraceHolder::getCentsByPrice($product->getPrice()),
                     'currency' => $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO,
@@ -83,7 +90,7 @@ class CustomsDeclarationFromOrder
      *
      * @return string
      */
-    public function getCountryOfOrigin(Product $product): string
+    private function getCountryOfOrigin(Product $product): string
     {
         $productCountryOfOrigin = $this->objectManager
             ->get(ProductRepositoryInterface::class)
@@ -98,7 +105,7 @@ class CustomsDeclarationFromOrder
      *
      * @return int
      */
-    public function getHsCode(Product $product): int
+    private function getHsCode(Product $product): int
     {
         return (int) ShipmentOptions::getAttributeValue(
             'catalog_product_entity_int',
