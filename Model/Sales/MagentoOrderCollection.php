@@ -200,7 +200,6 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
-            $deliveryOptions['date']            = $deliveryOptions['date'] ?? date('Y-m-d H:i:s');
 
             try {
                 // create new instance from known json
@@ -240,12 +239,16 @@ class MagentoOrderCollection extends MagentoCollection
                 $order->setPickupLocation($pickupLocation);
             }
 
+            $weight = 0;
+
             foreach ($this->order->getItems() as $magentoOrderItem) {
                 $orderLine = new OrderLineOptionsFromOrderAdapter($magentoOrderItem);
+                $weight    += $orderLine->getProduct()->getWeight();
 
                 $orderLines->push($orderLine);
             }
 
+            $order->setWeight($weight);
             $order->setOrderLines($orderLines);
             $orderCollection->push($order);
         }
