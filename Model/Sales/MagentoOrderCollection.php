@@ -20,6 +20,7 @@ use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\PickupLocation;
@@ -305,14 +306,12 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @param  \MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter $deliveryOptions
-     *
      * @return self
      * @throws \Exception
      */
-    public function setShippingRecipient(AbstractDeliveryOptionsAdapter $deliveryOptions): self
+    public function setShippingRecipient(): self
     {
-        $carrier                  = ConsignmentFactory::createByCarrierName('postnl');
+        $carrier                  = ConsignmentFactory::createByCarrierName(CarrierPostNL::NAME);
         $street                   = implode(
             ' ',
             $this->order->getShippingAddress()

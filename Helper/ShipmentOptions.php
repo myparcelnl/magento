@@ -113,7 +113,7 @@ class ShipmentOptions
             return false;
         }
 
-        $ageCheckFromOptions  = self::getValueOfOptionWhenSet('age_check', $this->options);
+        $ageCheckFromOptions  = self::getValueOfOptionWhenSet(self::AGE_CHECK, $this->options);
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice(self::AGE_CHECK);
 
