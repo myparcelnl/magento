@@ -39,6 +39,7 @@ class CustomsDeclarationFromOrder
     /**
      * @return \MyParcelNL\Sdk\src\Model\CustomsDeclaration
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \Exception
      */
     public function createCustomsDeclaration(): CustomsDeclaration
     {
@@ -53,9 +54,10 @@ class CustomsDeclarationFromOrder
             }
 
             $totalWeight += $product->getWeight();
+            $description = Str::limit($product->getName(), AbstractConsignment::DESCRIPTION_MAX_LENGTH);
 
             $customsItem = (new MyParcelCustomsItem())
-                ->setDescription($this->getItemDescription($product->getName()))
+                ->setDescription($description)
                 ->setAmount($item->getQtyShipped())
                 ->setWeight($product->getWeight())
                 ->setItemValueArray([
@@ -103,15 +105,5 @@ class CustomsDeclarationFromOrder
             $product->getId(),
             'classification'
         );
-    }
-
-    /**
-     * @param  string $description
-     *
-     * @return string
-     */
-    public function getItemDescription(string $description): string
-    {
-        return Str::limit($description, AbstractConsignment::DESCRIPTION_MAX_LENGTH);
     }
 }
