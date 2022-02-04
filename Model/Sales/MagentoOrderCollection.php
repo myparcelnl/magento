@@ -8,6 +8,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
@@ -19,6 +20,7 @@ use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\PickupLocation;
@@ -210,7 +212,7 @@ class MagentoOrderCollection extends MagentoCollection
                 $deliveryOptionsAdapter         = DeliveryOptionsAdapterFactory::create($deliveryOptions);
             }
 
-            $this->order = $magentoOrder;
+            $this->order                        = $magentoOrder;
 
             $this->setBillingRecipient();
             $this->setShippingRecipient($deliveryOptionsAdapter);
@@ -245,6 +247,10 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $order->setOrderLines($orderLines);
+            $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order, $this->objectManager);
+            $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
+            $order->setCustomsDeclaration($customsDeclaration);
+            $order->setWeight($customsDeclaration->getWeight());
             $orderCollection->push($order);
         }
 
@@ -303,14 +309,12 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @param  \MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter $deliveryOptions
-     *
      * @return self
      * @throws \Exception
      */
-    public function setShippingRecipient(AbstractDeliveryOptionsAdapter $deliveryOptions): self
+    public function setShippingRecipient(): self
     {
-        $carrier                  = ConsignmentFactory::createByCarrierName($deliveryOptions->getCarrier());
+        $carrier                  = ConsignmentFactory::createByCarrierName(CarrierPostNL::NAME);
         $street                   = implode(
             ' ',
             $this->order->getShippingAddress()

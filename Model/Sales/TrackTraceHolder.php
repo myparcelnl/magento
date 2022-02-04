@@ -270,7 +270,7 @@ class TrackTraceHolder
             return false;
         }
 
-        $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet($options, 'age_check');
+        $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet('age_check', $options);
         $ageCheckOfProduct    = ShipmentOptions::getAgeCheckFromProduct($magentoTrack);
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check');
 
@@ -445,7 +445,7 @@ class TrackTraceHolder
      *
      * @return int
      */
-    private function getCentsByPrice(float $price): int
+    public static function getCentsByPrice(float $price): int
     {
         return (int) $price * 100;
     }
