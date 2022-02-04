@@ -201,6 +201,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
+
             try {
                 // create new instance from known json
                 $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);

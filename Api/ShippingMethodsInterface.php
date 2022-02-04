@@ -10,7 +10,7 @@ interface ShippingMethodsInterface
     /**
      * @param mixed $deliveryOptions
      *
-     * @return array[]
+     * @return mixed[] specifying array[] breaks the soap api
      * @api
      */
     public function getFromDeliveryOptions($deliveryOptions): array;
