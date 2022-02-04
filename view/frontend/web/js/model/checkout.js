@@ -194,16 +194,21 @@ function(
     },
 
     /**
+     * This method reads the countryId from the checkout form select list country_id, this is Magento standard.
+     * There may be checkout plugins without country_id, which we do not support fully
+     *
      * @param {String} carrier
      * @returns {XMLHttpRequest}
      */
     calculatePackageType: function(carrier) {
+      var list = document.querySelector('[name="country_id"]');
+      var countryId = (list) ? list.options[list.selectedIndex].value : Model.countryId();
       return sendRequest(
         'rest/V1/package_type',
         'GET',
         {
           carrier: carrier,
-          countryCode: Model.countryId(),
+          countryCode: countryId,
         }
       );
     },
