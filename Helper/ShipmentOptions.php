@@ -232,7 +232,13 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        return $this->optionIsEnabled(self::LARGE_FORMAT);
+        $countryId = $this->order->getShippingAddress()->getCountryId();
+
+        if (! in_array($countryId, AbstractConsignment::EURO_COUNTRIES)) {
+            return false;
+        }
+
+        return self::$defaultOptions->getDefaultLargeFormat(self::LARGE_FORMAT);
     }
 
     /**
