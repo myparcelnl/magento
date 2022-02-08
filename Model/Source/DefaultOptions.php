@@ -192,9 +192,10 @@ class DefaultOptions
 
         if (self::$chosenOptions) {
             $keyIsPresent = array_key_exists('packageType', self::$chosenOptions);
-            $packageType  = self::$chosenOptions['packageType'];
 
             if ($isNL && $keyIsPresent) {
+                $packageType  = self::$chosenOptions['packageType'];
+
                 return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
             }
         }
