@@ -173,9 +173,9 @@ class DefaultOptions
     /**
      * Get default of digital stamp weight
      *
-     * @return bool
+     * @return string
      */
-    public function getDigitalStampDefaultWeight(): bool
+    public function getDigitalStampDefaultWeight(): string
     {
         return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
     }
