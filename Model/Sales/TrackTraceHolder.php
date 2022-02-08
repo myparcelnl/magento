@@ -410,8 +410,7 @@ class TrackTraceHolder
             return $this;
         }
 
-        $products = $magentoTrack->getShipment()
-            ->getData('items');
+        $products = $magentoTrack->getShipment()->getData('items');
         if ($products) {
             foreach ($products as $product) {
                 $totalWeight += $product->consignment->getWeight();
@@ -419,8 +418,7 @@ class TrackTraceHolder
         }
 
         $products = $this->shipmentOptionsHelper->getItemsCollectionByShipmentId(
-            $magentoTrack->getShipment()
-                ->getId()
+            $magentoTrack->getShipment()->getId()
         );
 
         foreach ($products as $product) {
@@ -434,7 +432,7 @@ class TrackTraceHolder
         }
 
         $this->consignment->setPhysicalProperties([
-            "weight" => $totalWeight
+            "weight" => $this->dataHelper->getWeightTypeOfOption($totalWeight)
         ]);
 
         return $this;
