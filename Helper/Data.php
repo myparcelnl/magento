@@ -238,9 +238,9 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getExportMode(): string
+    public function getExportMode(): ?string
     {
         return $this->getGeneralConfig('print/export_mode');
     }
