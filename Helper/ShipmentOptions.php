@@ -117,7 +117,7 @@ class ShipmentOptions
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice(self::AGE_CHECK);
 
-        return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
+        return $ageCheckFromOptions ?: $ageCheckOfProduct ?: $ageCheckFromSettings;
     }
 
     /**
