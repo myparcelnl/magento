@@ -75,7 +75,7 @@ class ShippingMethods implements ShippingMethodsInterface
      */
     public function persistDeliveryOptions(array $deliveryOptions): array
     {
-        $quote         = $this->session->getQuote();
+        $quote = $this->session->getQuote();
         $quote->addData(['myparcel_delivery_options' => json_encode($deliveryOptions)]);
 
         // TODO: Verify if this is the right way to get Mageplaza option
