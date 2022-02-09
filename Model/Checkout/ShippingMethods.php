@@ -4,6 +4,9 @@ namespace MyParcelNL\Magento\Model\Checkout;
 
 use Exception;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Module\Manager;
+use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Api\ShippingMethodsInterface;
 
 /**
@@ -11,6 +14,11 @@ use MyParcelNL\Magento\Api\ShippingMethodsInterface;
  */
 class ShippingMethods implements ShippingMethodsInterface
 {
+    /**
+     * @var \Magento\Framework\App\ObjectManager
+     */
+    private $objectManager;
+
     /**
      * @var \Magento\Checkout\Model\Session
      */
@@ -23,7 +31,8 @@ class ShippingMethods implements ShippingMethodsInterface
      */
     public function __construct(Session $session)
     {
-        $this->session = $session;
+        $this->session       = $session;
+        $this->objectManager = ObjectManager::getInstance();
     }
 
     /**
@@ -67,9 +76,12 @@ class ShippingMethods implements ShippingMethodsInterface
      */
     public function persistDeliveryOptions(array $deliveryOptions): array
     {
-        $quote = $this->session->getQuote();
+        $quote         = $this->session->getQuote();
         $quote->addData(['myparcel_delivery_options' => json_encode($deliveryOptions)]);
-        $quote->save();
+
+        if (1 === $this->objectManager->get(ScopeConfigInterface::class)->getValue('osc/general/enabled')) {
+            $quote->save();
+        }
 
         return [
             'delivery_options' => $deliveryOptions,
