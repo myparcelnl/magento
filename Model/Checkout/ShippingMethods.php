@@ -5,7 +5,6 @@ namespace MyParcelNL\Magento\Model\Checkout;
 use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Module\Manager;
 use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Api\ShippingMethodsInterface;
 
