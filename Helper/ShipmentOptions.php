@@ -82,7 +82,9 @@ class ShipmentOptions
      */
     public function hasSignature(): bool
     {
-        return $this->optionIsEnabled(self::SIGNATURE);
+        $signatureFromOptions = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
+
+        return $signatureFromOptions ?? $this->optionIsEnabled(self::SIGNATURE);
     }
 
     /**
@@ -90,7 +92,9 @@ class ShipmentOptions
      */
     public function hasOnlyRecipient(): bool
     {
-        return $this->optionIsEnabled(self::ONLY_RECIPIENT);
+        $onlyRecipientFromOptions = self::getValueOfOptionWhenSet(self::ONLY_RECIPIENT, $this->options);
+
+        return $onlyRecipientFromOptions ?? $this->optionIsEnabled(self::ONLY_RECIPIENT);
     }
 
     /**
@@ -98,7 +102,9 @@ class ShipmentOptions
      */
     public function hasReturn(): bool
     {
-        return $this->optionIsEnabled(self::RETURN);
+        $returnFromOptions = self::getValueOfOptionWhenSet(self::RETURN, $this->options);
+
+        return $returnFromOptions ?? $this->optionIsEnabled(self::RETURN);
     }
 
     /**
@@ -117,7 +123,7 @@ class ShipmentOptions
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
         $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice(self::AGE_CHECK);
 
-        return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
+        return $ageCheckFromOptions ?: $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
 
     /**
@@ -220,8 +226,8 @@ class ShipmentOptions
      */
     public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
     {
-        if ($options[$key] || array_key_exists($key, $options)) {
-            return (bool)$options[$key];
+        if ($options[$key] || false === $options[$key]) {
+            return (bool) $options[$key];
         }
 
         return null;
@@ -232,7 +238,16 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        return $this->optionIsEnabled(self::LARGE_FORMAT);
+        $countryId = $this->order->getShippingAddress()->getCountryId();
+
+        if (! in_array($countryId, AbstractConsignment::EURO_COUNTRIES)) {
+            return false;
+        }
+
+        $largeFormatFromOptions  = self::getValueOfOptionWhenSet(self::LARGE_FORMAT, $this->options);
+        $largeFormatFromSettings = self::$defaultOptions->getDefaultLargeFormat(self::LARGE_FORMAT);
+
+        return $largeFormatFromOptions ?? $largeFormatFromSettings;
     }
 
     /**
