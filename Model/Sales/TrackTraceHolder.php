@@ -246,7 +246,7 @@ class TrackTraceHolder
         $packageType = self::$defaultOptions->getPackageType();
         // get packagetype from selected radio buttons and check if package type is set
         if ($options['package_type'] && 'default' !== $options['package_type']) {
-            $packageType = AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+            $packageType = $options['package_type'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE;
         }
 
         if (! is_numeric($packageType)) {
