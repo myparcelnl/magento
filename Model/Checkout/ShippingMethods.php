@@ -78,6 +78,7 @@ class ShippingMethods implements ShippingMethodsInterface
         $quote         = $this->session->getQuote();
         $quote->addData(['myparcel_delivery_options' => json_encode($deliveryOptions)]);
 
+        // TODO: Verify if this is the right way to get Mageplaza option
         if (1 === $this->objectManager->get(ScopeConfigInterface::class)->getValue('osc/general/enabled')) {
             $quote->save();
         }
