@@ -83,9 +83,8 @@ class ShipmentOptions
     public function hasSignature(): bool
     {
         $signatureFromOptions  = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
-        $signatureFromSettings = $this->optionIsEnabled(self::SIGNATURE);
 
-        return $signatureFromOptions ?? $signatureFromSettings;
+        return $signatureFromOptions ?? $this->optionIsEnabled(self::SIGNATURE);
     }
 
     /**
@@ -94,9 +93,8 @@ class ShipmentOptions
     public function hasOnlyRecipient(): bool
     {
         $onlyRecipientFromOptions  = self::getValueOfOptionWhenSet(self::ONLY_RECIPIENT, $this->options);
-        $onlyRecipientFromSettings = $this->optionIsEnabled(self::ONLY_RECIPIENT);
 
-        return $onlyRecipientFromOptions ?? $onlyRecipientFromSettings;
+        return $onlyRecipientFromOptions ?? $this->optionIsEnabled(self::ONLY_RECIPIENT);
     }
 
     /**
@@ -105,9 +103,8 @@ class ShipmentOptions
     public function hasReturn(): bool
     {
         $returnFromOptions  = self::getValueOfOptionWhenSet(self::RETURN, $this->options);
-        $returnFromSettings = $this->optionIsEnabled(self::RETURN);
 
-        return $returnFromOptions ?? $returnFromSettings;
+        return $returnFromOptions ?? $this->optionIsEnabled(self::RETURN);
     }
 
     /**
