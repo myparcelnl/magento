@@ -82,7 +82,7 @@ class ShipmentOptions
      */
     public function hasSignature(): bool
     {
-        $signatureFromOptions  = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
+        $signatureFromOptions = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
 
         return $signatureFromOptions ?? $this->optionIsEnabled(self::SIGNATURE);
     }
@@ -92,7 +92,7 @@ class ShipmentOptions
      */
     public function hasOnlyRecipient(): bool
     {
-        $onlyRecipientFromOptions  = self::getValueOfOptionWhenSet(self::ONLY_RECIPIENT, $this->options);
+        $onlyRecipientFromOptions = self::getValueOfOptionWhenSet(self::ONLY_RECIPIENT, $this->options);
 
         return $onlyRecipientFromOptions ?? $this->optionIsEnabled(self::ONLY_RECIPIENT);
     }
@@ -102,7 +102,7 @@ class ShipmentOptions
      */
     public function hasReturn(): bool
     {
-        $returnFromOptions  = self::getValueOfOptionWhenSet(self::RETURN, $this->options);
+        $returnFromOptions = self::getValueOfOptionWhenSet(self::RETURN, $this->options);
 
         return $returnFromOptions ?? $this->optionIsEnabled(self::RETURN);
     }
@@ -227,7 +227,7 @@ class ShipmentOptions
     public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
     {
         if ($options[$key] || false === $options[$key]) {
-            return $options[$key];
+            return (bool) $options[$key];
         }
 
         return null;
