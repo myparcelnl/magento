@@ -6,16 +6,28 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
+use MyParcelNL\Magento\Helper\ShipmentOptions;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
+use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+
 
 /**
  * Class MagentoOrderCollection
@@ -167,28 +179,67 @@ class MagentoOrderCollection extends MagentoCollection
      * @throws \Exception
      *
      */
-    public function setFulfilment()
+    public function setFulfilment(): self
     {
         $apiKey          = $this->getApiKey();
         $orderCollection = (new OrderCollection())->setApiKey($apiKey);
         $orderLines      = new Collection();
 
         foreach ($this->getOrders() as $magentoOrder) {
-            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'];
+            $defaultOptions          = new DefaultOptions($magentoOrder, $this->helper);
+            $shipmentOptionsHelper   = new ShipmentOptions(
+                $defaultOptions,
+                $this->helper,
+                $magentoOrder,
+                $this->objectManager,
+                $this->options
+            );
+            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
-            $deliveryOptionsAdapter  = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
-            $this->order             = $magentoOrder;
+
+            if ($deliveryOptions && $deliveryOptions['isPickup']) {
+                $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+            }
+
+            $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
+
+            try {
+                // create new instance from known json
+                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+            } catch (\BadMethodCallException $e) {
+                // create new instance from unknown json data
+                $deliveryOptions                = (new ConsignmentNormalizer((array) $deliveryOptions))->normalize();
+                $deliveryOptions['packageType'] = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+                $deliveryOptionsAdapter         = DeliveryOptionsAdapterFactory::create($deliveryOptions);
+            }
+
+            $this->order                        = $magentoOrder;
 
             $this->setBillingRecipient();
-            $this->setShippingRecipient();
+            $this->setShippingRecipient($deliveryOptionsAdapter);
 
             $order = (new FulfilmentOrder())
                 ->setStatus($this->order->getStatus())
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
-                ->setOrderDate($this->helper->convertDeliveryDate($this->order->getCreatedAt()))
+                ->setOrderDate($this->getLocalCreatedAtDate())
                 ->setExternalIdentifier($this->order->getIncrementId());
+
+            if ($deliveryOptionsAdapter->isPickup()) {
+                $pickupData     = $deliveryOptionsAdapter->getPickupLocation();
+                $pickupLocation = new PickupLocation([
+                    'cc'                => $pickupData->getCountry(),
+                    'city'              => $pickupData->getCity(),
+                    'postal_code'       => $pickupData->getPostalCode(),
+                    'street'            => $pickupData->getStreet(),
+                    'number'            => $pickupData->getNumber(),
+                    'location_name'     => $pickupData->getLocationName(),
+                    'location_code'     => $pickupData->getLocationCode(),
+                    'retail_network_id' => $pickupData->getRetailNetworkId(),
+                ]);
+                $order->setPickupLocation($pickupLocation);
+            }
 
             foreach ($this->order->getItems() as $magentoOrderItem) {
                 $orderLine = new OrderLineOptionsFromOrderAdapter($magentoOrderItem);
@@ -197,12 +248,39 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $order->setOrderLines($orderLines);
+            $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order, $this->objectManager);
+            $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
+            $order->setCustomsDeclaration($customsDeclaration);
+            $order->setWeight($customsDeclaration->getWeight());
             $orderCollection->push($order);
         }
 
         $this->myParcelCollection = $orderCollection->save();
 
         return $this;
+    }
+
+    /**
+     * @param  string $format
+     *
+     * @return string
+     */
+    public function getLocalCreatedAtDate(string $format = 'Y-m-d H:i:s'): string
+    {
+        $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
+        $datetime    = \DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
+        $timezone    = $scopeConfig->getValue(
+            'general/locale/timezone',
+            ScopeInterface::SCOPE_STORE,
+            $this->order->getStoreId()
+        );
+
+        if ($timezone) {
+            $storeTime = new \DateTimeZone($timezone);
+            $datetime->setTimezone($storeTime);
+        }
+
+        return $datetime->format($format);
     }
 
     /**
@@ -237,9 +315,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setShippingRecipient(): self
     {
-        $myparcelDeliveryOptions  = $this->order['myparcel_delivery_options'] ?? '';
-        $formattedDeliveryOptions = json_decode($myparcelDeliveryOptions, true);
-        $carrier                  = ConsignmentFactory::createByCarrierName($formattedDeliveryOptions['carrier']);
+        $carrier                  = ConsignmentFactory::createByCarrierName(CarrierPostNL::NAME);
         $street                   = implode(
             ' ',
             $this->order->getShippingAddress()
@@ -290,7 +366,7 @@ class MagentoOrderCollection extends MagentoCollection
      * @return $this
      * @throws \Exception
      */
-    public function setPdfOfLabels()
+    public function setPdfOfLabels(): self
     {
         $this->myParcelCollection->setPdfOfLabels($this->options['positions']);
 
@@ -303,9 +379,9 @@ class MagentoOrderCollection extends MagentoCollection
      * @return $this
      * @throws \Exception
      */
-    public function downloadPdfOfLabels()
+    public function downloadPdfOfLabels(): self
     {
-        $inlineDownload = $this->options['request_type'] == 'open_new_tab';
+        $inlineDownload = 'open_new_tab' === $this->options['request_type'];
         $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
 
         return $this;
@@ -327,7 +403,7 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * @return $this
      * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException|\MyParcelNL\Sdk\src\Exception\AccountNotActiveException
      */
     public function sendReturnLabelMails()
     {
