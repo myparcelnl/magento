@@ -36,7 +36,7 @@ define(
     deliveryOptions = {
       rendered: ko.observable(false),
 
-      splitStreetRegex: /(.*?)\s?(\d{1,4})[/\s-]{0,2}([A-z]\d{1,3}|-\d{1,4}|\d{2}\w{1,2}|[A-z][A-z\s]{0,3})?$/,
+      splitStreetRegex: /(.*?)\s?(\d{1,5})[/\s-]{0,2}([A-z]\d{1,3}|-\d{1,4}|\d{2}\w{1,2}|[A-z][A-z\s]{0,3})?$/,
 
       disableDeliveryOptionsEvent: 'myparcel_disable_delivery_options',
       hideDeliveryOptionsEvent: 'myparcel_hide_delivery_options',
