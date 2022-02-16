@@ -28,6 +28,7 @@ use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
+
 /**
  * Class MagentoOrderCollection
  *
@@ -63,9 +64,9 @@ class MagentoOrderCollection extends MagentoCollection
     private $shippingRecipient;
 
     /**
-     * @param ObjectManagerInterface                  $objectManager
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param null                                    $areaList
+     * @param  ObjectManagerInterface                   $objectManager
+     * @param  \Magento\Framework\App\RequestInterface  $request
+     * @param  null                                     $areaList
      */
     public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
     {
@@ -510,6 +511,13 @@ class MagentoOrderCollection extends MagentoCollection
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
         $shipment     = $convertOrder->toShipment($order);
 
+        $shipmentAttributes = $shipment->getExtensionAttributes();
+
+        if (method_exists($shipmentAttributes, 'setSourceCode')) {
+            $shipmentAttributes->setSourceCode($this->sourceItem->getSource($order, $order->getAllItems()));
+            $shipment->setExtensionAttributes($shipmentAttributes);
+        }
+
         // Loop through order items
         foreach ($order->getAllItems() as $orderItem) {
             // Check if order item has qty to ship or is virtual
@@ -524,11 +532,6 @@ class MagentoOrderCollection extends MagentoCollection
 
             // Add shipment item to shipment
             $shipment->addItem($shipmentItem);
-
-            if ($this->sourceItem) {
-                $source = $this->getMultiStockInventory($orderItem);
-                $shipment->getExtensionAttributes()->setSourceCode($source);
-            }
         }
 
         // Register shipment
@@ -544,29 +547,15 @@ class MagentoOrderCollection extends MagentoCollection
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
                                 ->notify($shipment);
         } catch (\Exception $e) {
-            throw new LocalizedException(
-                __($e->getMessage())
-            );
-        }
-    }
 
-    /**
-     * @param \Magento\Sales\Model\Order\Item $orderItem
-     *
-     * @return string
-     */
-    private function getMultiStockInventory(\Magento\Sales\Model\Order\Item $orderItem): string
-    {
-        $sku    = $orderItem->getSku();
-        $result = $this->sourceItem->getSourceItemDetailBySKU($sku);
-
-        foreach ($result as $item) {
-            if ($item->getSourceCode() !== 'default') {
-                return $item->getSourceCode();
+            if (preg_match('/' . MagentoOrderCollection::DEFAULT_ERROR_ORDER_HAS_NO_SOURCE . '/', $e->getMessage())) {
+                $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SOURCE));
+            } else {
+                $this->messageManager->addErrorMessage(__($e->getMessage()));
             }
-        }
 
-        return 'default';
+            $this->objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+        }
     }
 
     /**
