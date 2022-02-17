@@ -229,6 +229,15 @@ define(
        * @param {CustomEvent} event - The event that was sent.
        */
       onUpdatedDeliveryOptions: function(event) {
+        const shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
+        const isVisible = function(el) {
+          return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+        };
+
+        if (!shippingMethodDiv || !isVisible(shippingMethodDiv)) {
+          return;
+        }
+
         deliveryOptions.deliveryOptions = event.detail;
         document.querySelector(deliveryOptions.hiddenDataInput).value = JSON.stringify(event.detail);
 
