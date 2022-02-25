@@ -216,7 +216,7 @@ class MagentoOrderCollection extends MagentoCollection
             $this->order                        = $magentoOrder;
 
             $this->setBillingRecipient();
-            $this->setShippingRecipient($deliveryOptionsAdapter);
+            $this->setShippingRecipient();
 
             $order = (new FulfilmentOrder())
                 ->setStatus($this->order->getStatus())
@@ -248,16 +248,40 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $order->setOrderLines($orderLines);
-            $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order, $this->objectManager);
-            $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
-            $order->setCustomsDeclaration($customsDeclaration);
-            $order->setWeight($customsDeclaration->getWeight());
+
+            if (! in_array($this->shippingRecipient->getCc(), AbstractConsignment::EURO_COUNTRIES, true)) {
+                $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order, $this->objectManager);
+                $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
+                $order->setCustomsDeclaration($customsDeclaration);
+            }
+
+            $order->setWeight($this->getTotalWeight());
             $orderCollection->push($order);
         }
 
         $this->myParcelCollection = $orderCollection->save();
 
         return $this;
+    }
+
+    /**
+     * @return int
+     */
+    private function getTotalWeight(): int
+    {
+        $totalWeight = 0;
+
+        foreach ($this->order->getItems() as $item) {
+            $product = $item->getProduct();
+
+            if (! $product) {
+                continue;
+            }
+
+            $totalWeight += $this->helper->getWeightTypeOfOption($product->getWeight() * $item->getQtyShipped());
+        }
+
+        return $totalWeight;
     }
 
     /**
