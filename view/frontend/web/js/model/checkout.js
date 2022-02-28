@@ -202,7 +202,10 @@ function(
      */
     calculatePackageType: function(carrier) {
       var list = document.querySelector('[name="country_id"]');
-      var countryId = (list) ? list.options[list.selectedIndex].value : Model.countryId();
+      function isVisible(el) {
+        return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+      }
+      var countryId = (list && isVisible(list)) ? list.options[list.selectedIndex].value : Model.countryId();
       return sendRequest(
         'rest/V1/package_type',
         'GET',
