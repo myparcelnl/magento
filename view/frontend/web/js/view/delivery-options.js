@@ -125,9 +125,10 @@ define(
 
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
-            if (entry.intersectionRatio > 0 && !deliveryOptions.deliveryOptions) {
-              deliveryOptions.render();
+            if (entry.intersectionRatio === 0 || deliveryOptions.deliveryOptions) {
+              return;
             }
+            deliveryOptions.render();
           }, {
             root: null,
             rootMargin: '0px',
@@ -253,7 +254,9 @@ define(
        * @param {CustomEvent} event - The event that was sent.
        */
       onUpdatedDeliveryOptions: function(event) {
-        if (! deliveryOptions.areVisible) return;
+        if (! deliveryOptions.areVisible) {
+          return;
+        }
 
         deliveryOptions.deliveryOptions = event.detail;
         document.querySelector(deliveryOptions.hiddenDataInput).value = JSON.stringify(event.detail);
