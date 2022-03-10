@@ -135,7 +135,7 @@ function(
         }
 
         if (rate.method_code.indexOf('myparcel') > -1 && rows.length) {
-          Model.getShippingMethodRows(rate.method_code).forEach(function(row) {
+          rows.forEach(function(row) {
             rowsToHide.push(row);
           });
         }
@@ -272,20 +272,17 @@ function(
 
   function updateHasDeliveryOptions() {
     var isAllowed = false;
+    var shippingCountry = quote.shippingAddress().countryId;
 
-    Model.allowedShippingMethods().forEach(function(methodCode) {
-      var rate = Model.findRateByMethodCode(methodCode);
-      var shippingCountry = quote.shippingAddress().countryId;
+    if ('NL' === shippingCountry || 'BE' === shippingCountry) {
+      Model.allowedShippingMethods().forEach(function(methodCode) {
+        var rate = Model.findRateByMethodCode(methodCode);
 
-      if (rate && rate.available) {
-        isAllowed = true;
-      }
-
-      /* Only for MyParcelNL */
-      if (shippingCountry !== 'NL' && shippingCountry !== 'BE') {
-        isAllowed = false;
-      }
-    });
+        if (rate && rate.available) {
+          isAllowed = true;
+        }
+      });
+    }
 
     Model.hasDeliveryOptions(isAllowed);
     Model.hideShippingMethods();
