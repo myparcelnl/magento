@@ -52,6 +52,7 @@ define(
       disablePickup: 'myparcel-delivery-options__delivery--pickup',
 
       isUsingMyParcelMethod: true,
+      areVisible: false,
 
       /**
        * The selector of the field we use to get the delivery options data into the order.
@@ -92,7 +93,7 @@ define(
        */
       initialize: function() {
         window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
-        deliveryOptions.render();
+        deliveryOptions.setToRenderWhenVisible();
         deliveryOptions.addListeners();
 
         deliveryOptions.rendered.subscribe(function(bool) {
@@ -100,6 +101,41 @@ define(
             deliveryOptions.updateAddress();
           }
         });
+      },
+
+      setToRenderWhenVisible: function() {
+        var shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
+        /**
+         * Sometimes the shipping method div doesn't exist yet. Retry in 100ms if it happens.
+         */
+        if (!shippingMethodDiv) {
+          setTimeout(function() {
+            deliveryOptions.setToRenderWhenVisible();
+          }, 100);
+          return;
+        }
+
+        if (!('IntersectionObserver' in window) ||
+          !('IntersectionObserverEntry' in window) ||
+          !('intersectionRatio' in window.IntersectionObserverEntry.prototype)
+        ) {
+          deliveryOptions.render();
+          return;
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.intersectionRatio === 0 || deliveryOptions.deliveryOptions) {
+              return;
+            }
+            deliveryOptions.render();
+          }, {
+            root: null,
+            rootMargin: '0px',
+            threshold: .1
+          });
+        });
+        observer.observe(shippingMethodDiv);
       },
 
       destroy: function() {
@@ -118,20 +154,12 @@ define(
       render: function() {
         var hasUnrenderedDiv = document.querySelector('#myparcel-delivery-options');
         var hasRenderedDeliveryOptions = document.querySelector('.myparcel-delivery-options__table');
-        var shippingMethodDiv = document.querySelector('#checkout-shipping-method-load');
+        var shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
         var deliveryOptionsDiv = document.createElement('div');
-        checkout.hideShippingMethods();
-        deliveryOptions.rendered(false);
 
-        /**
-         * Sometimes the shipping method div doesn't exist yet. Retry in 100ms if it happens.
-         */
-        if (!shippingMethodDiv) {
-          setTimeout(function() {
-            deliveryOptions.render();
-          }, 100);
-          return;
-        }
+        checkout.hideShippingMethods();
+        deliveryOptions.areVisible = true;
+        deliveryOptions.rendered(false);
 
         if (hasUnrenderedDiv || hasRenderedDeliveryOptions) {
           deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
@@ -223,18 +251,10 @@ define(
        * Triggered when the delivery options have been updated. Put the received data in the created data input. Then
        * do the request that tells us which shipping method needs to be selected.
        *
-       * Prior to setting the shipping method on the quote, set it to null to make sure the change event is triggered,
-       * for checkout plugins and the like that need to update totals instantly.
-       *
        * @param {CustomEvent} event - The event that was sent.
        */
       onUpdatedDeliveryOptions: function(event) {
-        const shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
-        const isVisible = function(el) {
-          return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-        };
-
-        if (!shippingMethodDiv || !isVisible(shippingMethodDiv)) {
+        if (! deliveryOptions.areVisible) {
           return;
         }
 
@@ -248,7 +268,18 @@ define(
           return;
         }
 
-        checkout.convertDeliveryOptionsToShippingMethod(event.detail, {
+        deliveryOptions.setShippingMethod(event.detail);
+        deliveryOptions.disabledDeliveryPickupRadio();
+      },
+
+      /**
+       * Prior to setting the shipping method on the quote, set it to null to make sure the change event is triggered,
+       * for checkout plugins and the like that need to update totals instantly.
+       *
+       * @param options
+       */
+      setShippingMethod: function(options) {
+        checkout.convertDeliveryOptionsToShippingMethod(options, {
           onSuccess: function(response) {
             if (!response.length) {
               return;
@@ -256,11 +287,15 @@ define(
 
             selectShippingMethodAction(null);
 
+            var cacheObject = JSON.parse(localStorage.getItem('mage-cache-storage'));
+            if (cacheObject.hasOwnProperty('checkout-data')) {
+              cacheObject['checkout-data']['selectedShippingRate'] = response[0].element_id;
+              localStorage.setItem('mage-cache-storage', JSON.stringify(cacheObject));
+            }
+
             quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
         });
-
-        deliveryOptions.disabledDeliveryPickupRadio();
       },
 
       /**
