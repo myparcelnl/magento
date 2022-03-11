@@ -34,7 +34,7 @@ class Data extends AbstractHelper
     public const XML_PATH_POSTNL_SETTINGS   = 'myparcelnl_magento_postnl_settings/';
     public const XML_PATH_INSTABOX_SETTINGS = 'myparcelnl_magento_instabox_settings/';
     public const DEFAULT_WEIGHT             = 1000;
-    public const CARRIERS                   = [PostNLConsignment::CARRIER_NAME];
+    public const CARRIERS                   = [PostNLConsignment::CARRIER_NAME, InstaboxConsignment::CARRIER_NAME];
     public const CARRIERS_XML_PATH_MAP      = [
         PostNLConsignment::CARRIER_NAME   => Data::XML_PATH_POSTNL_SETTINGS,
         InstaboxConsignment::CARRIER_NAME => Data::XML_PATH_INSTABOX_SETTINGS,

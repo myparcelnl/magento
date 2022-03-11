@@ -90,7 +90,6 @@ define(
       methodCodeShipmentOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
-        'myparcelnl_magento_instabox_settings/delivery/signature': 'config.carrierSettings.instabox.priceSignature',
         'myparcelnl_magento_instabox_settings/delivery/only_recipient': 'config.carrierSettings.instabox.priceOnlyRecipient',
       },
 
