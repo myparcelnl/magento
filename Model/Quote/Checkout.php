@@ -158,6 +158,7 @@ class Checkout
             $basePrice        = $this->helper->getBasePrice();
             $morningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'morning/fee');
             $eveningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'evening/fee');
+            $sameDayFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'same_day/fee');
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
             $isAgeCheckActive = $this->isAgeCheckActive($carrierPath[$carrier]);
@@ -166,13 +167,15 @@ class Checkout
                 'allowDeliveryOptions'  => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
                 'allowSignature'        => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/signature_active'),
                 'allowOnlyRecipient'    => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
-                 'allowMorningDelivery' => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
-                'allowEveningDelivery'  => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
+                'allowMorningDelivery'  => ! $isAgeCheckActive && $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
+                'allowEveningDelivery'  => ! $isAgeCheckActive && $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
                 'allowPickupLocations'  => $this->isPickupAllowed($carrierPath[$carrier]),
                 'allowShowDeliveryDate' => $this->helper->getBoolConfig($carrierPath[$carrier], 'general/allow_show_delivery_date'),
                 'allowMondayDelivery'   => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/monday_delivery_active'),
+                'allowSameDayDelivery'  => $this->helper->getBoolConfig($carrierPath[$carrier], 'same_day/active'),
 
                 'cutoffTime'            => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/cutoff_time'),
+                'cutoffTimeSameDay'     => $this->helper->getTimeConfig($carrierPath[$carrier], 'cutoff_time_same_day'),
                 'saturdayCutoffTime'    => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/saturday_cutoff_time'),
                 'deliveryDaysWindow'    => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/deliverydays_window'),
                 'dropOffDays'           => $this->helper->getArrayConfig($carrierPath[$carrier], 'general/dropoff_days'),
@@ -183,6 +186,7 @@ class Checkout
                 'priceStandardDelivery' => $basePrice,
                 'priceMorningDelivery'  => $morningFee,
                 'priceEveningDelivery'  => $eveningFee,
+                'priceSameDayDelivery'  => $sameDayFee,
 
                 'priceMorningSignature'          => ($morningFee + $signatureFee),
                 'priceEveningSignature'          => ($eveningFee + $signatureFee),

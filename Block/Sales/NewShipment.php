@@ -73,13 +73,14 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * @param $option 'signature', 'only_recipient'
+     * @param  string $option 'signature', 'only_recipient'
+     * @param  string $carrier
      *
      * @return bool
      */
-    public function getDefaultOption($option)
+    public function getDefaultOption(string $option, string $carrier): bool
     {
-        return $this->defaultOptions->getDefault($option);
+        return $this->defaultOptions->getDefault($option, $carrier);
     }
     /**
      * @param string $option 'large_format'

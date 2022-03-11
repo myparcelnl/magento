@@ -78,6 +78,10 @@ define(
         'myparcelnl_magento_postnl_settings/morning/only_recipient/signature': 'config.carrierSettings.postnl.priceMorningSignature',
         'myparcelnl_magento_postnl_settings/evening/only_recipient/signature': 'config.carrierSettings.postnl.priceEveningSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient/signature': 'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
+        'myparcelnl_magento_instabox_settings/delivery': 'config.carrierSettings.instabox.priceStandardDelivery',
+        'myparcelnl_magento_instabox_settings/mailbox': 'config.carrierSettings.instabox.pricePackageTypeMailbox',
+        'myparcelnl_magento_instabox_settings/pickup': 'config.carrierSettings.instabox.pricePickup',
+        'myparcelnl_magento_instabox_settings/same_day': 'config.carrierSettings.instabox.priceSameDayDelivery',
       },
 
       /**
@@ -86,6 +90,8 @@ define(
       methodCodeShipmentOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
+        'myparcelnl_magento_instabox_settings/delivery/signature': 'config.carrierSettings.instabox.priceSignature',
+        'myparcelnl_magento_instabox_settings/delivery/only_recipient': 'config.carrierSettings.instabox.priceOnlyRecipient',
       },
 
       /**

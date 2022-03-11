@@ -199,16 +199,15 @@ class Checkout extends Data
 
     /**
      * Get MyParcel method/option price.
-     *
      * Check if total shipping price is not below 0 euro
      *
-     * @param        $carrier
-     * @param string $key
-     * @param bool   $addBasePrice
+     * @param  string $carrier
+     * @param  string $key
+     * @param  bool   $addBasePrice
      *
      * @return float
      */
-    public function getMethodPrice($carrier, $key, $addBasePrice = true)
+    public function getMethodPrice(string $carrier, string $key, bool $addBasePrice = true): float
     {
         $value = $this->getCarrierConfig($key, $carrier);
 
@@ -237,20 +236,19 @@ class Checkout extends Data
     /**
      * Get checkout setting
      *
-     * @param string $carrier
-     * @param string $code
-     * @param bool   $canBeNull
+     * @param  string $carrier
+     * @param  string $code
      *
      * @return mixed
      */
-    public function getCarrierConfig($code, $carrier = null, $canBeNull = false)
+    public function getCarrierConfig(string $code, string $carrier)
     {
         $value = $this->getConfigValue($carrier . $code);
-        if (null != $value || $canBeNull) {
-            return $value;
+        if (null === $value) {
+            $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
         }
 
-        $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
+        return $value;
     }
 
     /**

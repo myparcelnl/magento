@@ -409,18 +409,6 @@
             <group id="default_options" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
                 <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
-                <field id="signature_active" translate="label" type="select" sortOrder="203" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Signature on receipt'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="signature_from_price" translate="label comment" type="text" sortOrder="204" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <comment>'Signature on receipt' operates above a certain order total amount</comment>
-                    <depends>
-                        <field id="signature_active">1</field>
-                    </depends>
-                </field>
                 <field id="only_recipient_active" translate="label" type="select" sortOrder="205" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Home address only'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -461,6 +449,25 @@
                     <label>Automate 'Age check 18+'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.</comment>
+                </field>
+                <field id="same_day_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable sameday delivery</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="same_day_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sameday delivery fee</label>
+                    <comment>This will be added to the regular shipping price</comment>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="same_day_active">1</field>
+                    </depends>
+                </field>
+                <field id="cutoff_time_same_day" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sameday cut-off time</label>
+                    <comment>If a request is made for the delivery options before the sameday cut-off time, a shipment will be marked as a sameday shipment</comment>
                 </field>
             </group>
             <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">

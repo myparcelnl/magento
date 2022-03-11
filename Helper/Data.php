@@ -23,18 +23,21 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DPDConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\InstaboxConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
-    public const MODULE_NAME              = 'MyParcelNL_Magento';
-    public const XML_PATH_GENERAL         = 'myparcelnl_magento_general/';
-    public const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
-    public const DEFAULT_WEIGHT           = 1000;
-    public const CARRIERS                 = [PostNLConsignment::CARRIER_NAME];
-    public const CARRIERS_XML_PATH_MAP    = [
-        PostNLConsignment::CARRIER_NAME => Data::XML_PATH_POSTNL_SETTINGS,
+    public const MODULE_NAME                = 'MyParcelNL_Magento';
+    public const XML_PATH_GENERAL           = 'myparcelnl_magento_general/';
+    public const XML_PATH_POSTNL_SETTINGS   = 'myparcelnl_magento_postnl_settings/';
+    public const XML_PATH_INSTABOX_SETTINGS = 'myparcelnl_magento_instabox_settings/';
+    public const DEFAULT_WEIGHT             = 1000;
+    public const CARRIERS                   = [PostNLConsignment::CARRIER_NAME];
+    public const CARRIERS_XML_PATH_MAP      = [
+        PostNLConsignment::CARRIER_NAME   => Data::XML_PATH_POSTNL_SETTINGS,
+        InstaboxConsignment::CARRIER_NAME => Data::XML_PATH_INSTABOX_SETTINGS,
     ];
 
     private $moduleList;
@@ -90,25 +93,26 @@ class Data extends AbstractHelper
     /**
      * Get default settings
      *
-     * @param string $code
-     * @param null   $storeId
+     * @param  string $carrier
+     * @param  string $code
+     * @param  null   $storeId
      *
      * @return mixed
      */
-    public function getStandardConfig($code = '', $storeId = null)
+    public function getStandardConfig(string $carrier, string $code = '', $storeId = null)
     {
-        return $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . $code, $storeId);
+        return $this->getConfigValue(self::CARRIERS_XML_PATH_MAP[$carrier] . $code, $storeId);
     }
 
     /**
      * Get carrier setting
      *
-     * @param string $code
-     * @param        $carrier
+     * @param  string $code
+     * @param  string $carrier
      *
      * @return mixed
      */
-    public function getCarrierConfig($code, $carrier)
+    public function getCarrierConfig(string $code, string $carrier)
     {
         $settings = $this->getConfigValue($carrier . $code);
         if ($settings == null) {

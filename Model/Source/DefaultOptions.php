@@ -60,11 +60,12 @@ class DefaultOptions
     /**
      * Get default of the option
      *
-     * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param  string $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param  string $carrier
      *
      * @return bool
      */
-    public function getDefault($option): bool
+    public function getDefault(string $option, string $carrier): bool
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
@@ -76,7 +77,7 @@ class DefaultOptions
         }
 
         $total    = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
 
         if (! isset($settings[$option . '_active'])) {
             return false;
@@ -103,16 +104,17 @@ class DefaultOptions
     /**
      * Get default value of options without price check
      *
-     * @param string $option
+     * @param  string $carrier
+     * @param  string $option
      *
      * @return bool
      */
-    public function getDefaultLargeFormat(string $option): bool
+    public function getDefaultLargeFormat(string $carrier, string $option): bool
     {
         $price  = self::$order->getGrandTotal();
         $weight = self::$order->getWeight();
 
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
         if (isset($settings[$option . '_active']) &&
              'weight' === $settings[$option . '_active'] &&
             $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
@@ -131,13 +133,14 @@ class DefaultOptions
     }
 
     /**
-     * @param string $option
+     * @param  string $carrier
+     * @param  string $option
      *
      * @return bool
      */
-    public function getDefaultOptionsWithoutPrice(string $option): bool
+    public function getDefaultOptionsWithoutPrice(string $carrier, string $option): bool
     {
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
 
         return '1' === $settings[$option . '_active'];
     }
