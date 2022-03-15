@@ -23,21 +23,25 @@
                     <label>API key</label>
                     <comment>The API Key</comment>
                 </field>
+                <field id="button_id" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Import settings from MyParcel Backoffice</label>
+                    <frontend_model>MyParcelNL\Magento\Block\System\Config\SettingsButton</frontend_model>
+                </field>
             </group>
             <group id="print" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Print settings</label>
-<!--                <field id="export_mode" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">-->
-<!--                    <label>Mode</label>-->
-<!--                    <comment>With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.</comment>-->
-<!--                    <source_model>MyParcelNL\Magento\Model\Source\ExportMode</source_model>-->
-<!--                </field>-->
+                <field id="export_mode" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Mode</label>
+                    <comment>With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.</comment>
+                    <source_model>MyParcelNL\Magento\Model\Source\ExportMode</source_model>
+                </field>
                 <field id="paper_type" translate="label comment" type="select" sortOrder="212" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Paper type</label>
                     <comment>Select a standard orientation for printing labels.</comment>
                     <source_model>MyParcelNL\Magento\Model\Source\PaperType</source_model>
-<!--                    <depends>-->
-<!--                        <field id="export_mode">shipments</field>-->
-<!--                    </depends>-->
+                    <depends>
+                        <field id="export_mode">shipments</field>
+                    </depends>
                 </field>
                 <field id="label_description" translate="label comment" type="text" sortOrder="213" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Label description</label>
@@ -457,18 +461,6 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="same_day_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Sameday delivery fee</label>
-                    <comment>This will be added to the regular shipping price</comment>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="same_day_active">1</field>
-                    </depends>
-                </field>
-                <field id="cutoff_time_same_day" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Sameday cut-off time</label>
-                    <comment>If a request is made for the delivery options before the sameday cut-off time, a shipment will be marked as a sameday shipment</comment>
-                </field>
             </group>
             <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Basic settings</label>
@@ -520,6 +512,29 @@
                     <depends>
                         <field id="active">1</field>
                         <field id="only_recipient_active">1</field>
+                    </depends>
+                </field>
+                <field id="same_day_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable sameday delivery</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="same_day_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sameday delivery fee</label>
+                    <comment>This will be added to the regular shipping price</comment>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="same_day_active">1</field>
+                    </depends>
+                </field>
+                <field id="cutoff_time_same_day" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Sameday cut-off time</label>
+                    <comment>If a request is made for the delivery options before the sameday cut-off time, a shipment will be marked as a sameday shipment</comment>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="same_day_active">1</field>
                     </depends>
                 </field>
             </group>

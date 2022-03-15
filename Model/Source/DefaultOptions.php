@@ -148,25 +148,27 @@ class DefaultOptions
     /**
      * Get default value of insurance based on order grand total
      *
+     * @param  string $carrier
+     *
      * @return int
      */
-    public function getDefaultInsurance(): int
+    public function getDefaultInsurance(string $carrier): int
     {
         $shippingAddress = self::$order->getShippingAddress();
 
         if ($shippingAddress && AbstractConsignment::CC_BE === $shippingAddress->getCountryId()) {
-            return $this->getDefault('insurance_belgium') ? self::INSURANCE_AMOUNT_BELGIUM : 0;
+            return $this->getDefault('insurance_belgium', $carrier) ? self::INSURANCE_AMOUNT_BELGIUM : 0;
         }
 
-        if ($this->getDefault('insurance_500')) {
+        if ($this->getDefault('insurance_500', $carrier)) {
             return 500;
         }
 
-        if ($this->getDefault('insurance_250')) {
+        if ($this->getDefault('insurance_250', $carrier)) {
             return 250;
         }
 
-        if ($this->getDefault('insurance_100')) {
+        if ($this->getDefault('insurance_100', $carrier)) {
             return 100;
         }
 

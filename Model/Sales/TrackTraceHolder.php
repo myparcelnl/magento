@@ -47,6 +47,11 @@ class TrackTraceHolder
     public const EXPORT_MODE_SHIPMENTS  = 'shipments';
 
     /**
+     * @var mixed
+     */
+    private $carrier;
+
+    /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
@@ -139,12 +144,14 @@ class TrackTraceHolder
         $address         = $shipment->getShippingAddress();
         $checkoutData    = $shipment->getOrder()->getData('myparcel_delivery_options');
         $deliveryOptions = json_decode($checkoutData, true);
+        $this->carrier   = $deliveryOptions['carrier'];
         $this->shipmentOptionsHelper = new ShipmentOptions(
             self::$defaultOptions,
             $this->dataHelper,
             $magentoTrack->getShipment()
                 ->getOrder(),
             $this->objectManager,
+            $this->carrier,
             $options
         );
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
@@ -272,7 +279,7 @@ class TrackTraceHolder
 
         $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet('age_check', $options);
         $ageCheckOfProduct    = ShipmentOptions::getAgeCheckFromProduct($magentoTrack);
-        $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice('age_check');
+        $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice($this->carrier, 'age_check');
 
         return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }

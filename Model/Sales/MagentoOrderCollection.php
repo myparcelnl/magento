@@ -187,15 +187,16 @@ class MagentoOrderCollection extends MagentoCollection
 
         foreach ($this->getOrders() as $magentoOrder) {
             $defaultOptions          = new DefaultOptions($magentoOrder, $this->helper);
+            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
+            $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $shipmentOptionsHelper   = new ShipmentOptions(
                 $defaultOptions,
                 $this->helper,
                 $magentoOrder,
                 $this->objectManager,
+                $deliveryOptions['carrier'],
                 $this->options
             );
-            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
-            $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
 
             if ($deliveryOptions && $deliveryOptions['isPickup']) {
                 $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;

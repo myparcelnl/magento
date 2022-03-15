@@ -80,12 +80,12 @@ class Data extends AbstractHelper
     /**
      * Get general settings
      *
-     * @param string $code
-     * @param int    $storeId
+     * @param  string   $code
+     * @param  null|int $storeId
      *
      * @return mixed
      */
-    public function getGeneralConfig($code = '', $storeId = null)
+    public function getGeneralConfig(string $code = '', int $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_GENERAL . $code, $storeId);
     }
@@ -115,13 +115,13 @@ class Data extends AbstractHelper
     public function getCarrierConfig(string $code, string $carrier)
     {
         $settings = $this->getConfigValue($carrier . $code);
-        if ($settings == null) {
+        if ($settings === null) {
             $value = $this->getConfigValue($carrier . $code);
-            if ($value != null) {
+            if ($value !== null) {
                 return $value;
-            } else {
-                $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
             }
+
+            $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
         }
 
         return $settings;
@@ -132,7 +132,7 @@ class Data extends AbstractHelper
      *
      * @return string
      */
-    public function getVersion()
+    public function getVersion(): string
     {
         $moduleCode = self::MODULE_NAME;
         $moduleInfo = $this->moduleList->getOne($moduleCode);
