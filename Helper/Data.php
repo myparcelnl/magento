@@ -16,15 +16,16 @@
 
 namespace MyParcelNL\Magento\Helper;
 
+use Magento\Dhl\Model\Carrier;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\src\Model\Consignment\DPDConsignment;
-use MyParcelNL\Sdk\src\Model\Consignment\InstaboxConsignment;
-use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
@@ -34,12 +35,15 @@ class Data extends AbstractHelper
     public const XML_PATH_POSTNL_SETTINGS   = 'myparcelnl_magento_postnl_settings/';
     public const XML_PATH_INSTABOX_SETTINGS = 'myparcelnl_magento_instabox_settings/';
     public const DEFAULT_WEIGHT             = 1000;
-    public const CARRIERS                   = [PostNLConsignment::CARRIER_NAME, InstaboxConsignment::CARRIER_NAME];
+    public const CARRIERS                   = [CarrierPostNL::NAME, CarrierInstabox::NAME];
     public const CARRIERS_XML_PATH_MAP      = [
-        PostNLConsignment::CARRIER_NAME   => Data::XML_PATH_POSTNL_SETTINGS,
-        InstaboxConsignment::CARRIER_NAME => Data::XML_PATH_INSTABOX_SETTINGS,
+        CarrierPostNL::NAME   => Data::XML_PATH_POSTNL_SETTINGS,
+        CarrierInstabox::NAME => Data::XML_PATH_INSTABOX_SETTINGS,
     ];
 
+    /**
+     * @var \Magento\Framework\Module\ModuleListInterface
+     */
     private $moduleList;
 
     /**
@@ -88,6 +92,34 @@ class Data extends AbstractHelper
     public function getGeneralConfig(string $code = '', int $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_GENERAL . $code, $storeId);
+    }
+
+    /**
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getAccountSettings()
+    {
+        $accountSettings = $this->getGeneralConfig('account_settings');
+        if (! $accountSettings) {
+            throw new \RuntimeException('No account settings found. Press the import button to fetch account settings.');
+        }
+
+        return unserialize($accountSettings);
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function getDropOffPoint(string $carrier): DropOffPoint
+    {
+        $accountSettings = $this->getAccountSettings();
+        $carrierConfigurationsCollection = $accountSettings->all()['carrier_configurations']->all();
+        $carrierConfiguration = $carrierConfigurationsCollection[CarrierPostNL::NAME === $carrier ? 0 : 1];
+        $dropOffPoint = $carrierConfiguration->getDefaultDropOffPoint();
+        $dropOffPoint->setNumberSuffix('');
+
+        return $carrierConfiguration->getDefaultDropOffPoint();
     }
 
     /**

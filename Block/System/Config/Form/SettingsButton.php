@@ -1,52 +1,47 @@
 <?php
-/**
- * Copyright © 2016 MageWorx. All rights reserved.
- * See LICENSE.txt for license details.
- */
+
+declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Backend\Block\Widget\Button;
 
 class SettingsButton extends Field
 {
     /**
+     * Path to template file in theme.
+     *
      * @var string
      */
-    protected $_template = 'MyParcelNL_Magento::system/config/settings_button.phtml';
+    protected $_template = 'MyParcelNL_Magento::settings_button.phtml';
 
-    /**
-     * @param Context $context
-     * @param array $data
-     */
-    public function __construct(
-        Context $context,
-        array $data = []
-    ) {
+    public function __construct(Context $context, array $data = [])
+    {
         parent::__construct($context, $data);
     }
 
     /**
-     * Remove scope label
+     * Retrieve HTML markup for given form element
      *
-     * @param  AbstractElement $element
+     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      * @return string
      */
-    public function render(AbstractElement $element): string
+    public function render(AbstractElement $element)
     {
         $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
         return parent::render($element);
     }
 
     /**
-     * Return element html
+     * Retrieve element HTML markup
      *
-     * @param  AbstractElement $element
+     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      * @return string
      */
-    protected function _getElementHtml(AbstractElement $element): string
+    protected function _getElementHtml(AbstractElement $element)
     {
         return $this->_toHtml();
     }
@@ -58,25 +53,16 @@ class SettingsButton extends Field
      */
     public function getAjaxUrl(): string
     {
-        return $this->getUrl();
+        return $this->_urlBuilder->getUrl('myparcel/settings/CarrierConfigurationImport');
     }
 
     /**
-     * Generate collect button html
-     *
-     * @return string
+     * @return mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getButtonHtml(): string
+    public function getButtonHtml()
     {
-        $button = $this->getLayout()->createBlock(
-            'Magento\Backend\Block\Widget\Button'
-        )->setData(
-            [
-                'id' => 'collect_button',
-                'label' => __('Collect Data'),
-            ]
-        );
-
+        $button = $this->getLayout()->createBlock(Button::class)->setData(['id' => 'settings-button', 'label' => __('Import'),]);
         return $button->toHtml();
     }
 }

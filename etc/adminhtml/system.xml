@@ -19,13 +19,14 @@
             <group id="api" translate="label comment" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>API settings</label>
                 <comment>Go to the general settings in the back office of MyParcel to generate the API Key.</comment>
-                <field id="key" translate="label comment" type="text" sortOrder="111" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="key" translate="label comment" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API key</label>
                     <comment>The API Key</comment>
                 </field>
                 <field id="button_id" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Import settings from MyParcel Backoffice</label>
-                    <frontend_model>MyParcelNL\Magento\Block\System\Config\SettingsButton</frontend_model>
+                    <label>Import MyParcel Backoffice settings</label>
+                    <comment>Clicking this button will fetch settings from the MyParcel Backoffice and overwrite the current settings.</comment>
+                    <frontend_model>MyParcelNL\Magento\Block\System\Config\Form\SettingsButton</frontend_model>
                 </field>
             </group>
             <group id="print" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -405,6 +406,13 @@
                     </depends>
                 </field>
             </group>
+            <group id="drop_off" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Drop-off point</label>
+                <field id="default_drop_off_point" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default drop-off point</label>
+                    <frontend_model>MyParcelNL\Magento\Block\System\Config\Form\DefaultDropOffPointPostNL</frontend_model>
+                </field>
+            </group>
         </section>
         <section id="myparcelnl_magento_instabox_settings" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Instabox settings</label>
@@ -565,7 +573,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="active">1</field>
-                        <field id="myparcelnl_magento_postnl_settings/pickup/active">1</field>
+                        <field id="myparcelnl_magento_instabox_settings/pickup/active">1</field>
                     </depends>
                 </field>
             </group>
@@ -581,6 +589,13 @@
                     <depends>
                         <field id="active">1</field>
                     </depends>
+                </field>
+            </group>
+            <group id="drop_off" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Drop-off point</label>
+                <field id="default_drop_off_point" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Default drop-off point</label>
+                    <frontend_model>MyParcelNL\Magento\Block\System\Config\Form\DefaultDropOffPointInstabox</frontend_model>
                 </field>
             </group>
         </section>

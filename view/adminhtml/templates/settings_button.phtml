@@ -1,56 +1,30 @@
 <?php
-/**
- * Copyright © 2016 MageWorx. All rights reserved.
- * See LICENSE.txt for license details.
- */
+
+declare(strict_types=1); /* @var \MyParcelNL\Magento\Block\System\Config\Form\SettingsButton $block */
+
+use Magento\Framework\Exception\LocalizedException;
 ?>
-<?php /* @var $block \MyParcelNL\Magento\Block\System\Config\Form\SettingsButton */ ?>
-
 <script>
-require([
-  'jquery',
-  'prototype'
-], function(jQuery){
+    require([
+        'jquery',
+        'prototype'
+    ], function(jQuery){
 
-  var collectSpan = jQuery('#settings_button_span');
-
-  jQuery('#collect_button').click(function () {
-    var params = {};
+  jQuery('#settings-button').click(function () {
+    const params = {};
+    console.log('<?php echo $block->getAjaxUrl() ?>')
     new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
       parameters:     params,
       loaderArea:     false,
       asynchronous:   true,
-      onCreate: function() {
-        collectSpan.find('.collected').hide();
-        collectSpan.find('.processing').show();
-        jQuery('#collect_message_span').text('');
-      },
-      onSuccess: function(response) {
-        collectSpan.find('.processing').hide();
-
-        var resultText = '';
-        if (response.status > 200) {
-          resultText = response.statusText;
-        } else {
-          resultText = 'Success';
-          collectSpan.find('.collected').show();
-        }
-        jQuery('#collect_message_span').text(resultText);
-
-        var json = response.responseJSON;
-        if (typeof json.time != 'undefined') {
-          jQuery('#row_mageworx_alsobought_general_collect_time').find('.value .time').text(json.time);
-        }
-      }
+      });
     });
-  });
-
-});
+    });
 </script>
 
-<?php echo $block->getButtonHtml() ?>
-<span class="collect-indicator" id="collect_span">
-    <img class="processing" hidden="hidden" alt="Collecting" style="margin:0 5px" src="<?php echo $block->getViewFileUrl('images/process_spinner.gif') ?>"/>
-    <img class="collected" hidden="hidden" alt="Collected" style="margin:-3px 5px" src="<?php echo $block->getViewFileUrl('images/rule_component_apply.gif') ?>"/>
-    <span id="collect_message_span"></span>
-</span>
+<?php
+try {
+    echo $block->getButtonHtml();
+} catch (LocalizedException $e) {
+    echo $e->getMessage();
+} ?>

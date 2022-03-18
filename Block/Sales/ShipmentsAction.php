@@ -17,6 +17,7 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
+use MyParcelNL\Magento\Helper\Data;
 
 class ShipmentsAction extends Template
 {
@@ -39,7 +40,7 @@ class ShipmentsAction extends Template
         array $data = []
     ) {
         $this->objectManager = ObjectManager::getInstance();
-        $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Data');
+        $this->helper = $this->objectManager->get(Data::class);
         parent::__construct($context, $data);
     }
 

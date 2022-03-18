@@ -164,7 +164,7 @@ class Checkout
             $isAgeCheckActive = $this->isAgeCheckActive($carrierPath[$carrier]);
 
             $myParcelConfig['carrierSettings'][$carrier] = [
-                'allowDeliveryOptions'  => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
+                'allowDeliveryOptions'  => ! $this->package->deliveryOptionsDisabled && $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
                 'allowSignature'        => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/signature_active'),
                 'allowOnlyRecipient'    => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
                 'allowMorningDelivery'  => ! $isAgeCheckActive && $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
@@ -172,10 +172,10 @@ class Checkout
                 'allowPickupLocations'  => $this->isPickupAllowed($carrierPath[$carrier]),
                 'allowShowDeliveryDate' => $this->helper->getBoolConfig($carrierPath[$carrier], 'general/allow_show_delivery_date'),
                 'allowMondayDelivery'   => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/monday_delivery_active'),
-                'allowSameDayDelivery'  => $this->helper->getBoolConfig($carrierPath[$carrier], 'same_day/active'),
+                'allowSameDayDelivery'  => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/same_day_active'),
 
                 'cutoffTime'            => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/cutoff_time'),
-                'cutoffTimeSameDay'     => $this->helper->getTimeConfig($carrierPath[$carrier], 'cutoff_time_same_day'),
+                'cutoffTimeSameDay'     => $this->helper->getTimeConfig($carrierPath[$carrier], 'delivery/cutoff_time_same_day'),
                 'saturdayCutoffTime'    => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/saturday_cutoff_time'),
                 'deliveryDaysWindow'    => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/deliverydays_window'),
                 'dropOffDays'           => $this->helper->getArrayConfig($carrierPath[$carrier], 'general/dropoff_days'),

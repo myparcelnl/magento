@@ -204,6 +204,7 @@ class TrackTraceHolder
             ->setDeliveryDate($this->dataHelper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($this->dataHelper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
             ->setPackageType($packageType)
+            ->setDropOffPoint($this->dataHelper->getDropOffPoint($deliveryOptionsAdapter->getCarrier()))
             ->setOnlyRecipient($this->shipmentOptionsHelper->hasOnlyRecipient())
             ->setSignature($this->shipmentOptionsHelper->hasSignature())
             ->setReturn($this->shipmentOptionsHelper->hasReturn())
