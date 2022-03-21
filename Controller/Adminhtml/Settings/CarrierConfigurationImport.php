@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 
 use Magento\Config\Model\ResourceModel\Config;
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Model\ResourceModel\Db\Context;
+use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
 use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Support\Collection;
@@ -43,7 +45,7 @@ class CarrierConfigurationImport
     {
         $this->objectManager = ObjectManager::getInstance();
         $this->apiKey        = $this->objectManager->get(ScopeConfigInterface::class)->getValue(Data::XML_PATH_GENERAL . 'api/key');
-        $this->context       = $this->objectManager->get(Context::class);
+        $this->context       = $this->objectManager->get(DbContext::class);
     }
 
     /**

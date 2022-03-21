@@ -191,7 +191,6 @@ class MagentoOrderCollection extends MagentoCollection
             $defaultOptions          = new DefaultOptions($magentoOrder, $this->helper);
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
-            (new CarrierConfigurationImport())->execute();
             $shipmentOptionsHelper   = new ShipmentOptions(
                 $defaultOptions,
                 $this->helper,
