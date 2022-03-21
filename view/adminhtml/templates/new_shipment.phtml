@@ -49,13 +49,10 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
             foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
                 $packageTypeId = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
                 if (AbstractConsignment::CC_NL !== $country
-                    && in_array(
-                        $packageTypeId,
-                        [
-                            AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP,
-                            AbstractConsignment::PACKAGE_TYPE_MAILBOX,
-                        ]
-                    )) {
+                    && in_array($packageTypeId, [
+                        AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP,
+                        AbstractConsignment::PACKAGE_TYPE_MAILBOX,
+                    ], true)) {
                     continue;
                 }
                 $packageTypeHuman = $block->getNewShipmentForm()::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId]
@@ -163,8 +160,8 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         continue;
                     }
                     $isActive = ($abstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $shipmentOption)
-                        ? $block->getDefaultLargeFormat($shipmentOption)
-                        : $block->getDefaultOption($shipmentOption);
+                        ? $block->getDefaultLargeFormat($shipmentOption, 'postnl')
+                        : $block->getDefaultOption($shipmentOption, 'postnl');
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
@@ -201,7 +198,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         <label class="admin__field-label" for="mypa_insurance" style="display: block">
                             <span><?= __('Insured up to:') ?></span>
                         </label>
-                        <?php $defaultInsurance = $block->getDefaultInsurance(); ?>
+                        <?php $defaultInsurance = $block->getDefaultInsurance('postnl'); ?>
                         <select
                             name="mypa_insurance"
                             id="mypa_insurance"

@@ -14,11 +14,6 @@ class Checkout
     private const PACKAGE_TYPE_MAILBOX = 'mailbox';
 
     /**
-     * @var array
-     */
-    private $data = [];
-
-    /**
      * @var \MyParcelNL\Magento\Helper\Checkout
      */
     private $helper;
@@ -88,7 +83,8 @@ class Checkout
         $this->helper->setBasePriceFromQuote($this->quoteId);
         $this->hideDeliveryOptionsForProduct();
 
-        $this->data = [
+        $data               = [];
+        $data               = [
             'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId, $forAddress)],
             'config'  => array_merge(
                 $this->getGeneralData(),
@@ -97,12 +93,12 @@ class Checkout
             ),
             'strings' => $this->getDeliveryOptionsStrings(),
         ];
-        $this->data['forAddress'] = $forAddress;
+        $data['forAddress'] = $forAddress;
 
         return [
             'root' => [
                 'version' => (string) $this->helper->getVersion(),
-                'data'    => (array) $this->data
+                'data'    => (array) $data
             ]
         ];
     }

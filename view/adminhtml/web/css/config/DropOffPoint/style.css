@@ -4,3 +4,7 @@
   padding: 10px;
   border: 1px solid rgb(225, 228, 232);
 }
+
+.drop_off_title {
+  font-weight: bold;
+}

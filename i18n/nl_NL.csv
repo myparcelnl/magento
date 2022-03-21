@@ -227,6 +227,13 @@ myparcelnl_magento_postnl_settings/evening/only_recipient, PostNL avond levering
 myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL avond levering met alleen huisadres en handtekening
 myparcelnl_magento_postnl_settings/mailbox, PostNL brievenbuspakje
 myparcelnl_magento_postnl_settings/digital_stamp, PostNL digitale postzegel
+myparcelnl_magento_instabox_settings/delivery, Instabox bezorging
+myparcelnl_magento_instabox_settings/mailbox, Instabox brievenbuspakje
+myparcelnl_magento_instabox_settings/pickup, Instabox ophaal locatie
+myparcelnl_magento_instabox_settings/same_day, Instabox zelfde dag bezorgd
+myparcelnl_magento_instabox_settings/delivery/only_recipient/signature, Instabox levering met alleen huisadres en handtekening
+myparcelnl_magento_instabox_settings/delivery/only_recipient, Instabox levering met alleen huisadres
+myparcelnl_magento_instabox_settings/delivery/signature, Instabox levering met handtekening
 Mailbox,Brievenbuspakje
 Digital stamp,Digitale postzegel
 Print return label directly,Print het retour label direct

@@ -8,6 +8,7 @@ use Magento\Config\Model\ResourceModel\Config;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
 use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Helper\Data;
@@ -19,7 +20,7 @@ use MyParcelNL\Sdk\src\Services\Web\AccountWebService;
 use MyParcelNL\Sdk\src\Services\Web\CarrierConfigurationWebService;
 use MyParcelNL\Sdk\src\Services\Web\CarrierOptionsWebService;
 
-class CarrierConfigurationImport
+class CarrierConfigurationImport extends Action
 {
     public const CARRIERS_IDS_MAP = [
         CarrierPostNL::NAME   => CarrierPostNL::ID,
@@ -44,6 +45,8 @@ class CarrierConfigurationImport
     public function __construct()
     {
         $this->objectManager = ObjectManager::getInstance();
+        parent::__construct($this->objectManager->get(Context::class));
+        $this->resultFactory = $this->objectManager->get(JsonFactory::class);
         $this->apiKey        = $this->objectManager->get(ScopeConfigInterface::class)->getValue(Data::XML_PATH_GENERAL . 'api/key');
         $this->context       = $this->objectManager->get(DbContext::class);
     }

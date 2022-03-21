@@ -144,16 +144,6 @@ class TrackTraceHolder
         $address         = $shipment->getShippingAddress();
         $checkoutData    = $shipment->getOrder()->getData('myparcel_delivery_options');
         $deliveryOptions = json_decode($checkoutData, true);
-        $this->carrier   = $deliveryOptions['carrier'];
-        $this->shipmentOptionsHelper = new ShipmentOptions(
-            self::$defaultOptions,
-            $this->dataHelper,
-            $magentoTrack->getShipment()
-                ->getOrder(),
-            $this->objectManager,
-            $this->carrier,
-            $options
-        );
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
             : (int) self::$defaultOptions->getDigitalStampDefaultWeight();
 
@@ -167,7 +157,6 @@ class TrackTraceHolder
         }
 
         $pickupLocationAdapter = $deliveryOptionsAdapter->getPickupLocation();
-        $packageType           = $this->getPackageType($options, $magentoTrack, $address);
         $apiKey                = $this->dataHelper->getGeneralConfig(
             'api/key',
             $shipment->getOrder()
@@ -175,6 +164,16 @@ class TrackTraceHolder
         );
 
         $this->validateApiKey($apiKey);
+        $this->carrier               = $deliveryOptionsAdapter->getCarrier();
+        $this->shipmentOptionsHelper = new ShipmentOptions(
+            self::$defaultOptions,
+            $this->dataHelper,
+            $magentoTrack->getShipment()
+                ->getOrder(),
+            $this->objectManager,
+            $this->carrier,
+            $options
+        );
 
         $this->consignment = (ConsignmentFactory::createByCarrierName($deliveryOptionsAdapter->getCarrier()))
             ->setApiKey($apiKey)
@@ -195,6 +194,8 @@ class TrackTraceHolder
 
             $this->dataHelper->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
+
+        $packageType           = $this->getPackageType($options, $magentoTrack, $address);
 
         $this->consignment
             ->setCity($address->getCity())

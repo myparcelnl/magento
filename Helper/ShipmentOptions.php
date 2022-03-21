@@ -368,6 +368,7 @@ class ShipmentOptions
             self::AGE_CHECK         => $this->hasAgeCheck(),
             self::LARGE_FORMAT      => $this->hasLargeFormat(),
             self::LABEL_DESCRIPTION => $this->getLabelDescription(),
+            self::SAME_DAY_DELIVERY => $this->hasSameDayDelivery()
         ];
     }
 }

@@ -32,6 +32,9 @@ class Checkout extends Data
     public const FIELD_TRACK_STATUS     = 'track_status';
     public const DEFAULT_COUNTRY_CODE   = 'NL';
 
+    /**
+     * @var int
+     */
     private $base_price = 0;
 
     /**

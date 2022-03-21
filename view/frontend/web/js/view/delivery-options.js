@@ -159,10 +159,10 @@ define(
        * Create the div the delivery options will be rendered in, if it doesn't exist yet.
        */
       render: function() {
-        var hasUnrenderedDiv = document.querySelector('#myparcel-delivery-options');
-        var hasRenderedDeliveryOptions = document.querySelector('.myparcel-delivery-options__table');
-        var shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
-        var deliveryOptionsDiv = document.createElement('div');
+        const hasUnrenderedDiv = document.querySelector('#myparcel-delivery-options');
+        const hasRenderedDeliveryOptions = document.querySelector('.myparcel-delivery-options__table');
+        const shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
+        const deliveryOptionsDiv = document.createElement('div');
 
         checkout.hideShippingMethods();
         deliveryOptions.areVisible = true;
@@ -310,8 +310,8 @@ define(
        * Until there's a built in solution, there's the following workaround.
        */
       disabledDeliveryPickupRadio: function() {
-        var delivery = document.getElementById(deliveryOptions.disableDelivery);
-        var pickup = document.getElementById(deliveryOptions.disablePickup);
+        const delivery = document.getElementById(deliveryOptions.disableDelivery);
+        const pickup = document.getElementById(deliveryOptions.disablePickup);
 
         if (delivery) {
           delivery.disabled = false;
@@ -328,10 +328,10 @@ define(
        * @param {Object} selectedShippingMethod - The shipping method that was selected.
        */
       onShippingMethodUpdate: function(selectedShippingMethod) {
-        var newShippingMethod = selectedShippingMethod || {};
-        var available = newShippingMethod.available || false;
-        var methodEnabled = checkout.allowedShippingMethods().indexOf(newShippingMethod.method_code) > -1;
-        var isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(newShippingMethod);
+        const newShippingMethod = selectedShippingMethod || {};
+        const available = newShippingMethod.available || false;
+        const methodEnabled = checkout.allowedShippingMethods().indexOf(newShippingMethod.method_code) > -1;
+        const isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(newShippingMethod);
 
         checkout.hideShippingMethods();
 
@@ -365,8 +365,8 @@ define(
        * @returns {Object}
        */
       getNewShippingMethod: function(methodCode) {
-        var newShippingMethod = [];
-        var matchingShippingMethod = checkout.findRateByMethodCode(methodCode);
+        const newShippingMethod = [];
+        const matchingShippingMethod = checkout.findRateByMethodCode(methodCode);
 
         if (matchingShippingMethod) {
           return matchingShippingMethod;
@@ -376,7 +376,7 @@ define(
            *  matches.
            */
           window.MyParcelConfig.methods.forEach(function(method) {
-            var foundMethod = checkout.findRateByMethodCode(method);
+            const foundMethod = checkout.findRateByMethodCode(method);
 
             if (foundMethod) {
               newShippingMethod.push(foundMethod);
@@ -391,7 +391,7 @@ define(
        * Updates prices in deliveryOptions object for rates that are in the current quote.
        */
       updatePricesInDeliveryOptions: function() {
-        var quoteCarrierCode = quote.shippingMethod().carrier_code;
+        const quoteCarrierCode = quote.shippingMethod().carrier_code;
 
         checkout.rates().forEach(function(rate) {
           if (rate.carrier_code !== quoteCarrierCode) {
@@ -427,10 +427,10 @@ define(
        * @param {boolean} addBasePrice
        */
       priceDeliveryOptions: function(shippingMethod, priceOption, addBasePrice) {
-        var hasKey = objectPath.has(window.MyParcelConfig, priceOption);
-        var existingPrice;
-        var shippingMethodPrice;
-        var isMyParcelMethod;
+        const hasKey = objectPath.has(window.MyParcelConfig, priceOption);
+        let existingPrice;
+        let shippingMethodPrice;
+        let isMyParcelMethod;
         var baseShippingMethod;
 
         if (!hasKey) {
@@ -474,7 +474,7 @@ define(
        * @see https://stackoverflow.com/a/10474209
        */
       roundNumber: function(number, decimals) {
-        var newNumber = Number(String(number)).toFixed(decimals);
+        const newNumber = Number(String(number)).toFixed(decimals);
         return parseFloat(newNumber);
       },
 
