@@ -2,25 +2,26 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
+namespace MyParcelNL\Magento\Observer;
 
 use Magento\Config\Model\ResourceModel\Config;
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
+
+use Magento\Framework\App\Cache\Frontend\Pool;
+use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
 use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Support\Collection;
-use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Services\Web\AccountWebService;
 use MyParcelNL\Sdk\src\Services\Web\CarrierConfigurationWebService;
 use MyParcelNL\Sdk\src\Services\Web\CarrierOptionsWebService;
 
-class CarrierConfigurationImport extends Action
+class CarrierConfigurationImport implements ObserverInterface
 {
     public const CARRIERS_IDS_MAP = [
         CarrierPostNL::NAME   => CarrierPostNL::ID,
@@ -45,8 +46,6 @@ class CarrierConfigurationImport extends Action
     public function __construct()
     {
         $this->objectManager = ObjectManager::getInstance();
-        parent::__construct($this->objectManager->get(Context::class));
-        $this->resultFactory = $this->objectManager->get(JsonFactory::class);
         $this->apiKey        = $this->objectManager->get(ScopeConfigInterface::class)->getValue(Data::XML_PATH_GENERAL . 'api/key');
         $this->context       = $this->objectManager->get(DbContext::class);
     }
@@ -56,13 +55,14 @@ class CarrierConfigurationImport extends Action
      * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
-    public function execute(): CarrierConfigurationImport
+    public function execute(Observer $observer): CarrierConfigurationImport
     {
         $config               = new Config($this->context);
         $path                 = Data::XML_PATH_GENERAL . 'account_settings';
         $configuration        = $this->fetchConfigurations();
         $config->saveConfig($path, serialize($configuration));
-        return $this->resultFactory->create()->setData(['success' => true, 'time' => date('now')]);
+        $this->clearCache();
+        return $this;
     }
 
 
@@ -96,25 +96,13 @@ class CarrierConfigurationImport extends Action
         ]);
     }
 
-    /**
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     */
-    public function getCarrierConfiguration(string $carrier): CarrierConfiguration
+    private function clearCache(): void
     {
-        return (new CarrierConfigurationWebService())
-            ->setApiKey($this->apiKey)
-            ->getCarrierConfiguration($this->fetchShopId(), self::CARRIERS_IDS_MAP[$carrier], true);
-    }
-
-    /**
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     */
-    private function fetchShopId(): Collection
-    {
-
+        $cacheTypeList     = $this->objectManager->get(TypeListInterface::class);
+        $cacheFrontendPool = $this->objectManager->get(Pool::class);
+        $cacheTypeList->cleanType('config');
+        foreach ($cacheFrontendPool as $cacheFrontend) {
+            $cacheFrontend->getBackend()->clean();
+        }
     }
 }

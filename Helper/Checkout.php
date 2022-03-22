@@ -163,8 +163,9 @@ class Checkout extends Data
             $latestMethodCode = array_pop($methodCode);
 
             if (
-                in_array($method->getCarrierCode(), $parentCarriers) &&
-                ! in_array($latestMethodCode, $myParcelMethods)
+                in_array($method->getCarrierCode(), $parentCarriers, true)
+                &&
+                ! in_array($latestMethodCode, $myParcelMethods, true)
             ) {
                 return $method;
             }
@@ -257,14 +258,14 @@ class Checkout extends Data
     /**
      * Get bool of setting
      *
-     * @param string $carrier
-     * @param string $key
+     * @param  string $carrier
+     * @param  string $key
      *
      * @return bool
      */
-    public function getBoolConfig($carrier, $key)
+    public function getBoolConfig(string $carrier, string $key): bool
     {
-        return $this->getCarrierConfig($key, $carrier) == "1" ? true : false;
+        return $this->getCarrierConfig($key, $carrier) === "1";
     }
 
     /**

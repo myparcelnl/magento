@@ -209,6 +209,7 @@ class TrackTraceHolder
             ->setOnlyRecipient($this->shipmentOptionsHelper->hasOnlyRecipient())
             ->setSignature($this->shipmentOptionsHelper->hasSignature())
             ->setReturn($this->shipmentOptionsHelper->hasReturn())
+            ->setSameDayDelivery($deliveryOptionsAdapter->getShipmentOptions()->isSameDayDelivery())
             ->setLargeFormat($this->shipmentOptionsHelper->hasLargeFormat())
             ->setAgeCheck($this->shipmentOptionsHelper->hasAgeCheck())
             ->setInsurance($this->shipmentOptionsHelper->getInsurance())

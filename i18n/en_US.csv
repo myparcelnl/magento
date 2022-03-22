@@ -38,3 +38,11 @@ myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL even
 myparcelnl_magento_postnl_settings/mailbox, PostNL mailbox
 myparcelnl_magento_postnl_settings/digital_stamp, PostNL digital stamp
 myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
+myparcelnl_magento_instabox_settings/delivery, Instabox delivery
+myparcelnl_magento_instabox_settings/mailbox, Instabox mailbox
+myparcelnl_magento_instabox_settings/pickup, Instabox pickup location
+myparcelnl_magento_instabox_settings/same_day, Instabox same day delivery
+myparcelnl_magento_instabox_settings/delivery/only_recipient/signature, Instabox delivery with only recipient and signature
+myparcelnl_magento_instabox_settings/delivery/only_recipient, Instabox delivery with only recipient
+myparcelnl_magento_instabox_settings/delivery/signature, Instabox delivery with signature
+

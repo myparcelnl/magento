@@ -154,7 +154,7 @@ class Checkout
             $basePrice        = $this->helper->getBasePrice();
             $morningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'morning/fee');
             $eveningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'evening/fee');
-            $sameDayFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'same_day/fee');
+            $sameDayFee       = (int) $this->helper->getCarrierConfig('delivery/same_day_fee', $carrierPath[$carrier]);
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
             $isAgeCheckActive = $this->isAgeCheckActive($carrierPath[$carrier]);
@@ -177,12 +177,13 @@ class Checkout
                 'dropOffDays'           => $this->helper->getArrayConfig($carrierPath[$carrier], 'general/dropoff_days'),
                 'dropOffDelay'          => $this->getDropOffDelay($carrierPath[$carrier], 'general/dropoff_delay'),
 
-                'priceSignature'        => $signatureFee,
-                'priceOnlyRecipient'    => $onlyRecipientFee,
-                'priceStandardDelivery' => $basePrice,
-                'priceMorningDelivery'  => $morningFee,
-                'priceEveningDelivery'  => $eveningFee,
-                'priceSameDayDelivery'  => $sameDayFee,
+                'priceSignature'                       => $signatureFee,
+                'priceOnlyRecipient'                   => $onlyRecipientFee,
+                'priceStandardDelivery'                => $basePrice,
+                'priceMorningDelivery'                 => $morningFee,
+                'priceEveningDelivery'                 => $eveningFee,
+                'priceSameDayDelivery'                 => $sameDayFee,
+                'priceSameDayDeliveryAndOnlyRecipient' => $sameDayFee + $onlyRecipientFee,
 
                 'priceMorningSignature'          => ($morningFee + $signatureFee),
                 'priceEveningSignature'          => ($eveningFee + $signatureFee),
@@ -232,7 +233,7 @@ class Checkout
      *
      * @return array
      */
-    private function getDeliveryOptionsStrings()
+    private function getDeliveryOptionsStrings(): array
     {
         return [
             'deliveryTitle'             => $this->helper->getGeneralConfig('delivery_titles/delivery_title'),
@@ -272,7 +273,7 @@ class Checkout
      */
     public function checkPackageType(string $carrier, ?string $country): string
     {
-        $carrierPath = data::CARRIERS_XML_PATH_MAP;
+        $carrierPath = Data::CARRIERS_XML_PATH_MAP;
         $products    = $this->cart->getAllItems();
         $country     = $country ?? $this->cart->getShippingAddress()->getCountryId();
 
@@ -292,9 +293,7 @@ class Checkout
     public function isAgeCheckActive(string $carrierPath): bool
     {
         $products    = $this->cart->getAllItems();
-        $hasAgeCheck = $this->package->getAgeCheck($products, $carrierPath);
-
-        return $hasAgeCheck;
+        return $this->package->getAgeCheck($products, $carrierPath);
     }
 
     /**
@@ -327,8 +326,6 @@ class Checkout
     }
 
     /**
-     * @param  bool   $isMailboxPackage
-     * @param  bool   $showPickup
      * @param  string $carrier
      *
      * @return bool
