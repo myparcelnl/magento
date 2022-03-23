@@ -529,7 +529,7 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="same_day_fee" translate="label comment" type="text" sortOrder="401" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="same_day_delivery_fee" translate="label comment" type="text" sortOrder="401" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Sameday delivery fee</label>
                     <comment>This will be added to the regular shipping price</comment>
                     <depends>

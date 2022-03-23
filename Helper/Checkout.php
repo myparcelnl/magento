@@ -163,9 +163,9 @@ class Checkout extends Data
             $latestMethodCode = array_pop($methodCode);
 
             if (
-                in_array($method->getCarrierCode(), $parentCarriers, true)
-                &&
                 ! in_array($latestMethodCode, $myParcelMethods, true)
+                &&
+                in_array($method->getCarrierCode(), $parentCarriers, true)
             ) {
                 return $method;
             }

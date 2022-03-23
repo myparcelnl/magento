@@ -409,10 +409,10 @@ define(
        * @param {Object} selectedShippingMethod
        */
       updatePriceInDeliveryOptions: function(selectedShippingMethod) {
-        var methodCode = selectedShippingMethod.method_code;
-        var isShipmentOption = deliveryOptions.methodCodeShipmentOptionsConfigMap.hasOwnProperty(methodCode);
-        var priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[methodCode];
-        var addBasePrice = false;
+        const methodCode = selectedShippingMethod.method_code;
+        const isShipmentOption = deliveryOptions.methodCodeShipmentOptionsConfigMap.hasOwnProperty(methodCode);
+        let priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[methodCode];
+        let addBasePrice = false;
 
         if (isShipmentOption) {
           priceOption = deliveryOptions.methodCodeShipmentOptionsConfigMap[methodCode];
@@ -432,7 +432,7 @@ define(
         let existingPrice;
         let shippingMethodPrice;
         let isMyParcelMethod;
-        var baseShippingMethod;
+        let baseShippingMethod;
 
         if (!hasKey) {
           // eslint-disable-next-line no-console

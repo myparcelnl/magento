@@ -37,8 +37,8 @@ class Data extends AbstractHelper
     public const DEFAULT_WEIGHT             = 1000;
     public const CARRIERS                   = [CarrierPostNL::NAME, CarrierInstabox::NAME];
     public const CARRIERS_XML_PATH_MAP      = [
-        CarrierPostNL::NAME   => Data::XML_PATH_POSTNL_SETTINGS,
-        CarrierInstabox::NAME => Data::XML_PATH_INSTABOX_SETTINGS,
+        CarrierPostNL::NAME   => self::XML_PATH_POSTNL_SETTINGS,
+        CarrierInstabox::NAME => self::XML_PATH_INSTABOX_SETTINGS,
     ];
 
     /**

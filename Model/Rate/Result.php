@@ -34,14 +34,9 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private $myParcelHelper;
 
     /**
-     * @var PackageRepository
-     */
-    private $package;
-
-    /**
      * @var array
      */
-    private $parentMethods = [];
+    private $parentMethods;
 
     /**
      * @var Session
@@ -76,11 +71,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         parent::__construct($storeManager);
 
         $this->myParcelHelper = $myParcelHelper;
-        $this->package        = $package;
         $this->session        = $session;
         $this->quote          = $quote;
         $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods'));
-        $this->package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
+        $package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
     }
 
     /**
@@ -134,7 +128,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             'evening_only_recipient_signature'  => 'evening/only_recipient/signature',
             'mailbox'                           => 'mailbox',
             'digital_stamp'                     => 'digital_stamp',
-//            'same_day_delivery'                 => 'delivery/same_day_delivery'
+//            'same_day_delivery'                 => 'delivery/same_day_delivery',
+//            'same_day_delivery_only_recipient'  => 'delivery/same_day_delivery/only_recipient',
         ];
     }
 

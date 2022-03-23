@@ -230,7 +230,8 @@ myparcelnl_magento_postnl_settings/digital_stamp, PostNL digitale postzegel
 myparcelnl_magento_instabox_settings/delivery, Instabox bezorging
 myparcelnl_magento_instabox_settings/mailbox, Instabox brievenbuspakje
 myparcelnl_magento_instabox_settings/pickup, Instabox ophaal locatie
-myparcelnl_magento_instabox_settings/same_day, Instabox zelfde dag bezorgd
+myparcelnl_magento_instabox_settings/delivery/same_day_delivery, Instabox zelfde dag bezorgd
+myparcelnl_magento_instabox_settings/delivery/same_day_delivery/only_recipient, Instabox zelfde dag bezorgd met alleen huisadres
 myparcelnl_magento_instabox_settings/delivery/only_recipient/signature, Instabox levering met alleen huisadres en handtekening
 myparcelnl_magento_instabox_settings/delivery/only_recipient, Instabox levering met alleen huisadres
 myparcelnl_magento_instabox_settings/delivery/signature, Instabox levering met handtekening

@@ -6,6 +6,7 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
+use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Sdk\src\Exception\ApiException;
@@ -111,7 +112,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $this->orderCollection->reload();
 
         if (! $this->orderCollection->hasShipment()) {
-            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
+            $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
         }
 
         if ($this->messageManager->getMessages()->getErrors()) {

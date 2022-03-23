@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 
 use Magento\Config\Model\ResourceModel\Config;
-use Magento\Framework\App\Action\Action;
+use Magento\Backend\App\Action;
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Cache\Frontend\Pool;
+use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
 use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Support\Collection;
-use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Services\Web\AccountWebService;
@@ -56,13 +57,18 @@ class CarrierConfigurationImport extends Action
      * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
-    public function execute(): CarrierConfigurationImport
+    public function execute()
     {
-        $config               = new Config($this->context);
-        $path                 = Data::XML_PATH_GENERAL . 'account_settings';
-        $configuration        = $this->fetchConfigurations();
+        $config        = new Config($this->context);
+        $path          = Data::XML_PATH_GENERAL . 'account_settings';
+        $configuration = $this->fetchConfigurations();
         $config->saveConfig($path, serialize($configuration));
-        return $this->resultFactory->create()->setData(['success' => true, 'time' => date('now')]);
+
+        // Clear configuration cache right after saving the accountsettings, so the modal in the carrier specific
+        // configuration view will be showing the updated drop-off point.
+        $this->clearCache();
+        return $this->resultFactory->create()
+            ->setData(['success' => true, 'time' => date('now')]);
     }
 
 
@@ -77,14 +83,10 @@ class CarrierConfigurationImport extends Action
         $accountService = (new AccountWebService())->setApiKey($this->apiKey);
 
         $account                     = $accountService->getAccount();
-        $shop                        = $account
-            ->getShops()
-            ->first();
+        $shop                        = $account->getShops()->first();
         $shopId                      = $shop->getId();
-        $carrierConfigurationService = (new CarrierConfigurationWebService())
-            ->setApiKey($this->apiKey);
-        $optionConfigurationService  = (new CarrierOptionsWebService())
-            ->setApiKey($this->apiKey);
+        $carrierConfigurationService = (new CarrierConfigurationWebService())->setApiKey($this->apiKey);
+        $optionConfigurationService  = (new CarrierOptionsWebService())->setApiKey($this->apiKey);
         $carrierConfiguration        = $carrierConfigurationService->getCarrierConfigurations($shopId, true);
         $optionConfiguration         = $optionConfigurationService->getCarrierOptions($shopId);
 
@@ -96,25 +98,13 @@ class CarrierConfigurationImport extends Action
         ]);
     }
 
-    /**
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     */
-    public function getCarrierConfiguration(string $carrier): CarrierConfiguration
+    private function clearCache(): void
     {
-        return (new CarrierConfigurationWebService())
-            ->setApiKey($this->apiKey)
-            ->getCarrierConfiguration($this->fetchShopId(), self::CARRIERS_IDS_MAP[$carrier], true);
-    }
-
-    /**
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     */
-    private function fetchShopId(): Collection
-    {
-
+        $cacheTypeList     = $this->objectManager->get(TypeListInterface::class);
+        $cacheFrontendPool = $this->objectManager->get(Pool::class);
+        $cacheTypeList->cleanType('config');
+        foreach ($cacheFrontendPool as $cacheFrontend) {
+            $cacheFrontend->getBackend()->clean();
+        }
     }
 }
