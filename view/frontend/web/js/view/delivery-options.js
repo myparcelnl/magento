@@ -82,6 +82,8 @@ define(
         'myparcelnl_magento_instabox_settings/mailbox': 'config.carrierSettings.instabox.pricePackageTypeMailbox',
         'myparcelnl_magento_instabox_settings/pickup': 'config.carrierSettings.instabox.pricePickup',
         'myparcelnl_magento_instabox_settings/delivery/only_recipient/signature': 'config.carrierSettings.instabox.priceSignatureAndOnlyRecipient',
+        'myparcelnl_magento_instabox_settings/delivery/same_day_delivery': 'config.carrierSettings.instabox.priceSameDayDelivery',
+        'myparcelnl_magento_instabox_settings/delivery/same_day_delivery/only_recipient': 'config.carrierSettings.instabox.priceSameDayDeliveryAndOnlyRecipient',
       },
 
       /**
@@ -417,6 +419,10 @@ define(
         if (isShipmentOption) {
           priceOption = deliveryOptions.methodCodeShipmentOptionsConfigMap[methodCode];
           addBasePrice = true;
+        }
+
+        if (undefined === priceOption){
+          return;
         }
 
         deliveryOptions.priceDeliveryOptions(selectedShippingMethod, priceOption, addBasePrice);

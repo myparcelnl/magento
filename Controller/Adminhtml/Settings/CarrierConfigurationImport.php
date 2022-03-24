@@ -68,7 +68,7 @@ class CarrierConfigurationImport extends Action
         // configuration view will be showing the updated drop-off point.
         $this->clearCache();
         return $this->resultFactory->create()
-            ->setData(['success' => true, 'time' => date('now')]);
+            ->setData(['success' => true, 'time' => date("Y-m-d H:i:s")]);
     }
 
 

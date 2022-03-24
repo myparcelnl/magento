@@ -154,7 +154,7 @@ class Checkout
             $basePrice        = $this->helper->getBasePrice();
             $morningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'morning/fee');
             $eveningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'evening/fee');
-            $sameDayFee       = (int) $this->helper->getCarrierConfig('delivery/same_day_fee', $carrierPath[$carrier]);
+            $sameDayFee       = (int) $this->helper->getCarrierConfig('delivery/same_day_delivery_fee', $carrierPath[$carrier]);
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
             $isAgeCheckActive = $this->isAgeCheckActive($carrierPath[$carrier]);

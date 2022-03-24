@@ -16,7 +16,6 @@
 
 namespace MyParcelNL\Magento\Helper;
 
-use Magento\Dhl\Model\Carrier;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
@@ -102,7 +101,9 @@ class Data extends AbstractHelper
     {
         $accountSettings = $this->getGeneralConfig('account_settings');
         if (! $accountSettings) {
-            throw new \RuntimeException('No account settings found. Press the import button to fetch account settings.');
+            throw new \RuntimeException(
+                'No account settings found. Press the import button in general configuration to fetch account settings.'
+            );
         }
 
         return unserialize($accountSettings);
@@ -113,13 +114,16 @@ class Data extends AbstractHelper
      */
     public function getDropOffPoint(string $carrier): DropOffPoint
     {
-        $accountSettings = $this->getAccountSettings();
+        $accountSettings                 = $this->getAccountSettings();
         $carrierConfigurationsCollection = $accountSettings->all()['carrier_configurations']->all();
-        $carrierConfiguration = $carrierConfigurationsCollection[CarrierPostNL::NAME === $carrier ? 0 : 1];
-        $dropOffPoint = $carrierConfiguration->getDefaultDropOffPoint();
-        $dropOffPoint->setNumberSuffix('');
+        $carrierConfiguration            = $carrierConfigurationsCollection[CarrierPostNL::NAME === $carrier ? 0 : 1];
+        $dropOffPoint                    = $carrierConfiguration->getDefaultDropOffPoint();
 
-        return $carrierConfiguration->getDefaultDropOffPoint();
+        if (null === $dropOffPoint->getNumberSuffix()) {
+            $dropOffPoint->setNumberSuffix('');
+        }
+
+        return $dropOffPoint;
     }
 
     /**

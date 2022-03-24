@@ -116,7 +116,7 @@ class TrackTraceHolder
      */
     public function createTrackTraceFromShipment(Order\Shipment $shipment)
     {
-        $this->mageTrack = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
+        $this->mageTrack = $this->objectManager->create(Track::class);
         $this->mageTrack
             ->setOrderId($shipment->getOrderId())
             ->setShipment($shipment)
