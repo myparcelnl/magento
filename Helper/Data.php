@@ -21,6 +21,8 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -94,30 +96,13 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @return mixed
      * @throws \Exception
      */
-    public function getAccountSettings()
+    public function getDropOffPoint(AbstractCarrier $carrier): DropOffPoint
     {
-        $accountSettings = $this->getGeneralConfig('account_settings');
-        if (! $accountSettings) {
-            throw new \RuntimeException(
-                'No account settings found. Press the import button in general configuration to fetch account settings.'
-            );
-        }
-
-        return unserialize($accountSettings);
-    }
-
-    /**
-     * @throws \Exception
-     */
-    public function getDropOffPoint(string $carrier): DropOffPoint
-    {
-        $accountSettings                 = $this->getAccountSettings();
-        $carrierConfigurationsCollection = $accountSettings->all()['carrier_configurations']->all();
-        $carrierConfiguration            = $carrierConfigurationsCollection[CarrierPostNL::NAME === $carrier ? 0 : 1];
-        $dropOffPoint                    = $carrierConfiguration->getDefaultDropOffPoint();
+        $accountSettings = AccountSettings::getInstance();
+        $carrierConfiguration = $accountSettings->getCarrierConfigurationByCarrierId($carrier->getId());
+        $dropOffPoint         = $carrierConfiguration->getDefaultDropOffPoint();
 
         if (null === $dropOffPoint->getNumberSuffix()) {
             $dropOffPoint->setNumberSuffix('');

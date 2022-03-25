@@ -347,13 +347,13 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
         // Check if the selected delivery options are delivery, only_recipient and signature
         // delivery/only_recipient/signature
-        if (isset($settingPath[2], $settingPath[3]) && $settingPath[1] === 'delivery') {
+        if (isset($settingPath[2], $settingPath[3]) && 'delivery' === $settingPath[1]) {
             $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . $settingPath[2] . '_' . 'fee');
             $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . $settingPath[3] . 'fee');
         }
 
         // Check if the selected delivery is morning or evening and select the fee
-        if ($settingPath[1] === 'morning' || $settingPath[1] === 'evening') {
+        if ('morning' === $settingPath[1] || 'evening' === $settingPath[1]) {
             $settingFee = (float) $this->myParcelHelper->getConfigValue($settingPath[0] . '/' . $settingPath[1] . '/' . 'fee');
 
             // change delivery type if there is a signature selected
@@ -365,7 +365,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         // For mailbox and digital stamp the base price should not be calculated
-        if ($settingPath[1] === 'mailbox' || $settingPath[1] === 'digital_stamp') {
+        if ('mailbox' === $settingPath[1] || 'digital_stamp' === $settingPath[1]) {
             $basePrice = 0;
         }
 

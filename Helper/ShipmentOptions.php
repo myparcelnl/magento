@@ -111,7 +111,9 @@ class ShipmentOptions
      */
     public function hasSameDayDelivery(): bool
     {
-        return (bool) self::getValueOfOptionWhenSet(self::SAME_DAY_DELIVERY, $this->options);
+        $sameDayFromOptions = self::getValueOfOptionWhenSet(self::SAME_DAY_DELIVERY, $this->options);
+
+        return $sameDayFromOptions ?? $this->optionIsEnabled(self::SAME_DAY_DELIVERY);
     }
 
     /**

@@ -83,23 +83,22 @@ class Checkout
         $this->helper->setBasePriceFromQuote($this->quoteId);
         $this->hideDeliveryOptionsForProduct();
 
-        $data               = [];
         $data               = [
-            'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId, $forAddress)],
-            'config'  => array_merge(
+            'methods'    => [$this->helper->getParentMethodNameFromQuote($this->quoteId, $forAddress)],
+            'config'     => array_merge(
                 $this->getGeneralData(),
                 $this->getPackageType(),
                 $this->getDeliveryData()
             ),
-            'strings' => $this->getDeliveryOptionsStrings(),
+            'strings'    => $this->getDeliveryOptionsStrings(),
+            'forAddress' => $forAddress,
         ];
-        $data['forAddress'] = $forAddress;
 
         return [
             'root' => [
                 'version' => (string) $this->helper->getVersion(),
-                'data'    => (array) $data
-            ]
+                'data'    => (array) $data,
+            ],
         ];
     }
 
@@ -292,7 +291,7 @@ class Checkout
      */
     public function isAgeCheckActive(string $carrierPath): bool
     {
-        $products    = $this->cart->getAllItems();
+        $products = $this->cart->getAllItems();
         return $this->package->getAgeCheck($products, $carrierPath);
     }
 

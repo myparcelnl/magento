@@ -6,50 +6,67 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 
 use Magento\Config\Model\ResourceModel\Config;
 use Magento\Backend\App\Action;
-use Magento\Framework\App\Action\Context;
+use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
-use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
+use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\src\Support\Collection;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Services\Web\AccountWebService;
 use MyParcelNL\Sdk\src\Services\Web\CarrierConfigurationWebService;
 use MyParcelNL\Sdk\src\Services\Web\CarrierOptionsWebService;
 
 class CarrierConfigurationImport extends Action
 {
-    public const CARRIERS_IDS_MAP = [
-        CarrierPostNL::NAME   => CarrierPostNL::ID,
-        CarrierInstabox::NAME => CarrierInstabox::ID,
-    ];
-
     /**
      * @var string
      */
     private $apiKey;
 
     /**
-     * @var mixed
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
-    private $context;
+    private $config;
 
     /**
-     * @var \Magento\Framework\App\ObjectManager
+     * @var mixed
      */
-    private $objectManager;
+    private        $context;
 
-    public function __construct()
+    /**
+     * @var mixed
+     */
+    private $typeListInterface;
+
+    /**
+     * @param  \Magento\Framework\Controller\Result\JsonFactory   $resultFactory
+     * @param  \Magento\Backend\App\Action\Context                $context
+     * @param  \Magento\Framework\Model\ResourceModel\Db\Context  $dbContext
+     * @param  \Magento\Framework\App\Cache\TypeListInterface     $typeListInterface
+     * @param  \Magento\Framework\App\Config\ScopeConfigInterface $config
+     * @param  \Magento\Framework\App\Cache\Frontend\Pool         $pool
+     */
+    public function __construct(
+        JsonFactory $resultFactory,
+        Context $context,
+        DbContext $dbContext,
+        TypeListInterface $typeListInterface,
+        ScopeConfigInterface $config,
+        Pool $pool
+    )
     {
-        $this->objectManager = ObjectManager::getInstance();
-        parent::__construct($this->objectManager->get(Context::class));
-        $this->resultFactory = $this->objectManager->get(JsonFactory::class);
-        $this->apiKey        = $this->objectManager->get(ScopeConfigInterface::class)->getValue(Data::XML_PATH_GENERAL . 'api/key');
-        $this->context       = $this->objectManager->get(DbContext::class);
+        parent::__construct($context);
+        $this->resultFactory     = $resultFactory;
+        $this->config            = $config;
+        $this->apiKey            = $this->config->getValue(Data::XML_PATH_GENERAL . 'api/key');
+        $this->context           = $dbContext;
+        $this->typeListInterface = $typeListInterface;
+        $this->pool              = $pool;
     }
 
     /**
@@ -62,9 +79,9 @@ class CarrierConfigurationImport extends Action
         $config        = new Config($this->context);
         $path          = Data::XML_PATH_GENERAL . 'account_settings';
         $configuration = $this->fetchConfigurations();
-        $config->saveConfig($path, serialize($configuration));
+        $config->saveConfig($path, json_encode($this->createArray($configuration)));
 
-        // Clear configuration cache right after saving the accountsettings, so the modal in the carrier specific
+        // Clear configuration cache right after saving the account settings, so the modal in the carrier specific
         // configuration view will be showing the updated drop-off point.
         $this->clearCache();
         return $this->resultFactory->create()
@@ -98,13 +115,91 @@ class CarrierConfigurationImport extends Action
         ]);
     }
 
+    /**
+     * @return \MyParcelNL\Sdk\src\Support\Collection
+     * @throws \Exception
+     */
+    public static function getAccountSettings(): Collection
+    {
+        $objectManager = ObjectManager::getInstance();
+        $accountSettings = $objectManager->get(ScopeConfigInterface::class)->getValue(Data::XML_PATH_GENERAL . 'account_settings');
+        if (! $accountSettings) {
+            throw new \RuntimeException(
+                'No account settings found. Press the import button in general configuration to fetch account settings.'
+            );
+        }
+
+        return new Collection(json_decode($accountSettings, true));
+    }
+
     private function clearCache(): void
     {
-        $cacheTypeList     = $this->objectManager->get(TypeListInterface::class);
-        $cacheFrontendPool = $this->objectManager->get(Pool::class);
-        $cacheTypeList->cleanType('config');
+        $cacheFrontendPool = $this->pool;
+        $this->typeListInterface->cleanType('config');
+
         foreach ($cacheFrontendPool as $cacheFrontend) {
             $cacheFrontend->getBackend()->clean();
         }
+    }
+
+    /**
+     * @param  \MyParcelNL\Sdk\src\Support\Collection $settings
+     *
+     * @return array
+     * @TODO sdk#326 remove this entire function and replace with toArray
+     */
+    private function createArray(Collection $settings): array
+    {
+        /** @var \MyParcelNL\Sdk\src\Model\Account\Shop $shop */
+        $shop = $settings->get('shop');
+        /** @var \MyParcelNL\Sdk\src\Model\Account\Account $account */
+        $account = $settings->get('account');
+        /** @var \MyParcelNL\Sdk\src\Model\Account\CarrierOptions[]|Collection $carrierOptions */
+        $carrierOptions = $settings->get('carrier_options');
+        /** @var \MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration[]|Collection $carrierConfigurations */
+        $carrierConfigurations = $settings->get('carrier_configurations');
+
+        return [
+            'shop'                   => [
+                'id'   => $shop->getId(),
+                'name' => $shop->getName(),
+            ],
+            'account'                => $account->toArray(),
+            'carrier_options'        => array_map(static function (CarrierOptions $carrierOptions) {
+                $carrier = $carrierOptions->getCarrier();
+                return [
+                    'carrier'  => [
+                        'human' => $carrier->getHuman(),
+                        'id'    => $carrier->getId(),
+                        'name'  => $carrier->getName(),
+                    ],
+                    'enabled'  => $carrierOptions->isEnabled(),
+                    'label'    => $carrierOptions->getLabel(),
+                    'optional' => $carrierOptions->isOptional(),
+                ];
+            }, $carrierOptions->all()),
+            'carrier_configurations' => array_map(static function (CarrierConfiguration $carrierConfiguration) {
+                $defaultDropOffPoint = $carrierConfiguration->getDefaultDropOffPoint();
+                $carrier             = $carrierConfiguration->getCarrier();
+                return [
+                    'carrier_id'                        => $carrier->getId(),
+                    'default_drop_off_point'            => $defaultDropOffPoint ? [
+                        'box_number'        => $defaultDropOffPoint->getBoxNumber(),
+                        'cc'                => $defaultDropOffPoint->getCc(),
+                        'city'              => $defaultDropOffPoint->getCity(),
+                        'location_code'     => $defaultDropOffPoint->getLocationCode(),
+                        'location_name'     => $defaultDropOffPoint->getLocationName(),
+                        'number'            => $defaultDropOffPoint->getNumber(),
+                        'number_suffix'     => $defaultDropOffPoint->getNumberSuffix(),
+                        'postal_code'       => $defaultDropOffPoint->getPostalCode(),
+                        'region'            => $defaultDropOffPoint->getRegion(),
+                        'retail_network_id' => $defaultDropOffPoint->getRetailNetworkId(),
+                        'state'             => $defaultDropOffPoint->getState(),
+                        'street'            => $defaultDropOffPoint->getStreet(),
+                    ] : null,
+                    'default_drop_off_point_identifier' => $carrierConfiguration->getDefaultDropOffPointIdentifier(),
+                ];
+            }, $carrierConfigurations->all()),
+        ];
     }
 }

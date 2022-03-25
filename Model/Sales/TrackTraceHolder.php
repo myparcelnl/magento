@@ -20,6 +20,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -28,6 +29,7 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use Magento\Framework\App\ResourceConnection;
@@ -142,7 +144,8 @@ class TrackTraceHolder
     {
         $shipment        = $magentoTrack->getShipment();
         $address         = $shipment->getShippingAddress();
-        $checkoutData    = $shipment->getOrder()->getData('myparcel_delivery_options');
+        $order           = $shipment->getOrder();
+        $checkoutData    = $order->getData('myparcel_delivery_options');
         $deliveryOptions = json_decode($checkoutData, true);
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
             : (int) self::$defaultOptions->getDigitalStampDefaultWeight();
@@ -159,7 +162,7 @@ class TrackTraceHolder
         $pickupLocationAdapter = $deliveryOptionsAdapter->getPickupLocation();
         $apiKey                = $this->dataHelper->getGeneralConfig(
             'api/key',
-            $shipment->getOrder()
+            $order
                 ->getStoreId()
         );
 
@@ -168,8 +171,7 @@ class TrackTraceHolder
         $this->shipmentOptionsHelper = new ShipmentOptions(
             self::$defaultOptions,
             $this->dataHelper,
-            $magentoTrack->getShipment()
-                ->getOrder(),
+            $order,
             $this->objectManager,
             $this->carrier,
             $options
@@ -188,14 +190,14 @@ class TrackTraceHolder
                 ->setFullStreet($address->getData('street'))
                 ->setPostalCode(preg_replace('/\s+/', '', $address->getPostcode()));
         } catch (\Exception $e) {
-            $errorHuman = 'An error has occurred while validating order number ' . $shipment->getOrder()->getIncrementId() . '. Check address.';
+            $errorHuman = 'An error has occurred while validating order number ' . $order->getIncrementId() . '. Check address.';
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman . '-' . $e);
 
             $this->dataHelper->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
 
-        $packageType           = $this->getPackageType($options, $magentoTrack, $address);
+        $packageType = $this->getPackageType($options, $magentoTrack, $address);
 
         $this->consignment
             ->setCity($address->getCity())
@@ -205,7 +207,7 @@ class TrackTraceHolder
             ->setDeliveryDate($this->dataHelper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($this->dataHelper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
             ->setPackageType($packageType)
-            ->setDropOffPoint($this->dataHelper->getDropOffPoint($deliveryOptionsAdapter->getCarrier()))
+            ->setDropOffPoint($this->dataHelper->getDropOffPoint(CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())))
             ->setOnlyRecipient($this->shipmentOptionsHelper->hasOnlyRecipient())
             ->setSignature($this->shipmentOptionsHelper->hasSignature())
             ->setReturn($this->shipmentOptionsHelper->hasReturn())

@@ -19,6 +19,7 @@ use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -228,7 +229,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->getLocalCreatedAtDate())
                 ->setExternalIdentifier($this->order->getIncrementId())
-                ->setDropOffPoint($this->helper->getDropOffPoint($deliveryOptionsAdapter->getCarrier()));
+                ->setDropOffPoint($this->helper->getDropOffPoint(CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())));
 
             if ($deliveryOptionsAdapter->isPickup()) {
                 $pickupData     = $deliveryOptionsAdapter->getPickupLocation();

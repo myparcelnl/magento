@@ -40,7 +40,7 @@ class OrdersAction extends Template
         array $data = []
     ) {
         $this->objectManager = ObjectManager::getInstance();
-        $this->helper = $this->objectManager->get(Data::class);
+        $this->helper        = $this->objectManager->get(Data::class);
         parent::__construct($context, $data);
     }
 

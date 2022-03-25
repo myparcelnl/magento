@@ -47,7 +47,7 @@ class SettingsButton extends Field
     }
 
     /**
-     * Return ajax url for collect button
+     * Return ajax url for import account configuration button
      *
      * @return string
      */

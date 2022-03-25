@@ -10,6 +10,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magento\Backend\Block\Widget\Button;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 
 class DefaultDropOffPointInstabox extends Field
@@ -30,7 +31,7 @@ class DefaultDropOffPointInstabox extends Field
     {
         $objectManager = ObjectManager::getInstance();
         $helper  = $objectManager->create(Data::class);
-        $this->dropOffPoint = $helper->getDropOffPoint(CarrierInstabox::NAME);
+        $this->dropOffPoint = $helper->getDropOffPoint(CarrierFactory::createFromName(CarrierInstabox::NAME));
         parent::__construct($context, $data);
     }
 
@@ -82,7 +83,7 @@ class DefaultDropOffPointInstabox extends Field
 
     public function getCarrierId(): string
     {
-        return "5";
+        return (string) CarrierInstabox::ID;
     }
 
     /**

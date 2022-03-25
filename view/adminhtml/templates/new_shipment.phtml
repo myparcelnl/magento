@@ -160,8 +160,8 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         continue;
                     }
                     $isActive = ($abstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $shipmentOption)
-                        ? $block->getDefaultLargeFormat($shipmentOption, 'postnl')
-                        : $block->getDefaultOption($shipmentOption, 'postnl');
+                        ? $block->getDefaultLargeFormat($shipmentOption, $carrier->getName())
+                        : $block->getDefaultOption($shipmentOption, $carrier->getName());
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
@@ -198,7 +198,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         <label class="admin__field-label" for="mypa_insurance" style="display: block">
                             <span><?= __('Insured up to:') ?></span>
                         </label>
-                        <?php $defaultInsurance = $block->getDefaultInsurance('postnl'); ?>
+                        <?php $defaultInsurance = $block->getDefaultInsurance($carrier->getName()); ?>
                         <select
                             name="mypa_insurance"
                             id="mypa_insurance"
