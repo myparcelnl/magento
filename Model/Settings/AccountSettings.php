@@ -98,18 +98,18 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @param  int $carrierId
+     * @param  \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier $carrier
      *
      * @return null|\MyParcelNL\Sdk\src\Model\Account\CarrierOptions
      */
-    public function getCarrierOptionsByCarrierId(int $carrierId): ?CarrierOptions
+    public function getCarrierOptionsByCarrier(AbstractCarrier $carrier): ?CarrierOptions
     {
         $carrierOptions = $this->getCarrierOptions();
 
         return $carrierOptions
             ->filter(
-                static function (CarrierOptions $carrierOptions) use ($carrierId) {
-                    return $carrierId === $carrierOptions->getCarrier()
+                static function (CarrierOptions $carrierOptions) use ($carrier) {
+                    return $carrier->getId() === $carrierOptions->getCarrier()
                             ->getId();
                 }
             )

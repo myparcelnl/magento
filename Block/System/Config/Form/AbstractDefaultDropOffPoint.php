@@ -7,9 +7,12 @@ namespace MyParcelNL\Magento\Block\System\Config\Form;
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 
-class DefaultDropOffPoint extends Field
+abstract class AbstractDefaultDropOffPoint extends Field
 {
     /**
      * Path to template file in theme.
@@ -23,10 +26,22 @@ class DefaultDropOffPoint extends Field
      */
     private $dropOffPoint;
 
+    /**
+     * @throws \Exception
+     */
     public function __construct(Context $context, array $data = [])
     {
+        $objectManager      = ObjectManager::getInstance();
+        $helper             = $objectManager->get(Data::class);
+        $dropOffPoint       = $helper->getDropOffPoint(CarrierFactory::createFromId($this->getCarrierId()));
+        $this->dropOffPoint = $dropOffPoint;
         parent::__construct($context, $data);
     }
+
+    /**
+     * @return int
+     */
+    abstract public function getCarrierId(): int;
 
     /**
      * Retrieve HTML markup for given form element
@@ -55,6 +70,9 @@ class DefaultDropOffPoint extends Field
         return $this->_toHtml();
     }
 
+    /**
+     * @return array
+     */
     public function getDropOffPointDetails(): array
     {
         return [

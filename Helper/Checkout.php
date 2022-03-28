@@ -263,7 +263,7 @@ class Checkout extends Data
      */
     public function getBoolConfig(string $carrier, string $key): bool
     {
-        return $this->getCarrierConfig($key, $carrier) === '1';
+        return '1' === $this->getCarrierConfig($key, $carrier);
     }
 
     /**
