@@ -214,7 +214,7 @@ Friday,vrijdag
 Saturday,zaterdag
 Sunday,zondag
 Enable create label concept, when invoice is printed., Maak concept labels aan, wanneer je een factuur afdrukt.
-myparcelnl_magento_postnl_settings/pickup, PostNL ophaal locatie
+myparcelnl_magento_postnl_settings/pickup, PostNL ophaallocatie
 myparcelnl_magento_postnl_settings/delivery, PostNL bezorging
 myparcelnl_magento_postnl_settings/delivery/signature, PostNL bezorging met handtekening voor ontvangst
 myparcelnl_magento_postnl_settings/delivery/only_recipient, PostNL bezorging met alleen huisadres
@@ -229,7 +229,7 @@ myparcelnl_magento_postnl_settings/mailbox, PostNL brievenbuspakje
 myparcelnl_magento_postnl_settings/digital_stamp, PostNL digitale postzegel
 myparcelnl_magento_instabox_settings/delivery, Instabox bezorging
 myparcelnl_magento_instabox_settings/mailbox, Instabox brievenbuspakje
-myparcelnl_magento_instabox_settings/pickup, Instabox ophaal locatie
+myparcelnl_magento_instabox_settings/pickup, Instabox ophaallocatie
 myparcelnl_magento_instabox_settings/delivery/same_day_delivery, Instabox zelfde dag bezorgd
 myparcelnl_magento_instabox_settings/delivery/same_day_delivery/only_recipient, Instabox zelfde dag bezorgd met alleen huisadres
 myparcelnl_magento_instabox_settings/delivery/only_recipient/signature, Instabox levering met alleen huisadres en handtekening

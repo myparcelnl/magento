@@ -26,7 +26,11 @@ class DefaultOptions
     // Maximum characters length of company name.
     private const COMPANY_NAME_MAX_LENGTH = 50;
 
+    private const INSURANCE_BELGIUM        = 'insurance_belgium';
     private const INSURANCE_AMOUNT_BELGIUM = 500;
+    private const INSURANCE_AMOUNT_100     = 'insurance_100';
+    private const INSURANCE_AMOUNT_250     = 'insurance_250';
+    private const INSURANCE_AMOUNT_500     = 'insurance_500';
 
     /**
      * @var Data
@@ -65,7 +69,7 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function getDefault(string $option, string $carrier): bool
+    public function hasDefault(string $option, string $carrier): bool
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
@@ -109,7 +113,7 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function getDefaultLargeFormat(string $carrier, string $option): bool
+    public function hasDefaultLargeFormat(string $carrier, string $option): bool
     {
         $price  = self::$order->getGrandTotal();
         $weight = self::$order->getWeight();
@@ -138,7 +142,7 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function getDefaultOptionsWithoutPrice(string $carrier, string $option): bool
+    public function hasDefaultOptionsWithoutPrice(string $carrier, string $option): bool
     {
         $settings = self::$helper->getStandardConfig($carrier, 'default_options');
 
@@ -157,18 +161,18 @@ class DefaultOptions
         $shippingAddress = self::$order->getShippingAddress();
 
         if ($shippingAddress && AbstractConsignment::CC_BE === $shippingAddress->getCountryId()) {
-            return $this->getDefault('insurance_belgium', $carrier) ? self::INSURANCE_AMOUNT_BELGIUM : 0;
+            return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::INSURANCE_AMOUNT_BELGIUM : 0;
         }
 
-        if ($this->getDefault('insurance_500', $carrier)) {
+        if ($this->hasDefault(self::INSURANCE_AMOUNT_500, $carrier)) {
             return 500;
         }
 
-        if ($this->getDefault('insurance_250', $carrier)) {
+        if ($this->hasDefault(self::INSURANCE_AMOUNT_250, $carrier)) {
             return 250;
         }
 
-        if ($this->getDefault('insurance_100', $carrier)) {
+        if ($this->hasDefault(self::INSURANCE_AMOUNT_100, $carrier)) {
             return 100;
         }
 

@@ -80,9 +80,9 @@ class NewShipment extends AbstractItems
      *
      * @return bool
      */
-    public function getDefaultOption(string $option, string $carrier): bool
+    public function hasDefaultOption(string $option, string $carrier): bool
     {
-        return $this->defaultOptions->getDefault($option, $carrier);
+        return $this->defaultOptions->hasDefault($option, $carrier);
     }
 
     /**
@@ -91,9 +91,9 @@ class NewShipment extends AbstractItems
      *
      * @return bool
      */
-    public function getDefaultLargeFormat(string $option, string $carrier): bool
+    public function hasDefaultLargeFormat(string $option, string $carrier): bool
     {
-        return $this->defaultOptions->getDefaultLargeFormat($carrier, $option);
+        return $this->defaultOptions->hasDefaultLargeFormat($carrier, $option);
     }
 
     /**
@@ -104,9 +104,9 @@ class NewShipment extends AbstractItems
      *
      * @return bool
      */
-    public function getDefaultOptionsWithoutPrice(string $carrier, string $option): bool
+    public function hasDefaultOptionsWithoutPrice(string $carrier, string $option): bool
     {
-        return $this->defaultOptions->getDefaultOptionsWithoutPrice($carrier, $option);
+        return $this->defaultOptions->hasDefaultOptionsWithoutPrice($carrier, $option);
     }
 
     /**

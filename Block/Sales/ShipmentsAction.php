@@ -22,25 +22,20 @@ use MyParcelNL\Magento\Helper\Data;
 class ShipmentsAction extends Template
 {
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
      * @var \MyParcelNL\Magento\Helper\Data
      */
     private $helper;
 
     /**
-     * @param Context $context
-     * @param array   $data
+     * @param  Context $context
+     * @param  array   $data
      */
     public function __construct(
         Context $context,
-        array $data = []
+        array   $data = []
     ) {
-        $this->objectManager = ObjectManager::getInstance();
-        $this->helper = $this->objectManager->get(Data::class);
+        $objectManager = ObjectManager::getInstance();
+        $this->helper  = $objectManager->get(Data::class);
         parent::__construct($context, $data);
     }
 

@@ -1,25 +1,27 @@
 <?php
 
-declare(strict_types=1); /* @var \MyParcelNL\Magento\Block\System\Config\Form\SettingsButton $block */
+declare(strict_types=1);
+
+/* @var \MyParcelNL\Magento\Block\System\Config\Form\SettingsButton $block */
 
 use Magento\Framework\Exception\LocalizedException;
+
 ?>
 <script>
-    require([
-        'jquery',
-        'prototype'
-    ], function(jQuery){
+require([
+  'jquery',
+  'prototype',
+], function(jQuery) {
 
-  jQuery('#settings-button').click(function () {
+  jQuery('#settings-button').click(function() {
     const params = {};
-    console.log('<?php echo $block->getAjaxUrl() ?>')
     new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
-      parameters:     params,
-      loaderArea:     false,
-      asynchronous:   true,
-      });
+      parameters: params,
+      loaderArea: false,
+      asynchronous: true,
     });
-    });
+  });
+});
 </script>
 
 <?php

@@ -18,6 +18,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
@@ -49,7 +50,7 @@ class TrackTraceHolder
     public const EXPORT_MODE_SHIPMENTS  = 'shipments';
 
     /**
-     * @var mixed
+     * @var string|null
      */
     private $carrier;
 
@@ -112,11 +113,11 @@ class TrackTraceHolder
     /**
      * Create Magento Track from Magento shipment
      *
-     * @param Order\Shipment $shipment
+     * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
      * @return $this
      */
-    public function createTrackTraceFromShipment(Order\Shipment $shipment)
+    public function createTrackTraceFromShipment(Shipment $shipment)
     {
         $this->mageTrack = $this->objectManager->create(Track::class);
         $this->mageTrack
@@ -162,8 +163,7 @@ class TrackTraceHolder
         $pickupLocationAdapter = $deliveryOptionsAdapter->getPickupLocation();
         $apiKey                = $this->dataHelper->getGeneralConfig(
             'api/key',
-            $order
-                ->getStoreId()
+            $order->getStoreId()
         );
 
         $this->validateApiKey($apiKey);
@@ -190,7 +190,7 @@ class TrackTraceHolder
                 ->setFullStreet($address->getData('street'))
                 ->setPostalCode(preg_replace('/\s+/', '', $address->getPostcode()));
         } catch (\Exception $e) {
-            $errorHuman = 'An error has occurred while validating order number ' . $order->getIncrementId() . '. Check address.';
+            $errorHuman = sprintf('An error has occurred while validating order number %s. Check address.', $order->getIncrementId());
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($errorHuman . '-' . $e);
 
@@ -284,7 +284,7 @@ class TrackTraceHolder
 
         $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet('age_check', $options);
         $ageCheckOfProduct    = ShipmentOptions::getAgeCheckFromProduct($magentoTrack);
-        $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice($this->carrier, 'age_check');
+        $ageCheckFromSettings = self::$defaultOptions->hasDefaultOptionsWithoutPrice($this->carrier, 'age_check');
 
         return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }

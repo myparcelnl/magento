@@ -158,14 +158,12 @@ class Checkout extends Data
         $myParcelMethods = array_keys(Result::getMethods());
 
         foreach ($magentoMethods as $method) {
-
-            $methodCode       = explode("/", $method->getMethodCode());
+            $methodCode       = explode('/', $method->getMethodCode());
             $latestMethodCode = array_pop($methodCode);
 
             if (
                 ! in_array($latestMethodCode, $myParcelMethods, true)
-                &&
-                in_array($method->getCarrierCode(), $parentCarriers, true)
+                && in_array($method->getCarrierCode(), $parentCarriers, true)
             ) {
                 return $method;
             }
@@ -265,7 +263,7 @@ class Checkout extends Data
      */
     public function getBoolConfig(string $carrier, string $key): bool
     {
-        return $this->getCarrierConfig($key, $carrier) === "1";
+        return $this->getCarrierConfig($key, $carrier) === '1';
     }
 
     /**

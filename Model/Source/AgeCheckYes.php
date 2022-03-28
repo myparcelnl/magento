@@ -47,7 +47,7 @@ class AgeCheckYes implements OptionSourceInterface
      *
      * @return bool
      */
-    public function getDefault($option): bool
+    public function hasDefault($option): bool
     {
         $settings = self::$helper->getStandardConfig(CarrierPostNL::NAME, 'default_options');
 
@@ -61,7 +61,7 @@ class AgeCheckYes implements OptionSourceInterface
      */
     public function toOptionArray()
     {
-        if ($this->getDefault('age_check')) {
+        if ($this->hasDefault('age_check')) {
             return [['value' => 1, 'label' => __('Yes')]];
         }
 

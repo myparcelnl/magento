@@ -160,8 +160,8 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         continue;
                     }
                     $isActive = ($abstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $shipmentOption)
-                        ? $block->getDefaultLargeFormat($shipmentOption, $carrier->getName())
-                        : $block->getDefaultOption($shipmentOption, $carrier->getName());
+                        ? $block->hasDefaultLargeFormat($shipmentOption, $carrier->getName())
+                        : $block->hasDefaultOption($shipmentOption, $carrier->getName());
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"

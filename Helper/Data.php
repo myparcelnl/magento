@@ -100,8 +100,8 @@ class Data extends AbstractHelper
      */
     public function getDropOffPoint(AbstractCarrier $carrier): DropOffPoint
     {
-        $accountSettings = AccountSettings::getInstance();
-        $carrierConfiguration = $accountSettings->getCarrierConfigurationByCarrierId($carrier->getId());
+        $accountSettings      = AccountSettings::getInstance();
+        $carrierConfiguration = $accountSettings->getCarrierConfigurationByCarrier($carrier);
         $dropOffPoint         = $carrierConfiguration->getDefaultDropOffPoint();
 
         if (null === $dropOffPoint->getNumberSuffix()) {
@@ -136,13 +136,15 @@ class Data extends AbstractHelper
     public function getCarrierConfig(string $code, string $carrier)
     {
         $settings = $this->getConfigValue($carrier . $code);
+
         if ($settings === null) {
             $value = $this->getConfigValue($carrier . $code);
-            if ($value !== null) {
-                return $value;
+
+            if ($value === null) {
+                $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
             }
 
-            $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
+            return $value;
         }
 
         return $settings;

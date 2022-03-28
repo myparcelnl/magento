@@ -11,6 +11,7 @@ use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\src\Model\Account\Shop;
 use MyParcelNL\Sdk\src\Model\BaseModel;
+use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Support\Collection;
 
 /**
@@ -32,7 +33,7 @@ class AccountSettings extends BaseModel
     ];
 
     /**
-     * @var AccountSettings
+     * @var self
      */
     private static $instance;
 
@@ -62,19 +63,18 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @param  int $carrierId
+     * @param  \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier $carrier
      *
      * @return null|\MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration
      */
-    public function getCarrierConfigurationByCarrierId(int $carrierId): ?CarrierConfiguration
+    public function getCarrierConfigurationByCarrier(AbstractCarrier $carrier): ?CarrierConfiguration
     {
         $carrierConfigurations = $this->getCarrierConfigurations();
 
         return $carrierConfigurations
             ->filter(
-                static function (CarrierConfiguration $carrierConfiguration) use ($carrierId) {
-                    return $carrierId === $carrierConfiguration->getCarrier()
-                            ->getId();
+                static function (CarrierConfiguration $carrierConfiguration) use ($carrier) {
+                    return $carrier->getId() === $carrierConfiguration->getCarrier()->getId();
                 }
             )
             ->first();
@@ -123,7 +123,6 @@ class AccountSettings extends BaseModel
     {
         return $this->shop;
     }
-
 
     /**
      * @param  \MyParcelNL\Sdk\src\Support\Collection $settings

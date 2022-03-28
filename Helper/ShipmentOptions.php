@@ -12,6 +12,7 @@ class ShipmentOptions
 {
     private const INSURANCE         = 'insurance';
     private const ONLY_RECIPIENT    = 'only_recipient';
+    private const SAME_DAY_DELIVERY = 'same_day_delivery';
     private const SIGNATURE         = 'signature';
     private const RETURN            = 'return';
     private const AGE_CHECK         = 'age_check';
@@ -22,7 +23,6 @@ class ShipmentOptions
     private const PRODUCT_ID        = '%product_id%';
     private const PRODUCT_NAME      = '%product_name%';
     private const PRODUCT_QTY       = '%product_qty%';
-    private const SAME_DAY_DELIVERY = 'same_day_delivery';
 
     /**
      * @var string
@@ -140,7 +140,7 @@ class ShipmentOptions
 
         $ageCheckFromOptions  = self::getValueOfOptionWhenSet(self::AGE_CHECK, $this->options);
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
-        $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice($this->carrier, self::AGE_CHECK);
+        $ageCheckFromSettings = self::$defaultOptions->hasDefaultOptionsWithoutPrice($this->carrier, self::AGE_CHECK);
 
         return $ageCheckFromOptions ?: $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
@@ -264,7 +264,7 @@ class ShipmentOptions
         }
 
         $largeFormatFromOptions  = self::getValueOfOptionWhenSet(self::LARGE_FORMAT, $this->options);
-        $largeFormatFromSettings = self::$defaultOptions->getDefaultLargeFormat($this->carrier, self::LARGE_FORMAT);
+        $largeFormatFromSettings = self::$defaultOptions->hasDefaultLargeFormat($this->carrier, self::LARGE_FORMAT);
 
         return $largeFormatFromOptions ?? $largeFormatFromSettings;
     }
@@ -351,7 +351,7 @@ class ShipmentOptions
     private function optionIsEnabled($optionKey): bool
     {
         if ($this->options[$optionKey] === null) {
-            return self::$defaultOptions->getDefault($optionKey, $this->carrier);
+            return self::$defaultOptions->hasDefault($optionKey, $this->carrier);
         }
 
         return (bool) $this->options[$optionKey];

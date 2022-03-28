@@ -36,7 +36,7 @@ class CarrierConfigurationImport extends Action
     /**
      * @var mixed
      */
-    private        $context;
+    private $context;
 
     /**
      * @var mixed
@@ -52,14 +52,13 @@ class CarrierConfigurationImport extends Action
      * @param  \Magento\Framework\App\Cache\Frontend\Pool         $pool
      */
     public function __construct(
-        JsonFactory $resultFactory,
-        Context $context,
-        DbContext $dbContext,
-        TypeListInterface $typeListInterface,
+        JsonFactory          $resultFactory,
+        Context              $context,
+        DbContext            $dbContext,
+        TypeListInterface    $typeListInterface,
         ScopeConfigInterface $config,
-        Pool $pool
-    )
-    {
+        Pool                 $pool
+    ) {
         parent::__construct($context);
         $this->resultFactory     = $resultFactory;
         $this->config            = $config;
@@ -84,10 +83,13 @@ class CarrierConfigurationImport extends Action
         // Clear configuration cache right after saving the account settings, so the modal in the carrier specific
         // configuration view will be showing the updated drop-off point.
         $this->clearCache();
-        return $this->resultFactory->create()
-            ->setData(['success' => true, 'time' => date("Y-m-d H:i:s")]);
-    }
 
+        return $this->resultFactory->create()
+            ->setData([
+                'success' => true,
+                'time'    => date('Y-m-d H:i:s'),
+            ]);
+    }
 
     /**
      * @return \MyParcelNL\Sdk\src\Support\Collection
@@ -100,7 +102,8 @@ class CarrierConfigurationImport extends Action
         $accountService = (new AccountWebService())->setApiKey($this->apiKey);
 
         $account                     = $accountService->getAccount();
-        $shop                        = $account->getShops()->first();
+        $shop                        = $account->getShops()
+            ->first();
         $shopId                      = $shop->getId();
         $carrierConfigurationService = (new CarrierConfigurationWebService())->setApiKey($this->apiKey);
         $optionConfigurationService  = (new CarrierOptionsWebService())->setApiKey($this->apiKey);
@@ -121,8 +124,9 @@ class CarrierConfigurationImport extends Action
      */
     public static function getAccountSettings(): Collection
     {
-        $objectManager = ObjectManager::getInstance();
-        $accountSettings = $objectManager->get(ScopeConfigInterface::class)->getValue(Data::XML_PATH_GENERAL . 'account_settings');
+        $objectManager   = ObjectManager::getInstance();
+        $accountSettings = $objectManager->get(ScopeConfigInterface::class)
+            ->getValue(Data::XML_PATH_GENERAL . 'account_settings');
         if (! $accountSettings) {
             throw new \RuntimeException(
                 'No account settings found. Press the import button in general configuration to fetch account settings.'
@@ -138,7 +142,8 @@ class CarrierConfigurationImport extends Action
         $this->typeListInterface->cleanType('config');
 
         foreach ($cacheFrontendPool as $cacheFrontend) {
-            $cacheFrontend->getBackend()->clean();
+            $cacheFrontend->getBackend()
+                ->clean();
         }
     }
 
