@@ -59,7 +59,7 @@ class AgeCheckYes implements OptionSourceInterface
      *
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
         if ($this->hasDefault('age_check')) {
             return [['value' => 1, 'label' => __('Yes')]];

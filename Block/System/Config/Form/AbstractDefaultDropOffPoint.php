@@ -82,7 +82,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
             'number'        => $this->dropOffPoint->getNumber(),
             'number_suffix' => $this->dropOffPoint->getNumberSuffix(),
             'postal_code'   => $this->dropOffPoint->getPostalCode(),
-        ]: null;
+        ] : null;
     }
 
     /**
@@ -98,14 +98,11 @@ abstract class AbstractDefaultDropOffPoint extends Field
     }
 
     /**
-     * @return mixed
+     * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getButtonHtml()
+    public function getButtonHtml(): string
     {
-        /**
-         * @var \MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint
-         */
         $button = $this->getLayout()
             ->createBlock(Button::class)
             ->setData([

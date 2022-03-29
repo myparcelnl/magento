@@ -1,18 +1,16 @@
 <?php
 /**
  * Get all rates depending on base price
- *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl/magento
  *
  * @author      Reindert Vetter <info@myparcel.nl>
- * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
+ * @copyright   2010-2019 MyParcel
  * @since       File available since Release 2.0.0
  */
 
@@ -56,11 +54,11 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Result constructor.
      *
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Backend\Model\Session\Quote       $quote
-     * @param Session                                    $session
-     * @param Checkout                                   $myParcelHelper
-     * @param PackageRepository                          $package
+     * @param  \Magento\Store\Model\StoreManagerInterface $storeManager
+     * @param  \Magento\Backend\Model\Session\Quote       $quote
+     * @param  Session                                    $session
+     * @param  Checkout                                   $myParcelHelper
+     * @param  PackageRepository                          $package
      *
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -68,10 +66,10 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Backend\Model\Session\Quote $quote,
-        Session $session,
-        Checkout $myParcelHelper,
-        PackageRepository $package
+        \Magento\Backend\Model\Session\Quote       $quote,
+        Session                                    $session,
+        Checkout                                   $myParcelHelper,
+        PackageRepository                          $package
     ) {
         parent::__construct($storeManager);
 
@@ -79,13 +77,17 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->session        = $session;
         $this->quote          = $quote;
         $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods'));
-        $package->setCurrentCountry($this->getQuoteFromCardOrSession()->getShippingAddress()->getCountryId());
+        $package->setCurrentCountry(
+            $this->getQuoteFromCardOrSession()
+                ->getShippingAddress()
+                ->getCountryId()
+        );
     }
 
     /**
      * Add a rate to the result
      *
-     * @param \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult|\Magento\Shipping\Model\Rate\Result $result
+     * @param  \Magento\Quote\Model\Quote\Address\RateResult\AbstractResult|\Magento\Shipping\Model\Rate\Result $result
      *
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -141,16 +143,17 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Add MyParcel shipping rates
      *
-     * @param \Magento\Quote\Model\Quote\Address\RateResult\Method $parentRate
-     *
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @param  \Magento\Quote\Model\Quote\Address\RateResult\Method $parentRate
      *
      * @return void
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function addMyParcelRates(Method $parentRate): void
     {
-        $selectedCountry = $this->session->getQuote()->getShippingAddress()->getCountryId();
+        $selectedCountry = $this->session->getQuote()
+            ->getShippingAddress()
+            ->getCountryId();
 
         if (AbstractConsignment::CC_NL !== $selectedCountry && AbstractConsignment::CC_BE !== $selectedCountry) {
             return;
@@ -181,7 +184,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param string $settingPath
+     * @param  string $settingPath
      *
      * @return bool
      */
@@ -200,9 +203,9 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * Check if a given map/setting combination is active. If the setting is not a top level setting its parent group
      * will be checked for an "active" setting. If this is disabled this will return false;
      *
-     * @param string $map
-     * @param string $settingPath
-     * @param string $separator
+     * @param  string $map
+     * @param  string $settingPath
+     * @param  string $separator
      *
      * @return bool
      */
@@ -231,9 +234,9 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param array  $basePath
-     * @param string $map
-     * @param string $separator
+     * @param  array  $basePath
+     * @param  string $map
+     * @param  string $separator
      *
      * @return bool
      */
@@ -246,19 +249,25 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param array  $basePath
-     * @param string $map
-     * @param string $separator
-     * @param bool   $settingActive
+     * @param  array  $basePath
+     * @param  string $map
+     * @param  string $separator
+     * @param  bool   $settingActive
      *
      * @return bool
      */
-    private function hasSettingAdditionalOptions(array $basePath, string $map, string $separator, bool $settingActive = false): bool
-    {
+    private function hasSettingAdditionalOptions(
+        array  $basePath,
+        string $map,
+        string $separator,
+        bool   $settingActive = false
+    ): bool {
         $base = array_shift($basePath);
 
         foreach ($basePath as $setting) {
-            $settingActive = (bool) $this->myParcelHelper->getConfigValue($map . $base . '/' . $setting . $separator . 'active');
+            $settingActive = (bool) $this->myParcelHelper->getConfigValue(
+                $map . $base . '/' . $setting . $separator . 'active'
+            );
 
             if (! $settingActive) {
                 break;
@@ -269,8 +278,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param string $map
-     * @param string $settingPath
+     * @param  string $map
+     * @param  string $settingPath
      *
      * @return string|null
      */
@@ -287,7 +296,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param string $settingPath
+     * @param  string $settingPath
      *
      * @return bool
      */
@@ -297,8 +306,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param string|null $settingPath
-     * @param Method|null $parentRate
+     * @param  string|null $settingPath
+     * @param  Method|null $parentRate
      *
      * @return Method
      */
@@ -340,7 +349,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return float
      * @todo: Several improvements are possible within this method
-     *
      */
     private function getPrice($settingPath): float
     {
@@ -348,18 +356,34 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $settingFee = 0;
 
         // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
-        $settingPath = explode('/', $settingPath);
+        $settingPath    = explode('/', $settingPath);
 
         // Check if the selected delivery options are delivery, only_recipient and signature
         // delivery/only_recipient/signature
         if (isset($settingPath[self::THIRD_PART], $settingPath[self::FOURTH_PART]) && 'delivery' === $settingPath[1]) {
-            $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath[self::FIRST_PART] . '/' . $settingPath[self::SECOND_PART] . '/' . $settingPath[self::THIRD_PART] . '_' . 'fee');
-            $settingFee += (float) $this->myParcelHelper->getConfigValue($settingPath[self::FIRST_PART] . '/' . $settingPath[self::SECOND_PART] . '/' . $settingPath[self::FOURTH_PART] . 'fee');
+            $settingFee += (float) $this->myParcelHelper->getConfigValue(
+                sprintf(
+                    "%s/%s/%s_fee",
+                    $settingPath[self::FIRST_PART],
+                    $settingPath[self::SECOND_PART],
+                    $settingPath[self::THIRD_PART]
+                )
+            );
+            $settingFee += (float) $this->myParcelHelper->getConfigValue(
+                sprintf(
+                    "%s/%s/%sfee",
+                    $settingPath[self::FIRST_PART],
+                    $settingPath[self::SECOND_PART],
+                    $settingPath[self::FOURTH_PART]
+                )
+            );
         }
 
         // Check if the selected delivery is morning or evening and select the fee
         if (AbstractConsignment::DELIVERY_TYPE_MORNING_NAME === $settingPath[self::SECOND_PART] || AbstractConsignment::DELIVERY_TYPE_EVENING_NAME === $settingPath[self::SECOND_PART]) {
-            $settingFee = (float) $this->myParcelHelper->getConfigValue($settingPath[self::FIRST_PART] . '/' . $settingPath[self::SECOND_PART] . '/' . 'fee');
+            $settingFee = (float) $this->myParcelHelper->getConfigValue(
+                sprintf("%s/%s/fee", $settingPath[self::FIRST_PART], $settingPath[self::SECOND_PART])
+            );
 
             // change delivery type if there is a signature selected
             if (isset($settingPath[self::FOURTH_PART])) {
@@ -370,7 +394,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         // For mailbox and digital stamp the base price should not be calculated
-        if (AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $settingPath[1] || AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $settingPath[self::SECOND_PART]) {
+        if (AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $settingPath[self::FIRST_PART] || AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $settingPath[self::SECOND_PART]) {
             $basePrice = 0;
         }
 
@@ -390,10 +414,9 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getQuoteFromCardOrSession()
     {
-        if ($this->quote->getQuoteId() != null &&
-            $this->quote->getQuote() &&
-            $this->quote->getQuote() instanceof Countable &&
-            count($this->quote->getQuote())
+        if ($this->quote->getQuoteId() != null && $this->quote->getQuote()
+            && $this->quote->getQuote() instanceof Countable
+            && count($this->quote->getQuote())
         ) {
             return $this->quote->getQuote();
         }

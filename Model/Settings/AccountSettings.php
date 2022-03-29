@@ -74,7 +74,8 @@ class AccountSettings extends BaseModel
         return $carrierConfigurations
             ->filter(
                 static function (CarrierConfiguration $carrierConfiguration) use ($carrier) {
-                    return $carrier->getId() === $carrierConfiguration->getCarrier()->getId();
+                    return $carrier->getId() === $carrierConfiguration->getCarrier()
+                            ->getId();
                 }
             )
             ->first();
