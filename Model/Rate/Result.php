@@ -360,7 +360,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
         // Check if the selected delivery options are delivery, only_recipient and signature
         // delivery/only_recipient/signature
-        if (isset($settingPath[self::THIRD_PART], $settingPath[self::FOURTH_PART]) && 'delivery' === $settingPath[1]) {
+        if (isset($settingPath[self::THIRD_PART], $settingPath[self::FOURTH_PART]) && 'delivery' === $settingPath[self::SECOND_PART]) {
             $settingFee += (float) $this->myParcelHelper->getConfigValue(
                 sprintf(
                     "%s/%s/%s_fee",
