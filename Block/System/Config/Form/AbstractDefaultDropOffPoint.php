@@ -73,16 +73,16 @@ abstract class AbstractDefaultDropOffPoint extends Field
     /**
      * @return array
      */
-    public function getDropOffPointDetails(): array
+    public function getDropOffPointDetails(): ?array
     {
-        return [
+        return $this->dropOffPoint ? [
             'location_name' => $this->dropOffPoint->getLocationName(),
             'city'          => $this->dropOffPoint->getCity(),
             'street'        => $this->dropOffPoint->getStreet(),
             'number'        => $this->dropOffPoint->getNumber(),
             'number_suffix' => $this->dropOffPoint->getNumberSuffix(),
             'postal_code'   => $this->dropOffPoint->getPostalCode(),
-        ];
+        ]: null;
     }
 
     /**

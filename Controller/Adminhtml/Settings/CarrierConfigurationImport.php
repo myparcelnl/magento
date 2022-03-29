@@ -12,8 +12,11 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Controller\Result\JsonFactory;
+use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Message\MessageInterface;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\src\Support\Collection;
@@ -125,12 +128,11 @@ class CarrierConfigurationImport extends Action
     public static function getAccountSettings(): Collection
     {
         $objectManager   = ObjectManager::getInstance();
+        $messageInterface = $objectManager->get(ManagerInterface::class);
         $accountSettings = $objectManager->get(ScopeConfigInterface::class)
             ->getValue(Data::XML_PATH_GENERAL . 'account_settings');
         if (! $accountSettings) {
-            throw new \RuntimeException(
-                'No account settings found. Press the import button in general configuration to fetch account settings.'
-            );
+            $messageInterface->addErrorMessage(__('no_account_settings'));
         }
 
         return new Collection(json_decode($accountSettings, true));

@@ -98,10 +98,16 @@ class Data extends AbstractHelper
     /**
      * @throws \Exception
      */
-    public function getDropOffPoint(AbstractCarrier $carrier): DropOffPoint
+    public function getDropOffPoint(AbstractCarrier $carrier): ?DropOffPoint
     {
         $accountSettings      = AccountSettings::getInstance();
+
         $carrierConfiguration = $accountSettings->getCarrierConfigurationByCarrier($carrier);
+
+        if (! $carrierConfiguration) {
+            return null;
+        }
+
         $dropOffPoint         = $carrierConfiguration->getDefaultDropOffPoint();
 
         if (null === $dropOffPoint->getNumberSuffix()) {
