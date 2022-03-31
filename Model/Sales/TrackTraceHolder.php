@@ -143,11 +143,14 @@ class TrackTraceHolder
      */
     public function convertDataFromMagentoToApi(Track $magentoTrack, array $options): self
     {
-        $shipment        = $magentoTrack->getShipment();
-        $address         = $shipment->getShippingAddress();
-        $order           = $shipment->getOrder();
-        $checkoutData    = $order->getData('myparcel_delivery_options');
-        $deliveryOptions = json_decode($checkoutData, true);
+        $shipment                       = $magentoTrack->getShipment();
+        $address                        = $shipment->getShippingAddress();
+        $order                          = $shipment->getOrder();
+        $checkoutData                   = $order->getData('myparcel_delivery_options');
+        $deliveryOptions                = json_decode($checkoutData, true);
+        $deliveryOptions['packageType'] = $options['package_type'];
+        $deliveryOptions['carrier']     = $options['carrier'];
+
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
             : (int) self::$defaultOptions->getDigitalStampDefaultWeight();
 

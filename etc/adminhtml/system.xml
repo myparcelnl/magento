@@ -414,7 +414,7 @@
                 </field>
             </group>
         </section>
-        <section id="myparcelnl_magento_instabox_settings" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="myparcelnl_magento_instabox_settings" translate="label" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Instabox settings</label>
             <tab>myparcelnl_magento</tab>
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
