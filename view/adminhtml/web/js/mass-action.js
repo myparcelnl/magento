@@ -191,7 +191,6 @@ define(
 
                     $('#mypa_request_type-download').prop('checked', true).trigger('change');
                     $('#mypa_package_type-default').prop('checked', true).trigger('change');
-                    $('#mypa_carrier_postnl').prop('checked', true).trigger('change');
                     $('#paper_size-' + this.options.settings['paper_type']).prop('checked', true).trigger('change');
 
                     this._getLabelPosition(selectAmount);
