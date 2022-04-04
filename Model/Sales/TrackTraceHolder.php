@@ -149,7 +149,7 @@ class TrackTraceHolder
         $checkoutData                   = $order->getData('myparcel_delivery_options');
         $deliveryOptions                = json_decode($checkoutData, true);
         $deliveryOptions['packageType'] = $options['package_type'];
-        $deliveryOptions['carrier']     = $options['carrier'];
+        $deliveryOptions['carrier']     = $options['carrier'] ?? $deliveryOptions['carrier'];
 
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
             : (int) self::$defaultOptions->getDigitalStampDefaultWeight();
