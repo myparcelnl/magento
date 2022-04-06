@@ -20,6 +20,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Model\AbstractModel;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
 use MyParcelNL\Magento\Helper\Data;
@@ -96,15 +97,13 @@ class CreateConceptAfterInvoice implements ObserverInterface
     public function execute(Observer $observer)
     {
         if ($this->helper->getGeneralConfig('print/create_concept_after_invoice')) {
-            $order   = $observer->getEvent()->getOrder();
-            $orderId = $order->getId();
-
-            if (($order instanceof \Magento\Framework\Model\AbstractModel)
+            $order = $observer->getEvent()->getInvoice()->getOrder();
+            if (($order instanceof AbstractModel)
                 && in_array(
                     $order->getState(),
-                    ['pending', 'processing']
+                    ['pending', 'processing', 'new']
                 )) {
-                    $this->exportAccordingToMode($orderId);
+                    $this->exportAccordingToMode($order->getId());
                 }
         }
 
