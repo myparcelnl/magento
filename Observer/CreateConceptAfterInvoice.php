@@ -94,17 +94,21 @@ class CreateConceptAfterInvoice implements ObserverInterface
      * @return CreateConceptAfterInvoice
      * @throws Exception
      */
-    public function execute(Observer $observer)
+    public function execute(Observer $observer): self
     {
         if ($this->helper->getGeneralConfig('print/create_concept_after_invoice')) {
-            $order = $observer->getEvent()->getInvoice()->getOrder();
+            $order = $observer
+                ->getEvent()
+                ->getInvoice()
+                ->getOrder();
+
             if (($order instanceof AbstractModel)
                 && in_array(
                     $order->getState(),
                     ['pending', 'processing', 'new']
                 )) {
-                    $this->exportAccordingToMode($order->getId());
-                }
+                $this->exportAccordingToMode($order->getId());
+            }
         }
 
         return $this;
