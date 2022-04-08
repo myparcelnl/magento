@@ -15,6 +15,7 @@
 
 namespace MyParcelNL\Magento\Setup;
 
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Setup\CategorySetupFactory;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magento\Eav\Setup\EavSetup;
@@ -145,8 +146,8 @@ class UpgradeData implements UpgradeDataInterface
                     'required'                => false,
                     'user_defined'            => true,
                     'default'                 => '0',
-                    'searchable'              => true,
-                    'filterable'              => true,
+                    'searchable'              => false,
+                    'filterable'              => false,
                     'comparable'              => true,
                     'visible_on_front'        => false,
                     'used_in_product_listing' => true,
@@ -268,8 +269,8 @@ class UpgradeData implements UpgradeDataInterface
                     'required'                => false,
                     'user_defined'            => true,
                     'default'                 => '0',
-                    'searchable'              => true,
-                    'filterable'              => true,
+                    'searchable'              => false,
+                    'filterable'              => false,
                     'comparable'              => true,
                     'visible_on_front'        => false,
                     'used_in_product_listing' => true,
@@ -300,8 +301,8 @@ class UpgradeData implements UpgradeDataInterface
                     'required'                => false,
                     'user_defined'            => true,
                     'default'                 => 0,
-                    'searchable'              => true,
-                    'filterable'              => true,
+                    'searchable'              => false,
+                    'filterable'              => false,
                     'comparable'              => true,
                     'visible_on_front'        => false,
                     'used_in_product_listing' => false,
@@ -627,6 +628,24 @@ class UpgradeData implements UpgradeDataInterface
             $connection->delete($table, ['path = ?' => $insuranceBelgium]);
             $connection->insert($table, ['path' => $insuranceBelgium, 'value' => 1]);
         }
+
+        if (version_compare($context->getVersion(), '4.3.0', '<=')) {
+            $setup->startSetup();
+
+            $ids = ['myparcel_disable_checkout', 'myparcel_classification', 'myparcel_digital_stamp'];
+
+            foreach ($ids as $id) {
+                foreach (['searchable', 'filterable'] as $field) {
+                    $eavSetup->updateAttribute(
+                        Product::ENTITY,
+                        $id,
+                        $field,
+                        false
+                    );
+                }
+            }
+        }
+
         $setup->endSetup();
     }
 }
