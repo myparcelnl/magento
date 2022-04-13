@@ -281,7 +281,8 @@ class TrackTraceHolder
         $carrier = null;
 
         if (array_key_exists('carrier', $options) && $options['carrier']) {
-            $carrier = $options['carrier'] === 'default' ? self::$defaultOptions->getCarrier() : $options['carrier'];
+            $carrier = DefaultOptions::DEFAULT_OPTION_VALUE === $options['carrier'] ? self::$defaultOptions->getCarrier()
+                : $options['carrier'];
         }
 
         return $carrier;

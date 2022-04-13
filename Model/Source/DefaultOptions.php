@@ -26,12 +26,13 @@ class DefaultOptions
 {
     // Maximum characters length of company name.
     private const COMPANY_NAME_MAX_LENGTH = 50;
-
     private const INSURANCE_BELGIUM        = 'insurance_belgium';
     private const INSURANCE_AMOUNT_BELGIUM = 500;
     private const INSURANCE_AMOUNT_100     = 'insurance_100';
     private const INSURANCE_AMOUNT_250     = 'insurance_250';
     private const INSURANCE_AMOUNT_500     = 'insurance_500';
+
+    public const DEFAULT_OPTION_VALUE = 'default';
 
     /**
      * @var Data
