@@ -149,7 +149,7 @@ class TrackTraceHolder
         $checkoutData                   = $order->getData('myparcel_delivery_options');
         $deliveryOptions                = json_decode($checkoutData, true);
         $deliveryOptions['packageType'] = $options['package_type'];
-        $deliveryOptions['carrier']     = $options['carrier'] ?? $deliveryOptions['carrier'];
+        $deliveryOptions['carrier']     = $this->getCarrierFromOptions($options) ?? $deliveryOptions['carrier'];
 
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
             : (int) self::$defaultOptions->getDigitalStampDefaultWeight();
@@ -269,6 +269,22 @@ class TrackTraceHolder
         }
 
         return $this->getAgeCheck($magentoTrack, $address, $options) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE : $packageType;
+    }
+
+    /**
+     * @param  array $options
+     *
+     * @return null|string
+     */
+    private function getCarrierFromOptions(array $options): ?string
+    {
+        $carrier = null;
+
+        if (array_key_exists('carrier', $options) && $options['carrier']) {
+            $carrier = $options['carrier'] === 'default' ? self::$defaultOptions->getCarrier() : $options['carrier'];
+        }
+
+        return $carrier;
     }
 
     /**

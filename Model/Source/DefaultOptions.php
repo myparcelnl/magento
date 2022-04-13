@@ -19,6 +19,7 @@ use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
@@ -210,6 +211,22 @@ class DefaultOptions
         }
 
         return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCarrier(): string
+    {
+        if (self::$chosenOptions) {
+            $keyIsPresent = array_key_exists('carrier', self::$chosenOptions);
+
+            if ($keyIsPresent) {
+                return self::$chosenOptions['carrier'];
+            }
+        }
+
+        return CarrierPostNL::NAME;
     }
 
     /**
