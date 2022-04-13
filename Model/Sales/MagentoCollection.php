@@ -478,7 +478,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $i = 0;
 
         while ($i < $quantity) {
-            $this->myParcelCollection->addConsignment($consignment);
+            try {
+                $this->myParcelCollection->addConsignment($consignment);
+            } catch (\Exception $e) {
+                return;
+            }
+
             ++$i;
         }
     }
