@@ -471,14 +471,18 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      * @param \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment $consignment
      * @param int                                                       $quantity
      *
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      */
     protected function addConsignmentMultipleTimes(AbstractConsignment $consignment, int $quantity): void
     {
         $i = 0;
 
         while ($i < $quantity) {
-            $this->myParcelCollection->addConsignment($consignment);
+            try {
+                $this->myParcelCollection->addConsignment($consignment);
+            } catch (\Exception $e) {
+                return;
+            }
+
             ++$i;
         }
     }

@@ -122,17 +122,18 @@ class CarrierConfigurationImport extends Action
     }
 
     /**
-     * @return \MyParcelNL\Sdk\src\Support\Collection
+     * @return \MyParcelNL\Sdk\src\Support\Collection|null
      * @throws \Exception
      */
-    public static function getAccountSettings(): Collection
+    public static function getAccountSettings(): ?Collection
     {
         $objectManager   = ObjectManager::getInstance();
         $messageInterface = $objectManager->get(ManagerInterface::class);
         $accountSettings = $objectManager->get(ScopeConfigInterface::class)
             ->getValue(Data::XML_PATH_GENERAL . 'account_settings');
+
         if (! $accountSettings) {
-            $messageInterface->addErrorMessage(__('no_account_settings'));
+            return null;
         }
 
         return new Collection(json_decode($accountSettings, true));

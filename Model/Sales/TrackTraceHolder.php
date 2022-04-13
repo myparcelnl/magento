@@ -31,6 +31,7 @@ use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use Magento\Framework\App\ResourceConnection;
@@ -200,7 +201,15 @@ class TrackTraceHolder
             $this->dataHelper->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
 
-        $packageType = $this->getPackageType($options, $magentoTrack, $address);
+        $packageType  = $this->getPackageType($options, $magentoTrack, $address);
+        $dropOffPoint = $this->dataHelper->getDropOffPoint(
+            CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
+        );
+
+        if (! $dropOffPoint && CarrierInstabox::NAME === $deliveryOptionsAdapter->getCarrier()) {
+            $this->messageManager->addErrorMessage(__('no_drop_off_point_instabox'));
+            return $this;
+        }
 
         $this->consignment
             ->setCity($address->getCity())
@@ -210,7 +219,7 @@ class TrackTraceHolder
             ->setDeliveryDate($this->dataHelper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($this->dataHelper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
             ->setPackageType($packageType)
-            ->setDropOffPoint($this->dataHelper->getDropOffPoint(CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())))
+            ->setDropOffPoint($dropOffPoint)
             ->setOnlyRecipient($this->shipmentOptionsHelper->hasOnlyRecipient())
             ->setSignature($this->shipmentOptionsHelper->hasSignature())
             ->setReturn($this->shipmentOptionsHelper->hasReturn())
