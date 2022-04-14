@@ -36,6 +36,11 @@ class FitInMailboxOptions extends AbstractSource
             ['value' => '50', 'label'=>__('2 products (50%)')],
             ['value' => '33', 'label'=>__('3 products (33%)')],
             ['value' => '25', 'label'=>__('4 products (25%)')],
+            ['value' => '20', 'label'=>__('5 products (20%)')],
+            ['value' => '16', 'label'=>__('6 products (16%)')],
+            ['value' => '14', 'label'=>__('7 products (14%)')],
+            ['value' => '12', 'label'=>__('8 products (12%)')],
+            ['value' => '11', 'label'=>__('9 products (11%)')],
             ['value' => '10', 'label'=>__('10 products (10%)')],
             ['value' => '5', 'label'=>__('20 products (5%)')],
         ];
