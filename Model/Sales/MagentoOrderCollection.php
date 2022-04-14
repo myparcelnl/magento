@@ -222,23 +222,24 @@ class MagentoOrderCollection extends MagentoCollection
             $this->setBillingRecipient();
             $this->setShippingRecipient();
 
-            $dropOffPoint = $this->helper->getDropOffPoint(
-                CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
-            );
-
-            if (! $dropOffPoint && CarrierInstabox::NAME === $deliveryOptionsAdapter->getCarrier()) {
-                $this->messageManager->addErrorMessage(__('no_drop_off_point_instabox'));
-                return $this;
-            }
-
             $order = (new FulfilmentOrder())
                 ->setStatus($this->order->getStatus())
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->getLocalCreatedAtDate())
-                ->setExternalIdentifier($this->order->getIncrementId())
-                ->setDropOffPoint($dropOffPoint);
+                ->setExternalIdentifier($this->order->getIncrementId());
+
+            try {
+                $order->setDropOffPoint(
+                    $this->helper->getDropOffPoint(
+                        CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
+                    )
+                );
+            } catch (\Exception $e) {
+                $this->messageManager->addErrorMessage(__('no_drop_off_point_instabox'));
+                return $this;
+            }
 
             if ($deliveryOptionsAdapter->isPickup()) {
                 $pickupData     = $deliveryOptionsAdapter->getPickupLocation();
