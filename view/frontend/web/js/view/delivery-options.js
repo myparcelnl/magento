@@ -12,6 +12,7 @@ define(
     'MyParcelNL_Magento/js/vendor/object-path',
     'leaflet',
     'vue2leaflet',
+    'jquery'
   ],
   function(
     _,
@@ -25,7 +26,8 @@ define(
     CustomEvent,
     objectPath,
     leaflet,
-    vue2leaflet
+    vue2leaflet,
+    $
   ) {
     'use strict';
 
@@ -52,7 +54,6 @@ define(
       disablePickup: 'myparcel-delivery-options__delivery--pickup',
 
       isUsingMyParcelMethod: true,
-      areVisible: false,
 
       /**
        * The selector of the field we use to get the delivery options data into the order.
@@ -158,7 +159,6 @@ define(
         var deliveryOptionsDiv = document.createElement('div');
 
         checkout.hideShippingMethods();
-        deliveryOptions.areVisible = true;
         deliveryOptions.rendered(false);
 
         if (hasUnrenderedDiv || hasRenderedDeliveryOptions) {
@@ -254,7 +254,10 @@ define(
        * @param {CustomEvent} event - The event that was sent.
        */
       onUpdatedDeliveryOptions: function(event) {
-        if (! deliveryOptions.areVisible) {
+        var element = document.getElementsByClassName('checkout-shipping-method').item(0);
+        var displayStyle = window.getComputedStyle(element, null).display;
+
+        if ('none' === displayStyle) {
           return;
         }
 
@@ -279,19 +282,15 @@ define(
        * @param options
        */
       setShippingMethod: function(options) {
+        $('body').trigger('processStart');
         checkout.convertDeliveryOptionsToShippingMethod(options, {
           onSuccess: function(response) {
+            $('body').trigger('processStop');
             if (!response.length) {
               return;
             }
 
             selectShippingMethodAction(null);
-
-            var cacheObject = JSON.parse(localStorage.getItem('mage-cache-storage'));
-            if (cacheObject.hasOwnProperty('checkout-data')) {
-              cacheObject['checkout-data']['selectedShippingRate'] = response[0].element_id;
-              localStorage.setItem('mage-cache-storage', JSON.stringify(cacheObject));
-            }
 
             quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
