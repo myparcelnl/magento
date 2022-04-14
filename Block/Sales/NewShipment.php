@@ -22,7 +22,6 @@ use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Magento\Helper\Data;
 
 class NewShipment extends AbstractItems
