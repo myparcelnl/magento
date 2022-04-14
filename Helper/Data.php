@@ -109,7 +109,7 @@ class Data extends AbstractHelper
 
         $dropOffPoint = $carrierConfiguration->getDefaultDropOffPoint();
 
-        if (null === $dropOffPoint->getNumberSuffix()) {
+        if ($dropOffPoint && null === $dropOffPoint->getNumberSuffix()) {
             $dropOffPoint->setNumberSuffix('');
         }
 
