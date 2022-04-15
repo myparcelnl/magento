@@ -228,18 +228,12 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->getLocalCreatedAtDate())
-                ->setExternalIdentifier($this->order->getIncrementId());
-
-            try {
-                $order->setDropOffPoint(
+                ->setExternalIdentifier($this->order->getIncrementId())
+                ->setDropOffPoint(
                     $this->helper->getDropOffPoint(
                         CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
                     )
                 );
-            } catch (\Exception $e) {
-                $this->messageManager->addErrorMessage(__('no_drop_off_point_instabox'));
-                return $this;
-            }
 
             if ($deliveryOptionsAdapter->isPickup()) {
                 $pickupData     = $deliveryOptionsAdapter->getPickupLocation();
@@ -274,7 +268,11 @@ class MagentoOrderCollection extends MagentoCollection
             $orderCollection->push($order);
         }
 
-        $this->myParcelCollection = $orderCollection->save();
+        try {
+            $this->myParcelCollection = $orderCollection->save();
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+        }
 
         return $this;
     }
