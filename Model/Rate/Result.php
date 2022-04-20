@@ -136,7 +136,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             'mailbox'                           => 'mailbox',
             'digital_stamp'                     => 'digital_stamp',
             'same_day_delivery'                 => 'delivery/same_day_delivery',
-            'same_day_delivery_only_recipient'  => 'delivery/same_day_delivery/only_recipient',
+            'same_day_delivery_only_recipient'  => 'delivery/only_recipient/same_day_delivery',
         ];
     }
 
