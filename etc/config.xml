@@ -56,6 +56,9 @@
                 <insurance_250_from_price>1</insurance_250_from_price>
                 <insurance_500_active>0</insurance_500_active>
                 <insurance_500_from_price>1</insurance_500_from_price>
+                <insurance_custom_active>0</insurance_custom_active>
+                <insurance_custom_amount>1000</insurance_custom_amount>
+                <insurance_custom_from_price>1</insurance_custom_from_price>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>

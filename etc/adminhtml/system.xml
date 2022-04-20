@@ -206,7 +206,7 @@
                 <field id="insurance_250_from_price" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From price</label>
                     <validate>validate-number validate-zero-or-greater</validate>
-                    <comment>'Insurance € 250' operates above a certain order total amount. Only for dutch shipments, shipments to outside of the EU are standard ensured up to € 200.</comment>
+                    <comment>'Insurance € 250' operates above a certain order total amount. Only for dutch shipments, shipments outside of the EU are by default insured up to € 200.</comment>
                     <depends>
                         <field id="insurance_250_active">1</field>
                     </depends>
@@ -223,7 +223,27 @@
                         <field id="insurance_500_active">1</field>
                     </depends>
                 </field>
-                <field id="insurance_belgium_active" translate="label" type="select" sortOrder="265" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="insurance_custom_active" translate="label" type="select" sortOrder="265" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure custom active</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="insurance_custom_amount" translate="label comment" type="select" sortOrder="266" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\InsurancePossibilities</source_model>
+                    <comment>A custom insurance price within a range of possibilities.</comment>
+                    <depends>
+                        <field id="insurance_custom_active">1</field>
+                    </depends>
+                </field>
+                <field id="insurance_custom_from_price" translate="label comment" type="text" sortOrder="267" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <comment>'Insurance custom' operates above a certain custom order total amount.</comment>
+                    <depends>
+                        <field id="insurance_custom_active">1</field>
+                    </depends>
+                </field>
+                <field id="insurance_belgium_active" translate="label" type="select" sortOrder="268" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Insure shipments to Belgium'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
