@@ -1,0 +1,25 @@
+<?php
+
+declare(strict_types=1);
+
+/* @var \MyParcelNL\Magento\Block\System\Config\Form\DefaultDropOffPointInstabox $block */
+
+$dropOffPoint = $block->getDropOffPointDetails();
+
+?>
+
+<link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css" />
+
+<div class="myparcel_container" id="default_drop_off_point">
+  <div class="instructions">
+    <?php if (empty($dropOffPoint)) {
+      echo(__('no_account_settings'));
+    } else { ?>
+      <div class="drop_off_title" id="location_name"><?php echo($dropOffPoint['location_name'])?></div>
+      <div id="address"><?php echo(implode(' ', [$dropOffPoint['street'], $dropOffPoint['number'], $dropOffPoint['number_suffix']]))?></div>
+      <div id="postal_code"><?php echo(implode(' ', [$dropOffPoint['postal_code'], $dropOffPoint['city']]))?></div>
+   <?php } ?>
+    <br />
+    <div id="drop_off_link"><?php echo(__('manage_drop_off_point'))?><a href="https://backoffice.myparcel.nl/shipments/retail-overview?carrier=<?php echo($block->getCarrierId()) ?>" target='_blank' rel='noreferrer noopener'><?php echo(__('location_page')) ?></a></div>
+  </div>
+</div>

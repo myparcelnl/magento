@@ -19,14 +19,20 @@ use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
 {
     // Maximum characters length of company name.
     private const COMPANY_NAME_MAX_LENGTH = 50;
-
+    private const INSURANCE_BELGIUM        = 'insurance_belgium';
     private const INSURANCE_AMOUNT_BELGIUM = 500;
+    private const INSURANCE_AMOUNT_100     = 'insurance_100';
+    private const INSURANCE_AMOUNT_250     = 'insurance_250';
+    private const INSURANCE_AMOUNT_500     = 'insurance_500';
+
+    public const DEFAULT_OPTION_VALUE = 'default';
 
     /**
      * @var Data
@@ -60,11 +66,12 @@ class DefaultOptions
     /**
      * Get default of the option
      *
-     * @param $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param  string $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param  string $carrier
      *
      * @return bool
      */
-    public function getDefault($option): bool
+    public function hasDefault(string $option, string $carrier): bool
     {
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
@@ -76,7 +83,7 @@ class DefaultOptions
         }
 
         $total    = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
 
         if (! isset($settings[$option . '_active'])) {
             return false;
@@ -103,16 +110,17 @@ class DefaultOptions
     /**
      * Get default value of options without price check
      *
-     * @param string $option
+     * @param  string $carrier
+     * @param  string $option
      *
      * @return bool
      */
-    public function getDefaultLargeFormat(string $option): bool
+    public function hasDefaultLargeFormat(string $carrier, string $option): bool
     {
         $price  = self::$order->getGrandTotal();
         $weight = self::$order->getWeight();
 
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
         if (isset($settings[$option . '_active']) &&
              'weight' === $settings[$option . '_active'] &&
             $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
@@ -131,13 +139,14 @@ class DefaultOptions
     }
 
     /**
-     * @param string $option
+     * @param  string $carrier
+     * @param  string $option
      *
      * @return bool
      */
-    public function getDefaultOptionsWithoutPrice(string $option): bool
+    public function hasDefaultOptionsWithoutPrice(string $carrier, string $option): bool
     {
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
 
         return '1' === $settings[$option . '_active'];
     }
@@ -145,25 +154,27 @@ class DefaultOptions
     /**
      * Get default value of insurance based on order grand total
      *
+     * @param  string $carrier
+     *
      * @return int
      */
-    public function getDefaultInsurance(): int
+    public function getDefaultInsurance(string $carrier): int
     {
         $shippingAddress = self::$order->getShippingAddress();
 
         if ($shippingAddress && AbstractConsignment::CC_BE === $shippingAddress->getCountryId()) {
-            return $this->getDefault('insurance_belgium') ? self::INSURANCE_AMOUNT_BELGIUM : 0;
+            return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::INSURANCE_AMOUNT_BELGIUM : 0;
         }
 
-        if ($this->getDefault('insurance_500')) {
+        if ($this->hasDefault(self::INSURANCE_AMOUNT_500, $carrier)) {
             return 500;
         }
 
-        if ($this->getDefault('insurance_250')) {
+        if ($this->hasDefault(self::INSURANCE_AMOUNT_250, $carrier)) {
             return 250;
         }
 
-        if ($this->getDefault('insurance_100')) {
+        if ($this->hasDefault(self::INSURANCE_AMOUNT_100, $carrier)) {
             return 100;
         }
 
@@ -201,6 +212,22 @@ class DefaultOptions
         }
 
         return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCarrier(): string
+    {
+        if (self::$chosenOptions) {
+            $keyIsPresent = array_key_exists('carrier', self::$chosenOptions);
+
+            if ($keyIsPresent) {
+                return self::$chosenOptions['carrier'];
+            }
+        }
+
+        return CarrierPostNL::NAME;
     }
 
     /**

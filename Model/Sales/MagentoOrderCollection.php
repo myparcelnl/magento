@@ -8,23 +8,26 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
+use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
-use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
-use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
+use MyParcelNL\Sdk\src\Services\Web\DropOffPointWebService;
 use MyParcelNL\Sdk\src\Support\Collection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
@@ -114,7 +117,7 @@ class MagentoOrderCollection extends MagentoCollection
         $orders = [];
         foreach ($ids as $orderId) {
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $orders[]      = $objectManager->create('\Magento\Sales\Model\Order')->load($orderId);
+            $orders[]      = $objectManager->create(Order::class)->load($orderId);
         }
 
         $this->setOrderCollection($orders);
@@ -128,9 +131,9 @@ class MagentoOrderCollection extends MagentoCollection
      * @throws \Exception
      * @throws LocalizedException
      */
-    public function setNewMagentoShipment()
+    public function setNewMagentoShipment(): MagentoOrderCollection
     {
-        /** @var $order Order */
+        /** @var Order $order */
         /** @var Order\Shipment $shipment */
         foreach ($this->getOrders() as $order) {
             if ($order->canShip()) {
@@ -149,7 +152,7 @@ class MagentoOrderCollection extends MagentoCollection
      * @return $this
      * @throws \Exception
      */
-    public function setMagentoTrack()
+    public function setMagentoTrack(): MagentoOrderCollection
     {
         /**
          * @var Order          $order
@@ -159,7 +162,7 @@ class MagentoOrderCollection extends MagentoCollection
             $i = 1;
 
             if (
-                $this->shipmentHasTrack($shipment) == false ||
+                $this->shipmentHasTrack($shipment) === false ||
                 $this->getOption('create_track_if_one_already_exist')
             ) {
                 while ($i <= $this->getOption('label_amount')) {
@@ -187,15 +190,16 @@ class MagentoOrderCollection extends MagentoCollection
 
         foreach ($this->getOrders() as $magentoOrder) {
             $defaultOptions          = new DefaultOptions($magentoOrder, $this->helper);
+            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
+            $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $shipmentOptionsHelper   = new ShipmentOptions(
                 $defaultOptions,
                 $this->helper,
                 $magentoOrder,
                 $this->objectManager,
+                $deliveryOptions['carrier'],
                 $this->options
             );
-            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
-            $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
 
             if ($deliveryOptions && $deliveryOptions['isPickup']) {
                 $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
@@ -224,7 +228,12 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->getLocalCreatedAtDate())
-                ->setExternalIdentifier($this->order->getIncrementId());
+                ->setExternalIdentifier($this->order->getIncrementId())
+                ->setDropOffPoint(
+                    $this->helper->getDropOffPoint(
+                        CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
+                    )
+                );
 
             if ($deliveryOptionsAdapter->isPickup()) {
                 $pickupData     = $deliveryOptionsAdapter->getPickupLocation();
@@ -259,7 +268,11 @@ class MagentoOrderCollection extends MagentoCollection
             $orderCollection->push($order);
         }
 
-        $this->myParcelCollection = $orderCollection->save();
+        try {
+            $this->myParcelCollection = $orderCollection->save();
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+        }
 
         return $this;
     }
@@ -417,7 +430,7 @@ class MagentoOrderCollection extends MagentoCollection
      * @return $this
      * @throws \Exception
      */
-    public function setLatestData()
+    public function setLatestData(): self
     {
         $this->myParcelCollection->setLatestData();
 

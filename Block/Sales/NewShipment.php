@@ -22,6 +22,7 @@ use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Helper\Data;
 
 class NewShipment extends AbstractItems
 {
@@ -66,57 +67,64 @@ class NewShipment extends AbstractItems
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,
-            $this->objectManager->get('\MyParcelNL\Magento\Helper\Data')
+            $this->objectManager->get(Data::class)
         );
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
 
     /**
-     * @param $option 'signature', 'only_recipient'
+     * @param  string $option 'signature', 'only_recipient'
+     * @param  string $carrier
      *
      * @return bool
      */
-    public function getDefaultOption($option)
+    public function hasDefaultOption(string $option, string $carrier): bool
     {
-        return $this->defaultOptions->getDefault($option);
+        return $this->defaultOptions->hasDefault($option, $carrier);
     }
+
     /**
-     * @param string $option 'large_format'
+     * @param  string $option 'large_format'
+     * @param  string $carrier
      *
      * @return bool
      */
-    public function getDefaultLargeFormat(string $option): bool
+    public function hasDefaultLargeFormat(string $option, string $carrier): bool
     {
-        return $this->defaultOptions->getDefaultLargeFormat($option);
+        return $this->defaultOptions->hasDefaultLargeFormat($carrier, $option);
     }
 
     /**
      * Get default value of age check
      *
-     * @param string $option
+     * @param  string $carrier
+     * @param  string $option
      *
      * @return bool
      */
-    public function getDefaultOptionsWithoutPrice(string $option): bool
+    public function hasDefaultOptionsWithoutPrice(string $carrier, string $option): bool
     {
-        return $this->defaultOptions->getDefaultOptionsWithoutPrice($option);
+        return $this->defaultOptions->hasDefaultOptionsWithoutPrice($carrier, $option);
+    }
+
+    /**
+     * Get default value of insurance based on order grand total
+     *
+     * @param  string $carrier
+     *
+     * @return int
+     */
+    public function getDefaultInsurance(string $carrier): int
+    {
+        return $this->defaultOptions->getDefaultInsurance($carrier);
     }
 
     /**
      * Get default value of insurance based on order grand total
      * @return int
      */
-    public function getDefaultInsurance()
-    {
-        return $this->defaultOptions->getDefaultInsurance();
-    }
-
-    /**
-     * Get default value of insurance based on order grand total
-     * @return int
-     */
-    public function getDigitalStampWeight()
+    public function getDigitalStampWeight(): int
     {
         return $this->defaultOptions->getDigitalStampDefaultWeight();
     }

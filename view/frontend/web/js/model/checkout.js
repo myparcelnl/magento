@@ -111,7 +111,7 @@ function(
     /**
      * Search the rates for the given method code.
      *
-     * @param {String} methodCode - Method code to search for.
+     * @param {string} methodCode - Method code to search for.
      *
      * @returns {Object} - The found rate, if any.
      */

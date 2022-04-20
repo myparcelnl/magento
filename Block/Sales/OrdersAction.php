@@ -17,6 +17,7 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
+use MyParcelNL\Magento\Helper\Data;
 
 class OrdersAction extends Template
 {
@@ -39,7 +40,7 @@ class OrdersAction extends Template
         array $data = []
     ) {
         $this->objectManager = ObjectManager::getInstance();
-        $this->helper = $this->objectManager->get('\MyParcelNL\Magento\Helper\Data');
+        $this->helper        = $this->objectManager->get(Data::class);
         parent::__construct($context, $data);
     }
 
@@ -58,7 +59,7 @@ class OrdersAction extends Template
      *
      * @return string
      */
-    public function getOrderAjaxUrl()
+    public function getOrderAjaxUrl(): string
     {
         return $this->_urlBuilder->getUrl('myparcel/order/CreateAndPrintMyParcelTrack');
     }
@@ -68,7 +69,7 @@ class OrdersAction extends Template
      *
      * @return string
      */
-    public function getShipmentAjaxUrl()
+    public function getShipmentAjaxUrl(): string
     {
         return $this->_urlBuilder->getUrl('myparcel/shipment/CreateAndPrintMyParcelTrack');
     }
@@ -78,7 +79,7 @@ class OrdersAction extends Template
      *
      * @return string
      */
-    public function getAjaxUrlSendReturnMail()
+    public function getAjaxUrlSendReturnMail(): string
     {
         return $this->_urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail');
     }

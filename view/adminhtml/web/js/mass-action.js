@@ -162,7 +162,7 @@ define(
                  */
                 _setActions: function () {
                     var parentThis = this;
-                    var actionOptions = ["request_type", "package_type", "print_position", "label_amount", "label_amount"];
+                    var actionOptions = ['request_type', 'package_type', 'print_position', 'label_amount', 'carrier'];
 
                     actionOptions.forEach(function (option) {
                         if (!(option in parentThis.options['action_options']) || (parentThis.options['action_options'][option] == false)) {
@@ -172,6 +172,8 @@ define(
 
                     return this;
                 },
+
+
 
                 /**
                  * Set default settings
@@ -189,6 +191,7 @@ define(
 
                     $('#mypa_request_type-download').prop('checked', true).trigger('change');
                     $('#mypa_package_type-default').prop('checked', true).trigger('change');
+                    $('#mypa_carrier_default').prop('checked', true).trigger('change');
                     $('#paper_size-' + this.options.settings['paper_type']).prop('checked', true).trigger('change');
 
                     this._getLabelPosition(selectAmount);
@@ -234,6 +237,19 @@ define(
                             } else {
                                 $('.mypa_position_container').show();
                             }
+                        }
+                    );
+
+                    $("input[name='mypa_carrier']").on(
+                          'change',
+                        function() {
+                            if ($('#mypa_carrier_instabox').prop('checked')) {
+                                $('#mypa_container-package_type-digital_stamp').hide();
+                                $('#mypa_container-package_type-letter').hide();
+                            } else {
+                                $('#mypa_container-package_type-digital_stamp').show();
+                                $('#mypa_container-package_type-letter').show();
+                          }
                         }
                     );
 

@@ -14,11 +14,6 @@ class Checkout
     private const PACKAGE_TYPE_MAILBOX = 'mailbox';
 
     /**
-     * @var array
-     */
-    private $data = [];
-
-    /**
      * @var \MyParcelNL\Magento\Helper\Checkout
      */
     private $helper;
@@ -88,22 +83,22 @@ class Checkout
         $this->helper->setBasePriceFromQuote($this->quoteId);
         $this->hideDeliveryOptionsForProduct();
 
-        $this->data = [
-            'methods' => [$this->helper->getParentMethodNameFromQuote($this->quoteId, $forAddress)],
-            'config'  => array_merge(
+        $data = [
+            'methods'    => [$this->helper->getParentMethodNameFromQuote($this->quoteId, $forAddress)],
+            'config'     => array_merge(
                 $this->getGeneralData(),
                 $this->getPackageType(),
                 $this->getDeliveryData()
             ),
-            'strings' => $this->getDeliveryOptionsStrings(),
+            'strings'    => $this->getDeliveryOptionsStrings(),
+            'forAddress' => $forAddress,
         ];
-        $this->data['forAddress'] = $forAddress;
 
         return [
             'root' => [
                 'version' => (string) $this->helper->getVersion(),
-                'data'    => (array) $this->data
-            ]
+                'data'    => (array) $data,
+            ],
         ];
     }
 
@@ -158,31 +153,36 @@ class Checkout
             $basePrice        = $this->helper->getBasePrice();
             $morningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'morning/fee');
             $eveningFee       = $this->helper->getMethodPrice($carrierPath[$carrier], 'evening/fee');
+            $sameDayFee       = (int) $this->helper->getCarrierConfig('delivery/same_day_delivery_fee', $carrierPath[$carrier]);
             $signatureFee     = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/signature_fee', false);
             $onlyRecipientFee = $this->helper->getMethodPrice($carrierPath[$carrier], 'delivery/only_recipient_fee', false);
             $isAgeCheckActive = $this->isAgeCheckActive($carrierPath[$carrier]);
 
             $myParcelConfig['carrierSettings'][$carrier] = [
-                'allowDeliveryOptions'  => $this->package->deliveryOptionsDisabled ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
+                'allowDeliveryOptions'  => ! $this->package->deliveryOptionsDisabled && $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/active'),
                 'allowSignature'        => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/signature_active'),
                 'allowOnlyRecipient'    => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/only_recipient_active'),
-                 'allowMorningDelivery' => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
-                'allowEveningDelivery'  => $isAgeCheckActive ? false : $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
+                'allowMorningDelivery'  => ! $isAgeCheckActive && $this->helper->getBoolConfig($carrierPath[$carrier], 'morning/active'),
+                'allowEveningDelivery'  => ! $isAgeCheckActive && $this->helper->getBoolConfig($carrierPath[$carrier], 'evening/active'),
                 'allowPickupLocations'  => $this->isPickupAllowed($carrierPath[$carrier]),
                 'allowShowDeliveryDate' => $this->helper->getBoolConfig($carrierPath[$carrier], 'general/allow_show_delivery_date'),
                 'allowMondayDelivery'   => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/monday_delivery_active'),
+                'allowSameDayDelivery'  => $this->helper->getBoolConfig($carrierPath[$carrier], 'delivery/same_day_active'),
 
                 'cutoffTime'            => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/cutoff_time'),
+                'cutoffTimeSameDay'     => $this->helper->getTimeConfig($carrierPath[$carrier], 'delivery/cutoff_time_same_day'),
                 'saturdayCutoffTime'    => $this->helper->getTimeConfig($carrierPath[$carrier], 'general/saturday_cutoff_time'),
                 'deliveryDaysWindow'    => $this->helper->getIntegerConfig($carrierPath[$carrier], 'general/deliverydays_window'),
                 'dropOffDays'           => $this->helper->getArrayConfig($carrierPath[$carrier], 'general/dropoff_days'),
                 'dropOffDelay'          => $this->getDropOffDelay($carrierPath[$carrier], 'general/dropoff_delay'),
 
-                'priceSignature'        => $signatureFee,
-                'priceOnlyRecipient'    => $onlyRecipientFee,
-                'priceStandardDelivery' => $basePrice,
-                'priceMorningDelivery'  => $morningFee,
-                'priceEveningDelivery'  => $eveningFee,
+                'priceSignature'                       => $signatureFee,
+                'priceOnlyRecipient'                   => $onlyRecipientFee,
+                'priceStandardDelivery'                => $basePrice,
+                'priceMorningDelivery'                 => $morningFee,
+                'priceEveningDelivery'                 => $eveningFee,
+                'priceSameDayDelivery'                 => $sameDayFee,
+                'priceSameDayDeliveryAndOnlyRecipient' => $sameDayFee + $onlyRecipientFee,
 
                 'priceMorningSignature'          => ($morningFee + $signatureFee),
                 'priceEveningSignature'          => ($eveningFee + $signatureFee),
@@ -232,7 +232,7 @@ class Checkout
      *
      * @return array
      */
-    private function getDeliveryOptionsStrings()
+    private function getDeliveryOptionsStrings(): array
     {
         return [
             'deliveryTitle'             => $this->helper->getGeneralConfig('delivery_titles/delivery_title'),
@@ -272,7 +272,7 @@ class Checkout
      */
     public function checkPackageType(string $carrier, ?string $country): string
     {
-        $carrierPath = data::CARRIERS_XML_PATH_MAP;
+        $carrierPath = Data::CARRIERS_XML_PATH_MAP;
         $products    = $this->cart->getAllItems();
         $country     = $country ?? $this->cart->getShippingAddress()->getCountryId();
 
@@ -291,10 +291,9 @@ class Checkout
      */
     public function isAgeCheckActive(string $carrierPath): bool
     {
-        $products    = $this->cart->getAllItems();
-        $hasAgeCheck = $this->package->getAgeCheck($products, $carrierPath);
+        $products = $this->cart->getAllItems();
 
-        return $hasAgeCheck;
+        return $this->package->getAgeCheck($products, $carrierPath);
     }
 
     /**
@@ -327,8 +326,6 @@ class Checkout
     }
 
     /**
-     * @param  bool   $isMailboxPackage
-     * @param  bool   $showPickup
      * @param  string $carrier
      *
      * @return bool

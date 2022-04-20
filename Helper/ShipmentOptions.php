@@ -12,6 +12,7 @@ class ShipmentOptions
 {
     private const INSURANCE         = 'insurance';
     private const ONLY_RECIPIENT    = 'only_recipient';
+    private const SAME_DAY_DELIVERY = 'same_day_delivery';
     private const SIGNATURE         = 'signature';
     private const RETURN            = 'return';
     private const AGE_CHECK         = 'age_check';
@@ -22,6 +23,11 @@ class ShipmentOptions
     private const PRODUCT_ID        = '%product_id%';
     private const PRODUCT_NAME      = '%product_name%';
     private const PRODUCT_QTY       = '%product_qty%';
+
+    /**
+     * @var string
+     */
+    private $carrier;
 
     /**
      * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
@@ -53,6 +59,7 @@ class ShipmentOptions
      * @param  \MyParcelNL\Magento\Helper\Data                 $helper
      * @param  \Magento\Sales\Model\Order                      $order
      * @param  \Magento\Framework\ObjectManagerInterface       $objectManager
+     * @param  string                                          $carrier
      * @param  array                                           $options
      */
     public function __construct(
@@ -60,12 +67,14 @@ class ShipmentOptions
         Data                       $helper,
         \Magento\Sales\Model\Order $order,
         ObjectManagerInterface     $objectManager,
+        string                     $carrier,
         array                      $options = []
     ) {
         self::$defaultOptions = $defaultOptions;
         $this->helper         = $helper;
         $this->order          = $order;
         $this->objectManager  = $objectManager;
+        $this->carrier        = $carrier;
         $this->options        = $options;
     }
 
@@ -74,7 +83,7 @@ class ShipmentOptions
      */
     public function getInsurance(): int
     {
-        return $this->options['insurance'] ?? self::$defaultOptions->getDefaultInsurance();
+        return $this->options['insurance'] ?? self::$defaultOptions->getDefaultInsurance($this->carrier);
     }
 
     /**
@@ -95,6 +104,16 @@ class ShipmentOptions
         $onlyRecipientFromOptions = self::getValueOfOptionWhenSet(self::ONLY_RECIPIENT, $this->options);
 
         return $onlyRecipientFromOptions ?? $this->optionIsEnabled(self::ONLY_RECIPIENT);
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasSameDayDelivery(): bool
+    {
+        $sameDayFromOptions = self::getValueOfOptionWhenSet(self::SAME_DAY_DELIVERY, $this->options);
+
+        return $sameDayFromOptions ?? $this->optionIsEnabled(self::SAME_DAY_DELIVERY);
     }
 
     /**
@@ -121,7 +140,7 @@ class ShipmentOptions
 
         $ageCheckFromOptions  = self::getValueOfOptionWhenSet(self::AGE_CHECK, $this->options);
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
-        $ageCheckFromSettings = self::$defaultOptions->getDefaultOptionsWithoutPrice(self::AGE_CHECK);
+        $ageCheckFromSettings = self::$defaultOptions->hasDefaultOptionsWithoutPrice($this->carrier, self::AGE_CHECK);
 
         return $ageCheckFromOptions ?: $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
@@ -245,7 +264,7 @@ class ShipmentOptions
         }
 
         $largeFormatFromOptions  = self::getValueOfOptionWhenSet(self::LARGE_FORMAT, $this->options);
-        $largeFormatFromSettings = self::$defaultOptions->getDefaultLargeFormat(self::LARGE_FORMAT);
+        $largeFormatFromSettings = self::$defaultOptions->hasDefaultLargeFormat($this->carrier, self::LARGE_FORMAT);
 
         return $largeFormatFromOptions ?? $largeFormatFromSettings;
     }
@@ -332,7 +351,7 @@ class ShipmentOptions
     private function optionIsEnabled($optionKey): bool
     {
         if ($this->options[$optionKey] === null) {
-            return self::$defaultOptions->getDefault($optionKey);
+            return self::$defaultOptions->hasDefault($optionKey, $this->carrier);
         }
 
         return (bool) $this->options[$optionKey];
@@ -351,6 +370,7 @@ class ShipmentOptions
             self::AGE_CHECK         => $this->hasAgeCheck(),
             self::LARGE_FORMAT      => $this->hasLargeFormat(),
             self::LABEL_DESCRIPTION => $this->getLabelDescription(),
+            self::SAME_DAY_DELIVERY => $this->hasSameDayDelivery()
         ];
     }
 }
