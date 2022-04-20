@@ -81,9 +81,8 @@ define(
         'myparcelnl_magento_instabox_settings/delivery': 'config.carrierSettings.instabox.priceStandardDelivery',
         'myparcelnl_magento_instabox_settings/mailbox': 'config.carrierSettings.instabox.pricePackageTypeMailbox',
         'myparcelnl_magento_instabox_settings/pickup': 'config.carrierSettings.instabox.pricePickup',
-        'myparcelnl_magento_instabox_settings/delivery/only_recipient/signature': 'config.carrierSettings.instabox.priceSignatureAndOnlyRecipient',
         'myparcelnl_magento_instabox_settings/delivery/same_day_delivery': 'config.carrierSettings.instabox.priceSameDayDelivery',
-        'myparcelnl_magento_instabox_settings/delivery/same_day_delivery/only_recipient': 'config.carrierSettings.instabox.priceSameDayDeliveryAndOnlyRecipient',
+        'myparcelnl_magento_instabox_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.instabox.priceSameDayDeliveryAndOnlyRecipient',
       },
 
       /**
@@ -93,9 +92,8 @@ define(
         'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
         'myparcelnl_magento_instabox_settings/delivery/only_recipient': 'config.carrierSettings.instabox.priceOnlyRecipient',
-        'myparcelnl_magento_instabox_settings/delivery/signature': 'config.carrierSettings.instabox.priceSignature',
         'myparcelnl_magento_instabox_settings/delivery/same_day_delivery': 'config.carrierSettings.instabox.priceSameDayDelivery',
-        'myparcelnl_magento_instabox_settings/delivery/same_day_delivery/only_recipient': 'config.carrierSettings.instabox.priceSameDayDeliveryAndOnlyRecipient',
+        'myparcelnl_magento_instabox_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.instabox.priceSameDayDeliveryAndOnlyRecipient',
       },
 
       /**

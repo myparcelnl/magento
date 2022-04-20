@@ -43,7 +43,7 @@ myparcelnl_magento_instabox_settings/delivery, Instabox delivery
 myparcelnl_magento_instabox_settings/mailbox, Instabox mailbox
 myparcelnl_magento_instabox_settings/pickup, Instabox pickup location
 myparcelnl_magento_instabox_settings/delivery/same_day_delivery, Instabox same day delivery
-myparcelnl_magento_instabox_settings/delivery/same_day_delivery/only_recipient, Instabox same day delivery with only recipient
+myparcelnl_magento_instabox_settings/delivery/only_recipient/same_day_delivery, Instabox same day delivery with only recipient
 myparcelnl_magento_instabox_settings/delivery/only_recipient/signature, Instabox delivery with only recipient and signature
 myparcelnl_magento_instabox_settings/delivery/only_recipient, Instabox delivery with only recipient
 myparcelnl_magento_instabox_settings/delivery/signature, Instabox delivery with signature
