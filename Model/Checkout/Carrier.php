@@ -202,16 +202,15 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
 
     /**
      * @param $alias
-     * @param string $settingPath
+     * @param  string $settingPath
      *
      * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
      */
-    private function getShippingMethod($alias, $settingPath)
+    private function getShippingMethod($alias, string $settingPath)
     {
         $title = $this->createTitle($settingPath);
         $price = $this->createPrice($alias, $settingPath);
 
-        /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
         $method = $this->_rateMethodFactory->create();
         $method->setCarrier($this->_code);
         $method->setCarrierTitle($alias);

@@ -36,10 +36,10 @@ class DeliveryOptions implements DeliveryOptionsInterface
     }
 
     /**
-     * @return array|mixed[]
+     * @return array
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function get()
+    public function get(): array
     {
         return $this->settings->getDeliveryOptions();
     }

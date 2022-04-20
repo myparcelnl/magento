@@ -32,6 +32,9 @@ class Checkout extends Data
     public const FIELD_TRACK_STATUS     = 'track_status';
     public const DEFAULT_COUNTRY_CODE   = 'NL';
 
+    /**
+     * @var int
+     */
     private $base_price = 0;
 
     /**
@@ -155,13 +158,12 @@ class Checkout extends Data
         $myParcelMethods = array_keys(Result::getMethods());
 
         foreach ($magentoMethods as $method) {
-
-            $methodCode       = explode("/", $method->getMethodCode());
+            $methodCode       = explode('/', $method->getMethodCode());
             $latestMethodCode = array_pop($methodCode);
 
             if (
-                in_array($method->getCarrierCode(), $parentCarriers) &&
-                ! in_array($latestMethodCode, $myParcelMethods)
+                ! in_array($latestMethodCode, $myParcelMethods, true)
+                && in_array($method->getCarrierCode(), $parentCarriers, true)
             ) {
                 return $method;
             }
@@ -199,16 +201,15 @@ class Checkout extends Data
 
     /**
      * Get MyParcel method/option price.
-     *
      * Check if total shipping price is not below 0 euro
      *
-     * @param        $carrier
-     * @param string $key
-     * @param bool   $addBasePrice
+     * @param  string $carrier
+     * @param  string $key
+     * @param  bool   $addBasePrice
      *
      * @return float
      */
-    public function getMethodPrice($carrier, $key, $addBasePrice = true)
+    public function getMethodPrice(string $carrier, string $key, bool $addBasePrice = true): float
     {
         $value = $this->getCarrierConfig($key, $carrier);
 
@@ -237,33 +238,32 @@ class Checkout extends Data
     /**
      * Get checkout setting
      *
-     * @param string $carrier
-     * @param string $code
-     * @param bool   $canBeNull
+     * @param  string $carrier
+     * @param  string $code
      *
      * @return mixed
      */
-    public function getCarrierConfig($code, $carrier = null, $canBeNull = false)
+    public function getCarrierConfig(string $code, string $carrier)
     {
         $value = $this->getConfigValue($carrier . $code);
-        if (null != $value || $canBeNull) {
-            return $value;
+        if (null === $value) {
+            $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
         }
 
-        $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
+        return $value;
     }
 
     /**
      * Get bool of setting
      *
-     * @param string $carrier
-     * @param string $key
+     * @param  string $carrier
+     * @param  string $key
      *
      * @return bool
      */
-    public function getBoolConfig($carrier, $key)
+    public function getBoolConfig(string $carrier, string $key): bool
     {
-        return $this->getCarrierConfig($key, $carrier) == "1" ? true : false;
+        return '1' === $this->getCarrierConfig($key, $carrier);
     }
 
     /**

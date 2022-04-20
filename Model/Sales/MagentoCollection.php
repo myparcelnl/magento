@@ -96,6 +96,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
         'digital_stamp_weight'              => null,
         'return_in_the_box'                 => false,
+        'same_day_delivery'                 => false,
     ];
 
     /**
@@ -477,7 +478,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $i = 0;
 
         while ($i < $quantity) {
-            $this->myParcelCollection->addConsignment($consignment);
+            try {
+                $this->myParcelCollection->addConsignment($consignment);
+            } catch (\Exception $e) {
+                return;
+            }
+
             ++$i;
         }
     }

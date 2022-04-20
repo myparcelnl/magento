@@ -18,6 +18,7 @@ namespace MyParcelNL\Magento\Model\Source;
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 
 /**
  * @api
@@ -48,9 +49,9 @@ class AgeCheckNo implements OptionSourceInterface
      */
     public function getDefault($option)
     {
-        $settings = self::$helper->getStandardConfig('default_options');
+        $settings = self::$helper->getStandardConfig(CarrierPostNL::NAME, 'default_options');
 
-        return $settings[$option . '_active'] == '1';
+        return (bool) $settings[$option . '_active'];
     }
 
     /**

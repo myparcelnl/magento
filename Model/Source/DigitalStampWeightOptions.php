@@ -18,6 +18,7 @@ namespace MyParcelNL\Magento\Model\Source;
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 
 /**
  * @api
@@ -46,15 +47,11 @@ class DigitalStampWeightOptions implements OptionSourceInterface
      *
      * @return bool
      */
-    public function getDefault($option)
+    public function getDefault($option): bool
     {
-        $settings = self::$helper->getStandardConfig('options');
+        $settings = self::$helper->getStandardConfig(CarrierPostNL::NAME, 'options');
 
-        if ($settings[$option . '_active'] == '1') {
-            return true;
-        }
-
-        return false;
+        return (bool) $settings[$option . '_active'];
     }
 
     /**

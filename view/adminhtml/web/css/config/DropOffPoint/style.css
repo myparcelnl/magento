@@ -1,0 +1,10 @@
+.myparcel_container .instructions {
+  color: #0a0a0a;
+  font-size: 14px;
+  padding: 10px;
+  border: 1px solid rgb(225, 228, 232);
+}
+
+.drop_off_title {
+  font-weight: bold;
+}

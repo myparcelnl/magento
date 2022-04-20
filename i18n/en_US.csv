@@ -12,6 +12,7 @@ status_11,Delivered - Return shipment pickup location
 status_12,Unrelated label printed
 status_13,Credited
 status_14,Printed - Digital Stamp
+status_17,Cancelled
 status_30,Inactive - Concept
 status_31,Inactive - Registered
 status_32,Inactive - Enroute - Handed to carrier
@@ -38,3 +39,16 @@ myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL even
 myparcelnl_magento_postnl_settings/mailbox, PostNL mailbox
 myparcelnl_magento_postnl_settings/digital_stamp, PostNL digital stamp
 myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
+myparcelnl_magento_instabox_settings/delivery, Instabox delivery
+myparcelnl_magento_instabox_settings/mailbox, Instabox mailbox
+myparcelnl_magento_instabox_settings/pickup, Instabox pickup location
+myparcelnl_magento_instabox_settings/delivery/same_day_delivery, Instabox same day delivery
+myparcelnl_magento_instabox_settings/delivery/only_recipient/same_day_delivery, Instabox same day delivery with only recipient
+myparcelnl_magento_instabox_settings/delivery/only_recipient/signature, Instabox delivery with only recipient and signature
+myparcelnl_magento_instabox_settings/delivery/only_recipient, Instabox delivery with only recipient
+myparcelnl_magento_instabox_settings/delivery/signature, Instabox delivery with signature
+no_account_settings, No account settings found. Press the import button in general configuration to fetch account settings.
+manage_drop_off_point, Manage your default drop-off point in the
+location_page, location manager
+no_drop_off_point_instabox, Drop-off point is required for Instabox. Please select one in the backoffice and update accountsettings by clicking the button in general settings.
+

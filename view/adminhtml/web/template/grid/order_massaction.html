@@ -25,6 +25,30 @@
                 </div>
             </div>
         </div>
+      <div class="mypa__field__container" id="mypa_container-carrier">
+        <div class="admin__field">
+          <label class="admin__field-label">
+            <span trans="Carrier"></span>
+          </label>
+          <div class="admin__field-control">
+            <div class="admin__field admin__field-option">
+              <input type="radio" class="admin__control-radio" id="mypa_carrier_default"
+                name="mypa_carrier" value="default">
+              <label class="admin__field-label" for="mypa_carrier_default" trans="Default"></label>
+            </div>
+            <div class="admin__field admin__field-option">
+              <input type="radio" class="admin__control-radio" id="mypa_carrier_postnl"
+                name="mypa_carrier" value="postnl">
+              <label class="admin__field-label" for="mypa_carrier_postnl" trans="PostNL"></label>
+            </div>
+            <div class="admin__field admin__field-option">
+              <input type="radio" class="admin__control-radio" id="mypa_carrier_instabox"
+                name="mypa_carrier" value="instabox">
+              <label class="admin__field-label" for="mypa_carrier_instabox" trans="Instabox"></label>
+            </div>
+          </div>
+        </div>
+      </div>
         <div class="mypa__field__container" id="mypa_container-package_type">
             <div class="admin__field">
                 <label class="admin__field-label">
@@ -51,7 +75,7 @@
                                name="mypa_package_type" value="2">
                         <label class="admin__field-label" for="mypa_package_type-mailbox" trans="Mailbox"></label>
                     </div>
-                    <div class="admin__field admin__field-option">
+                    <div class="admin__field admin__field-option" id="mypa_container-package_type-letter">
                         <input type="radio" class="admin__control-radio" id="mypa_package_type-letter"
                                name="mypa_package_type" value="3">
                         <label class="admin__field-label" for="mypa_package_type-letter" trans="Letter"></label>
