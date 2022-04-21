@@ -206,7 +206,7 @@
                 <field id="insurance_250_from_price" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From price</label>
                     <validate>validate-number validate-zero-or-greater</validate>
-                    <comment>'Insurance € 250' operates above a certain order total amount. Only for dutch shipments, shipments outside of the EU are by default insured up to € 200.</comment>
+                    <comment>'Insurance € 250' operates above a certain order total amount. Only for Dutch shipments, shipments outside of the EU are insured up to € 200 by default.</comment>
                     <depends>
                         <field id="insurance_250_active">1</field>
                     </depends>
