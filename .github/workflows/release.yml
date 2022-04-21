@@ -1,0 +1,37 @@
+name: 'Build and publish'
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - .github/**/*
+      - node_modules/**/*
+
+  workflow_dispatch: ~
+
+jobs:
+  release:
+    name: 'Build and publish 🚀'
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: myparcelnl/actions/composer-install@v1
+        with:
+          php-version: '7.4'
+
+      - uses: myparcelnl/actions/yarn-install@v1
+
+      - uses: myparcelnl/actions/semantic-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_REPO_TOKEN }}
+
+      - uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GH_REPO_TOKEN }}
+          event-type: rebase
+          client-payload: '{ "source": "main", "target": "develop" }'
