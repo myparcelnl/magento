@@ -14,7 +14,7 @@ class InsurancePossibilities implements OptionSourceInterface
      *
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
         $array = [];
 
