@@ -24,10 +24,12 @@ use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Sdk\src\Model\MyParcelRequest;
 
 class UpdateStatus
 {
     const PATH_MODEL_ORDER_TRACK = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
+    const PATH_MODEL_ORDER       = '\Magento\Sales\Model\ResourceModel\Order\Collection';
 
     /**
      * @var ObjectManager
@@ -68,7 +70,23 @@ class UpdateStatus
             ->setNewMyParcelTracks()
             ->setLatestData()
             ->updateMagentoTrack();
+        // orderbeheer:
+        // get all orders without track_number and track_status 'exported'
+        $trackCollection = $this->objectManager->get(self::PATH_MODEL_ORDER);
+        $trackCollection
+            ->addFieldToSelect('entity_id')
+            ->addAttributeToFilter('track_number', ['notnull' => false])
+            ->addAttributeToFilter('track_status', ['notnull' => false]) // todo exported or something
+            ->setPageSize(300)
+            ->setOrder('entity_id', 'DESC');
 
+        $orderIds = array_unique(array_column($trackCollection->getData(), 'entity_id'));
+        // for all orders, go to api to fetch corresponding shipments
+        $r = $this->orderCollection->myParcelCollection::query($this->orderCollection->getApiKey(), ['size' => 300]);
+        throw new \Exception(var_export($r->toArray(), true));
+
+        // update the track_number by received shipment
+//
         return $this;
     }
 
