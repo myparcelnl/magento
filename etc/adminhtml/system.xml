@@ -228,8 +228,8 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="insurance_custom_amount" translate="label comment" type="select" sortOrder="266" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\InsurancePossibilities</source_model>
+                    <label>Insured amount</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\PostNLInsurancePossibilities</source_model>
                     <comment>A custom insurance price within a range of possibilities.</comment>
                     <depends>
                         <field id="insurance_custom_active">1</field>

@@ -27,7 +27,7 @@ class FitInMailboxOptions extends AbstractSource
      *
      * @return array
      */
-    public function getOptionArray()
+    public function getOptionArray(): array
     {
         return [
             ['value' => '0', 'label'=>__('Look to weight')],
