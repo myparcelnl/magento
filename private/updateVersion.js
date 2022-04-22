@@ -17,23 +17,26 @@ const parsedVersion = version.replace(/^v/, '');
 ].forEach((file) => {
   const filePath = path.resolve(rootDir, file);
   const relativeFilePath = path.relative(rootDir, filePath);
+  const extension = file.split('.').pop();
   let contentsAsString;
   let oldVersion;
 
-  if (file.indexOf('.json') !== -1) {
-    const contents = require(filePath);
+  switch (extension) {
+    case 'json':
+      const contents = require(filePath);
 
-    oldVersion = contents.version;
-    contents.version = parsedVersion;
+      oldVersion = contents.version;
+      contents.version = parsedVersion;
 
-    contentsAsString = JSON.stringify(contents, null, 2);
-  }
+      contentsAsString = JSON.stringify(contents, null, 2);
+      break;
+    case 'xml':
+      contentsAsString = fs.readFileSync(filePath);
 
-  if (file.indexOf('.xml') !== -1) {
-    contentsAsString = fs.readFileSync(filePath, 'utf8');
-
-    oldVersion = contentsAsString.match(/setup_version="(\d+\.\d+\.\d+(?:-(?:alpha|beta))?)"/)[1];
-    contentsAsString = contentsAsString.replace('setup_version="'+oldVersion+'"', 'setup_version="'+parsedVersion+'"');
+      oldVersion = contentsAsString.match(/setup_version="(\d+\.\d+\.\d+(?:-(?:alpha|beta))?)"/)[1];
+      contentsAsString =
+        contentsAsString.replace('setup_version="' + oldVersion + '"', 'setup_version="' + parsedVersion + '"');
+      break;
   }
 
   fs.writeFile(filePath, contentsAsString, () => {

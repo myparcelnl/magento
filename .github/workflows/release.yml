@@ -1,4 +1,4 @@
-name: 'Build and publish'
+name: 'Release'
 
 on:
   push:
@@ -6,7 +6,6 @@ on:
       - main
     paths-ignore:
       - .github/**/*
-      - node_modules/**/*
 
   workflow_dispatch: ~
 
