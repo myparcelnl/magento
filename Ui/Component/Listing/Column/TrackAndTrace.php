@@ -12,6 +12,7 @@ class TrackAndTrace extends Column
 {
     public const NAME          = 'track_number';
     public const VALUE_EMPTY   = '–';
+    public const VALUE_PRINTED = 'Printed';
     private const KEY_POSTCODE = 0;
 
     /**
@@ -101,8 +102,12 @@ class TrackAndTrace extends Column
         }
 
         foreach($trackNumbers as $trackNumber) {
-            if (self::VALUE_EMPTY === $trackNumber) {
+            if (self::VALUE_EMPTY === $trackNumber || null === $trackNumber) {
                 $html .= '-<br/>';
+                continue;
+            }
+            if (self::VALUE_PRINTED === $trackNumber) {
+                $html .= $trackNumber . '<br/>';
                 continue;
             }
             $trackTrace  = TrackTraceUrl::create($trackNumber, $postCode, $countryId);

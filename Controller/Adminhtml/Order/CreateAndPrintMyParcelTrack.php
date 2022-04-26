@@ -85,28 +85,40 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         if (! $this->orderCollection->apiKeyIsCorrect()) {
             $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
             $this->messageManager->addErrorMessage(__($message));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
+            $this->_objectManager->get('Psr\Log\LoggerInterface')
+                ->critical($message);
 
             return $this;
         }
 
-        if ($this->getRequest()->getParam('selected_ids')) {
-            $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
+        if ($this->getRequest()
+            ->getParam('selected_ids')) {
+            $orderIds = explode(',',
+                $this->getRequest()
+                    ->getParam('selected_ids')
+            );
         } else {
-            $orderIds = $this->getRequest()->getParam('selected');
+            $orderIds = $this->getRequest()
+                ->getParam('selected');
         }
 
         if (empty($orderIds)) {
             throw new LocalizedException(__('No items selected'));
         }
 
-        $this->getRequest()->setParams(['myparcel_track_email' => true]);
+        $this->getRequest()
+            ->setParams(['myparcel_track_email' => true]);
 
         $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
-        $this->orderCollection
-            ->setOptionsFromParameters()
+        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+            $this->orderCollection->setFulfilment();
+
+            return $this;
+        }
+
+        $this->orderCollection->setOptionsFromParameters()
             ->setNewMagentoShipment();
 
         $this->orderCollection->reload();
@@ -115,33 +127,29 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
         }
 
-        if ($this->messageManager->getMessages()->getErrors()) {
+        if ($this->messageManager->getMessages()
+            ->getErrors()) {
             $this->messageManager->getMessages();
 
             return $this;
         }
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
-            $this->orderCollection->setFulfilment();
-        } else {
-            $this->orderCollection
-                ->syncMagentoToMyparcel()
-                ->setMagentoTrack()
-                ->setNewMyParcelTracks()
-                ->createMyParcelConcepts()
-                ->updateMagentoTrack();
+        $this->orderCollection->syncMagentoToMyparcel()
+            ->setMagentoTrack()
+            ->setNewMyParcelTracks()
+            ->createMyParcelConcepts()
+            ->updateMagentoTrack();
 
-            if ('concept' === $this->orderCollection->getOption('request_type')
-                || $this->orderCollection->myParcelCollection->isEmpty()) {
-                return $this;
-            }
-            $this->orderCollection
-                ->addReturnShipments()
-                ->setPdfOfLabels()
-                ->updateMagentoTrack()
-                ->sendTrackEmails()
-                ->downloadPdfOfLabels();
+        if ('concept' === $this->orderCollection->getOption('request_type')
+            || $this->orderCollection->myParcelCollection->isEmpty()) {
+            return $this;
         }
+        $this->orderCollection->addReturnShipments()
+            ->setPdfOfLabels()
+            ->updateMagentoTrack()
+            ->sendTrackEmails()
+            ->downloadPdfOfLabels();
+
         return $this;
     }
 

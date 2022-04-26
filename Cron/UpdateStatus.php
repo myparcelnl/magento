@@ -20,16 +20,33 @@
 namespace MyParcelNL\Magento\Cron;
 
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Event\ManagerInterface;
+use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Address\Renderer;
+use Magento\Sales\Model\Order\Email\Container\Template;
+use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
+use MyParcelNL\Magento\Api\ShipmentStatus;
+use MyParcelNL\Magento\Model\Order\Email\Container\TrackIdentity;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\MyParcelRequest;
+use MyParcelNL\Sdk\src\Services\Web\OrderWebservice;
 
 class UpdateStatus
 {
-    const PATH_MODEL_ORDER_TRACK = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    const PATH_MODEL_ORDER       = '\Magento\Sales\Model\ResourceModel\Order\Collection';
+    public const ORDER_ID_NOT_TO_PROCESS         = 0;
+    public const ORDER_STATUS_EXPORTED           = 'Exported';
+    public const PATH_MODEL_ORDER_TRACK          = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
+    public const PATH_MODEL_ORDER                = '\Magento\Sales\Model\ResourceModel\Order\Collection';
+
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $logger;
 
     /**
      * @var ObjectManager
@@ -37,22 +54,33 @@ class UpdateStatus
     private $objectManager;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \Magento\Sales\Model\ResourceModel\Order
      */
-    private $helper;
+    private $orderResource;
+
+    /**
+     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
+     */
+    private $orderCollection;
 
     /**
      * UpdateStatus constructor.
      *
-     * @param \Magento\Framework\App\AreaList $areaList
+     * @param \Magento\Framework\App\AreaList          $areaList
+     * @param \Psr\Log\LoggerInterface                 $logger
+     * @param \Magento\Sales\Model\ResourceModel\Order $orderResource
      *
      * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
      */
-    public function __construct(\Magento\Framework\App\AreaList $areaList)
-    {
-        $this->objectManager = ObjectManager::getInstance();
+    public function __construct(
+        \Magento\Framework\App\AreaList          $areaList,
+        \Psr\Log\LoggerInterface                 $logger,
+        \Magento\Sales\Model\ResourceModel\Order $orderResource
+    ) {
+        $this->objectManager   = ObjectManager::getInstance();
         $this->orderCollection = new MagentoOrderCollection($this->objectManager, null, $areaList);
-        $this->helper = $this->objectManager->create(MagentoOrderCollection::PATH_HELPER_DATA);
+        $this->logger          = $logger;
+        $this->orderResource   = $orderResource;
     }
 
     /**
@@ -62,32 +90,126 @@ class UpdateStatus
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Exception
      */
-    public function execute()
+    public function execute(): self
     {
+        return $this->doTheHustle()->doAnotherHustle();
+    }
+
+    /**
+     * Handles orders exported using Orderbeheer setting.
+     * Gets (max 300) orders from Magento that are eligible, gets the most recently updated orders from the api.
+     * When the api order is one of the eligible Magento orders and it is shipped, adds the shipment in Magento.
+     *
+     * @return $this
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \Exception
+     */
+    private function doTheHustle(): self
+    {
+        $magentoOrders = $this->objectManager->get(self::PATH_MODEL_ORDER);
+        $magentoOrders->addFieldToSelect('entity_id')
+            ->addAttributeToFilter('track_number', ['null' => true])
+            ->addAttributeToFilter('track_status', self::ORDER_STATUS_EXPORTED)
+            ->setPageSize(300)
+            ->setOrder('entity_id', 'DESC');
+
+        $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'entity_id'));
+        $apiOrders       = (new OrderWebservice())->setApiKey($this->orderCollection->getApiKey())
+            ->getOrders();
+        $done            = [];
+
+        foreach ($apiOrders as $apiOrder) {
+            $incrementId = (int) ($apiOrder['external_identifier'] ?? self::ORDER_ID_NOT_TO_PROCESS);
+            $shipments   = $apiOrder['order_shipments'] ?? [];
+
+            if (! $incrementId
+                || ! $shipments
+                || isset($done[$incrementId])
+                || ! array_contains($orderIdsToCheck, (string) $incrementId)) {
+                continue;
+            }
+
+            $done[$incrementId] = $incrementId;
+            $shipment           = $shipments[0]['shipment'];
+            $barcode            = $shipments[0]['external_shipment_identifier'] ?? TrackAndTrace::VALUE_PRINTED;
+
+            if (! $this->apiShipmentIsShipped($shipment)) {
+                continue;
+            }
+
+            $magentoOrder = $this->objectManager->create('Magento\Sales\Model\Order')
+                ->loadByIncrementId($incrementId);
+
+            if (! $magentoOrder->canShip()) {
+                $done[$incrementId] = self::ORDER_ID_NOT_TO_PROCESS;
+
+                $this->setShippedWithoutShipment($magentoOrder, $barcode);
+            }
+        }
+
+        if (! $done) {
+            $this->logger->notice('Orderbeheer: no orders updated');
+
+            return $this;
+        }
+
+        $this->addOrdersToCollection($done);
+        $this->orderCollection->setNewMagentoShipment(false)
+            ->setMagentoTrack()
+            ->setNewMyParcelTracks()
+            ->setLatestData()
+            ->updateMagentoTrack();
+
+        return $this;
+    }
+
+    /**
+     * Handles orders that have regular shipments, first removes any lingering orders in $this->orderCollection
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
+     */
+    private function doAnotherHustle(): self {
         $this->setOrdersToUpdate();
         $this->orderCollection
             ->syncMagentoToMyparcel()
             ->setNewMyParcelTracks()
             ->setLatestData()
             ->updateMagentoTrack();
-        // orderbeheer:
-        // get all orders without track_number and track_status 'exported'
-        $trackCollection = $this->objectManager->get(self::PATH_MODEL_ORDER);
-        $trackCollection
-            ->addFieldToSelect('entity_id')
-            ->addAttributeToFilter('track_number', ['notnull' => false])
-            ->addAttributeToFilter('track_status', ['notnull' => false]) // todo exported or something
-            ->setPageSize(300)
-            ->setOrder('entity_id', 'DESC');
 
-        $orderIds = array_unique(array_column($trackCollection->getData(), 'entity_id'));
-        // for all orders, go to api to fetch corresponding shipments
-        $r = $this->orderCollection->myParcelCollection::query($this->orderCollection->getApiKey(), ['size' => 300]);
-        throw new \Exception(var_export($r->toArray(), true));
-
-        // update the track_number by received shipment
-//
         return $this;
+    }
+
+    /**
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     */
+    private function setShippedWithoutShipment(Order $magentoOrder, string $barcode): void
+    {
+        $this->logger->notice(
+            sprintf(
+                'Order %s set to shipped without shipment',
+                $magentoOrder->getIncrementId()
+            )
+        );
+
+        $magentoOrder->setData('track_number', json_encode([$barcode]));
+        $this->orderResource->save($magentoOrder);
+    }
+
+    /**
+     * @param array $shipment
+     *
+     * @return bool
+     */
+    private function apiShipmentIsShipped(array $shipment): bool
+    {
+        $status = $shipment['status'] ?? null;
+
+        return $status >= ShipmentStatus::PRINTED_MINIMUM
+            && (! in_array($status, [ShipmentStatus::CREDITED, ShipmentStatus::CANCELLED]));
     }
 
     /**
@@ -130,9 +252,9 @@ class UpdateStatus
     /**
      * Get collection from order ids
      *
-     * @param $orderIds int[]
+     * @param int[] $orderIds
      */
-    private function addOrdersToCollection($orderIds)
+    private function addOrdersToCollection(array $orderIds): void
     {
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
