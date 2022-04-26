@@ -20,21 +20,13 @@
 namespace MyParcelNL\Magento\Cron;
 
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Event\ManagerInterface;
-use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Address\Renderer;
-use Magento\Sales\Model\Order\Email\Container\Template;
-use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use MyParcelNL\Magento\Api\ShipmentStatus;
-use MyParcelNL\Magento\Model\Order\Email\Container\TrackIdentity;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
-use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\src\Model\MyParcelRequest;
-use MyParcelNL\Sdk\src\Services\Web\OrderWebservice;
+use MyParcelNL\Sdk\src\Services\Web\OrderWebService;
 
 class UpdateStatus
 {
@@ -117,8 +109,7 @@ class UpdateStatus
             ->setOrder('entity_id', 'DESC');
 
         $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'entity_id'));
-        $apiOrders       = (new OrderWebservice())->setApiKey($this->orderCollection->getApiKey())
-            ->getOrders();
+        $apiOrders       = (new OrderWebService())->setApiKey($this->orderCollection->getApiKey())->getOrders();
         $done            = [];
 
         foreach ($apiOrders as $apiOrder) {

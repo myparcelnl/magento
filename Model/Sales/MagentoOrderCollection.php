@@ -252,7 +252,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
             $magentoOrder->setIsInProcess(true);
-            $magentoOrder->save();
+            $this->objectManager->get(OrderResource::class)->save($magentoOrder);
         }
     }
 
