@@ -524,7 +524,7 @@ class MagentoOrderCollection extends MagentoCollection
             $shipment->setExtensionAttributes($shipmentAttributes);
         }
 
-        foreach ($order->getAllItems() AS $orderItem) {
+        foreach ($order->getAllItems() as $orderItem) {
             if (! $orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                 continue;
             }

@@ -110,7 +110,7 @@ class UpdateStatus
 
         $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'entity_id'));
         $apiOrders       = (new OrderWebService())->setApiKey($this->orderCollection->getApiKey())->getOrders();
-        $done            = [];
+        $orderIdsDone    = [];
 
         foreach ($apiOrders as $apiOrder) {
             $incrementId = (int) ($apiOrder['external_identifier'] ?? self::ORDER_ID_NOT_TO_PROCESS);
@@ -118,14 +118,14 @@ class UpdateStatus
 
             if (! $incrementId
                 || ! $shipments
-                || isset($done[$incrementId])
+                || isset($orderIdsDone[$incrementId])
                 || ! array_contains($orderIdsToCheck, (string) $incrementId)) {
                 continue;
             }
 
-            $done[$incrementId] = $incrementId;
-            $shipment           = $shipments[0]['shipment'];
-            $barcode            = $shipments[0]['external_shipment_identifier'] ?? TrackAndTrace::VALUE_PRINTED;
+            $orderIdsDone[$incrementId] = $incrementId;
+            $shipment                   = $shipments[0]['shipment'];
+            $barcode                    = $shipments[0]['external_shipment_identifier'] ?? TrackAndTrace::VALUE_PRINTED;
 
             if (! $this->apiShipmentIsShipped($shipment)) {
                 continue;
@@ -135,19 +135,19 @@ class UpdateStatus
                 ->loadByIncrementId($incrementId);
 
             if (! $magentoOrder->canShip()) {
-                $done[$incrementId] = self::ORDER_ID_NOT_TO_PROCESS;
+                $orderIdsDone[$incrementId] = self::ORDER_ID_NOT_TO_PROCESS;
 
                 $this->setShippedWithoutShipment($magentoOrder, $barcode);
             }
         }
 
-        if (! $done) {
+        if (! $orderIdsDone) {
             $this->logger->notice('Orderbeheer: no orders updated');
 
             return $this;
         }
 
-        $this->addOrdersToCollection($done);
+        $this->addOrdersToCollection($orderIdsDone);
         $this->orderCollection->setNewMagentoShipment(false)
             ->setMagentoTrack()
             ->setNewMyParcelTracks()
