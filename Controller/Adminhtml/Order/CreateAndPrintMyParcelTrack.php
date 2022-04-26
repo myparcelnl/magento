@@ -90,23 +90,17 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             return $this;
         }
 
-        if ($this->getRequest()
-            ->getParam('selected_ids')) {
-            $orderIds = explode(',',
-                $this->getRequest()
-                    ->getParam('selected_ids')
-            );
+        if ($this->getRequest()->getParam('selected_ids')) {
+            $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
-            $orderIds = $this->getRequest()
-                ->getParam('selected');
+            $orderIds = $this->getRequest()->getParam('selected');
         }
 
         if (empty($orderIds)) {
             throw new LocalizedException(__('No items selected'));
         }
 
-        $this->getRequest()
-            ->setParams(['myparcel_track_email' => true]);
+        $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
         $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
@@ -126,8 +120,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
         }
 
-        if ($this->messageManager->getMessages()
-            ->getErrors()) {
+        if ($this->messageManager->getMessages()->getErrors()) {
             $this->messageManager->getMessages();
 
             return $this;
