@@ -58,7 +58,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * @var \MyParcelNL\Magento\Model\Source\SourceItem
      */
-    protected $sourceItem = null;
+    protected $sourceItem;
 
     /**
      * @var \Magento\Framework\App\RequestInterface
@@ -114,14 +114,14 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     ];
 
     /**
-     * @param ObjectManagerInterface                            $objectManager
-     * @param null                                              $request
-     * @param null                                              $areaList
+     * @param ObjectManagerInterface $objectManager
+     * @param null                   $request
+     * @param null                   $areaList
      */
     public function __construct(
-        ObjectManagerInterface   $objectManager,
-                                 $request = null,
-                                 $areaList = null
+        ObjectManagerInterface $objectManager,
+                               $request = null,
+                               $areaList = null
     ) {
         // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
         if ($areaList) {
@@ -697,7 +697,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             && $consignment::PACKAGE_TYPE_PACKAGE === $package;
     }
 
-
     /**
      * Check if the module Magento_InventoryApi is activated.
      * Some customers have removed the Magento_InventoryApi from their system.
@@ -707,9 +706,9 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     private function setSourceItemWhenInventoryApiEnabled(): void
     {
-        if ($this->moduleManager->isEnabled('Magento_InventoryApi')) {
-            $this->sourceItem = $this->objectManager->get(SourceItem::class);
+        if (! $this->moduleManager->isEnabled('Magento_InventoryApi')) {
+            return;
         }
+        $this->sourceItem = $this->objectManager->get(SourceItem::class);
     }
-
 }

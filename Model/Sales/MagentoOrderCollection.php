@@ -167,7 +167,7 @@ class MagentoOrderCollection extends MagentoCollection
                 $this->helper,
                 $magentoOrder,
                 $this->objectManager,
-                $deliveryOptions['carrier'] ?? (CarrierPostNL::class)::NAME,
+                $deliveryOptions['carrier'] ?? CarrierPostNL::NAME,
                 $this->options
             );
 

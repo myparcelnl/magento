@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
@@ -132,7 +133,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             ->createMyParcelConcepts()
             ->updateMagentoTrack();
 
-        if ('concept' === $this->orderCollection->getOption('request_type')
+        if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')
             || $this->orderCollection->myParcelCollection->isEmpty()) {
             return $this;
         }
