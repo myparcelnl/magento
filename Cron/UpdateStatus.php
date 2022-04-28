@@ -84,7 +84,7 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        return $this->doTheHustle()->doAnotherHustle();
+        return $this->updateStatusOrderbeheer()->updateStatusShipments();
     }
 
     /**
@@ -99,7 +99,7 @@ class UpdateStatus
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws \Exception
      */
-    private function doTheHustle(): self
+    private function updateStatusOrderbeheer(): self
     {
         $magentoOrders = $this->objectManager->get(self::PATH_MODEL_ORDER);
         $magentoOrders->addFieldToSelect('entity_id')
@@ -163,7 +163,7 @@ class UpdateStatus
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Exception
      */
-    private function doAnotherHustle(): self {
+    private function updateStatusShipments(): self {
         $this->setOrdersToUpdate();
         $this->orderCollection
             ->syncMagentoToMyparcel()

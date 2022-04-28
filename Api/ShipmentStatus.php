@@ -2,7 +2,7 @@
 
 namespace MyParcelNL\Magento\Api;
 
-abstract class ShipmentStatus
+class ShipmentStatus
 {
     public const CANCELLED       = 17;
     public const CREDITED        = 13;
