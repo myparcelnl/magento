@@ -30,7 +30,7 @@ use MyParcelNL\Sdk\src\Services\Web\OrderWebService;
 
 class UpdateStatus
 {
-    public const ORDER_ID_NOT_TO_PROCESS         = 0;
+    public const ORDER_ID_NOT_TO_PROCESS         = '000000000';
     public const ORDER_STATUS_EXPORTED           = 'Exported';
     public const PATH_MODEL_ORDER_TRACK          = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
     public const PATH_MODEL_ORDER                = '\Magento\Sales\Model\ResourceModel\Order\Collection';
@@ -102,24 +102,24 @@ class UpdateStatus
     private function updateStatusOrderbeheer(): self
     {
         $magentoOrders = $this->objectManager->get(self::PATH_MODEL_ORDER);
-        $magentoOrders->addFieldToSelect('entity_id')
+        $magentoOrders->addFieldToSelect('increment_id')
             ->addAttributeToFilter('track_number', ['null' => true])
             ->addAttributeToFilter('track_status', self::ORDER_STATUS_EXPORTED)
             ->setPageSize(300)
-            ->setOrder('entity_id', 'DESC');
+            ->setOrder('increment_id', 'DESC');
 
-        $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'entity_id'));
+        $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'increment_id'));
         $apiOrders       = (new OrderWebService())->setApiKey($this->orderCollection->getApiKey())->getOrders();
         $orderIdsDone    = [];
 
         foreach ($apiOrders as $apiOrder) {
-            $incrementId = (int) ($apiOrder['external_identifier'] ?? self::ORDER_ID_NOT_TO_PROCESS);
+            $incrementId = $apiOrder['external_identifier'] ?? self::ORDER_ID_NOT_TO_PROCESS;
             $shipments   = $apiOrder['order_shipments'] ?? [];
 
             if (! $incrementId
                 || ! $shipments
                 || isset($orderIdsDone[$incrementId])
-                || ! array_contains($orderIdsToCheck, (string) $incrementId)) {
+                || ! array_contains($orderIdsToCheck, $incrementId)) {
                 continue;
             }
 
