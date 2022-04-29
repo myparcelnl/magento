@@ -147,7 +147,7 @@ class UpdateStatus
             return $this;
         }
 
-        $this->addOrdersToCollection($orderIdsDone);
+        $this->addOrdersToCollectionByIncrementId($orderIdsDone);
         $this->orderCollection->setNewMagentoShipment(false)
             ->setMagentoTrack()
             ->setNewMyParcelTracks()
@@ -254,6 +254,24 @@ class UpdateStatus
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
         $collection
             ->addAttributeToFilter('entity_id', ['in' => $orderIds])
+            ->addFieldToFilter('created_at', ['gteq' => $now->format('Y-m-d H:i:s')]);
+        $this->orderCollection->setOrderCollection($collection);
+    }
+
+    /**
+     * Get collection from order ids
+     *
+     * @param int[] $orderIds
+     */
+    private function addOrdersToCollectionByIncrementId(array $orderIds): void
+    {
+        /**
+         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+         */
+        $now = new \DateTime('now -14 day');
+        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection
+            ->addAttributeToFilter('increment_id', ['in' => $orderIds])
             ->addFieldToFilter('created_at', ['gteq' => $now->format('Y-m-d H:i:s')]);
         $this->orderCollection->setOrderCollection($collection);
     }
