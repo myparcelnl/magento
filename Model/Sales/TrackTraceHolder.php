@@ -20,6 +20,7 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
+use Magento\Setup\Exception;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
 use MyParcelNL\Magento\Helper\Data;
@@ -150,7 +151,9 @@ class TrackTraceHolder
         $checkoutData                   = $order->getData('myparcel_delivery_options');
         $deliveryOptions                = json_decode($checkoutData, true);
         $deliveryOptions['packageType'] = $options['package_type'];
-        $deliveryOptions['carrier']     = $this->getCarrierFromOptions($options) ?? $deliveryOptions['carrier'];
+        $deliveryOptions['carrier']     = $this->getCarrierFromOptions($options)
+            ?? $deliveryOptions['carrier']
+            ?? DefaultOptions::getDefaultCarrier()->getName();
 
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
             : (int) self::$defaultOptions->getDigitalStampDefaultWeight();
@@ -250,8 +253,14 @@ class TrackTraceHolder
             }
         }
 
-        $this->convertDataForCdCountry($magentoTrack)
-             ->calculateTotalWeight($magentoTrack, $totalWeight);
+        try {
+            $this->convertDataForCdCountry($magentoTrack)
+                ->calculateTotalWeight($magentoTrack, $totalWeight);
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+            return $this;
+        }
+
 
         return $this;
     }

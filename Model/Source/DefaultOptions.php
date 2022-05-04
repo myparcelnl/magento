@@ -19,6 +19,8 @@ use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -239,5 +241,16 @@ class DefaultOptions
     {
         $packageTypesMap = array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP);
         return $packageTypesMap[$this->getPackageType()];
+    }
+
+    /**
+     * TODO: In the future, when multiple carriers will be available for Rest of World shipments, replace PostNL with a setting for default carrier
+     *
+     * @return \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier
+     * @throws \Exception
+     */
+    public static function getDefaultCarrier(): AbstractCarrier
+    {
+        return CarrierFactory::createFromClass(CarrierPostNL::class);
     }
 }
