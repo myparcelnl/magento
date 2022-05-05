@@ -31,6 +31,7 @@ class DefaultOptions
     private const INSURANCE_AMOUNT_100     = 'insurance_100';
     private const INSURANCE_AMOUNT_250     = 'insurance_250';
     private const INSURANCE_AMOUNT_500     = 'insurance_500';
+    private const INSURANCE_AMOUNT_CUSTOM  = 'insurance_custom';
 
     public const DEFAULT_OPTION_VALUE = 'default';
 
@@ -52,8 +53,8 @@ class DefaultOptions
     /**
      * Insurance constructor.
      *
-     * @param $order Order
-     * @param $helper Data
+     * @param  Order $order
+     * @param  Data  $helper
      */
     public function __construct(Order $order, Data $helper)
     {
@@ -164,6 +165,10 @@ class DefaultOptions
 
         if ($shippingAddress && AbstractConsignment::CC_BE === $shippingAddress->getCountryId()) {
             return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::INSURANCE_AMOUNT_BELGIUM : 0;
+        }
+
+        if ($this->hasDefault(self::INSURANCE_AMOUNT_CUSTOM, $carrier)) {
+            return self::$helper->getConfigValue(Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_custom_amount');
         }
 
         if ($this->hasDefault(self::INSURANCE_AMOUNT_500, $carrier)) {
