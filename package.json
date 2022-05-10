@@ -1,22 +1,18 @@
 {
   "name": "@myparcel/magento",
   "version": "1.0.0",
+  "private": true,
   "description": "Voor de handleiding en meer informatie ga naar: https://myparcelnl.github.io/magento/",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "node postinstall.js"
-  },
+  "homepage": "https://myparcelnl.github.io/magento",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/myparcelnl/magento.git"
   },
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/myparcelnl/magento/issues"
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "postinstall": "node postinstall.js"
   },
-  "homepage": "https://github.com/myparcelnl/magento#readme",
   "dependencies": {
     "@myparcel/delivery-options": "^5.0.0",
     "custom-event-polyfill": "^1.0.7",
