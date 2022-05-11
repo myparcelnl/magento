@@ -54,6 +54,7 @@ define(
       disablePickup: 'myparcel-delivery-options__delivery--pickup',
 
       isUsingMyParcelMethod: true,
+      deliveryOptionsAreVisible: false,
 
       /**
        * The selector of the field we use to get the delivery options data into the order.
@@ -134,10 +135,11 @@ define(
 
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
-            if (entry.intersectionRatio === 0 || deliveryOptions.deliveryOptions) {
+            if (entry.intersectionRatio === 0 || deliveryOptions.deliveryOptions || this.deliveryOptionsAreVisible) {
               return;
             }
             deliveryOptions.render();
+            this.deliveryOptionsAreVisible = true;
           }, {
             root: null,
             rootMargin: '0px',
