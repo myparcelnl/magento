@@ -83,7 +83,7 @@ class TrackActions extends Column
                                 'mypa_request_type' => 'concept',
                             ]
                         ),
-                        'label'  => __('Create new concept'),
+                        'label'  => __('Export to MyParcel'),
                         'hidden' => false,
                     ];
                 } else {
@@ -157,29 +157,45 @@ class TrackActions extends Column
                         'hidden' => false,
                     ];
                 }
-            } else {
-                $item[$this->getData('name')]['action-download_package_label']    = [
-                    'href'   => $this->urlBuilder->getUrl(
-                        'myparcel/order/CreateAndPrintMyParcelTrack',
-                        [
-                            'selected_ids'      => $item['entity_id'],
-                            'mypa_package_type' => 1,
-                            'mypa_request_type' => 'download',
-                        ]
-                    ),
-                    'label'  => __('Download label'),
-                    'hidden' => false,
-                ];
-                $item[$this->getData('name')]['action-myparcel_send_return_mail'] = [
-                    'href'   => $this->urlBuilder->getUrl(
-                        'myparcel/order/SendMyParcelReturnMail',
-                        [
-                            'selected_ids' => $item['entity_id'],
-                        ]
-                    ),
-                    'label'  => __('Send return label'),
-                    'hidden' => false,
-                ];
+            }
+
+            if (isset($item[ShippingStatus::NAME])) {
+                if (TrackTraceHolder::EXPORT_MODE_PPS === $this->helper->getExportMode()) {
+                    $item[$this->getData('name')]['action-create_concept'] = [
+                        'href'   => $this->urlBuilder->getUrl(
+                            'myparcel/order/CreateAndPrintMyParcelTrack',
+                            [
+                                'selected_ids'      => $item['entity_id'],
+                                'mypa_request_type' => 'concept',
+                            ]
+                        ),
+                        'label'  => __('Already exported'),
+                        'hidden' => false,
+                    ];
+                } else {
+                    $item[$this->getData('name')]['action-download_package_label']    = [
+                        'href'   => $this->urlBuilder->getUrl(
+                            'myparcel/order/CreateAndPrintMyParcelTrack',
+                            [
+                                'selected_ids'      => $item['entity_id'],
+                                'mypa_package_type' => 1,
+                                'mypa_request_type' => 'download',
+                            ]
+                        ),
+                        'label'  => __('Download label'),
+                        'hidden' => false,
+                    ];
+                    $item[$this->getData('name')]['action-myparcel_send_return_mail'] = [
+                        'href'   => $this->urlBuilder->getUrl(
+                            'myparcel/order/SendMyParcelReturnMail',
+                            [
+                                'selected_ids' => $item['entity_id'],
+                            ]
+                        ),
+                        'label'  => __('Send return label'),
+                        'hidden' => false,
+                    ];
+                }
             }
         }
 
