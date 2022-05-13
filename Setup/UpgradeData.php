@@ -151,28 +151,12 @@ class UpgradeData implements UpgradeDataInterface
             $eavSetup->addAttribute(
                 Product::ENTITY,
                 'myparcel_digital_stamp',
-                [
-                    'group'                   => self::GROUP_NAME,
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'Fit in digital stamp',
-                    'input'                   => 'boolean',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => '0',
-                    'searchable'              => false,
-                    'filterable'              => false,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => true,
-                    'unique'                  => false,
-                    'apply_to'                => '',
-                ]
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'label'   => 'Fit in digital stamp',
+                        'input'   => 'boolean',
+                        'default' => '0',
+                    ]
+                )
             );
         }
 
@@ -212,28 +196,12 @@ class UpgradeData implements UpgradeDataInterface
             $eavSetup->addAttribute(
                 Product::ENTITY,
                 'myparcel_digital_stamp',
-                [
-                    'group'                   => self::GROUP_NAME,
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'Fit in digital stamp',
-                    'input'                   => 'boolean',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => '0',
-                    'searchable'              => true,
-                    'filterable'              => true,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => false,
-                    'unique'                  => false,
-                    'apply_to'                => '',
-                ]
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'label'   => 'Fit in digital stamp',
+                        'input'   => 'boolean',
+                        'default' => '0',
+                    ]
+                )
             );
 
             // Add attributes to the eav/attribute
@@ -273,29 +241,13 @@ class UpgradeData implements UpgradeDataInterface
             $eavSetup->addAttribute(
                 Product::ENTITY,
                 'myparcel_classification',
-                [
-                    'group'                   => self::GROUP_NAME,
-                    'note'                    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'HS code',
-                    'input'                   => 'text',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => '0',
-                    'searchable'              => false,
-                    'filterable'              => false,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => true,
-                    'unique'                  => false,
-                    'apply_to'                => '',
-                ]
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
+                        'label'   => 'HS code',
+                        'input'   => 'text',
+                        'default' => '0',
+                    ]
+                )
             );
 
             // Enable / Disable checkout with this product.
@@ -305,29 +257,13 @@ class UpgradeData implements UpgradeDataInterface
             $eavSetup->addAttribute(
                 Product::ENTITY,
                 'myparcel_disable_checkout',
-                [
-                    'group'                   => self::GROUP_NAME,
-                    'note'                    => 'With this option you can disable the delivery options for this product.',
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'Disable checkout with this product',
-                    'input'                   => 'boolean',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => 0,
-                    'searchable'              => false,
-                    'filterable'              => false,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => false,
-                    'unique'                  => false,
-                    'apply_to'                => '',
-                ]
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'With this option you can disable the delivery options for this product.',
+                        'label'   => 'Disable checkout with this product',
+                        'input'   => 'boolean',
+                        'default' => 0,
+                    ]
+                )
             );
 
             // Set a dropoff delay for this product.
