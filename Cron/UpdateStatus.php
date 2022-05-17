@@ -26,6 +26,7 @@ use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Services\Web\OrderWebService;
 
 class UpdateStatus
@@ -92,6 +93,14 @@ class UpdateStatus
      * Gets (max 300) orders from Magento that are eligible, gets the most recently updated orders from the api.
      * When the api order is one of the eligible Magento orders and it is shipped, adds the shipment in Magento.
      *
+     * NOTE: the 'reference_identifier' as returned by the api in the order object is the increment_id of the order,
+     * the order_id in the track table however is the entity_id, these are not necessarily the same (number).
+     *
+     * If the Magento order cannot be shipped by itself, track_number will be updated in the order table.
+     * If it can be shipped, the regular shipment routine will be followed, resulting in a shipment and track_number.
+     * NOTE: if the creation of the shipment fails (for instance when there is no msi-source), no further work is done,
+     * this means only on the following run the track_number is updated because the order cannot be shipped anymore.
+     *
      * @return $this
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
@@ -101,31 +110,35 @@ class UpdateStatus
      */
     private function updateStatusOrderbeheer(): self
     {
+        /**
+         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $magentoOrders
+         */
         $magentoOrders = $this->objectManager->get(self::PATH_MODEL_ORDER);
-        $magentoOrders->addFieldToSelect('increment_id')
+        $magentoOrders
+            ->addFieldToSelect('increment_id')
+            ->addFieldToSelect('entity_id')
             ->addAttributeToFilter('track_number', ['null' => true])
             ->addAttributeToFilter('track_status', self::ORDER_STATUS_EXPORTED)
             ->setPageSize(300)
             ->setOrder('increment_id', 'DESC');
 
         $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'increment_id'));
-        $apiOrders       = (new OrderWebService())->setApiKey($this->orderCollection->getApiKey())->getOrders();
+        $apiOrders       = OrderCollection::query($this->orderCollection->getApiKey());
         $orderIdsDone    = [];
 
-        foreach ($apiOrders as $apiOrder) {
-            $incrementId = $apiOrder['external_identifier'] ?? self::ORDER_ID_NOT_TO_PROCESS;
-            $shipments   = $apiOrder['order_shipments'] ?? [];
+        foreach ($apiOrders->getIterator() as $apiOrder) {
+            $incrementId = $apiOrder->getExternalIdentifier();
+            $shipment    = $apiOrder->getOrderShipments()[0]['shipment'] ?? null;
 
             if (! $incrementId
-                || ! $shipments
+                || ! $shipment
                 || isset($orderIdsDone[$incrementId])
                 || ! array_contains($orderIdsToCheck, $incrementId)) {
                 continue;
             }
 
             $orderIdsDone[$incrementId] = $incrementId;
-            $shipment                   = $shipments[0]['shipment'];
-            $barcode                    = $shipments[0]['external_shipment_identifier'] ?? TrackAndTrace::VALUE_PRINTED;
+            $barcode                    = $shipment['external_identifier'] ?? TrackAndTrace::VALUE_PRINTED;
 
             if (! $this->apiShipmentIsShipped($shipment)) {
                 continue;
@@ -137,6 +150,7 @@ class UpdateStatus
             if (! $magentoOrder->canShip()) {
                 $orderIdsDone[$incrementId] = self::ORDER_ID_NOT_TO_PROCESS;
 
+                $this->logger->notice('Order is shipped from backoffice but Magento will not create a shipment.');
                 $this->setShippedWithoutShipment($magentoOrder, $barcode);
             }
         }
@@ -147,7 +161,28 @@ class UpdateStatus
             return $this;
         }
 
-        $this->addOrdersToCollectionByIncrementId($orderIdsDone);
+        $orderIncrementIds = array_unique(array_values($orderIdsDone));
+        $index             = array_search(self::ORDER_ID_NOT_TO_PROCESS, $orderIncrementIds);
+        if (false !== $index) {
+            unset($orderIncrementIds[$index]);
+        }
+        $orderEntityIds    = [];
+        $arrayWithIdsArray = $magentoOrders->getData();
+
+        foreach ($arrayWithIdsArray as $arrayWithIds) {
+            if (! in_array($arrayWithIds['increment_id'], $orderIncrementIds)) {
+                continue;
+            }
+            $orderEntityIds[] = $arrayWithIds['entity_id'];
+        }
+
+        if (! $orderEntityIds) {
+            return $this;
+        }
+
+        $this->logger->notice(sprintf('Orderbeheer: update orders %s', implode(', ', $orderIncrementIds)));
+        $this->addOrdersToCollection($orderEntityIds);
+
         $this->orderCollection->setNewMagentoShipment(false)
             ->setMagentoTrack()
             ->setNewMyParcelTracks()
@@ -163,7 +198,8 @@ class UpdateStatus
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Exception
      */
-    private function updateStatusShipments(): self {
+    private function updateStatusShipments(): self
+    {
         $this->setOrdersToUpdate();
         $this->orderCollection
             ->syncMagentoToMyparcel()
@@ -254,24 +290,6 @@ class UpdateStatus
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
         $collection
             ->addAttributeToFilter('entity_id', ['in' => $orderIds])
-            ->addFieldToFilter('created_at', ['gteq' => $now->format('Y-m-d H:i:s')]);
-        $this->orderCollection->setOrderCollection($collection);
-    }
-
-    /**
-     * Get collection from order ids
-     *
-     * @param int[] $orderIds
-     */
-    private function addOrdersToCollectionByIncrementId(array $orderIds): void
-    {
-        /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
-         */
-        $now = new \DateTime('now -14 day');
-        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
-        $collection
-            ->addAttributeToFilter('increment_id', ['in' => $orderIds])
             ->addFieldToFilter('created_at', ['gteq' => $now->format('Y-m-d H:i:s')]);
         $this->orderCollection->setOrderCollection($collection);
     }

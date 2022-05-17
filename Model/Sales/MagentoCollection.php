@@ -24,8 +24,6 @@ use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
-use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
-use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 
 /**
  * Class MagentoOrderCollection

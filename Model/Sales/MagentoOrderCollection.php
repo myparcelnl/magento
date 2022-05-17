@@ -411,6 +411,10 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setLatestData(): self
     {
+        if ($this->myParcelCollection->isEmpty()) {
+            return $this;
+        }
+
         $this->myParcelCollection->setLatestData();
 
         return $this;
