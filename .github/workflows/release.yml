@@ -29,8 +29,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_REPO_TOKEN }}
 
-      - uses: peter-evans/repository-dispatch@v1
+      - uses: myparcelnl/actions/rebase@v2
         with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
-          event-type: rebase
-          client-payload: '{ "source": "main", "target": "develop" }'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          target: develop
