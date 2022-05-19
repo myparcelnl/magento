@@ -4,6 +4,7 @@ const {addExecPlugin, addGitHubPlugin, addGitPlugin} = require(
 );
 
 module.exports = {
+  ...mainConfig,
   extends: '@myparcel/semantic-release-config',
   plugins: [
     ...mainConfig.plugins,
