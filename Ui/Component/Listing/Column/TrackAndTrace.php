@@ -10,9 +10,11 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class TrackAndTrace extends Column
 {
-    public const NAME          = 'track_number';
-    public const VALUE_EMPTY   = '–';
-    private const KEY_POSTCODE = 0;
+    public const  NAME          = 'track_number';
+    public const  VALUE_EMPTY   = '–';
+    public const  VALUE_PRINTED = 'printed';
+    public const  VALUE_CONCEPT = 'concept';
+    private const KEY_POSTCODE  = 0;
 
     /**
      * Script tag to unbind the click event from the td wrapping the barcode link.
@@ -100,18 +102,24 @@ class TrackAndTrace extends Column
             $trackNumbers = explode('<br>', $trackNumbers);
         }
 
-        foreach($trackNumbers as $trackNumber) {
-            if (self::VALUE_EMPTY === $trackNumber) {
-                $html .= '-<br/>';
-                continue;
-            }
-            $trackTrace  = TrackTraceUrl::create($trackNumber, $postCode, $countryId);
+        foreach ($trackNumbers as $trackNumber) {
+            switch ($trackNumber) {
+                case null:
+                case self::VALUE_EMPTY:
+                    $html .= '-<br/>';
+                    break;
+                case self::VALUE_PRINTED:
+                    $html .= $trackNumber . '<br/>';
+                    break;
+                default:
+                    $trackTrace = TrackTraceUrl::create($trackNumber, $postCode, $countryId);
 
-            $html .= sprintf(
-                '<a class="myparcel-barcode-link" target="_blank" href="%1$s">%2$s</a><br/>',
-                $trackTrace,
-                $trackNumber
-            );
+                    $html .= sprintf(
+                        '<a class="myparcel-barcode-link" target="_blank" href="%1$s">%2$s</a><br/>',
+                        $trackTrace,
+                        $trackNumber
+                    );
+            }
         }
 
         return $html;

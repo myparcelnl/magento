@@ -9,6 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
@@ -105,8 +106,13 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
-        $this->orderCollection
-            ->setOptionsFromParameters()
+        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+            $this->orderCollection->setFulfilment();
+
+            return $this;
+        }
+
+        $this->orderCollection->setOptionsFromParameters()
             ->setNewMagentoShipment();
 
         $this->orderCollection->reload();
@@ -121,27 +127,22 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             return $this;
         }
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
-            $this->orderCollection->setFulfilment();
-        } else {
-            $this->orderCollection
-                ->syncMagentoToMyparcel()
-                ->setMagentoTrack()
-                ->setNewMyParcelTracks()
-                ->createMyParcelConcepts()
-                ->updateMagentoTrack();
+        $this->orderCollection->syncMagentoToMyparcel()
+            ->setMagentoTrack()
+            ->setNewMyParcelTracks()
+            ->createMyParcelConcepts()
+            ->updateMagentoTrack();
 
-            if ('concept' === $this->orderCollection->getOption('request_type')
-                || $this->orderCollection->myParcelCollection->isEmpty()) {
-                return $this;
-            }
-            $this->orderCollection
-                ->addReturnShipments()
-                ->setPdfOfLabels()
-                ->updateMagentoTrack()
-                ->sendTrackEmails()
-                ->downloadPdfOfLabels();
+        if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')
+            || $this->orderCollection->myParcelCollection->isEmpty()) {
+            return $this;
         }
+        $this->orderCollection->addReturnShipments()
+            ->setPdfOfLabels()
+            ->updateMagentoTrack()
+            ->sendTrackEmails()
+            ->downloadPdfOfLabels();
+
         return $this;
     }
 

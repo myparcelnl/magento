@@ -3,31 +3,26 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Module\Manager;
-use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\ResourceModel\Order as OrderResource;
+use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
-use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
+use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
-use MyParcelNL\Sdk\src\Services\Web\DropOffPointWebService;
 use MyParcelNL\Sdk\src\Support\Collection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 
@@ -44,16 +39,6 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private $orders = null;
 
-    /**
-     * @var \MyParcelNL\Magento\Model\Source\SourceItem
-     */
-    private $sourceItem = null;
-
-    /**
-     * @var \Magento\Framework\Module\Manager
-     */
-    private $moduleManager;
-
     private $order;
 
     /**
@@ -65,21 +50,6 @@ class MagentoOrderCollection extends MagentoCollection
      * @var \MyParcelNL\Sdk\src\Model\Recipient
      */
     private $shippingRecipient;
-
-    /**
-     * @param  ObjectManagerInterface                   $objectManager
-     * @param  \Magento\Framework\App\RequestInterface  $request
-     * @param  null                                     $areaList
-     */
-    public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
-    {
-        parent::__construct($objectManager, $request, $areaList);
-
-        $this->objectManager = $objectManager;
-        $this->moduleManager = $objectManager->get(Manager::class);
-
-        $this->setSourceItemWhenInventoryApiEnabled();
-    }
 
     /**
      * Get all Magento orders
@@ -131,13 +101,13 @@ class MagentoOrderCollection extends MagentoCollection
      * @throws \Exception
      * @throws LocalizedException
      */
-    public function setNewMagentoShipment(): MagentoOrderCollection
+    public function setNewMagentoShipment(bool $notifyClientsByEmail = true): MagentoOrderCollection
     {
         /** @var Order $order */
         /** @var Order\Shipment $shipment */
         foreach ($this->getOrders() as $order) {
             if ($order->canShip()) {
-                $this->createShipment($order);
+                $this->createMagentoShipment($order, $notifyClientsByEmail);
             }
         }
 
@@ -197,7 +167,7 @@ class MagentoOrderCollection extends MagentoCollection
                 $this->helper,
                 $magentoOrder,
                 $this->objectManager,
-                $deliveryOptions['carrier'],
+                $deliveryOptions['carrier'] ?? CarrierPostNL::NAME,
                 $this->options
             );
 
@@ -221,7 +191,6 @@ class MagentoOrderCollection extends MagentoCollection
 
             $this->setBillingRecipient();
             $this->setShippingRecipient();
-
             $order = (new FulfilmentOrder())
                 ->setStatus($this->order->getStatus())
                 ->setDeliveryOptions($deliveryOptionsAdapter)
@@ -270,11 +239,21 @@ class MagentoOrderCollection extends MagentoCollection
 
         try {
             $this->myParcelCollection = $orderCollection->save();
+            $this->setMagentoOrdersAsExported();
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
         return $this;
+    }
+
+    private function setMagentoOrdersAsExported(): void
+    {
+        foreach ($this->getOrders() as $magentoOrder) {
+            $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
+            $magentoOrder->setIsInProcess(true);
+            $this->objectManager->get(OrderResource::class)->save($magentoOrder);
+        }
     }
 
     /**
@@ -432,6 +411,10 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setLatestData(): self
     {
+        if ($this->myParcelCollection->isEmpty()) {
+            return $this;
+        }
+
         $this->myParcelCollection->setLatestData();
 
         return $this;
@@ -531,20 +514,10 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * This create a shipment. Observer/NewShipment() create Magento and MyParcel Track
-     *
-     * @param Order $order
-     *
-     * @return void
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    private function createShipment(Order $order)
+    public function createMagentoShipment(Order $order, bool $notifyClientByEmail = true): void
     {
-        /**
-         * @var Order\Shipment                     $shipment
-         * @var \Magento\Sales\Model\Convert\Order $convertOrder
-         */
-        // Initialize the order shipment object
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
         $shipment     = $convertOrder->toShipment($order);
 
@@ -555,34 +528,22 @@ class MagentoOrderCollection extends MagentoCollection
             $shipment->setExtensionAttributes($shipmentAttributes);
         }
 
-        // Loop through order items
         foreach ($order->getAllItems() as $orderItem) {
-            // Check if order item has qty to ship or is virtual
             if (! $orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                 continue;
             }
 
             $qtyShipped = $orderItem->getQtyToShip();
-
-            // Create shipment item with qty
             $shipmentItem = $convertOrder->itemToShipmentItem($orderItem)->setQty($qtyShipped);
-
-            // Add shipment item to shipment
             $shipment->addItem($shipmentItem);
         }
 
-        // Register shipment
         $shipment->register();
         $shipment->getOrder()->setIsInProcess(true);
 
         try {
-            // Save created shipment and order
-            $transaction = $this->objectManager->create('Magento\Framework\DB\Transaction');
-            $transaction->addObject($shipment)->addObject($shipment->getOrder())->save();
-
-            // Send email
-            $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
-                                ->notify($shipment);
+            $this->objectManager->get(ShipmentResource::class)->save($shipment);
+            $this->objectManager->get(OrderResource::class)->save($shipment->getOrder());
         } catch (\Exception $e) {
 
             if (preg_match('/' . MagentoOrderCollection::DEFAULT_ERROR_ORDER_HAS_NO_SOURCE . '/', $e->getMessage())) {
@@ -593,19 +554,10 @@ class MagentoOrderCollection extends MagentoCollection
 
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($e);
         }
-    }
 
-    /**
-     * Check if the module Magento_InventoryApi is activated.
-     * Some customers have removed the Magento_InventoryApi from their system.
-     * That causes problems with the Multi Stock Inventory
-     *
-     * @return void
-     */
-    private function setSourceItemWhenInventoryApiEnabled(): void
-    {
-        if ($this->moduleManager->isEnabled('Magento_InventoryApi')) {
-            $this->sourceItem = $this->objectManager->get(SourceItem::class);
+        if ($notifyClientByEmail) {
+            $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
+                ->notify($shipment);
         }
     }
 }
