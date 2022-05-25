@@ -12,10 +12,12 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
+use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
@@ -45,6 +47,16 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      * @var MyParcelCollection
      */
     public $myParcelCollection;
+
+    /**
+     * @var \Magento\Framework\Module\Manager
+     */
+    protected $moduleManager;
+
+    /**
+     * @var \MyParcelNL\Magento\Model\Source\SourceItem
+     */
+    protected $sourceItem;
 
     /**
      * @var \Magento\Framework\App\RequestInterface
@@ -100,27 +112,34 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     ];
 
     /**
-     * @param ObjectManagerInterface                  $objectManager
-     * @param \Magento\Framework\App\RequestInterface $request
-     * @param null                                    $areaList
+     * @param ObjectManagerInterface $objectManager
+     * @param null                   $request
+     * @param null                   $areaList
      */
-    public function __construct(ObjectManagerInterface $objectManager, $request = null, $areaList = null)
-    {
+    public function __construct(
+        ObjectManagerInterface $objectManager,
+                               $request = null,
+                               $areaList = null
+    ) {
         // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
         if ($areaList) {
             $this->areaList = $areaList;
         }
 
-        $this->objectManager = $objectManager;
-        $this->request       = $request;
-        $this->trackSender   = $this->objectManager->get('MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender');
-
+        $this->objectManager      = $objectManager;
+        $this->moduleManager      = $objectManager->get(Manager::class);
+        $this->request            = $request;
+        $this->trackSender        = $this->objectManager->get(
+            'MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender'
+        );
         $this->helper             = $objectManager->create(self::PATH_HELPER_DATA);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
             ['Magento2' => $this->helper->getVersion()]
         );
+
+        $this->setSourceItemWhenInventoryApiEnabled();
     }
 
     /**
@@ -674,5 +693,20 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         return ($consignment::CC_NL === $country || $consignment::CC_BE === $country)
             && CarrierPostNL::ID === $carrier
             && $consignment::PACKAGE_TYPE_PACKAGE === $package;
+    }
+
+    /**
+     * Check if the module Magento_InventoryApi is activated.
+     * Some customers have removed the Magento_InventoryApi from their system.
+     * That causes problems with the Multi Stock Inventory
+     *
+     * @return void
+     */
+    private function setSourceItemWhenInventoryApiEnabled(): void
+    {
+        if (! $this->moduleManager->isEnabled('Magento_InventoryApi')) {
+            return;
+        }
+        $this->sourceItem = $this->objectManager->get(SourceItem::class);
     }
 }
