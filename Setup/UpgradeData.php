@@ -15,6 +15,7 @@
 
 namespace MyParcelNL\Magento\Setup;
 
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Setup\CategorySetupFactory;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magento\Eav\Setup\EavSetup;
@@ -29,8 +30,27 @@ use Magento\Framework\Setup\UpgradeDataInterface;
  */
 class UpgradeData implements UpgradeDataInterface
 {
+    private const GROUP_NAME = 'MyParcel Options';
 
-    const groupName = 'MyParcel Options';
+    private const DEFAULT_ATTRIBUTES = [
+        'group'                   => self::GROUP_NAME,
+        'type'                    => 'int',
+        'backend'                 => '',
+        'frontend'                => '',
+        'class'                   => '',
+        'source'                  => '',
+        'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+        'visible'                 => true,
+        'required'                => false,
+        'user_defined'            => true,
+        'searchable'              => false,
+        'filterable'              => false,
+        'comparable'              => true,
+        'visible_on_front'        => false,
+        'used_in_product_listing' => true,
+        'unique'                  => false,
+        'apply_to'                => '',
+    ];
 
     /**
      * Category setup factory
@@ -78,7 +98,7 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 [
                     'type'                    => 'varchar',
@@ -114,8 +134,8 @@ class UpgradeData implements UpgradeDataInterface
             $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId);
 
             foreach ($attributeSetIds as $attributeSetId) {
-                $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::groupName, 19);
-                $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::groupName);
+                $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::GROUP_NAME, 19);
+                $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::GROUP_NAME);
 
                 // Add existing attribute to group
                 $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
@@ -129,30 +149,14 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_digital_stamp',
-                [
-                    'group'                   => self::groupName,
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'Fit in digital stamp',
-                    'input'                   => 'boolean',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => '0',
-                    'searchable'              => true,
-                    'filterable'              => true,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => true,
-                    'unique'                  => false,
-                    'apply_to'                => '',
-                ]
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'label'   => 'Fit in digital stamp',
+                        'input'   => 'boolean',
+                        'default' => '0',
+                    ]
+                )
             );
         }
 
@@ -162,7 +166,7 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_digital_stamp',
                 [
                     'visible'                 => false,
@@ -173,7 +177,7 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 [
                     'visible'                 => false,
@@ -190,38 +194,22 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_digital_stamp',
-                [
-                    'group'                   => self::groupName,
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'Fit in digital stamp',
-                    'input'                   => 'boolean',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => '0',
-                    'searchable'              => true,
-                    'filterable'              => true,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => false,
-                    'unique'                  => false,
-                    'apply_to'                => '',
-                ]
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'label'   => 'Fit in digital stamp',
+                        'input'   => 'boolean',
+                        'default' => '0',
+                    ]
+                )
             );
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => self::GROUP_NAME,
                     'type'                    => 'varchar',
                     'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
                     'label'                   => 'Fit in Mailbox',
@@ -251,31 +239,15 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_classification',
-                [
-                    'group'                   => self::groupName,
-                    'note'                    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'HS code',
-                    'input'                   => 'text',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => '0',
-                    'searchable'              => true,
-                    'filterable'              => true,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => true,
-                    'unique'                  => false,
-                    'apply_to'                => '',
-                ]
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
+                        'label'   => 'HS code',
+                        'input'   => 'text',
+                        'default' => '0',
+                    ]
+                )
             );
 
             // Enable / Disable checkout with this product.
@@ -283,31 +255,15 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_disable_checkout',
-                [
-                    'group'                   => self::groupName,
-                    'note'                    => 'With this option you can disable the delivery options for this product.',
-                    'type'                    => 'int',
-                    'backend'                 => '',
-                    'frontend'                => '',
-                    'label'                   => 'Disable checkout with this product',
-                    'input'                   => 'boolean',
-                    'class'                   => '',
-                    'source'                  => '',
-                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
-                    'visible'                 => true,
-                    'required'                => false,
-                    'user_defined'            => true,
-                    'default'                 => 0,
-                    'searchable'              => true,
-                    'filterable'              => true,
-                    'comparable'              => true,
-                    'visible_on_front'        => false,
-                    'used_in_product_listing' => false,
-                    'unique'                  => false,
-                    'apply_to'                => '',
-                ]
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'With this option you can disable the delivery options for this product.',
+                        'label'   => 'Disable checkout with this product',
+                        'input'   => 'boolean',
+                        'default' => 0,
+                    ]
+                )
             );
 
             // Set a dropoff delay for this product.
@@ -315,10 +271,10 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_dropoff_delay',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => self::GROUP_NAME,
                     'note'                    => 'This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.',
                     'type'                    => 'varchar',
                     'backend'                 => '',
@@ -372,8 +328,8 @@ class UpgradeData implements UpgradeDataInterface
                $attributeSetIds = $eavSetup->getAllAttributeSetIds($entityTypeId);
 
                foreach ($attributeSetIds as $attributeSetId) {
-                   $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::groupName, 19);
-                   $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::groupName);
+                   $eavSetup->addAttributeGroup($entityTypeId, $attributeSetId, self::GROUP_NAME, 19);
+                   $attributeGroupId = $eavSetup->getAttributeGroupId($entityTypeId, $attributeSetId, self::GROUP_NAME);
 
                    // Add existing attribute to group
                    $attributeId = $eavSetup->getAttributeId($entityTypeId, 'myparcel_fit_in_mailbox');
@@ -576,10 +532,10 @@ class UpgradeData implements UpgradeDataInterface
 
             // Add attributes to the eav/attribute
             $eavSetup->addAttribute(
-                \Magento\Catalog\Model\Product::ENTITY,
+                Product::ENTITY,
                 'myparcel_age_check',
                 [
-                    'group'                   => self::groupName,
+                    'group'                   => self::GROUP_NAME,
                     'note'                    => "The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery.",
                     'type'                    => 'varchar',
                     'backend'                 => '',
@@ -627,6 +583,48 @@ class UpgradeData implements UpgradeDataInterface
             $connection->delete($table, ['path = ?' => $insuranceBelgium]);
             $connection->insert($table, ['path' => $insuranceBelgium, 'value' => 1]);
         }
+
+        if (version_compare($context->getVersion(), '4.4.0', '<=')) {
+            $setup->startSetup();
+            $eavSetup
+                ->removeAttribute(Product::ENTITY, 'myparcel_digital_stamp')
+                ->removeAttribute(Product::ENTITY, 'myparcel_classification')
+                ->removeAttribute(Product::ENTITY, 'myparcel_disable_checkout');
+
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_digital_stamp',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'label'   => 'Fit in digital stamp',
+                        'input'   => 'boolean',
+                        'default' => '0',
+                    ]
+                )
+            )
+                ->addAttribute(
+                    Product::ENTITY,
+                    'myparcel_disable_checkout',
+                    array_merge(self::DEFAULT_ATTRIBUTES, [
+                            'note'    => 'With this option you can disable the delivery options for this product.',
+                            'label'   => 'Disable checkout with this product',
+                            'input'   => 'boolean',
+                            'default' => 0,
+                        ]
+                    )
+                )
+                ->addAttribute(
+                    Product::ENTITY,
+                    'myparcel_classification',
+                    array_merge(self::DEFAULT_ATTRIBUTES, [
+                            'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
+                            'label'   => 'HS code',
+                            'input'   => 'text',
+                            'default' => '0',
+                        ]
+                    )
+                );
+        }
+
         $setup->endSetup();
     }
 }
