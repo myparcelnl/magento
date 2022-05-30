@@ -34,6 +34,11 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
     /**
+     * @var \Magento\Backend\App\Action\Context
+     */
+    private $context;
+
+    /**
      * @var MagentoOrderCollection
      */
     private $orderCollection;
@@ -45,9 +50,10 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     public function __construct(Context $context)
     {
-        parent::__construct($context);
+        $this->context = $context;
+        parent::__construct($this->context);
 
-        $this->resultRedirectFactory = $context->getResultRedirectFactory();
+        $this->resultRedirectFactory = $this->context->getResultRedirectFactory();
         $this->orderCollection       = new MagentoOrderCollection(
             $context->getObjectManager(),
             $this->getRequest(),
