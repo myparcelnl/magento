@@ -247,5 +247,7 @@ manage_drop_off_point, Beheer jouw standaard afleverpunt in de
 location_page, locatiewijzer
 Without options,Zonder opties
 Options equal to shipment,Opties overnemen van heenzending
+Export to MyParcel, Exporteer naar MyParcel
+Already exported, Reeds geëxporteerd
 no_drop_off_point_instabox, Afleverpunt is vereist voor Instabox zendingen. Selecteer een afleverpunt in de MyParcel Backoffice en klik op de import knop in het algemene MyParcel settings overzicht.
 "Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.","Na het activeren van deze instelling wordt er bij het exporteren van elke zending automatisch een retour zending aangemaakt. Als je het label print wordt ook meteen het retour label geprint."
