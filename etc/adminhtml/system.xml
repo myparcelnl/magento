@@ -587,29 +587,6 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="pickup_mailbox" translate="label comment" type="select" sortOrder="366" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show pickup option</label>
-                    <comment>Show pickup option even when the package fits in mailbox</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="myparcelnl_magento_instabox_settings/pickup/active">1</field>
-                    </depends>
-                </field>
-            </group>
-            <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Pickup at Instabox location</label>
-                <field id="active" translate="label comment" type="select" sortOrder="405" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pickup active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="410" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pickup fee</label>
-                    <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
             </group>
             <group id="drop_off" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Drop-off point</label>
