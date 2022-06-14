@@ -3,10 +3,6 @@ const path = require('path');
 
 const [, , version] = process.argv;
 
-if (!version.match(/v\d+\.\d+\.\d+(?:-(?:alpha|beta))?/)) {
-  throw new Error('File must be called with version as argument.');
-}
-
 const rootDir = path.resolve(__dirname, '..');
 const parsedVersion = version.replace(/^v/, '');
 
@@ -31,15 +27,14 @@ const parsedVersion = version.replace(/^v/, '');
       contentsAsString = JSON.stringify(contents, null, 2);
       break;
     case 'xml':
-      contentsAsString = fs.readFileSync(filePath);
+      contentsAsString = fs.readFileSync(filePath).toString('utf-8');
 
-      oldVersion = contentsAsString.match(/setup_version="(\d+\.\d+\.\d+(?:-(?:alpha|beta))?)"/)[1];
-      contentsAsString =
-        contentsAsString.replace('setup_version="' + oldVersion + '"', 'setup_version="' + parsedVersion + '"');
+      const versionRegExp = /setup_version="(.+?)"/;
+      oldVersion = contentsAsString.match(versionRegExp)[1];
+      contentsAsString = contentsAsString.replace(`setup_version="${oldVersion}"`, `setup_version="${parsedVersion}"`);
       break;
   }
 
-  fs.writeFile(filePath, contentsAsString, () => {
-    console.log(`Changed version from \u{1b}[33m${oldVersion}\u{1b}[0m to \u{1b}[32m${parsedVersion}\u{1b}[0m in ${relativeFilePath}`);
-  });
+  fs.writeFileSync(filePath, contentsAsString.trim() + '\n');
+  console.log(`Changed version from \u{1b}[33m${oldVersion}\u{1b}[0m to \u{1b}[32m${parsedVersion}\u{1b}[0m in ${relativeFilePath}`);
 });
