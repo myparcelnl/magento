@@ -10,7 +10,7 @@ module.exports = {
     ...mainConfig.plugins,
     addGitHubPlugin(),
     addExecPlugin({
-      prepareCmd: 'node ./private/updateVersion.js ${nextRelease.version} && npm run build',
+      prepareCmd: 'node ./private/updateVersion.js ${nextRelease.version} && yarn build',
     }),
     addGitPlugin(),
   ],
