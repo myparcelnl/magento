@@ -17,11 +17,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: myparcelnl/actions/composer-install@v2
-        with:
-          php-version: '7.4'
-          tools: 'composer:v1'
-
       - uses: myparcelnl/actions/yarn-install@v2
 
       - uses: myparcelnl/actions/semantic-release@v2
