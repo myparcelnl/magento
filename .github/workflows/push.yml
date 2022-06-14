@@ -23,12 +23,6 @@ jobs:
         with:
           token: ${{ secrets.GH_REPO_TOKEN }}
 
-      - uses: myparcelnl/actions/rebase@v2
-        with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
-          base: main
-          target: develop
-
   rebase:
     name: 'Rebase develop onto main'
     needs: release
