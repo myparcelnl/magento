@@ -15,10 +15,16 @@ on:
 
   workflow_dispatch:
     inputs:
+      base:
+        type: string
+        description: 'Base branch'
+        default: 'develop'
+        required: true
+
       target:
         type: string
-        description: 'Target branch'
-        default: 'develop'
+        description: 'Target branch to update'
+        default: 'main'
         required: true
 
   repository_dispatch:
