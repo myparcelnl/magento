@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@myparcel/eslint-config": "^3.0.2",
+    "@myparcel/semantic-release-config": "^3.0.0",
     "@types/knockout": "^3.4.66"
   }
 }
