@@ -17,14 +17,15 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template\Context;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
 class NewShipment extends AbstractItems
 {
@@ -46,17 +47,7 @@ class NewShipment extends AbstractItems
     /**
      * @var \MyParcelNL\Magento\Block\Sales\NewShipmentForm
      */
-    private $form;
-
-    /**
-     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
-     */
-    private MagentoOrderCollection $orderCollection;
-
-    /**
-     * @var mixed
-     */
-    private $request;
+    private  $form;
 
     /**
      * @param \Magento\Backend\Block\Template\Context                   $context
@@ -83,7 +74,7 @@ class NewShipment extends AbstractItems
         );
 
         $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
+        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
@@ -176,5 +167,13 @@ class NewShipment extends AbstractItems
     public function getNewShipmentForm(): NewShipmentForm
     {
         return $this->form;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOrderManagementEnabled(): bool
+    {
+        return TrackTraceHolder::EXPORT_MODE_PPS == $this->orderCollection->getExportMode();
     }
 }
