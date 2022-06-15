@@ -14,7 +14,7 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
         type="checkbox"
         checked="checked" />
     <label class="admin__field-label" for="mypa_create_from_observer">
-        <span><?= __('Create MyParcel consignment') ?></span>
+        <span><?= ($block->isOrderManagementEnabled()) ? __('Export Entire Order') : __('Create MyParcel consignment') ?></span>
     </label>
 </div>
 <?php
