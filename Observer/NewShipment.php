@@ -90,6 +90,12 @@ class NewShipment implements ObserverInterface
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
+
+        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+            $this->exportEntireOrder($shipment);
+            return;
+        }
+
         $amount  = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
 
         /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
@@ -141,6 +147,25 @@ class NewShipment implements ObserverInterface
         }
 
         $this->updateTrackGrid($shipment);
+    }
+
+    /**
+     * @param $shipment
+     *
+     * @return void
+     * @throws \Exception
+     */
+    private function exportEntireOrder($shipment): void
+    {
+        $orderId = $shipment->getOrderId();
+
+        /**
+         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+         */
+        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection->addAttributeToFilter('entity_id', ['in' => $orderId]);
+        $this->orderCollection->setOrderCollection($collection);
+        $this->orderCollection->setFulfilment();
     }
 
     /**
