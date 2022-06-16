@@ -149,7 +149,7 @@ class TrackTraceHolder
         $address                        = $shipment->getShippingAddress();
         $order                          = $shipment->getOrder();
         $checkoutData                   = $order->getData('myparcel_delivery_options');
-        $deliveryOptions                = json_decode($checkoutData, true);
+        $deliveryOptions                = $checkoutData ? json_decode($checkoutData, true) : [];
         $deliveryOptions['packageType'] = $options['package_type'];
         $deliveryOptions['carrier']     = $this->getCarrierFromOptions($options)
             ?? $deliveryOptions['carrier']
