@@ -89,12 +89,13 @@ class NewShipment implements ObserverInterface
      */
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
+        $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
+
         if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
             $this->exportEntireOrder($shipment);
             return;
         }
 
-        $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
         $amount  = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
 
         /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
