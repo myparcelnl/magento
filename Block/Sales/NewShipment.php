@@ -47,7 +47,17 @@ class NewShipment extends AbstractItems
     /**
      * @var \MyParcelNL\Magento\Block\Sales\NewShipmentForm
      */
-    private  $form;
+    private $form;
+
+    /**
+     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
+     */
+    private MagentoOrderCollection $orderCollection;
+
+    /**
+     * @var mixed
+     */
+    private $request;
 
     /**
      * @param \Magento\Backend\Block\Template\Context                   $context
