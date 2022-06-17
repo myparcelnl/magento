@@ -62,9 +62,9 @@ class DefaultOptions
     {
         self::$helper = $helper;
         self::$order  = $order;
-        $options = self::$order->getData(Checkout::FIELD_DELIVERY_OPTIONS);
+        $options = self::$order->getData(Checkout::FIELD_DELIVERY_OPTIONS) ?? '';
 
-        self::$chosenOptions = $options ? json_decode($options, true) : [];
+        self::$chosenOptions = json_decode($options, true) ?? [];
     }
 
     /**
