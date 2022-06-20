@@ -634,7 +634,7 @@ class UpgradeData implements UpgradeDataInterface
         }
 
 
-        if (version_compare($context->getVersion(), '4.4.1', '<=')) {
+        if (version_compare($context->getVersion(), '4.6.0', '<=')) {
             $setup->startSetup();
 
             // Run once for replacing all the values from percent to amount of products
