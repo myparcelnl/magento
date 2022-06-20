@@ -55,7 +55,7 @@ class Package extends Data implements PackageInterface
     /**
      * @var int
      */
-    private $mailboxPercentage = 0;
+    private $mailboxItems = 0;
 
     /**
      * @var bool
@@ -145,19 +145,19 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param float $percentage
+     * @param int $items
      */
-    public function setMailboxPercentage(float $percentage): void
+    public function setMailboxItems(int $items): void
     {
-        $this->mailboxPercentage = $percentage;
+        $this->mailboxItems = $items;
     }
 
     /**
      * @return bool
      */
-    public function getMailboxPercentage(): bool
+    public function getMailboxItems(): bool
     {
-        return $this->mailboxPercentage;
+        return $this->mailboxItems;
     }
 
     /**
