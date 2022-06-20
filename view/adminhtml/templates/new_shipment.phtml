@@ -2,7 +2,9 @@
 /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */
 
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 
+$magentoOrderCollection = new MagentoOrderCollection();
 ?>
 <input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden" /><!-- MyParcel options -->
 <div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
@@ -14,7 +16,7 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
         type="checkbox"
         checked="checked" />
     <label class="admin__field-label" for="mypa_create_from_observer">
-        <span><?= ($block->isOrderManagementEnabled()) ? __('Export Entire Order') : __('Create MyParcel consignment') ?></span>
+        <span><?= ($magentoOrderCollection->isOrderManagementEnabled()) ? __('Export Entire Order') : __('Create MyParcel consignment') ?></span>
     </label>
 </div>
 <?php

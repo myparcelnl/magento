@@ -83,7 +83,7 @@ class NewShipment extends AbstractItems
         );
 
         $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
+        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
@@ -176,13 +176,5 @@ class NewShipment extends AbstractItems
     public function getNewShipmentForm(): NewShipmentForm
     {
         return $this->form;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isOrderManagementEnabled(): bool
-    {
-        return TrackTraceHolder::EXPORT_MODE_PPS == $this->orderCollection->getExportMode();
     }
 }

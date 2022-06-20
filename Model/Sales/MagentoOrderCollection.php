@@ -25,6 +25,7 @@ use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
 
 /**
@@ -559,5 +560,15 @@ class MagentoOrderCollection extends MagentoCollection
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
                 ->notify($shipment);
         }
+    }
+
+    /**
+     * @param $orderCollection
+     *
+     * @return bool
+     */
+    public function isOrderManagementEnabled($orderCollection): bool
+    {
+        return TrackTraceHolder::EXPORT_MODE_PPS === $orderCollection->getExportMode();
     }
 }

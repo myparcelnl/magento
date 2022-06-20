@@ -90,8 +90,9 @@ class NewShipment implements ObserverInterface
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
         $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
+        $magentoOrderCollection = new MagentoOrderCollection();
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+        if ($magentoOrderCollection->isOrderManagementEnabled($this->orderCollection)) {
             $this->exportEntireOrder($shipment);
             return;
         }
