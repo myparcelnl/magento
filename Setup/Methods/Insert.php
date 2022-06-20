@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Setup\Methods;
 
 use MyParcelNL\Magento\Setup\Methods\Interfaces\QueryInterface;
@@ -35,7 +37,7 @@ class Insert implements QueryInterface
     public function __toString(): string
     {
         return 'INSERT INTO ' . $this->table
-            . ' (' . implode(', ',$this->columns) . ') VALUES (' . implode(', ',$this->values) . ')';
+            . ' (' . implode(', ', $this->columns) . ') VALUES (' . implode(', ', $this->values) . ')';
     }
 
     /**

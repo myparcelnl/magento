@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Setup;
 
 use \Magento\Framework\App\ObjectManager;
@@ -69,25 +71,24 @@ class ReplaceFitInMailbox
             // Update the old attribute value to copy it to the new attribute later
             $query = $this->queryBuilder
                 ->update('catalog_product_entity_int')
-                ->set('value', $this->calculatePercentToValue($entity))
+                ->set('value', (string) $this->calculatePercentToValue($entity))
                 ->where('value_id = '. $entity['value_id']);
             $connection->query($query);
         }
     }
-
 
     /**
      * @param $entity
      *
      * @return float
      */
-    private function calculatePercentToValue($entity)
+    private function calculatePercentToValue($entity): float
     {
         return round((100 / $entity['value']));
     }
 
 
-    public function writeNewAttributeEntity()
+    public function writeNewAttributeEntity(): void
     {
         $connection = $this->resourceConnection();
 
@@ -119,5 +120,4 @@ class ReplaceFitInMailbox
             $connection->query($query);
         }
     }
-
 }

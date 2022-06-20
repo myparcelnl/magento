@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Setup\Methods;
 
 use MyParcelNL\Magento\Setup\Methods\Interfaces\QueryInterface;
@@ -50,7 +52,8 @@ class Update implements QueryInterface
     }
 
     /**
-     * @param  string ...$columns
+     * @param  string $key
+     * @param  string $value
      *
      * @return $this
      */

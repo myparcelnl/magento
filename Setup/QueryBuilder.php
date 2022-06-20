@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Setup;
 
 use MyParcelNL\Magento\Setup\Methods\Select;
@@ -12,7 +14,7 @@ class QueryBuilder
     /**
      * @param  string ...$select
      *
-     * @return \MyParcelNL\Magento\Setup\Select
+     * @return \MyParcelNL\Magento\Setup\Methods\Select
      */
     public static function select(string ...$select): Select
     {
@@ -22,7 +24,7 @@ class QueryBuilder
     /**
      * @param  string $into
      *
-     * @return \MyParcelNL\Magento\Setup\Insert
+     * @return \MyParcelNL\Magento\Setup\Methods\Insert
      */
     public static function insert(string $into): Insert
     {
@@ -32,7 +34,7 @@ class QueryBuilder
     /**
      * @param  string $table
      *
-     * @return \MyParcelNL\Magento\Setup\Update
+     * @return \MyParcelNL\Magento\Setup\Methods\Update
      */
     public static function update(string $table): Update
     {
@@ -42,7 +44,7 @@ class QueryBuilder
     /**
      * @param  string $table
      *
-     * @return \MyParcelNL\Magento\Setup\Delete
+     * @return \MyParcelNL\Magento\Setup\Methods\Delete
      */
     public static function delete(string $table): Delete
     {

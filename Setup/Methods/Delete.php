@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Setup\Methods;
 
 use MyParcelNL\Magento\Setup\Methods\Interfaces\QueryInterface;
@@ -29,7 +31,12 @@ class Delete implements QueryInterface
      */
     public function __toString(): string
     {
-        return 'DELETE FROM ' . $this->table . ($this->conditions === [] ? '' : ' WHERE ' . implode(' AND ', $this->conditions));
+        return 'DELETE FROM ' . $this->table . ($this->conditions === []
+                ? ''
+                : ' WHERE ' . implode(
+                    ' AND ',
+                    $this->conditions
+                ));
     }
 
     /**

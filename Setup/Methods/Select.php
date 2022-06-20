@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Setup\Methods;
 
 use MyParcelNL\Magento\Setup\Methods\Interfaces\QueryInterface;
@@ -72,13 +74,15 @@ class Select implements QueryInterface
      */
     public function __toString(): string
     {
-        return trim('SELECT ' . ($this->distinct === true ? 'DISTINCT ' : '') . implode(', ', $this->fields)
+        return trim(
+            'SELECT ' . ($this->distinct === true ? 'DISTINCT ' : '') . implode(', ', $this->fields)
             . ' FROM ' . implode(', ', $this->from)
-            . ($this->join === [] ? '' :  implode(' ', $this->join))
+            . ($this->join === [] ? '' : implode(' ', $this->join))
             . ($this->conditions === [] ? '' : ' WHERE ' . implode(' AND ', $this->conditions))
             . ($this->groupBy === [] ? '' : ' GROUP BY ' . implode(', ', $this->groupBy))
             . ($this->order === [] ? '' : ' ORDER BY ' . implode(', ', $this->order))
-            . ($this->limit === null ? '' : ' LIMIT ' . $this->limit));
+            . ($this->limit === null ? '' : ' LIMIT ' . $this->limit)
+        );
     }
 
     /**
