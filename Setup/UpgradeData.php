@@ -23,6 +23,7 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
+use MyParcelNL\Magento\Setup\ReplaceFitInMailbox;
 
 /**
  * Upgrade Data script
@@ -67,22 +68,29 @@ class UpgradeData implements UpgradeDataInterface
     private $eavSetupFactory;
 
     /**
+     * @var \MyParcelNL\Magento\Setup\ReplaceFitInMailbox
+     */
+    private $replaceFitInMailbox;
+
+    /**
      * Init
      *
      * @param \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory
      * @param EavSetupFactory                             $eavSetupFactory
      */
-    public function __construct(\Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory, EavSetupFactory $eavSetupFactory)
+    public function __construct(\Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory, EavSetupFactory $eavSetupFactory, ReplaceFitInMailbox $replaceFitInMailbox)
     {
         $this->categorySetupFactory = $categorySetupFactory;
         $this->eavSetupFactory      = $eavSetupFactory;
+        $this->replaceFitInMailbox  = $replaceFitInMailbox;
     }
 
     /**
      * Upgrades data for a module
      *
-     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $setup
-     * @param \Magento\Framework\Setup\ModuleContextInterface   $context
+     * @param  \Magento\Framework\Setup\ModuleDataSetupInterface $setup
+     * @param  \Magento\Framework\Setup\ModuleContextInterface   $context
+     * @throws \Exception
      */
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
@@ -213,7 +221,7 @@ class UpgradeData implements UpgradeDataInterface
                     'type'                    => 'varchar',
                     'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
                     'label'                   => 'Fit in Mailbox',
-                    'input'                   => 'select',
+                    'input'                   => 'input',
                     'class'                   => '',
                     'source'                  => 'MyParcelNL\Magento\Model\Source\FitInMailboxOptions',
                     'global'                  => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
@@ -623,6 +631,31 @@ class UpgradeData implements UpgradeDataInterface
                         ]
                     )
                 );
+        }
+
+
+        if (version_compare($context->getVersion(), '4.4.1', '<=')) {
+            $setup->startSetup();
+
+            // Run once for replacing all the values from percent to amount of products
+            $this->replaceFitInMailbox->updateCatalogProductEntity();
+
+            $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_fit_in_mailbox');
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_fit_in_mailbox',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'Fill in the amount of times the product will fit in the mailbox. If you want to look to the weight fill in 0.',
+                        'label'   => 'Fit in Mailbox',
+                        'input'   => 'text',
+                        'default' => '101',
+                        'group'   => self::GROUP_NAME
+                    ]
+                )
+            );
+
+            // Put the values to the new entity
+            $this->replaceFitInMailbox->writeNewAttributeEntity();
         }
 
         $setup->endSetup();

@@ -125,17 +125,17 @@ class PackageRepository extends Package
      */
     public function fitInMailbox($product, int $mailbox): bool
     {
-        $mailboxPercentage    = $this->getMailboxPercentage() + $mailbox * $product->getQty();
+        $maximumMailboxItems  = $this->getMailboxItems() + $mailbox * $product->getQty();
         $maximumMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
         $orderWeight          = $this->getWeightTypeOfOption($this->getWeight());
         if (
             $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
             $this->isMailboxActive() &&
             $orderWeight &&
-            ($mailboxPercentage === 0 || $mailboxPercentage <= 100) &&
+            $product->getQty() <= $mailbox &&
             $orderWeight <= $maximumMailboxWeight
         ) {
-            $this->setMailboxPercentage($mailboxPercentage);
+            $this->setMailboxItems($maximumMailboxItems);
 
             return true;
         }
