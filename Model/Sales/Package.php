@@ -145,7 +145,9 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param int $percentage
+     * @param  float $percentage
+     *
+     * @return void
      */
     public function setMailboxPercentage(float $percentage): void
     {
