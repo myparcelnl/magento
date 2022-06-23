@@ -43,10 +43,9 @@ class ReplaceFitInMailbox
     private function resourceConnection(): object
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
         return $resource->getConnection();
     }
-
 
     /**
      * @return void
@@ -56,15 +55,20 @@ class ReplaceFitInMailbox
     {
         $connection = $this->resourceConnection();
 
-        $query = $this->queryBuilder
-            ->select('catalog_product_entity_varchar.entity_id', 'catalog_product_entity_varchar.value_id', 'catalog_product_entity_varchar.value', 'eav_attribute.attribute_id')
+        $query   = $this->queryBuilder
+            ->select(
+                'catalog_product_entity_varchar.entity_id',
+                'catalog_product_entity_varchar.value_id',
+                'catalog_product_entity_varchar.value',
+                'eav_attribute.attribute_id'
+            )
             ->from('catalog_product_entity', 'product ')
             ->leftJoin('catalog_product_entity_varchar ON product.entity_id = catalog_product_entity_varchar.entity_id')
-            ->leftJoin('eav_attribute ON "'. $this->attributeName .'" = eav_attribute.attribute_code')
+            ->leftJoin('eav_attribute ON "' . $this->attributeName . '" = eav_attribute.attribute_code')
             ->where('catalog_product_entity_varchar.attribute_id = eav_attribute.attribute_id');
         $results = $connection->fetchAll($query);
 
-        foreach($results as $entity) {
+        foreach ($results as $entity) {
             // Set the old attribute id to use it later
             $this->oldEavAttributeId = $entity['attribute_id'];
 
@@ -72,7 +76,7 @@ class ReplaceFitInMailbox
             $query = $this->queryBuilder
                 ->update('catalog_product_entity_varchar')
                 ->set('value', (string) $this->calculatePercentToValue($entity))
-                ->where('value_id = '. $entity['value_id']);
+                ->where('value_id = ' . $entity['value_id']);
             $connection->query($query);
         }
     }
@@ -95,31 +99,20 @@ class ReplaceFitInMailbox
         $connection = $this->resourceConnection();
 
         // Retrieve the new eav_attribute id
-        $query = $this->queryBuilder
+        $query  = $this->queryBuilder
             ->select('*')
             ->from('eav_attribute')
-            ->where('eav_attribute.attribute_code = "'. $this->attributeName .'"');
+            ->where('eav_attribute.attribute_code = "' . $this->attributeName . '"');
         $result = $connection->fetchRow($query);
 
         // Set the new eav_attribute -> id
         $this->newEavAttributeId = $result['attribute_id'];
 
-        // Update the new fields of the last set eav_attribute
+        // Update the old attribute value to copy it to the new attribute later
         $query = $this->queryBuilder
-            ->select('catalog_product_entity_varchar.entity_id', 'catalog_product_entity_varchar.value', 'eav_attribute.attribute_id')
-            ->from('catalog_product_entity', 'product ')
-            ->leftJoin('catalog_product_entity_varchar ON product.entity_id = catalog_product_entity_varchar.entity_id')
-            ->leftJoin('eav_attribute ON "'. $this->attributeName .'" = eav_attribute.attribute_code')
-            ->where('catalog_product_entity_varchar.attribute_id = '. $this->oldEavAttributeId);
-        $results = $connection->fetchAll($query);
-
-        foreach($results as $entity) {
-            // Update the old attribute value to copy it to the new attribute later
-            $query = $this->queryBuilder
-                ->update('catalog_product_entity_varchar')
-                ->set('attribute_id', $this->newEavAttributeId)
-                ->where('attribute_id = '. $this->oldEavAttributeId);
-            $connection->query($query);
-        }
+            ->update('catalog_product_entity_varchar')
+            ->set('attribute_id', $this->newEavAttributeId)
+            ->where('attribute_id = ' . $this->oldEavAttributeId);
+        $connection->query($query);
     }
 }

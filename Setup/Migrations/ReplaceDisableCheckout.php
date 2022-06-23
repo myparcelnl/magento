@@ -43,7 +43,7 @@ class ReplaceDisableCheckout
     private function resourceConnection(): object
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
         return $resource->getConnection();
     }
 
@@ -57,7 +57,7 @@ class ReplaceDisableCheckout
         $query = $this->queryBuilder
             ->select('*')
             ->from('eav_attribute')
-            ->where('eav_attribute.attribute_code = "'. $this->attributeName .'"');
+            ->where('eav_attribute.attribute_code = "' . $this->attributeName . '"');
 
         $this->oldEavAttributeId = $connection->fetchOne($query);
     }
@@ -73,28 +73,17 @@ class ReplaceDisableCheckout
         $query = $this->queryBuilder
             ->select('*')
             ->from('eav_attribute')
-            ->where('eav_attribute.attribute_code = "'. $this->attributeName .'"');
+            ->where('eav_attribute.attribute_code = "' . $this->attributeName . '"');
 
         // Set the new attribute ID
         $this->newEavAttributeId = $connection->fetchOne($query);
 
-        // Update the new fields of the last set eav_attribute
+        // Update the old attribute value to copy it to the new attribute later
         $query = $this->queryBuilder
-            ->select('catalog_product_entity_int.entity_id', 'catalog_product_entity_int.value', 'eav_attribute.attribute_id')
-            ->from('catalog_product_entity', 'product ')
-            ->leftJoin('catalog_product_entity_int ON product.entity_id = catalog_product_entity_int.entity_id')
-            ->leftJoin('eav_attribute ON "'. $this->attributeName .'" = eav_attribute.attribute_code')
-            ->where('catalog_product_entity_int.attribute_id = '. $this->oldEavAttributeId);
-        $results = $connection->fetchAll($query);
-
-        foreach($results as $entity) {
-            // Update the old attribute value to copy it to the new attribute later
-            $query = $this->queryBuilder
-                ->update('catalog_product_entity_int')
-                ->set('attribute_id', $this->newEavAttributeId)
-                ->where('attribute_id = '. $this->oldEavAttributeId);
-            $connection->query($query);
-        }
+            ->update('catalog_product_entity_int')
+            ->set('attribute_id', (string) $this->newEavAttributeId)
+            ->where('attribute_id = ' . $this->oldEavAttributeId);
+        $connection->query($query);
     }
 
 }

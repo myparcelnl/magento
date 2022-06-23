@@ -662,14 +662,13 @@ class UpgradeData implements UpgradeDataInterface
                         'label'   => 'Fit in Mailbox',
                         'input'   => 'text',
                         'default' => '101',
-                        'group'   => self::GROUP_NAME
+                        'group'   => self::GROUP_NAME,
                     ]
                 )
             );
 
             // Put the values to the new entity
             $this->replaceFitInMailbox->writeNewAttributeEntity();
-
 
             // -> Other attribute
             // Run once to index the old eavAttribute
