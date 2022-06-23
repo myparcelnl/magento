@@ -657,6 +657,7 @@ class UpgradeData implements UpgradeDataInterface
                 Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'type'    => 'varchar',
                         'note'    => 'Fill in the amount of times the product will fit in the mailbox. If you want to look to the weight fill in 0.',
                         'label'   => 'Fit in Mailbox',
                         'input'   => 'text',
@@ -668,6 +669,27 @@ class UpgradeData implements UpgradeDataInterface
 
             // Put the values to the new entity
             $this->replaceFitInMailbox->writeNewAttributeEntity();
+
+
+            // -> Other attribute
+            // Run once to index the old eavAttribute
+            $this->replaceDisableCheckout->indexOldAttribute();
+
+            $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_disable_checkout');
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_disable_checkout',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'With this option you can disable the delivery options if this product is in the cart.',
+                        'label'   => 'Disable delivery options',
+                        'input'   => 'boolean',
+                        'default' => 0,
+                    ]
+                )
+            );
+
+            // Put all the values to the new entity
+            $this->replaceDisableCheckout->writeNewAttributeEntity();
         }
 
         $setup->endSetup();
