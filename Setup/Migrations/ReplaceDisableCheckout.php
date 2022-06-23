@@ -44,6 +44,7 @@ class ReplaceDisableCheckout
     {
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
         $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+
         return $resource->getConnection();
     }
 
