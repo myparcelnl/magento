@@ -17,7 +17,6 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template\Context;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
@@ -84,7 +83,7 @@ class NewShipment extends AbstractItems
         );
 
         $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
+        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
@@ -184,6 +183,6 @@ class NewShipment extends AbstractItems
      */
     public function isOrderManagementEnabled(): bool
     {
-        return TrackTraceHolder::EXPORT_MODE_PPS == $this->orderCollection->getExportMode();
+        return TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode();
     }
 }

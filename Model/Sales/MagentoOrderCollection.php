@@ -562,13 +562,4 @@ class MagentoOrderCollection extends MagentoCollection
         }
     }
 
-    /**
-     * @param $orderCollection
-     *
-     * @return bool
-     */
-    public function isOrderManagementEnabled($orderCollection): bool
-    {
-        return TrackTraceHolder::EXPORT_MODE_PPS === $orderCollection->getExportMode();
-    }
 }
