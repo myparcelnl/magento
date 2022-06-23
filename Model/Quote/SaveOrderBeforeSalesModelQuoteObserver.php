@@ -92,7 +92,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         }
 
         if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS) && $this->hasMyParcelDeliveryOptions($quote)) {
-            $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS);
+            $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS) ?? '';
             $deliveryOptions     = json_decode($jsonDeliveryOptions, true) ?? [];
 
             $order->setData(Checkout::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);

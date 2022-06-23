@@ -285,7 +285,7 @@ class ShipmentOptions
         }
 
         $productInfo      = $this->getItemsCollectionByShipmentId($this->order->getId());
-        $deliveryDate     = date('d-m-Y', strtotime($this->helper->convertDeliveryDate($checkoutData)));
+        $deliveryDate     = $checkoutData ? date('d-m-Y', strtotime($this->helper->convertDeliveryDate($checkoutData))) : null;
         $labelDescription = str_replace(
             [
                 self::ORDER_NUMBER,
@@ -299,7 +299,7 @@ class ShipmentOptions
                 $this->helper->convertDeliveryDate($checkoutData) ? $deliveryDate : '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
-                round($this->getProductInfo($productInfo, 'qty'), 0),
+                $productInfo ? round($this->getProductInfo($productInfo, 'qty')) : null,
             ],
             $labelDescription
         );
