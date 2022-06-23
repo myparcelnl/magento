@@ -25,7 +25,8 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
-use MyParcelNL\Magento\Setup\ReplaceFitInMailbox;
+use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
+use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 
 /**
  * Upgrade Data script
@@ -70,21 +71,31 @@ class UpgradeData implements UpgradeDataInterface
     private $eavSetupFactory;
 
     /**
-     * @var \MyParcelNL\Magento\Setup\ReplaceFitInMailbox
+     * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox
      */
-    private $replaceFitInMailbox;
+    private ReplaceFitInMailbox $replaceFitInMailbox;
 
     /**
-     * Init
-     *
-     * @param \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory
-     * @param EavSetupFactory                             $eavSetupFactory
+     * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout
      */
-    public function __construct(\Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory, EavSetupFactory $eavSetupFactory, ReplaceFitInMailbox $replaceFitInMailbox)
-    {
-        $this->categorySetupFactory = $categorySetupFactory;
-        $this->eavSetupFactory      = $eavSetupFactory;
-        $this->replaceFitInMailbox  = $replaceFitInMailbox;
+    private ReplaceDisableCheckout $replaceDisableCheckout;
+
+    /**
+     * @param  \Magento\Catalog\Setup\CategorySetupFactory                 $categorySetupFactory
+     * @param  \Magento\Eav\Setup\EavSetupFactory                          $eavSetupFactory
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout $replaceDisableCheckout
+     */
+    public function __construct(
+        \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
+        EavSetupFactory $eavSetupFactory,
+        ReplaceFitInMailbox $replaceFitInMailbox,
+        ReplaceDisableCheckout $replaceDisableCheckout
+    ) {
+        $this->categorySetupFactory   = $categorySetupFactory;
+        $this->eavSetupFactory        = $eavSetupFactory;
+        $this->replaceFitInMailbox    = $replaceFitInMailbox;
+        $this->replaceDisableCheckout = $replaceDisableCheckout;
     }
 
     /**
@@ -634,7 +645,6 @@ class UpgradeData implements UpgradeDataInterface
                     )
                 );
         }
-
 
         if (version_compare($context->getVersion(), '4.6.0', '<=')) {
             $setup->startSetup();

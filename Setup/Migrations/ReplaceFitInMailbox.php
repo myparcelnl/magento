@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Setup;
+namespace MyParcelNL\Magento\Setup\Migrations;
 
-use \Magento\Framework\App\ObjectManager;
+use MyParcelNL\Magento\Setup\QueryBuilder;
 
 class ReplaceFitInMailbox
 {
@@ -87,7 +87,9 @@ class ReplaceFitInMailbox
         return round((100 / $entity['value']));
     }
 
-
+    /**
+     * @return void
+     */
     public function writeNewAttributeEntity(): void
     {
         $connection = $this->resourceConnection();
