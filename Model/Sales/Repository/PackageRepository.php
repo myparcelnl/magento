@@ -125,7 +125,9 @@ class PackageRepository extends Package
      */
     public function fitInMailbox($product, int $mailbox): bool
     {
-        $productPercentage = 100 / $mailbox * $product->getQty();
+        if (!empty($mailbox) && !empty($product->getQty())) {
+            $productPercentage = 100 / $mailbox * $product->getQty();
+        }
 
         $mailboxPercentage    = $this->getMailboxPercentage() + $productPercentage;
         $maximumMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
