@@ -89,26 +89,21 @@ class NewShipment implements ObserverInterface
      */
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
-        $options = $this->orderCollection->setOptionsFromParameters()->getOptions();
+        $options = $this->orderCollection->setOptionsFromParameters()
+            ->getOptions();
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
-            $this->exportEntireOrder($shipment);
-            return;
+        if (isset($options['carrier']) && false === $options['carrier']) {
+            unset($options['carrier']);
         }
 
-        $amount  = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
+        $amount = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
 
         /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
         $useMultiCollo     = false;
 
-        if (isset($options['carrier']) && false === $options['carrier']) {
-            unset($options['carrier']);
-        }
-
         while ($i <= $amount) {
-
             // Set MyParcel options
             $trackTraceHolder = (new TrackTraceHolder($this->objectManager, $this->helper, $shipment->getOrder()))
                 ->createTrackTraceFromShipment($shipment);
@@ -134,6 +129,12 @@ class NewShipment implements ObserverInterface
             );
         }
 
+        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+            $this->exportEntireOrder($shipment);
+            $this->updateTrackGrid($shipment, true);
+            return;
+        }
+
         $this->orderCollection->myParcelCollection
             ->createConcepts()
             ->setLatestData();
@@ -146,7 +147,7 @@ class NewShipment implements ObserverInterface
             $shipment->addTrack($trackTraceHolder->mageTrack);
         }
 
-        $this->updateTrackGrid($shipment);
+        $this->updateTrackGrid($shipment, false);
     }
 
     /**
@@ -177,12 +178,16 @@ class NewShipment implements ObserverInterface
      *
      * @throws \Exception
      */
-    private function updateTrackGrid($shipment): void
+    private function updateTrackGrid($shipment, $entireOrder): void
     {
         $aHtml = $this->orderCollection->getHtmlForGridColumnsByTracks($shipment->getTracksCollection());
+        if ($entireOrder) {
+            $aHtml['track_status'] = 'Exported';
+        }
+
         $shipment->getOrder()
-                 ->setData('track_status', $aHtml['track_status'])
-                 ->setData('track_number', $aHtml['track_number'])
-                 ->save();
+            ->setData('track_status', $aHtml['track_status'])
+            ->setData('track_number', $aHtml['track_number'])
+            ->save();
     }
 }
