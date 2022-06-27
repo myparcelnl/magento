@@ -21,8 +21,10 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Helper\Checkout;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
 class NewShipment extends AbstractItems
 {
@@ -47,6 +49,16 @@ class NewShipment extends AbstractItems
     private $form;
 
     /**
+     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
+     */
+    private MagentoOrderCollection $orderCollection;
+
+    /**
+     * @var mixed
+     */
+    private $request;
+
+    /**
      * @param \Magento\Backend\Block\Template\Context                   $context
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface      $stockRegistry
      * @param \Magento\CatalogInventory\Api\StockConfigurationInterface $stockConfiguration
@@ -69,6 +81,9 @@ class NewShipment extends AbstractItems
             $this->order,
             $this->objectManager->get(Data::class)
         );
+
+        $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
+        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
@@ -161,5 +176,13 @@ class NewShipment extends AbstractItems
     public function getNewShipmentForm(): NewShipmentForm
     {
         return $this->form;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOrderManagementEnabled(): bool
+    {
+        return TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode();
     }
 }

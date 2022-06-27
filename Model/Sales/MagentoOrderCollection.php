@@ -25,6 +25,7 @@ use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
 
 /**
@@ -162,12 +163,13 @@ class MagentoOrderCollection extends MagentoCollection
             $defaultOptions          = new DefaultOptions($magentoOrder, $this->helper);
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
+            $selectedCarrier         = $this->options['carrier'] ?? CarrierPostNL::NAME;
             $shipmentOptionsHelper   = new ShipmentOptions(
                 $defaultOptions,
                 $this->helper,
                 $magentoOrder,
                 $this->objectManager,
-                $deliveryOptions['carrier'] ?? CarrierPostNL::NAME,
+                $selectedCarrier,
                 $this->options
             );
 
@@ -179,7 +181,8 @@ class MagentoOrderCollection extends MagentoCollection
 
             try {
                 // create new instance from known json
-                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+                $deliveryOptions['carrier'] = $selectedCarrier;
+                $deliveryOptionsAdapter     = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
             } catch (\BadMethodCallException $e) {
                 // create new instance from unknown json data
                 $deliveryOptions                = (new ConsignmentNormalizer((array) $deliveryOptions))->normalize();
@@ -187,7 +190,7 @@ class MagentoOrderCollection extends MagentoCollection
                 $deliveryOptionsAdapter         = DeliveryOptionsAdapterFactory::create($deliveryOptions);
             }
 
-            $this->order                        = $magentoOrder;
+            $this->order = $magentoOrder;
 
             $this->setBillingRecipient();
             $this->setShippingRecipient();
@@ -560,4 +563,5 @@ class MagentoOrderCollection extends MagentoCollection
                 ->notify($shipment);
         }
     }
+
 }
