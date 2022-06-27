@@ -658,7 +658,7 @@ class UpgradeData implements UpgradeDataInterface
                 'myparcel_fit_in_mailbox',
                 array_merge(self::DEFAULT_ATTRIBUTES, [
                         'type'    => 'varchar',
-                        'note'    => 'Fill in the amount of times the product will fit in the mailbox. If you want to look to the weight fill in 0.',
+                        'note'    => 'Fill in the amount of times the product will fit in the mailbox. If you want to look to the weight fill in nothing & save.',
                         'label'   => 'Fit in Mailbox',
                         'input'   => 'text',
                         'default' => '101',
