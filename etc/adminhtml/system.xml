@@ -439,7 +439,7 @@
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
             <group id="default_options" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
-                <tooltip>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</tooltip>
+                <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
                 <field id="only_recipient_active" translate="label" type="select" sortOrder="205" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Home address only'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -598,7 +598,7 @@
         <section id="sales_email">
             <group id="track" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>MyParcel Track</label>
-                <tooltip>Enable this option to add the MyParcel barcode in the email.</tooltip>
+                <comment>Enable this option to add the MyParcel barcode in the email.</comment>
                 <field id="enabled" translate="label" type="select" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
