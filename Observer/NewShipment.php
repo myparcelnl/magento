@@ -132,6 +132,7 @@ class NewShipment implements ObserverInterface
         if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
             $this->exportEntireOrder($shipment);
             $this->updateTrackGrid($shipment, true);
+
             return;
         }
 
@@ -181,6 +182,7 @@ class NewShipment implements ObserverInterface
     private function updateTrackGrid($shipment, $entireOrder): void
     {
         $aHtml = $this->orderCollection->getHtmlForGridColumnsByTracks($shipment->getTracksCollection());
+
         if ($entireOrder) {
             $aHtml['track_status'] = 'Exported';
         }
