@@ -33,9 +33,12 @@ class Update implements QueryInterface
      */
     public function __toString(): string
     {
-        return 'UPDATE ' . $this->table
-            . ' SET ' . implode(', ', $this->columns)
-            . ($this->conditions === [] ? '' : ' WHERE ' . implode(' AND ', $this->conditions));
+        return sprintf(
+            "UPDATE %s SET %s%s",
+            $this->table,
+            implode(', ', $this->columns),
+            $this->conditions===[] ? '' : ' WHERE ' . implode(' AND ', $this->conditions)
+        );
     }
 
     /**
@@ -48,6 +51,7 @@ class Update implements QueryInterface
         foreach ($where as $arg) {
             $this->conditions[] = $arg;
         }
+
         return $this;
     }
 
@@ -60,6 +64,7 @@ class Update implements QueryInterface
     public function set(string $key, string $value): self
     {
         $this->columns[] = $key . ' = ' . $value;
+
         return $this;
     }
 }

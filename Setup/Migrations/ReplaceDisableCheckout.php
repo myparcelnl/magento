@@ -58,7 +58,7 @@ class ReplaceDisableCheckout
         $query = $this->queryBuilder
             ->select('*')
             ->from('eav_attribute')
-            ->where('eav_attribute.attribute_code = "' . $this->attributeName . '"');
+            ->where(sprintf('eav_attribute.attribute_code = "%s"', $this->attributeName));
 
         $this->oldEavAttributeId = $connection->fetchOne($query);
     }
@@ -70,20 +70,17 @@ class ReplaceDisableCheckout
     {
         $connection = $this->resourceConnection();
 
-        // Get the new attribute by attributeName
         $query = $this->queryBuilder
             ->select('*')
             ->from('eav_attribute')
-            ->where('eav_attribute.attribute_code = "' . $this->attributeName . '"');
+            ->where(sprintf('eav_attribute.attribute_code = "%s"', $this->attributeName));
 
-        // Set the new attribute ID
         $this->newEavAttributeId = $connection->fetchOne($query);
 
-        // Update the old attribute value to copy it to the new attribute later
         $query = $this->queryBuilder
             ->update('catalog_product_entity_int')
             ->set('attribute_id', (string) $this->newEavAttributeId)
-            ->where('attribute_id = ' . $this->oldEavAttributeId);
+            ->where(sprintf('attribute_id = %s', $this->oldEavAttributeId));
         $connection->query($query);
     }
 

@@ -66,6 +66,7 @@ class Select implements QueryInterface
         foreach ($select as $arg) {
             $this->fields[] = $arg;
         }
+
         return $this;
     }
 
@@ -75,13 +76,17 @@ class Select implements QueryInterface
     public function __toString(): string
     {
         return trim(
-            'SELECT ' . ($this->distinct === true ? 'DISTINCT ' : '') . implode(', ', $this->fields)
-            . ' FROM ' . implode(', ', $this->from)
-            . ($this->join === [] ? '' : implode(' ', $this->join))
-            . ($this->conditions === [] ? '' : ' WHERE ' . implode(' AND ', $this->conditions))
-            . ($this->groupBy === [] ? '' : ' GROUP BY ' . implode(', ', $this->groupBy))
-            . ($this->order === [] ? '' : ' ORDER BY ' . implode(', ', $this->order))
-            . ($this->limit === null ? '' : ' LIMIT ' . $this->limit)
+            sprintf(
+                "SELECT %s%s FROM %s%s%s%s%s%s",
+                $this->distinct===true ? 'DISTINCT ' : '',
+                implode(', ', $this->fields),
+                implode(', ', $this->from),
+                $this->join===[] ? '' : implode(' ', $this->join),
+                $this->conditions===[] ? '' : ' WHERE ' . implode(' AND ', $this->conditions),
+                $this->groupBy===[] ? '' : ' GROUP BY ' . implode(', ', $this->groupBy),
+                $this->order===[] ? '' : ' ORDER BY ' . implode(', ', $this->order),
+                $this->limit===null ? '' : ' LIMIT ' . $this->limit
+            )
         );
     }
 
@@ -95,6 +100,7 @@ class Select implements QueryInterface
         foreach ($where as $arg) {
             $this->conditions[] = $arg;
         }
+
         return $this;
     }
 
@@ -107,6 +113,7 @@ class Select implements QueryInterface
     public function from(string $table, ?string $alias = null): self
     {
         $this->from[] = $alias === null ? $table : "${table} AS ${alias}";
+
         return $this;
     }
 
@@ -118,6 +125,7 @@ class Select implements QueryInterface
     public function limit(int $limit): self
     {
         $this->limit = $limit;
+
         return $this;
     }
 
@@ -131,6 +139,7 @@ class Select implements QueryInterface
         foreach ($order as $arg) {
             $this->order[] = $arg;
         }
+
         return $this;
     }
 
@@ -144,6 +153,7 @@ class Select implements QueryInterface
         foreach ($join as $arg) {
             $this->join[] = "INNER JOIN $arg";
         }
+
         return $this;
     }
 
@@ -157,6 +167,7 @@ class Select implements QueryInterface
         foreach ($join as $arg) {
             $this->join[] = "LEFT JOIN $arg";
         }
+
         return $this;
     }
 
@@ -166,6 +177,7 @@ class Select implements QueryInterface
     public function distinct(): self
     {
         $this->distinct = true;
+
         return $this;
     }
 
@@ -179,6 +191,7 @@ class Select implements QueryInterface
         foreach ($groupBy as $arg) {
             $this->groupBy[] = $arg;
         }
+
         return $this;
     }
 }

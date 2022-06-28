@@ -36,8 +36,12 @@ class Insert implements QueryInterface
      */
     public function __toString(): string
     {
-        return 'INSERT INTO ' . $this->table
-            . ' (' . implode(', ', $this->columns) . ') VALUES (' . implode(', ', $this->values) . ')';
+        return sprintf(
+            "INSERT INTO %s (%s) VALUES (%s)",
+            $this->table,
+            implode(', ', $this->columns),
+            implode(', ', $this->values)
+        );
     }
 
     /**
@@ -48,9 +52,11 @@ class Insert implements QueryInterface
     public function columns(string ...$columns): self
     {
         $this->columns = $columns;
+
         foreach ($columns as $column) {
             $this->values[] = ":$column";
         }
+
         return $this;
     }
 }

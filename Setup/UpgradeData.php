@@ -73,12 +73,12 @@ class UpgradeData implements UpgradeDataInterface
     /**
      * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox
      */
-    private ReplaceFitInMailbox $replaceFitInMailbox;
+    private $replaceFitInMailbox;
 
     /**
      * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout
      */
-    private ReplaceDisableCheckout $replaceDisableCheckout;
+    private $replaceDisableCheckout;
 
     /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                 $categorySetupFactory
@@ -646,20 +646,18 @@ class UpgradeData implements UpgradeDataInterface
                 );
         }
 
-        if (version_compare($context->getVersion(), '4.6.0', '<=')) {
+        if (version_compare($context->getVersion(), '4.4.0', '<=')) {
             $setup->startSetup();
 
-            // Run once for replacing all the values from percent to amount of products
             $this->replaceFitInMailbox->updateCatalogProductEntity();
-
             $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_fit_in_mailbox');
             $eavSetup->addAttribute(
                 Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 array_merge(self::DEFAULT_ATTRIBUTES, [
                         'type'    => 'varchar',
-                        'note'    => 'Fill in the amount of times the product will fit in the mailbox. If you want to look to the weight fill in nothing & save.',
-                        'label'   => 'Fit in Mailbox',
+                        'note'    => 'Fill in the amount of products that fit in a mailbox package. Set to 0 to automatically calculate based on weight.',
+                        'label'   => 'Fit in mailbox',
                         'input'   => 'text',
                         'default' => '101',
                         'group'   => self::GROUP_NAME,
@@ -667,13 +665,10 @@ class UpgradeData implements UpgradeDataInterface
                 )
             );
 
-            // Put the values to the new entity
             $this->replaceFitInMailbox->writeNewAttributeEntity();
 
-            // -> Other attribute
-            // Run once to index the old eavAttribute
-            $this->replaceDisableCheckout->indexOldAttribute();
 
+            $this->replaceDisableCheckout->indexOldAttribute();
             $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_disable_checkout');
             $eavSetup->addAttribute(
                 Product::ENTITY,
@@ -687,7 +682,6 @@ class UpgradeData implements UpgradeDataInterface
                 )
             );
 
-            // Put all the values to the new entity
             $this->replaceDisableCheckout->writeNewAttributeEntity();
         }
 

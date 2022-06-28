@@ -31,12 +31,16 @@ class Delete implements QueryInterface
      */
     public function __toString(): string
     {
-        return 'DELETE FROM ' . $this->table . ($this->conditions === []
+        return sprintf(
+            "DELETE FROM %s%s",
+            $this->table,
+            $this->conditions===[]
                 ? ''
                 : ' WHERE ' . implode(
                     ' AND ',
                     $this->conditions
-                ));
+                )
+        );
     }
 
     /**
@@ -49,6 +53,7 @@ class Delete implements QueryInterface
         foreach ($where as $arg) {
             $this->conditions[] = $arg;
         }
+
         return $this;
     }
 }
