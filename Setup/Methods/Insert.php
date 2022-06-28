@@ -44,6 +44,7 @@ class Insert implements QueryInterface
         );
     }
 
+
     /**
      * @param  string ...$columns
      *

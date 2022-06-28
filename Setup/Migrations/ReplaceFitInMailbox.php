@@ -87,7 +87,7 @@ class ReplaceFitInMailbox
      */
     private function calculatePercentToValue($entity): float
     {
-        return (null !== $entity['value']) ? round((100 / $entity['value'])) : $entity['value'] = 0;
+        return (null !== $entity['value']) ? round((100 / $entity['value'])) : $entity['value'];
     }
 
     /**

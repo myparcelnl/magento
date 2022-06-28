@@ -34,7 +34,7 @@ class Delete implements QueryInterface
         return sprintf(
             "DELETE FROM %s%s",
             $this->table,
-            $this->conditions===[]
+            [] === $this->conditions
                 ? ''
                 : ' WHERE ' . implode(
                     ' AND ',

@@ -78,7 +78,7 @@ class Select implements QueryInterface
         return trim(
             sprintf(
                 "SELECT %s%s FROM %s%s%s%s%s%s",
-                $this->distinct===true ? 'DISTINCT ' : '',
+                true === $this->distinct ? 'DISTINCT ' : '',
                 implode(', ', $this->fields),
                 implode(', ', $this->from),
                 $this->join===[] ? '' : implode(' ', $this->join),
@@ -112,7 +112,7 @@ class Select implements QueryInterface
      */
     public function from(string $table, ?string $alias = null): self
     {
-        $this->from[] = $alias === null ? $table : "${table} AS ${alias}";
+        $this->from[] = null === $alias ? $table : "${table} AS ${alias}";
 
         return $this;
     }

@@ -128,7 +128,7 @@ class PackageRepository extends Package
         $productPercentage = 0;
 
         if (0 !== $maxAmountProductInMailbox && $product->getQty()) {
-            $productPercentage = $product->getQty() / 100 * $maxAmountProductInMailbox;
+            $productPercentage = $product->getQty() * 100 / $maxAmountProductInMailbox;
         }
 
         $mailboxPercentage    = $this->getMailboxPercentage() + $productPercentage;
@@ -138,7 +138,7 @@ class PackageRepository extends Package
             $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
             $this->isMailboxActive() &&
             $orderWeight &&
-            (100 <= $mailboxPercentage) &&
+            100 <= $mailboxPercentage &&
             $orderWeight <= $maximumMailboxWeight
         ) {
             $this->setMailboxPercentage($mailboxPercentage);
