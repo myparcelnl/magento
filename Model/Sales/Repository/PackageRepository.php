@@ -138,7 +138,7 @@ class PackageRepository extends Package
             $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
             $this->isMailboxActive() &&
             $orderWeight &&
-            100 <= $mailboxPercentage &&
+            100 >= $mailboxPercentage &&
             $orderWeight <= $maximumMailboxWeight
         ) {
             $this->setMailboxPercentage($mailboxPercentage);
