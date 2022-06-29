@@ -65,7 +65,7 @@ class ReplaceFitInMailbox
             )
             ->from('catalog_product_entity', 'product ')
             ->leftJoin('catalog_product_entity_varchar ON product.entity_id = catalog_product_entity_varchar.entity_id')
-            ->leftJoin(sprintf('eav_attribute ON "%s" = eav_attribute.attribute_code', $this->attributeName))
+            ->leftJoin(sprintf('eav_attribute ON \'%s\' = eav_attribute.attribute_code', $this->attributeName))
             ->where('catalog_product_entity_varchar.attribute_id = eav_attribute.attribute_id');
         $results = $connection->fetchAll($query);
 
@@ -75,7 +75,7 @@ class ReplaceFitInMailbox
             $query = $this->queryBuilder
                 ->update('catalog_product_entity_varchar')
                 ->set('value', (string) $this->calculatePercentToValue($entity))
-                ->where(sprintf('value_id = "%s"', $entity['value_id']));
+                ->where(sprintf('value_id = \'%s\'', $entity['value_id']));
             $connection->query($query);
         }
     }
@@ -104,7 +104,7 @@ class ReplaceFitInMailbox
         $query  = $this->queryBuilder
             ->select('*')
             ->from('eav_attribute')
-            ->where(sprintf('eav_attribute.attribute_code = "%s"', $this->attributeName));
+            ->where(sprintf('eav_attribute.attribute_code = \'%s\'', $this->attributeName));
         $result = $connection->fetchRow($query);
 
         $this->newEavAttributeId = $result['attribute_id'];

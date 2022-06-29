@@ -77,15 +77,38 @@ class Select implements QueryInterface
     {
         return trim(
             sprintf(
-                "SELECT %s%s FROM %s%s%s%s%s%s",
+                'SELECT %s%s FROM %s%s%s%s%s%s',
                 true === $this->distinct ? 'DISTINCT ' : '',
                 implode(', ', $this->fields),
                 implode(', ', $this->from),
-                $this->join===[] ? '' : implode(' ', $this->join),
-                $this->conditions===[] ? '' : ' WHERE ' . implode(' AND ', $this->conditions),
-                $this->groupBy===[] ? '' : ' GROUP BY ' . implode(', ', $this->groupBy),
-                $this->order===[] ? '' : ' ORDER BY ' . implode(', ', $this->order),
-                $this->limit===null ? '' : ' LIMIT ' . $this->limit
+                ! $this->join
+                    ? ''
+                    : implode(
+                    ' ', $this->join
+                ),
+                ! $this->conditions
+                    ? ''
+                    : sprintf(
+                    ' WHERE %s',
+                    implode(' AND ', $this->conditions)
+                ),
+                ! $this->groupBy
+                    ? ''
+                    : sprintf(
+                    ' GROUP BY %s',
+                    implode(', ', $this->groupBy)
+                ),
+                ! $this->order
+                    ? ''
+                    : sprintf(
+                    implode(', ', $this->order)
+                ),
+                ! $this->limit
+                    ? ''
+                    : sprintf(
+                    ' LIMIT %s',
+                    $this->limit
+                )
             )
         );
     }
@@ -151,7 +174,7 @@ class Select implements QueryInterface
     public function innerJoin(string ...$join): self
     {
         foreach ($join as $arg) {
-            $this->join[] = "INNER JOIN $arg";
+            $this->join[] = sprintf('INNER JOIN %s', $arg);
         }
 
         return $this;
@@ -165,7 +188,7 @@ class Select implements QueryInterface
     public function leftJoin(string ...$join): self
     {
         foreach ($join as $arg) {
-            $this->join[] = "LEFT JOIN $arg";
+            $this->join[] = sprintf('LEFT JOIN %s', $arg);
         }
 
         return $this;

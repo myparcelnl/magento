@@ -34,10 +34,15 @@ class Update implements QueryInterface
     public function __toString(): string
     {
         return sprintf(
-            "UPDATE %s SET %s%s",
+            'UPDATE %s SET %s%s',
             $this->table,
             implode(', ', $this->columns),
-            $this->conditions===[] ? '' : ' WHERE ' . implode(' AND ', $this->conditions)
+            ! $this->conditions
+                ? ''
+                : sprintf(
+                ' WHERE %s',
+                implode(' AND ', $this->conditions)
+            )
         );
     }
 
@@ -63,7 +68,11 @@ class Update implements QueryInterface
      */
     public function set(string $key, string $value): self
     {
-        $this->columns[] = $key . ' = ' . $value;
+        $this->columns[] = sprintf(
+            '%s = %s',
+            $key,
+            $value
+        );
 
         return $this;
     }

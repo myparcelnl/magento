@@ -58,7 +58,7 @@ class ReplaceDisableCheckout
         $query = $this->queryBuilder
             ->select('*')
             ->from('eav_attribute')
-            ->where(sprintf('eav_attribute.attribute_code = "%s"', $this->attributeName));
+            ->where(sprintf('eav_attribute.attribute_code = \'%s\'', $this->attributeName));
 
         $this->oldEavAttributeId = $connection->fetchOne($query);
     }
@@ -73,7 +73,7 @@ class ReplaceDisableCheckout
         $query = $this->queryBuilder
             ->select('*')
             ->from('eav_attribute')
-            ->where(sprintf('eav_attribute.attribute_code = "%s"', $this->attributeName));
+            ->where(sprintf('eav_attribute.attribute_code = \'%s\'', $this->attributeName));
 
         $this->newEavAttributeId = $connection->fetchOne($query);
 

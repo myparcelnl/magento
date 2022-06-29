@@ -37,7 +37,7 @@ class Insert implements QueryInterface
     public function __toString(): string
     {
         return sprintf(
-            "INSERT INTO %s (%s) VALUES (%s)",
+            'INSERT INTO %s (%s) VALUES (%s)',
             $this->table,
             implode(', ', $this->columns),
             implode(', ', $this->values)
@@ -54,7 +54,7 @@ class Insert implements QueryInterface
         $this->columns = $columns;
 
         foreach ($columns as $column) {
-            $this->values[] = ":$column";
+            $this->values[] = sprintf(':%s', $column);
         }
 
         return $this;

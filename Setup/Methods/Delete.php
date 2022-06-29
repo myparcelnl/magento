@@ -32,14 +32,14 @@ class Delete implements QueryInterface
     public function __toString(): string
     {
         return sprintf(
-            "DELETE FROM %s%s",
+            'DELETE FROM %s%s',
             $this->table,
-            [] === $this->conditions
+            ! $this->conditions
                 ? ''
-                : ' WHERE ' . implode(
-                    ' AND ',
-                    $this->conditions
-                )
+                : sprintf(
+                    ' WHERE %s',
+                    implode(' AND ', $this->conditions)
+            )
         );
     }
 
