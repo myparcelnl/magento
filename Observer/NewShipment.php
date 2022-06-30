@@ -24,10 +24,21 @@ use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 class NewShipment implements ObserverInterface
 {
     const DEFAULT_LABEL_AMOUNT = 1;
+
+    /**
+     * @var Magento\Framework\Message\Manager
+     */
+    private $messageManager;
+
     /**
      * @var \Magento\Framework\App\ObjectManager
      */
     private $objectManager;
+
+    /**
+     * @var \Magento\Backend\Model\View\Result\RedirectFactory
+     */
+    private $redirectFactory;
 
     /**
      * @var \Magento\Framework\App\RequestInterface
@@ -58,6 +69,8 @@ class NewShipment implements ObserverInterface
     {
         $this->objectManager   = ObjectManager::getInstance();
         $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
+        $this->redirectFactory = $this->objectManager->get('Magento\Framework\Controller\Result\RedirectFactory');
+        $this->messageManager  = $this->objectManager->get('Magento\Framework\Message\Manager');
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
         $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
         $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
@@ -76,7 +89,16 @@ class NewShipment implements ObserverInterface
         if ($this->request->getParam('mypa_create_from_observer')) {
             $this->request->setParams(['myparcel_track_email' => true]);
             $shipment = $observer->getEvent()->getShipment();
-            $this->setMagentoAndMyParcelTrack($shipment);
+
+            try {
+                $this->setMagentoAndMyParcelTrack($shipment);
+            } catch (\Exception $e) {
+                $this->messageManager->addErrorMessage($e->getMessage());
+            }
+
+            if ($this->messageManager->hasMessages()) {
+                $this->redirectFactory->create()->setPath('*/*/');
+            }
         }
     }
 
