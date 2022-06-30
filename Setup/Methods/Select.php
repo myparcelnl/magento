@@ -78,37 +78,24 @@ class Select implements QueryInterface
         return trim(
             sprintf(
                 'SELECT %s%s FROM %s%s%s%s%s%s',
-                true === $this->distinct ? 'DISTINCT ' : '',
+                $this->distinct ? 'DISTINCT ' : '',
                 implode(', ', $this->fields),
                 implode(', ', $this->from),
-                ! $this->join
+                empty($this->join)
                     ? ''
-                    : implode(
-                    ' ', $this->join
-                ),
-                ! $this->conditions
+                    : implode(' ', $this->join),
+                empty($this->conditions)
                     ? ''
-                    : sprintf(
-                    ' WHERE %s',
-                    implode(' AND ', $this->conditions)
-                ),
-                ! $this->groupBy
+                    : sprintf(' WHERE %s', implode(' AND ', $this->conditions)),
+                empty($this->groupBy)
                     ? ''
-                    : sprintf(
-                    ' GROUP BY %s',
-                    implode(', ', $this->groupBy)
-                ),
-                ! $this->order
+                    : sprintf(' GROUP BY %s', implode(', ', $this->groupBy)),
+                empty($this->order)
                     ? ''
-                    : sprintf(
-                    implode(', ', $this->order)
-                ),
-                ! $this->limit
+                    : sprintf(implode(', ', $this->order)),
+                empty($this->limit)
                     ? ''
-                    : sprintf(
-                    ' LIMIT %s',
-                    $this->limit
-                )
+                    : sprintf(' LIMIT %s', $this->limit)
             )
         );
     }

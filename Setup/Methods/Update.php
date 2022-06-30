@@ -37,12 +37,9 @@ class Update implements QueryInterface
             'UPDATE %s SET %s%s',
             $this->table,
             implode(', ', $this->columns),
-            ! $this->conditions
+            empty($this->conditions)
                 ? ''
-                : sprintf(
-                ' WHERE %s',
-                implode(' AND ', $this->conditions)
-            )
+                : sprintf(' WHERE %s', implode(' AND ', $this->conditions))
         );
     }
 
@@ -68,11 +65,7 @@ class Update implements QueryInterface
      */
     public function set(string $key, string $value): self
     {
-        $this->columns[] = sprintf(
-            '%s = %s',
-            $key,
-            $value
-        );
+        $this->columns[] = sprintf('%s = %s', $key, $value);
 
         return $this;
     }
