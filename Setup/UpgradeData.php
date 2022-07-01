@@ -646,7 +646,7 @@ class UpgradeData implements UpgradeDataInterface
                 );
         }
 
-        if (version_compare($context->getVersion(), '4.4.0', '<=')) {
+        if (version_compare($context->getVersion(), '4.6.0', '<=')) {
             $setup->startSetup();
 
             $this->replaceFitInMailbox->updateCatalogProductEntity();
