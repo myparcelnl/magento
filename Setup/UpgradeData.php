@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Update data for update
  *
@@ -23,6 +25,8 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
+use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
+use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 
 /**
  * Upgrade Data script
@@ -67,22 +71,39 @@ class UpgradeData implements UpgradeDataInterface
     private $eavSetupFactory;
 
     /**
-     * Init
-     *
-     * @param \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory
-     * @param EavSetupFactory                             $eavSetupFactory
+     * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox
      */
-    public function __construct(\Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory, EavSetupFactory $eavSetupFactory)
-    {
-        $this->categorySetupFactory = $categorySetupFactory;
-        $this->eavSetupFactory      = $eavSetupFactory;
+    private $replaceFitInMailbox;
+
+    /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout
+     */
+    private $replaceDisableCheckout;
+
+    /**
+     * @param  \Magento\Catalog\Setup\CategorySetupFactory                 $categorySetupFactory
+     * @param  \Magento\Eav\Setup\EavSetupFactory                          $eavSetupFactory
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout $replaceDisableCheckout
+     */
+    public function __construct(
+        \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
+        EavSetupFactory $eavSetupFactory,
+        ReplaceFitInMailbox $replaceFitInMailbox,
+        ReplaceDisableCheckout $replaceDisableCheckout
+    ) {
+        $this->categorySetupFactory   = $categorySetupFactory;
+        $this->eavSetupFactory        = $eavSetupFactory;
+        $this->replaceFitInMailbox    = $replaceFitInMailbox;
+        $this->replaceDisableCheckout = $replaceDisableCheckout;
     }
 
     /**
      * Upgrades data for a module
      *
-     * @param \Magento\Framework\Setup\ModuleDataSetupInterface $setup
-     * @param \Magento\Framework\Setup\ModuleContextInterface   $context
+     * @param  \Magento\Framework\Setup\ModuleDataSetupInterface $setup
+     * @param  \Magento\Framework\Setup\ModuleContextInterface   $context
+     * @throws \Exception
      */
     public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
@@ -213,7 +234,7 @@ class UpgradeData implements UpgradeDataInterface
                     'type'                    => 'varchar',
                     'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
                     'label'                   => 'Fit in Mailbox',
-                    'input'                   => 'select',
+                    'input'                   => 'input',
                     'class'                   => '',
                     'source'                  => 'MyParcelNL\Magento\Model\Source\FitInMailboxOptions',
                     'global'                  => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
@@ -623,6 +644,45 @@ class UpgradeData implements UpgradeDataInterface
                         ]
                     )
                 );
+        }
+
+        if (version_compare($context->getVersion(), '4.6.0', '<=')) {
+            $setup->startSetup();
+
+            $this->replaceFitInMailbox->updateCatalogProductEntity();
+            $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_fit_in_mailbox');
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_fit_in_mailbox',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'type'    => 'varchar',
+                        'note'    => 'Fill in the amount of products that fit in a mailbox package. Set to 0 to automatically calculate based on weight.',
+                        'label'   => 'Fit in mailbox',
+                        'input'   => 'text',
+                        'default' => '101',
+                        'group'   => self::GROUP_NAME,
+                    ]
+                )
+            );
+
+            $this->replaceFitInMailbox->writeNewAttributeEntity();
+
+
+            $this->replaceDisableCheckout->indexOldAttribute();
+            $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_disable_checkout');
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_disable_checkout',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'With this option you can disable the delivery options if this product is in the cart.',
+                        'label'   => 'Disable delivery options',
+                        'input'   => 'boolean',
+                        'default' => 0,
+                    ]
+                )
+            );
+
+            $this->replaceDisableCheckout->writeNewAttributeEntity();
         }
 
         $setup->endSetup();
