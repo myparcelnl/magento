@@ -99,6 +99,10 @@ class ReplaceFitInMailbox
      */
     public function writeNewAttributeEntity(): void
     {
+        if (! $this->oldEavAttributeId) {
+            return;
+        }
+
         $connection = $this->resourceConnection();
 
         $query  = $this->queryBuilder
