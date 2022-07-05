@@ -16,6 +16,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Message\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
@@ -26,6 +27,7 @@ use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
@@ -460,29 +462,23 @@ class TrackTraceHolder
             return $this;
         }
 
-        $products = $magentoTrack->getShipment()->getData('items');
-        if ($products) {
-            foreach ($products as $product) {
-                $totalWeight += $product->consignment->getWeight();
-            }
+        $shipmentItems = $magentoTrack->getShipment()->getData('items');
+
+        foreach ($shipmentItems as $shipmentItem) {
+            $totalWeight += $shipmentItem['weight'] * $shipmentItem['qty'];
         }
 
-        $products = $this->shipmentOptionsHelper->getItemsCollectionByShipmentId(
-            $magentoTrack->getShipment()->getId()
-        );
-
-        foreach ($products as $product) {
-            $totalWeight += $product['weight'];
-        }
+        $totalWeight = $this->dataHelper->getWeightTypeOfOption($totalWeight);
 
         if (0 === $totalWeight) {
             throw new \RuntimeException(
-                'The order with digital stamp can not be exported, no weights have been entered'
+                sprintf('Order %s can not be exported as digital stamp, no weights have been entered.',
+                $magentoTrack->getShipment()->getOrder()->getIncrementId())
             );
         }
 
         $this->consignment->setPhysicalProperties([
-            "weight" => $this->dataHelper->getWeightTypeOfOption($totalWeight)
+            'weight' => $totalWeight,
         ]);
 
         return $this;
