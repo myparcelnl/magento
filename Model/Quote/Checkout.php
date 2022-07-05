@@ -291,7 +291,7 @@ class Checkout
     public function checkPackageType(string $carrier, ?string $country): string
     {
         try {
-            $consignment         = ConsignmentFactory::createByCarrierName($carrier);
+            $consignment = ConsignmentFactory::createByCarrierName($carrier);
         } catch (\Throwable $e) {
             $this->helper->log(sprintf('checkPackageType: Could not create default consignment for %s', $carrier));
 
