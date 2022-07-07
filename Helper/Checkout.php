@@ -85,6 +85,16 @@ class Checkout extends Data
     }
 
     /**
+     * @param  string $message
+     *
+     * @return void
+     */
+    public function log(string $message): void
+    {
+        $this->_logger->critical($message);
+    }
+
+    /**
      * @param float $base_price
      */
     public function setBasePrice($base_price)
