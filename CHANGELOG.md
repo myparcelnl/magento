@@ -3,6 +3,24 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.6.0](https://github.com/myparcelnl/magento/compare/v4.5.0...v4.6.0) (2022-07-28)
+
+
+### :sparkles: New Features
+
+* allow custom amount of items in mailbox package ([#695](https://github.com/myparcelnl/magento/issues/695)) ([557f355](https://github.com/myparcelnl/magento/commit/557f355e9663882764c05e39623b57233d45881e))
+
+
+### :bug: Bug Fixes
+
+* compatibility with php 8.1 ([#690](https://github.com/myparcelnl/magento/issues/690)) ([027ee90](https://github.com/myparcelnl/magento/commit/027ee90d8105bbb6fca2ca18fe87a757cd1ecd63))
+* error invalid element tooltip ([#698](https://github.com/myparcelnl/magento/issues/698)) ([6e0ea60](https://github.com/myparcelnl/magento/commit/6e0ea60fd0e2d1b090e3316d5d348fa44583c4ae))
+* export order from order details ([#693](https://github.com/myparcelnl/magento/issues/693)) ([5d04892](https://github.com/myparcelnl/magento/commit/5d0489224464878bb5f4c58cbc76166dbe91d66f))
+* **om:** show enable setting ([#691](https://github.com/myparcelnl/magento/issues/691)) ([0a72278](https://github.com/myparcelnl/magento/commit/0a722781044ab7975022c23a509614c30ddc8368))
+* only get available options for carriers ([#703](https://github.com/myparcelnl/magento/issues/703)) ([f6317f7](https://github.com/myparcelnl/magento/commit/f6317f7b3bd0312220cff3c334f88e2d80410121)), closes [#701](https://github.com/myparcelnl/magento/issues/701)
+* prevent loop while exporting shipment ([#700](https://github.com/myparcelnl/magento/issues/700)) ([ae83b0a](https://github.com/myparcelnl/magento/commit/ae83b0add4cb14dd037df495670190346aeebe1f))
+* prevent upgrade from failing on new install ([#702](https://github.com/myparcelnl/magento/issues/702)) ([df24444](https://github.com/myparcelnl/magento/commit/df2444414e2d024fd1e08ed3a0e50367313e556e))
+
 ## [4.5.0](https://github.com/myparcelnl/magento/compare/v4.4.0...v4.5.0) (2022-06-14)
 
 
