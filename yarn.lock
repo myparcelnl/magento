@@ -127,10 +127,10 @@
     vue-click-outside "^1.1.0"
     vue-fa "^2.0.1"
 
-"@myparcel/eslint-config@^3.0.2":
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/@myparcel/eslint-config/-/eslint-config-3.6.0.tgz#80587092de9371a2def6a0c5cb692dab0812b475"
-  integrity sha512-smtL6sxsp3zT+O7hSQnuzTVfzBWTxDJG0nLH5Glu3IF4604wIOzABaQnTUARSmGwjWhWVUWX8VhvrdMXtjT+QQ==
+"@myparcel/eslint-config@^3.6.1":
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/@myparcel/eslint-config/-/eslint-config-3.6.1.tgz#f8d14b7a21c4cf98ccf6257802e87094b6893f88"
+  integrity sha512-HyCn8OxfG/FUkWL1ar6FF9+7DU7fZbPb0XCVUDi2hPGH1WtP+kaH1hKQ/EJ0N1wVMlQfzE/XuSKlnH+PXzFVxQ==
   dependencies:
     "@babel/eslint-parser" "^7.17.0"
     "@typescript-eslint/eslint-plugin" "^5.25.0"
@@ -164,10 +164,10 @@
     node-fetch "^2.6.1"
     uber-json-schema-filter "^2.0.5"
 
-"@myparcel/semantic-release-config@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@myparcel/semantic-release-config/-/semantic-release-config-3.0.0.tgz#aaa45c488ee3cdd207566152f38f661273048829"
-  integrity sha512-r9C2XQ8ojvVPDRkGxHdDadygR0OAqOoQNfz9XOx+No/foA5tkE6JOPrqEmlQ7F/372mH2WvrpI6l5CEUnZhcCw==
+"@myparcel/semantic-release-config@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@myparcel/semantic-release-config/-/semantic-release-config-4.0.0.tgz#77b58cdba83cb3c41137027995fbe3642edca79f"
+  integrity sha512-+iNovKsZnNT9SmTOsF/1KDxGfEBqiJ9qmTg7GkpvMTJ7AVJefI0BybtHOCiyRUhuFklKP3v2EJXcoD15OxpFOg==
   dependencies:
     "@iwavesmedia/semantic-release-composer" "^1.0.0"
     "@semantic-release/changelog" "^6.0.1"
@@ -177,8 +177,8 @@
     "@semantic-release/github" "^8.0.4"
     "@semantic-release/npm" "^9.0.1"
     "@semantic-release/release-notes-generator" "^10.0.3"
-    conventional-changelog-conventionalcommits "^4.6.3"
-    semantic-release "^19.0.2"
+    conventional-changelog-conventionalcommits "^4.0.0 || ^5.0.0"
+    semantic-release "^19.0.3"
 
 "@nodelib/fs.scandir@2.1.5":
   version "2.1.5"
@@ -618,10 +618,10 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==
 
-"@types/knockout@^3.4.66":
-  version "3.4.71"
-  resolved "https://registry.yarnpkg.com/@types/knockout/-/knockout-3.4.71.tgz#32d7109d0d1f330d799a5e552988010300dfda39"
-  integrity sha512-Yf6LzL15MfQQ6mIMPtn+jBHaV2raWOBJYw6o8OfeQ+f3OsyTH8JwlbsiVvuxJacrUiw1DjtuGEGMfQj/viIN9g==
+"@types/knockout@^3.4.72":
+  version "3.4.72"
+  resolved "https://registry.yarnpkg.com/@types/knockout/-/knockout-3.4.72.tgz#d4e1232d56de228347823ee8f6df6ae7a60b050e"
+  integrity sha512-L/dGG0DdadKj0nsumdvkNonEcHMRe4RflgHEoHFzj1RZ+xuUMayF7+4Jj5pALOD462M/x4cGa9GuadBDiU6nRw==
 
 "@types/minimist@^1.2.0":
   version "1.2.2"
@@ -1246,10 +1246,10 @@ conventional-changelog-angular@^5.0.0:
     compare-func "^2.0.0"
     q "^1.5.1"
 
-conventional-changelog-conventionalcommits@^4.6.3:
-  version "4.6.3"
-  resolved "https://registry.yarnpkg.com/conventional-changelog-conventionalcommits/-/conventional-changelog-conventionalcommits-4.6.3.tgz#0765490f56424b46f6cb4db9135902d6e5a36dc2"
-  integrity sha512-LTTQV4fwOM4oLPad317V/QNQ1FY4Hju5qeBIM1uTHbrnCE+Eg4CdRZ3gO2pUeR+tzWdp80M2j3qFFEDWVqOV4g==
+"conventional-changelog-conventionalcommits@^4.0.0 || ^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/conventional-changelog-conventionalcommits/-/conventional-changelog-conventionalcommits-5.0.0.tgz#41bdce54eb65a848a4a3ffdca93e92fa22b64a86"
+  integrity sha512-lCDbA+ZqVFQGUj7h9QBKoIpLhl8iihkO0nCTyRNzuXtcd7ubODpYB04IFy31JloiJgG0Uovu8ot8oxRzn7Nwtw==
   dependencies:
     compare-func "^2.0.0"
     lodash "^4.17.15"
@@ -4291,7 +4291,7 @@ schema-utils@^3.0.0:
     ajv "^6.12.5"
     ajv-keywords "^3.5.2"
 
-semantic-release@^19.0.2:
+semantic-release@^19.0.3:
   version "19.0.3"
   resolved "https://registry.yarnpkg.com/semantic-release/-/semantic-release-19.0.3.tgz#9291053ad9890052f28e7c5921d4741530d516fd"
   integrity sha512-HaFbydST1cDKZHuFZxB8DTrBLJVK/AnDExpK0s3EqLIAAUAHUgnd+VSJCUtTYQKkAkauL8G9CucODrVCc7BuAA==
