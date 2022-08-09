@@ -19,8 +19,8 @@
     "object-path": "^0.11.5"
   },
   "devDependencies": {
-    "@myparcel/eslint-config": "^3.0.2",
-    "@myparcel/semantic-release-config": "^3.0.0",
-    "@types/knockout": "^3.4.66"
+    "@myparcel/eslint-config": "^3.6.1",
+    "@myparcel/semantic-release-config": "^4.0.0",
+    "@types/knockout": "^3.4.72"
   }
 }
