@@ -198,13 +198,13 @@ class ShipmentOptions
     }
 
     /**
-     * @param  object $connection
+     * @param         $connection
      * @param  string $tableName
      * @param  string $databaseColumn
      *
      * @return mixed
      */
-    public static function getAttributeId(object $connection, string $tableName, string $databaseColumn): string
+    public static function getAttributeId($connection, string $tableName, string $databaseColumn): string
     {
         $sql = $connection
             ->select('entity_type_id')
