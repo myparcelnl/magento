@@ -84,7 +84,10 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        return $this->updateStatusOrderbeheer()->updateStatusShipments();
+        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+            return $this->updateStatusOrderbeheer();
+        }
+        return $this->updateStatusShipments();
     }
 
     /**
