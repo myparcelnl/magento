@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.6.1](https://github.com/myparcelnl/magento/compare/v4.6.0...v4.6.1) (2022-09-15)
+
+
+### :bug: Bug Fixes
+
+* display correct version to end user ([#706](https://github.com/myparcelnl/magento/issues/706)) ([a821359](https://github.com/myparcelnl/magento/commit/a82135985f96656c7d83781e1cdc8b0c29b7e1b7))
+* fix wrong parameter type ([#707](https://github.com/myparcelnl/magento/issues/707)) ([57d79fa](https://github.com/myparcelnl/magento/commit/57d79facc56d33f7049d05441c2c955ae9da943d))
+* have cronjob update shipment status ([#708](https://github.com/myparcelnl/magento/issues/708)) ([a615f6e](https://github.com/myparcelnl/magento/commit/a615f6e566848b8d20493dcb7664870d8e68bfaf))
+
 ## [4.6.0](https://github.com/myparcelnl/magento/compare/v4.5.0...v4.6.0) (2022-07-28)
 
 
