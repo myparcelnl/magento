@@ -37,6 +37,11 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private $myParcelHelper;
 
     /**
+     * @var \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
+     */
+    private $package;
+
+    /**
      * @var array
      */
     private $parentMethods;
@@ -82,6 +87,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
                 ->getShippingAddress()
                 ->getCountryId()
         );
+        $this->package = $package;
     }
 
     /**
@@ -164,22 +170,66 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        foreach (self::getMethods() as $settingPath) {
-            foreach (Data::CARRIERS as $carrier) {
-                if ($this->hasMyParcelRate($settingPath)) {
-                    return;
-                }
+        foreach (Data::CARRIERS as $carrier) {
+            $carrierPath = Data::CARRIERS_XML_PATH_MAP[$carrier];
 
-                $fullPath = $this->getFullSettingPath(Data::CARRIERS_XML_PATH_MAP[$carrier], $settingPath);
-                if ($fullPath) {
-                    $method = $this->getShippingMethod(
-                        $fullPath,
-                        $parentRate
-                    );
-
-                    $this->_rates[] = $method;
-                }
+            if (! $this->myParcelHelper->getConfigValue("{$carrierPath}delivery/active")) {
+                continue;
             }
+
+            $this->package->setMailboxSettings($carrierPath);
+            $this->package->setDigitalStampSettings($carrierPath);
+
+            //TODO: get the correct packagetype from products story: MY-34504
+            $packageType = $this->package->selectPackageType(
+                $this->getQuoteFromCardOrSession()->getAllItems(),
+                $carrierPath
+            );
+
+            foreach (self::getMethods() as $settingPath) {
+                $fullPath  = $this->getFullSettingPath($carrierPath, $settingPath);
+                $separator = $this->isBaseSetting($settingPath) ? '/' : '_';
+                $pathParts = explode('/', $settingPath);
+
+                if (! $fullPath
+                    || ! $this->isRelevantOption($packageType, $pathParts[0])
+                    || ! $this->isSettingActive($carrierPath, $settingPath, $separator)
+                ) {
+                    continue;
+                }
+
+                $this->_rates[] = $this->getShippingMethod(
+                    $fullPath,
+                    $parentRate
+                );
+            }
+        }
+    }
+
+    /**
+     * @param  string $packageType
+     * @param  string $fromOptionPath
+     *
+     * @return bool
+     */
+    private function isRelevantOption(string $packageType, string $fromOptionPath): bool
+    {
+        switch ($packageType) {
+
+            case 'letter':
+                return false;
+
+            case 'digital_stamp':
+                return 'digital_stamp' === $fromOptionPath;
+
+            case 'mailbox':
+                if ('pickup' === $fromOptionPath) {
+                    return $this->package->isPickupMailboxActive();
+                }
+                return 'mailbox' === $fromOptionPath;
+
+            default:
+                return ! in_array($fromOptionPath, ['mailbox', 'digital_stamp']);
         }
     }
 
@@ -212,25 +262,23 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function isSettingActive(string $map, string $settingPath, string $separator): bool
     {
         $settingPathParts = explode("/", $settingPath);
-        $activeDelivery   = (bool) $this->myParcelHelper->getConfigValue($map . 'delivery/active');
-        // Check if delivery is active.
-        if ('delivery' === $settingPathParts[0]) {
-            return $activeDelivery;
-        }
-        // Check if delivery, morning or evening delivery are active.
-        if ($activeDelivery && ('morning' === $settingPathParts[0] || 'evening' === $settingPathParts[0])) {
-            return (bool) $this->myParcelHelper->getConfigValue($map . $settingPathParts[0] . '/active');
-        }
-        // Check if the setting has an additional option like signature or only_recipient and see if it is active.
-        if (count($settingPathParts) === 2) {
-            return $this->hasSettingAdditionalOption($settingPathParts, $map, $separator);
-        }
-        // Check if there are multiple additional options like signature and only_recipient and check if they are both active.
-        if (count($settingPathParts) === 3) {
-            return $this->hasSettingAdditionalOptions($settingPathParts, $map, $separator);
+        $baseSetting = $settingPathParts[0];
+
+        if (! $this->myParcelHelper->getConfigValue($map . $baseSetting . '/active')) {
+            return false;
         }
 
-        return (bool) $this->myParcelHelper->getConfigValue($map . $settingPath . $separator . 'active');
+        foreach ($settingPathParts as $index => $option) {
+            if (0 === $index) {
+                continue;
+            }
+            $fullPath = $map . 'delivery/' . $option . $separator . 'active';
+            if (! $this->myParcelHelper->getConfigValue($fullPath)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

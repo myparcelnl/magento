@@ -50,6 +50,11 @@ class Package extends Data implements PackageInterface
     /**
      * @var bool
      */
+    private $pickupMailboxActive = false;
+
+    /**
+     * @var bool
+     */
     private $digitalStampActive = false;
 
     /**
@@ -143,6 +148,25 @@ class Package extends Data implements PackageInterface
     {
         $this->mailboxActive = $mailboxActive;
     }
+
+    /**
+     * @param  bool $isActive
+     *
+     * @return void
+     */
+    public function setPickupMailboxActive(bool $isActive): void
+    {
+        $this->pickupMailboxActive = $isActive;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPickupMailboxActive(): bool
+    {
+        return $this->pickupMailboxActive;
+    }
+
 
     /**
      * @param  float $percentage

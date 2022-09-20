@@ -190,24 +190,26 @@ class PackageRepository extends Package
     /**
      * Init all mailbox settings
      *
+     * @param string $carrierPath
+     *
+     * @return $this
      * @return $this
      */
-    public function setMailboxSettings()
+    public function setMailboxSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'mailbox');
+        $settings = $this->getConfigValue($carrierPath . 'mailbox');
 
-        if ($settings === null) {
-            $this->_logger->critical('Can\'t set settings with path:' . self::XML_PATH_POSTNL_SETTINGS . 'mailbox');
+        if (null === $settings || ! array_key_exists('active', $settings)) {
+            $this->_logger->critical('Can\'t set settings with path:' . $carrierPath . 'mailbox');
         }
 
-        if (! key_exists('active', $settings)) {
-            $this->_logger->critical('Can\'t get mailbox setting active');
-        }
-
-        $this->setMailboxActive($settings['active'] === '1');
-        if ($this->isMailboxActive() === true) {
+        $this->setMailboxActive('1' === $settings['active']);
+        if (true === $this->isMailboxActive()) {
             $weight = str_replace(',', '.', $settings['weight']);
             $this->setMaxMailboxWeight($weight ?: self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT);
+
+            $pickupMailbox = (bool) $this->getConfigValue("{$carrierPath}mailbox/pickup_mailbox");
+            $this->setPickupMailboxActive($pickupMailbox);
         }
 
         return $this;
@@ -286,17 +288,17 @@ class PackageRepository extends Package
     /**
      * Init all digital stamp settings
      *
+     * @param  string $carrierPath
+     *
      * @return $this
      */
-    public function setDigitalStampSettings()
+    public function setDigitalStampSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue(self::XML_PATH_POSTNL_SETTINGS . 'digital_stamp');
-        if ($settings === null) {
-            $this->_logger->critical('Can\'t set settings with path:' . self::XML_PATH_POSTNL_SETTINGS . 'digital stamp');
-        }
+        $settings = $this->getConfigValue($carrierPath . 'digital_stamp');
+        if (null === $settings || array_key_exists('active', $settings)) {
+            $this->_logger->critical('Can\'t set settings with path:' . $carrierPath . 'digital stamp');
 
-        if (! key_exists('active', $settings)) {
-            $this->_logger->critical('Can\'t get digital stamp setting active');
+            return $this;
         }
 
         $this->setDigitalStampActive($settings['active'] === '1');

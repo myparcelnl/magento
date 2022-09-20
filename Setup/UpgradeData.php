@@ -685,6 +685,26 @@ class UpgradeData implements UpgradeDataInterface
             $this->replaceDisableCheckout->writeNewAttributeEntity();
         }
 
+        if (version_compare($context->getVersion(), '4.6.2', '<=')) {
+            // Change same_day_active to same_day_delivery_active
+            $selectSameDayDelivery = $connection->select()->from(
+                $table,
+                ['config_id', 'path', 'value']
+            )->where(
+                '`path` LIKE "myparcelnl_magento_instabox_settings/delivery/same_day_active"'
+            );
+
+            $sameDayData = $connection->fetchAll($selectSameDayDelivery) ?? [];
+
+            foreach ($sameDayData as $value) {
+                $path = 'myparcelnl_magento_instabox_settings/delivery/same_day_delivery_active';
+
+                $bind  = ['path' => $path];
+                $where = 'config_id = ' . $value['config_id'];
+                $connection->update($table, $bind, $where);
+            }
+        }
+
         $setup->endSetup();
     }
 }

@@ -185,7 +185,7 @@ class Checkout
                 'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath),
                 'allowShowDeliveryDate' => $this->helper->getBoolConfig($carrierPath, 'general/allow_show_delivery_date'),
                 'allowMondayDelivery'   => $canHaveMonday ? $this->helper->getIntegerConfig($carrierPath, 'general/monday_delivery_active') : 0,
-                'allowSameDayDelivery'  => $canHaveSameDay && $this->helper->getBoolConfig($carrierPath, 'delivery/same_day_active'),
+                'allowSameDayDelivery'  => $canHaveSameDay && $this->helper->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
 
                 'cutoffTime'            => $this->helper->getTimeConfig($carrierPath, 'general/cutoff_time'),
                 'cutoffTimeSameDay'     => $canHaveSameDay ? $this->helper->getTimeConfig($carrierPath, 'delivery/cutoff_time_same_day') : 0,
