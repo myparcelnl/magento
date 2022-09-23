@@ -208,8 +208,18 @@ class Checkout
                 'pricePackageTypeMailbox'      => $canHaveMailbox ? $this->helper->getMethodPrice($carrierPath, 'mailbox/fee', false) : 0,
                 'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->helper->getMethodPrice($carrierPath, 'digital_stamp/fee', false) : 0,
             ],
-                $canHaveSameDay ? ['cutoffTimeSameDay'=>$this->helper->getTimeConfig($carrierPath, 'delivery/cutoff_time_same_day')]:[],
-                $canHaveMonday ? ['saturdayCutoffTime' =>$this->helper->getTimeConfig($carrierPath, 'general/saturday_cutoff_time')]:[]
+                $canHaveSameDay ? [
+                    'cutoffTimeSameDay' => $this->helper->getTimeConfig(
+                        $carrierPath,
+                        'delivery/cutoff_time_same_day'
+                    ),
+                ] : [],
+                $canHaveMonday ? [
+                    'saturdayCutoffTime' => $this->helper->getTimeConfig(
+                        $carrierPath,
+                        'general/saturday_cutoff_time'
+                    ),
+                ] : []
             );
         }
 
