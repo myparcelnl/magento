@@ -294,7 +294,7 @@ class PackageRepository extends Package
      */
     public function setDigitalStampSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue($carrierPath . 'digital_stamp');
+        $settings = $this->getConfigValue("{$carrierPath}digital_stamp");
         if (null === $settings || ! array_key_exists('active', $settings)) {
             $this->_logger->critical("Can't set settings with path: {$carrierPath}digital_stamp");
 
