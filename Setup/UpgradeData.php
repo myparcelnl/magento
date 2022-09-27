@@ -700,7 +700,7 @@ class UpgradeData implements UpgradeDataInterface
                 $path = 'myparcelnl_magento_instabox_settings/delivery/same_day_delivery_active';
 
                 $bind  = ['path' => $path];
-                $where = 'config_id = ' . $value['config_id'];
+                $where = "config_id = {$value['config_id']}";
                 $connection->update($table, $bind, $where);
             }
         }

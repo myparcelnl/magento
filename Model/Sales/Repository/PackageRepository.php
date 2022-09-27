@@ -197,10 +197,10 @@ class PackageRepository extends Package
      */
     public function setMailboxSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue($carrierPath . 'mailbox');
+        $settings = $this->getConfigValue("{$carrierPath}mailbox");
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
-            $this->_logger->critical('Can\'t set settings with path:' . $carrierPath . 'mailbox');
+            $this->_logger->critical("Can't set settings with path: {$carrierPath}mailbox");
         }
 
         $this->setMailboxActive('1' === $settings['active']);
@@ -295,13 +295,13 @@ class PackageRepository extends Package
     public function setDigitalStampSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
         $settings = $this->getConfigValue($carrierPath . 'digital_stamp');
-        if (null === $settings || array_key_exists('active', $settings)) {
-            $this->_logger->critical('Can\'t set settings with path:' . $carrierPath . 'digital stamp');
+        if (null === $settings || ! array_key_exists('active', $settings)) {
+            $this->_logger->critical("Can't set settings with path: {$carrierPath}digital_stamp");
 
             return $this;
         }
 
-        $this->setDigitalStampActive($settings['active'] === '1');
+        $this->setDigitalStampActive('1' === $settings['active']);
         if ($this->isDigitalStampActive()) {
             $this->setMaxDigitalStampWeight(self::MAXIMUM_DIGITAL_STAMP_WEIGHT);
         }
