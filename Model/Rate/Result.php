@@ -264,7 +264,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $settingPathParts = explode("/", $settingPath);
         $baseSetting = $settingPathParts[0];
 
-        if (! $this->myParcelHelper->getConfigValue($map . $baseSetting . '/active')) {
+        if (! $this->myParcelHelper->getConfigValue("{$map}{$baseSetting}/active")) {
             return false;
         }
 
@@ -272,7 +272,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             if (0 === $index) {
                 continue;
             }
-            $fullPath = $map . 'delivery/' . $option . $separator . 'active';
+            $fullPath = "{$map}delivery/{$option}{$separator}active";
             if (! $this->myParcelHelper->getConfigValue($fullPath)) {
                 return false;
             }
