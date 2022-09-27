@@ -167,7 +167,6 @@ class Package extends Data implements PackageInterface
         return $this->pickupMailboxActive;
     }
 
-
     /**
      * @param  float $percentage
      *

@@ -216,20 +216,25 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     {
         switch ($packageType) {
 
-            case 'letter':
+            case AbstractConsignment::PACKAGE_TYPE_LETTER_NAME:
                 return false;
 
-            case 'digital_stamp':
-                return 'digital_stamp' === $fromOptionPath;
+            case AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME:
+                return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $fromOptionPath;
 
-            case 'mailbox':
-                if ('pickup' === $fromOptionPath) {
+            case AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME:
+                if (AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME === $fromOptionPath) {
                     return $this->package->isPickupMailboxActive();
                 }
-                return 'mailbox' === $fromOptionPath;
+                return AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $fromOptionPath;
 
             default:
-                return ! in_array($fromOptionPath, ['mailbox', 'digital_stamp']);
+                return ! in_array($fromOptionPath,
+                    [
+                        AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME,
+                        AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME,
+                    ]
+                );
         }
     }
 
@@ -262,7 +267,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function isSettingActive(string $map, string $settingPath, string $separator): bool
     {
         $settingPathParts = explode("/", $settingPath);
-        $baseSetting = $settingPathParts[0];
+        $baseSetting      = $settingPathParts[0];
 
         if (! $this->myParcelHelper->getConfigValue("{$map}{$baseSetting}/active")) {
             return false;
