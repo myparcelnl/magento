@@ -481,7 +481,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <tooltip>The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.</tooltip>
                 </field>
-                <field id="same_day_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="same_day_delivery_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable sameday delivery</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
@@ -541,7 +541,7 @@
                         <field id="only_recipient_active">1</field>
                     </depends>
                 </field>
-                <field id="same_day_active" translate="label comment" type="select" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="same_day_delivery_active" translate="label comment" type="select" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable sameday delivery</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
@@ -553,7 +553,7 @@
                     <tooltip>This will be added to the regular shipping price</tooltip>
                     <depends>
                         <field id="active">1</field>
-                        <field id="same_day_active">1</field>
+                        <field id="same_day_delivery_active">1</field>
                     </depends>
                 </field>
                 <field id="cutoff_time_same_day" translate="label comment" type="time" sortOrder="402" showInDefault="1" showInWebsite="1" showInStore="0">
@@ -561,7 +561,7 @@
                     <tooltip>If a request is made for the delivery options before the sameday cut-off time, a shipment will be marked as a sameday shipment</tooltip>
                     <depends>
                         <field id="active">1</field>
-                        <field id="same_day_active">1</field>
+                        <field id="same_day_delivery_active">1</field>
                     </depends>
                 </field>
             </group>

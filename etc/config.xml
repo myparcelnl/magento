@@ -112,7 +112,7 @@
                 <large_format_active>No</large_format_active>
                 <large_format_from_price>1</large_format_from_price>
                 <age_check_active>0</age_check_active>
-                <same_day_active>0</same_day_active>
+                <same_day_delivery_active>0</same_day_delivery_active>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
@@ -125,8 +125,8 @@
                 <active>1</active>
                 <only_recipient_active>1</only_recipient_active>
                 <only_recipient_fee>0.29</only_recipient_fee>
-                <same_day_active>0</same_day_active>
-                <same_day_fee>2</same_day_fee>
+                <same_day_delivery_active>0</same_day_delivery_active>
+                <same_day_delivery_fee>2</same_day_delivery_fee>
                 <cutoff_time_same_day>09,00,00</cutoff_time_same_day>
             </delivery>
             <mailbox>
