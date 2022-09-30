@@ -389,8 +389,6 @@ class PackageRepository extends Package
     {
         if ($product->getWeight() > 0) {
             $this->addWeight($product->getWeight() * $product->getQty());
-        } else {
-            $this->setAllProductsFit(false);
         }
 
         return $this;
