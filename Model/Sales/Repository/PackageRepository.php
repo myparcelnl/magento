@@ -118,8 +118,8 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param object $product
-     * @param int    $mailbox
+     * @param  object $product
+     * @param  int    $maxAmountProductInMailbox
      *
      * @return bool
      */
@@ -131,22 +131,13 @@ class PackageRepository extends Package
             $productPercentage = $product->getQty() * 100 / $maxAmountProductInMailbox;
         }
 
-        $mailboxPercentage    = $this->getMailboxPercentage() + $productPercentage;
-        $maximumMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
-        $orderWeight          = $this->getWeightTypeOfOption($this->getWeight());
-        if (
-            $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
-            $this->isMailboxActive() &&
-            $orderWeight &&
-            100 >= $mailboxPercentage &&
-            $orderWeight <= $maximumMailboxWeight
-        ) {
-            $this->setMailboxPercentage($mailboxPercentage);
+        $maxMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
+        $orderWeight      = $this->getWeightTypeOfOption($this->getWeight());
 
-            return true;
-        }
-
-        return false;
+        return $this->getCurrentCountry() === AbstractConsignment::CC_NL
+            && $this->isMailboxActive()
+            && 100 >= $productPercentage
+            && $orderWeight <= $maxMailboxWeight;
     }
 
     /**
@@ -157,14 +148,9 @@ class PackageRepository extends Package
         $orderWeight               = $this->getWeightTypeOfOption($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
-        if (
-            $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
-            $this->isDigitalStampActive() &&
-            $orderWeight <= $maximumDigitalStampWeight
-        ) {
-            return true;
-        }
-        return false;
+        return $this->getCurrentCountry() === AbstractConsignment::CC_NL
+            && $this->isDigitalStampActive()
+            && $orderWeight <= $maximumDigitalStampWeight;
     }
 
     /**

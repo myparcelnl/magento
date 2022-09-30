@@ -22,11 +22,6 @@ use MyParcelNL\Magento\Helper\Data;
 
 class Package extends Data implements PackageInterface
 {
-    const PACKAGE_TYPE_NORMAL        = 1;
-    const PACKAGE_TYPE_MAILBOX       = 2;
-    const PACKAGE_TYPE_LETTER        = 3;
-    const PACKAGE_TYPE_DIGITAL_STAMP = 4;
-
     /**
      * @var int
      */
@@ -56,11 +51,6 @@ class Package extends Data implements PackageInterface
      * @var bool
      */
     private $digitalStampActive = false;
-
-    /**
-     * @var int
-     */
-    private $mailboxPercentage = 0;
 
     /**
      * @var bool
@@ -175,14 +165,6 @@ class Package extends Data implements PackageInterface
     public function setMailboxPercentage(float $percentage): void
     {
         $this->mailboxPercentage = $percentage;
-    }
-
-    /**
-     * @return bool
-     */
-    public function getMailboxPercentage(): bool
-    {
-        return $this->mailboxPercentage;
     }
 
     /**
