@@ -176,7 +176,7 @@ class Checkout
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->helper->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
-            $myParcelConfig['carrierSettings'][$carrier] = [
+            $myParcelConfig['carrierSettings'][$carrier] = array_merge([
                 'allowDeliveryOptions'  => ! $this->package->deliveryOptionsDisabled && $this->helper->getBoolConfig($carrierPath, 'delivery/active'),
                 'allowSignature'        => $canHaveSignature && $this->helper->getBoolConfig($carrierPath, 'delivery/signature_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->helper->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
@@ -184,12 +184,10 @@ class Checkout
                 'allowEveningDelivery'  => ! $isAgeCheckActive && $canHaveEvening && $this->helper->getBoolConfig($carrierPath, 'evening/active'),
                 'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath),
                 'allowShowDeliveryDate' => $this->helper->getBoolConfig($carrierPath, 'general/allow_show_delivery_date'),
-                'allowMondayDelivery'   => $canHaveMonday ? $this->helper->getIntegerConfig($carrierPath, 'general/monday_delivery_active') : 0,
+                'allowMondayDelivery'   => $canHaveMonday && $this->helper->getBoolConfig($carrierPath, 'general/monday_delivery_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->helper->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
 
                 'cutoffTime'            => $this->helper->getTimeConfig($carrierPath, 'general/cutoff_time'),
-                'cutoffTimeSameDay'     => $canHaveSameDay ? $this->helper->getTimeConfig($carrierPath, 'delivery/cutoff_time_same_day') : 0,
-                'saturdayCutoffTime'    => $canHaveMonday ? $this->helper->getTimeConfig($carrierPath, 'general/saturday_cutoff_time') : 0,
                 'deliveryDaysWindow'    => $this->helper->getIntegerConfig($carrierPath, 'general/deliverydays_window'),
                 'dropOffDays'           => $this->helper->getArrayConfig($carrierPath, 'general/dropoff_days'),
                 'dropOffDelay'          => $this->getDropOffDelay($carrierPath, 'general/dropoff_delay'),
@@ -209,7 +207,20 @@ class Checkout
                 'pricePickup'                  => $canHavePickup ? $this->helper->getMethodPrice($carrierPath, 'pickup/fee') : 0,
                 'pricePackageTypeMailbox'      => $canHaveMailbox ? $this->helper->getMethodPrice($carrierPath, 'mailbox/fee', false) : 0,
                 'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->helper->getMethodPrice($carrierPath, 'digital_stamp/fee', false) : 0,
-            ];
+            ],
+                $canHaveSameDay ? [
+                    'cutoffTimeSameDay' => $this->helper->getTimeConfig(
+                        $carrierPath,
+                        'delivery/cutoff_time_same_day'
+                    ),
+                ] : [],
+                $canHaveMonday ? [
+                    'saturdayCutoffTime' => $this->helper->getTimeConfig(
+                        $carrierPath,
+                        'general/saturday_cutoff_time'
+                    ),
+                ] : []
+            );
         }
 
         return $myParcelConfig;
