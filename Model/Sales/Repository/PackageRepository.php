@@ -118,8 +118,8 @@ class PackageRepository extends Package
     }
 
     /**
-     * @param  object $product
-     * @param  int    $maxAmountProductInMailbox
+     * @param object $product
+     * @param int    $mailbox
      *
      * @return bool
      */
@@ -131,13 +131,22 @@ class PackageRepository extends Package
             $productPercentage = $product->getQty() * 100 / $maxAmountProductInMailbox;
         }
 
-        $maxMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
-        $orderWeight      = $this->getWeightTypeOfOption($this->getWeight());
+        $mailboxPercentage    = $this->getMailboxPercentage() + $productPercentage;
+        $maximumMailboxWeight = $this->getWeightTypeOfOption($this->getMaxMailboxWeight());
+        $orderWeight          = $this->getWeightTypeOfOption($this->getWeight());
+        if (
+            $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
+            $this->isMailboxActive() &&
+            $orderWeight &&
+            100 >= $mailboxPercentage &&
+            $orderWeight <= $maximumMailboxWeight
+        ) {
+            $this->setMailboxPercentage($mailboxPercentage);
 
-        return $this->getCurrentCountry() === AbstractConsignment::CC_NL
-            && $this->isMailboxActive()
-            && 100 >= $productPercentage
-            && $orderWeight <= $maxMailboxWeight;
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -148,9 +157,14 @@ class PackageRepository extends Package
         $orderWeight               = $this->getWeightTypeOfOption($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
-        return $this->getCurrentCountry() === AbstractConsignment::CC_NL
-            && $this->isDigitalStampActive()
-            && $orderWeight <= $maximumDigitalStampWeight;
+        if (
+            $this->getCurrentCountry() === AbstractConsignment::CC_NL &&
+            $this->isDigitalStampActive() &&
+            $orderWeight <= $maximumDigitalStampWeight
+        ) {
+            return true;
+        }
+        return false;
     }
 
     /**
