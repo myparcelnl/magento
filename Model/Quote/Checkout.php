@@ -318,7 +318,6 @@ class Checkout
         $this->package->setCurrentCountry($country);
         $this->package->setDigitalStampActive($canHaveDigitalStamp && $this->helper->getBoolConfig($carrierPath, 'digital_stamp/active'));
         $this->package->setMailboxActive($canHaveMailbox && $this->helper->getBoolConfig($carrierPath, 'mailbox/active'));
-        $this->package->setWeightFromQuoteProducts($products);
 
         return $this->package->selectPackageType($products, $carrierPath);
     }

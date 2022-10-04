@@ -83,7 +83,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->quote          = $quote;
         $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods'));
         $package->setCurrentCountry(
-            $this->getQuoteFromCardOrSession()
+            $this->getQuoteFromCartOrSession()
                 ->getShippingAddress()
                 ->getCountryId()
         );
@@ -180,9 +180,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             $this->package->setMailboxSettings($carrierPath);
             $this->package->setDigitalStampSettings($carrierPath);
 
-            //TODO: get the correct packagetype from products story: MY-34504
             $packageType = $this->package->selectPackageType(
-                $this->getQuoteFromCardOrSession()->getAllItems(),
+                $this->getQuoteFromCartOrSession()->getAllItems(),
                 $carrierPath
             );
 
@@ -465,7 +464,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    private function getQuoteFromCardOrSession()
+    private function getQuoteFromCartOrSession()
     {
         if ($this->quote->getQuoteId() != null && $this->quote->getQuote()
             && $this->quote->getQuote() instanceof Countable

@@ -58,9 +58,9 @@ class Package extends Data implements PackageInterface
     private $digitalStampActive = false;
 
     /**
-     * @var int
+     * @var float
      */
-    private $mailboxPercentage = 0;
+    private $mailboxPercentage = 0.0;
 
     /**
      * @var bool
@@ -178,9 +178,9 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @return bool
+     * @return float
      */
-    public function getMailboxPercentage(): bool
+    public function getMailboxPercentage(): float
     {
         return $this->mailboxPercentage;
     }
@@ -201,17 +201,10 @@ class Package extends Data implements PackageInterface
         $this->digitalStampActive = $digitalStampActive;
     }
 
-    /**
-     * @return bool
-     */
-    public function isAllProductsFit(): bool
-    {
-        return $this->allProductsFit;
-    }
-
 
     /**
      * @param bool $allProductsFit
+     * @deprecated fit in what? use PackageRepository->selectPackageType() to get the relevant package type
      */
     public function setAllProductsFit(bool $allProductsFit): void
     {
@@ -225,6 +218,9 @@ class Package extends Data implements PackageInterface
      */
     public function getPackageType(): int
     {
+        if (! isset($this->packageType)) {
+            throw new \RuntimeException('Use setPackageType() before you can getPackageType()');
+        }
         return $this->packageType;
     }
 
