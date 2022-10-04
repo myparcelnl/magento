@@ -18,7 +18,6 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use _HumbugBoxe8a38a0636f4\Nette\Neon\Exception;
 use MyParcelNL\Magento\Helper\Data;
 
 class Package extends Data implements PackageInterface
