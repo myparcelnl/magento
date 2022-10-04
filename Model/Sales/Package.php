@@ -53,6 +53,11 @@ class Package extends Data implements PackageInterface
     private $digitalStampActive = false;
 
     /**
+     * @var bool
+     */
+    private $allProductsFit = true;
+
+    /**
      * @var string
      */
     private $currentCountry = 'NL';
@@ -60,7 +65,7 @@ class Package extends Data implements PackageInterface
     /**
      * @var int
      */
-    private $packageType;
+    private $packageType = null;
 
     /**
      * @return float
@@ -153,6 +158,16 @@ class Package extends Data implements PackageInterface
     }
 
     /**
+     * @param  float $percentage
+     *
+     * @return void
+     */
+    public function setMailboxPercentage(float $percentage): void
+    {
+        $this->mailboxPercentage = $percentage;
+    }
+
+    /**
      * @return bool
      */
     public function isDigitalStampActive(): bool
@@ -166,6 +181,25 @@ class Package extends Data implements PackageInterface
     public function setDigitalStampActive(bool $digitalStampActive): void
     {
         $this->digitalStampActive = $digitalStampActive;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAllProductsFit(): bool
+    {
+        return $this->allProductsFit;
+    }
+
+
+    /**
+     * @param bool $allProductsFit
+     */
+    public function setAllProductsFit(bool $allProductsFit): void
+    {
+        if ($allProductsFit === false) {
+            $this->allProductsFit = $allProductsFit;
+        }
     }
 
     /**
