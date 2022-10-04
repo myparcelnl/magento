@@ -462,7 +462,7 @@ class TrackTraceHolder
             return $this;
         }
 
-        $shipmentItems = $magentoTrack->getShipment()->getData('items');
+        $shipmentItems = $magentoTrack->getShipment()->getItems();
 
         foreach ($shipmentItems as $shipmentItem) {
             $totalWeight += $shipmentItem['weight'] * $shipmentItem['qty'];

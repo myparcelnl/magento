@@ -29,6 +29,11 @@ use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 class NewShipment extends AbstractItems
 {
     /**
+     * @var \MyParcelNL\Magento\Helper\Data
+     */
+    private $dataHelper;
+
+    /**
      * @var \Magento\Sales\Model\Order
      */
     private $order;
@@ -51,7 +56,7 @@ class NewShipment extends AbstractItems
     /**
      * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
      */
-    private MagentoOrderCollection $orderCollection;
+    private $orderCollection;
 
     /**
      * @var mixed
@@ -67,6 +72,7 @@ class NewShipment extends AbstractItems
      */
     public function __construct(
         Context $context,
+        Data $helper,
         StockRegistryInterface $stockRegistry,
         StockConfigurationInterface $stockConfiguration,
         Registry $registry,
@@ -74,6 +80,7 @@ class NewShipment extends AbstractItems
     ) {
         // Set order
         $this->order         = $registry->registry('current_shipment')->getOrder();
+        $this->dataHelper    = $helper;
         $this->objectManager = $objectManager;
         $this->form          = new NewShipmentForm();
 
@@ -141,7 +148,13 @@ class NewShipment extends AbstractItems
      */
     public function getDigitalStampWeight(): int
     {
-        return $this->defaultOptions->getDigitalStampDefaultWeight();
+        $weight = $this->dataHelper->getWeightTypeOfOption($this->order->getWeight() ?? 0.0);
+
+        if (0 === $weight) {
+            $weight = $this->defaultOptions->getDigitalStampDefaultWeight();
+        }
+
+        return $weight;
     }
 
     /**
@@ -158,16 +171,6 @@ class NewShipment extends AbstractItems
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
-    }
-
-    /**
-     * Get all chosen options
-     *
-     * @return array
-     */
-    public function getChosenOptions()
-    {
-        return json_decode($this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true);
     }
 
     /**

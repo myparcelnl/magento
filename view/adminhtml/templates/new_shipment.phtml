@@ -74,7 +74,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     <?php
                     if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP === $packageTypeId) {
                         $weight = $block->getDigitalStampWeight(); ?>
-                        <span data-for_mypa_package_type="<?= $packageTypeName ?>">
+                        <span data-for_mypa_package_type="<?= $packageTypeName ?>" data-weight="<?= $weight ?>">
                             <select
                                 name="mypa_digital_stamp_weight"
                                 id="mypa_digital_stamp_weight_<?= $carrierName ?>"
@@ -83,27 +83,27 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                                 title="">
                                 <option value="0">No standard weight</option>
                                 <option
-                                    value="20" <?= '20' === $weight
+                                    value="20" <?= 20 >= $weight
                                     ? 'selected="selected"'
                                     : '' ?> >0 - 20 gram
                                 </option>
                                 <option
-                                    value="50" <?= '50' === $weight
+                                    value="50" <?= 50 >= $weight && 20 < $weight
                                     ? 'selected="selected"'
                                     : '' ?> >20 - 50 gram
                                 </option>
                                 <option
-                                    value="100" <?= '100' === $weight
+                                    value="100" <?= 100 >= $weight && 50 < $weight
                                     ? 'selected="selected"'
                                     : '' ?> >50 - 100 gram
                                 </option>
                                 <option
-                                    value="350" <?= '350' === $weight
+                                    value="350" <?= 350 >= $weight && 100 < $weight
                                     ? 'selected="selected"'
                                     : '' ?> >100 - 350 gram
                                 </option>
                                 <option
-                                    value="2000" <?= '2000' === $weight
+                                    value="2000" <?= 2000 >= $weight && 350 < $weight
                                     ? 'selected="selected"'
                                     : '' ?> >350 - 2000 gram
                                 </option>
