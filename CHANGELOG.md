@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.7.0](https://github.com/myparcelnl/magento/compare/v4.6.1...v4.7.0) (2022-10-05)
+
+
+### :sparkles: New Features
+
+* allow exporting digital stamp ([#716](https://github.com/myparcelnl/magento/issues/716)) ([793e78c](https://github.com/myparcelnl/magento/commit/793e78cc8d4cc12e0d453a0e7b8828ed29237784))
+* show only relevant delivery options ([#711](https://github.com/myparcelnl/magento/issues/711)) ([1806558](https://github.com/myparcelnl/magento/commit/1806558ea9db450fc98c7e5df0e15fbae8e5a80f))
+
+
+### :bug: Bug Fixes
+
+* fix delivery options loading forever ([#713](https://github.com/myparcelnl/magento/issues/713)) ([6dc37e2](https://github.com/myparcelnl/magento/commit/6dc37e2a8a6c1159647a976c2f99694ba52577aa))
+* fix mailbox amount ([#714](https://github.com/myparcelnl/magento/issues/714)) ([c9970f5](https://github.com/myparcelnl/magento/commit/c9970f56043accdecef7a9485131076297e0e7d3))
+* translate instabox strings ([#718](https://github.com/myparcelnl/magento/issues/718)) ([a15b595](https://github.com/myparcelnl/magento/commit/a15b595dd032f9f95fea54e6638af45c65a42731))
+
 ## [4.6.1](https://github.com/myparcelnl/magento/compare/v4.6.0...v4.6.1) (2022-09-15)
 
 
