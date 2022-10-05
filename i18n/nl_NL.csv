@@ -76,7 +76,7 @@ Mailbox settings,Brievenbuspakket instellingen
 Automate mailbox,Automatiseer brievenbuspakket
 Select automatically mailbox packages based on weight or volume,Selecteer automatisch mailboxpakketten op basis van gewicht of volume
 Mailbox weight, Brievenbuspakket gewicht
-Mailbox fee, brievenbuspakket kosten
+Mailbox fee, Brievenbuspakket kosten
 Enter a basic price for a mailbox. The regular price will not affect this price.,Voer een basisprijs in voor een mailbox. De normale prijs heeft geen invloed op deze prijs.
 Morning delivery,Ochtendlevering
 Evening delivery,Avondlevering
@@ -97,6 +97,10 @@ Automate digital stamp,Automatiseer digitalepostzegel
 Default weight,Standaard gewicht
 Digital stamp fee,Digitalepostzegel kosten
 From price,Vanaf prijs
+Enabled Instabox delivery,Instabox levering ingeschakeld
+Enable sameday delivery,Zelfde dag bezorgd inschakelen
+Sameday delivery fee,Zelfde dag bezorgd kosten
+Sameday cut-off time,Zelfde dag laatste bestelmoment
 Track number,Track nummer
 Track status,Track status
 Track action,Track actie
