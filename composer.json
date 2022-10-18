@@ -48,5 +48,8 @@
     "branch-alias": {
       "dev-master": "2.1-dev"
     }
+  },
+  "scripts": {
+    "pre-package-uninstall": "MyParcelNL\\Magento\\Setup\\Uninstall::uninstall"
   }
 }
