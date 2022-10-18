@@ -18,6 +18,8 @@ class Uninstall implements UninstallInterface
      */
     public function uninstall(SchemaSetupInterface $setup, ModuleContextInterface $context): void
     {
+        $setup->startSetup();
+
         $objectManager        = ObjectManager::getInstance();
         $eavCollectionFactory = $objectManager->get(CollectionFactory::class);
         $eavResourceModel     = $objectManager->get(Attribute::class);
@@ -28,5 +30,7 @@ class Uninstall implements UninstallInterface
         foreach ($eavTypeCollection as $eavAttribute) {
             $eavResourceModel->delete($eavAttribute);
         }
+
+        $setup->endSetup();
     }
 }
