@@ -94,7 +94,7 @@ class TrackAndTrace extends Column
             return $html;
         }
 
-        $trackData    = $order->getData('track_number');
+        $trackData    = $order->getData('track_number') ?? '';
         $trackNumbers = json_decode($trackData, true) ?? $trackData;
 
         // older shipments are stored with '<br>' as separator between trackNumbers
