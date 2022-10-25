@@ -15,7 +15,7 @@ class Uninstall implements UninstallInterface
 {
     /**
      * @throws \Exception
-		 * @SuppressWarnings(PHPMD.UnusedLocalVariable)
+     * @SuppressWarnings(PHPMD.UnusedLocalVariable)
      */
     public function uninstall(SchemaSetupInterface $setup, ModuleContextInterface $context): void
     {
