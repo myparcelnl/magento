@@ -243,7 +243,7 @@ define(
                     $("input[name='mypa_carrier']").on(
                           'change',
                         function() {
-                            if ($('#mypa_carrier_instabox').prop('checked')) {
+                            if ($('#mypa_carrier_dhlforyou').prop('checked')) {
                                 $('#mypa_container-package_type-digital_stamp').hide();
                                 $('#mypa_container-package_type-letter').hide();
                             } else {

@@ -97,7 +97,6 @@ Automate digital stamp,Automatiseer digitalepostzegel
 Default weight,Standaard gewicht
 Digital stamp fee,Digitalepostzegel kosten
 From price,Vanaf prijs
-Enabled Instabox delivery,Instabox levering ingeschakeld
 Enable sameday delivery,Zelfde dag bezorgd inschakelen
 Sameday delivery fee,Zelfde dag bezorgd kosten
 Sameday cut-off time,Zelfde dag laatste bestelmoment
@@ -232,14 +231,6 @@ myparcelnl_magento_postnl_settings/evening/only_recipient, PostNL avond levering
 myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL avond levering met alleen huisadres en handtekening
 myparcelnl_magento_postnl_settings/mailbox, PostNL brievenbuspakje
 myparcelnl_magento_postnl_settings/digital_stamp, PostNL digitale postzegel
-myparcelnl_magento_instabox_settings/delivery, Instabox bezorging
-myparcelnl_magento_instabox_settings/mailbox, Instabox brievenbuspakje
-myparcelnl_magento_instabox_settings/pickup, Instabox ophaallocatie
-myparcelnl_magento_instabox_settings/delivery/same_day_delivery, Instabox zelfde dag bezorgd
-myparcelnl_magento_instabox_settings/delivery/only_recipient/same_day_delivery, Instabox zelfde dag bezorgd met alleen huisadres
-myparcelnl_magento_instabox_settings/delivery/only_recipient/signature, Instabox levering met alleen huisadres en handtekening
-myparcelnl_magento_instabox_settings/delivery/only_recipient, Instabox levering met alleen huisadres
-myparcelnl_magento_instabox_settings/delivery/signature, Instabox levering met handtekening
 Mailbox,Brievenbuspakje
 Digital stamp,Digitale postzegel
 Print return label directly,Print het retour label direct
@@ -253,5 +244,4 @@ Without options,Zonder opties
 Options equal to shipment,Opties overnemen van heenzending
 Export to MyParcel, Exporteer naar MyParcel
 Already exported, Reeds geëxporteerd
-no_drop_off_point_instabox, Afleverpunt is vereist voor Instabox zendingen. Selecteer een afleverpunt in de MyParcel Backoffice en klik op de import knop in het algemene MyParcel settings overzicht.
 "Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.","Na het activeren van deze instelling wordt er bij het exporteren van elke zending automatisch een retour zending aangemaakt. Als je het label print wordt ook meteen het retour label geprint."
