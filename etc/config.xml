@@ -103,44 +103,6 @@
                 <fee>0</fee>
             </pickup>
         </myparcelnl_magento_postnl_settings>
-        <myparcelnl_magento_instabox_settings>
-            <default_options>
-                <only_recipient_active>0</only_recipient_active>
-                <only_recipient_from_price>1</only_recipient_from_price>
-                <return_active>0</return_active>
-                <return_from_price>1</return_from_price>
-                <large_format_active>No</large_format_active>
-                <large_format_from_price>1</large_format_from_price>
-                <age_check_active>0</age_check_active>
-                <same_day_delivery_active>0</same_day_delivery_active>
-            </default_options>
-            <general>
-                <deliverydays_window>14</deliverydays_window>
-                <cutoff_time>15,30,00</cutoff_time>
-                <cutoff_time_same_day>15,30,00</cutoff_time_same_day>
-                <dropoff_days>1,2,3,4,5</dropoff_days>
-                <dropoff_delay>0</dropoff_delay>
-            </general>
-            <delivery>
-                <active>1</active>
-                <only_recipient_active>1</only_recipient_active>
-                <only_recipient_fee>0.29</only_recipient_fee>
-                <same_day_delivery_active>0</same_day_delivery_active>
-                <same_day_delivery_fee>2</same_day_delivery_fee>
-                <cutoff_time_same_day>09,00,00</cutoff_time_same_day>
-            </delivery>
-            <mailbox>
-                <active>0</active>
-                <other_options>1</other_options>
-                <weight>2000</weight>
-                <fee>3.50</fee>
-                <pickup_mailbox>1</pickup_mailbox>
-            </mailbox>
-            <pickup>
-                <active>1</active>
-                <fee>0</fee>
-            </pickup>
-        </myparcelnl_magento_instabox_settings>
         <sales_email>
             <track>
                 <enabled>1</enabled>

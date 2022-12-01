@@ -244,7 +244,6 @@ class Checkout
     public function getActiveCarriers(): array
     {
         $carriers = [];
-
         foreach (Data::CARRIERS_XML_PATH_MAP as $carrier => $path) {
             if ($this->helper->getBoolConfig($path, 'delivery/active') ||
                 $this->helper->getBoolConfig($path, 'pickup/active')

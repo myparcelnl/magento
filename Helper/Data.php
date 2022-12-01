@@ -23,7 +23,6 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
@@ -34,12 +33,10 @@ class Data extends AbstractHelper
     public const MODULE_NAME                = 'MyParcelNL_Magento';
     public const XML_PATH_GENERAL           = 'myparcelnl_magento_general/';
     public const XML_PATH_POSTNL_SETTINGS   = 'myparcelnl_magento_postnl_settings/';
-    public const XML_PATH_INSTABOX_SETTINGS = 'myparcelnl_magento_instabox_settings/';
     public const DEFAULT_WEIGHT             = 1000;
-    public const CARRIERS                   = [CarrierPostNL::NAME, CarrierInstabox::NAME];
+    public const CARRIERS                   = [CarrierPostNL::NAME];
     public const CARRIERS_XML_PATH_MAP      = [
         CarrierPostNL::NAME   => self::XML_PATH_POSTNL_SETTINGS,
-        CarrierInstabox::NAME => self::XML_PATH_INSTABOX_SETTINGS,
     ];
 
     /**

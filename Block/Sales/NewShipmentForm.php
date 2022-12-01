@@ -4,16 +4,13 @@ namespace MyParcelNL\Magento\Block\Sales;
 
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierInstabox;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierRedJePakketje;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipmentForm
 {
     public const ALLOWED_CARRIER_CLASSES = [
         CarrierPostNL::class,
-        CarrierInstabox::class
     ];
 
     public const PACKAGE_TYPE_HUMAN_MAP = [
