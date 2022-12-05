@@ -146,7 +146,6 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                 </div>
                 <?php
                 $isInternational = AbstractConsignment::CC_NL !== $block->getCountry();
-                $isBelgium       = AbstractConsignment::CC_BE === $block->getCountry();
 
                 try {
                     $abstractConsignment->setPackageType($packageTypeId);
@@ -208,13 +207,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                             title="">
                             <option value="0"><?= __('No insurance') ?></option>
                             <?php
-                            $insuranceAmounts = $isInternational
-                                ? $abstractConsignment->getEuInsurancePossibilities()
-                                : $abstractConsignment->getInsurancePossibilities();
-                            if ($isBelgium) {
-                                $insuranceAmounts = $abstractConsignment->getBeInsurancePossibilities();
-                            }
-                            foreach ($insuranceAmounts as $insuranceAmount) {
+                            foreach ($abstractConsignment->getInsurancePossibilities($block->getCountry()) as $insuranceAmount) {
                                 printf(
                                     '<option value="%1$s" %2$s>€ %1$s</option>',
                                     $insuranceAmount,
