@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.7.1](https://github.com/myparcelnl/magento/compare/v4.7.0...v4.7.1) (2022-12-12)
+
+
+### :bug: Bug Fixes
+
+* remove instabox ([#731](https://github.com/myparcelnl/magento/issues/731)) ([d1c66df](https://github.com/myparcelnl/magento/commit/d1c66df10fef13013803dd316521841331c579f5))
+* remove myparcel product attributes on uninstall ([#722](https://github.com/myparcelnl/magento/issues/722)) ([00a17c0](https://github.com/myparcelnl/magento/commit/00a17c06d9e49aef6a3619548462e9117f11791c))
+* remove php deprecation warning ([#721](https://github.com/myparcelnl/magento/issues/721)) ([23af9f8](https://github.com/myparcelnl/magento/commit/23af9f88d55d5e3c1c27563d3fec6fd8572ccb9b))
+
 ## [4.7.0](https://github.com/myparcelnl/magento/compare/v4.6.1...v4.7.0) (2022-10-05)
 
 
