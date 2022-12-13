@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
@@ -273,7 +275,7 @@ class MagentoOrderCollection extends MagentoCollection
                 continue;
             }
 
-            $totalWeight += $this->helper->getWeightTypeOfOption($product->getWeight() * $item->getQtyShipped());
+            $totalWeight += $this->helper->getWeightTypeOfOption((string) ($product->getWeight() * $item->getQtyShipped()));
         }
 
         return $totalWeight;
@@ -315,7 +317,7 @@ class MagentoOrderCollection extends MagentoCollection
             ->setPerson($this->getFullCustomerName())
             ->setPhone($this->order->getBillingAddress()->getTelephone())
             ->setPostalCode($this->order->getBillingAddress()->getPostcode())
-            ->setStreet(implode(' ', $this->order->getBillingAddress()->getStreet()));
+            ->setStreet(implode(' ', $this->order->getBillingAddress()->getStreet() ?? []));
 
         return $this;
     }
@@ -338,7 +340,7 @@ class MagentoOrderCollection extends MagentoCollection
         $street                   = implode(
             ' ',
             $this->order->getShippingAddress()
-                ->getStreet()
+                ->getStreet() ?? []
         );
 
         $country     = $this->order->getShippingAddress()->getCountryId();

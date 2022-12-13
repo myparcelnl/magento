@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
@@ -157,7 +159,8 @@ class Checkout extends Data
         if (null === $quoteId) {
             return null;
         }
-        $parentCarriers   = explode(',', $this->getGeneralConfig('shipping_methods/methods'));
+
+        $parentCarriers   = explode(',', $this->getGeneralConfig('shipping_methods/methods') ?? '');
 
         /**
          * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
@@ -168,7 +171,7 @@ class Checkout extends Data
         $myParcelMethods = array_keys(Result::getMethods());
 
         foreach ($magentoMethods as $method) {
-            $methodCode       = explode('/', $method->getMethodCode());
+            $methodCode       = explode('/', $method->getMethodCode() ?? '');
             $latestMethodCode = array_pop($methodCode);
 
             if (
@@ -288,7 +291,7 @@ class Checkout extends Data
     public function getTimeConfig(string $carrier, string $key): string
     {
         $timeAsString   = str_replace(',', ':', $this->getCarrierConfig($key, $carrier));
-        $timeComponents = explode(':', $timeAsString);
+        $timeComponents = explode(':', $timeAsString ?? '');
         if (count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;
             $timeAsString = $hours . ':' . $minutes;
@@ -309,7 +312,7 @@ class Checkout extends Data
     {
         return array_map(static function($val) {
             return is_numeric($val) ? (int) $val : $val;
-        }, explode(',', $this->getCarrierConfig($key, $carrier)));
+        }, explode(',', $this->getCarrierConfig($key, $carrier) ?? ''));
     }
 
     /**

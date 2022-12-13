@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Created by PhpStorm.
  * User: richardperdaan
@@ -55,7 +57,7 @@ class OrderExtension
         $connection  = $resource->getConnection();
         $tableName   = $resource->getTableName('sales_order'); // Gives table name with prefix
         $path        = $this->request->getPathInfo();
-        $explodePath = explode('/', $path);
+        $explodePath = explode('/', $path ?? '');
 
         if (! is_numeric(end($explodePath))) {
             [$searchColumn, $searchValue] = $this->useIncrementId();

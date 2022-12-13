@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
 use Magento\Backend\App\Action\Context;
@@ -15,6 +17,7 @@ use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
 use MyParcelNL\Sdk\src\Helper\ValidateStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use Magento\Sales\Model\Order;
 
 /**
  * Action to create and print MyParcel Track
@@ -173,14 +176,13 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     private function filterCorrectAddress(array $orderIds): array
     {
         $objectManager = ObjectManager::getInstance();
-        $order         = $objectManager->get('\Magento\Sales\Model\Order');
+        $order         = $objectManager->get(Order::class);
         // Go through the selected orders and check if the address details are correct
         foreach ($orderIds as $orderId) {
-            $orderData          = $order->load($orderId);
-            $fullStreet         = implode(" ", $order->getShippingAddress()->getStreet());
+            $fullStreet         = implode(" ", $order->getShippingAddress()->getStreet() ?? []);
             $postcode           = preg_replace('/\s+/', '', $order->getShippingAddress()->getPostcode());
             $destinationCountry = $order->getShippingAddress()->getCountryId();
-            $keyOrderId         = array_search($orderId, $orderIds);
+            $keyOrderId         = array_search($orderId, $orderIds, true);
 
             // Validate the street and house number. If the address is wrong then get the orderId from the array and delete it.
             if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {

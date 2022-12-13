@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Get all rates depending on base price
  * LICENSE: This source file is subject to the Creative Commons License.
@@ -81,7 +83,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $this->myParcelHelper = $myParcelHelper;
         $this->session        = $session;
         $this->quote          = $quote;
-        $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods'));
+        $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods') ?? '');
         $package->setCurrentCountry(
             $this->getQuoteFromCartOrSession()
                 ->getShippingAddress()
@@ -188,7 +190,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             foreach (self::getMethods() as $settingPath) {
                 $fullPath  = $this->getFullSettingPath($carrierPath, $settingPath);
                 $separator = $this->isBaseSetting($settingPath) ? '/' : '_';
-                $pathParts = explode('/', $settingPath);
+                $pathParts = explode('/', $settingPath ?? '');
 
                 if (! $fullPath
                     || ! $this->isRelevantOption($packageType, $pathParts[0])
@@ -265,7 +267,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function isSettingActive(string $map, string $settingPath, string $separator): bool
     {
-        $settingPathParts = explode("/", $settingPath);
+        $settingPathParts = explode("/", $settingPath ?? '');
         $baseSetting      = $settingPathParts[0];
 
         if (! $this->myParcelHelper->getConfigValue("{$map}{$baseSetting}/active")) {
@@ -408,7 +410,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $settingFee = 0;
 
         // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
-        $settingPath    = explode('/', $settingPath);
+        $settingPath    = explode('/', $settingPath ?? '');
 
         // Check if the selected delivery options are delivery, only_recipient and signature
         // delivery/only_recipient/signature
@@ -450,7 +452,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             $basePrice = 0;
         }
 
-        $settingPath = implode("/", $settingPath);
+        $settingPath = implode("/", $settingPath ?? []);
         $settingFee  += (float) $this->myParcelHelper->getConfigValue($settingPath . 'fee');
 
         return $basePrice + $settingFee;

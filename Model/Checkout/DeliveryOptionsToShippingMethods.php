@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Model\Checkout;
 
 use Exception;
@@ -101,7 +103,7 @@ class DeliveryOptionsToShippingMethods
         // Filter out options that are not enabled.
         $shipmentOptions = array_filter(
             $this->deliveryOptions->getShipmentOptions()->toArray(),
-            function ($option) {
+            static function ($option) {
                 return $option === true;
             }
         );
@@ -110,7 +112,7 @@ class DeliveryOptionsToShippingMethods
         ksort($shipmentOptions);
 
         if (count($shipmentOptions)) {
-            $shipmentOptionsString = '/' . implode('/', array_keys($shipmentOptions));
+            $shipmentOptionsString = '/' . implode('/', array_keys($shipmentOptions) ?? []);
         }
 
         return $shipmentOptionsString ?? '';

@@ -54,7 +54,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         Checkout $checkoutHelper
     ) {
         $this->delivery      = $delivery;
-        $this->parentMethods = explode(',', $checkoutHelper->getGeneralConfig('shipping_methods/methods'));
+        $this->parentMethods = explode(',', $checkoutHelper->getGeneralConfig('shipping_methods/methods') ?? '');
     }
 
     /**
@@ -75,11 +75,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
             return $this;
         }
 
-        $fullStreet         = implode(' ', $order->getShippingAddress()->getStreet());
+        $fullStreet         = implode(' ', $order->getShippingAddress()->getStreet() ?? []);
         $postcode           = $order->getShippingAddress()->getPostcode();
         $destinationCountry = $order->getShippingAddress()->getCountryId();
 
-        if ($destinationCountry != AbstractConsignment::CC_NL && $destinationCountry != AbstractConsignment::CC_BE) {
+        if ($destinationCountry !== AbstractConsignment::CC_NL && $destinationCountry !== AbstractConsignment::CC_BE) {
             return $this;
         }
 
@@ -108,11 +108,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     }
 
     /**
-     * @param Quote $quote
+     * @param  Quote $quote
      *
      * @return bool
      */
-    private function hasMyParcelDeliveryOptions($quote)
+    private function hasMyParcelDeliveryOptions(Quote $quote): bool
     {
         $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
@@ -132,18 +132,14 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      * @param string $input
      * @param array  $data
      *
-     * @return int
+     * @return bool
      */
-    private function isMyParcelRelated(string $input, array $data)
+    private function isMyParcelRelated(string $input, array $data): bool
     {
         $result = array_filter(
             $data,
-            function ($item) use ($input) {
-                if (stripos($input, $item) !== false) {
-                    return true;
-                }
-
-                return false;
+            static function ($item) use ($input) {
+                return stripos($input, $item) !== false;
             }
         );
 
