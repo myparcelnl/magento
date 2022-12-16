@@ -76,10 +76,10 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         }
 
         $fullStreet         = implode(' ', $order->getShippingAddress()->getStreet());
-        $postcode           = $order->getShippingAddress()->getPostcode();
+        $postcode           = trim($order->getShippingAddress()->getPostcode());
         $destinationCountry = $order->getShippingAddress()->getCountryId();
 
-        if ($destinationCountry != AbstractConsignment::CC_NL && $destinationCountry != AbstractConsignment::CC_BE) {
+        if ($destinationCountry !== AbstractConsignment::CC_NL && $destinationCountry !== AbstractConsignment::CC_BE) {
             return $this;
         }
 
