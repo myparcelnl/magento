@@ -61,7 +61,7 @@ class PackageRepository extends Package
             }
 
             $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox');
-            if (0 === $mailboxQty) {
+            if (0 === $mailboxQty && 0 !== $productWeight) {
                 $mailboxQty = (int) ($this->getMaxMailboxWeight() / $productWeight);
             }
 
