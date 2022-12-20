@@ -56,7 +56,7 @@ class TrackAndTrace extends Column
                 continue;
             }
 
-            $order = $this->getOrderByEntityId($item['entity_id']);
+            $order = $this->getOrderByEntityId((int) $item['entity_id']);
             $name  = $this->getData('name');
 
             // Render the T&T as a link and add the script to remove the click handler.
