@@ -43,7 +43,7 @@ class TrackAndTrace extends Column
          * @var Order\Shipment\Track[] $tracks
          */
         foreach ($dataSource['data']['items'] as & $item) {
-            $addressParts = explode(",", $item['shipping_address'] ?? '');
+            $addressParts = explode(',', $item['shipping_address'] ?? '');
 
             if (count($addressParts) < 3) {
                 continue;
