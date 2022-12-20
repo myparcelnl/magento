@@ -104,7 +104,7 @@ class DeliveryOptionsToShippingMethods
         $shipmentOptions = array_filter(
             $this->deliveryOptions->getShipmentOptions()->toArray(),
             static function ($option) {
-                return $option === true;
+                return true === $option;
             }
         );
 
