@@ -354,9 +354,9 @@ class MagentoOrderCollection extends MagentoCollection
             ->setPerson($this->getFullCustomerName())
             ->setPostalCode($this->order->getShippingAddress()->getPostcode())
             ->setStreet($streetParts->getStreet())
-            ->setNumber($streetParts->getNumber())
-            ->setNumberSuffix($streetParts->getNumberSuffix())
-            ->setBoxNumber($streetParts->getBoxNumber());
+            ->setNumber((string) $streetParts->getNumber())
+            ->setNumberSuffix((string) $streetParts->getNumberSuffix())
+            ->setBoxNumber((string) $streetParts->getBoxNumber());
 
         return $this;
     }
