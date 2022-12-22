@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Update MyParcel data
  * Trigger actions:
@@ -27,13 +29,14 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
+use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
 
 class UpdateStatus
 {
     public const ORDER_ID_NOT_TO_PROCESS         = '000000000';
     public const ORDER_STATUS_EXPORTED           = 'Exported';
-    public const PATH_MODEL_ORDER_TRACK          = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
-    public const PATH_MODEL_ORDER                = '\Magento\Sales\Model\ResourceModel\Order\Collection';
+    public const PATH_MODEL_ORDER_TRACK          = Collection::class;
+    public const PATH_MODEL_ORDER                = \Magento\Sales\Model\ResourceModel\Order\Collection::class;
 
     /**
      * @var \Psr\Log\LoggerInterface
@@ -182,7 +185,7 @@ class UpdateStatus
             return $this;
         }
 
-        $this->logger->notice(sprintf('Orderbeheer: update orders %s', implode(', ', $orderIncrementIds)));
+        $this->logger->notice(sprintf('Orderbeheer: update orders %s', implode(', ', $orderIncrementIds ?? [])));
         $this->addOrdersToCollection($orderEntityIds);
 
         $this->orderCollection->setNewMagentoShipment(false)

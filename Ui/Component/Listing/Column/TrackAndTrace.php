@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
 use Magento\Framework\App\ObjectManager;
@@ -41,7 +43,7 @@ class TrackAndTrace extends Column
          * @var Order\Shipment\Track[] $tracks
          */
         foreach ($dataSource['data']['items'] as & $item) {
-            $addressParts = explode(",", $item['shipping_address']);
+            $addressParts = explode(',', $item['shipping_address'] ?? '');
 
             if (count($addressParts) < 3) {
                 continue;
@@ -54,7 +56,7 @@ class TrackAndTrace extends Column
                 continue;
             }
 
-            $order = $this->getOrderByEntityId($item['entity_id']);
+            $order = $this->getOrderByEntityId((int) $item['entity_id']);
             $name  = $this->getData('name');
 
             // Render the T&T as a link and add the script to remove the click handler.
@@ -99,7 +101,7 @@ class TrackAndTrace extends Column
 
         // older shipments are stored with '<br>' as separator between trackNumbers
         if (! is_array($trackNumbers)) {
-            $trackNumbers = explode('<br>', $trackNumbers);
+            $trackNumbers = explode('<br>', $trackNumbers ?? '');
         }
 
         foreach ($trackNumbers as $trackNumber) {

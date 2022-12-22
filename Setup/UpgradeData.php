@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Setup;
 
 use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
 use Magento\Catalog\Setup\CategorySetupFactory;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magento\Eav\Setup\EavSetup;
@@ -27,6 +28,8 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
+use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
+use Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend;
 
 /**
  * Upgrade Data script
@@ -128,7 +131,7 @@ class UpgradeData implements UpgradeDataInterface
                     'input'                   => 'select',
                     'class'                   => '',
                     'source'                  => 'MyParcelNL\Magento\Model\Source\FitInMailboxOptions',
-                    'global'                  => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
+                    'global'                  => Attribute::SCOPE_GLOBAL,
                     'visible'                 => true,
                     'required'                => false,
                     'user_defined'            => true,
@@ -232,12 +235,12 @@ class UpgradeData implements UpgradeDataInterface
                 [
                     'group'                   => self::GROUP_NAME,
                     'type'                    => 'varchar',
-                    'backend'                 => 'Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend',
+                    'backend'                 => ArrayBackend::class,
                     'label'                   => 'Fit in Mailbox',
                     'input'                   => 'input',
                     'class'                   => '',
-                    'source'                  => 'MyParcelNL\Magento\Model\Source\FitInMailboxOptions',
-                    'global'                  => \Magento\Catalog\Model\ResourceModel\Eav\Attribute::SCOPE_GLOBAL,
+                    'source'                  => FitInMailboxOptions::class,
+                    'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
                     'visible'                 => true,
                     'required'                => false,
                     'user_defined'            => true,
@@ -450,7 +453,7 @@ class UpgradeData implements UpgradeDataInterface
                 $insuranceData = $connection->fetchAll($selectDefaultInsurance) ?? [];
                 foreach ($insuranceData as $value) {
                     $path    = $value['path'];
-                    $path    = explode("/", $path);
+                    $path    = explode("/", $path ?? '');
                     $path[0] = 'myparcelnl_magento_postnl_settings';
                     $path[1] = 'default_options';
 
@@ -472,7 +475,7 @@ class UpgradeData implements UpgradeDataInterface
                 $signatureData = $connection->fetchAll($selectDefaultSignature) ?? [];
                 foreach ($signatureData as $value) {
                     $path    = $value['path'];
-                    $path    = explode("/", $path);
+                    $path    = explode("/", $path ?? '');
                     $path[0] = 'myparcelnl_magento_postnl_settings';
                     $path[1] = 'default_options';
 
@@ -494,7 +497,7 @@ class UpgradeData implements UpgradeDataInterface
                 $checkoutData = $connection->fetchAll($selectCheckoutSettings) ?? [];
                 foreach ($checkoutData as $value) {
                     $path    = $value['path'];
-                    $path    = explode("/", $path);
+                    $path    = explode("/", $path ?? '');
                     $path[0] = 'myparcelnl_magento_postnl_settings';
 
                     $fullPath = implode("/", $path);

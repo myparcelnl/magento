@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -24,6 +26,7 @@ use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
+use Magento\Framework\App\ResourceConnection;
 
 /**
  * Class MagentoOrderCollection
@@ -93,6 +96,9 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     protected $helper;
 
+    /**
+     * @var array
+     */
     protected $options = [
         'create_track_if_one_already_exist' => true,
         'request_type'                      => 'download',
@@ -171,15 +177,15 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         }
 
         // Remove position if paper size == A6
-        if ($this->request->getParam('mypa_paper_size', 'A6') != 'A4') {
+        if ($this->request->getParam('mypa_paper_size', 'A6') !== 'A4') {
             $this->options['positions'] = null;
         }
 
-        if ($this->request->getParam('mypa_request_type') == null) {
+        if ($this->request->getParam('mypa_request_type') === null) {
             $this->options['request_type'] = 'download';
         }
 
-        if ($this->request->getParam('mypa_request_type') != 'concept') {
+        if ($this->request->getParam('mypa_request_type') !== 'concept') {
             $this->options['create_track_if_one_already_exist'] = false;
         }
 
@@ -196,7 +202,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      *
      * @return array
      */
-    public function getOptions()
+    public function getOptions(): array
     {
         return $this->options;
     }
@@ -295,7 +301,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         // Create html
         if ($data['track_status']) {
-            $columnHtml['track_status'] = implode('<br>', $data['track_status']);
+            $columnHtml['track_status'] = implode('<br>', $data['track_status'] ?? []);
         }
         if ($data['track_number']) {
             $columnHtml['track_number'] = json_encode($data['track_number']);
@@ -533,7 +539,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                         $returnConsignment->setAgeCheck(false);
                         $returnConsignment->setReturn(false);
                         $returnConsignment->setLargeFormat(false);
-                        $returnConsignment->setInsurance(false);
+                        $returnConsignment->setInsurance(0);
                     }
 
                     return $returnConsignment;
@@ -603,10 +609,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @param \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $shipments
-     *
      * @return $this
-     * @throws \Exception
      */
     protected function updateOrderGrid(): self
     {
@@ -643,19 +646,17 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      *
      * @return array
      */
-    private function getTracksCollectionByOrderId($orderId)
+    private function getTracksCollectionByOrderId($orderId): array
     {
         /** @var \Magento\Framework\App\ResourceConnection $connection */
-        $connection = $this->objectManager->create('\Magento\Framework\App\ResourceConnection');
+        $connection = $this->objectManager->create(ResourceConnection::class);
         $conn       = $connection->getConnection();
         $select     = $conn->select()
                            ->from(
                                ['main_table' => $connection->getTableName('sales_shipment_track')]
                            )
                            ->where('main_table.order_id=?', $orderId);
-        $tracks     = $conn->fetchAll($select);
-
-        return $tracks;
+        return $conn->fetchAll($select);
     }
 
     /**
