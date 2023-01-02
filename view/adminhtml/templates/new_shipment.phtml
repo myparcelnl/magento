@@ -145,9 +145,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     </select>
                 </div>
                 <?php
-                if (AbstractConsignment::CC_NL !== $block->getCountry()) {
-                    continue;
-                }
+                $isInternational = AbstractConsignment::CC_NL !== $block->getCountry();
 
                 try {
                     $abstractConsignment->setPackageType($packageTypeId);
@@ -155,8 +153,11 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     continue;
                 }
                 foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
-                    if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
-                        || ! $abstractConsignment->canHaveShipmentOption($shipmentOption)) {
+                    if (
+                        $isInternational
+                        || AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
+                        || ! $abstractConsignment->canHaveShipmentOption($shipmentOption)
+                    ) {
                         continue;
                     }
                     $isActive = ($abstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $shipmentOption)
@@ -206,11 +207,11 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                             title="">
                             <option value="0"><?= __('No insurance') ?></option>
                             <?php
-                            foreach ($abstractConsignment->getInsurancePossibilities() as $insurancePossibility) {
+                            foreach ($abstractConsignment->getInsurancePossibilities($block->getCountry()) as $insuranceAmount) {
                                 printf(
                                     '<option value="%1$s" %2$s>€ %1$s</option>',
-                                    $insurancePossibility,
-                                    $insurancePossibility === $defaultInsurance
+                                    $insuranceAmount,
+                                    $insuranceAmount === $defaultInsurance
                                         ? 'selected="selected"'
                                         : ''
                                 );

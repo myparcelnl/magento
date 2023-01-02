@@ -29,7 +29,9 @@ class DefaultOptions
     // Maximum characters length of company name.
     private const COMPANY_NAME_MAX_LENGTH = 50;
     private const INSURANCE_BELGIUM        = 'insurance_belgium';
-    private const INSURANCE_AMOUNT_BELGIUM = 500;
+    private const INSURANCE_BELGIUM_AMOUNT = 500;
+    private const INSURANCE_EU_AMOUNT_50   = 'insurance_eu_50';
+    private const INSURANCE_EU_AMOUNT_500  = 'insurance_eu_500';
     private const INSURANCE_AMOUNT_100     = 'insurance_100';
     private const INSURANCE_AMOUNT_250     = 'insurance_250';
     private const INSURANCE_AMOUNT_500     = 'insurance_500';
@@ -165,11 +167,54 @@ class DefaultOptions
     public function getDefaultInsurance(string $carrier): int
     {
         $shippingAddress = self::$order->getShippingAddress();
+        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : AbstractConsignment::CC_NL;
 
-        if ($shippingAddress && AbstractConsignment::CC_BE === $shippingAddress->getCountryId()) {
-            return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::INSURANCE_AMOUNT_BELGIUM : 0;
+        if (AbstractConsignment::CC_NL === $shippingCountry) {
+            return $this->getDefaultLocalInsurance($carrier);
         }
 
+        if (AbstractConsignment::CC_BE === $shippingCountry) {
+            return $this->getDefaultBeInsurance($carrier);
+        }
+
+        return $this->getDefaultEuInsurance($carrier);
+    }
+
+    /**
+     * @param  string $carrier
+     *
+     * @return int
+     */
+    private function getDefaultEuInsurance(string $carrier): int
+    {
+        if ($this->hasDefault(self::INSURANCE_EU_AMOUNT_500, $carrier)) {
+            return 500;
+        }
+
+        if ($this->hasDefault(self::INSURANCE_EU_AMOUNT_50, $carrier)) {
+            return 50;
+        }
+
+        return 0;
+    }
+
+    /**
+     * @param  string $carrier
+     *
+     * @return int
+     */
+    private function getDefaultBeInsurance(string $carrier): int
+    {
+        return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::INSURANCE_BELGIUM_AMOUNT : 0;
+    }
+
+    /**
+     * @param  string $carrier
+     *
+     * @return int
+     */
+    private function getDefaultLocalInsurance(string $carrier): int
+    {
         if ($this->hasDefault(self::INSURANCE_AMOUNT_CUSTOM, $carrier)) {
             return self::$helper->getConfigValue(Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_custom_amount');
         }
@@ -188,7 +233,6 @@ class DefaultOptions
 
         return 0;
     }
-
     /**
      * Get default of digital stamp weight
      *
