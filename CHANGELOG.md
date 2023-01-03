@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.8.0](https://github.com/myparcelnl/magento/compare/v4.7.1...v4.8.0) (2023-01-03)
+
+
+### :bug: Bug Fixes
+
+* fix division by zero when calculating package type ([#737](https://github.com/myparcelnl/magento/issues/737)) ([5811bc8](https://github.com/myparcelnl/magento/commit/5811bc8026564b2cccec99f7fc392ae770f92626))
+* fix php 8.1 deprecation errors ([#736](https://github.com/myparcelnl/magento/issues/736)) ([81d49f1](https://github.com/myparcelnl/magento/commit/81d49f105e63192b19d38e2dcafb9c5d27e4c8c3))
+* trim postal code before validating ([#735](https://github.com/myparcelnl/magento/issues/735)) ([c502947](https://github.com/myparcelnl/magento/commit/c502947644e801e5b75e04db93dcffec268ff317))
+
+
+### :sparkles: New Features
+
+* add eu insurance possibilities ([#733](https://github.com/myparcelnl/magento/issues/733)) ([1644a7b](https://github.com/myparcelnl/magento/commit/1644a7bb3df8446e707f114d91ef3409e69b8f25))
+
 ## [4.7.1](https://github.com/myparcelnl/magento/compare/v4.7.0...v4.7.1) (2022-12-12)
 
 
