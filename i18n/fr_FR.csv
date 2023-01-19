@@ -112,7 +112,7 @@ Signature on receipt title, Signature pour réception - titre
 Signature on receipt fee, Signature pour réception - prix
 This will be added to the regular shipping price, Ceci sera ajouté aux frais d'expédition standards
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Si les deux éléments sont sélectionnés, ce prix sera ajouté aux frais d'expédition standards. Laissez vide pour ignorer cette option.
-"Besides assigning weights to all products, you can also specify a volume of each product.","Pour utiliser cette fonction de manière optimale, spécifiez d'abord le poids ou le volume de vos produits."
+"To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Pour utiliser cette fonction de manière optimale, spécifiez d'abord le poids ou le volume de vos produits. Les envois plus lourds que le poids spécifié ici ne seront pas considérés comme des envois pour Boîte aux lettres."
 This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
 Pickup at PostNL location,Collecte dans un point postnl
 Pickup active,Collecte active

@@ -688,6 +688,22 @@ class UpgradeData implements UpgradeDataInterface
             $this->replaceDisableCheckout->writeNewAttributeEntity();
         }
 
+        if (version_compare($context->getVersion(), '4.8.1', '<')) {
+            $eavSetup->removeAttribute(Product::ENTITY, 'myparcel_fit_in_mailbox');
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_fit_in_mailbox',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'type'    => 'varchar',
+                        'note'    => 'Fill in the amount of products that fit in a mailbox package. Set to 0 to automatically calculate based on weight. Regardless of this setting, the product will always be sent as a package if the weight is too high.',
+                        'label'   => 'Fit in mailbox',
+                        'input'   => 'text',
+                        'default' => '101',
+                    ]
+                )
+            );
+        }
+
         $setup->endSetup();
     }
 }

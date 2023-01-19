@@ -165,6 +165,8 @@ Dropoff-delay,Vertraging
 No delay,Geen vertraging
 "This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.","Stel hier het aantal dagen in die je nodig hebt om het product (te ontvangen,) te verpakken en aan te bieden bij PostNL, vanaf het moment dat de bestelling is geplaatst".
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery., De leeftijdscheck is bedoeld voor pakketzendingen waarbij de ontvanger moet kunnen aantonen dat hij/zij 18+ is. Deze optie kan niet worden gecombineerd met ochtend- of avondlevering.
+HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs,HS Codes worden gebruikt voor MyParcel wereldzendingen, je kunt de juiste code vinden op de site van de Douane.
+Fill in the amount of products that fit in a mailbox package. Set to 0 to automatically calculate based on weight. Regardless of this setting, the product will always be sent as a package if the weight is too high.,Vul het aantal producten in dat in een brievenbuspakket past. Stel in op 0 om automatisch te berekenen op basis van gewicht. Ongeacht deze instelling wordt het product altijd als pakket verzonden als het gewicht te hoog is.
 Methods,Verzendmethode
 The extra myparcel options are added to this shipping method,De extra myparcel opties worden bij deze verzendmethode toegevoegd.
 Delivery title,Bezorg titel
@@ -177,7 +179,7 @@ Signature on receipt title, Handtekening voor ontvangst titel
 Signature on receipt fee, Handtekening voor ontvangst prijs
 This will be added to the regular shipping price, Dit zal bij de normale verzendkosten worden opgeteld
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
-"Besides assigning weights to all products, you can also specify a volume of each product.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten."
+"To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten. Ongeacht deze instelling, zendingen zwaarder dan het hier opgegeven gewicht zullen niet als brievenbuspakket worden verzonden."
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Pickup at PostNL location,Ophalen bij een PostNL locatie
 List,Lijst

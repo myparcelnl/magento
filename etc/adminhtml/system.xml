@@ -383,7 +383,7 @@
                 </field>
                 <field id="weight" translate="label comment" type="text" sortOrder="360" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Mailbox weight</label>
-                    <tooltip>Besides assigning weights to all products, you can also specify a volume of each product.</tooltip>
+                    <tooltip>To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.</tooltip>
                     <depends>
                         <field id="active">1</field>
                     </depends>
