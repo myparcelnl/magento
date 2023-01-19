@@ -145,9 +145,9 @@ class PackageRepository extends Package
         $this->setMailboxActive('1' === $settings['active']);
         if (true === $this->isMailboxActive()) {
             $weight = abs((float) str_replace(',', '.', $settings['weight'] ?? ''));
-            $weightType = $this->getGeneralConfig('print/weight_indication');
+            $unit   = $this->getGeneralConfig('print/weight_indication');
 
-            if ('kilo' === $weightType) {
+            if ('kilo' === $unit) {
                 $epsilon = 0.00001;
                 $default = self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT / 1000.0;
                 if ($weight < $epsilon) {
