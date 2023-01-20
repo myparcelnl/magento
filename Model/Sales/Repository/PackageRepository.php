@@ -144,8 +144,20 @@ class PackageRepository extends Package
 
         $this->setMailboxActive('1' === $settings['active']);
         if (true === $this->isMailboxActive()) {
-            $weight = str_replace(',', '.', $settings['weight']);
-            $this->setMaxMailboxWeight($weight ?: self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT);
+            $weight = abs((float) str_replace(',', '.', $settings['weight'] ?? ''));
+            $unit   = $this->getGeneralConfig('print/weight_indication');
+
+            if ('kilo' === $unit) {
+                $epsilon = 0.00001;
+                $default = self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT / 1000.0;
+                if ($weight < $epsilon) {
+                    $weight = $default;
+                }
+                $this->setMaxMailboxWeight($weight);
+            } else {
+                $weight = (int)$weight;
+                $this->setMaxMailboxWeight($weight ?: self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT);
+            }
 
             $pickupMailbox = (bool) $this->getConfigValue("{$carrierPath}mailbox/pickup_mailbox");
             $this->setPickupMailboxActive($pickupMailbox);
