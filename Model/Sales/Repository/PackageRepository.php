@@ -50,7 +50,7 @@ class PackageRepository extends Package
         $digitalStamp = true;
         foreach ($products as $product) {
             $productQty    = $product->getQty();
-            $productWeight = $product->getWeight();
+            $productWeight = (float) $product->getWeight();
 
             if ($productQty < 1) {
                 continue;
@@ -61,7 +61,7 @@ class PackageRepository extends Package
             }
 
             $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox');
-            if (0 === $mailboxQty && 0 !== $productWeight) {
+            if (0 === $mailboxQty && 0.0 !== $productWeight) {
                 $mailboxQty = (int) ($this->getMaxMailboxWeight() / $productWeight);
             }
 
