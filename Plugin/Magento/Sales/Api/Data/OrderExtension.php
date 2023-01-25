@@ -62,7 +62,7 @@ class OrderExtension
         if (! is_numeric(end($explodePath))) {
             [$searchColumn, $searchValue] = $this->useIncrementId();
         } else {
-            [$searchColumn, $searchValue] = $this->useEntityId(end($explodePath));
+            [$searchColumn, $searchValue] = $this->useEntityId((int) end($explodePath));
         }
 
         if (empty($searchValue)) {
