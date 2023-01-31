@@ -73,7 +73,7 @@ class OrderExtension
         $sql = $connection
             ->select('myparcel_delivery_options')
             ->from($tableName)
-            ->where($searchColumn . ' = ' . (int) $searchValue);
+            ->where($searchColumn . ' = ?', $searchValue);
 
         $result = $connection->fetchAll($sql); // Gives associated array, table fields as key in array.
 
