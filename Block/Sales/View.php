@@ -78,7 +78,7 @@ class View extends AbstractOrder
                     $html .= __($data['packageType'] . ' ');
                 }
 
-                $dateTime = date('d-m-Y H:i', strtotime($data['date']));
+                $dateTime = date('d-m-Y H:i', strtotime($data['date'] ?? ''));
                 $html .= __('Deliver:') . ' ' . $dateTime;
 
                 if (key_exists('shipmentOptions', $data)) {
