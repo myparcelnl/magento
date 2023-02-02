@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.8.1](https://github.com/myparcelnl/magento/compare/v4.8.0...v4.8.1) (2023-02-02)
+
+
+### :bug: Bug Fixes
+
+* clarify texts regarding mailbox settings ([#745](https://github.com/myparcelnl/magento/issues/745)) ([8d33bd9](https://github.com/myparcelnl/magento/commit/8d33bd9bdd67e3fa1f50b62aad1c66d5d987ec8f))
+* fix division by zero issue on checkout ([#746](https://github.com/myparcelnl/magento/issues/746)) ([cee3094](https://github.com/myparcelnl/magento/commit/cee3094e5ef04e89ee0de7a95b346afae588171f))
+* fix php 8.1 deprecation notice in strtotime ([#748](https://github.com/myparcelnl/magento/issues/748)) ([eca47d6](https://github.com/myparcelnl/magento/commit/eca47d66ead8c8a1e28dad10bb94cb71120ea1b8))
+* mailbox works with kilo setting on php 8.1 ([#744](https://github.com/myparcelnl/magento/issues/744)) ([721259a](https://github.com/myparcelnl/magento/commit/721259a5edf464bcec6bc516f271957da6a7f813))
+* prevent type error in use entity id ([#749](https://github.com/myparcelnl/magento/issues/749)) ([57a05a7](https://github.com/myparcelnl/magento/commit/57a05a7f947a0fb5619e5734a6e497801fbefb45))
+* use correct way to inject search value ([#750](https://github.com/myparcelnl/magento/issues/750)) ([d11f3e0](https://github.com/myparcelnl/magento/commit/d11f3e046e980272c2a22fae55be1d860be1ecb9))
+
 ## [4.8.0](https://github.com/myparcelnl/magento/compare/v4.7.1...v4.8.0) (2023-01-03)
 
 
