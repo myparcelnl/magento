@@ -7,21 +7,37 @@ on:
 
   workflow_dispatch: ~
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   release:
     name: 'Build and publish 🚀'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           persist-credentials: false
+          token: ${{ secrets.GH_REPO_TOKEN }}
 
-      - uses: myparcelnl/actions/yarn-install@v2
-
-      - uses: myparcelnl/actions/semantic-release@v2
+      # TODO: Switch to v3 with app credentials when GitHub apps are allowed to bypass status checks. https://github.com/orgs/community/discussions/43460
+      - uses: myparcelnl/actions/setup-git-credentials@v2
         with:
           token: ${{ secrets.GH_REPO_TOKEN }}
+
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_REPO_TOKEN }}
+
+      - uses: myparcelnl/actions/yarn-install@v3
+
+      - uses: myparcelnl/actions/semantic-release@v3
+        with:
+          token: ${{ secrets.GH_REPO_TOKEN }}
+
 
   rebase:
     name: 'Rebase develop onto main'
@@ -36,7 +52,7 @@ jobs:
   rebase-prs:
     name: 'Rebase pull requests onto develop'
     needs: rebase
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: peter-evans/rebase@v2
         with:

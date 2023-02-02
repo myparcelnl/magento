@@ -8,10 +8,15 @@ jobs:
   dispatch:
     runs-on: ubuntu-latest
     steps:
-      - name: 'Slash Command Dispatch'
-        uses: peter-evans/slash-command-dispatch@v3
+      - uses: myparcelnl/actions/setup-git-credentials@v3
+        id: credentials
         with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
+          private-key: ${{ secrets.MYPARCEL_APP_PRIVATE_KEY }}
+          app-id: ${{ secrets.MYPARCEL_APP_ID }}
+
+      - uses: peter-evans/slash-command-dispatch@v3
+        with:
+          token: ${{ steps.credentials.outputs.token }}
           commands: rebase
           permission: write
           issue-type: pull-request

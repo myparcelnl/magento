@@ -30,11 +30,26 @@ on:
   repository_dispatch:
     types: [ rebase-command ]
 
+concurrency:
+  group: rebase-${{ github.event.client_payload.target || github.event.inputs.target || inputs.target }}
+  cancel-in-progress: true
+
 jobs:
   rebase:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: myparcelnl/actions/rebase@v2
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          token: ${{ secrets.GH_REPO_TOKEN }}
+
+      # TODO: Switch to v3 with app credentials when GitHub apps are allowed to bypass status checks. https://github.com/orgs/community/discussions/43460
+      - uses: myparcelnl/actions/setup-git-credentials@v2
+        with:
+          token: ${{ secrets.GH_REPO_TOKEN }}
+
+      - uses: myparcelnl/actions/rebase@v3
         with:
           token: ${{ secrets.GH_REPO_TOKEN }}
           target: ${{ github.event.client_payload.target || github.event.inputs.target || inputs.target }}
