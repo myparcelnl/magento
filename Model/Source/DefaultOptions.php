@@ -204,13 +204,9 @@ class DefaultOptions
      */
     private function getDefaultBeInsurance(string $carrier): int
     {
-        if ($this->hasDefault(self::INSURANCE_BE_AMOUNT_CUSTOM, $carrier)) {
-            return self::$helper->getConfigValue(
-                Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_be_custom_amount'
-            );
-        }
-
-        return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::INSURANCE_BELGIUM_AMOUNT : 0;
+        return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::$helper->getConfigValue(
+            Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_be_custom_amount'
+        ) : 0;
     }
 
     /**

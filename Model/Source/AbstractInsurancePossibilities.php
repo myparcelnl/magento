@@ -28,9 +28,7 @@ abstract class AbstractInsurancePossibilities implements OptionSourceInterface
     public function toArray(): array
     {
         return array_reduce($this->getInsurancePossibilitiesArray(), static function ($array, $insuranceValue) {
-            if ($insuranceValue > 500) {
-                $array[$insuranceValue] = $insuranceValue;
-            }
+            $array[$insuranceValue] = $insuranceValue;
 
             return $array;
         }, []);
