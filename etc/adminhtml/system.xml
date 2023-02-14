@@ -271,13 +271,13 @@
                     </depends>
                 </field>
                 <field id="insurance_eu_custom_active" translate="label" type="select" sortOrder="264" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insure custom active</label>
+                    <label>Insure EU custom active</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="insurance_eu_custom_amount" translate="label comment" type="select" sortOrder="265" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insured amount</label>
+                    <label>Insured EU amount</label>
                     <source_model>MyParcelNL\Magento\Model\Source\PostNLInsurancePossibilities</source_model>
-                    <tooltip>A custom insurance price within a range of possibilities.</tooltip>
+                    <tooltip>A custom eu insurance price within a range of possibilities.</tooltip>
                     <depends>
                         <field id="insurance_eu_custom_active">1</field>
                     </depends>
@@ -285,7 +285,7 @@
                 <field id="insurance_eu_custom_from_price" translate="label comment" type="text" sortOrder="266" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From price</label>
                     <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance custom' operates above a certain custom order total amount.</tooltip>
+                    <tooltip>'Insurance eu custom' operates above a certain custom order total amount.</tooltip>
                     <depends>
                         <field id="insurance_eu_custom_active">1</field>
                     </depends>
