@@ -225,10 +225,6 @@ class DefaultOptions
             return self::$helper->getConfigValue(Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_custom_amount');
         }
 
-        if ($this->hasDefault(self::INSURANCE_AMOUNT_5000, $carrier)) {
-            return 5000;
-        }
-
         if ($this->hasDefault(self::INSURANCE_AMOUNT_500, $carrier)) {
             return 500;
         }
