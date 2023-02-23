@@ -56,11 +56,25 @@ class PackageRepository extends Package
                 continue;
             }
 
+            if ($productWeight > 0) {
+                $weight += $productWeight * $productQty;
+            }
+
             if ($digitalStamp && ! $this->getAttributesProductsOptions($product, 'digital_stamp')) {
                 $digitalStamp = false;
             }
 
+            if (100 < $this->getMailboxPercentage()) {
+                continue;
+            }
+
             $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox');
+
+            if (-1 === $mailboxQty) {
+                $this->setMailboxPercentage(101);
+                continue;
+            }
+
             if (0 === $mailboxQty && 0.0 !== $productWeight) {
                 $mailboxQty = (int) ($this->getMaxMailboxWeight() / $productWeight);
             }
@@ -69,10 +83,6 @@ class PackageRepository extends Package
                 $productPercentage = $productQty * 100 / $mailboxQty;
                 $mailboxPercentage = $this->getMailboxPercentage() + $productPercentage;
                 $this->setMailboxPercentage($mailboxPercentage);
-            }
-
-            if ($productWeight > 0) {
-                $weight += $productWeight * $productQty;
             }
         }
         $this->setWeight($weight);
