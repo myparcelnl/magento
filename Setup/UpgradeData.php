@@ -693,7 +693,7 @@ class UpgradeData implements UpgradeDataInterface
                 Product::ENTITY,
                 'myparcel_fit_in_mailbox',
                 'note',
-                'Fill in the amount of products that fit in a mailbox package. Use 0 to automatically calculate based on weight, -1 if the article does not fit in a mailbox. The product will always be sent as a package if the weight is too high.'
+                'Fill in the amount of products that fit in one mailbox package. Use 0 to automatically calculate based on weight, -1 if the article does not fit in a mailbox package. The product will always be sent as a regular package if it\'s too heavy for a mailbox package.'
             );
             $eavSetup->updateAttribute(
                 Product::ENTITY,
