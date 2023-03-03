@@ -1,14 +1,13 @@
 <?php
 /**
  * All functions to handle insurance
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
  * @author      Reindert Vetter <info@myparcel.nl>
- * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
+ * @copyright   2010-2019 MyParcel
  * @since       File available since Release v0.1.0
  */
 
@@ -27,17 +26,16 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 class DefaultOptions
 {
     // Maximum characters length of company name.
-    private const COMPANY_NAME_MAX_LENGTH = 50;
-    private const INSURANCE_BELGIUM        = 'insurance_belgium';
-    private const INSURANCE_BELGIUM_AMOUNT = 500;
-    private const INSURANCE_EU_AMOUNT_50   = 'insurance_eu_50';
-    private const INSURANCE_EU_AMOUNT_500  = 'insurance_eu_500';
-    private const INSURANCE_AMOUNT_100     = 'insurance_100';
-    private const INSURANCE_AMOUNT_250     = 'insurance_250';
-    private const INSURANCE_AMOUNT_500     = 'insurance_500';
-    private const INSURANCE_AMOUNT_CUSTOM  = 'insurance_custom';
-
-    public const DEFAULT_OPTION_VALUE = 'default';
+    private const COMPANY_NAME_MAX_LENGTH    = 50;
+    private const INSURANCE_BELGIUM          = 'insurance_belgium_custom';
+    private const INSURANCE_BELGIUM_AMOUNT   = 500;
+    private const INSURANCE_EU_AMOUNT_50     = 'insurance_eu_50';
+    private const INSURANCE_EU_AMOUNT_500    = 'insurance_eu_500';
+    private const INSURANCE_AMOUNT_100       = 'insurance_100';
+    private const INSURANCE_AMOUNT_250       = 'insurance_250';
+    private const INSURANCE_AMOUNT_500       = 'insurance_500';
+    private const INSURANCE_AMOUNT_CUSTOM    = 'insurance_custom';
+    public const  DEFAULT_OPTION_VALUE       = 'default';
 
     /**
      * @var Data
@@ -205,7 +203,13 @@ class DefaultOptions
      */
     private function getDefaultBeInsurance(string $carrier): int
     {
-        return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::INSURANCE_BELGIUM_AMOUNT : 0;
+        if ($this->hasDefault(self::INSURANCE_BELGIUM, $carrier)) {
+            return self::$helper->getConfigValue(Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_belgium_custom_amount');
+        }
+
+        return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::$helper->getConfigValue(
+            Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_belgium_custom_amount'
+        ) : 0;
     }
 
     /**
@@ -233,6 +237,7 @@ class DefaultOptions
 
         return 0;
     }
+
     /**
      * Get default of digital stamp weight
      *

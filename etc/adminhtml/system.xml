@@ -242,9 +242,25 @@
                         <field id="insurance_custom_active">1</field>
                     </depends>
                 </field>
-                <field id="insurance_belgium_active" translate="label" type="select" sortOrder="257" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="insurance_belgium_custom_active" translate="label" type="select" sortOrder="257" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Insure shipments to Belgium'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="insurance_belgium_custom_amount" translate="label comment" type="select" sortOrder="258" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insured BE amount</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\PostNLInsurancePossibilities</source_model>
+                    <tooltip>A custom be insurance price within a range of possibilities.</tooltip>
+                    <depends>
+                        <field id="insurance_belgium_custom_active">1</field>
+                    </depends>
+                </field>
+                <field id="insurance_belgium_custom_from_price" translate="label comment" type="text" sortOrder="259" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <tooltip>'Insurance be custom' operates above a certain custom order total amount.</tooltip>
+                    <depends>
+                        <field id="insurance_belgium_custom_active">1</field>
+                    </depends>
                 </field>
                 <field id="insurance_eu_50_active" translate="label" type="select" sortOrder="260" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Insurance EU € 50'</label>
