@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.9.0](https://github.com/myparcelnl/magento/compare/v4.8.1...v4.9.0) (2023-03-07)
+
+
+### :bug: Bug Fixes
+
+* restore option product not to use mailbox ([#757](https://github.com/myparcelnl/magento/issues/757)) ([31bfcf5](https://github.com/myparcelnl/magento/commit/31bfcf522c00b63268af8021f7aabe5bcedfbcff))
+
+
+### :sparkles: New Features
+
+* add insurance custom be ([#755](https://github.com/myparcelnl/magento/issues/755)) ([5525faf](https://github.com/myparcelnl/magento/commit/5525faf0bb61aaed42d740804aaae412609d35ee))
+
 ## [4.8.1](https://github.com/myparcelnl/magento/compare/v4.8.0...v4.8.1) (2023-02-02)
 
 
