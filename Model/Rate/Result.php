@@ -449,7 +449,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
         // For mailbox and digital stamp the base price should not be calculated
         if (AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $settingPath[self::SECOND_PART] || AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $settingPath[self::SECOND_PART]) {
-            $basePrice = 0;
+            return min($settingFee, $basePrice);
         }
 
         $settingPath = implode("/", $settingPath ?? []);
