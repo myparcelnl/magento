@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.9.1](https://github.com/myparcelnl/magento/compare/v4.9.0...v4.9.1) (2023-04-20)
+
+
+### :bug: Bug Fixes
+
+* allow price based tablerate with mailbox ([#762](https://github.com/myparcelnl/magento/issues/762)) ([2860ad2](https://github.com/myparcelnl/magento/commit/2860ad2d49cc503281dba4a804287d609996149d))
+
 ## [4.9.0](https://github.com/myparcelnl/magento/compare/v4.8.1...v4.9.0) (2023-03-07)
 
 
