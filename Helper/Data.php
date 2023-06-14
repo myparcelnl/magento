@@ -3,14 +3,13 @@
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:
  * http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US
- *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
  *
  * @author      Reindert Vetter <info@myparcel.nl>
- * @copyright   2010-2016 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
  * @link        https://github.com/myparcelnl/magento
+ * @copyright   2010-2016 MyParcel
  * @since       File available since Release v0.1.0
  */
 
@@ -23,6 +22,9 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLParcelConnect;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
@@ -30,13 +32,19 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
-    public const MODULE_NAME                = 'MyParcelNL_Magento';
-    public const XML_PATH_GENERAL           = 'myparcelnl_magento_general/';
-    public const XML_PATH_POSTNL_SETTINGS   = 'myparcelnl_magento_postnl_settings/';
-    public const DEFAULT_WEIGHT             = 1000;
-    public const CARRIERS                   = [CarrierPostNL::NAME];
-    public const CARRIERS_XML_PATH_MAP      = [
-        CarrierPostNL::NAME   => self::XML_PATH_POSTNL_SETTINGS,
+    public const MODULE_NAME                        = 'MyParcelNL_Magento';
+    public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
+    public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
+    public const XML_PATH_DHLFORYOU_SETTINGS        = 'myparcelnl_magento_dhlforyou_settings/';
+    public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
+    public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelnl_magento_dhlparcelconnect_settings/';
+    public const DEFAULT_WEIGHT                     = 1000;
+    public const CARRIERS                           = [CarrierPostNL::NAME];
+    public const CARRIERS_XML_PATH_MAP              = [
+        CarrierPostNL::NAME => self::XML_PATH_POSTNL_SETTINGS,
+        //        CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
+        //        CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
+        //        CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
     ];
 
     /**
@@ -52,14 +60,14 @@ class Data extends AbstractHelper
     /**
      * Get settings by field
      *
-     * @param Context             $context
-     * @param ModuleListInterface $moduleList
-     * @param CheckApiKeyService  $checkApiKeyService
+     * @param  Context             $context
+     * @param  ModuleListInterface $moduleList
+     * @param  CheckApiKeyService  $checkApiKeyService
      */
     public function __construct(
-        Context $context,
+        Context             $context,
         ModuleListInterface $moduleList,
-        CheckApiKeyService $checkApiKeyService
+        CheckApiKeyService  $checkApiKeyService
     ) {
         parent::__construct($context);
         $this->moduleList         = $moduleList;
@@ -69,8 +77,8 @@ class Data extends AbstractHelper
     /**
      * Get settings by field
      *
-     * @param      $field
-     * @param null $storeId
+     * @param       $field
+     * @param  null $storeId
      *
      * @return mixed
      */
@@ -172,7 +180,8 @@ class Data extends AbstractHelper
     {
         $apiKey = $this->getApiKey();
 
-        return $this->checkApiKeyService->setApiKey($apiKey)->apiKeyIsCorrect();
+        return $this->checkApiKeyService->setApiKey($apiKey)
+            ->apiKeyIsCorrect();
     }
 
     /**
@@ -198,7 +207,7 @@ class Data extends AbstractHelper
     /**
      * Get date in YYYY-MM-DD HH:MM:SS format
      *
-     * @param string|null $date
+     * @param  string|null $date
      *
      * @return string|null
      */
@@ -222,7 +231,7 @@ class Data extends AbstractHelper
     /**
      * Get delivery type and when it is null use 'standard'
      *
-     * @param int|null $deliveryType
+     * @param  int|null $deliveryType
      *
      * @return int
      */
@@ -236,13 +245,16 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param int    $order_id
-     * @param string $status
+     * @param  int    $order_id
+     * @param  string $status
      */
     public function setOrderStatus(int $order_id, string $status): void
     {
-        $order = ObjectManager::getInstance()->create('\Magento\Sales\Model\Order')->load($order_id);
-        $order->setState($status)->setStatus($status);
+        $order = ObjectManager::getInstance()
+            ->create('\Magento\Sales\Model\Order')
+            ->load($order_id);
+        $order->setState($status)
+            ->setStatus($status);
         $order->save();
 
         return;
@@ -251,7 +263,7 @@ class Data extends AbstractHelper
     /**
      * Get the correct weight type
      *
-     * @param string|null $weight
+     * @param  string|null $weight
      *
      * @return int
      */
