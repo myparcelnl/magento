@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
@@ -15,6 +16,7 @@ use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
@@ -23,12 +25,13 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\src\Model\Fulfilment\OrderNote;
 use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
-
+use MyParcelNL\Sdk\src\Support\Str;
 
 /**
  * Class MagentoOrderCollection
@@ -249,7 +252,67 @@ class MagentoOrderCollection extends MagentoCollection
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
+        $this->saveOrderNotes();
+        try {
+            $this->saveOrderNotes();
+        } catch(\Exception $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+        }
+
         return $this;
+    }
+
+    /**
+     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     */
+    private function saveOrderNotes(): void
+    {
+        /** @var OrderNotesCollection $notes */
+        $notes = $this->myParcelCollection->reduce(function($carry, FulfilmentOrder $order) {
+
+            $this->getAllNotesForOrder($order)->map(function(OrderNote $note) use ($carry) {
+                try {
+                    $note->validate();
+                    $carry->push($note);
+                } catch (\Exception $e) {
+                    $this->messageManager->addWarningMessage(
+                        sprintf(
+                            'Note `%s` not exported. %s',
+                            Str::limit($note->getNote(), 30),
+                            $e->getMessage()
+                        )
+                    );
+                }
+            });
+
+            return $carry;
+        }, (new OrderNotesCollection())->setApiKey($this->getApiKey()));
+
+        $notes->save();
+    }
+
+    private function getAllNotesForOrder(FulfilmentOrder $fulfilmentOrder): OrderNotesCollection
+    {
+        $notes        = new OrderNotesCollection();
+        $orderUuid    = $fulfilmentOrder->getUuid();
+        $magentoOrder = $this->objectManager->create(Order::class)
+            ->loadByIncrementId($fulfilmentOrder->getExternalIdentifier());
+
+        foreach ($magentoOrder->getStatusHistoryCollection() as $status) {
+            if ($status->getComment()) {
+                $notes->push(
+                    new OrderNote([
+                        'orderUuid' => $orderUuid,
+                        'note'      => $status->getComment(),
+                        'author'    => 'webshop',
+                    ])
+                );
+            }
+        }
+
+        return $notes;
     }
 
     private function setMagentoOrdersAsExported(): void
