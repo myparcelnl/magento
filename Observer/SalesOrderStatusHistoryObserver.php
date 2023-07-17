@@ -25,8 +25,13 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
     public function __construct() {
         $this->objectManager   = ObjectManager::getInstance();
         $this->helper          = $this->objectManager->get(Data::class);
-
     }
+
+    /**
+     * @param  \Magento\Framework\Event\Observer $observer
+     *
+     * @return $this
+     */
     public function execute(Observer $observer): self
     {
         /** @var \Magento\Sales\Model\Order\Status\History $history */
@@ -39,11 +44,9 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
 
         /** @var Order $magentoOrder */
         $magentoOrder = $this->objectManager->create(Order::class)
-            ->loadByIncrementId(
-                $history->getOrder()
-                    ->getIncrementId()
-            );
-        $uuid         = $magentoOrder->getData('myparcel_uuid');
+            ->loadByIncrementId($history->getOrder()->getIncrementId());
+
+        $uuid = $magentoOrder->getData('myparcel_uuid');
 
         if (! $uuid) {
             return $this;
