@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
@@ -252,7 +251,6 @@ class MagentoOrderCollection extends MagentoCollection
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
-        $this->saveOrderNotes();
         try {
             $this->saveOrderNotes();
         } catch(\Exception $e) {
@@ -319,6 +317,19 @@ class MagentoOrderCollection extends MagentoCollection
     {
         foreach ($this->getOrders() as $magentoOrder) {
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
+
+            $fulfilmentOrder = $this->myParcelCollection->reduce(function($carry, FulfilmentOrder $order) use ($magentoOrder) {
+                if ($order->getExternalIdentifier() === $magentoOrder->getIncrementId()) {
+                    $carry = $order;
+                }
+
+                return $carry;
+            });
+
+            if ($fulfilmentOrder) {
+                $magentoOrder->setData('myparcel_uuid', $fulfilmentOrder->getUuid());
+            }
+
             $magentoOrder->setIsInProcess(true);
             $this->objectManager->get(OrderResource::class)->save($magentoOrder);
         }
