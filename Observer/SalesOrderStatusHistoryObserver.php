@@ -15,12 +15,15 @@ use MyParcelNL\Magento\Helper\Data;
 
 class SalesOrderStatusHistoryObserver implements ObserverInterface
 {
-    private Data $helper;
+    /**
+     * @var \MyParcelNL\Magento\Helper\Data
+     */
+    private $helper;
 
     /**
      * @var \Magento\Framework\App\ObjectManager
      */
-    private ObjectManager $objectManager;
+    private $objectManager;
 
     public function __construct() {
         $this->objectManager   = ObjectManager::getInstance();
@@ -35,7 +38,7 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
     public function execute(Observer $observer): self
     {
         /** @var \Magento\Sales\Model\Order\Status\History $history */
-        $history = $observer->getData()['status_history'];
+        $history = $observer->getData()['status_history'] ?? null;
 
         if (! is_a($history, History::class)
             || ! $history->getComment()) {

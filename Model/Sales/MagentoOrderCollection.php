@@ -267,13 +267,14 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private function saveOrderNotes(): void
     {
-        /** @var OrderNotesCollection $notes */
-        $notes = $this->myParcelCollection->reduce(function($carry, FulfilmentOrder $order) {
+        $notes = (new OrderNotesCollection())->setApiKey($this->getApiKey());
 
-            $this->getAllNotesForOrder($order)->map(function(OrderNote $note) use ($carry) {
+        $this->myParcelCollection->each(function(FulfilmentOrder $order) use ($notes) {
+
+            $this->getAllNotesForOrder($order)->each(function(OrderNote $note) use ($notes) {
                 try {
                     $note->validate();
-                    $carry->push($note);
+                    $notes->push($note);
                 } catch (\Exception $e) {
                     $this->messageManager->addWarningMessage(
                         sprintf(
@@ -284,9 +285,7 @@ class MagentoOrderCollection extends MagentoCollection
                     );
                 }
             });
-
-            return $carry;
-        }, (new OrderNotesCollection())->setApiKey($this->getApiKey()));
+        });
 
         $notes->save();
     }
@@ -299,15 +298,17 @@ class MagentoOrderCollection extends MagentoCollection
             ->loadByIncrementId($fulfilmentOrder->getExternalIdentifier());
 
         foreach ($magentoOrder->getStatusHistoryCollection() as $status) {
-            if ($status->getComment()) {
-                $notes->push(
-                    new OrderNote([
-                        'orderUuid' => $orderUuid,
-                        'note'      => $status->getComment(),
-                        'author'    => 'webshop',
-                    ])
-                );
+            if (! $status->getComment()) {
+                continue;
             }
+
+            $notes->push(
+                new OrderNote([
+                    'orderUuid' => $orderUuid,
+                    'note'      => $status->getComment(),
+                    'author'    => 'webshop',
+                ])
+            );
         }
 
         return $notes;
@@ -318,12 +319,9 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
 
-            $fulfilmentOrder = $this->myParcelCollection->reduce(function($carry, FulfilmentOrder $order) use ($magentoOrder) {
-                if ($order->getExternalIdentifier() === $magentoOrder->getIncrementId()) {
-                    $carry = $order;
-                }
 
-                return $carry;
+            $fulfilmentOrder = $this->myParcelCollection->first(function(FulfilmentOrder $order) use ($magentoOrder){
+                return $order->getExternalIdentifier() === $magentoOrder->getIncrementId();
             });
 
             if ($fulfilmentOrder) {
