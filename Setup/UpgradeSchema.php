@@ -181,6 +181,18 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 }
             }
         }
+        if (version_compare($context->getVersion(), '4.10.0', '<')
+        && false === $setup->getConnection()->tableColumnExists('sales_order', 'myparcel_uuid')) {
+            $setup->getConnection()->addColumn(
+                $setup->getTable('sales_order'),
+                'myparcel_uuid',
+                [
+                    'type'     => Table::TYPE_TEXT,
+                    'nullable' => true,
+                    'comment'  => 'MyParcel order uuid as received from the api',
+                ]
+            );
+        }
         $setup->endSetup();
     }
 }
