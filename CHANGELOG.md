@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.10.0](https://github.com/myparcelnl/magento/compare/v4.9.1...v4.10.0) (2023-08-01)
+
+
+### :sparkles: New Features
+
+* **fulfilment:** add order notes ([#768](https://github.com/myparcelnl/magento/issues/768)) ([d1fcdcc](https://github.com/myparcelnl/magento/commit/d1fcdcc84809564b4b30f6566acbcf1b43fdb2a7))
+
+
+### :bug: Bug Fixes
+
+* **migration:** fix deprecated functionality ([#766](https://github.com/myparcelnl/magento/issues/766)) ([5e18dad](https://github.com/myparcelnl/magento/commit/5e18dadd6adcd1f83d7a19dabd32d5bb027be0ba))
+
 ## [4.9.1](https://github.com/myparcelnl/magento/compare/v4.9.0...v4.9.1) (2023-04-20)
 
 
