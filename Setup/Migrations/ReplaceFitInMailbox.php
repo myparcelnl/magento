@@ -101,6 +101,14 @@ class ReplaceFitInMailbox
             return 0;
         }
 
+        /**
+         * 101 percent means: it does not fit in a mailbox.
+         * So we set it to -1 to indicate that it does not fit.
+         */
+        if (101 === (int) $entity['value']) {
+            return -1;
+        }
+
         return round((100 / $entity['value']));
     }
 
