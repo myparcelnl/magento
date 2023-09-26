@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Setup\Migrations;
 
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Setup\SchemaSetupInterface;
 use MyParcelNL\Magento\Setup\QueryBuilder;
 
 class ReplaceFitInMailbox
@@ -29,12 +31,20 @@ class ReplaceFitInMailbox
     private $queryBuilder;
 
     /**
-     * @param  \MyParcelNL\Magento\Setup\QueryBuilder $queryBuilder
+     * @var \Magento\Framework\Setup\SchemaSetupInterface
+     */
+    private $setup;
+
+    /**
+     * @param  \MyParcelNL\Magento\Setup\QueryBuilder        $queryBuilder
+     * @param  \Magento\Framework\Setup\SchemaSetupInterface $setup
      */
     public function __construct(
-        QueryBuilder    $queryBuilder
+        QueryBuilder    $queryBuilder,
+        SchemaSetupInterface $setup
     ) {
         $this->queryBuilder = $queryBuilder;
+        $this->setup = $setup;
     }
 
     /**
@@ -42,10 +52,10 @@ class ReplaceFitInMailbox
      */
     private function resourceConnection(): object
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
-
-        return $resource->getConnection();
+        $objectManager = ObjectManager::getInstance();
+        
+        return $objectManager->get('Magento\Framework\App\ResourceConnection')
+            ->getConnection();
     }
 
     /**
@@ -63,9 +73,9 @@ class ReplaceFitInMailbox
                 'catalog_product_entity_varchar.value',
                 'eav_attribute.attribute_id'
             )
-            ->from('catalog_product_entity', 'product ')
-            ->leftJoin('catalog_product_entity_varchar ON product.entity_id = catalog_product_entity_varchar.entity_id')
-            ->leftJoin(sprintf('eav_attribute ON \'%s\' = eav_attribute.attribute_code', $this->attributeName))
+            ->from($this->setup->getTable('catalog_product_entity'), 'product ')
+            ->leftJoin($this->setup->getTable('catalog_product_entity_varchar') . ' AS catalog_product_entity_varchar ON product.entity_id = catalog_product_entity_varchar.entity_id')
+            ->leftJoin(sprintf($this->setup->getTable('eav_attribute') . ' AS eav_attribute ON \'%s\' = eav_attribute.attribute_code', $this->attributeName))
             ->where('catalog_product_entity_varchar.attribute_id = eav_attribute.attribute_id');
         $results = $connection->fetchAll($query);
 
@@ -73,7 +83,7 @@ class ReplaceFitInMailbox
             $this->oldEavAttributeId = $entity['attribute_id'];
 
             $query = $this->queryBuilder
-                ->update('catalog_product_entity_varchar')
+                ->update($this->setup->getTable('catalog_product_entity_varchar'))
                 ->set('value', (string) $this->calculatePercentToValue($entity))
                 ->where(sprintf('value_id = \'%s\'', $entity['value_id']));
             $connection->query($query);
@@ -107,14 +117,14 @@ class ReplaceFitInMailbox
 
         $query  = $this->queryBuilder
             ->select('*')
-            ->from('eav_attribute')
+            ->from($this->setup->getTable('eav_attribute'), 'eav_attribute')
             ->where(sprintf('eav_attribute.attribute_code = \'%s\'', $this->attributeName));
         $result = $connection->fetchRow($query);
 
         $this->newEavAttributeId = $result['attribute_id'];
 
         $query = $this->queryBuilder
-            ->update('catalog_product_entity_varchar')
+            ->update($this->setup->getTable('catalog_product_entity_varchar'))
             ->set('attribute_id', $this->newEavAttributeId)
             ->where(sprintf('attribute_id = %s', $this->oldEavAttributeId));
         $connection->query($query);
