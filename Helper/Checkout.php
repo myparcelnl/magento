@@ -312,7 +312,7 @@ class Checkout extends Data
     {
         return array_map(static function($val) {
             return is_numeric($val) ? (int) $val : $val;
-        }, explode(',', $this->getCarrierConfig($key, $carrier) ?? ''));
+        }, explode(',', (string) ($this->getCarrierConfig($key, $carrier) ?? '')));
     }
 
     /**

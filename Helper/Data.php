@@ -39,12 +39,11 @@ class Data extends AbstractHelper
     public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
     public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelnl_magento_dhlparcelconnect_settings/';
     public const DEFAULT_WEIGHT                     = 1000;
-    public const CARRIERS                           = [CarrierPostNL::NAME];
     public const CARRIERS_XML_PATH_MAP              = [
-        CarrierPostNL::NAME => self::XML_PATH_POSTNL_SETTINGS,
-        //        CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
-        //        CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
-        //        CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
+        CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
+        CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
+        CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
+        CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
     ];
 
     /**

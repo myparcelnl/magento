@@ -582,7 +582,7 @@
                     <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
                 </field>
                 <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Cut-off time</label>
+                    <label>Cutoff time</label>
                     <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
                 </field>
                 <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -592,7 +592,7 @@
                     <can_be_empty>1</can_be_empty>
                 </field>
                 <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Dropoff-delay</label>
+                    <label>Drop-off-delay</label>
                     <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</tooltip>
                     <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
                 </field>
@@ -600,7 +600,7 @@
             <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery settings</label>
                 <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enabled PostNL delivery</label>
+                    <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -789,7 +789,7 @@
                     <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
                 </field>
                 <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Cut-off time</label>
+                    <label>Cutoff time</label>
                     <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
                 </field>
                 <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -799,7 +799,7 @@
                     <can_be_empty>1</can_be_empty>
                 </field>
                 <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Dropoff-delay</label>
+                    <label>Drop-off-delay</label>
                     <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</tooltip>
                     <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
                 </field>
@@ -807,7 +807,7 @@
             <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery settings</label>
                 <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enabled PostNL delivery</label>
+                    <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -973,7 +973,7 @@
                     <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
                 </field>
                 <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Cut-off time</label>
+                    <label>Cutoff time</label>
                     <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
                 </field>
                 <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -983,7 +983,7 @@
                     <can_be_empty>1</can_be_empty>
                 </field>
                 <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Dropoff-delay</label>
+                    <label>Drop-off-delay</label>
                     <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</tooltip>
                     <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
                 </field>
@@ -991,7 +991,7 @@
             <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery settings</label>
                 <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enabled PostNL delivery</label>
+                    <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">

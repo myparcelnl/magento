@@ -80,6 +80,11 @@ define(
         'myparcelnl_magento_postnl_settings/morning/only_recipient/signature': 'config.carrierSettings.postnl.priceMorningSignature',
         'myparcelnl_magento_postnl_settings/evening/only_recipient/signature': 'config.carrierSettings.postnl.priceEveningSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient/signature': 'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
+        'myparcelnl_magento_dhlforyou_settings/delivery': 'config.carrierSettings.dhlforyou.priceStandardDelivery',
+        'myparcelnl_magento_dhlforyou_settings/mailbox': 'config.carrierSettings.dhlforyou.pricePackageTypeMailbox',
+        'myparcelnl_magento_dhlforyou_settings/pickup': 'config.carrierSettings.dhlforyou.pricePickup',
+        'myparcelnl_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
+        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
       },
 
       /**
@@ -88,6 +93,9 @@ define(
       methodCodeShipmentOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
+        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient': 'config.carrierSettings.dhlforyou.priceOnlyRecipient',
+        'myparcelnl_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
+        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
       },
 
       /**
@@ -155,6 +163,7 @@ define(
        * Create the div the delivery options will be rendered in, if it doesn't exist yet.
        */
       render: function() {
+          console.warn(JSON.stringify(window.MyParcelConfig));
         var hasUnrenderedDiv = document.querySelector('#myparcel-delivery-options');
         var hasRenderedDeliveryOptions = document.querySelector('.myparcel-delivery-options__table');
         var shippingMethodDiv = document.getElementById('checkout-shipping-method-load');

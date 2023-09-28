@@ -231,7 +231,7 @@ class Checkout
      *
      * @return string
      */
-    private function getDeliveryMethods(): string
+    private function getDeliveryMethodsDEPRECATED(): string
     {
         return $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/methods');
     }

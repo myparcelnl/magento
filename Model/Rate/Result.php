@@ -172,8 +172,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        foreach (Data::CARRIERS as $carrier) {
-            $carrierPath = Data::CARRIERS_XML_PATH_MAP[$carrier];
+        foreach (Data::CARRIERS_XML_PATH_MAP as $carrierPath){
+            //$carrierPath = Data::CARRIERS_XML_PATH_MAP[$carrier];
 
             if (! $this->myParcelHelper->getConfigValue("{$carrierPath}delivery/active")) {
                 continue;
@@ -244,7 +244,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return bool
      */
-    private function hasMyParcelRate(string $settingPath): bool
+    private function hasMyParcelRateDEPRECATED(string $settingPath): bool
     {
         foreach ($this->_rates as $rate) {
             if ($rate->getData('method_title') === $this->createTitle($settingPath)) {
@@ -294,7 +294,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return bool
      */
-    private function hasSettingAdditionalOption(array $basePath, string $map, string $separator): bool
+    private function hasSettingAdditionalOptionDEPRECATED(array $basePath, string $map, string $separator): bool
     {
         [$base, $setting] = $basePath;
         $settingActive = $map . $base . '/' . $setting . $separator . 'active';
@@ -310,7 +310,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      *
      * @return bool
      */
-    private function hasSettingAdditionalOptions(
+    private function hasSettingAdditionalOptionsDEPRECATED(
         array  $basePath,
         string $map,
         string $separator,
