@@ -227,16 +227,6 @@ class Checkout
     }
 
     /**
-     * Get a list of the shipping methods.
-     *
-     * @return string
-     */
-    private function getDeliveryMethodsDEPRECATED(): string
-    {
-        return $this->helper->getArrayConfig(Data::XML_PATH_GENERAL, 'shipping_methods/methods');
-    }
-
-    /**
      * Get the array of enabled carriers by checking if they have either delivery or pickup enabled.
      *
      * @return array

@@ -240,22 +240,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param  string $settingPath
-     *
-     * @return bool
-     */
-    private function hasMyParcelRateDEPRECATED(string $settingPath): bool
-    {
-        foreach ($this->_rates as $rate) {
-            if ($rate->getData('method_title') === $this->createTitle($settingPath)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Check if a given map/setting combination is active. If the setting is not a top level setting its parent group
      * will be checked for an "active" setting. If this is disabled this will return false;
      *
@@ -285,50 +269,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         return true;
-    }
-
-    /**
-     * @param  array  $basePath
-     * @param  string $map
-     * @param  string $separator
-     *
-     * @return bool
-     */
-    private function hasSettingAdditionalOptionDEPRECATED(array $basePath, string $map, string $separator): bool
-    {
-        [$base, $setting] = $basePath;
-        $settingActive = $map . $base . '/' . $setting . $separator . 'active';
-
-        return (bool) $this->myParcelHelper->getConfigValue($settingActive);
-    }
-
-    /**
-     * @param  array  $basePath
-     * @param  string $map
-     * @param  string $separator
-     * @param  bool   $settingActive
-     *
-     * @return bool
-     */
-    private function hasSettingAdditionalOptionsDEPRECATED(
-        array  $basePath,
-        string $map,
-        string $separator,
-        bool   $settingActive = false
-    ): bool {
-        $base = array_shift($basePath);
-
-        foreach ($basePath as $setting) {
-            $settingActive = (bool) $this->myParcelHelper->getConfigValue(
-                $map . $base . '/' . $setting . $separator . 'active'
-            );
-
-            if (! $settingActive) {
-                break;
-            }
-        }
-
-        return $settingActive;
     }
 
     /**
