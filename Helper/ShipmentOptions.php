@@ -17,6 +17,7 @@ class ShipmentOptions
     private const RETURN            = 'return';
     private const AGE_CHECK         = 'age_check';
     private const LARGE_FORMAT      = 'large_format';
+    private const HIDE_SENDER       = 'hide_sender';
     private const LABEL_DESCRIPTION = 'label_description';
     private const ORDER_NUMBER      = '%order_nr%';
     private const DELIVERY_DATE     = '%delivery_date%';
@@ -143,6 +144,13 @@ class ShipmentOptions
         $ageCheckFromSettings = self::$defaultOptions->hasDefaultOptionsWithoutPrice($this->carrier, self::AGE_CHECK);
 
         return $ageCheckFromOptions ?: $ageCheckOfProduct ?? $ageCheckFromSettings;
+    }
+
+    public function hasHideSender(): bool
+    {
+        $hideSenderFromOptions = self::getValueOfOptionWhenSet(self::HIDE_SENDER, $this->options);
+
+        return $hideSenderFromOptions ?? $this->optionIsEnabled(self::HIDE_SENDER);
     }
 
     /**
@@ -370,7 +378,8 @@ class ShipmentOptions
             self::AGE_CHECK         => $this->hasAgeCheck(),
             self::LARGE_FORMAT      => $this->hasLargeFormat(),
             self::LABEL_DESCRIPTION => $this->getLabelDescription(),
-            self::SAME_DAY_DELIVERY => $this->hasSameDayDelivery()
+            self::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
+            self::HIDE_SENDER       => $this->hasHideSender(),
         ];
     }
 }

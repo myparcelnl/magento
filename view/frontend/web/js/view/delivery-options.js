@@ -163,7 +163,6 @@ define(
        * Create the div the delivery options will be rendered in, if it doesn't exist yet.
        */
       render: function() {
-          console.warn(JSON.stringify(window.MyParcelConfig));
         var hasUnrenderedDiv = document.querySelector('#myparcel-delivery-options');
         var hasRenderedDeliveryOptions = document.querySelector('.myparcel-delivery-options__table');
         var shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
@@ -255,6 +254,7 @@ define(
           cc: address.countryId || '',
           postalCode: address.postcode || '',
           city: address.city || '',
+          street: address.street[0] || ''
         };
       },
 
