@@ -173,8 +173,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         foreach (Data::CARRIERS_XML_PATH_MAP as $carrierPath){
-            //$carrierPath = Data::CARRIERS_XML_PATH_MAP[$carrier];
-
             if (! $this->myParcelHelper->getConfigValue("{$carrierPath}delivery/active")) {
                 continue;
             }
