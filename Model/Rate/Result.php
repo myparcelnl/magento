@@ -24,14 +24,23 @@ use Magento\Quote\Model\Quote\Address\RateResult\Method;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
-    private const FIRST_PART  = 0;
-    private const SECOND_PART = 1;
-    private const THIRD_PART  = 2;
-    private const FOURTH_PART = 3;
+    private const FIRST_PART                  = 0;
+    private const SECOND_PART                 = 1;
+    private const THIRD_PART                  = 2;
+    private const FOURTH_PART                 = 3;
+    public const  CARRIERS_WITH_MAILBOX       = [
+        CarrierPostNL::NAME,
+        CarrierDHLForYou::NAME,
+    ];
+    public const  CARRIERS_WITH_DIGITAL_STAMP = [
+        CarrierPostNL::NAME,
+    ];
 
     /**
      * @var Checkout
@@ -172,13 +181,18 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        foreach (Data::CARRIERS_XML_PATH_MAP as $carrierPath){
+        foreach (Data::CARRIERS_XML_PATH_MAP as $carrier => $carrierPath){
             if (! $this->myParcelHelper->getConfigValue("{$carrierPath}delivery/active")) {
                 continue;
             }
 
-            $this->package->setMailboxSettings($carrierPath);
-            $this->package->setDigitalStampSettings($carrierPath);
+            if (in_array($carrier, self::CARRIERS_WITH_MAILBOX)) {
+                $this->package->setMailboxSettings($carrierPath);
+            }
+
+            if(in_array($carrier, self::CARRIERS_WITH_DIGITAL_STAMP)) {
+                $this->package->setDigitalStampSettings($carrierPath);
+            }
 
             $packageType = $this->package->selectPackageType(
                 $this->getQuoteFromCartOrSession()->getAllItems(),
