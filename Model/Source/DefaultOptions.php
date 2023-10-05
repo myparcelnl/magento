@@ -152,7 +152,7 @@ class DefaultOptions
     {
         $settings = self::$helper->getStandardConfig($carrier, 'default_options');
 
-        return '1' === $settings[$option . '_active'];
+        return '1' === ($settings[$option . '_active'] ?? null);
     }
 
     /**
