@@ -152,7 +152,7 @@ function(
         });
       }
 
-      if (quote.shippingAddress().countryId === 'NL' || quote.shippingAddress().countryId === 'BE') {
+      if (document.getElementsByClassName('myparcel-delivery-options')) {
         rowsToHide.forEach(function(row) {
           row.style.display = 'none';
         });
@@ -272,9 +272,7 @@ function(
 
   function updateHasDeliveryOptions() {
     var isAllowed = false;
-    var shippingCountry = quote.shippingAddress().countryId;
 
-    if ('NL' === shippingCountry || 'BE' === shippingCountry) {
       Model.allowedShippingMethods().forEach(function(methodCode) {
         var rate = Model.findRateByMethodCode(methodCode);
 
@@ -282,7 +280,6 @@ function(
           isAllowed = true;
         }
       });
-    }
 
     Model.hasDeliveryOptions(isAllowed);
     Model.hideShippingMethods();

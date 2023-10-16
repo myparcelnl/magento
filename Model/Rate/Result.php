@@ -168,14 +168,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function addMyParcelRates(Method $parentRate): void
     {
-        $selectedCountry = $this->session->getQuote()
-            ->getShippingAddress()
-            ->getCountryId();
-
-        if (AbstractConsignment::CC_NL !== $selectedCountry && AbstractConsignment::CC_BE !== $selectedCountry) {
-            return;
-        }
-
         $parentShippingMethod = $parentRate->getData('carrier');
         if (! in_array($parentShippingMethod, $this->parentMethods, true)) {
             return;

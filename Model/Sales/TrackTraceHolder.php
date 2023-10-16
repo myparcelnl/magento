@@ -15,19 +15,16 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Message\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
-use Magento\Setup\Exception;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
-use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
@@ -36,7 +33,6 @@ use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
-use Magento\Framework\App\ResourceConnection;
 
 /**
  * Class TrackTraceHolder
@@ -257,7 +253,6 @@ class TrackTraceHolder
             return $this;
         }
 
-
         return $this;
     }
 
@@ -422,11 +417,11 @@ class TrackTraceHolder
         );
 
         return ShipmentOptions::getValueFromAttribute(
-                $connection,
-                $resource->getTableName($tableName),
-                $attributeId,
-                $entityId
-            );
+            $connection,
+            $resource->getTableName($tableName),
+            $attributeId,
+            $entityId
+        );
     }
 
     /**
@@ -466,8 +461,10 @@ class TrackTraceHolder
 
         if (0 === $totalWeight) {
             throw new \RuntimeException(
-                sprintf('Order %s can not be exported as digital stamp, no weights have been entered.',
-                $magentoTrack->getShipment()->getOrder()->getIncrementId())
+                sprintf(
+                    'Order %s can not be exported as digital stamp, no weights have been entered.',
+                    $magentoTrack->getShipment()->getOrder()->getIncrementId()
+                )
             );
         }
 
