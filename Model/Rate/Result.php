@@ -34,7 +34,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private const SECOND_PART                 = 1;
     private const THIRD_PART                  = 2;
     private const FOURTH_PART                 = 3;
-    public const  CARRIERS_WITH_MAILBOX       = [
+    private const  CARRIERS_WITH_MAILBOX       = [
         CarrierPostNL::NAME,
         CarrierDHLForYou::NAME,
     ];
@@ -173,7 +173,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        foreach (Data::CARRIERS_XML_PATH_MAP as $carrier => $carrierPath){
+        foreach (Data::CARRIERS_XML_PATH_MAP as $carrier => $carrierPath) {
             if (! $this->myParcelHelper->getConfigValue("{$carrierPath}delivery/active")) {
                 continue;
             }
@@ -182,7 +182,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
                 $this->package->setMailboxSettings($carrierPath);
             }
 
-            if(in_array($carrier, self::CARRIERS_WITH_DIGITAL_STAMP)) {
+            if (in_array($carrier, self::CARRIERS_WITH_DIGITAL_STAMP)) {
                 $this->package->setDigitalStampSettings($carrierPath);
             }
 

@@ -243,12 +243,12 @@ define(
                   $("input[name='mypa_carrier']").on(
                     'change',
                     function() {
-                      if (! $('#mypa_carrier_postnl').prop('checked')) {
-                        $('#mypa_container-package_type-digital_stamp').hide();
-                        $('#mypa_container-package_type-letter').hide();
-                      } else {
+                      if ($('#mypa_carrier_postnl').prop('checked')) {
                         $('#mypa_container-package_type-digital_stamp').show();
                         $('#mypa_container-package_type-letter').show();
+                      } else {
+                        $('#mypa_container-package_type-digital_stamp').hide();
+                        $('#mypa_container-package_type-letter').hide();
                       }
                     }
                   );

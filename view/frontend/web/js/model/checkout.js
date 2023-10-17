@@ -150,9 +150,7 @@ function(
             rowsToHide.push(row);
           });
         });
-      }
 
-      if (document.getElementsByClassName('myparcel-delivery-options')) {
         rowsToHide.forEach(function(row) {
           row.style.display = 'none';
         });
@@ -273,13 +271,13 @@ function(
   function updateHasDeliveryOptions() {
     var isAllowed = false;
 
-      Model.allowedShippingMethods().forEach(function(methodCode) {
-        var rate = Model.findRateByMethodCode(methodCode);
+    Model.allowedShippingMethods().forEach(function(methodCode) {
+      var rate = Model.findRateByMethodCode(methodCode);
 
-        if (rate && rate.available) {
-          isAllowed = true;
-        }
-      });
+      if (rate && rate.available) {
+        isAllowed = true;
+      }
+    });
 
     Model.hasDeliveryOptions(isAllowed);
     Model.hideShippingMethods();
