@@ -133,6 +133,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]
             );
         }
+        $tableSalesOrder = $setup->getTable('sales_order');
+
         if (version_compare($context->getVersion(), '4.0.0', '<=')) {
             $setup->getConnection()->addColumn(
                 $setup->getTable('sales_order'),
@@ -152,10 +154,11 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'comment'  => 'MyParcel carrier',
                 ]
             );
-            if ($setup->getConnection()->isTableExists('quote') == true) {
-                if ($setup->getConnection()->tableColumnExists('quote', 'delivery_options') === true) {
+            $tableQuote = $setup->getTable('quote');
+            if ($setup->getConnection()->isTableExists($tableQuote)) {
+                if ($setup->getConnection()->tableColumnExists($tableQuote, 'delivery_options') === true) {
                     $setup->getConnection()->changeColumn(
-                        $setup->getTable('quote'),
+                        $tableQuote,
                         'delivery_options',
                         'myparcel_delivery_options',
                         [
@@ -166,10 +169,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     );
                 }
             }
-            if ($setup->getConnection()->isTableExists('sales_order') == true) {
-                if ($setup->getConnection()->tableColumnExists('sales_order', 'delivery_options') === true) {
+            if ($setup->getConnection()->isTableExists($tableSalesOrder)) {
+                if ($setup->getConnection()->tableColumnExists($tableSalesOrder, 'delivery_options') === true) {
                     $setup->getConnection()->changeColumn(
-                        $setup->getTable('sales_order'),
+                        $tableSalesOrder,
                         'delivery_options',
                         'myparcel_delivery_options',
                         [
@@ -181,10 +184,12 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 }
             }
         }
-        if (version_compare($context->getVersion(), '4.10.0', '<')
-        && false === $setup->getConnection()->tableColumnExists('sales_order', 'myparcel_uuid')) {
+        if (
+            version_compare($context->getVersion(), '4.10.0', '<')
+            && false === $setup->getConnection()->tableColumnExists($tableSalesOrder, 'myparcel_uuid')
+        ) {
             $setup->getConnection()->addColumn(
-                $setup->getTable('sales_order'),
+                $tableSalesOrder,
                 'myparcel_uuid',
                 [
                     'type'     => Table::TYPE_TEXT,

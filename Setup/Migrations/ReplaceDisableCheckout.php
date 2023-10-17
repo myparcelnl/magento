@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Setup\Migrations;
 
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Setup\SchemaSetupInterface;
 use MyParcelNL\Magento\Setup\QueryBuilder;
 
 class ReplaceDisableCheckout
@@ -29,12 +31,20 @@ class ReplaceDisableCheckout
     private $queryBuilder;
 
     /**
-     * @param  \MyParcelNL\Magento\Setup\QueryBuilder $queryBuilder
+     * @var \Magento\Framework\Setup\SchemaSetupInterface
+     */
+    private $setup;
+
+    /**
+     * @param  \MyParcelNL\Magento\Setup\QueryBuilder        $queryBuilder
+     * @param  \Magento\Framework\Setup\SchemaSetupInterface $setup
      */
     public function __construct(
-        QueryBuilder    $queryBuilder
+        QueryBuilder    $queryBuilder,
+        SchemaSetupInterface $setup
     ) {
         $this->queryBuilder = $queryBuilder;
+        $this->setup = $setup;
     }
 
     /**
@@ -42,10 +52,10 @@ class ReplaceDisableCheckout
      */
     private function resourceConnection(): object
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $resource      = $objectManager->get('Magento\Framework\App\ResourceConnection');
+        $objectManager = ObjectManager::getInstance();
 
-        return $resource->getConnection();
+        return $objectManager->get('Magento\Framework\App\ResourceConnection')
+            ->getConnection();
     }
 
     /**
@@ -57,7 +67,7 @@ class ReplaceDisableCheckout
 
         $query = $this->queryBuilder
             ->select('*')
-            ->from('eav_attribute')
+            ->from($this->setup->getTable('eav_attribute'), 'eav_attribute')
             ->where(sprintf('eav_attribute.attribute_code = \'%s\'', $this->attributeName));
 
         $this->oldEavAttributeId = $connection->fetchOne($query);
@@ -72,16 +82,15 @@ class ReplaceDisableCheckout
 
         $query = $this->queryBuilder
             ->select('*')
-            ->from('eav_attribute')
+            ->from($this->setup->getTable('eav_attribute'), 'eav_attribute')
             ->where(sprintf('eav_attribute.attribute_code = \'%s\'', $this->attributeName));
 
         $this->newEavAttributeId = $connection->fetchOne($query);
 
         $query = $this->queryBuilder
-            ->update('catalog_product_entity_int')
+            ->update($this->setup->getTable('catalog_product_entity_int'))
             ->set('attribute_id', (string) $this->newEavAttributeId)
             ->where(sprintf('attribute_id = %s', $this->oldEavAttributeId));
         $connection->query($query);
     }
-
 }

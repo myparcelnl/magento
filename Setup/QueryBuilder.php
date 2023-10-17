@@ -16,7 +16,7 @@ class QueryBuilder
      *
      * @return \MyParcelNL\Magento\Setup\Methods\Select
      */
-    public static function select(string ...$select): Select
+    public function select(string ...$select): Select
     {
         return new Select($select);
     }
@@ -26,7 +26,7 @@ class QueryBuilder
      *
      * @return \MyParcelNL\Magento\Setup\Methods\Insert
      */
-    public static function insert(string $into): Insert
+    public function insert(string $into): Insert
     {
         return new Insert($into);
     }
@@ -36,7 +36,7 @@ class QueryBuilder
      *
      * @return \MyParcelNL\Magento\Setup\Methods\Update
      */
-    public static function update(string $table): Update
+    public function update(string $table): Update
     {
         return new Update($table);
     }
@@ -46,7 +46,7 @@ class QueryBuilder
      *
      * @return \MyParcelNL\Magento\Setup\Methods\Delete
      */
-    public static function delete(string $table): Delete
+    public function delete(string $table): Delete
     {
         return new Delete($table);
     }
