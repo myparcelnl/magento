@@ -1,6 +1,35 @@
-var STATUS_SUCCESS = 200;
-var STATUS_ERROR = 400;
-
+const STATUS_SUCCESS = 200;
+const STATUS_ERROR = 400;
+const EU_COUNTRIES = [
+  'AT',
+  'BE',
+  'BG',
+  'CY',
+  'CZ',
+  'DE',
+  'DK',
+  'EE',
+  'ES',
+  'FI',
+  'FR',
+  'GB',
+  'GR',
+  'HR',
+  'HU',
+  'IE',
+  'IT',
+  'LT',
+  'LU',
+  'LV',
+  'MT',
+  'NL',
+  'PL',
+  'PT',
+  'RO',
+  'SE',
+  'SI',
+  'SK',
+];
 define([
   'underscore',
   'ko',
@@ -268,17 +297,24 @@ function(
     }));
   }
 
+  function isEuCountry(shippingCountry) {
+    return EU_COUNTRIES.includes(shippingCountry);
+  }
+
   function updateHasDeliveryOptions() {
-    var isAllowed = false;
+    let isAllowed = false;
+    const shippingCountry = quote.shippingAddress().countryId;
+
+    if (isEuCountry(shippingCountry)) {
 
     Model.allowedShippingMethods().forEach(function(methodCode) {
-      var rate = Model.findRateByMethodCode(methodCode);
+      const rate = Model.findRateByMethodCode(methodCode);
 
       if (rate && rate.available) {
         isAllowed = true;
       }
     });
-
+  }
     Model.hasDeliveryOptions(isAllowed);
     Model.hideShippingMethods();
   }
