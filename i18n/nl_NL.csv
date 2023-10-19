@@ -30,6 +30,12 @@ myparcelnl_magento_postnl_settings/pickup_title, postnl ophaallocatie
 myparcelnl_magento_postnl_settings/delivery/signature_title, postnl bezorging met handtekening
 myparcelnl_magento_dpd_settings/delivery_title,  DPD bezorging
 myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
+myparcelnl_magento_dhlforyou_settings/delivery, DHL For You bezorging
+myparcelnl_magento_dhlforyou_settings/delivery/signature, DHL For You bezorging met handtekening
+myparcelnl_magento_dhlforyou_settings/delivery/only_recipient, DHL For You bezorging met alleen ontvanger
+myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, DHL For You bezorging met alleen ontvanger en handtekening
+myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus bezorging
+myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorging
 myparcelnl_magento_error_no_shipments_to_process, Geen MyParcel zendingen om te verwerken.
 Version and support,Versie en support
 General settings,Algemene instellingen

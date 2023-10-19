@@ -79,10 +79,6 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $postcode           = $order->getShippingAddress()->getPostcode();
         $destinationCountry = $order->getShippingAddress()->getCountryId();
 
-        if ($destinationCountry !== AbstractConsignment::CC_NL && $destinationCountry !== AbstractConsignment::CC_BE) {
-            return $this;
-        }
-
         if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
             $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
         }

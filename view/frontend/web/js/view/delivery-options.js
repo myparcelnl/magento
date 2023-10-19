@@ -80,6 +80,13 @@ define(
         'myparcelnl_magento_postnl_settings/morning/only_recipient/signature': 'config.carrierSettings.postnl.priceMorningSignature',
         'myparcelnl_magento_postnl_settings/evening/only_recipient/signature': 'config.carrierSettings.postnl.priceEveningSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient/signature': 'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
+        'myparcelnl_magento_dhlforyou_settings/delivery': 'config.carrierSettings.dhlforyou.priceStandardDelivery',
+        'myparcelnl_magento_dhlforyou_settings/mailbox': 'config.carrierSettings.dhlforyou.pricePackageTypeMailbox',
+        'myparcelnl_magento_dhlforyou_settings/pickup': 'config.carrierSettings.dhlforyou.pricePickup',
+        'myparcelnl_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
+        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
+        'myparcelnl_magento_dhleuroplus_settings/delivery': 'config.carrierSettings.dhleuroplus.priceStandardDelivery',
+        'myparcelnl_magento_dhlparcelconnect_settings/delivery': 'config.carrierSettings.dhlparcelconnect.priceStandardDelivery',
       },
 
       /**
@@ -88,6 +95,9 @@ define(
       methodCodeShipmentOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
         'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
+        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient': 'config.carrierSettings.dhlforyou.priceOnlyRecipient',
+        'myparcelnl_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
+        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
       },
 
       /**
@@ -246,6 +256,7 @@ define(
           cc: address.countryId || '',
           postalCode: address.postcode || '',
           city: address.city || '',
+          street: address.street[0] || ''
         };
       },
 

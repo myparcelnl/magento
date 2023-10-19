@@ -24,14 +24,23 @@ use Magento\Quote\Model\Quote\Address\RateResult\Method;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class Result extends \Magento\Shipping\Model\Rate\Result
 {
-    private const FIRST_PART  = 0;
-    private const SECOND_PART = 1;
-    private const THIRD_PART  = 2;
-    private const FOURTH_PART = 3;
+    private const FIRST_PART                  = 0;
+    private const SECOND_PART                 = 1;
+    private const THIRD_PART                  = 2;
+    private const FOURTH_PART                 = 3;
+    private const  CARRIERS_WITH_MAILBOX       = [
+        CarrierPostNL::NAME,
+        CarrierDHLForYou::NAME,
+    ];
+    public const  CARRIERS_WITH_DIGITAL_STAMP = [
+        CarrierPostNL::NAME,
+    ];
 
     /**
      * @var Checkout
@@ -159,28 +168,23 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function addMyParcelRates(Method $parentRate): void
     {
-        $selectedCountry = $this->session->getQuote()
-            ->getShippingAddress()
-            ->getCountryId();
-
-        if (AbstractConsignment::CC_NL !== $selectedCountry && AbstractConsignment::CC_BE !== $selectedCountry) {
-            return;
-        }
-
         $parentShippingMethod = $parentRate->getData('carrier');
         if (! in_array($parentShippingMethod, $this->parentMethods, true)) {
             return;
         }
 
-        foreach (Data::CARRIERS as $carrier) {
-            $carrierPath = Data::CARRIERS_XML_PATH_MAP[$carrier];
-
+        foreach (Data::CARRIERS_XML_PATH_MAP as $carrier => $carrierPath) {
             if (! $this->myParcelHelper->getConfigValue("{$carrierPath}delivery/active")) {
                 continue;
             }
 
-            $this->package->setMailboxSettings($carrierPath);
-            $this->package->setDigitalStampSettings($carrierPath);
+            if (in_array($carrier, self::CARRIERS_WITH_MAILBOX)) {
+                $this->package->setMailboxSettings($carrierPath);
+            }
+
+            if (in_array($carrier, self::CARRIERS_WITH_DIGITAL_STAMP)) {
+                $this->package->setDigitalStampSettings($carrierPath);
+            }
 
             $packageType = $this->package->selectPackageType(
                 $this->getQuoteFromCartOrSession()->getAllItems(),
@@ -240,22 +244,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     }
 
     /**
-     * @param  string $settingPath
-     *
-     * @return bool
-     */
-    private function hasMyParcelRate(string $settingPath): bool
-    {
-        foreach ($this->_rates as $rate) {
-            if ($rate->getData('method_title') === $this->createTitle($settingPath)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * Check if a given map/setting combination is active. If the setting is not a top level setting its parent group
      * will be checked for an "active" setting. If this is disabled this will return false;
      *
@@ -285,50 +273,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
 
         return true;
-    }
-
-    /**
-     * @param  array  $basePath
-     * @param  string $map
-     * @param  string $separator
-     *
-     * @return bool
-     */
-    private function hasSettingAdditionalOption(array $basePath, string $map, string $separator): bool
-    {
-        [$base, $setting] = $basePath;
-        $settingActive = $map . $base . '/' . $setting . $separator . 'active';
-
-        return (bool) $this->myParcelHelper->getConfigValue($settingActive);
-    }
-
-    /**
-     * @param  array  $basePath
-     * @param  string $map
-     * @param  string $separator
-     * @param  bool   $settingActive
-     *
-     * @return bool
-     */
-    private function hasSettingAdditionalOptions(
-        array  $basePath,
-        string $map,
-        string $separator,
-        bool   $settingActive = false
-    ): bool {
-        $base = array_shift($basePath);
-
-        foreach ($basePath as $setting) {
-            $settingActive = (bool) $this->myParcelHelper->getConfigValue(
-                $map . $base . '/' . $setting . $separator . 'active'
-            );
-
-            if (! $settingActive) {
-                break;
-            }
-        }
-
-        return $settingActive;
     }
 
     /**

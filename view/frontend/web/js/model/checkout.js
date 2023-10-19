@@ -1,6 +1,35 @@
-var STATUS_SUCCESS = 200;
-var STATUS_ERROR = 400;
-
+const STATUS_SUCCESS = 200;
+const STATUS_ERROR = 400;
+const EU_COUNTRIES = [
+  'AT',
+  'BE',
+  'BG',
+  'CY',
+  'CZ',
+  'DE',
+  'DK',
+  'EE',
+  'ES',
+  'FI',
+  'FR',
+  'GB',
+  'GR',
+  'HR',
+  'HU',
+  'IE',
+  'IT',
+  'LT',
+  'LU',
+  'LV',
+  'MT',
+  'NL',
+  'PL',
+  'PT',
+  'RO',
+  'SE',
+  'SI',
+  'SK',
+];
 define([
   'underscore',
   'ko',
@@ -152,11 +181,9 @@ function(
         });
       }
 
-      if (quote.shippingAddress().countryId === 'NL' || quote.shippingAddress().countryId === 'BE') {
-        rowsToHide.forEach(function(row) {
-          row.style.display = 'none';
-        });
-      }
+      rowsToHide.forEach(function(row) {
+        row.style.display = 'none';
+      });
     },
 
     /**
@@ -270,20 +297,24 @@ function(
     }));
   }
 
+  function isEuCountry(shippingCountry) {
+    return EU_COUNTRIES.includes(shippingCountry);
+  }
+
   function updateHasDeliveryOptions() {
-    var isAllowed = false;
-    var shippingCountry = quote.shippingAddress().countryId;
+    let isAllowed = false;
+    const shippingCountry = quote.shippingAddress().countryId;
 
-    if ('NL' === shippingCountry || 'BE' === shippingCountry) {
-      Model.allowedShippingMethods().forEach(function(methodCode) {
-        var rate = Model.findRateByMethodCode(methodCode);
+    if (isEuCountry(shippingCountry)) {
 
-        if (rate && rate.available) {
-          isAllowed = true;
-        }
-      });
-    }
+    Model.allowedShippingMethods().forEach(function(methodCode) {
+      const rate = Model.findRateByMethodCode(methodCode);
 
+      if (rate && rate.available) {
+        isAllowed = true;
+      }
+    });
+  }
     Model.hasDeliveryOptions(isAllowed);
     Model.hideShippingMethods();
   }
