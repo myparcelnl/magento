@@ -179,11 +179,11 @@ function(
             rowsToHide.push(row);
           });
         });
-
-        rowsToHide.forEach(function(row) {
-          row.style.display = 'none';
-        });
       }
+
+      rowsToHide.forEach(function(row) {
+        row.style.display = 'none';
+      });
     },
 
     /**
