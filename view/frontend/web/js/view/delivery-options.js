@@ -303,9 +303,15 @@ define(
               return;
             }
 
-            selectShippingMethodAction(null);
+            selectShippingMethodAction(deliveryOptions.getNewShippingMethod(response[0].element_id));
 
-            quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
+              var cacheObject = JSON.parse(localStorage.getItem('mage-cache-storage'));
+              if (cacheObject.hasOwnProperty('checkout-data')) {
+                  cacheObject['checkout-data']['selectedShippingRate'] = response[0].element_id;
+                  localStorage.setItem('mage-cache-storage', JSON.stringify(cacheObject));
+              }
+
+              //quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
         });
       },
@@ -348,7 +354,8 @@ define(
           return;
         }
 
-        deliveryOptions.updatePricesInDeliveryOptions();
+          console.warn('MyParcel test', newShippingMethod, isMyParcelMethod, methodEnabled);
+          deliveryOptions.updatePricesInDeliveryOptions();
 
         if (JSON.stringify(deliveryOptions.shippingMethod) !== JSON.stringify(newShippingMethod)) {
           deliveryOptions.shippingMethod = newShippingMethod;
