@@ -289,9 +289,6 @@ define(
       },
 
       /**
-       * Prior to setting the shipping method on the quote, set it to null to make sure the change event is triggered,
-       * for checkout plugins and the like that need to update totals instantly.
-       *
        * @param options
        */
       setShippingMethod: function(options) {
@@ -303,9 +300,20 @@ define(
               return;
             }
 
+            /**
+             * For the cart summary to display the correct shipping method name on the
+             * second page of the standard checkout, we need to update the storage.
+             */
+            var cacheObject = JSON.parse(localStorage.getItem('mage-cache-storage'));
+            if (cacheObject.hasOwnProperty('checkout-data')) {
+              cacheObject['checkout-data']['selectedShippingRate'] = response[0].element_id;
+              localStorage.setItem('mage-cache-storage', JSON.stringify(cacheObject));
+            }
+            /**
+             * Set the method to null first, for the price of options to update in the cart summary.
+             */
             selectShippingMethodAction(null);
-
-            quote.shippingMethod(deliveryOptions.getNewShippingMethod(response[0].element_id));
+            selectShippingMethodAction(deliveryOptions.getNewShippingMethod(response[0].element_id));
           },
         });
       },
@@ -335,31 +343,23 @@ define(
       onShippingMethodUpdate: function(selectedShippingMethod) {
         var newShippingMethod = selectedShippingMethod || {};
         var available = newShippingMethod.available || false;
-        var methodEnabled = checkout.allowedShippingMethods().indexOf(newShippingMethod.method_code) > -1;
         var isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(newShippingMethod);
 
         checkout.hideShippingMethods();
 
-        if (!checkout.hasDeliveryOptions()) {
+        if (!checkout.hasDeliveryOptions() || !available) {
           return;
         }
 
-        if (!available) {
-          return;
+        if (!isMyParcelMethod) {
+            deliveryOptions.triggerEvent(deliveryOptions.disableDeliveryOptionsEvent);
+            deliveryOptions.isUsingMyParcelMethod = false;
+            return;
         }
 
         deliveryOptions.updatePricesInDeliveryOptions();
-
-        if (JSON.stringify(deliveryOptions.shippingMethod) !== JSON.stringify(newShippingMethod)) {
-          deliveryOptions.shippingMethod = newShippingMethod;
-
-          if (!isMyParcelMethod && !methodEnabled) {
-            deliveryOptions.triggerEvent(deliveryOptions.disableDeliveryOptionsEvent);
-            deliveryOptions.isUsingMyParcelMethod = false;
-          } else {
-            deliveryOptions.isUsingMyParcelMethod = true;
-          }
-        }
+        deliveryOptions.shippingMethod = newShippingMethod;
+        deliveryOptions.isUsingMyParcelMethod = true;
       },
 
       /**
