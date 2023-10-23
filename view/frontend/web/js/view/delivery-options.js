@@ -343,7 +343,6 @@ define(
       onShippingMethodUpdate: function(selectedShippingMethod) {
         var newShippingMethod = selectedShippingMethod || {};
         var available = newShippingMethod.available || false;
-        // var methodEnabled = checkout.allowedShippingMethods().indexOf(newShippingMethod.method_code) > -1;
         var isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(newShippingMethod);
 
         checkout.hideShippingMethods();
@@ -358,8 +357,6 @@ define(
             return;
         }
 
-        // console.warn('MyParcel test 2', newShippingMethod, isMyParcelMethod, methodEnabled);
-        // console.error(JSON.stringify(deliveryOptions.shippingMethod), JSON.stringify(newShippingMethod));
         deliveryOptions.updatePricesInDeliveryOptions();
         deliveryOptions.shippingMethod = newShippingMethod;
         deliveryOptions.isUsingMyParcelMethod = true;
