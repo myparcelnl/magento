@@ -233,7 +233,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
 {
     ".page-footer": {
         "myparcelnl_newshipment": {
-            "carrier": "postnl",
+            "carrier": "<?= $block->getCarrier() ?>",
             "packageType":"<?= array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
     }
 }
