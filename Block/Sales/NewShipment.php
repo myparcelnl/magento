@@ -168,7 +168,8 @@ class NewShipment extends AbstractItems
     /**
      * @return string
      */
-    public function getCarrier() {
+    public function getCarrier(): string
+    {
         return $this->defaultOptions->getCarrier();
     }
 
