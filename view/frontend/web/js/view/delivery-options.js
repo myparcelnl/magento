@@ -293,6 +293,9 @@ define(
        */
       setShippingMethod: function(options) {
         $('body').trigger('processStart');
+        if (options) {
+          options.packageType = checkout.bestPackageType;
+        }
         checkout.convertDeliveryOptionsToShippingMethod(options, {
           onSuccess: function(response) {
             $('body').trigger('processStop');
@@ -454,8 +457,10 @@ define(
 
         if (addBasePrice) {
           baseShippingMethod = checkout.findRateByMethodCode(deliveryOptions.methodCodeStandardDelivery);
-          shippingMethodPrice -= baseShippingMethod.price_incl_tax;
-          shippingMethodPrice = deliveryOptions.roundNumber(shippingMethodPrice, 2);
+          if (baseShippingMethod) {
+            shippingMethodPrice -= baseShippingMethod.price_incl_tax;
+            shippingMethodPrice = deliveryOptions.roundNumber(shippingMethodPrice, 2);
+          }
         }
 
         if (existingPrice && existingPrice !== shippingMethodPrice && isMyParcelMethod) {
