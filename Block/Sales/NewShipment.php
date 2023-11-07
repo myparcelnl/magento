@@ -168,6 +168,14 @@ class NewShipment extends AbstractItems
     /**
      * @return string
      */
+    public function getCarrier(): string
+    {
+        return $this->defaultOptions->getCarrier();
+    }
+
+    /**
+     * @return string
+     */
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
