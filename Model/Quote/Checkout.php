@@ -123,16 +123,17 @@ class Checkout
      */
     private function getPackageType(): string
     {
-        $packageType    = 'package';
+        $packageType    = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
         $activeCarriers = $this->getActiveCarriers();
 
         foreach ($activeCarriers as $carrier) {
             $tentativePackageType = $this->checkPackageType($carrier);
+
             switch ($tentativePackageType) {
-                case 'digital_stamp':
-                    return 'digital_stamp';
-                case 'mailbox':
-                    $packageType = 'mailbox';
+                case AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME:
+                    return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME;
+                case AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME:
+                    $packageType = AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME;
             }
         }
 

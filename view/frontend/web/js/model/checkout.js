@@ -184,9 +184,18 @@ function(
       }
 
       if ('undefined' !== typeof MyParcelConfig && MyParcelConfig.hasOwnProperty('methods')) {
+        function removeRow(tableCell) {
+          if (! tableCell) {
+            return;
+          }
+          var tableRow = tableCell.parentNode;
+          if (! tableRow) {
+            return;
+          }
+          tableRow.parentNode.removeChild(tableRow);
+        }
         MyParcelConfig.methods.forEach(function(code) {
-          var el = document.getElementById('label_method_' + code + '_' + code);
-          if (el && (el = el.parentNode)) el.parentNode.removeChild(el);
+          removeRow(document.getElementById('label_method_' + code + '_' + code));
         });
       }
 
