@@ -253,11 +253,11 @@ class ShipmentOptions
      */
     public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
     {
-        if ($options[$key] || false === $options[$key]) {
-            return (bool) $options[$key];
+        if (! isset($options[$key])) {
+            return null;
         }
 
-        return null;
+        return (bool) $options[$key];
     }
 
     /**
@@ -358,7 +358,7 @@ class ShipmentOptions
      */
     private function optionIsEnabled($optionKey): bool
     {
-        if ($this->options[$optionKey] === null) {
+        if (! isset($this->options[$optionKey])) {
             return self::$defaultOptions->hasDefault($optionKey, $this->carrier);
         }
 
