@@ -184,18 +184,12 @@ function(
       }
 
       if ('undefined' !== typeof MyParcelConfig && MyParcelConfig.hasOwnProperty('methods')) {
-        function removeRow(tableCell) {
-          if (! tableCell) {
-            return;
-          }
-          var tableRow = tableCell.parentNode;
-          if (! tableRow) {
-            return;
-          }
-          tableRow.parentNode.removeChild(tableRow);
-        }
         MyParcelConfig.methods.forEach(function(code) {
-          removeRow(document.getElementById('label_method_' + code + '_' + code));
+          try {
+            document.getElementById('label_method_' + code + '_' + code).remove();
+          } catch (e) {
+            // when the element is not there as such, it is already ok
+          }
         });
       }
 
