@@ -22,5 +22,6 @@
     "@myparcel/eslint-config": "^3.6.1",
     "@myparcel/semantic-release-config": "^4.0.0",
     "@types/knockout": "^3.4.72"
-  }
+  },
+  "packageManager": "yarn@4.0.1"
 }
