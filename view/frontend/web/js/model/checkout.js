@@ -101,7 +101,7 @@ function(
       Model.countryId(quote.shippingAddress().countryId);
       doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onInitializeSuccess});
 
-      quote.billingAddress.subscribe(function() {
+      function reloadConfig() {
         var shippingAddress = quote.shippingAddress();
 
         if (shippingAddress.countryId !== Model.countryId()) {
@@ -109,7 +109,9 @@ function(
         }
 
         Model.countryId(shippingAddress.countryId);
-      });
+      }
+      quote.billingAddress.subscribe(reloadConfig);
+      quote.shippingAddress.subscribe(reloadConfig);
     },
 
     onReFetchDeliveryOptionsConfig: function(response) {
@@ -178,6 +180,16 @@ function(
           Model.getShippingMethodRows(shippingMethod).forEach(function(row) {
             rowsToHide.push(row);
           });
+        });
+      }
+
+      if ('undefined' !== typeof MyParcelConfig && MyParcelConfig.hasOwnProperty('methods')) {
+        MyParcelConfig.methods.forEach(function(code) {
+          try {
+            document.getElementById('label_method_' + code + '_' + code).remove();
+          } catch (e) {
+            // when the element is not there as such, it is already ok
+          }
         });
       }
 

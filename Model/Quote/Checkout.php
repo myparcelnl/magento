@@ -81,11 +81,11 @@ class Checkout
         $this->hideDeliveryOptionsForProduct();
 
         $data = [
-            'methods'    => [$this->helper->getParentMethodNameFromQuote($this->quoteId, $forAddress)],
+            'methods'    => explode(',', $this->helper->getGeneralConfig('shipping_methods/methods') ?? ''),
             'config'     => array_merge(
                 $this->getGeneralData(),
-                $this->getPackageType(),
-                $this->getDeliveryData()
+                $this->getDeliveryData(),
+                ['packageType' => $this->getPackageType()]
             ),
             'strings'    => $this->getDeliveryOptionsStrings(),
             'forAddress' => $forAddress,
@@ -119,17 +119,22 @@ class Checkout
     /**
      * Get general data
      *
-     * @return array
+     * @return string
      */
-    private function getPackageType(): array
+    private function getPackageType(): string
     {
+        $packageType    = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
         $activeCarriers = $this->getActiveCarriers();
 
-        $packageType = [];
         foreach ($activeCarriers as $carrier) {
-            $packageType = [
-                'packageType' => $this->checkPackageType($carrier, null),
-            ];
+            $tentativePackageType = $this->checkPackageType($carrier);
+
+            switch ($tentativePackageType) {
+                case AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME:
+                    return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME;
+                case AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME:
+                    $packageType = AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME;
+            }
         }
 
         return $packageType;
@@ -288,7 +293,7 @@ class Checkout
      *
      * @return string
      */
-    public function checkPackageType(string $carrier, ?string $country): string
+    public function checkPackageType(string $carrier, ?string $country = null): string
     {
         try {
             $consignment = ConsignmentFactory::createByCarrierName($carrier);
@@ -359,7 +364,7 @@ class Checkout
      */
     private function isPickupAllowed(string $carrier): bool
     {
-        $isMailboxPackage     = self::PACKAGE_TYPE_MAILBOX === $this->getPackageType()['packageType'];
+        $isMailboxPackage     = self::PACKAGE_TYPE_MAILBOX === $this->getPackageType();
         $pickupEnabled        = $this->helper->getBoolConfig($carrier, 'pickup/active');
         $showPickupForMailbox = $this->helper->getBoolConfig($carrier, 'mailbox/pickup_mailbox');
         $showPickup           = ! $isMailboxPackage || $showPickupForMailbox;
