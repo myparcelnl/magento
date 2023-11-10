@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.11.0](https://github.com/myparcelnl/magento/compare/v4.10.0...v4.11.0) (2023-11-10)
+
+
+### :sparkles: New Features
+
+* add dhl carriers ([#777](https://github.com/myparcelnl/magento/issues/777)) ([6b64df9](https://github.com/myparcelnl/magento/commit/6b64df9c2151ac546e3dfc444b0c2181c8dbeed6))
+
+
+### :bug: Bug Fixes
+
+* **checkout:** consistently use correct package type for delivery options ([#782](https://github.com/myparcelnl/magento/issues/782)) ([85aa4c3](https://github.com/myparcelnl/magento/commit/85aa4c335b9a587f00673dfee337cd37c3980627))
+* **checkout:** fix for multiple shipping methods ([#779](https://github.com/myparcelnl/magento/issues/779)) ([1acffbc](https://github.com/myparcelnl/magento/commit/1acffbc6ea35f71a329b2a428ec6bdd77d1d2586))
+* **checkout:** restore payload extender functionality ([#775](https://github.com/myparcelnl/magento/issues/775)) ([15ffe5e](https://github.com/myparcelnl/magento/commit/15ffe5ea8a25198ef4e79352eacb14e56dcef0d1))
+* **migration:** honor database table prefix ([#776](https://github.com/myparcelnl/magento/issues/776)) ([b327b90](https://github.com/myparcelnl/magento/commit/b327b90cc0d90a42cb65125df81cc451f96c9f55))
+* **new-shipment-form:** preselect correct carrier ([#780](https://github.com/myparcelnl/magento/issues/780)) ([cc1817c](https://github.com/myparcelnl/magento/commit/cc1817c3034fcb6df69785601bad6b3b100e8228))
+* **order-mode:** allow export with carrier specific options ([#781](https://github.com/myparcelnl/magento/issues/781)) ([6bef66b](https://github.com/myparcelnl/magento/commit/6bef66be54ea3db298eceed21858035ed8157780))
+
 ## [4.10.0](https://github.com/myparcelnl/magento/compare/v4.9.1...v4.10.0) (2023-08-01)
 
 
