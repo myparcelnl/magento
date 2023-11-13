@@ -217,6 +217,26 @@
             </pickup>
         </myparcelnl_magento_dhlparcelconnect_settings>
 
+        <myparcelnl_magento_ups_settings>
+            <default_options>
+            </default_options>
+            <general>
+                <deliverydays_window>3</deliverydays_window>
+                <cutoff_time>15,30,00</cutoff_time>
+                <dropoff_days>1,2,3,4,5</dropoff_days>
+                <monday_delivery_active>0</monday_delivery_active>
+                <saturday_cutoff_time>14,30,00</saturday_cutoff_time>
+                <dropoff_delay>0</dropoff_delay>
+            </general>
+            <delivery>
+                <active>1</active>
+            </delivery>
+            <pickup>
+                <active>1</active>
+                <fee>0</fee>
+            </pickup>
+        </myparcelnl_magento_ups_settings>
+
         <sales_email>
             <track>
                 <enabled>1</enabled>
