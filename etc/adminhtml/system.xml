@@ -936,7 +936,7 @@
                 </field>
                 <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Drop-off-delay</label>
-                    <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</tooltip>
+                    <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at UPS when ordered before the cutoff time.</tooltip>
                     <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
                 </field>
             </group>
