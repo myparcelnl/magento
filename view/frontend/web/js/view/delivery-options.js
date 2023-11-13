@@ -88,6 +88,7 @@ define(
         'myparcelnl_magento_dhleuroplus_settings/delivery': 'config.carrierSettings.dhleuroplus.priceStandardDelivery',
         'myparcelnl_magento_dhlparcelconnect_settings/delivery': 'config.carrierSettings.dhlparcelconnect.priceStandardDelivery',
         'myparcelnl_magento_ups_settings/delivery': 'config.carrierSettings.ups.priceStandardDelivery',
+        'myparcelnl_magento_ups_settings/pickup': 'config.carrierSettings.ups.pricePickup',
       },
 
       /**
