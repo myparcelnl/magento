@@ -148,7 +148,7 @@ function(
      */
     findRateByMethodCode: function(methodCode) {
       return Model.rates().find(function(rate) {
-        return rate.carrier_code === methodCode;
+        return rate.carrier_code === methodCode || rate.method_code === methodCode;
       });
     },
 
