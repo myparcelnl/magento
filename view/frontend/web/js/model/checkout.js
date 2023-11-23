@@ -148,7 +148,22 @@ function(
      */
     findRateByMethodCode: function(methodCode) {
       return Model.rates().find(function(rate) {
-        return rate.method_code === methodCode;
+        return rate.carrier_code === methodCode;
+      });
+    },
+
+      /**
+       * Search the rates for the given method code.
+       *
+       * @param {string} carrierCode - Carrier code to search for.
+       *
+       * @returns {Object} - The found rate, if any.
+       */
+    findOriginalRateByCarrierCode: function(carrierCode) {
+      return Model.rates().find(function(rate) {
+          if (-1 === rate.method_code.indexOf('myparcel')) {
+              return rate.carrier_code === carrierCode;
+          }
       });
     },
 
@@ -185,8 +200,14 @@ function(
 
       if ('undefined' !== typeof MyParcelConfig && MyParcelConfig.hasOwnProperty('methods')) {
         MyParcelConfig.methods.forEach(function(code) {
+          const method = Model.findOriginalRateByCarrierCode(code);
+
+          if (! method) {
+              return;
+          }
+
           try {
-            document.getElementById('label_method_' + code + '_' + code).remove();
+            document.getElementById('label_method_' + method.method_code + '_' + method.carrier_code).parentNode.remove();
           } catch (e) {
             // when the element is not there as such, it is already ok
           }
@@ -197,7 +218,6 @@ function(
         row.style.display = 'none';
       });
     },
-
     /**
      * Get shipping method rows by finding the columns with a matching method_code and grabbing their parent.
      *
