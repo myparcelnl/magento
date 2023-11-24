@@ -947,20 +947,6 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
-            <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Pickup at UPS location</label>
-                <field id="active" translate="label comment" type="select" sortOrder="405" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pickup active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="410" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pickup fee</label>
-                    <tooltip>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</tooltip>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-            </group>
         </section>
         <section id="sales_email">
             <group id="track" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">

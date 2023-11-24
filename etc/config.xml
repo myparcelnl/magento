@@ -231,10 +231,6 @@
             <delivery>
                 <active>1</active>
             </delivery>
-            <pickup>
-                <active>1</active>
-                <fee>0</fee>
-            </pickup>
         </myparcelnl_magento_ups_settings>
 
         <sales_email>
