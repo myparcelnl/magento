@@ -18,6 +18,7 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
+use DateTime;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
@@ -58,9 +59,9 @@ class View extends AbstractOrder
         $order = $this->getOrder();
 
         /** @var object $data Data from checkout */
-        $data     = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : false;
+        $data = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : false;
 
-        $date     = new \DateTime($data['date'] ?? '');
+        $date     = new DateTime($data['date'] ?? '');
         $dateTime = $date->format('d-m-Y H:i');
 
         if ($this->helper->isPickupLocation($data)) {
