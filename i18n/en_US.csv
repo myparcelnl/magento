@@ -44,6 +44,7 @@ myparcelnl_magento_dhlforyou_settings/delivery/only_recipient, DHL For You deliv
 myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, DHL For You delivery with only recipient and signature
 myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus delivery
 myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect delivery
+myparcelnl_magento_dpd_settings/delivery, DPD delivery
 myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
 no_account_settings, No account settings found. Press the import button in general configuration to fetch account settings.
 manage_drop_off_point, Manage your default drop-off point in the
