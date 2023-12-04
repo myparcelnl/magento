@@ -18,6 +18,7 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
+use DateTime;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
@@ -50,6 +51,7 @@ class View extends AbstractOrder
      *
      * @return string
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
     public function getCheckoutOptionsHtml()
     {
@@ -59,10 +61,11 @@ class View extends AbstractOrder
         /** @var object $data Data from checkout */
         $data = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : false;
 
+        $date     = new DateTime($data['date'] ?? '');
+        $dateTime = $date->format('d-m-Y H:i');
+
         if ($this->helper->isPickupLocation($data)) {
             if (is_array($data) && key_exists('pickupLocation', $data)) {
-                $dateTime = date('d-m-Y H:i', strtotime($data['date']));
-
                 $html .= __($data['carrier'] . ' location:') . ' ' . $dateTime;
                 if ($data['deliveryType'] != 'pickup') {
                     $html .= ', ' . __($data['deliveryType']);
@@ -78,7 +81,6 @@ class View extends AbstractOrder
                     $html .= __($data['packageType'] . ' ');
                 }
 
-                $dateTime = date('d-m-Y H:i', strtotime($data['date'] ?? ''));
                 $html .= __('Deliver:') . ' ' . $dateTime;
 
                 if (key_exists('shipmentOptions', $data)) {

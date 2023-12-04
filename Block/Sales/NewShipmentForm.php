@@ -6,6 +6,7 @@ use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLParcelConnect;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
@@ -19,6 +20,7 @@ class NewShipmentForm
         CarrierDHLEuroplus::class,
         CarrierDHLParcelConnect::class,
         CarrierUPS::class,
+        CarrierDPD::class,
     ];
 
     public const PACKAGE_TYPE_HUMAN_MAP = [

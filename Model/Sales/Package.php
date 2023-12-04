@@ -245,6 +245,10 @@ class Package extends Data implements PackageInterface
      */
     public function setCurrentCountry(?string $currentCountry): void
     {
+        if ($currentCountry === null) {
+            return;
+        }
+
         $this->currentCountry = $currentCountry;
     }
 }

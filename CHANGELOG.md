@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.11.1](https://github.com/myparcelnl/magento/compare/v4.11.0...v4.11.1) (2023-11-23)
+
+
+### :bug: Bug Fixes
+
+* **checkout:** show delivery options for tablerate when appropriate ([#790](https://github.com/myparcelnl/magento/issues/790)) ([8e29ac1](https://github.com/myparcelnl/magento/commit/8e29ac167466ba12b6b6d35da66127c5f1d94038))
+* **ordernotes:** bail early without order ([#788](https://github.com/myparcelnl/magento/issues/788)) ([37bacb5](https://github.com/myparcelnl/magento/commit/37bacb59f58ab2f9ee96b40113028f6ed2af2dea)), closes [#772](https://github.com/myparcelnl/magento/issues/772)
+
 ## [4.11.0](https://github.com/myparcelnl/magento/compare/v4.10.0...v4.11.0) (2023-11-10)
 
 

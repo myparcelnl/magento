@@ -41,7 +41,9 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
         $history = $observer->getData()['status_history'] ?? null;
 
         if (! is_a($history, History::class)
-            || ! $history->getComment()) {
+            || ! $history->getComment()
+            || ! $history->getOrder()
+        ) {
             return $this;
         }
 

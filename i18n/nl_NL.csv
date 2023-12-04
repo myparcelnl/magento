@@ -37,6 +37,7 @@ myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, DHL For
 myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus bezorging
 myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorging
 myparcelnl_magento_ups_settings.delivery, UPS bezorging
+myparcenl_magento_dpd_settings/delivery, DPD bezorging
 myparcelnl_magento_error_no_shipments_to_process, Geen MyParcel zendingen om te verwerken.
 Version and support,Versie en support
 General settings,Algemene instellingen

@@ -12,6 +12,7 @@ use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLParcelConnect;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -27,6 +28,7 @@ class Data extends AbstractHelper
     public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
     public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelnl_magento_dhlparcelconnect_settings/';
     public const XML_PATH_UPS_SETTINGS              = 'myparcelnl_magento_ups_settings/';
+    public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
     public const DEFAULT_WEIGHT                     = 1000;
     public const CARRIERS_XML_PATH_MAP              = [
         CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
@@ -34,6 +36,7 @@ class Data extends AbstractHelper
         CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
         CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
         CarrierUPS::NAME              => self::XML_PATH_UPS_SETTINGS,
+        CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
     ];
 
     /**
