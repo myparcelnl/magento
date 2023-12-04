@@ -27,6 +27,7 @@ class Data extends AbstractHelper
     public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
     public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelnl_magento_dhlparcelconnect_settings/';
     public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
+    public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
     public const DEFAULT_WEIGHT                     = 1000;
     public const CARRIERS_XML_PATH_MAP              = [
         CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
@@ -252,11 +253,11 @@ class Data extends AbstractHelper
     /**
      * Get the correct weight type
      *
-     * @param  string|null $weight
+     * @param  null|float $weight
      *
      * @return int
      */
-    public function getWeightTypeOfOption(?string $weight): int
+    public function getWeightTypeOfOption(?float $weight): int
     {
         $weightType = $this->getGeneralConfig('print/weight_indication');
 
@@ -265,6 +266,21 @@ class Data extends AbstractHelper
         }
 
         return (int) $weight ?: self::DEFAULT_WEIGHT;
+    }
+
+    public function getWeightTypeOfProduct(float $weight): int
+    {
+        $weightUnit = $this->getConfigValue(self::XML_PATH_LOCALE_WEIGHT_UNIT);
+
+        if ('kgs' === $weightUnit) {
+            return (int) ($weight * 1000);
+        }
+
+        if ('lbs' === $weightUnit) {
+            return (int) ($weight * 453.592);
+        }
+
+        return (int) $weight;
     }
 
     /**

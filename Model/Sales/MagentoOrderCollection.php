@@ -15,10 +15,10 @@ use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
-use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
@@ -28,8 +28,6 @@ use MyParcelNL\Sdk\src\Model\Fulfilment\OrderNote;
 use MyParcelNL\Sdk\src\Model\PickupLocation;
 use MyParcelNL\Sdk\src\Model\Recipient;
 use MyParcelNL\Sdk\src\Support\Collection;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Sdk\src\Support\Str;
 
 /**
@@ -319,7 +317,6 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
 
-
             $fulfilmentOrder = $this->myParcelCollection->first(function(FulfilmentOrder $order) use ($magentoOrder){
                 return $order->getExternalIdentifier() === $magentoOrder->getIncrementId();
             });
@@ -347,7 +344,7 @@ class MagentoOrderCollection extends MagentoCollection
                 continue;
             }
 
-            $totalWeight += $this->helper->getWeightTypeOfOption((string) ($product->getWeight() * $item->getQtyShipped()));
+            $totalWeight += $this->helper->getWeightTypeOfOption($product->getWeight() * $item->getQtyShipped());
         }
 
         return $totalWeight;
@@ -622,7 +619,6 @@ class MagentoOrderCollection extends MagentoCollection
             $this->objectManager->get(ShipmentResource::class)->save($shipment);
             $this->objectManager->get(OrderResource::class)->save($shipment->getOrder());
         } catch (\Exception $e) {
-
             if (preg_match('/' . MagentoOrderCollection::DEFAULT_ERROR_ORDER_HAS_NO_SOURCE . '/', $e->getMessage())) {
                 $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SOURCE));
             } else {
@@ -637,5 +633,4 @@ class MagentoOrderCollection extends MagentoCollection
                 ->notify($shipment);
         }
     }
-
 }
