@@ -161,7 +161,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@myparcel/delivery-options@npm:^5.10.0":
+"@myparcel/delivery-options@npm:^5.11.1":
   version: 5.11.1
   resolution: "@myparcel/delivery-options@npm:5.11.1"
   dependencies:
@@ -225,7 +225,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@myparcel/magento@workspace:."
   dependencies:
-    "@myparcel/delivery-options": "npm:^5.10.0"
+    "@myparcel/delivery-options": "npm:^5.11.1"
     "@myparcel/eslint-config": "npm:^3.6.1"
     "@myparcel/semantic-release-config": "npm:^4.0.0"
     "@types/knockout": "npm:^3.4.72"
