@@ -137,21 +137,6 @@ class Checkout extends Data
     /**
      * @param \Magento\Quote\Model\Quote $quoteId
      *
-     * @return string
-     */
-    public function getParentMethodNameFromQuote($quoteId, array $forAddress): ?string
-    {
-        $method = $this->getParentRateFromQuote($quoteId, $forAddress);
-        if (null === $method) {
-            return null;
-        }
-
-        return $method->getMethodCode();
-    }
-
-    /**
-     * @param \Magento\Quote\Model\Quote $quoteId
-     *
      * @return \Magento\Quote\Model\Cart\ShippingMethod|null
      */
     public function getParentRateFromQuote($quoteId, array $forAddress = [])

@@ -81,6 +81,7 @@ class Checkout
         $this->hideDeliveryOptionsForProduct();
 
         $data = [
+            /* the 'method' string here is actually the carrier_code of the method */
             'methods'    => explode(',', $this->helper->getGeneralConfig('shipping_methods/methods') ?? ''),
             'config'     => array_merge(
                 $this->getGeneralData(),

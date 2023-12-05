@@ -148,12 +148,12 @@ function(
      */
     findRateByMethodCode: function(methodCode) {
       return Model.rates().find(function(rate) {
-        return rate.carrier_code === methodCode || rate.method_code === methodCode;
+        return rate.method_code === methodCode;
       });
     },
 
       /**
-       * Search the rates for the given method code.
+       * Search the rates for the given carrier code.
        *
        * @param {string} carrierCode - Carrier code to search for.
        *
@@ -174,69 +174,27 @@ function(
       var rowsToHide = [];
 
       Model.rates().forEach(function(rate) {
-        var rows = Model.getShippingMethodRows(rate.method_code);
+        const hasDeliveryOptions = Model.hasDeliveryOptions();
+        const myParcelMethods = hasDeliveryOptions ? Model.configuration().methods || [] : [];
+        const row = document.getElementById('label_method_' + rate.method_code + '_' + rate.carrier_code).parentElement || null;
 
-        if (!rate.available) {
+        if (!rate.available || !row) {
           return;
         }
 
-        if (rate.method_code.indexOf('myparcel') > -1 && rows.length) {
-          rows.forEach(function(row) {
-            rowsToHide.push(row);
-          });
+        /**
+         * Hide MyParcel-specific methods, and the parent methods delivery options are bound to
+         */
+        if (rate.method_code.indexOf('myparcel') !== -1) {
+          rowsToHide.push(row);
+        } else if (myParcelMethods.includes(rate.carrier_code)) {
+          rowsToHide.push(row);
         }
       });
-
-      /**
-       * Only hide the allowed shipping method if the delivery options are present.
-       */
-      if (Model.hasDeliveryOptions()) {
-        Model.allowedShippingMethods().forEach(function(shippingMethod) {
-          Model.getShippingMethodRows(shippingMethod).forEach(function(row) {
-            rowsToHide.push(row);
-          });
-        });
-      }
-
-      if ('undefined' !== typeof MyParcelConfig && MyParcelConfig.hasOwnProperty('methods')) {
-        MyParcelConfig.methods.forEach(function(code) {
-          const method = Model.findOriginalRateByCarrierCode(code);
-
-          if (! method) {
-              return;
-          }
-
-          try {
-            document.getElementById('label_method_' + method.method_code + '_' + method.carrier_code).parentNode.remove();
-          } catch (e) {
-            // when the element is not there as such, it is already ok
-          }
-        });
-      }
 
       rowsToHide.forEach(function(row) {
         row.style.display = 'none';
       });
-    },
-    /**
-     * Get shipping method rows by finding the columns with a matching method_code and grabbing their parent.
-     *
-     * @param {String} shippingMethod - Shipping method to get the row(s) of.
-     *
-     * @returns {Element[]}
-     */
-    getShippingMethodRows: function(shippingMethod) {
-      var classSelector = '[id^="label_method_' + shippingMethod + '"]';
-      var columns = document.querySelectorAll(classSelector);
-      var elements = [];
-
-      columns.forEach(function(column) {
-        if (column) {
-          elements.push(column.parentElement);
-        }
-      });
-
-      return elements;
     },
 
     /**
@@ -324,8 +282,8 @@ function(
      * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
      *  be left out.
      */
-    Model.allowedShippingMethods(Model.configuration().methods.filter(function(rate) {
-      return !!Model.findRateByMethodCode(rate);
+    Model.allowedShippingMethods(Model.configuration().methods.filter(function(carrierCode) {
+      return !!Model.findOriginalRateByCarrierCode(carrierCode);
     }));
   }
 
@@ -339,14 +297,14 @@ function(
 
     if (isEuCountry(shippingCountry)) {
 
-    Model.allowedShippingMethods().forEach(function(methodCode) {
-      const rate = Model.findRateByMethodCode(methodCode);
+      Model.allowedShippingMethods().forEach(function(carrierCode) {
+        const rate = Model.findOriginalRateByCarrierCode(carrierCode);
 
-      if (rate && rate.available) {
-        isAllowed = true;
-      }
-    });
-  }
+        if (rate && rate.available) {
+          isAllowed = true;
+        }
+      });
+    }
     Model.hasDeliveryOptions(isAllowed);
     Model.hideShippingMethods();
   }

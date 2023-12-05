@@ -385,11 +385,11 @@ define(
            * If the method doesn't exist, loop through the allowed shipping methods and return the first one that
            *  matches.
            */
-          window.MyParcelConfig.methods.forEach(function(method) {
-            var foundMethod = checkout.findRateByMethodCode(method);
+          checkout.allowedShippingMethods().forEach(function(carrierCode) {
+            var foundRate = checkout.findOriginalRateByCarrierCode(carrierCode);
 
-            if (foundMethod) {
-              newShippingMethod.push(foundMethod);
+            if (foundRate) {
+              newShippingMethod.push(foundRate);
             }
           });
 
