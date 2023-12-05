@@ -26,6 +26,7 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
+use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
@@ -84,21 +85,29 @@ class UpgradeData implements UpgradeDataInterface
     private $replaceDisableCheckout;
 
     /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange
+     */
+    private $replaceDpzRange;
+
+    /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                 $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                          $eavSetupFactory
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout $replaceDisableCheckout
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange        $replaceDpzRange
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
         EavSetupFactory $eavSetupFactory,
         ReplaceFitInMailbox $replaceFitInMailbox,
-        ReplaceDisableCheckout $replaceDisableCheckout
+        ReplaceDisableCheckout $replaceDisableCheckout,
+        ReplaceDpzRange $replaceDpzRange
     ) {
         $this->categorySetupFactory   = $categorySetupFactory;
         $this->eavSetupFactory        = $eavSetupFactory;
         $this->replaceFitInMailbox    = $replaceFitInMailbox;
         $this->replaceDisableCheckout = $replaceDisableCheckout;
+        $this->replaceDpzRange        = $replaceDpzRange;
     }
 
     /**
@@ -709,6 +718,10 @@ class UpgradeData implements UpgradeDataInterface
                 'note',
                 'Fill in the amount of products that fit in one mailbox package. Use 0 to automatically calculate based on weight, -1 if the article does not fit in a mailbox package. It will always be sent as a regular package if it\'s too heavy for a mailbox package.'
             );
+        }
+
+        if (version_compare($context->getVersion(), '5.0.1', '<')) {
+            $this->replaceDpzRange->updateRangeValue();
         }
 
         $setup->endSetup();
