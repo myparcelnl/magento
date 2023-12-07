@@ -148,7 +148,7 @@ class NewShipment extends AbstractItems
      */
     public function getDigitalStampWeight(): int
     {
-        $weight = $this->dataHelper->getWeightTypeOfOption($this->order->getWeight() ?? 0.0);
+        $weight = $this->dataHelper->convertToGrams($this->order->getWeight() ?? 0.0);
 
         if (0 === $weight) {
             $weight = $this->defaultOptions->getDigitalStampDefaultWeight();

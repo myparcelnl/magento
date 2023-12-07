@@ -128,7 +128,7 @@ class PackageRepository extends Package
      */
     public function fitInDigitalStamp(): bool
     {
-        $orderWeight               = $this->getWeightTypeOfOption($this->getWeight());
+        $orderWeight               = $this->convertToGrams($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
         return $this->getCurrentCountry() === AbstractConsignment::CC_NL

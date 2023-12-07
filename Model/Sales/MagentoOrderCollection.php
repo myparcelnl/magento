@@ -344,7 +344,7 @@ class MagentoOrderCollection extends MagentoCollection
                 continue;
             }
 
-            $totalWeight += $this->helper->getWeightTypeOfOption($product->getWeight() * $item->getQtyShipped());
+            $totalWeight += $this->helper->convertToGrams($product->getWeight() * $item->getQtyShipped());
         }
 
         return $totalWeight;

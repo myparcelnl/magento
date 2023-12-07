@@ -122,7 +122,7 @@ class DefaultOptions
     public function hasDefaultLargeFormat(string $carrier, string $option): bool
     {
         $price  = self::$order->getGrandTotal();
-        $weight = self::$helper->getWeightTypeOfProduct(self::$order->getWeight());
+        $weight = self::$helper->convertToGrams(self::$order->getWeight());
 
         $settings = self::$helper->getStandardConfig($carrier, 'default_options');
         if (isset($settings[$option . '_active']) &&

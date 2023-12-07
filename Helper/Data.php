@@ -257,7 +257,7 @@ class Data extends AbstractHelper
      *
      * @return int
      */
-    public function getWeightTypeOfOption(?float $weight): int
+    public function convertToGrams(?float $weight): int
     {
         $weightType = $this->getGeneralConfig('print/weight_indication');
 
@@ -266,21 +266,6 @@ class Data extends AbstractHelper
         }
 
         return (int) $weight ?: self::DEFAULT_WEIGHT;
-    }
-
-    public function getWeightTypeOfProduct(float $weight): int
-    {
-        $weightUnit = $this->getConfigValue(self::XML_PATH_LOCALE_WEIGHT_UNIT);
-
-        if ('kgs' === $weightUnit) {
-            return (int) ($weight * 1000);
-        }
-
-        if ('lbs' === $weightUnit) {
-            return (int) ($weight * 453.592);
-        }
-
-        return (int) $weight;
     }
 
     /**
