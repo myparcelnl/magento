@@ -720,7 +720,7 @@ class UpgradeData implements UpgradeDataInterface
             );
         }
 
-        if (version_compare($context->getVersion(), '5.0.1', '<')) {
+        if (version_compare($context->getVersion(), '4.12.0', '<')) {
             $this->replaceDpzRange->updateRangeValue();
         }
 
