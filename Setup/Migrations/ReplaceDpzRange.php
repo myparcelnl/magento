@@ -10,9 +10,6 @@ use MyParcelNL\Magento\Setup\QueryBuilder;
 
 class ReplaceDpzRange
 {
-    /** @var string $pathDigitalStampActive */
-    private $pathDigitalStampActive = 'myparcelnl_magento_postnl_settings/digital_stamp/active';
-
     /** @var string $pathDigitalStampDefault */
     private $pathDigitalStampDefault  = 'myparcelnl_magento_postnl_settings/digital_stamp/default_weight';
 
