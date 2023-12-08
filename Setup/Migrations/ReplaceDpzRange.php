@@ -10,17 +10,20 @@ use MyParcelNL\Magento\Setup\QueryBuilder;
 
 class ReplaceDpzRange
 {
-    /** @var string $pathName */
-    private string $pathName = 'myparcelnl_magento_postnl_settings/digital_stamp/active';
+    /** @var string $pathDigitalStampActive */
+    private $pathDigitalStampActive = 'myparcelnl_magento_postnl_settings/digital_stamp/active';
+
+    /** @var string $pathDigitalStampDefault */
+    private $pathDigitalStampDefault  = 'myparcelnl_magento_postnl_settings/digital_stamp/default_weight';
 
     /** @var \MyParcelNL\Magento\Setup\QueryBuilder $queryBuilder */
-    private QueryBuilder $queryBuilder;
+    private $queryBuilder;
 
     /** @var \Magento\Framework\Setup\SchemaSetupInterface $setup */
-    private SchemaSetupInterface $setup;
+    private $setup;
 
     /** @var array $replaceValues */
-    private array $replaceValues = [
+    private $replaceValues = [
         '100',
         '350',
     ];
@@ -58,14 +61,14 @@ class ReplaceDpzRange
         $query = $this->queryBuilder
             ->select('path', 'value')
             ->from($this->setup->getTable('core_config_data'))
-            ->where('path = ?', $this->pathName);
+            ->where(sprintf('path = \'%s\'', $this->pathDigitalStampDefault));
 
         $result = $connection->fetchRow($query);
         if ($result && in_array($result['value'], $this->replaceValues, true)) {
             $query = $this->queryBuilder
                 ->update($this->setup->getTable('core_config_data'))
                 ->set('value', $this->newValue)
-                ->where('path = ?', $this->pathName);
+                ->where(sprintf('path = \'%s\'', $this->pathDigitalStampDefault));
             $connection->query($query);
         }
     }
