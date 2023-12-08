@@ -354,7 +354,7 @@ class TrackTraceHolder
                 $myParcelProduct = (new MyParcelCustomsItem())
                     ->setDescription($product->getName())
                     ->setAmount($product->getQty())
-                    ->setWeight($this->dataHelper->getWeightTypeOfOption($product->getWeight()) ?: 1)
+                    ->setWeight($this->dataHelper->convertToGrams($product->getWeight()) ?: 1)
                     ->setItemValue($this->getCentsByPrice($product->getPrice()))
                     ->setClassification(
                         (int) $this->getAttributeValue('catalog_product_entity_int', $product['product_id'], 'classification')
@@ -368,7 +368,7 @@ class TrackTraceHolder
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($item->getName())
                 ->setAmount($item->getQty())
-                ->setWeight($this->dataHelper->getWeightTypeOfOption($item->getWeight() * $item->getQty()))
+                ->setWeight($this->dataHelper->convertToGrams($item->getWeight() * $item->getQty()))
                 ->setItemValue($item->getPrice() * 100)
                 ->setClassification((int) $this->getAttributeValue('catalog_product_entity_int', $item->getProductId(), 'classification'))
                 ->setCountry($this->getCountryOfOrigin($item->getProductId()));
@@ -457,7 +457,7 @@ class TrackTraceHolder
             $totalWeight += $shipmentItem['weight'] * $shipmentItem['qty'];
         }
 
-        $totalWeight = $this->dataHelper->getWeightTypeOfOption($totalWeight);
+        $totalWeight = $this->dataHelper->convertToGrams($totalWeight);
 
         if (0 === $totalWeight) {
             throw new \RuntimeException(

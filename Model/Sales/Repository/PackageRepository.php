@@ -25,7 +25,7 @@ class PackageRepository extends Package
 {
     public const DEFAULT_MAXIMUM_MAILBOX_WEIGHT = 2000;
     public const MAXIMUM_DIGITAL_STAMP_WEIGHT   = 2000;
-    public const DEFAULT_LARGE_FORMAT_WEIGHT    = 2300;
+    public const DEFAULT_LARGE_FORMAT_WEIGHT    = 23000;
 
     /**
      * @var bool
@@ -128,7 +128,7 @@ class PackageRepository extends Package
      */
     public function fitInDigitalStamp(): bool
     {
-        $orderWeight               = $this->getWeightTypeOfOption($this->getWeight());
+        $orderWeight               = $this->convertToGrams($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
         return $this->getCurrentCountry() === AbstractConsignment::CC_NL
