@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
