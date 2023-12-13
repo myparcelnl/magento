@@ -4,11 +4,25 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Pdk\Service;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Pdk\Base\Service\WeightService;
-use MyParcelNL\Pdk\Facade\Pdk;
 
 class MagentoWeightService extends WeightService
 {
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
+    private $scopeConfig;
+
+    /**
+     * @param  \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
+     */
+    public function __construct(ScopeConfigInterface $scopeConfig)
+    {
+        $this->scopeConfig = $scopeConfig;
+    }
+
     /**
      * @param  int|float   $weight
      * @param  null|string $unit
@@ -19,7 +33,11 @@ class MagentoWeightService extends WeightService
     {
         return parent::convertToGrams(
             $weight,
-            $unit ?: 'weight', Pdk::get('defaultWeightUnit')
+            $unit
+                ?: $this->scopeConfig->getValue(
+                'general/locale/weight_unit',
+                ScopeInterface::SCOPE_STORE
+            )
         );
     }
 }
