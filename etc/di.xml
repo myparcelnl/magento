@@ -1,0 +1,5 @@
+<config xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:noNamespaceSchemaLocation='urn:magento:framework:ObjectManager/etc/config.xsd'>
+    <type name='MyParcelNL\Models\Boot'>
+        <plugin name='MyParcelNL_Magento' type='MyParcelNL\Models\Boot' sortOrder='10' disabled='false'/>
+    </type>
+</config>
