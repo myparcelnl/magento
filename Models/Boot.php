@@ -18,9 +18,6 @@ class Boot
 {
     public function __construct()
     {
-        var_dump('boot');
-        exit;
-
         $this->boot();
 
         /** @var MagentoHookService $hookService */
@@ -32,7 +29,6 @@ class Boot
     {
         // todo: try to find a way to get nl/be from the config to rename name of the plugin
         $pluginCc = 'nl';
-        var_dump($pluginCc);
 
         bootPdk(
             Platform::MYPARCEL_NAME . $pluginCc,

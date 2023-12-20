@@ -29,12 +29,9 @@
   ],
   "type": "magento2-module",
   "require": {
-    "php": "~5.6.5 || ^7.0 || ^8.0",
-    "myparcelnl/pdk": "~2.31.4",
-    "psr/log": "*"
+    "php": "~5.6.5 || ^7.0 || ^8.0"
   },
   "require-dev": {
-    "humbug/php-scoper": "^0.17.5",
     "pestphp/pest": "^1.0",
     "phpstan/phpstan": "^1.10",
     "spatie/pest-plugin-snapshots": ">= 1"

@@ -6,7 +6,7 @@ namespace MyParcelNL\Magento\Pdk\Hooks;
 
 use MyParcelNL\Magento\Pdk\Hooks\Contract\MagentoHooksInterface;
 
-final class MessageManagerHook extends MagentoAbstractHook implements MagentoHooksInterface
+class MessageManagerHook extends MagentoAbstractHook implements MagentoHooksInterface
 {
     public const MESSAGE_SUCCESS = 'addSuccess';
     public const MESSAGE_ERROR   = 'addError';
