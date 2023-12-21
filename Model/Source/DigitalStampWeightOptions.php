@@ -65,8 +65,7 @@ class DigitalStampWeightOptions implements OptionSourceInterface
             ['value' => 0, 'label' => __('No standard weight')],
             ['value' => 20, 'label' => __('0 - 20 gram')],
             ['value' => 50, 'label' => __('20 - 50 gram')],
-            ['value' => 100, 'label' => __('50 - 100 gram')],
-            ['value' => 350, 'label' => __('100 - 350 gram')],
+            ['value' => 200, 'label' => __('50 - 350 gram')],
             ['value' => 2000, 'label' => __('350 - 2000 gram')]
         ];
 
