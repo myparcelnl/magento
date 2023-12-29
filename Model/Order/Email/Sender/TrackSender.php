@@ -17,6 +17,7 @@
  */
 namespace MyParcelNL\Magento\Model\Order\Email\Sender;
 
+use Magento\Framework\DataObject;
 use Magento\Payment\Helper\Data as PaymentHelper;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Email\Container\Template;
@@ -140,10 +141,11 @@ class TrackSender extends Sender
                     'frontend_status_label' => $order->getFrontendStatusLabel()
                 ]
             ];
+            $transportObject = new DataObject($transport);
 
             $this->eventManager->dispatch(
                 'email_shipment_set_template_vars_before',
-                ['sender' => $this, 'transport' => $transport]
+                ['sender' => $this, 'transport' => $transportObject->getData(), 'transportObject' => $transportObject]
             );
 
             $this->templateContainer->setTemplateVars($transport);
