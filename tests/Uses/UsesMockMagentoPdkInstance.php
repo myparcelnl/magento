@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\tests\Uses;
 
-use MyParcelNL\Magento\Pdk\Audit\Repository\MagentoPdkAuditRepository;
-use MyParcelNL\Magento\Pdk\Plugin\Repository\MagentoOrderNoteRepository;
-use MyParcelNL\Magento\Pdk\Plugin\Repository\PdkOrderRepository;
-use MyParcelNL\Magento\Pdk\Product\Repository\MagentoPdkProductRepository;
-use MyParcelNL\Magento\Service\MagentoCronService;
+use MyParcelNL\Magento\src\Pdk\Audit\Repository\MagentoPdkAuditRepository;
+use MyParcelNL\Magento\src\Pdk\Plugin\Repository\MagentoOrderNoteRepository;
+use MyParcelNL\Magento\src\Pdk\Plugin\Repository\PdkOrderRepository;
+use MyParcelNL\Magento\src\Pdk\Product\Repository\MagentoPdkProductRepository;
+use MyParcelNL\Magento\src\Service\MagentoCronService;
 use MyParcelNL\Magento\Tests\Mock\MockMagentoPdkBootstrapper;
 use MyParcelNL\Pdk\App\Order\Contract\PdkOrderNoteRepositoryInterface;
 use MyParcelNL\Pdk\App\Order\Contract\PdkOrderRepositoryInterface;

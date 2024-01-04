@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento;
 
-use MyParcelNL\Pdk\Base\Pdk;
-use MyParcelNL\Magento\Pdk\MagentoPdkBootstrapper;
+use MyParcelNL\Magento\src\Pdk\MagentoPdkBootstrapper;
 use MyParcelNL\Magento\Tests\Mock\MockMagentoPdkBootstrapper;
+use MyParcelNL\Pdk\Base\Pdk;
 
 if (! function_exists('\MyParcelNL\Magento\bootPdk')) {
     /**

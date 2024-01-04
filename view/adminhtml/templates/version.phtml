@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+/** @var $block \MyParcelNL\Magento\src\Pdk\Block\Version\VersionTabRepository */
+?>
+
+<div class="accordion">
+  <div class="entry-edit form-inline">
+    <div class="section-config active">
+      <div class="entry-edit-head admin__collapsible-block">
+        <a id="myparcelnl_magento_version-head" href="#myparcelnl_magento_version-link" onclick="Fieldset.toggleCollapse('myparcelnl_magento_version'); return false;" class="open"><?= __('PDK Overview -> Version');?></a>
+      </div>
+      <input id="myparcelnl_magento_version-state" name="config_state[myparcelnl_magento_version]" type="hidden" value="1">
+      <fieldset class="config admin__collapsible-block" id="myparcelnl_magento_version">
+        <div class="myparcel_container">
+          <table cellspacing="0" class="form-list">
+            <tbody>
+            <tr>
+              <td>
+                <table id="supportWrap" cellpadding="0" cellspacing="0">
+                  <tbody>
+                  <tr>
+                    <td colspan="3">
+                      <div class="instructions">
+                          <?=
+                          __(
+                            'The version %1 of the extension is installed on your webshop.',
+                            '<b>'. $block->getModuleVersion() .'</b>'
+                          )
+                          ?>
+
+                          <p>
+                            <?=
+                              json_encode($block->getPdk()->version ?? 'Could not load Pdk AppInfo', JSON_PRETTY_PRINT)
+                            ?>
+                          </p>
+                      </div>
+                    </td>
+                  </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+      </fieldset>
+      <script type="text/javascript">
+      require(['prototype'], function(){Fieldset.applyCollapse('myparcelnl_magento_version');});
+      </script>
+    </div>
+  </div>
+</div>

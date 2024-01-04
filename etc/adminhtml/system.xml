@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../Magento/Config/etc/system_file.xsd">
+    <system>
+        <tab id="myparcelnl_magento" translate="label" sortOrder="100">
+            <label>MyParcel</label>
+        </tab>
+        <section id="myparcelnl_magento_support_tab" translate="label" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>PDK Overview</label>
+            <tab>myparcelnl_magento</tab>
+            <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
+            <group id="support_tab" translate="label comment" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+                <frontend_model>\MyParcelNL\Magento\src\Pdk\Block\Version\VersionTab</frontend_model>
+            </group>
+        </section>
+    </system>
+</config>

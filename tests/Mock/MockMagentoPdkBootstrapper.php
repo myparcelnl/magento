@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Tests\Mock;
 
-use MyParcelNL\Magento\Pdk\MagentoPdkBootstrapper;
+use MyParcelNL\Magento\src\Pdk\MagentoPdkBootstrapper;
 use MyParcelNL\Pdk\Base\Concern\PdkInterface;
 
 final class MockMagentoPdkBootstrapper extends MagentoPdkBootstrapper implements StaticMockInterface

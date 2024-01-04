@@ -3,23 +3,23 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Facade\Magento;
-use MyParcelNL\Magento\Logger\MagentoLogger;
-use MyParcelNL\Magento\Pdk\Plugin\Action\MagentoBackendEndpointService;
-use MyParcelNL\Magento\Pdk\Plugin\Action\MagentoFrontendEndpointService;
-use MyParcelNL\Magento\Pdk\Plugin\Action\MagentoWebhookService;
-use MyParcelNL\Magento\Pdk\Plugin\Installer\MagentoMigrationService;
-use MyParcelNL\Magento\Pdk\Plugin\MagentoShippingMethodRepository;
-use MyParcelNL\Magento\Pdk\Plugin\Repository\MagentoCartRepository;
-use MyParcelNL\Magento\Pdk\Plugin\Repository\PdkAccountRepository;
-use MyParcelNL\Magento\Pdk\Plugin\Repository\PdkOrderRepository;
-use MyParcelNL\Magento\Pdk\Plugin\Service\MagentoDeliveryOptionsService;
-use MyParcelNL\Magento\Pdk\Plugin\Service\MagentoStatusService;
-use MyParcelNL\Magento\Pdk\Service\LanguageService;
-use MyParcelNL\Magento\Pdk\Service\MagentoViewService;
-use MyParcelNL\Magento\Pdk\Settings\Repository\PdkSettingsRepository;
-use MyParcelNL\Magento\Pdk\Webhook\MagentoWebhooksRepository;
-use MyParcelNL\Magento\Service\MagentoCronService;
-use MyParcelNL\Magento\Service\MagentoScriptService;
+use MyParcelNL\Magento\src\Pdk\Logger\MagentoLogger;
+use MyParcelNL\Magento\src\Pdk\Plugin\Action\MagentoBackendEndpointService;
+use MyParcelNL\Magento\src\Pdk\Plugin\Action\MagentoFrontendEndpointService;
+use MyParcelNL\Magento\src\Pdk\Plugin\Action\MagentoWebhookService;
+use MyParcelNL\Magento\src\Pdk\Plugin\Installer\MagentoMigrationService;
+use MyParcelNL\Magento\src\Pdk\Plugin\MagentoShippingMethodRepository;
+use MyParcelNL\Magento\src\Pdk\Plugin\Repository\MagentoCartRepository;
+use MyParcelNL\Magento\src\Pdk\Plugin\Repository\PdkAccountRepository;
+use MyParcelNL\Magento\src\Pdk\Plugin\Repository\PdkOrderRepository;
+use MyParcelNL\Magento\src\Pdk\Plugin\Service\MagentoDeliveryOptionsService;
+use MyParcelNL\Magento\src\Pdk\Plugin\Service\MagentoStatusService;
+use MyParcelNL\Magento\src\Pdk\Service\LanguageService;
+use MyParcelNL\Magento\src\Pdk\Service\MagentoViewService;
+use MyParcelNL\Magento\src\Pdk\Settings\Repository\PdkSettingsRepository;
+use MyParcelNL\Magento\src\Pdk\Webhook\MagentoWebhooksRepository;
+use MyParcelNL\Magento\src\Service\MagentoCronService;
+use MyParcelNL\Magento\src\Service\MagentoScriptService;
 use MyParcelNL\Pdk\Api\Contract\ClientAdapterInterface;
 use MyParcelNL\Pdk\App\Account\Contract\PdkAccountRepositoryInterface;
 use MyParcelNL\Pdk\App\Api\Contract\BackendEndpointServiceInterface;
@@ -45,8 +45,8 @@ use MyParcelNL\Pdk\Settings\Contract\PdkSettingsRepositoryInterface;
 use MyParcelNL\Pdk\Settings\Model\OrderSettings;
 use Psr\Log\LoggerInterface;
 use function DI\factory;
-use function DI\value;
 use function DI\get;
+use function DI\value;
 
 return [
 

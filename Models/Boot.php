@@ -5,27 +5,37 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Models;
 
 use Magento\Framework\App\DeploymentConfig;
+use MyParcelNL\Magento\src\Pdk\Hooks\MessageManagerHook;
+use MyParcelNL\Magento\src\Service\MagentoHookService;
 use MyParcelNL\Pdk\Base\Pdk as PdkInstance;
-use MyParcelNL\Magento\Pdk\Hooks\MessageManagerHook;
 use MyParcelNL\Pdk\Account\Platform;
 use MyParcelNL\Pdk\Facade\Installer;
 use MyParcelNL\Pdk\Facade\Pdk;
-use MyParcelNL\Magento\Service\MagentoHookService;
 use function MyParcelNL\Magento\bootPdk;
 use Magento\Framework\App\ObjectManager;
 
 class Boot
 {
+    private $messageManager;
+
+    /**
+     * @throws \Exception
+     */
     public function __construct()
     {
         $this->boot();
+
+        $this->messageManager = ObjectManager::getInstance()->get('Magento\Framework\Message\ManagerInterface');
 
         /** @var MagentoHookService $hookService */
         $hookService = Pdk::get(MagentoHookService::class);
         $hookService->applyAll();
     }
 
-    private function boot()
+    /**
+     * @throws \Exception
+     */
+    private function boot(): void
     {
         // todo: try to find a way to get nl/be from the config to rename name of the plugin
         $pluginCc = 'nl';
