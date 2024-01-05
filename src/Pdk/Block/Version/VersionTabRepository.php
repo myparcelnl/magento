@@ -4,27 +4,35 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\src\Pdk\Block\Version;
 
+use MyParcelNL\Pdk\Facade\Pdk;
+use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Registry;
 use Magento\Sales\Helper\Admin;
-use MyParcelNL\Magento\Models\Boot;
-use MyParcelNL\Pdk\Account\Platform;
-use MyParcelNL\Pdk\Base\Pdk as PdkInstance;
-use MyParcelNL\Pdk\Facade\Pdk;
-use function MyParcelNL\Magento\bootPdk;
+use Magento\Framework\Module\ModuleListInterface as ModuleList;
+use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 
-class VersionTabRepository extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
+class VersionTabRepository extends AbstractOrder
 {
+    /**
+     * @var \Magento\Framework\Module\ModuleListInterface
+     */
     protected $moduleList;
 
+    /**
+     * @var \MyParcelNL\Pdk\Base\Model\AppInfo
+     */
+    protected $pdk;
+
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Sales\Helper\Admin $adminHelper,
-        \Magento\Framework\Module\ModuleListInterface $moduleList,
+        Context $context,
+        Registry $registry,
+        Admin $adminHelper,
+        ModuleList $moduleList,
         Pdk $pdk,
         array $data = []
     ) {
         $this->moduleList = $moduleList;
+        $this->pdk = $pdk;
         parent::__construct($context, $registry, $adminHelper, $data);
     }
 

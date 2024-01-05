@@ -53,6 +53,7 @@ return [
     'appInfo' => value([
         'name'    => 'MyParcel',
         'title'   => 'MyParcel',
+        'cc'      => 'NL',
         'path'    => dirname(__FILE__, 3),
         'url'     => dirname(__FILE__, 3),
         'version' => '2.3.5',
