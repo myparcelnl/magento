@@ -176,11 +176,13 @@ function(
       Model.rates().forEach(function(rate) {
         const hasDeliveryOptions = Model.hasDeliveryOptions();
         const myParcelMethods = hasDeliveryOptions ? Model.configuration().methods || [] : [];
-        const row = document.getElementById('label_method_' + rate.method_code + '_' + rate.carrier_code).parentElement || null;
+        const cell = document.getElementById('label_method_' + rate.method_code + '_' + rate.carrier_code) || null;
 
-        if (!rate.available || !row) {
+        if (!rate.available || !cell) {
           return;
         }
+
+        const row = cell.parentElement;
 
         /**
          * Hide MyParcel-specific methods, and the parent methods delivery options are bound to

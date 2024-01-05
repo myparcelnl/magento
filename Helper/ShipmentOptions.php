@@ -143,7 +143,7 @@ class ShipmentOptions
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
         $ageCheckFromSettings = self::$defaultOptions->hasDefaultOptionsWithoutPrice($this->carrier, self::AGE_CHECK);
 
-        return $ageCheckFromOptions ?: $ageCheckOfProduct ?? $ageCheckFromSettings;
+        return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
 
     public function hasHideSender(): bool
@@ -169,9 +169,9 @@ class ShipmentOptions
                 'age_check'
             );
 
-            if (! isset($productAgeCheck)) {
+            if (! isset($productAgeCheck) || '' === $productAgeCheck) {
                 $hasAgeCheck = null;
-            } elseif ($productAgeCheck) {
+            } elseif ('1' === $productAgeCheck) {
                 return true;
             }
         }
