@@ -43,5 +43,13 @@ class UpgradeData implements UpgradeDataInterface
             $context,
             $this->moduleList
         );
+
+        /** @note check if PDK is installed */
+        if (! $boot->isInstalled()) {
+
+            /** @note retry boot process */
+            $boot->retryProcess();
+
+        }
     }
 }

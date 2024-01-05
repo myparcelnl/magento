@@ -12,6 +12,7 @@ use MyParcelNL\Magento\src\Service\MagentoHookService;
 use MyParcelNL\Pdk\Base\Pdk as PdkInstance;
 use MyParcelNL\Pdk\Account\Platform;
 use MyParcelNL\Pdk\Facade\Pdk;
+use RuntimeException;
 use function MyParcelNL\Magento\bootPdk;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Message\ManagerInterface;
@@ -32,6 +33,11 @@ class Boot
      * @var ModuleListInterface
      */
     private $moduleList;
+
+    /**
+     * @var int
+     */
+    private $retryCount = 0;
 
     /**
      * @throws \Exception
@@ -111,5 +117,40 @@ class Boot
         }
 
         return $errors;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isInstalled(): bool
+    {
+        if (! Pdk::getPdkInstance()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @throws \Exception
+     */
+    public function retryProcess(): void
+    {
+        /** @note logs */
+        $this->messageManager->addErrorMessage('The first boot process of the PDK failed, lets retry the process.');
+        if ($this->retryCount > 3) {
+            throw new RuntimeException('The boot process of the PDK failed multiple times, please contact MyParcel.');
+        }
+
+        /** @note boot PDK */
+        $this->retryCount++;
+        $this->boot();
+
+        /** @note check if PDK is installed */
+        if (! $this->isInstalled()) {
+            $this->messageManager->addErrorMessage('Again the boot process of the PDK failed, please contact MyParcel.');
+
+            $this->retryProcess();
+        }
     }
 }
