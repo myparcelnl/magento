@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="myparcel_watcher">
+        <observer name="myparcel_watcher_observer" instance="MyParcelNL\Magento\Observer\Watcher"/>
+    </event>
+</config>

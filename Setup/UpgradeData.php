@@ -14,6 +14,7 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Catalog\Setup\CategorySetup;
 use MyParcelNL\Magento\Models\Boot;
+use MyParcelNL\Pdk\Facade\Pdk;
 
 class UpgradeData implements UpgradeDataInterface
 {
@@ -38,18 +39,5 @@ class UpgradeData implements UpgradeDataInterface
     ): void
     {
         // todo: implement migrations and database connection
-
-        $boot = new Boot(
-            $context,
-            $this->moduleList
-        );
-
-        /** @note check if PDK is installed */
-        if (! $boot->isInstalled()) {
-
-            /** @note retry boot process */
-            $boot->retryProcess();
-
-        }
     }
 }
