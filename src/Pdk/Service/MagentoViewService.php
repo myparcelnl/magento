@@ -8,33 +8,92 @@ use MyParcelNL\Pdk\Frontend\Service\AbstractViewService;
 
 class MagentoViewService extends AbstractViewService
 {
+    /**
+     * @var \Magento\Framework\App\Request\Http
+     */
+    private $request;
+
+    /**
+     * MagentoViewService constructor.
+     *
+     * @param \Magento\Framework\App\Request\Http $request
+     */
+    public function __construct(
+        \Magento\Framework\App\Request\Http $request
+    )
+    {
+        $this->request = $request;
+    }
+
+    /**
+     * @return bool
+     */
     public function isCheckoutPage(): bool
     {
-        // TODO: Implement isCheckoutPage() method.
+        if ($this->request->getFullActionName() === 'checkout_index_index') {
+            return true;
+        }
+
+        return false;
     }
 
+    /**
+     * @return bool
+     */
     public function isChildProductPage(): bool
     {
-        // TODO: Implement isChildProductPage() method.
+        if ($this->request->getFullActionName() === 'catalog_product_view') {
+            return true;
+        }
+
+        return false;
     }
 
+    /**
+     * @return bool
+     */
     public function isOrderListPage(): bool
     {
-        // TODO: Implement isOrderListPage() method.
+        if ($this->request->getFullActionName() === 'sales_order_index') {
+            return true;
+        }
+
+        return false;
     }
 
+    /**
+     * @return bool
+     */
     public function isOrderPage(): bool
     {
-        // TODO: Implement isOrderPage() method.
+        if ($this->request->getFullActionName() === 'sales_order_view') {
+            return true;
+        }
+
+        return false;
     }
 
+    /**
+     * @return bool
+     */
     public function isPluginSettingsPage(): bool
     {
-        // TODO: Implement isPluginSettingsPage() method.
+        if ($this->request->getFullActionName() === 'adminhtml_system_config_edit') {
+            return true;
+        }
+
+        return false;
     }
 
+    /**
+     * @return bool
+     */
     public function isProductPage(): bool
     {
-        // TODO: Implement isProductPage() method.
+        if ($this->request->getFullActionName() === 'catalog_product_view') {
+            return true;
+        }
+
+        return false;
     }
 }
