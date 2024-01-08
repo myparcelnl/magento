@@ -4,10 +4,23 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\src\Pdk\Settings\Repository;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use MyParcelNL\Pdk\Settings\Repository\AbstractPdkSettingsRepository;
+use MyParcelNL\Pdk\Storage\Contract\StorageInterface;
 
 class PdkSettingsRepository extends AbstractPdkSettingsRepository
 {
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
+    private $scopeConfig;
+
+    public function __construct(ScopeConfigInterface $scopeConfig)
+    {
+        $this->scopeConfig = $scopeConfig;
+        parent::__construct();
+    }
+
     /**
      * @param  string $namespace
      *
@@ -16,8 +29,7 @@ class PdkSettingsRepository extends AbstractPdkSettingsRepository
     public function getGroup(string $namespace)
     {
         return $this->retrieve($namespace, function () use ($namespace) {
-            // todo: get option from database
-
+            return $this->scopeConfig->getValue($namespace);
         });
     }
 
@@ -29,8 +41,7 @@ class PdkSettingsRepository extends AbstractPdkSettingsRepository
      */
     public function store(string $key, $value): void
     {
-        // todo: update option in database
-
+        $this->scopeConfig->setValue($key, $value);
 
         $this->save($key, $value);
     }
