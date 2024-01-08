@@ -8,7 +8,7 @@ use MyParcelNL\Magento\Tests\Mock\StaticMockInterface;
 
 class MockMagentoCart implements StaticMockInterface
 {
-public static function getQuote(): array
+    public static function getQuote(): array
     {
         return [
             'items' => [
