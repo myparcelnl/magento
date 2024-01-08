@@ -11,11 +11,14 @@ class PdkSettingsRepository extends AbstractPdkSettingsRepository
     /**
      * @param  string $namespace
      *
-     * @return void
+     * @return mixed
      */
     public function getGroup(string $namespace)
     {
-        // todo: implement
+        return $this->retrieve($namespace, function () use ($namespace) {
+            // todo: get option from database
+
+        });
     }
 
     /**
@@ -26,6 +29,9 @@ class PdkSettingsRepository extends AbstractPdkSettingsRepository
      */
     public function store(string $key, $value): void
     {
-        // todo: implement
+        // todo: update option in database
+
+
+        $this->save($key, $value);
     }
 }
