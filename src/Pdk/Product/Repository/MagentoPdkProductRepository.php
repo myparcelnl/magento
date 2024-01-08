@@ -147,8 +147,6 @@ class MagentoPdkProductRepository extends AbstractPdkPdkProductRepository
      */
     private function isDeliverable(Product $product): bool
     {
-        // TODO: check if product is deliverable
-
-        return true;
+        return $product->getTypeId() === 'simple';
     }
 }
