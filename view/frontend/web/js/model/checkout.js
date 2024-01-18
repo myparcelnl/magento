@@ -177,7 +177,7 @@ function(
         const hasDeliveryOptions = Model.hasDeliveryOptions();
         const myParcelMethods = hasDeliveryOptions ? Model.configuration().methods || [] : [];
         const cell = document.getElementById('label_method_' + rate.method_code + '_' + rate.carrier_code) || null;
-console.warn(Model);
+
         if (!rate.available || !cell) {
           return;
         }
