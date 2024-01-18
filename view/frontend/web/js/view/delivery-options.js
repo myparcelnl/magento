@@ -155,13 +155,8 @@ define(
       },
 
       destroy: function() {
-        deliveryOptions.triggerEvent(deliveryOptions.hideDeliveryOptionsEvent);
         document.querySelector(deliveryOptions.hiddenDataInput).value = '';
-
-        document.removeEventListener(
-          deliveryOptions.updatedDeliveryOptionsEvent,
-          deliveryOptions.onUpdatedDeliveryOptions
-        );
+        deliveryOptions.triggerEvent(deliveryOptions.hideDeliveryOptionsEvent);
       },
 
       /**
@@ -244,6 +239,7 @@ define(
 
         window.MyParcelConfig.address = newAddress;
 
+        deliveryOptions.triggerEvent(deliveryOptions.showDeliveryOptionsEvent);
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
       },
 

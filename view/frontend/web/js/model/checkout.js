@@ -289,24 +289,17 @@ function(
     }));
   }
 
-  function isEuCountry(shippingCountry) {
-    return EU_COUNTRIES.includes(shippingCountry);
-  }
-
   function updateHasDeliveryOptions() {
     let isAllowed = false;
     const shippingCountry = quote.shippingAddress().countryId;
 
-    if (isEuCountry(shippingCountry)) {
+    Model.allowedShippingMethods().forEach(function(carrierCode) {
+      const rate = Model.findOriginalRateByCarrierCode(carrierCode);
+      if (rate && rate.available) {
+        isAllowed = true;
+      }
+    });
 
-      Model.allowedShippingMethods().forEach(function(carrierCode) {
-        const rate = Model.findOriginalRateByCarrierCode(carrierCode);
-
-        if (rate && rate.available) {
-          isAllowed = true;
-        }
-      });
-    }
     Model.hasDeliveryOptions(isAllowed);
     Model.hideShippingMethods();
   }
