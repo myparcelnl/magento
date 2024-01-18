@@ -43,6 +43,9 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private $orders = null;
 
+    /**
+     * @var \Magento\Sales\Model\Order
+     */
     private $order;
 
     /**
@@ -332,7 +335,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @return int
+     * @return int weight in grams
      */
     private function getTotalWeight(): int
     {
@@ -345,10 +348,10 @@ class MagentoOrderCollection extends MagentoCollection
                 continue;
             }
 
-            $totalWeight += $this->helper->convertToGrams($product->getWeight() * $item->getQtyShipped());
+            $totalWeight += $product->getWeight() * $item->getQtyOrdered();
         }
 
-        return $totalWeight;
+        return $this->helper->convertToGrams($totalWeight);
     }
 
     /**
@@ -426,7 +429,8 @@ class MagentoOrderCollection extends MagentoCollection
             ->setStreet($streetParts->getStreet())
             ->setNumber((string) $streetParts->getNumber())
             ->setNumberSuffix((string) $streetParts->getNumberSuffix())
-            ->setBoxNumber((string) $streetParts->getBoxNumber());
+            ->setBoxNumber((string) $streetParts->getBoxNumber())
+            ->setPhone($this->order->getShippingAddress()->getTelephone());
 
         return $this;
     }
