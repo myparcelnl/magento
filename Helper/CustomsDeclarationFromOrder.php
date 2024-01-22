@@ -61,13 +61,13 @@ class CustomsDeclarationFromOrder
             }
 
             $amount      = (float) $item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
-            $totalWeight += $this->helper->getWeightTypeOfOption($product->getWeight() * $amount);
+            $totalWeight += $this->helper->convertToGrams($product->getWeight() * $amount);
             $description = Str::limit($product->getName(), AbstractConsignment::DESCRIPTION_MAX_LENGTH);
 
             $customsItem = (new MyParcelCustomsItem())
                 ->setDescription($description)
                 ->setAmount($amount)
-                ->setWeight($this->helper->getWeightTypeOfOption($product->getWeight()))
+                ->setWeight($this->helper->convertToGrams($product->getWeight()))
                 ->setItemValueArray([
                     'amount'   => TrackTraceHolder::getCentsByPrice($product->getPrice()),
                     'currency' => $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO,
