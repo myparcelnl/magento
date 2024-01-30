@@ -204,9 +204,12 @@ class TrackTraceHolder
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
 
+        $regionCode = $address->getRegionCode();
+        $state = $regionCode && strlen($regionCode) === 2 ? $regionCode : null;
+
         $this->consignment
             ->setCity($address->getCity())
-            ->setState($address->getRegionCode())
+            ->setState($state)
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($this->shipmentOptionsHelper->getLabelDescription())
