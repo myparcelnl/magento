@@ -3,6 +3,29 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.12.0](https://github.com/myparcelnl/magento/compare/v4.11.1...v4.12.0) (2024-02-01)
+
+
+### :bug: Bug Fixes
+
+* allow observer to use transport object ([#805](https://github.com/myparcelnl/magento/issues/805)) ([e64a687](https://github.com/myparcelnl/magento/commit/e64a68757491ac09b55e768f8ea21bb4afa62cf7))
+* **checkout:** prevent delivery options from disappearing ([#811](https://github.com/myparcelnl/magento/issues/811)) ([1f153dc](https://github.com/myparcelnl/magento/commit/1f153dc0e3adca85de6b4cc91bf5e7269ac64554))
+* **checkout:** prevent missing street from blocking delivery options ([#813](https://github.com/myparcelnl/magento/issues/813)) ([169e8be](https://github.com/myparcelnl/magento/commit/169e8be637f9d94c4e1f78f57d28e9fdca457c32))
+* fix large format issue ([#798](https://github.com/myparcelnl/magento/issues/798)) ([dd98a32](https://github.com/myparcelnl/magento/commit/dd98a3295574cde8edf35adb36dd9fce33766281))
+* fix php deprecation error ([#793](https://github.com/myparcelnl/magento/issues/793)) ([5222a77](https://github.com/myparcelnl/magento/commit/5222a77da6d153f74e41a323a97573c9f08f4a8a))
+* **fulfilment:** export phonenumber and weight ([#810](https://github.com/myparcelnl/magento/issues/810)) ([d2b2a85](https://github.com/myparcelnl/magento/commit/d2b2a85193f3f3f7e7679c12d65e67211459145a))
+* **fulfilment:** set weight on customs item rather than throw error ([#814](https://github.com/myparcelnl/magento/issues/814)) ([2eadcbc](https://github.com/myparcelnl/magento/commit/2eadcbcc7255c87c0d7dffa52d3d4fd41a67f1f9))
+* implement regression feedback ([#806](https://github.com/myparcelnl/magento/issues/806)) ([0b3b1f0](https://github.com/myparcelnl/magento/commit/0b3b1f05fbd2e8a27d185d957da0f32d74ab2459))
+* only set country if currentCountry has value ([#794](https://github.com/myparcelnl/magento/issues/794)) ([e86d3fe](https://github.com/myparcelnl/magento/commit/e86d3fedcfa969244b640d475ed5189872b2391f))
+
+
+### :sparkles: New Features
+
+* add carrier dpd ([#786](https://github.com/myparcelnl/magento/issues/786)) ([e87fe71](https://github.com/myparcelnl/magento/commit/e87fe71959a97b1222335828a5dd1022b22bf153))
+* add carrier ups ([#787](https://github.com/myparcelnl/magento/issues/787)) ([c6aff00](https://github.com/myparcelnl/magento/commit/c6aff00e90236ff710423b643cfaeb8711cf8ab3))
+* add digital stamp weight range ([#801](https://github.com/myparcelnl/magento/issues/801)) ([696b771](https://github.com/myparcelnl/magento/commit/696b771f06826eefbbc29d2a00a80a408653d34a))
+* add state to consignment ([#815](https://github.com/myparcelnl/magento/issues/815)) ([8c3e208](https://github.com/myparcelnl/magento/commit/8c3e2086a2845e0323ce042690bf9dfde811581b))
+
 ## [4.11.1](https://github.com/myparcelnl/magento/compare/v4.11.0...v4.11.1) (2023-11-23)
 
 
