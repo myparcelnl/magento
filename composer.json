@@ -30,7 +30,7 @@
   "type": "magento2-module",
   "require": {
     "php": "~5.6.5 || ^7.0 || ^8.0",
-    "myparcelnl/sdk": "~v7.9.1",
+    "myparcelnl/sdk": "~v7.10.0",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1"
   },
   "require-dev": {
