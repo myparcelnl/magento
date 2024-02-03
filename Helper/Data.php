@@ -143,10 +143,6 @@ class Data extends AbstractHelper
         if (null === $settings) {
             $value = $this->getConfigValue($carrier . $code);
 
-            if (null === $value) {
-                $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
-            }
-
             return $value;
         }
 
