@@ -245,7 +245,6 @@ class Checkout extends Data
     {
         $value = $this->getConfigValue($carrier . $code);
         if (null === $value) {
-            $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
             return 0;
         }
 
