@@ -33,6 +33,26 @@ class AccountSettings extends BaseModel
     ];
 
     /**
+     * @var
+     */
+    protected $shop;
+
+    /**
+     * @var
+     */
+    protected $account;
+    /**
+     * @var
+     */
+
+    protected $carrier_options;
+
+    /**
+     * @var
+     */
+    protected $carrier_configurations;
+
+    /**
      * @var self
      */
     private static $instance;
