@@ -255,7 +255,7 @@ define(
           cc: address.countryId || '',
           postalCode: address.postcode || '',
           city: address.city || '',
-          street: address.street ? address.street[0] : ''
+          street: address.street ? [address.street[0], address.street[1]].join(' ') : ''
         };
       },
 
