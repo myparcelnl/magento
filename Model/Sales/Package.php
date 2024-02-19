@@ -50,6 +50,11 @@ class Package extends Data implements PackageInterface
     /**
      * @var bool
      */
+    private $packageSmallActive = false;
+
+    /**
+     * @var bool
+     */
     private $pickupMailboxActive = false;
 
     /**
@@ -147,6 +152,24 @@ class Package extends Data implements PackageInterface
     public function setMailboxActive(bool $mailboxActive): void
     {
         $this->mailboxActive = $mailboxActive;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPackageSmallActive(): bool
+    {
+        return $this->packageSmallActive;
+    }
+
+    /**
+     * @param  bool $packageSmallActive
+     *
+     * @return void
+     */
+    public function setPackageSmallActive(bool $packageSmallActive): void
+    {
+        $this->packageSmallActive = $packageSmallActive;
     }
 
     /**
