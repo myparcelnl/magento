@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.12.1](https://github.com/myparcelnl/magento/compare/v4.12.0...v4.12.1) (2024-02-21)
+
+
+### :bug: Bug Fixes
+
+* fix php 8.2 deprecation error ([#818](https://github.com/myparcelnl/magento/issues/818)) ([793f7ef](https://github.com/myparcelnl/magento/commit/793f7ef4407d668ef6f81efc1860446b1e5c5680))
+* use both address lines for street name ([#819](https://github.com/myparcelnl/magento/issues/819)) ([2053b08](https://github.com/myparcelnl/magento/commit/2053b08a61b5c4427887a6e2e144ad8da71d263e))
+
 ## [4.12.0](https://github.com/myparcelnl/magento/compare/v4.11.1...v4.12.0) (2024-02-01)
 
 
