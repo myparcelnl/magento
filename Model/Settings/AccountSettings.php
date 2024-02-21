@@ -14,23 +14,28 @@ use MyParcelNL\Sdk\src\Model\BaseModel;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Support\Collection;
 
-/**
- * @property null|\MyParcelNL\Sdk\src\Model\Account\Shop                         $shop
- * @property null|\MyParcelNL\Sdk\src\Model\Account\Account                      $account
- * @property Collection|\MyParcelNL\Sdk\src\Model\Account\CarrierOptions[]       $carrier_options
- * @property Collection|\MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration[] $carrier_configurations
- */
 class AccountSettings extends BaseModel
 {
+
     /**
-     * @var string[]
+     * @var
      */
-    protected $attributes = [
-        'shop',
-        'account',
-        'carrier_options',
-        'carrier_configurations',
-    ];
+    protected $shop;
+
+    /**
+     * @var
+     */
+    protected $account;
+
+    /**
+     * @var
+     */
+    protected $carrier_options;
+
+    /**
+     * @var
+     */
+    protected $carrier_configurations;
 
     /**
      * @var self
