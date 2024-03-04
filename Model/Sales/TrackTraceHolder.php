@@ -240,6 +240,7 @@ class TrackTraceHolder
                 ->setPickupCountry($pickupLocationAdapter->getCountry())
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode())
+                ->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId())
                 ->setReturn(false);
 
             if ($pickupLocationAdapter->getRetailNetworkId()) {
