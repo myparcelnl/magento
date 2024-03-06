@@ -65,6 +65,7 @@ class Checkout
 
         $this->package->setMailboxSettings();
         $this->package->setDigitalStampSettings();
+        $this->package->setPackageSmallSettings();
     }
 
     /**
@@ -135,6 +136,9 @@ class Checkout
                     return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME;
                 case AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME:
                     $packageType = AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME;
+                    break;
+                case AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME:
+                    return AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME;
             }
         }
 

@@ -139,7 +139,6 @@ class TrackTraceHolder
         $order                          = $shipment->getOrder();
         $checkoutData                   = $order->getData('myparcel_delivery_options') ?? '';
         $deliveryOptions                = json_decode($checkoutData, true) ?? [];
-        $deliveryOptions['packageType'] = $options['package_type'];
         $deliveryOptions['carrier']     = $this->getCarrierFromOptions($options)
             ?? $deliveryOptions['carrier']
             ?? DefaultOptions::getDefaultCarrier()
@@ -199,7 +198,8 @@ class TrackTraceHolder
             $this->dataHelper->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
 
-        $packageType  = $this->getPackageType($options, $magentoTrack, $address);
+        $packageTypeString = $deliveryOptions['packageType'] ?? $options['package_type'] ?? null;
+        $packageType  = $this->getPackageType($options, $packageTypeString, $magentoTrack, $address);
         $dropOffPoint = $this->dataHelper->getDropOffPoint(
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
@@ -501,26 +501,27 @@ class TrackTraceHolder
 
     /**
      * @param  array                $options
+     * @param  string               $packageType
      * @param  Order\Shipment\Track $magentoTrack
      * @param  object               $address
      *
      * @return int
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function getPackageType(array $options, Track $magentoTrack, $address): int
+    private function getPackageType(array $options, string $packageType, Track $magentoTrack, $address): int
     {
         // get packagetype from delivery_options and use it for process directly
-        $packageType = self::$defaultOptions->getPackageType();
-        // get packagetype from selected radio buttons and check if package type is set
-        if ($options['package_type'] && 'default' !== $options['package_type']) {
-            $packageType = $options['package_type'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        $result = self::$defaultOptions->getPackageType();
+        // get package type from selected radio buttons and check if package type is set
+        if ($packageType && 'default' !== $packageType) {
+            $result = $packageType;
         }
 
-        if (! is_numeric($packageType)) {
-            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+        if (! is_numeric($result)) {
+            $result = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$result];
         }
 
         return $this->getAgeCheck($magentoTrack, $address, $options) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE
-            : $packageType;
+            : $result;
     }
 }

@@ -43,6 +43,11 @@ class Package extends Data implements PackageInterface
     private $maxDigitalStampWeight = 0;
 
     /**
+     * @var float
+     */
+    private $maxPackageSmallWeight = 0;
+
+    /**
      * @var bool
      */
     private $mailboxActive = false;
@@ -224,6 +229,20 @@ class Package extends Data implements PackageInterface
         $this->digitalStampActive = $digitalStampActive;
     }
 
+    public function getMaxPackageSmallWeight(): float
+    {
+        return $this->maxPackageSmallWeight;
+    }
+
+    /**
+     * @param  float $maxWeight
+     *
+     * @return void
+     */
+    protected function setMaxPackageSmallWeight(float $maxWeight): void
+    {
+        $this->maxPackageSmallWeight = $maxWeight;
+    }
 
     /**
      * @param bool $allProductsFit
