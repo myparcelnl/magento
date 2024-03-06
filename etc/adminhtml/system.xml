@@ -948,7 +948,7 @@
             </field>
           </group>
           <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Pickup at DHL location</label>
+            <label>Pickup at DPD location</label>
             <field id="active" translate="label comment" type="select" sortOrder="405" showInDefault="1" showInWebsite="1" showInStore="1">
               <label>Pickup active</label>
               <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
