@@ -198,8 +198,10 @@ class TrackTraceHolder
             $this->dataHelper->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
 
-        $packageTypeString = $deliveryOptions['packageType'] ?? $options['package_type'] ?? null;
-        $packageType  = $this->getPackageType($options, $packageTypeString, $magentoTrack, $address);
+        if (isset($deliveryOptions['packageType'])) {
+            $options['package_type'] = $deliveryOptions['packageType'];
+        }
+        $packageType  = $this->getPackageType($options, $magentoTrack, $address);
         $dropOffPoint = $this->dataHelper->getDropOffPoint(
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
@@ -508,20 +510,22 @@ class TrackTraceHolder
      * @return int
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    private function getPackageType(array $options, string $packageType, Track $magentoTrack, $address): int
+    private function getPackageType(array $options, Track $magentoTrack, $address): int
     {
-        // get packagetype from delivery_options and use it for process directly
-        $result = self::$defaultOptions->getPackageType();
+        if ($this->getAgeCheck($magentoTrack, $address, $options)) {
+            return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        }
+
         // get package type from selected radio buttons and check if package type is set
-        if ($packageType && 'default' !== $packageType) {
-            $result = $packageType;
+        $packageType = $options['package_type'] ?? 'default';
+        if ('default' === $packageType) {
+            $packageType = self::$defaultOptions->getPackageType();
         }
 
-        if (! is_numeric($result)) {
-            $result = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$result];
+        if (! is_numeric($packageType)) {
+            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType] ?? self::$defaultOptions->getPackageType();
         }
 
-        return $this->getAgeCheck($magentoTrack, $address, $options) ? AbstractConsignment::PACKAGE_TYPE_PACKAGE
-            : $result;
+        return $packageType;
     }
 }
