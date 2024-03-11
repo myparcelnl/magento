@@ -263,7 +263,7 @@ class PackageRepository extends Package
     }
 
     /**
-     * Init all digital stamp settings
+     * Init all package small settings
      *
      * @param  string $carrierPath
      *
@@ -281,7 +281,20 @@ class PackageRepository extends Package
 
         $this->setPackageSmallActive('1' === $settings['active']);
         if ($this->isPackageSmallActive()) {
-            $this->setMaxPackageSmallWeight(self::MAXIMUM_PACKAGE_SMALL_WEIGHT);
+            $weight = abs((float) str_replace(',', '.', $settings['weight'] ?? ''));
+            $unit   = $this->getGeneralConfig('print/weight_indication');
+
+            if ('kilo' === $unit) {
+                $epsilon = 0.00001;
+                $default = self::MAXIMUM_PACKAGE_SMALL_WEIGHT / 1000.0;
+                if ($weight < $epsilon) {
+                    $weight = $default;
+                }
+                $this->setMaxPackageSmallWeight($weight);
+            } else {
+                $weight = (int)$weight;
+                $this->setMaxPackageSmallWeight($weight ?: self::MAXIMUM_PACKAGE_SMALL_WEIGHT);
+            }
         }
 
         return $this;
