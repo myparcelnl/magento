@@ -124,6 +124,8 @@ From price,Vanaf prijs
 Enable sameday delivery,Zelfde dag bezorgd inschakelen
 Sameday delivery fee,Zelfde dag bezorgd kosten
 Sameday cut-off time,Zelfde dag laatste bestelmoment
+Saturday cut-off time,Zaterdag laatste bestelmoment
+Sunday cut-off time,Zondag laatste bestelmoment
 Track number,Track nummer
 Track status,Track status
 Track action,Track actie
@@ -182,6 +184,8 @@ days,dagen
 Hide days,Dagen verbergen
 Cut-off time,Het laatste bestelmoment
 "If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Als een bestelling tussen vrijdag na, en maandag voor, het opgegeven bestelmoment wordt gedaan dan zal dinsdag worden getoond als eerstvolgende afleverdag."
+"If a request is made before this time on Saturday Monday will be shown as the next possible delivery date. This is ignored when Sunday is a drop-off day.","Als een bestelling voor dit tijdstip op zaterdag wordt gedaan dan zal maandag worden getoond als eerstvolgende afleverdag. Dit wordt genegeerd wanneer zondag een verzenddag is."
+"If a request is made before this time on Sunday and Sunday is a drop-off day, Monday will be shown as the next possible delivery date.","Als een bestelling voor dit tijdstip op zondag wordt gedaan en zondag is een afleverdag dan zal maandag worden getoond als eerstvolgende afleverdag."
 Drop-off days,Verzenddagen
 Saturday active,Zaterdag actief
 Saturday title,Zaterdag titel
