@@ -19,6 +19,7 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 </div>
 <?php
 foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
+    $abstractConsignment->setCountry($block->getCountry());
     $carrier      = $abstractConsignment->getCarrier();
     $carrierName  = $carrier->getName();
     $carrierHuman = $carrier->getHuman();
@@ -47,14 +48,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
             <?php
             $country = $block->getCountry();
             foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
-                $packageTypeId = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
-                if (AbstractConsignment::CC_NL !== $country
-                    && in_array($packageTypeId, [
-                        AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP,
-                        AbstractConsignment::PACKAGE_TYPE_MAILBOX,
-                    ], true)) {
-                    continue;
-                }
+                $packageTypeId    = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
                 $packageTypeHuman = $block->getNewShipmentForm()::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId]
                     ??
                     $packageTypeName;

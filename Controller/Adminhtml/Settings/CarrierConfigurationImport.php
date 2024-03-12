@@ -47,6 +47,11 @@ class CarrierConfigurationImport extends Action
     private $typeListInterface;
 
     /**
+     * @var Pool
+     */
+    private $pool;
+
+    /**
      * @param  \Magento\Framework\Controller\Result\JsonFactory   $resultFactory
      * @param  \Magento\Backend\App\Action\Context                $context
      * @param  \Magento\Framework\Model\ResourceModel\Db\Context  $dbContext
