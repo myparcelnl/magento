@@ -53,4 +53,5 @@ no_account_settings, No account settings found. Press the import button in gener
 manage_drop_off_point, Manage your default drop-off point in the
 location_page, location manager
 package_small, Small package
-
+show_total_price, Show total price
+show_surcharge_price, Show surcharge
