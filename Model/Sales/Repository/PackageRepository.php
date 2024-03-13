@@ -25,6 +25,7 @@ class PackageRepository extends Package
 {
     public const DEFAULT_MAXIMUM_MAILBOX_WEIGHT = 2000;
     public const MAXIMUM_DIGITAL_STAMP_WEIGHT   = 2000;
+    public const MAXIMUM_PACKAGE_SMALL_WEIGHT   = 2000;
     public const DEFAULT_LARGE_FORMAT_WEIGHT    = 23000;
 
     /**
@@ -40,11 +41,6 @@ class PackageRepository extends Package
      */
     public function selectPackageType(array $products, string $carrierPath): string
     {
-        // When age check is enabled, only packagetype 'package' is possible
-        if ($this->getAgeCheck($products, $carrierPath)) {
-            return AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-        }
-
         $this->setMailboxPercentage(0);
         $weight       = 0;
         $digitalStamp = true;
@@ -93,6 +89,10 @@ class PackageRepository extends Package
 
         if ($this->fitInMailbox()) {
             return AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME;
+        }
+
+        if ($this->fitInPackageSmall()) {
+            return AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME;
         }
 
         return AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
@@ -241,6 +241,7 @@ class PackageRepository extends Package
     public function setDigitalStampSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
         $settings = $this->getConfigValue("{$carrierPath}digital_stamp");
+
         if (null === $settings || ! array_key_exists('active', $settings)) {
             $this->_logger->critical("Can't set settings with path: {$carrierPath}digital_stamp");
 
@@ -248,11 +249,60 @@ class PackageRepository extends Package
         }
 
         $this->setDigitalStampActive('1' === $settings['active']);
+
         if ($this->isDigitalStampActive()) {
             $this->setMaxDigitalStampWeight(self::MAXIMUM_DIGITAL_STAMP_WEIGHT);
         }
 
         return $this;
+    }
+
+    /**
+     * Init all package small settings
+     *
+     * @param  string $carrierPath
+     *
+     * @return $this
+     */
+    public function setPackageSmallSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
+    {
+        $settings = $this->getConfigValue("{$carrierPath}package_small");
+
+        if (null === $settings || ! array_key_exists('active', $settings)) {
+            $this->_logger->critical("Can't set settings with path: {$carrierPath}digital_stamp");
+
+            return $this;
+        }
+
+        $this->setPackageSmallActive('1' === $settings['active']);
+        if ($this->isPackageSmallActive()) {
+            $weight = abs((float) str_replace(',', '.', $settings['weight'] ?? ''));
+            $unit   = $this->getGeneralConfig('print/weight_indication');
+
+            if ('kilo' === $unit) {
+                $epsilon = 0.00001;
+                $default = self::MAXIMUM_PACKAGE_SMALL_WEIGHT / 1000.0;
+                if ($weight < $epsilon) {
+                    $weight = $default;
+                }
+                $this->setMaxPackageSmallWeight($weight);
+            } else {
+                $weight = (int)$weight;
+                $this->setMaxPackageSmallWeight($weight ?: self::MAXIMUM_PACKAGE_SMALL_WEIGHT);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    private function fitInPackageSmall(): bool
+    {
+        return AbstractConsignment::CC_BE !== $this->getCurrentCountry()
+            && $this->isPackageSmallActive()
+            && $this->getWeight() <= $this->getMaxPackageSmallWeight();
     }
 
     /**

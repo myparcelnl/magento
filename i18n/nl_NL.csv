@@ -55,6 +55,7 @@ myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorg
 myparcelnl_magento_ups_settings/delivery, UPS bezorging
 myparcelnl_magento_dpd_settings/delivery, DPD bezorging
 myparcelnl_magento_error_no_shipments_to_process, Geen MyParcel zendingen om te verwerken.
+package_small, Klein pakket
 Version and support,Versie en support
 General settings,Algemene instellingen
 API settings,API instellingen
@@ -262,6 +263,7 @@ This is the type of weight that I use with my products.,Dit is de eenheid die je
 Default,Standaard
 No,Nee
 Yes,Ja
+
 no_account_settings, Geen accountsettings gevonden. Klik op de importeer knop in het algemene configuratie scherm.
 manage_drop_off_point, Beheer jouw standaard afleverpunt in de
 location_page, locatiewijzer

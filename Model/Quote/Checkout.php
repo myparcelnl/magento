@@ -65,6 +65,7 @@ class Checkout
 
         $this->package->setMailboxSettings();
         $this->package->setDigitalStampSettings();
+        $this->package->setPackageSmallSettings();
     }
 
     /**
@@ -135,6 +136,9 @@ class Checkout
                     return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME;
                 case AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME:
                     $packageType = AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME;
+                    break;
+                case AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME:
+                    return AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME;
             }
         }
 
@@ -163,8 +167,9 @@ class Checkout
                 continue;
             }
 
-            $canHaveDigitalStamp  = $consignment->canHaveDeliveryType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
-            $canHaveMailbox       = $consignment->canHaveDeliveryType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
+            $canHaveDigitalStamp  = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
+            $canHaveMailbox       = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
+            $canHavePackageSmall  = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
             $canHaveSameDay       = $consignment->canHaveExtraOption(AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY);
             $canHaveMonday        = $consignment->canHaveExtraOption(AbstractConsignment::EXTRA_OPTION_DELIVERY_MONDAY);
             $canHaveMorning       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
@@ -213,6 +218,7 @@ class Checkout
                 'pricePickup'                  => $canHavePickup ? $this->helper->getMethodPrice($carrierPath, 'pickup/fee') : 0,
                 'pricePackageTypeMailbox'      => $canHaveMailbox ? $this->helper->getMethodPrice($carrierPath, 'mailbox/fee', false) : 0,
                 'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->helper->getMethodPrice($carrierPath, 'digital_stamp/fee', false) : 0,
+                'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->helper->getMethodPrice($carrierPath, 'package_small/fee', false) : 0,
             ],
                 $canHaveSameDay ? [
                     'cutoffTimeSameDay' => $this->helper->getTimeConfig(
@@ -313,10 +319,12 @@ class Checkout
         $country             = $country ?? $this->cart->getShippingAddress()->getCountryId();
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
         $canHaveMailbox      = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
+        $canHavePackageSmall = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
 
         $this->package->setCurrentCountry($country);
         $this->package->setDigitalStampActive($canHaveDigitalStamp && $this->helper->getBoolConfig($carrierPath, 'digital_stamp/active'));
         $this->package->setMailboxActive($canHaveMailbox && $this->helper->getBoolConfig($carrierPath, 'mailbox/active'));
+        $this->package->setPackageSmallActive($canHavePackageSmall && $this->helper->getBoolConfig($carrierPath, 'package_small/active'));
 
         return $this->package->selectPackageType($products, $carrierPath);
     }

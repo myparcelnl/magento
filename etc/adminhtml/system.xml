@@ -428,6 +428,28 @@
                     </depends>
                 </field>
             </group>
+            <group id="package_small" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
+              <label>Small Package settings</label>
+              <field id="active" translate="label" type="select" sortOrder="355" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Automate Small Package</label>
+                <tooltip>Automatically select package type 'Small Package' for orders under 2000 grams. Package type will be 'Small Package' when a product has setting 'Fit in mailbox' set to 0 and the weight is under 2000 grams.</tooltip>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+              </field>
+              <field id="weight" translate="label comment" type="text" sortOrder="360" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Small Package weight</label>
+                <tooltip>Shipments heavier than the weight specified here will not be of package type 'Small Package'.</tooltip>
+                <depends>
+                  <field id="active">1</field>
+                </depends>
+              </field>
+              <field id="fee" translate="label comment" type="text" sortOrder="365" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Small Package fee</label>
+                <tooltip>Enter a basic price for a mailbox. The regular price will not affect this price.</tooltip>
+                <depends>
+                  <field id="active">1</field>
+                </depends>
+              </field>
+            </group>
             <group id="morning" translate="label comment" type="text" sortOrder="370" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Morning delivery</label>
                 <field id="active" translate="label comment" type="select" sortOrder="375" showInDefault="1" showInWebsite="1" showInStore="1">
