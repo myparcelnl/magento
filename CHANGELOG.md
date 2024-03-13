@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.13.0](https://github.com/myparcelnl/magento/compare/v4.12.1...v4.13.0) (2024-03-13)
+
+
+### :sparkles: New Features
+
+* activate dpd for myparcel contract ([#822](https://github.com/myparcelnl/magento/issues/822)) ([ee59c0d](https://github.com/myparcelnl/magento/commit/ee59c0d7959207dd53e21b7776f9c666e53fb80e))
+* add package type package small ([#825](https://github.com/myparcelnl/magento/issues/825)) ([6d1c461](https://github.com/myparcelnl/magento/commit/6d1c461246cf382e7ada97d9ac3e5a0dc4f2d909))
+* add sunday cut-off time ([#827](https://github.com/myparcelnl/magento/issues/827)) ([d0cfc65](https://github.com/myparcelnl/magento/commit/d0cfc650879a9c56fea7edb5895ef7784ffa8c7b))
+
 ## [4.12.1](https://github.com/myparcelnl/magento/compare/v4.12.0...v4.12.1) (2024-02-21)
 
 
