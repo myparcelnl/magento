@@ -275,7 +275,7 @@ class Checkout extends Data
      */
     public function getTimeConfig(string $carrier, string $key): string
     {
-        $timeAsString   = str_replace(',', ':', $this->getCarrierConfig($key, $carrier));
+        $timeAsString   = str_replace(',', ':', (string) $this->getCarrierConfig($key, $carrier));
         $timeComponents = explode(':', $timeAsString ?? '');
         if (count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;

@@ -41,9 +41,6 @@ class DropOffDays implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        $weekdays = $this->_localeLists->getOptionWeekdays();
-        unset($weekdays[0]);
-
-        return $weekdays;
+        return $this->_localeLists->getOptionWeekdays();
     }
 }

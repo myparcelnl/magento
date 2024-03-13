@@ -323,12 +323,19 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="saturday_cutoff_time" translate="label comment" type="time" sortOrder="298" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Monday delivery cut-off time</label>
+                    <label>Saturday cut-off time</label>
                     <depends>
                         <field id="monday_delivery_active">1</field>
                     </depends>
-                    <tooltip>If a request is made before this time on Saturday, Monday will be shown as the next possible delivery date.</tooltip>
+                    <tooltip>If a request is made before this time on Saturday Monday will be shown as the next possible delivery date. This is ignored when Sunday is a drop-off day.</tooltip>
                 </field>
+                <field id="sunday_cutoff_time" translate="label comment" type="time" sortOrder="298" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Sunday cut-off time</label>
+                <depends>
+                    <field id="monday_delivery_active">1</field>
+                </depends>
+                <tooltip>If a request is made before this time on Sunday and Sunday is a drop-off day, Monday will be shown as the next possible delivery date.</tooltip>
+            </field>
             </group>
             <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery settings</label>

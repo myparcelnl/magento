@@ -225,6 +225,10 @@ class Checkout
                         $carrierPath,
                         'general/saturday_cutoff_time'
                     ),
+                    'sundayCutoffTime' => $this->helper->getTimeConfig(
+                        $carrierPath,
+                        'general/sunday_cutoff_time'
+                    ),
                 ] : []
             );
         }
