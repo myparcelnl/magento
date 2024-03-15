@@ -360,7 +360,6 @@ define(
             return;
         }
 
-        deliveryOptions.updatePricesInDeliveryOptions();
         deliveryOptions.shippingMethod = newShippingMethod;
         deliveryOptions.isUsingMyParcelMethod = true;
       },
@@ -392,81 +391,6 @@ define(
           });
 
           return newShippingMethod.length ? newShippingMethod[0] : null;
-        }
-      },
-
-      /**
-       * Updates prices in deliveryOptions object for rates that are in the current quote.
-       */
-      updatePricesInDeliveryOptions: function() {
-        var quoteCarrierCode = quote.shippingMethod().carrier_code;
-
-        checkout.rates().forEach(function(rate) {
-          if (rate.carrier_code !== quoteCarrierCode) {
-            return;
-          }
-
-          deliveryOptions.updatePriceInDeliveryOptions(rate);
-        });
-      },
-
-      /**
-       * Takes a shippingMethod (rate) from checkout and puts its price in the deliveryOptions object for that method.
-       *
-       * @param {Object} selectedShippingMethod
-       */
-      updatePriceInDeliveryOptions: function(selectedShippingMethod) {
-        var methodCode = selectedShippingMethod.method_code;
-        var isShipmentOption = deliveryOptions.methodCodeShipmentOptionsConfigMap.hasOwnProperty(methodCode);
-        var priceOption = deliveryOptions.methodCodeDeliveryOptionsConfigMap[methodCode];
-        var addBasePrice = false;
-
-        if (isShipmentOption) {
-          priceOption = deliveryOptions.methodCodeShipmentOptionsConfigMap[methodCode];
-          addBasePrice = true;
-        }
-
-        if (undefined === priceOption){
-          return;
-        }
-
-        deliveryOptions.priceDeliveryOptions(selectedShippingMethod, priceOption, addBasePrice);
-      },
-
-      /**
-       * @param {Object} shippingMethod
-       * @param {string} priceOption
-       * @param {boolean} addBasePrice
-       */
-      priceDeliveryOptions: function(shippingMethod, priceOption, addBasePrice) {
-        var hasKey = objectPath.has(window.MyParcelConfig, priceOption);
-        var existingPrice;
-        var shippingMethodPrice;
-        var isMyParcelMethod;
-        var baseShippingMethod;
-
-        if (!hasKey) {
-          // eslint-disable-next-line no-console
-          console.error('key does not exist');
-          return;
-        }
-
-        existingPrice = objectPath.get(window.MyParcelConfig, priceOption, null);
-        shippingMethodPrice = shippingMethod.price_incl_tax;
-        isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(shippingMethod);
-
-        if (addBasePrice) {
-          baseShippingMethod = checkout.findRateByMethodCode(deliveryOptions.methodCodeStandardDelivery);
-          if (baseShippingMethod) {
-            shippingMethodPrice -= baseShippingMethod.price_incl_tax;
-            shippingMethodPrice = deliveryOptions.roundNumber(shippingMethodPrice, 2);
-          }
-        }
-
-        if (existingPrice && existingPrice !== shippingMethodPrice && isMyParcelMethod) {
-          objectPath.set(window.MyParcelConfig, priceOption, shippingMethodPrice);
-
-          deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
         }
       },
 

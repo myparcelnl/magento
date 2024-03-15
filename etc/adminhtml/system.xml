@@ -82,7 +82,7 @@
                     <tooltip>When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.</tooltip>
                 </field>
                 <field id="delivery_options_prices" translate="label comment" type="select" sortOrder="222" showInDefault="1" showInWebsite="1" showInStore="1">
-                  <label>Preferred pickup locations view</label>
+                  <label>Price shown in delivery options</label>
                   <source_model>MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView</source_model>
                   <tooltip>This determines the way the price of delivery is shown to the customer through the delivery options.
                     The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.

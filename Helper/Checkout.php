@@ -24,6 +24,7 @@ use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
 use MyParcelNL\Magento\Model\Rate\Result;
+use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Checkout extends Data
@@ -210,8 +211,9 @@ class Checkout extends Data
     public function getMethodPrice(string $carrier, string $key, bool $addBasePrice = true): float
     {
         $value = $this->getCarrierConfig($key, $carrier);
+        $showTotalPrice   = $this->getCarrierConfig('shipping_methods/delivery_options_prices', Data::XML_PATH_GENERAL) === PriceDeliveryOptionsView::TOTAL;
 
-        if ($addBasePrice) {
+        if ($showTotalPrice && $addBasePrice) {
             // Calculate value
             $value = $this->getBasePrice() + $value;
         }
