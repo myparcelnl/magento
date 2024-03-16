@@ -161,9 +161,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@myparcel/delivery-options@npm:^5.16":
-  version: 5.16.0
-  resolution: "@myparcel/delivery-options@npm:5.16.0"
+"@myparcel/delivery-options@npm:^5.16.1":
+  version: 5.16.1
+  resolution: "@myparcel/delivery-options@npm:5.16.1"
   dependencies:
     "@fortawesome/free-solid-svg-icons": "npm:^5.15.4"
     "@myparcel/js-sdk": "npm:^2.0.3"
@@ -176,7 +176,7 @@ __metadata:
     vue-async-computed: "npm:^3.9.0"
     vue-click-outside: "npm:^1.1.0"
     vue-fa: "npm:^2.0.1"
-  checksum: 0d7a58d1e8ab134ee65f5dc08e4bed2f16f54df37cf2c0492cd889d32c8b4986fc9905b81d9deeac0aa641af38a10bc7c906eccd4ae2e7487d42161f4cdc0965
+  checksum: b791136dfee870e967e1c553b168fd96decf5b3615e1a86c5e5670845740eefea7c1324ff23e77ace076d0dc36f077de2d6fd985305097d4d9d821db4ba181df
   languageName: node
   linkType: hard
 
@@ -225,7 +225,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@myparcel/magento@workspace:."
   dependencies:
-    "@myparcel/delivery-options": "npm:^5.16"
+    "@myparcel/delivery-options": "npm:^5.16.1"
     "@myparcel/eslint-config": "npm:^3.6.1"
     "@myparcel/semantic-release-config": "npm:^4.0.0"
     "@types/knockout": "npm:^3.4.72"
