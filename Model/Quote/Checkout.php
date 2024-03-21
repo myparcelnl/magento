@@ -7,6 +7,7 @@ use Magento\Checkout\Model\Session;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -114,7 +115,9 @@ class Checkout
             'platform'                   => self::PLATFORM,
             'carriers'                   => $this->getActiveCarriers(),
             'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
-            'pickupLocationsDefaultView' => $this->helper->getCarrierConfig('shipping_methods/pickup_locations_view', Data::XML_PATH_GENERAL)
+            'pickupLocationsDefaultView' => $this->helper->getCarrierConfig('shipping_methods/pickup_locations_view', Data::XML_PATH_GENERAL),
+            'showPriceSurcharge'         => $this->helper->getCarrierConfig('shipping_methods/delivery_options_prices', Data::XML_PATH_GENERAL) === PriceDeliveryOptionsView::SURCHARGE,
+            'basePrice'                  => $this->helper->getBasePrice(),
         ];
     }
 
@@ -155,6 +158,7 @@ class Checkout
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
         $carrierPaths   = Data::CARRIERS_XML_PATH_MAP;
+        $showTotalPrice = $this->helper->getCarrierConfig('shipping_methods/delivery_options_prices', Data::XML_PATH_GENERAL) === PriceDeliveryOptionsView::TOTAL;
 
         foreach ($activeCarriers as $carrier) {
             $carrierPath = $carrierPaths[$carrier];
@@ -182,7 +186,7 @@ class Checkout
             $basePrice        = $this->helper->getBasePrice();
             $morningFee       = $canHaveMorning ? $this->helper->getMethodPrice($carrierPath, 'morning/fee') : 0;
             $eveningFee       = $canHaveEvening ? $this->helper->getMethodPrice($carrierPath, 'evening/fee') : 0;
-            $sameDayFee       = $canHaveSameDay ? (int) $this->helper->getCarrierConfig('delivery/same_day_delivery_fee', $carrierPath) : 0;
+            $sameDayFee       = $canHaveSameDay ? (int) $this->helper->getMethodPrice($carrierPath, 'delivery/same_day_delivery_fee') : 0;
             $signatureFee     = $canHaveSignature ? $this->helper->getMethodPrice($carrierPath, 'delivery/signature_fee', false) : 0;
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->helper->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
@@ -205,7 +209,7 @@ class Checkout
 
                 'priceSignature'                       => $signatureFee,
                 'priceOnlyRecipient'                   => $onlyRecipientFee,
-                'priceStandardDelivery'                => $basePrice,
+                'priceStandardDelivery'                => $showTotalPrice ? $basePrice : 0,
                 'priceMorningDelivery'                 => $morningFee,
                 'priceEveningDelivery'                 => $eveningFee,
                 'priceSameDayDelivery'                 => $sameDayFee,
