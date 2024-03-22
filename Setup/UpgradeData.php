@@ -26,6 +26,7 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
+use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
@@ -722,6 +723,124 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '4.12.0', '<')) {
             $this->replaceDpzRange->updateRangeValue();
+        }
+
+        if (version_compare($context->getVersion(), '4.14.0', '<')) {
+            /**
+             * - migrate cutoff_time -> drop off days
+             * - migrate monday delivery + saturday cutoff_time -> drop off days
+             * - migrate allowShowDeliveryDate from carrier -> general
+             * - migrate monday delivery from general -> delivery
+             */
+            $scopes = [];
+            $rows = $connection->fetchAll($connection->select()->distinct()->from($table, ['scope', 'scope_id']));
+            foreach ($rows as $row) {
+                $scopes[$row['scope']] = (int) $row['scope_id'];
+            }
+            $rows = null;
+
+            $getConfigRow = static function (string $path, string $scope, int $scopeId) use ($connection, $table) {
+                if (! in_array($scope, ['default', 'websites', 'stores'], true)) {
+                    throw new \InvalidArgumentException("Invalid scope $scope");
+                }
+
+                if (! preg_match('/^[a-z0-9_\/]+$/i', $path)) {
+                    throw new \InvalidArgumentException("Invalid path $path");
+                }
+
+                $connection->fetchAll($connection->select()->from($table,
+                    ['config_id', 'path', 'value']
+                )->where(
+                    "`path` = \"$path\" AND scope=\"$scope\" AND scope_id=$scopeId"
+                ));
+            };
+
+            $getConfigValue = static function (string $path, string $scope, int $scopeId) use ($getConfigRow) {
+                $row = $getConfigRow($path, $scope, $scopeId);
+
+                return $row[0]['value'] ?? null;
+            };
+
+            $allowShowDeliveryDate = false;
+            $dropOffDelay = PHP_INT_MAX;
+            $deliveryDaysWindow = 0;
+
+            foreach ($scopes as $scope => $scopeId) {
+                foreach (Data::CARRIERS_XML_PATH_MAP as $carrierName => $carrierPath) {
+                    echo "\nMigrating $carrierName for scope $scope ($scopeId)";
+                    /**
+                     * update the carrier specific date settings to a single setting for later
+                     */
+                    $carrierPath = trim($carrierPath, '/');
+                    $value = (int) $getConfigValue("$carrierPath/general/allow_show_delivery_date", $scope, $scopeId);
+                    if ($value) {
+                        $allowShowDeliveryDate = (bool) $value;
+                        $value = (int) $getConfigValue("$carrierPath/general/deliverydays_window", $scope, $scopeId);
+                        if ($value > $deliveryDaysWindow) {
+                            $deliveryDaysWindow = $value;
+                        }
+                        $value = (int) $getConfigValue("$carrierPath/general/dropoff_delay", $scope, $scopeId);
+                        if ($value < $dropOffDelay && $value >= 0) {
+                            $dropOffDelay = $value;
+                        }
+                    }
+
+                    /**
+                     * migrate monday delivery from general to delivery
+                     */
+                    $connection->update($table, ['path' => "$carrierPath/delivery/monday_delivery"], ['path' => "$carrierPath/general/monday_delivery"]);
+
+                    /**
+                     * migrate drop-off days and cutoff time(s) to drop-off days with individual cutoff times
+                     */
+                    $cutoffTime = $getConfigValue("$carrierPath/general/cutoff_time", $scope, $scopeId);
+                    $saturdayCutoffTime = $getConfigValue("$carrierPath/general/saturday_cutoff_time", $scope, $scopeId);
+                    $dropOffDaysString = $getConfigValue("$carrierPath/general/dropoff_days", $scope, $scopeId);
+
+                    if (!$dropOffDaysString) {
+                        $dropOffDays = [];
+                    } else {
+                        $dropOffDays = explode(',', $dropOffDaysString);
+                        array_map('intval', $dropOffDays);
+                    }
+
+                    foreach ([0, 1, 2, 3, 4, 5, 6] as $day) {
+                        $time = $cutoffTime;
+
+                        if (0 === $day || 6 === $day) {
+                            $time = $saturdayCutoffTime;
+                        }
+
+                        $updates = [
+                            "$carrierPath/general/drop_off_day_$day" => $day,
+                            "$carrierPath/general/cutoff_time_$day" => $time,
+                        ];
+
+                        foreach ($updates as $path => $value) {
+                            $connection->delete($table, ['path = ?' => $path, 'scope = ?' => $scope, 'scope_id = ?' => $scopeId]);
+
+                            if (in_array($day, $dropOffDays, true)) {
+                                $connection->insert($table, ['path' => $path, 'value' => $value, 'scope' => $scope, 'scope_id' => $scopeId]);
+                            }
+                        }
+                    }
+                }
+
+                /**
+                 * migrate the carrier specific date settings to general settings
+                 */
+                $updates = [
+                    'myparcelnl_magento_general/date_settings/allow_show_delivery_date' => $allowShowDeliveryDate ? '1' : '0',
+                    'myparcelnl_magento_general/date_settings/deliverydays_window' => $deliveryDaysWindow,
+                    'myparcelnl_magento_general/date_settings/dropoff_delay' => $dropOffDelay,
+                ];
+
+                foreach ($updates as $path => $value) {
+                    $connection->delete($table, ['path = ?' => $path, 'scope = ?' => $scope, 'scope_id = ?' => $scopeId]);
+                    $connection->insert($table, ['path' => $path, 'value' => $value, 'scope' => $scope, 'scope_id' => $scopeId]);
+                }
+            }
+            die("\nTest stop debug yo hallo!");
         }
 
         $setup->endSetup();
