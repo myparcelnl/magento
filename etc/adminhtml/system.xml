@@ -29,6 +29,27 @@
                     <frontend_model>MyParcelNL\Magento\Block\System\Config\Form\SettingsButton</frontend_model>
                 </field>
             </group>
+            <group id="date_settings" translate="label comment" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Date settings</label>
+                <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show delivery date</label>
+                    <tooltip>Show a delivery date in the checkout.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="276" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Number of days</label>
+                    <depends>
+                        <field id="allow_show_delivery_date">1</field>
+                    </depends>
+                    <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
+                    <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
+                </field>
+                <field id="dropoff_delay" translate="label comment" type="select" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Drop-off delay</label>
+                    <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.</tooltip>
+                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
+                </field>
+            </group>
             <group id="print" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Print settings</label>
                 <field id="export_mode" translate="label comment" type="select" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -137,7 +158,144 @@
             <label>PostNL settings</label>
             <tab>myparcelnl_magento</tab>
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
-            <group id="default_options" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="delivery" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Delivery settings</label>
+                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="monday_active" translate="label comment" type="select" sortOrder="306" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Monday delivery</label>
+                    <tooltip>Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="monday_fee" translate="label comment" type="text" sortOrder="307" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Monday delivery fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="monday_active">1</field>
+                    </depends>
+                </field>
+                <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Signature on receipt</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="signature_fee" translate="label comment" type="text" sortOrder="315" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Signature on receipt fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="signature_active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Home address only</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Home address only fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="only_recipient_active">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Drop-off days</label>
+                <comment>Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.</comment>
+                <field id="day_1_active" translate="label comment" type="select" sortOrder="281" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Monday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_1" translate="label comment" type="time" sortOrder="282" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_1_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_2_active" translate="label comment" type="select" sortOrder="284" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tuesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_2" translate="label comment" type="time" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_2_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_3_active" translate="label comment" type="select" sortOrder="287" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Wednesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_3" translate="label comment" type="time" sortOrder="288" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_3_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_4_active" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Thursday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_4" translate="label comment" type="time" sortOrder="291" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_4_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_5_active" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Friday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_5" translate="label comment" type="time" sortOrder="294" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_5_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_6_active" translate="label comment" type="select" sortOrder="296" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Saturday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_6" translate="label comment" type="time" sortOrder="297" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_6_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_0_active" translate="label comment" type="select" sortOrder="299" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sunday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_0" translate="label comment" type="time" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_0_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+            </group>
+            <group id="default_options" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
                 <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
                 <field id="signature_active" translate="label" type="select" sortOrder="203" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -294,93 +452,6 @@
                     </depends>
                 </field>
             </group>
-            <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Basic settings</label>
-                <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show delivery date</label>
-                    <tooltip>Show a delivery date in the checkout.</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="276" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Number of days</label>
-                    <depends>
-                        <field id="allow_show_delivery_date">1</field>
-                    </depends>
-                    <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
-                    <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
-                </field>
-                <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Cut-off time</label>
-                    <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
-                </field>
-                <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off days</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDays</source_model>
-                    <tooltip>Select the days that you send the orders.</tooltip>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-                <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Dropoff-delay</label>
-                    <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</tooltip>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
-                </field>
-                <field id="monday_delivery_active" translate="label comment" type="select" sortOrder="295" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Monday delivery</label>
-                    <tooltip>Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="saturday_cutoff_time" translate="label comment" type="time" sortOrder="298" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Saturday cut-off time</label>
-                    <depends>
-                        <field id="monday_delivery_active">1</field>
-                    </depends>
-                    <tooltip>If a request is made before this time on Saturday Monday will be shown as the next possible delivery date. This is ignored when Sunday is a drop-off day.</tooltip>
-                </field>
-                <field id="sunday_cutoff_time" translate="label comment" type="time" sortOrder="298" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Sunday cut-off time</label>
-                <depends>
-                    <field id="monday_delivery_active">1</field>
-                </depends>
-                <tooltip>If a request is made before this time on Sunday and Sunday is a drop-off day, Monday will be shown as the next possible delivery date.</tooltip>
-            </field>
-            </group>
-            <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Delivery settings</label>
-                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enabled PostNL delivery</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Signature on receipt</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="signature_fee" translate="label comment" type="text" sortOrder="315" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Signature on receipt fee</label>
-                    <tooltip>This will be added to the regular shipping price</tooltip>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="signature_active">1</field>
-                    </depends>
-                </field>
-                <field id="only_recipient_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Home address only</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Home address only fee</label>
-                    <tooltip>This will be added to the regular shipping price</tooltip>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="only_recipient_active">1</field>
-                    </depends>
-                </field>
-            </group>
             <group id="digital_stamp" translate="label" type="text " sortOrder="330" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Digital stamp settings</label>
                 <field id="active" translate="label" type="select" sortOrder="335" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -423,15 +494,6 @@
                     <tooltip>Enter a basic price for a mailbox. The regular price will not affect this price.</tooltip>
                     <depends>
                         <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="pickup_mailbox" translate="label comment" type="select" sortOrder="366" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show pickup option</label>
-                    <tooltip>Show pickup option even when the package fits in mailbox</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="myparcelnl_magento_postnl_settings/pickup/active">1</field>
                     </depends>
                 </field>
                 <field id="international_active" translate="label" type="select" sortOrder="370" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -529,7 +591,132 @@
             <label>DHL For You settings</label>
             <tab>myparcelnl_magento</tab>
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
-            <group id="default_options" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="delivery" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Delivery settings</label>
+                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Signature on receipt</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="signature_fee" translate="label comment" type="text" sortOrder="315" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Signature on receipt fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="signature_active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Home address only</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Home address only fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="only_recipient_active">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Drop-off days</label>
+                <comment>Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.</comment>
+                <field id="day_1_active" translate="label comment" type="select" sortOrder="281" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Monday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_1" translate="label comment" type="time" sortOrder="282" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_1_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_2_active" translate="label comment" type="select" sortOrder="284" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tuesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_2" translate="label comment" type="time" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_2_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_3_active" translate="label comment" type="select" sortOrder="287" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Wednesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_3" translate="label comment" type="time" sortOrder="288" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_3_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_4_active" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Thursday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_4" translate="label comment" type="time" sortOrder="291" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_4_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_5_active" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Friday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_5" translate="label comment" type="time" sortOrder="294" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_5_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_6_active" translate="label comment" type="select" sortOrder="296" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Saturday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_6" translate="label comment" type="time" sortOrder="297" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_6_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_0_active" translate="label comment" type="select" sortOrder="299" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sunday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_0" translate="label comment" type="time" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_0_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+            </group>
+            <group id="default_options" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
                 <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
                 <field id="signature_active" translate="label" type="select" sortOrder="203" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -623,74 +810,6 @@
                     </depends>
                 </field>
             </group>
-            <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Basic settings</label>
-                <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show delivery date</label>
-                    <tooltip>Show a delivery date in the checkout.</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="276" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Number of days</label>
-                    <depends>
-                        <field id="allow_show_delivery_date">1</field>
-                    </depends>
-                    <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
-                    <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
-                </field>
-                <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Cutoff time</label>
-                    <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
-                </field>
-                <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off days</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDays</source_model>
-                    <tooltip>Select the days that you send the orders.</tooltip>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-                <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off-delay</label>
-                    <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</tooltip>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
-                </field>
-            </group>
-            <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Delivery settings</label>
-                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Delivery enabled</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Signature on receipt</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="signature_fee" translate="label comment" type="text" sortOrder="315" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Signature on receipt fee</label>
-                    <tooltip>This will be added to the regular shipping price</tooltip>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="signature_active">1</field>
-                    </depends>
-                </field>
-                <field id="only_recipient_active" translate="label comment" type="select" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Home address only</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Home address only fee</label>
-                    <tooltip>This will be added to the regular shipping price</tooltip>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="only_recipient_active">1</field>
-                    </depends>
-                </field>
-            </group>
             <group id="mailbox" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Mailbox settings</label>
                 <field id="active" translate="label" type="select" sortOrder="355" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -710,15 +829,6 @@
                     <tooltip>Enter a basic price for a mailbox. The regular price will not affect this price.</tooltip>
                     <depends>
                         <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="pickup_mailbox" translate="label comment" type="select" sortOrder="366" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show pickup option</label>
-                    <tooltip>Show pickup option even when the package fits in mailbox</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="myparcelnl_magento_postnl_settings/pickup/active">1</field>
                     </depends>
                 </field>
             </group>
@@ -741,7 +851,102 @@
             <label>DHL Europlus settings</label>
             <tab>myparcelnl_magento</tab>
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
-            <group id="default_options" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="delivery" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Delivery settings</label>
+                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Drop-off days</label>
+                <comment>Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.</comment>
+                <field id="day_1_active" translate="label comment" type="select" sortOrder="281" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Monday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_1" translate="label comment" type="time" sortOrder="282" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_1_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_2_active" translate="label comment" type="select" sortOrder="284" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tuesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_2" translate="label comment" type="time" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_2_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_3_active" translate="label comment" type="select" sortOrder="287" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Wednesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_3" translate="label comment" type="time" sortOrder="288" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_3_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_4_active" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Thursday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_4" translate="label comment" type="time" sortOrder="291" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_4_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_5_active" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Friday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_5" translate="label comment" type="time" sortOrder="294" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_5_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_6_active" translate="label comment" type="select" sortOrder="296" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Saturday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_6" translate="label comment" type="time" sortOrder="297" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_6_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_0_active" translate="label comment" type="select" sortOrder="299" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sunday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_0" translate="label comment" type="time" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_0_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+            </group>
+            <group id="default_options" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
                 <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
                 <field id="insurance_100_active" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -799,44 +1004,6 @@
                     <depends>
                         <field id="insurance_custom_active">1</field>
                     </depends>
-                </field>
-            </group>
-            <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Basic settings</label>
-                <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show delivery date</label>
-                    <tooltip>Show a delivery date in the checkout.</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="276" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Number of days</label>
-                    <depends>
-                        <field id="allow_show_delivery_date">1</field>
-                    </depends>
-                    <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
-                    <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
-                </field>
-                <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Cutoff time</label>
-                    <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
-                </field>
-                <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off days</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDays</source_model>
-                    <tooltip>Select the days that you send the orders.</tooltip>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-                <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off-delay</label>
-                    <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</tooltip>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
-                </field>
-            </group>
-            <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Delivery settings</label>
-                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Delivery enabled</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
         </section>
@@ -844,7 +1011,102 @@
             <label>DHL Parcel Connect settings</label>
             <tab>myparcelnl_magento</tab>
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
-            <group id="default_options" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="delivery" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Delivery settings</label>
+                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Drop-off days</label>
+                <comment>Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.</comment>
+                <field id="day_1_active" translate="label comment" type="select" sortOrder="281" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Monday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_1" translate="label comment" type="time" sortOrder="282" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_1_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_2_active" translate="label comment" type="select" sortOrder="284" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tuesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_2" translate="label comment" type="time" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_2_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_3_active" translate="label comment" type="select" sortOrder="287" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Wednesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_3" translate="label comment" type="time" sortOrder="288" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_3_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_4_active" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Thursday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_4" translate="label comment" type="time" sortOrder="291" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_4_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_5_active" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Friday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_5" translate="label comment" type="time" sortOrder="294" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_5_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_6_active" translate="label comment" type="select" sortOrder="296" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Saturday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_6" translate="label comment" type="time" sortOrder="297" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_6_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_0_active" translate="label comment" type="select" sortOrder="299" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sunday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_0" translate="label comment" type="time" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_0_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+            </group>
+            <group id="default_options" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
                 <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
                 <field id="insurance_100_active" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -902,44 +1164,6 @@
                     <depends>
                         <field id="insurance_custom_active">1</field>
                     </depends>
-                </field>
-            </group>
-            <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Basic settings</label>
-                <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show delivery date</label>
-                    <tooltip>Show a delivery date in the checkout.</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="deliverydays_window" translate="label comment" type="select" sortOrder="276" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Number of days</label>
-                    <depends>
-                        <field id="allow_show_delivery_date">1</field>
-                    </depends>
-                    <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
-                    <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
-                </field>
-                <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Cutoff time</label>
-                    <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
-                </field>
-                <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off days</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDays</source_model>
-                    <tooltip>Select the days that you send the orders.</tooltip>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-                <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off-delay</label>
-                    <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.</tooltip>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
-                </field>
-            </group>
-            <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Delivery settings</label>
-                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Delivery enabled</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
             <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -961,45 +1185,102 @@
           <label>DPD settings</label>
           <tab>myparcelnl_magento</tab>
           <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
-          <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Basic settings</label>
-            <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
-              <label>Show delivery date</label>
-              <tooltip>Show a delivery date in the checkout.</tooltip>
-              <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-            </field>
-            <field id="deliverydays_window" translate="label comment" type="select" sortOrder="276" showInDefault="1" showInWebsite="1" showInStore="1">
-              <label>Number of days</label>
-              <depends>
-                <field id="allow_show_delivery_date">1</field>
-              </depends>
-              <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
-              <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
-            </field>
-            <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-              <label>Cutoff time</label>
-              <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
-            </field>
-            <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
-              <label>Drop-off days</label>
-              <source_model>MyParcelNL\Magento\Model\Source\DropOffDays</source_model>
-              <tooltip>Select the days that you send the orders.</tooltip>
-              <can_be_empty>1</can_be_empty>
-            </field>
-            <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-              <label>Drop-off-delay</label>
-              <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at DPD when ordered before the cutoff time.</tooltip>
-              <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
-            </field>
-          </group>
-          <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+          <group id="delivery" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Delivery settings</label>
             <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
               <label>Delivery enabled</label>
               <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             </field>
           </group>
-          <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Drop-off days</label>
+                <comment>Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.</comment>
+                <field id="day_1_active" translate="label comment" type="select" sortOrder="281" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Monday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_1" translate="label comment" type="time" sortOrder="282" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_1_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_2_active" translate="label comment" type="select" sortOrder="284" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tuesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_2" translate="label comment" type="time" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_2_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_3_active" translate="label comment" type="select" sortOrder="287" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Wednesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_3" translate="label comment" type="time" sortOrder="288" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_3_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_4_active" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Thursday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_4" translate="label comment" type="time" sortOrder="291" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_4_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_5_active" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Friday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_5" translate="label comment" type="time" sortOrder="294" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_5_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_6_active" translate="label comment" type="select" sortOrder="296" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Saturday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_6" translate="label comment" type="time" sortOrder="297" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_6_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_0_active" translate="label comment" type="select" sortOrder="299" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sunday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_0" translate="label comment" type="time" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_0_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+            </group>
+            <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Pickup at DPD location</label>
             <field id="active" translate="label comment" type="select" sortOrder="405" showInDefault="1" showInWebsite="1" showInStore="1">
               <label>Pickup active</label>
@@ -1018,34 +1299,99 @@
             <label>UPS settings</label>
             <tab>myparcelnl_magento</tab>
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
-            <group id="general" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Basic settings</label>
-                <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show delivery date</label>
-                    <tooltip>Show a delivery date in the checkout.</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="cutoff_time" translate="label comment" type="time" sortOrder="280" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Cutoff time</label>
-                    <tooltip>If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.</tooltip>
-                </field>
-                <field id="dropoff_days" translate="label comment" type="multiselect" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off days</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDays</source_model>
-                    <tooltip>Select the days that you send the orders.</tooltip>
-                    <can_be_empty>1</can_be_empty>
-                </field>
-                <field id="dropoff_delay" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Drop-off-delay</label>
-                    <tooltip>This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at UPS when ordered before the cutoff time.</tooltip>
-                    <source_model>MyParcelNL\Magento\Model\Source\DropOffDelayDays</source_model>
-                </field>
-            </group>
-            <group id="delivery" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="delivery" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery settings</label>
                 <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Drop-off days</label>
+                <comment>Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.</comment>
+                <field id="day_1_active" translate="label comment" type="select" sortOrder="281" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Monday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_1" translate="label comment" type="time" sortOrder="282" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_1_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_2_active" translate="label comment" type="select" sortOrder="284" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Tuesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_2" translate="label comment" type="time" sortOrder="285" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_2_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_3_active" translate="label comment" type="select" sortOrder="287" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Wednesday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_3" translate="label comment" type="time" sortOrder="288" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_3_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_4_active" translate="label comment" type="select" sortOrder="290" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Thursday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_4" translate="label comment" type="time" sortOrder="291" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_4_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_5_active" translate="label comment" type="select" sortOrder="293" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Friday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_5" translate="label comment" type="time" sortOrder="294" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_5_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_6_active" translate="label comment" type="select" sortOrder="296" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Saturday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_6" translate="label comment" type="time" sortOrder="297" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_6_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+                <field id="day_0_active" translate="label comment" type="select" sortOrder="299" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sunday</label>
+                    <tooltip>Whether you drop off packages on this day.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cutoff_time_0" translate="label comment" type="time" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Cut-off time</label>
+                    <depends>
+                        <field id="day_0_active">1</field>
+                    </depends>
+                    <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
                 </field>
             </group>
         </section>
