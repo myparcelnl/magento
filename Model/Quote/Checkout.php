@@ -86,7 +86,7 @@ class Checkout
             'methods'    => explode(',', $this->helper->getGeneralConfig('shipping_methods/methods') ?? ''),
             'config'     => array_merge(
                 $this->getGeneralData(),
-                $this->getDeliveryData(),
+                $this->getDeliveryData($forAddress),
                 ['packageType' => $this->getPackageType()]
             ),
             'strings'    => $this->getDeliveryOptionsStrings(),
@@ -150,7 +150,7 @@ class Checkout
      *
      * @return array
      */
-    private function getDeliveryData(): array
+    private function getDeliveryData($forAddress = []): array
     {
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
@@ -178,6 +178,16 @@ class Checkout
             $canHaveOnlyRecipient = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT);
             $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
             $canHavePickup        = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
+
+            $mailboxFee = 0;
+            if ($canHaveMailbox) {
+                $cc = $forAddress['countryId'] ?? AbstractConsignment::CC_NL;
+                if (AbstractConsignment::CC_NL === $cc) {
+                    $mailboxFee = $this->helper->getMethodPrice($carrierPath, 'mailbox/fee', false);
+                } else {
+                    $mailboxFee = $this->helper->getMethodPrice($carrierPath, 'mailbox/international_fee', false);
+                }
+            }
 
             $basePrice        = $this->helper->getBasePrice();
             $morningFee       = $canHaveMorning ? $this->helper->getMethodPrice($carrierPath, 'morning/fee') : 0;
@@ -216,7 +226,7 @@ class Checkout
                 'priceSignatureAndOnlyRecipient' => ($basePrice + $signatureFee + $onlyRecipientFee),
 
                 'pricePickup'                  => $canHavePickup ? $this->helper->getMethodPrice($carrierPath, 'pickup/fee') : 0,
-                'pricePackageTypeMailbox'      => $canHaveMailbox ? $this->helper->getMethodPrice($carrierPath, 'mailbox/fee', false) : 0,
+                'pricePackageTypeMailbox'      => $mailboxFee,
                 'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->helper->getMethodPrice($carrierPath, 'digital_stamp/fee', false) : 0,
                 'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->helper->getMethodPrice($carrierPath, 'package_small/fee', false) : 0,
             ],
@@ -320,6 +330,16 @@ class Checkout
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
         $canHaveMailbox      = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
         $canHavePackageSmall = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
+
+        if ($canHaveMailbox) {
+            if (AbstractConsignment::CC_NL === $country) {
+                $this->package->setMailboxActive($this->helper->getBoolConfig($carrierPath, 'mailbox/active'));
+            } else {
+                $this->package->setMailboxActive($this->helper->getBoolConfig($carrierPath, 'mailbox/international_active'));
+            }
+        }else{
+            $this->package->setMailboxActive(false);
+        }
 
         $this->package->setCurrentCountry($country);
         $this->package->setDigitalStampActive($canHaveDigitalStamp && $this->helper->getBoolConfig($carrierPath, 'digital_stamp/active'));
