@@ -41,6 +41,11 @@ class Checkout
     private $currency;
 
     /**
+     * @var mixed
+     */
+    private $country;
+
+    /**
      * Checkout constructor.
      *
      * @param \Magento\Checkout\Model\Session            $session
@@ -81,12 +86,16 @@ class Checkout
         $this->helper->setBasePriceFromQuote($this->quoteId);
         $this->hideDeliveryOptionsForProduct();
 
+        if (isset($forAddress['countryId'])) {
+            $this->country = $forAddress['countryId'];
+        }
+
         $data = [
             /* the 'method' string here is actually the carrier_code of the method */
             'methods'    => explode(',', $this->helper->getGeneralConfig('shipping_methods/methods') ?? ''),
             'config'     => array_merge(
                 $this->getGeneralData(),
-                $this->getDeliveryData($forAddress),
+                $this->getDeliveryData(),
                 ['packageType' => $this->getPackageType()]
             ),
             'strings'    => $this->getDeliveryOptionsStrings(),
@@ -150,7 +159,7 @@ class Checkout
      *
      * @return array
      */
-    private function getDeliveryData($forAddress = []): array
+    private function getDeliveryData(): array
     {
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
@@ -181,7 +190,7 @@ class Checkout
 
             $mailboxFee = 0;
             if ($canHaveMailbox) {
-                $cc = $forAddress['countryId'] ?? AbstractConsignment::CC_NL;
+                $cc = $this->country ?? $this->cart->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
                 if (AbstractConsignment::CC_NL === $cc) {
                     $mailboxFee = $this->helper->getMethodPrice($carrierPath, 'mailbox/fee', false);
                 } else {
@@ -326,7 +335,7 @@ class Checkout
 
         $carrierPath         = Data::CARRIERS_XML_PATH_MAP[$carrier];
         $products            = $this->cart->getAllItems();
-        $country             = $country ?? $this->cart->getShippingAddress()->getCountryId();
+        $country             = $country ?? $this->country ?? $this->cart->getShippingAddress()->getCountryId();
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
         $canHaveMailbox      = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
         $canHavePackageSmall = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
@@ -337,13 +346,12 @@ class Checkout
             } else {
                 $this->package->setMailboxActive($this->helper->getBoolConfig($carrierPath, 'mailbox/international_active'));
             }
-        }else{
+        } else {
             $this->package->setMailboxActive(false);
         }
 
         $this->package->setCurrentCountry($country);
         $this->package->setDigitalStampActive($canHaveDigitalStamp && $this->helper->getBoolConfig($carrierPath, 'digital_stamp/active'));
-        $this->package->setMailboxActive($canHaveMailbox && $this->helper->getBoolConfig($carrierPath, 'mailbox/active'));
         $this->package->setPackageSmallActive($canHavePackageSmall && $this->helper->getBoolConfig($carrierPath, 'package_small/active'));
 
         return $this->package->selectPackageType($products, $carrierPath);
