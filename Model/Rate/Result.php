@@ -398,7 +398,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             // for international mailbox, we have a different price :-)
             $cc = $this->session->getQuote()->getShippingAddress()->getCountryId();
             if ($cc !== 'NL') {
-                $settingFee = (float)$this->myParcelHelper->getConfigValue(
+                $settingFee = (float) $this->myParcelHelper->getConfigValue(
                     sprintf("%s/%s/international_fee", $settingPath[self::FIRST_PART], $settingPath[self::SECOND_PART])
                 );
             }
