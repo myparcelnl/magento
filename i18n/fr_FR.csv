@@ -11,7 +11,8 @@ status_10,Envoi retour livré
 status_11,Envoi retour au point de collecte
 status_12,Etiquette en franchise de port imprimée
 status_13,Crédité
-status_14, Imprimé - Tampon numérique
+status_14,Imprimé - Tampon numérique
+status_17,Annulé
 status_30,Inactif - Concept
 status_31,Inactif - Prénotifié
 status_32,Inactif - Présenté chez MyParcel
@@ -123,11 +124,18 @@ Hide days,Masquer les jours
 Cut-off time,Heure limite de commande
 "If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Lorsqu'une commande est passée après la dernière heure de commande le vendredi et avant celle-ci le lundi, c'est donc le mardi qui sera affiché comme premier jour de livraison."
 Drop-off days,Jours de dépôt
+Monday delivery,Livraison le lundi
+"Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.","La livraison le lundi peut nécessiter des conditions spéciales par rapport aux autres jours de la semaine, y compris mais sans s'y limiter, des frais et heure limite de commande."
+Number of days,Nombre de jours
+Delivery enabled,Livraison active
+"Whether you drop off packages on this day.","Si vous déposez des colis ce jour-là."
+"For orders before this time, the drop-off is considered done on this day.","Pour les commandes passées avant cette heure, le dépôt est considéré comme effectué ce jour-là."
+"Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.","Indiquez les jours où vous déposez vos colis pour ce transporteur. Indiquez l'heure limite pour que le client puisse commander et que vous puissiez livrer le colis ce jour-là."
 Saturday active,Samedi actif
 Saturday title,Samedi - titre
-Dropoff-delay,Délai
+Drop-off delay,Délai
 No delay,Pas de délai
-"This options allows you to set the number of days it takes you to pick, pack and hand in your parcels at PostNL when ordered before the cutoff time.","Cette option vous permet de définir le nombre de jours dont vous avez besoin pour (recevoir,) emballer et présenter le produit à postnl, à partir du moment de la commande."
+"This option allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.","Cette option vous permet de définir le nombre de jours dont vous avez besoin pour (recevoir,) emballer et présenter le produit, à partir du moment de la commande."
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery., Le contrôle d'âge est destiné aux envois de colis pour lesquels le destinataire doit montrer qu'ils ont plus de 18 ans au moyen d'une preuve d'identité. Cette option ne peut pas être combinée avec la livraison le matin ou le soir.
 Methods,Mode d'expédition
 The extra myparcel options are added to this shipping method,Les options Myparcel complémentaires seront ajoutées à ce mode d'expédition
@@ -162,10 +170,11 @@ City,Ville
 Again,A nouveau
 Postcode/city combination unknown,Combinaison inconnue du code postal et de la ville
 Deliver as quickly as possible,Livraison le plus vite possible
-Monday,lundi
-Tuesday,mardi
-Wednesday,mercredi
-Thursday,jeudi
-Friday,vendredi
-Saturday,samedi
-Sunday,dimanche
+Date settings,Paramètres de date
+Monday,Lundi
+Tuesday,Mardi
+Wednesday,Mercredi
+Thursday,Jeudi
+Friday,Vendredi
+Saturday,Samedi
+Sunday,Dimanche
