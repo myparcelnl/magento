@@ -214,11 +214,11 @@ class Checkout
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->helper->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
-            $allowPickup = $this->helper->getBoolConfig($carrierPath, 'pickup/active');
+            $allowPickup           = $this->helper->getBoolConfig($carrierPath, 'pickup/active');
             $allowStandardDelivery = $this->helper->getBoolConfig($carrierPath, 'delivery/active');
-            $allowMorningDelivery = ! $isAgeCheckActive && $canHaveMorning && $this->helper->getBoolConfig($carrierPath, 'morning/active');
-            $allowEveningDelivery = ! $isAgeCheckActive && $canHaveEvening && $this->helper->getBoolConfig($carrierPath, 'evening/active');
-            $allowDeliveryOptions = ! $this->package->deliveryOptionsDisabled
+            $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveMorning && $this->helper->getBoolConfig($carrierPath, 'morning/active');
+            $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveEvening && $this->helper->getBoolConfig($carrierPath, 'evening/active');
+            $allowDeliveryOptions  = ! $this->package->deliveryOptionsDisabled
                 && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             $myParcelConfig['carrierSettings'][$carrier] = [
