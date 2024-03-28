@@ -840,7 +840,6 @@ class UpgradeData implements UpgradeDataInterface
                     $connection->insert($table, ['path' => $path, 'value' => $value, 'scope' => $scope, 'scope_id' => $scopeId]);
                 }
             }
-            die("\nTest stop debug yo hallo!");
         }
 
         $setup->endSetup();
