@@ -214,13 +214,20 @@ class Checkout
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->helper->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
+            $allowPickup = $this->helper->getBoolConfig($carrierPath, 'pickup/active');
+            $allowStandardDelivery = $this->helper->getBoolConfig($carrierPath, 'delivery/active');
+            $allowMorningDelivery = ! $isAgeCheckActive && $canHaveMorning && $this->helper->getBoolConfig($carrierPath, 'morning/active');
+            $allowEveningDelivery = ! $isAgeCheckActive && $canHaveEvening && $this->helper->getBoolConfig($carrierPath, 'evening/active');
+            $allowDeliveryOptions = ! $this->package->deliveryOptionsDisabled
+                && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
+
             $myParcelConfig['carrierSettings'][$carrier] = [
-                'allowDeliveryOptions'  => ! $this->package->deliveryOptionsDisabled,
-                'allowStandardDelivery' => $this->helper->getBoolConfig($carrierPath, 'delivery/active'),
+                'allowDeliveryOptions'  => $allowDeliveryOptions,
+                'allowStandardDelivery' => $allowStandardDelivery,
                 'allowSignature'        => $canHaveSignature && $this->helper->getBoolConfig($carrierPath, 'delivery/signature_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->helper->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
-                'allowMorningDelivery'  => ! $isAgeCheckActive && $canHaveMorning && $this->helper->getBoolConfig($carrierPath, 'morning/active'),
-                'allowEveningDelivery'  => ! $isAgeCheckActive && $canHaveEvening && $this->helper->getBoolConfig($carrierPath, 'evening/active'),
+                'allowMorningDelivery'  => $allowMorningDelivery,
+                'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath),
                 'allowMondayDelivery'   => $canHaveMonday && $this->helper->getBoolConfig($carrierPath, 'general/monday_delivery_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->helper->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
