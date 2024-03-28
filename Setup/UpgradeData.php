@@ -748,11 +748,9 @@ class UpgradeData implements UpgradeDataInterface
                     throw new \InvalidArgumentException("Invalid path $path");
                 }
 
-                $connection->fetchAll($connection->select()->from($table,
-                    ['config_id', 'path', 'value']
-                )->where(
-                    "`path` = \"$path\" AND scope=\"$scope\" AND scope_id=$scopeId"
-                ));
+                $sql = "SELECT config_id, path, value FROM $table WHERE `path` = \"$path\" AND `scope` = \"$scope\" AND `scope_id` = $scopeId";
+
+                return $connection->fetchAll($sql);
             };
 
             $getConfigValue = static function (string $path, string $scope, int $scopeId) use ($getConfigRow) {
@@ -800,8 +798,7 @@ class UpgradeData implements UpgradeDataInterface
                     if (!$dropOffDaysString) {
                         $dropOffDays = [];
                     } else {
-                        $dropOffDays = explode(',', $dropOffDaysString);
-                        array_map('intval', $dropOffDays);
+                        $dropOffDays = array_map('intval', explode(',', $dropOffDaysString));
                     }
 
                     foreach ([0, 1, 2, 3, 4, 5, 6] as $day) {
@@ -824,6 +821,10 @@ class UpgradeData implements UpgradeDataInterface
                             }
                         }
                     }
+                }
+
+                if (PHP_INT_MAX === $dropOffDelay) {
+                    $dropOffDelay = 0;
                 }
 
                 /**
