@@ -809,8 +809,8 @@ class UpgradeData implements UpgradeDataInterface
                         }
 
                         $updates = [
-                            "$carrierPath/general/drop_off_day_$day" => $day,
-                            "$carrierPath/general/cutoff_time_$day" => $time,
+                            "$carrierPath/drop_off_days/day_{$day}_active" => '1',
+                            "$carrierPath/drop_off_days/cutoff_time_$day" => $time,
                         ];
 
                         foreach ($updates as $path => $value) {
