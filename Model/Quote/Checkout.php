@@ -215,7 +215,8 @@ class Checkout
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $myParcelConfig['carrierSettings'][$carrier] = [
-                'allowStandardDelivery' => ! $this->package->deliveryOptionsDisabled && $this->helper->getBoolConfig($carrierPath, 'delivery/active'),
+                'allowDeliveryOptions'  => ! $this->package->deliveryOptionsDisabled,
+                'allowStandardDelivery' => $this->helper->getBoolConfig($carrierPath, 'delivery/active'),
                 'allowSignature'        => $canHaveSignature && $this->helper->getBoolConfig($carrierPath, 'delivery/signature_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->helper->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
                 'allowMorningDelivery'  => ! $isAgeCheckActive && $canHaveMorning && $this->helper->getBoolConfig($carrierPath, 'morning/active'),
@@ -270,12 +271,12 @@ class Checkout
 
     private function getDropOffDays(string $carrierPath): array {
         $dropOffDays = [];
-        for ($i = 0; $i < 7; $i++) {
-            if ($this->helper->getBoolConfig($carrierPath, "drop_off_days/day_{$i}_active")) {
+        for ($weekday = 0; $weekday < 7; $weekday++) {
+            if ($this->helper->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
                 $dropOffDays[] = (object) [
-                    'weekday' => $i,
-                    'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$i"),
-                    'cutoffTimeSameDay' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$i"),
+                    'weekday' => $weekday,
+                    'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
+                    'cutoffTimeSameDay' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$weekday"),
                 ];
             }
         }
