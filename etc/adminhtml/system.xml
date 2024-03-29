@@ -439,6 +439,7 @@
                     <label>International mailbox fee</label>
                     <tooltip>Enter a basic price for a mailbox. The regular price will not affect this price.</tooltip>
                     <depends>
+                        <field id="active">1</field>
                         <field id="international_active">1</field>
                     </depends>
                 </field>
