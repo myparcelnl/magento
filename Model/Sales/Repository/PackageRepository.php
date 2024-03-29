@@ -19,6 +19,10 @@
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
 use MyParcelNL\Magento\Model\Sales\Package;
+use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class PackageRepository extends Package
@@ -27,6 +31,7 @@ class PackageRepository extends Package
     public const MAXIMUM_DIGITAL_STAMP_WEIGHT   = 2000;
     public const MAXIMUM_PACKAGE_SMALL_WEIGHT   = 2000;
     public const DEFAULT_LARGE_FORMAT_WEIGHT    = 23000;
+    public const CARRIER_TYPE_CUSTOM            = 'custom';
 
     /**
      * @var bool
@@ -113,11 +118,28 @@ class PackageRepository extends Package
     }
 
     /**
+     * Returns true when mailbox is active, the order fits in the mailbox and one of the following is true:
+     * - it is a domestic shipment
+     * - there is a PostNL carrier with contract (they can deliver mailbox packages internationally)
+     *
      * @return bool
      */
     public function fitInMailbox(): bool
     {
-        return $this->getCurrentCountry() === AbstractConsignment::CC_NL
+        $mailboxOk = $this->getCurrentCountry() === AbstractConsignment::CC_NL;
+        if (!$mailboxOk) {
+            $config = AccountSettings::getInstance()->getCarrierOptions()->filter(
+                static function ($carrierOptions) {
+                    return self::CARRIER_TYPE_CUSTOM === $carrierOptions->getType()
+                        && $carrierOptions->getCarrier() instanceof CarrierPostNL;
+                }
+            )->first();
+            if (null !== $config) {
+                $mailboxOk = true;
+            }
+        }
+
+        return $mailboxOk
             && $this->isMailboxActive()
             && $this->getWeight() <= $this->getMaxMailboxWeight()
             && $this->getMailboxPercentage() <= 100;

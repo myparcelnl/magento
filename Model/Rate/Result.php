@@ -394,7 +394,17 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $settingFee  += (float) $this->myParcelHelper->getConfigValue(implode('/', $settingPath ?? []) . 'fee');
 
         // For mailbox and digital stamp the base price should not be calculated
-        if (AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $settingPath[self::SECOND_PART] || AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $settingPath[self::SECOND_PART]) {
+        if (AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $settingPath[self::SECOND_PART]) {
+            // for international mailbox, we have a different price :-)
+            $cc = $this->session->getQuote()->getShippingAddress()->getCountryId();
+            if ($cc !== 'NL') {
+                $settingFee = (float) $this->myParcelHelper->getConfigValue(
+                    sprintf("%s/%s/international_fee", $settingPath[self::FIRST_PART], $settingPath[self::SECOND_PART])
+                );
+            }
+            return min($settingFee, $basePrice);
+        }
+        if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $settingPath[self::SECOND_PART]){
             return min($settingFee, $basePrice);
         }
 

@@ -255,13 +255,10 @@ class DefaultOptions
      */
     public function getPackageType(): int
     {
-        $country      = self::$order->getShippingAddress()->getCountryId();
-        $isNL         = AbstractConsignment::CC_NL === $country;
-
         if (self::$chosenOptions) {
             $keyIsPresent = array_key_exists('packageType', self::$chosenOptions);
 
-            if ($isNL && $keyIsPresent) {
+            if ($keyIsPresent) {
                 $packageType  = self::$chosenOptions['packageType'];
 
                 return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];

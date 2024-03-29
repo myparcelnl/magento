@@ -28,6 +28,7 @@ class NewShipmentForm
         AbstractConsignment::PACKAGE_TYPE_MAILBOX       => 'Mailbox',
         AbstractConsignment::PACKAGE_TYPE_LETTER        => 'Letter',
         AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => 'Digital stamp',
+        AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL => 'Small package',
     ];
 
     /**

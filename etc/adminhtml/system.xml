@@ -434,6 +434,22 @@
                         <field id="myparcelnl_magento_postnl_settings/pickup/active">1</field>
                     </depends>
                 </field>
+                <field id="international_active" translate="label" type="select" sortOrder="370" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>International mailbox</label>
+                    <tooltip>Only available for certain contracts. If this is not in your contract, the setting has no effect.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="international_fee" translate="label comment" type="text" sortOrder="375" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>International mailbox fee</label>
+                    <tooltip>Enter a basic price for a mailbox. The regular price will not affect this price.</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="international_active">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="package_small" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
               <label>Small Package settings</label>
