@@ -786,7 +786,7 @@ class UpgradeData implements UpgradeDataInterface
                     /**
                      * migrate monday delivery from general to delivery
                      */
-                    $connection->update($table, ['path' => "$carrierPath/delivery/monday_delivery"], ['path' => "$carrierPath/general/monday_delivery"]);
+                    $connection->update($table, ['path' => "$carrierPath/delivery/monday_active"], ['path' => "$carrierPath/general/monday_delivery"]);
 
                     /**
                      * migrate drop-off days and cutoff time(s) to drop-off days with individual cutoff times
