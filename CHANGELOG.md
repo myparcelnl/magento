@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.14.0](https://github.com/myparcelnl/magento/compare/v4.13.0...v4.14.0) (2024-03-29)
+
+
+### :sparkles: New Features
+
+* add international bbp ([#826](https://github.com/myparcelnl/magento/issues/826)) ([f9d0b63](https://github.com/myparcelnl/magento/commit/f9d0b63458cb14cc470cd371b552bd8ef9cea17f))
+* add price surcharge option ([#828](https://github.com/myparcelnl/magento/issues/828)) ([b3cee24](https://github.com/myparcelnl/magento/commit/b3cee24472831ff5386ecd035051e39c638dffdd))
+* include delivery options 6 ([#830](https://github.com/myparcelnl/magento/issues/830)) ([82a41e3](https://github.com/myparcelnl/magento/commit/82a41e38b549da28934bf675fc5a66b4a360f458))
+
 ## [4.13.0](https://github.com/myparcelnl/magento/compare/v4.12.1...v4.13.0) (2024-03-13)
 
 
