@@ -741,11 +741,13 @@ class UpgradeData implements UpgradeDataInterface
 
             $getConfigRow = static function (string $path, string $scope, int $scopeId) use ($connection, $table) {
                 if (! in_array($scope, ['default', 'websites', 'stores'], true)) {
-                    throw new \InvalidArgumentException("Invalid scope $scope");
+                    echo "\nIgnored invalid scope $scope";
+                    return null;
                 }
 
                 if (! preg_match('/^[a-z0-9_\/]+$/i', $path)) {
-                    throw new \InvalidArgumentException("Invalid path $path");
+                    echo "\nIgnored invalid path $path";
+                    return null;
                 }
 
                 $sql = "SELECT config_id, path, value FROM $table WHERE `path` = \"$path\" AND `scope` = \"$scope\" AND `scope_id` = $scopeId";
@@ -764,6 +766,15 @@ class UpgradeData implements UpgradeDataInterface
             $deliveryDaysWindow = 0;
 
             foreach ($scopes as $scope => $scopeId) {
+                if ('default' === $scope) {
+                    $scopeId = 0;
+                }
+
+                if (! in_array($scope, ['default', 'websites', 'stores'], true)) {
+                    echo "\nSkipping invalid scope $scope";
+                    continue;
+                }
+
                 foreach (Data::CARRIERS_XML_PATH_MAP as $carrierName => $carrierPath) {
                     echo "\nMigrating $carrierName for scope $scope ($scopeId)";
                     /**
