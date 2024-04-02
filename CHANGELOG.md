@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.14.1](https://github.com/myparcelnl/magento/compare/v4.14.0...v4.14.1) (2024-04-02)
+
+
+### :bug: Bug Fixes
+
+* **migration:** allow migration to run with invalid scopes present ([#834](https://github.com/myparcelnl/magento/issues/834)) ([6eb73f6](https://github.com/myparcelnl/magento/commit/6eb73f62d9adc31fb3da8891ca2a962122d47d68))
+
 ## [4.14.0](https://github.com/myparcelnl/magento/compare/v4.13.0...v4.14.0) (2024-03-29)
 
 
