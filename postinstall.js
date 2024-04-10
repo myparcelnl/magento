@@ -7,10 +7,6 @@ const nodeModules = path.resolve(__dirname, 'node_modules');
 
 const copy = [
   [
-    `${nodeModules}/@myparcel/delivery-options/dist/myparcel.js`,
-    vendor,
-  ],
-  [
     `${nodeModules}/custom-event-polyfill/polyfill.js`,
     `${vendor}/polyfill-custom-event.js`,
   ],

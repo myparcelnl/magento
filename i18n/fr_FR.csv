@@ -163,6 +163,8 @@ The times will be visible when nothing is filled in,Les temps ne seront pas visi
 "Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Introduisez ici un montant positif ou négatif. Si vous souhaitez par exemple proposer une réduction pour cette fonction ou décompter des frais supplémentaires pour cette option de livraison."
 Pick up from,Retrait à partir de
 Opening hours,Heures d'ouverture
+Show more opening hours,Montrer plus d'heures d'ouverture
+Show more locations,Montrer plus d'emplacements
 Closed,Fermé
 Postcode,Code postal
 House number,Numéro de rue

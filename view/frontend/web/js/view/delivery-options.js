@@ -7,11 +7,10 @@ define(
     'Magento_Checkout/js/model/quote',
     'MyParcelNL_Magento/js/model/checkout',
     'MyParcelNL_Magento/js/polyfill/array_prototype_find',
-    'MyParcelNL_Magento/js/vendor/myparcel',
     'MyParcelNL_Magento/js/vendor/polyfill-custom-event',
     'MyParcelNL_Magento/js/vendor/object-path',
+    'myparcelDeliveryOptions',
     'leaflet',
-    'vue2leaflet',
     'jquery'
   ],
   function(
@@ -22,18 +21,15 @@ define(
     quote,
     checkout,
     array_prototype_find,
-    myparcel,
     CustomEvent,
     objectPath,
+    myparcel,
     leaflet,
-    vue2leaflet,
     $
   ) {
     'use strict';
 
     var deliveryOptions;
-    // HACK: without this the pickup locations map doesn't work as RequireJS messes with any global variables.
-    window.Vue2Leaflet = vue2leaflet;
 
     deliveryOptions = {
       rendered: ko.observable(false),
