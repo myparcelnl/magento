@@ -120,11 +120,11 @@ class Checkout
     private function getGeneralData()
     {
         return [
-            //'allowRetry'                 => false,
+            'allowRetry'                 => true,
             'platform'                   => self::PLATFORM,
-            //'carriers'                   => $this->getActiveCarriers(),
-            //'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
-            //'allowShowDeliveryDate'      => $this->helper->getBoolConfig(Data::XML_PATH_GENERAL, 'date_settings/allow_show_delivery_date'),
+            'carriers'                   => $this->getActiveCarriers(),
+            'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
+            'allowShowDeliveryDate'      => $this->helper->getBoolConfig(Data::XML_PATH_GENERAL, 'date_settings/allow_show_delivery_date'),
             'deliveryDaysWindow'         => $this->helper->getIntegerConfig(Data::XML_PATH_GENERAL, 'date_settings/deliverydays_window'),
             'dropOffDelay'               => $this->getDropOffDelay(Data::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
             'pickupLocationsDefaultView' => $this->helper->getCarrierConfig('shipping_methods/pickup_locations_view', Data::XML_PATH_GENERAL),
