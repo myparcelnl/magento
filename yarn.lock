@@ -199,7 +199,6 @@ __metadata:
     "@myparcel/eslint-config": "npm:^3.6.1"
     "@myparcel/semantic-release-config": "npm:^4.0.0"
     "@types/knockout": "npm:^3.4.72"
-    custom-event-polyfill: "npm:^1.0.7"
     object-path: "npm:^0.11.5"
   languageName: unknown
   linkType: soft
@@ -1704,13 +1703,6 @@ __metadata:
   bin:
     cssesc: bin/cssesc
   checksum: 6bcfd898662671be15ae7827120472c5667afb3d7429f1f917737f3bf84c4176003228131b643ae74543f17a394446247df090c597bb9a728cce298606ed0aa7
-  languageName: node
-  linkType: hard
-
-"custom-event-polyfill@npm:^1.0.7":
-  version: 1.0.7
-  resolution: "custom-event-polyfill@npm:1.0.7"
-  checksum: b73c90d646d78f4acdff5453fa0f165f6d5506e32d074ca57d27f2bb7d9412356dab8cec7c00a0956b069e4987a8546a2c2c4b866d155e9fc4c27d223a225b78
   languageName: node
   linkType: hard
 
