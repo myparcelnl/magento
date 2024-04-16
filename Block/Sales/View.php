@@ -22,30 +22,10 @@ use DateTime;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
-use MyParcelNL\Magento\Model\Quote\Checkout;
+use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 
 class View extends AbstractOrder
 {
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
-     * @var \MyParcelNL\Magento\Helper\Order
-     */
-    private $helper;
-
-    /**
-     * Constructor
-     */
-    public function _construct()
-    {
-        $this->objectManager = ObjectManager::getInstance();
-        $this->helper        = $this->objectManager->get('\MyParcelNL\Magento\Helper\Order');
-        parent::_construct();
-    }
-
     /**
      * Collect options selected at checkout and calculate type consignment
      *
@@ -55,49 +35,58 @@ class View extends AbstractOrder
      */
     public function getCheckoutOptionsHtml()
     {
-        $html  = false;
         $order = $this->getOrder();
 
         /** @var object $data Data from checkout */
-        $data = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : false;
+        $data = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : null;
 
-        $date     = new DateTime($data['date'] ?? '');
-        $dateTime = $date->format('d-m-Y H:i');
+        if (! is_array($data)) {
+            return '';
+        }
 
-        if ($this->helper->isPickupLocation($data)) {
-            if (is_array($data) && key_exists('pickupLocation', $data)) {
-                $html .= __($data['carrier'] . ' location:') . ' ' . $dateTime;
-                if ($data['deliveryType'] != 'pickup') {
-                    $html .= ', ' . __($data['deliveryType']);
+        $date            = new DateTime($data['date'] ?? '');
+        $dateTime        = $date->format('d-m-Y H:i');
+        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
+
+        ob_start();
+
+        if ($deliveryOptions->isPickup()) {
+            try {
+                echo __("{$data['carrier']} location:"), ' ', $dateTime;
+
+                if ($data['deliveryType'] !== 'pickup') {
+                    echo ', ', __($data['deliveryType']);
                 }
-                $html .= ', ' . $data['pickupLocation']['location_name'] . ', ' . $data['pickupLocation']['city'] . ' (' . $data['pickupLocation']['postal_code'] . ')';
-            } else {
-                /** Old data from orders before version 1.6.0 */
-                $html .= __('MyParcel options data not found');
+
+                $pickupLocation = $deliveryOptions->getPickupLocation();
+
+                if (null !== $pickupLocation) {
+                    echo ', ', $pickupLocation->getLocationName(), ', ', $pickupLocation->getCity(), ' (', $pickupLocation->getPostalCode(), ')';
+                }
+
+            } catch (\Throwable $e) {
+                ObjectManager::getInstance()->get(CheckoutHelper::class)->log($e->getMessage());
+                echo __('MyParcel options data not found');
             }
-        } else {
-            if (is_array($data) && key_exists('date', $data)) {
-                if (key_exists('packageType', $data)) {
-                    $html .= __($data['packageType'] . ' ');
+        } elseif (array_key_exists('date', $data)) {
+            if (array_key_exists('packageType', $data)) {
+                echo __($data['packageType']), ' ';
+            }
+
+            echo __('Deliver:'), ' ', $dateTime;
+
+            $shipmentOptions = $deliveryOptions->getShipmentOptions();
+
+            if (null !== $shipmentOptions) {
+                if ($shipmentOptions->hasSignature()) {
+                    echo ', ', __('Signature on receipt');
                 }
-
-                $html .= __('Deliver:') . ' ' . $dateTime;
-
-                if (key_exists('shipmentOptions', $data)) {
-                    if (key_exists('signature', $data['shipmentOptions']) && $data['shipmentOptions']['signature']) {
-                        $html .= ', ' . __('Signature on receipt');
-                    }
-                    if (key_exists('only_recipient', $data['shipmentOptions']) && $data['shipmentOptions']['only_recipient']) {
-                        $html .= ', ' . __('Home address only');
-                    }
+                if ($shipmentOptions->hasOnlyRecipient()) {
+                    echo ', ', __('Home address only');
                 }
             }
         }
 
-        if (is_array($data) && key_exists('browser', $data)) {
-            $html = ' <span title="' . $data['browser'] . '">' . $html . '</span>';
-        }
-
-        return $html !== false ? '<br>' . $html : '';
+        return htmlentities(ob_get_clean());
     }
 }
