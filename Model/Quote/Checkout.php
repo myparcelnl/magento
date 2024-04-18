@@ -279,12 +279,13 @@ class Checkout
     private function getDropOffDays(string $carrierPath): array {
         $dropOffDays = [];
         for ($weekday = 0; $weekday < 7; $weekday++) {
+            $cutoffTimeSameDay = $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$weekday");
+            $sameDayTimeEntry = $cutoffTimeSameDay ? ['cutoffTimeSameDay' => $cutoffTimeSameDay] : [];
             if ($this->helper->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
-                $dropOffDays[] = (object) [
+                $dropOffDays[] = (object) array_merge([
                     'weekday' => $weekday,
                     'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
-                    'cutoffTimeSameDay' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$weekday"),
-                ];
+                ], $sameDayTimeEntry);
             }
         }
 
@@ -318,6 +319,8 @@ class Checkout
             'retry'               => __('Again'),
             'pickUpFrom'          => __('Pick up from'),
             'openingHours'        => __('Opening hours'),
+            'showMoreHours'       => __('Show more opening hours'),
+            'showMoreLocations'   => __('Show more locations'),
 
             'cityText'       => __('City'),
             'postalCodeText' => __('Postcode'),

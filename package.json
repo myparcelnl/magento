@@ -14,8 +14,6 @@
     "postinstall": "node postinstall.js"
   },
   "dependencies": {
-    "@myparcel/delivery-options": "^6",
-    "custom-event-polyfill": "^1.0.7",
     "object-path": "^0.11.5"
   },
   "devDependencies": {

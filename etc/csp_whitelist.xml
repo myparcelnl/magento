@@ -6,19 +6,21 @@
 <csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
     <policies>
-        <policy id="script-src">
-            <values>
-                <value id="myparcel-frontend-vue-js" type="host">cdnjs.cloudflare.com</value>
-            </values>
-        </policy>
         <policy id="style-src">
             <values>
-                <value id="myparcel-frontend-vue-css" type="host">cdnjs.cloudflare.com</value>
+                <value id="myparcel-frontend-vue-css" type="host">cdn.jsdelivr.net</value>
+            </values>
+        </policy>
+        <policy id="script-src">
+            <values>
+                <value id="myparcel-frontend-leaflet" type="host">cdnjs.cloudflare.com</value>
+                <value id="myparcel-frontend-vue-js" type="host">cdn.jsdelivr.net</value>
             </values>
         </policy>
         <policy id="connect-src">
             <values>
                 <value id="myparcel-api" type="host">api.myparcel.nl</value>
+                <value id="myparcel-frontend-leaflet-css" type="host">cdn.jsdelivr.net</value>
             </values>
         </policy>
         <policy id="img-src">
