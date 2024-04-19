@@ -33,7 +33,7 @@ class View extends AbstractOrder
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Exception
      */
-    public function getCheckoutOptionsHtml()
+    public function getCheckoutOptionsHtml(): string
     {
         $order = $this->getOrder();
 
