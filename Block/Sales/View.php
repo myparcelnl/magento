@@ -22,6 +22,7 @@ use DateTime;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
+use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 
 class View extends AbstractOrder
@@ -44,49 +45,75 @@ class View extends AbstractOrder
             return '';
         }
 
-        $date            = new DateTime($data['date'] ?? '');
-        $dateTime        = $date->format('d-m-Y H:i');
         $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
+        $returnString    = '';
 
+        try {
+            if ($deliveryOptions->isPickup()) {
+                $returnString = htmlentities($this->getCheckoutOptionsPickupHtml($deliveryOptions));
+            }
+
+            if ($deliveryOptions->getDate()) {
+                $returnString = htmlentities($this->getCheckoutOptionsDeliveryHtml($deliveryOptions));
+            }
+        } catch (\Throwable $e) {
+            ObjectManager::getInstance()->get(CheckoutHelper::class)->log($e->getMessage());
+            $returnString = __('MyParcel options data not found');
+        }
+
+        return $returnString;
+    }
+
+    /**
+     * @param AbstractDeliveryOptionsAdapter $deliveryOptions
+     * @return string
+     */
+    private function getCheckoutOptionsPickupHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string {
         ob_start();
 
-        if ($deliveryOptions->isPickup()) {
-            try {
-                echo __("{$data['carrier']} location:"), ' ', $dateTime;
+        echo __("{$deliveryOptions->getCarrier()} location:"), ' ';
 
-                if ($data['deliveryType'] !== 'pickup') {
-                    echo ', ', __($data['deliveryType']);
-                }
+        if ('pickup' !== $deliveryOptions->getDeliveryType()) {
+            echo __($deliveryOptions->getDeliveryType()), ', ';
+        }
 
-                $pickupLocation = $deliveryOptions->getPickupLocation();
+        $pickupLocation = $deliveryOptions->getPickupLocation();
 
-                if (null !== $pickupLocation) {
-                    echo ', ', $pickupLocation->getLocationName(), ', ', $pickupLocation->getCity(), ' (', $pickupLocation->getPostalCode(), ')';
-                }
+        if (null !== $pickupLocation) {
+            echo $pickupLocation->getLocationName(), ', ';
+            echo $pickupLocation->getCity(), ' (', $pickupLocation->getPostalCode(), ')';
+        }
 
-            } catch (\Throwable $e) {
-                ObjectManager::getInstance()->get(CheckoutHelper::class)->log($e->getMessage());
-                echo __('MyParcel options data not found');
+        return ob_get_clean();
+    }
+
+    /**
+     * @param AbstractDeliveryOptionsAdapter $deliveryOptions
+     * @return string
+     * @throws \Exception
+     */
+    private function getCheckoutOptionsDeliveryHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string {
+        ob_start();
+
+        if ($deliveryOptions->getPackageType()) {
+            echo __($deliveryOptions->getPackageType()), ' ';
+        }
+
+        $date = new DateTime($deliveryOptions->getDate() ?? '');
+
+        echo __('Deliver:'), ' ', $date->format('d-m-Y H:i');
+
+        $shipmentOptions = $deliveryOptions->getShipmentOptions();
+
+        if (null !== $shipmentOptions) {
+            if ($shipmentOptions->hasSignature()) {
+                echo ', ', __('Signature on receipt');
             }
-        } elseif (array_key_exists('date', $data)) {
-            if (array_key_exists('packageType', $data)) {
-                echo __($data['packageType']), ' ';
-            }
-
-            echo __('Deliver:'), ' ', $dateTime;
-
-            $shipmentOptions = $deliveryOptions->getShipmentOptions();
-
-            if (null !== $shipmentOptions) {
-                if ($shipmentOptions->hasSignature()) {
-                    echo ', ', __('Signature on receipt');
-                }
-                if ($shipmentOptions->hasOnlyRecipient()) {
-                    echo ', ', __('Home address only');
-                }
+            if ($shipmentOptions->hasOnlyRecipient()) {
+                echo ', ', __('Home address only');
             }
         }
 
-        return htmlentities(ob_get_clean());
+        return ob_get_clean();
     }
 }
