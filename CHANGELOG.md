@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.14.3](https://github.com/myparcelnl/magento/compare/v4.14.2...v4.14.3) (2024-04-22)
+
+
+### :bug: Bug Fixes
+
+* **checkout:** work with bbp and do6 from cdn ([#837](https://github.com/myparcelnl/magento/issues/837)) ([c560351](https://github.com/myparcelnl/magento/commit/c560351cd8e0810489f270dd527d56b0f8971abb))
+* prevent camel cased options from breaking order detail page ([#838](https://github.com/myparcelnl/magento/issues/838)) ([bc8cff4](https://github.com/myparcelnl/magento/commit/bc8cff4ce27b48d6e7f0ee823a80b1c21a1c2ac6))
+
 ## [4.14.2](https://github.com/myparcelnl/magento/compare/v4.14.1...v4.14.2) (2024-04-04)
 
 
