@@ -22,30 +22,11 @@ use DateTime;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
-use MyParcelNL\Magento\Model\Quote\Checkout;
+use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
+use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 
 class View extends AbstractOrder
 {
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
-     * @var \MyParcelNL\Magento\Helper\Order
-     */
-    private $helper;
-
-    /**
-     * Constructor
-     */
-    public function _construct()
-    {
-        $this->objectManager = ObjectManager::getInstance();
-        $this->helper        = $this->objectManager->get('\MyParcelNL\Magento\Helper\Order');
-        parent::_construct();
-    }
-
     /**
      * Collect options selected at checkout and calculate type consignment
      *
@@ -53,51 +34,86 @@ class View extends AbstractOrder
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Exception
      */
-    public function getCheckoutOptionsHtml()
+    public function getCheckoutOptionsHtml(): string
     {
-        $html  = false;
         $order = $this->getOrder();
 
         /** @var object $data Data from checkout */
-        $data = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : false;
+        $data = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : null;
 
-        $date     = new DateTime($data['date'] ?? '');
-        $dateTime = $date->format('d-m-Y H:i');
+        if (! is_array($data)) {
+            return '';
+        }
 
-        if ($this->helper->isPickupLocation($data)) {
-            if (is_array($data) && key_exists('pickupLocation', $data)) {
-                $html .= __($data['carrier'] . ' location:') . ' ' . $dateTime;
-                if ($data['deliveryType'] != 'pickup') {
-                    $html .= ', ' . __($data['deliveryType']);
-                }
-                $html .= ', ' . $data['pickupLocation']['location_name'] . ', ' . $data['pickupLocation']['city'] . ' (' . $data['pickupLocation']['postal_code'] . ')';
-            } else {
-                /** Old data from orders before version 1.6.0 */
-                $html .= __('MyParcel options data not found');
+        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
+        $returnString    = '';
+
+        try {
+            if ($deliveryOptions->isPickup()) {
+                $returnString = htmlentities($this->getCheckoutOptionsPickupHtml($deliveryOptions));
             }
-        } else {
-            if (is_array($data) && key_exists('date', $data)) {
-                if (key_exists('packageType', $data)) {
-                    $html .= __($data['packageType'] . ' ');
-                }
 
-                $html .= __('Deliver:') . ' ' . $dateTime;
+            if ($deliveryOptions->getDate()) {
+                $returnString = htmlentities($this->getCheckoutOptionsDeliveryHtml($deliveryOptions));
+            }
+        } catch (\Throwable $e) {
+            ObjectManager::getInstance()->get(CheckoutHelper::class)->log($e->getMessage());
+            $returnString = __('MyParcel options data not found');
+        }
 
-                if (key_exists('shipmentOptions', $data)) {
-                    if (key_exists('signature', $data['shipmentOptions']) && $data['shipmentOptions']['signature']) {
-                        $html .= ', ' . __('Signature on receipt');
-                    }
-                    if (key_exists('only_recipient', $data['shipmentOptions']) && $data['shipmentOptions']['only_recipient']) {
-                        $html .= ', ' . __('Home address only');
-                    }
-                }
+        return $returnString;
+    }
+
+    /**
+     * @param AbstractDeliveryOptionsAdapter $deliveryOptions
+     * @return string
+     */
+    private function getCheckoutOptionsPickupHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string {
+        ob_start();
+
+        echo __("{$deliveryOptions->getCarrier()} location:"), ' ';
+
+        if ('pickup' !== $deliveryOptions->getDeliveryType()) {
+            echo __($deliveryOptions->getDeliveryType()), ', ';
+        }
+
+        $pickupLocation = $deliveryOptions->getPickupLocation();
+
+        if (null !== $pickupLocation) {
+            echo $pickupLocation->getLocationName(), ', ';
+            echo $pickupLocation->getCity(), ' (', $pickupLocation->getPostalCode(), ')';
+        }
+
+        return ob_get_clean();
+    }
+
+    /**
+     * @param AbstractDeliveryOptionsAdapter $deliveryOptions
+     * @return string
+     * @throws \Exception
+     */
+    private function getCheckoutOptionsDeliveryHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string {
+        ob_start();
+
+        if ($deliveryOptions->getPackageType()) {
+            echo __($deliveryOptions->getPackageType()), ' ';
+        }
+
+        $date = new DateTime($deliveryOptions->getDate() ?? '');
+
+        echo __('Deliver:'), ' ', $date->format('d-m-Y H:i');
+
+        $shipmentOptions = $deliveryOptions->getShipmentOptions();
+
+        if (null !== $shipmentOptions) {
+            if ($shipmentOptions->hasSignature()) {
+                echo ', ', __('Signature on receipt');
+            }
+            if ($shipmentOptions->hasOnlyRecipient()) {
+                echo ', ', __('Home address only');
             }
         }
 
-        if (is_array($data) && key_exists('browser', $data)) {
-            $html = ' <span title="' . $data['browser'] . '">' . $html . '</span>';
-        }
-
-        return $html !== false ? '<br>' . $html : '';
+        return ob_get_clean();
     }
 }

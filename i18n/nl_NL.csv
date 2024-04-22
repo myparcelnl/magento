@@ -28,8 +28,6 @@ status_99,Inactief - Onbekende status
 myparcelnl_magento_postnl_settings/delivery_title, postnl bezorging
 myparcelnl_magento_postnl_settings/pickup_title, postnl ophaallocatie
 myparcelnl_magento_postnl_settings/delivery/signature_title, postnl bezorging met handtekening
-myparcelnl_magento_dpd_settings/delivery_title,  DPD bezorging
-myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
 myparcelnl_magento_postnl_settings/pickup, PostNL ophaallocatie
 myparcelnl_magento_postnl_settings/delivery, PostNL bezorging
 myparcelnl_magento_postnl_settings/delivery/signature, PostNL bezorging met handtekening voor ontvangst
@@ -53,7 +51,10 @@ myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorg
 myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus bezorging
 myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorging
 myparcelnl_magento_ups_settings/delivery, UPS bezorging
+myparcelnl_magento_dpd_settings/delivery_title,  DPD bezorging
+myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
 myparcelnl_magento_dpd_settings/delivery, DPD bezorging
+myparcelnl_magento_dpd_settings/pickup, DPD ophaallocatie
 myparcelnl_magento_error_no_shipments_to_process, Geen MyParcel zendingen om te verwerken.
 package_small, Klein pakket
 show_total_price, Toon totaalprijs

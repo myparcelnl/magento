@@ -13,11 +13,12 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
+use BadMethodCallException;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
@@ -62,9 +63,13 @@ class DefaultOptions
     {
         self::$helper = $helper;
         self::$order  = $order;
-        $options = self::$order->getData(Checkout::FIELD_DELIVERY_OPTIONS) ?? '';
-
-        self::$chosenOptions = json_decode($options, true) ?? [];
+        try {
+            self::$chosenOptions = DeliveryOptionsAdapterFactory::create(
+                (array) json_decode($order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)
+            )->toArray();
+        } catch (BadMethodCallException $e) {
+            self::$chosenOptions = [];
+        }
     }
 
     /**
@@ -86,15 +91,18 @@ class DefaultOptions
             return true;
         }
 
-        $total    = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
+        $total     = self::$order->getGrandTotal();
+        $settings  = self::$helper->getStandardConfig($carrier, 'default_options');
+        $activeKey = "{$option}_active";
 
-        if (! isset($settings[$option . '_active'])) {
+        if (! isset($settings[$activeKey])) {
             return false;
         }
 
-        return '1' === $settings[$option . '_active']
-            && (! ($settings[$option . '_from_price'] ?? false) || $total > (int) $settings[$option . '_from_price']);
+        $priceKey = "{$option}_from_price";
+
+        return '1' === $settings[$activeKey]
+            && (! ($settings[$priceKey] ?? false) || $total > (int) $settings[$priceKey]);
     }
 
     /**
@@ -124,17 +132,19 @@ class DefaultOptions
         $price  = self::$order->getGrandTotal();
         $weight = self::$helper->convertToGrams(self::$order->getWeight());
 
-        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
-        if (isset($settings[$option . '_active']) &&
-             'weight' === $settings[$option . '_active'] &&
+        $settings  = self::$helper->getStandardConfig($carrier, 'default_options');
+        $activeKey = "{$option}_active";
+
+        if (isset($settings[$activeKey]) &&
+             'weight' === $settings[$activeKey] &&
             $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
         ) {
             return true;
         }
 
-        if (isset($settings[$option . '_active']) &&
-            'price' === $settings[$option . '_active'] &&
-            $price >= $settings[$option . '_from_price']
+        if (isset($settings[$activeKey]) &&
+            'price' === $settings[$activeKey] &&
+            $price >= $settings["{$option}_from_price"]
         ) {
             return true;
         }
