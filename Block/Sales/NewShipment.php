@@ -25,6 +25,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipment extends AbstractItems
 {
@@ -168,6 +169,11 @@ class NewShipment extends AbstractItems
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
+    }
+
+    public function consignmentHasShipmentOption(AbstractConsignment $consignment, string $shipmentOption): bool
+    {
+        return $this->dataHelper->consignmentHasShipmentOption($consignment, $shipmentOption);
     }
 
     /**

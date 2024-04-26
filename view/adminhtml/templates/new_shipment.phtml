@@ -50,7 +50,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
             <?php
             $country = $block->getCountry();
             foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
-                $packageTypeId    = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
+                $packageTypeId = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
                 if (AbstractConsignment::CC_NL !== $country) {
                     if ($packageTypeId === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
                         continue;
@@ -116,13 +116,6 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                     ?>
                 </div>
 
-                <?php
-                $carrier = $abstractConsignment->getCarrier();
-                if (! $carrier) {
-                    continue;
-                }
-                $carrierName = $carrier->getName();
-                ?>
                 <div
                     class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle
     mypa-option-toggle" style="padding-left: 30px;" data-for_mypa_package_type="<?= $packageTypeName ?>">
@@ -153,27 +146,10 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                     continue;
                 }
                 foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
-                    if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
-                        || ! $abstractConsignment->canHaveShipmentOption($shipmentOption)
-                    ) {
+                    if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption) {
                         continue;
                     }
-                    /**
-                     * business logic determining what shipment options to show, if any
-                     */
-                    if (AbstractConsignment::CC_BE === $block->getCountry()) {
-                        if (CarrierPostNL::NAME === $carrierName) {
-                            // allow only_recipient and signature, but only one active at a time
-                            if (!in_array($shipmentOption, [
-                                AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
-                                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true)
-                            ) {
-                                continue;
-                            }
-                        } else {
-                            continue;
-                        }
-                    } elseif (AbstractConsignment::CC_NL !== $block->getCountry()) {
+                    if (! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)) {
                         continue;
                     }
                     ?>
