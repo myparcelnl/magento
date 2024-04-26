@@ -107,17 +107,6 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * @param  string $option 'large_format'
-     * @param  string $carrier
-     *
-     * @return bool
-     */
-    public function hasDefaultLargeFormat(string $option, string $carrier): bool
-    {
-        return $this->defaultOptions->hasDefaultLargeFormat($carrier, $option);
-    }
-
-    /**
      * Get default value of age check
      *
      * @param  string $carrier

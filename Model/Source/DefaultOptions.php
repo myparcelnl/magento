@@ -17,6 +17,7 @@ use BadMethodCallException;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
@@ -82,6 +83,10 @@ class DefaultOptions
      */
     public function hasDefault(string $option, string $carrier): bool
     {
+        if (AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $option) {
+            return $this->hasDefaultLargeFormat($carrier, $option);
+        }
+
         // Check that the customer has already chosen this option in the checkout
         if (is_array(self::$chosenOptions) &&
             array_key_exists('shipmentOptions', self::$chosenOptions) &&
