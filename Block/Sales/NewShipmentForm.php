@@ -43,6 +43,7 @@ class NewShipmentForm
             AbstractConsignment::SHIPMENT_OPTION_SIGNATURE         => __('Signature on receipt'),
             AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT    => __('Home address only'),
             AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK         => __('Age check 18+'),
+            AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER       => __('Hide sender'),
             AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT      => __('Large package'),
             AbstractConsignment::SHIPMENT_OPTION_RETURN            => __('Return if no answer'),
             AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY => __('Same day delivery'),
