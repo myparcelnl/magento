@@ -50,7 +50,7 @@ myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, Livrais
 myparcelnl_magento_dhlforyou_settings/pickup, Collecte DHL For You
 myparcelnl_magento_dhleuroplus_settings/delivery, Livraison DHL Europlus
 myparcelnl_magento_dhlparcelconnect_settings/delivery, Livraison DHL Parcel Connect
-myparcelnl_magento_dhleuroplus_settings/delivery, Livraison DHL Europlus
+myparcelnl_magento_dhlparcelconnect_settings/pickup, Collecte DHL Parcel Connect
 myparcelnl_magento_ups_settings/delivery, Livraison UPS
 myparcelnl_magento_dpd_settings/delivery, Livraison DPD
 myparcelnl_magento_error_no_shipments_to_process, Non-pas d' envois MyParcel à traiter.

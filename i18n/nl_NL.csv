@@ -48,8 +48,8 @@ myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, DHL For
 myparcelnl_magento_dhlforyou_settings/pickup, DHL For You afhaallocatie
 myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus bezorging
 myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorging
+myparcelnl_magento_dhlparcelconnect_settings/pickup, DHL Parcel Connect afhaallocatie
 myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus bezorging
-myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorging
 myparcelnl_magento_ups_settings/delivery, UPS bezorging
 myparcelnl_magento_dpd_settings/delivery_title,  DPD bezorging
 myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
