@@ -254,11 +254,12 @@ class Data extends AbstractHelper
     public function consignmentHasShipmentOption(AbstractConsignment $consignment, string $shipmentOption): bool
     {
         /**
-         * business logic determining what shipment options to show, if any
+         * Business logic determining what shipment options to show, if any.
          */
         if (! $consignment->canHaveShipmentOption($shipmentOption)) {
             return false;
         }
+
         if (AbstractConsignment::CC_BE === $consignment->getCountry()) {
             if (CarrierPostNL::NAME === $consignment->getCarrierName()) {
                 if (!in_array($shipmentOption, [
