@@ -76,7 +76,6 @@ Track status,Statut du suivi
 Track action,Action de suivi
 MyParcel options,Options MyParcel
 Package,Colis
-Signature on receipt,Signature pour réception
 Insured up to:,Assuré jusqu'à :
 Download package label,Télécharger l'étiquette du colis
 Create new concept,Créer une nouveau concept
@@ -144,8 +143,9 @@ Deliver the package only at address of the intended recipient.,Livraison du coli
 This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
 Not possible if Pickup at PostNL location is not active,Ceci ne sera pas possible si la collecte à un point postnl n'est pas activée
 Signature on receipt,Signature pour réception
-Signature on receipt title, Signature pour réception - titre
-Signature on receipt fee, Signature pour réception - prix
+Signature on receipt title,Signature pour réception - titre
+Signature on receipt fee,Signature pour réception - prix
+Hide sender,Masquer l'expéditeur
 This will be added to the regular shipping price, Ceci sera ajouté aux frais d'expédition standards
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Si les deux éléments sont sélectionnés, ce prix sera ajouté aux frais d'expédition standards. Laissez vide pour ignorer cette option.
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Pour utiliser cette fonction de manière optimale, spécifiez d'abord le poids ou le volume de vos produits. Les envois plus lourds que le poids spécifié ici ne seront pas considérés comme des envois pour Boîte aux lettres."

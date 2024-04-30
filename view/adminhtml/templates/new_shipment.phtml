@@ -1,6 +1,7 @@
 <?php
 /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */
 
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 ?>
@@ -18,7 +19,8 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
     </label>
 </div>
 <?php
-foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
+$form = $block->getNewShipmentForm();
+foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
     $abstractConsignment->setCountry($block->getCountry());
     $carrier      = $abstractConsignment->getCarrier();
     $carrierName  = $carrier->getName();
@@ -48,7 +50,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
             <?php
             $country = $block->getCountry();
             foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
-                $packageTypeId    = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
+                $packageTypeId = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
                 if (AbstractConsignment::CC_NL !== $country) {
                     if ($packageTypeId === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
                         continue;
@@ -57,9 +59,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         continue;
                     }
                 }
-                $packageTypeHuman = $block->getNewShipmentForm()::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId]
-                    ??
-                    $packageTypeName;
+                $packageTypeHuman = $form::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId] ?? $packageTypeName;
                 ?>
                 <div class="admin__field admin__field-option">
                     <input
@@ -116,13 +116,6 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                     ?>
                 </div>
 
-                <?php
-                $carrier = $abstractConsignment->getCarrier();
-                if (! $carrier) {
-                    continue;
-                }
-                $carrierName = $carrier->getName();
-                ?>
                 <div
                     class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle
     mypa-option-toggle" style="padding-left: 30px;" data-for_mypa_package_type="<?= $packageTypeName ?>">
@@ -140,31 +133,24 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         title="">
                         <?php
                         while ($label_amount <= 10) {
-                            echo '<option value="' . $label_amount . '" >' . __($label_amount) . '</option>';
+                            echo '<option value="', $label_amount, '" >', __($label_amount), '</option>';
                             $label_amount++;
                         }
                         ?>
                     </select>
                 </div>
                 <?php
-                $isInternational = AbstractConsignment::CC_NL !== $block->getCountry();
-
                 try {
                     $abstractConsignment->setPackageType($packageTypeId);
                 } catch (\Exception $e) {
                     continue;
                 }
                 foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
-                    if (
-                        $isInternational
-                        || AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
-                        || ! $abstractConsignment->canHaveShipmentOption($shipmentOption)
+                    if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
+                        || ! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
                     ) {
                         continue;
                     }
-                    $isActive = ($abstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $shipmentOption)
-                        ? $block->hasDefaultLargeFormat($shipmentOption, $carrier->getName())
-                        : $block->hasDefaultOption($shipmentOption, $carrier->getName());
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
@@ -176,15 +162,14 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                             name="mypa_<?= $shipmentOption ?>"
                             value="1"
                             type="checkbox"
-                            <?= $isActive
+                            <?= $block->hasDefaultOption($shipmentOption, $carrierName)
                                 ? 'checked="checked"'
                                 : '' ?>
                         />
                         <label
                             class="admin__field-label"
                             for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
-                            <span><?= $block->getNewShipmentForm()
-                                          ->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?>
+                            <span><?= $form->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?>
                             </span>
                         </label>
                     </div>
@@ -201,7 +186,7 @@ foreach ($block->getNewShipmentForm()->getCarrierSpecificAbstractConsignments() 
                         <label class="admin__field-label" for="mypa_insurance" style="display: block">
                             <span><?= __('Insured up to:') ?></span>
                         </label>
-                        <?php $defaultInsurance = $block->getDefaultInsurance($carrier->getName()); ?>
+                        <?php $defaultInsurance = $block->getDefaultInsurance($carrierName); ?>
                         <select
                             name="mypa_insurance"
                             id="mypa_insurance"
