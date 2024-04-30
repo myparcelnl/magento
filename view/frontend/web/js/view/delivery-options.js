@@ -196,12 +196,12 @@ define(
        *
        * @param {string} address - Full address.
        *
-       * @returns {string|undefined} - The house number, if found. Otherwise null.
+       * @returns {integer|null} - The house number, if found. Otherwise null.
        */
       getHouseNumber: function(address) {
         var result = deliveryOptions.splitStreetRegex.exec(address);
         var numberIndex = 2;
-        return result ? result[numberIndex] : null;
+        return result ? parseInt(result[numberIndex]) : null;
       },
 
       /**
@@ -221,13 +221,11 @@ define(
        * @param {Object?} address - Quote.shippingAddress from Magento.
        */
       updateAddress: function(address) {
-        var newAddress;
-
         if (!deliveryOptions.isUsingMyParcelMethod) {
           return;
         }
 
-        newAddress = deliveryOptions.getAddress(address || quote.shippingAddress());
+        const newAddress = deliveryOptions.getAddress(address || quote.shippingAddress());
         if (_.isEqual(newAddress, window.MyParcelConfig.address)) {
           return;
         }
