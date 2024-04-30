@@ -196,7 +196,7 @@ define(
        *
        * @param {string} address - Full address.
        *
-       * @returns {integer|undefined} - The house number, if found. Otherwise null.
+       * @returns {integer|null} - The house number, if found. Otherwise null.
        */
       getHouseNumber: function(address) {
         var result = deliveryOptions.splitStreetRegex.exec(address);
