@@ -256,26 +256,19 @@ class Data extends AbstractHelper
         /**
          * Business logic determining what shipment options to show, if any.
          */
-        if (! $consignment->canHaveShipmentOption($shipmentOption)) {
-            return false;
+        if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
+            return $consignment->canHaveShipmentOption($shipmentOption);
         }
 
-        if (AbstractConsignment::CC_BE === $consignment->getCountry()) {
-            if (CarrierPostNL::NAME === $consignment->getCarrierName()) {
-                if (!in_array($shipmentOption, [
-                    AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
-                    AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true)
-                ) {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        } elseif (AbstractConsignment::CC_NL !== $consignment->getCountry()) {
-            return false;
+        // For PostNL in Belgium - only recipient-only/signature is available
+        if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
+            return in_array($shipmentOption, [
+                AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
+                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
         }
 
-        return true;
+        // No shipment options available in any other cases
+        return false;
     }
 
     /**
