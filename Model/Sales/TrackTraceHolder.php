@@ -175,7 +175,7 @@ class TrackTraceHolder
 
         $this->consignment = (ConsignmentFactory::createByCarrierName($deliveryOptionsAdapter->getCarrier()))
             ->setApiKey($apiKey)
-            ->setReferenceId($shipment->getEntityId())
+            ->setReferenceIdentifier($shipment->getEntityId())
             ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
             ->setCompany(self::$defaultOptions->getMaxCompanyName($address->getCompany()))
@@ -227,13 +227,13 @@ class TrackTraceHolder
             ->setAgeCheck($this->shipmentOptionsHelper->hasAgeCheck())
             ->setInsurance($this->shipmentOptionsHelper->getInsurance())
             ->setInvoice(
-                $magentoTrack->getShipment()
+                $shipment
                     ->getOrder()
                     ->getIncrementId()
             )
             ->setSaveRecipientAddress(false);
 
-        if ($deliveryOptionsAdapter->isPickup()) {
+        if ($deliveryOptionsAdapter->isPickup() && $pickupLocationAdapter) {
             $this->consignment
                 ->setPickupPostalCode($pickupLocationAdapter->getPostalCode())
                 ->setPickupStreet($pickupLocationAdapter->getStreet())

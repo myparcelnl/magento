@@ -139,7 +139,6 @@ Track status,Track status
 Track action,Track actie
 MyParcel options,MyParcel opties
 Package,Pakket
-Signature on receipt,Handtekening voor ontvangst
 Insured up to:,Verzekeren tot:
 Download package label,Download pakket label
 Download digital stamp label,Download digitalepostzegel label
@@ -220,8 +219,9 @@ Deliver the package only at address of the intended recipient.,Lever het pakket 
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
 Signature on receipt,Handtekening voor ontvangst
-Signature on receipt title, Handtekening voor ontvangst titel
-Signature on receipt fee, Handtekening voor ontvangst kosten
+Signature on receipt title,Handtekening voor ontvangst titel
+Signature on receipt fee,Handtekening voor ontvangst kosten
+Hide sender,Verberg afzender
 This will be added to the regular shipping price, Dit zal bij de normale verzendkosten worden opgeteld
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten. Ongeacht deze instelling, zendingen zwaarder dan het hier opgegeven gewicht zullen niet als brievenbuspakket worden verzonden."

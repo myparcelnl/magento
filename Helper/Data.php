@@ -238,19 +238,37 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param  int    $order_id
+     * @param  int    $orderId
      * @param  string $status
      */
-    public function setOrderStatus(int $order_id, string $status): void
+    public function setOrderStatus(int $orderId, string $status): void
     {
         $order = ObjectManager::getInstance()
             ->create('\Magento\Sales\Model\Order')
-            ->load($order_id);
+            ->load($orderId);
         $order->setState($status)
             ->setStatus($status);
         $order->save();
+    }
 
-        return;
+    public function consignmentHasShipmentOption(AbstractConsignment $consignment, string $shipmentOption): bool
+    {
+        /**
+         * Business logic determining what shipment options to show, if any.
+         */
+        if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
+            return $consignment->canHaveShipmentOption($shipmentOption);
+        }
+
+        // For PostNL in Belgium - only recipient-only/signature is available
+        if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
+            return in_array($shipmentOption, [
+                AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
+                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
+        }
+
+        // No shipment options available in any other cases
+        return false;
     }
 
     /**

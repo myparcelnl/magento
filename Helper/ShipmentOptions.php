@@ -56,6 +56,11 @@ class ShipmentOptions
     private $order;
 
     /**
+     * @var string|null
+     */
+    private $cc;
+
+    /**
      * @param  \MyParcelNL\Magento\Model\Source\DefaultOptions $defaultOptions
      * @param  \MyParcelNL\Magento\Helper\Data                 $helper
      * @param  \Magento\Sales\Model\Order                      $order
@@ -77,6 +82,7 @@ class ShipmentOptions
         $this->objectManager  = $objectManager;
         $this->carrier        = $carrier;
         $this->options        = $options;
+        $this->cc             = $order->getShippingAddress() ? $order->getShippingAddress()->getCountryId() : null;
     }
 
     /**
@@ -92,6 +98,10 @@ class ShipmentOptions
      */
     public function hasSignature(): bool
     {
+        if (AbstractConsignment::CC_BE === $this->cc && $this->hasOnlyRecipient()) {
+            return false;
+        }
+
         $signatureFromOptions = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
 
         return $signatureFromOptions ?? $this->optionIsEnabled(self::SIGNATURE);
@@ -132,10 +142,7 @@ class ShipmentOptions
      */
     public function hasAgeCheck(): bool
     {
-        $countryId = $this->order->getShippingAddress()
-            ->getCountryId();
-
-        if (AbstractConsignment::CC_NL !== $countryId) {
+        if (AbstractConsignment::CC_NL !== $this->cc) {
             return false;
         }
 
@@ -265,14 +272,12 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        $countryId = $this->order->getShippingAddress()->getCountryId();
-
-        if (! in_array($countryId, AbstractConsignment::EURO_COUNTRIES)) {
+        if (! in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
             return false;
         }
 
         $largeFormatFromOptions  = self::getValueOfOptionWhenSet(self::LARGE_FORMAT, $this->options);
-        $largeFormatFromSettings = self::$defaultOptions->hasDefaultLargeFormat($this->carrier, self::LARGE_FORMAT);
+        $largeFormatFromSettings = self::$defaultOptions->hasDefault(self::LARGE_FORMAT, $this->carrier);
 
         return $largeFormatFromOptions ?? $largeFormatFromSettings;
     }
