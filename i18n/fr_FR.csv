@@ -83,6 +83,8 @@ Track action,Action de suivi
 MyParcel options,Options MyParcel
 Package,Colis
 Signature on receipt,Signature pour réception
+Home address only,Livraison à domicile uniquement
+Hide sender title,Titre de masquer l'expéditeur
 Insured up to:,Assuré jusqu'à :
 Download package label,Télécharger l'étiquette du colis
 Create new concept,Créer une nouveau concept

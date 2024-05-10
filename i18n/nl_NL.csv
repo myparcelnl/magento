@@ -227,18 +227,17 @@ If both have been selected this price will be added to the regular shipping pric
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten. Ongeacht deze instelling, zendingen zwaarder dan het hier opgegeven gewicht zullen niet als brievenbuspakket worden verzonden."
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Pickup at PostNL location,Ophalen bij een PostNL locatie
-List,Lijst
-Map,Kaart
 Pickup active,Ophalen actief
 Standard delivery Title,Standaard bezorg titel
 Signature on receipt title,Handtekening voor ontvangst titel
 Home address only title,Alleen huisadres titel
+Hide sender title,Afzender verbergen titel
 Morning title,Ochtendlevering titel
 Evening title,Avondlevering titel
 Mailbox title,Brievenbuspakje titel
 Digital stamp title,Digitalepostzegel titel
-Pickup title,Ophalen bij locatie titel
-Pickup fee,Ophalen kosten
+Pickup title,Afhalen bij locatie titel
+Pickup fee,Afhalen kosten
 Pickup list button text,Lijst ophalen knop tekst
 Pickup map button text,Kaart ophalen knop tekst
 Drop off day,Verzenddagen
