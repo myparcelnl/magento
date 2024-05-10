@@ -198,3 +198,7 @@ Thursday,Jeudi
 Friday,Vendredi
 Saturday,Samedi
 Sunday,Dimanche
+
+{field} is required.,{field} est requis.
+Address not found.,Adresse introuvable.
+Postal code is invalid for the current country.,Le code postal n’est pas valide pour le pays actuel.
