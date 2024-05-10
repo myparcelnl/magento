@@ -55,7 +55,10 @@ myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
 myparcelnl_magento_dpd_settings/delivery, DPD bezorging
 myparcelnl_magento_dpd_settings/pickup, DPD ophaallocatie
 myparcelnl_magento_error_no_shipments_to_process, Geen MyParcel zendingen om te verwerken.
-package_small, Klein pakket
+package_small,Klein pakket
+Packet,Klein pakket
+Packet title,Klein pakket titel
+Parcel locker,Pakketautomaat
 show_total_price, Toon totaalprijs
 show_surcharge_price, Toon meerprijs
 Version and support,Versie en support
@@ -108,6 +111,8 @@ Enter a basic price for a mailbox. The regular price will not affect this price.
 Morning delivery,Ochtendlevering
 Evening delivery,Avondlevering
 Evening delivery fee,Avondlevering kosten
+Same day delivery,Zelfde dag bezorgd
+Same day title,Zelfde dag titel
 Morning delivery active,Ochtendlevering ingeschakeld
 If age check is active then the evening delivery is not possible,Als de leeftijdscontrole actief is dan is avondbezorging niet mogelijk
 If age check is active then the morning delivery is not possible,Als de leeftijdscontrole actief is dan is ochtendbezorging niet mogelijk
@@ -243,14 +248,21 @@ You not have entered the correct API key. Go to the general settings in the back
 Address details are not entered,Adresgegevens zijn niet ingevuld
 The times will be visible when nothing is filled in,De tijden zullen zichtbaar zijn wanneer niets is ingevuld
 "Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Voer een bedrag in dat positief of negatief is. Wilt u bijvoorbeeld een korting geven voor het gebruik van deze functie of wilt u extra in rekening brengen voor deze leveringsoptie."
+Discount,Korting
+Most sustainable,Meest duurzaam
+Free,Gratis
+From,Vanaf
 Pick up from,Ophalen vanaf
+Pick up at a pick-up point,Ophalen bij een afhaalpunt
 Opening hours,Openingstijden
 Show more opening hours,Toon meer openingstijden
 Show more locations,Toon meer locaties
 Closed,Gesloten
-Postcode,Postcode
+Postal code,Postcode
 House number,Huisnummer
 City,Stad
+Country,Land
+Street,Straat
 Again,Opnieuw
 Postcode/city combination unknown,Postcode/plaats combinatie onbekend
 Deliver as quickly as possible,Zo snel mogelijk bezorgen
@@ -271,6 +283,10 @@ This is the type of weight that I use with my products.,Dit is de eenheid die je
 Default,Standaard
 No,Nee
 Yes,Ja
+
+{field} is required.,{field} is verplicht.
+Address not found.,Dit adres is niet gevonden.
+Postal code is invalid for the current country.,Postcode is niet geldig voor het gekozen land.
 
 no_account_settings, Geen accountsettings gevonden. Klik op de importeer knop in het algemene configuratie scherm.
 manage_drop_off_point, Beheer jouw standaard afleverpunt in de
