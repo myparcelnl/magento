@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.14.4](https://github.com/myparcelnl/magento/compare/v4.14.3...v4.14.4) (2024-05-13)
+
+
+### :bug: Bug Fixes
+
+* **checkout:** show nicer messages in delivery options ([#842](https://github.com/myparcelnl/magento/issues/842)) ([ae71d80](https://github.com/myparcelnl/magento/commit/ae71d80aa542ca1d700b01fd3fa7e91f013cdf06))
+* **checkout:** stabilise choosing pickup point ([#841](https://github.com/myparcelnl/magento/issues/841)) ([aaa21d4](https://github.com/myparcelnl/magento/commit/aaa21d4c3bc12ceaad50ca6b5aef058ddf9bd006))
+* **export:** allow signature or only_recipient for be ([#840](https://github.com/myparcelnl/magento/issues/840)) ([8c10cc3](https://github.com/myparcelnl/magento/commit/8c10cc3e886e231f2a661e189c697c5cf31a0b9b))
+
 ## [4.14.3](https://github.com/myparcelnl/magento/compare/v4.14.2...v4.14.3) (2024-04-22)
 
 
