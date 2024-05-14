@@ -1307,6 +1307,34 @@
               </depends>
             </field>
           </group>
+            <group id="mailbox" translate="label" type="text" sortOrder="420" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Mailbox settings</label>
+                <field id="active" translate="label" type="select" sortOrder="355" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Automate mailbox</label>
+                    <tooltip>Select automatically mailbox packages based on weight or volume</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="weight" translate="label comment" type="text" sortOrder="360" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Mailbox weight</label>
+                    <tooltip>To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless,
+                        shipments heavier than the weight specified here will not be mailbox.
+                    </tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="fee" translate="label comment" type="text" sortOrder="365" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Mailbox fee</label>
+                    <tooltip>Enter a basic price for a mailbox. The regular price will not affect this price.</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+            </group>
         </section>
         <section id="myparcelnl_magento_ups_settings" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>UPS settings</label>
