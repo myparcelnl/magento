@@ -17,6 +17,11 @@
         </dev>
 
         <myparcelnl_magento_general>
+            <date_settings>
+                <allow_show_delivery_date>0</allow_show_delivery_date>
+                <deliverydays_window>7</deliverydays_window>
+                <dropoff_delay>0</dropoff_delay>
+            </date_settings>
             <print>
                 <paper_type>A4</paper_type>
                 <label_description>%order_nr%</label_description>
