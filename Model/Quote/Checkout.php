@@ -91,13 +91,15 @@ class Checkout
             $this->country = $forAddress['countryId'];
         }
 
+        $packageType = $this->getPackageType();
+
         $data = [
             /* the 'method' string here is actually the carrier_code of the method */
             'methods'    => explode(',', $this->helper->getGeneralConfig('shipping_methods/methods') ?? ''),
             'config'     => array_merge(
                 $this->getGeneralData(),
-                $this->getDeliveryData(),
-                ['packageType' => $this->getPackageType()]
+                $this->getDeliveryData($packageType),
+                ['packageType' => $packageType]
             ),
             'strings'    => $this->getDeliveryOptionsStrings(),
             'forAddress' => $forAddress,
@@ -163,9 +165,10 @@ class Checkout
     /**
      * Get delivery data
      *
+     * @param string|null $packageType
      * @return array
      */
-    private function getDeliveryData(): array
+    private function getDeliveryData(?string $packageType = null): array
     {
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
@@ -220,6 +223,10 @@ class Checkout
             $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveEvening && $this->helper->getBoolConfig($carrierPath, 'evening/active');
             $allowDeliveryOptions  = ! $this->package->deliveryOptionsDisabled
                 && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
+
+            if ($allowDeliveryOptions && $packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
+                $allowDeliveryOptions = $this->helper->getBoolConfig($carrierPath, 'mailbox/active');
+            }
 
             $myParcelConfig['carrierSettings'][$carrier] = [
                 'allowDeliveryOptions'  => $allowDeliveryOptions,
