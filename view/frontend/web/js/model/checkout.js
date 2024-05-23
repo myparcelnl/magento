@@ -116,17 +116,8 @@ function(
 
     onReFetchDeliveryOptionsConfig: function(response) {
       var configuration = response[0].data;
-      var carrier = Object.keys(configuration.config.carrierSettings)[0];
-
-      doRequest(function() {
-        return Model.calculatePackageType(carrier);
-      },
-      {
-        onSuccess: function(response) {
-          Model.bestPackageType = response;
-          Model.setDeliveryOptionsConfig(configuration);
-        },
-      });
+      Model.bestPackageType = configuration.config.packageType;
+      Model.setDeliveryOptionsConfig(configuration);
     },
 
     /**
