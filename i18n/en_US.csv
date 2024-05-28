@@ -49,6 +49,7 @@ myparcelnl_magento_dhlparcelconnect_settings/pickup, DHL Parcel Connect pickup
 myparcelnl_magento_ups_settings/delivery, UPS delivery
 myparcelnl_magento_dpd_settings/delivery, DPD delivery
 myparcelnl_magento_dpd_settings/pickup, DPD pickup location
+myparcelnl_magento_dpd_settings/mailbox, DPD mailbox
 myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
 no_account_settings, No account settings found. Press the import button in general configuration to fetch account settings.
 manage_drop_off_point, Manage your default drop-off point in the

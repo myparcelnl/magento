@@ -53,6 +53,7 @@ myparcelnl_magento_dhlparcelconnect_settings/delivery, Livraison DHL Parcel Conn
 myparcelnl_magento_dhlparcelconnect_settings/pickup, Collecte DHL Parcel Connect
 myparcelnl_magento_ups_settings/delivery, Livraison UPS
 myparcelnl_magento_dpd_settings/delivery, Livraison DPD
+myparcelnl_magento_dpd_settings/mailbox, Boîte aux lettres DPD
 myparcelnl_magento_error_no_shipments_to_process, Non-pas d' envois MyParcel à traiter.
 package_small,Petit paquet
 Packet,Petit paquet
