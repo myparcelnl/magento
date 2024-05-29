@@ -25,6 +25,7 @@ use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -37,6 +38,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private const  CARRIERS_WITH_MAILBOX       = [
         CarrierPostNL::NAME,
         CarrierDHLForYou::NAME,
+        CarrierDPD::NAME,
     ];
     public const  CARRIERS_WITH_DIGITAL_STAMP = [
         CarrierPostNL::NAME,

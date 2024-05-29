@@ -85,6 +85,7 @@ define(
         'myparcelnl_magento_ups_settings/delivery': 'config.carrierSettings.ups.priceStandardDelivery',
         'myparcelnl_magento_dpd_settings/delivery': 'config.carrierSettings.dpd.priceStandardDelivery',
         'myparcelnl_magento_dpd_settings/pickup': 'config.carrierSettings.dpd.pricePickup',
+        'myparcelnl_magento_dpd_settings/mailbox': 'config.carrierSettings.dpd.pricePackageTypeMailbox',
       },
 
       /**
