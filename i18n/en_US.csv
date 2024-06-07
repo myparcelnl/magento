@@ -57,3 +57,5 @@ package_small, Small package
 show_total_price, Show total price
 show_surcharge_price, Show surcharge
 Automate 'Large format',Automate 'Larger than 100 x 70 x 58 cm or heavier than 23 kg'
+Large package,Larger than 100 x 70 x 58 cm or heavier than 23 kg
+
