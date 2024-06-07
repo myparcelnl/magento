@@ -84,7 +84,7 @@ class Checkout
      */
     public function getDeliveryOptions(array $forAddress = []): array
     {
-        $this->helper->setBasePriceFromQuote($this->quoteId);
+        $this->helper->setBasePriceFromQuote((int) $this->quoteId, $forAddress);
         $this->hideDeliveryOptionsForProduct();
 
         if (isset($forAddress['countryId'])) {
