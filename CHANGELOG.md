@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.15.0](https://github.com/myparcelnl/magento/compare/v4.14.4...v4.15.0) (2024-06-10)
+
+
+### :bug: Bug Fixes
+
+* **checkout:** fix mailbox options ([#844](https://github.com/myparcelnl/magento/issues/844)) ([495ea80](https://github.com/myparcelnl/magento/commit/495ea806b057745435e2ab38566a7548fefbf7e7))
+
+
+### :sparkles: New Features
+
+* add mailbox to dpd ([#843](https://github.com/myparcelnl/magento/issues/843)) ([0fbd8ee](https://github.com/myparcelnl/magento/commit/0fbd8eef099f7f21b03d8bafe0c99a78680d801b))
+* change large package name ([#845](https://github.com/myparcelnl/magento/issues/845)) ([50fc945](https://github.com/myparcelnl/magento/commit/50fc945806d85ccee1ee3038f577a3e3015ce026))
+
 ## [4.14.4](https://github.com/myparcelnl/magento/compare/v4.14.3...v4.14.4) (2024-05-13)
 
 
