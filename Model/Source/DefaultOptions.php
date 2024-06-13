@@ -14,6 +14,7 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use BadMethodCallException;
+use Exception;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
@@ -67,7 +68,7 @@ class DefaultOptions
             self::$chosenOptions = DeliveryOptionsAdapterFactory::create(
                 (array) json_decode($order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)
             )->toArray();
-        } catch (BadMethodCallException $e) {
+        } catch (Exception $e) {
             self::$chosenOptions = [];
         }
     }
