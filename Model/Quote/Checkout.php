@@ -236,7 +236,7 @@ class Checkout
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath),
-                'allowMondayDelivery'   => $canHaveMonday && $this->helper->getBoolConfig($carrierPath, 'general/monday_delivery_active'),
+                'allowMondayDelivery'   => $canHaveMonday && $this->helper->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->helper->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
 
                 'dropOffDays'           => $this->getDropOffDays($carrierPath),
