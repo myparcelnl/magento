@@ -881,7 +881,6 @@
                     <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\ROW</source_model>
                     <tooltip>A custom row insurance price within a range of possibilities.</tooltip>
                 </field>
-<!--                todo: validatie dat de waarde hoogstens 100 is en minstens 0-->
                 <field id="insurance_percentage" translate="label comment" type="text" sortOrder="236" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Insure orders for percentage</label>
                     <validate>validate-number validate-number-range number-range-0-100</validate>
