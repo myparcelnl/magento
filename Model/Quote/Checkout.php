@@ -68,10 +68,6 @@ class Checkout
         $this->cart     = $cart->getQuote();
         $this->package  = $package;
         $this->currency = $currency;
-
-        $this->package->setMailboxSettings();
-        $this->package->setDigitalStampSettings();
-        $this->package->setPackageSmallSettings();
     }
 
     /**
@@ -374,6 +370,10 @@ class Checkout
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
         $canHaveMailbox      = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
         $canHavePackageSmall = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
+
+        $this->package->setMailboxSettings($carrierPath);
+        $this->package->setDigitalStampSettings($carrierPath);
+        $this->package->setPackageSmallSettings($carrierPath);
 
         if ($canHaveMailbox) {
             if (AbstractConsignment::CC_NL === $country) {

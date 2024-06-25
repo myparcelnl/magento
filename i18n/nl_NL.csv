@@ -46,6 +46,7 @@ myparcelnl_magento_dhlforyou_settings/delivery/signature, DHL For You bezorging 
 myparcelnl_magento_dhlforyou_settings/delivery/only_recipient, DHL For You bezorging met alleen ontvanger
 myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, DHL For You bezorging met alleen ontvanger en handtekening
 myparcelnl_magento_dhlforyou_settings/pickup, DHL For You afhaallocatie
+myparcelnl_magento_dhlforyou_settings/mailbox, DHL For You brievenbuspakje
 myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus bezorging
 myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorging
 myparcelnl_magento_dhlparcelconnect_settings/pickup, DHL Parcel Connect afhaallocatie
