@@ -364,105 +364,35 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <tooltip>The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.</tooltip>
                 </field>
-                <field id="insurance_100_active" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 100'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_100_from_price" translate="label comment" type="text" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
+                <field id="insurance_from_price" translate="label comment" type="text" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders from (€)</label>
                     <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.</tooltip>
-                    <depends>
-                        <field id="insurance_100_active">1</field>
-                    </depends>
+                    <tooltip>The minimum amount from when insurance is active.</tooltip>
                 </field>
-                <field id="insurance_250_active" translate="label" type="select" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 250'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="insurance_local_amount" translate="label comment" type="select" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\Local</source_model>
+                    <tooltip>This setting applies to domestic shipments only</tooltip>
                 </field>
-                <field id="insurance_250_from_price" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 250' operates above a certain order total amount. Only for Dutch shipments, shipments outside of the EU are insured up to € 200 by default.</tooltip>
-                    <depends>
-                        <field id="insurance_250_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_500_active" translate="label" type="select" sortOrder="252" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 500'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_500_from_price" translate="label comment" type="text" sortOrder="253" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 500' operates above a certain order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_500_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_custom_active" translate="label" type="select" sortOrder="254" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insure custom active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_custom_amount" translate="label comment" type="select" sortOrder="255" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insured amount</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\PostNLInsurancePossibilities</source_model>
-                    <tooltip>A custom insurance price within a range of possibilities.</tooltip>
-                    <depends>
-                        <field id="insurance_custom_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_custom_from_price" translate="label comment" type="text" sortOrder="256" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance custom' operates above a certain custom order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_custom_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_belgium_custom_active" translate="label" type="select" sortOrder="257" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insure shipments to Belgium'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_belgium_custom_amount" translate="label comment" type="select" sortOrder="258" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insured BE amount</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\PostNLInsurancePossibilities</source_model>
+                <field id="insurance_belgium_amount" translate="label comment" type="select" sortOrder="233" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (BE)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\Belgium</source_model>
                     <tooltip>A custom be insurance price within a range of possibilities.</tooltip>
-                    <depends>
-                        <field id="insurance_belgium_custom_active">1</field>
-                    </depends>
                 </field>
-                <field id="insurance_belgium_custom_from_price" translate="label comment" type="text" sortOrder="259" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance be custom' operates above a certain custom order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_belgium_custom_active">1</field>
-                    </depends>
+                <field id="insurance_eu_amount" translate="label comment" type="select" sortOrder="234" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (EU)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\EU</source_model>
+                    <tooltip>A custom eu insurance price within a range of possibilities.</tooltip>
                 </field>
-                <field id="insurance_eu_50_active" translate="label" type="select" sortOrder="260" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance EU € 50'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="insurance_row_amount" translate="label comment" type="select" sortOrder="235" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (ROW)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\ROW</source_model>
+                    <tooltip>A custom row insurance price within a range of possibilities.</tooltip>
                 </field>
-                <field id="insurance_eu_50_from_price" translate="label comment" type="text" sortOrder="261" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance EU € 50' operates above a certain order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_eu_50_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_eu_500_active" translate="label" type="select" sortOrder="262" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance EU € 500'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_eu_500_from_price" translate="label comment" type="text" sortOrder="263" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance EU € 500' operates above a certain order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_eu_500_active">1</field>
-                    </depends>
+                <field id="insurance_percentage" translate="label comment" type="text" sortOrder="236" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders for percentage</label>
+                    <validate>validate-number validate-number-range number-range-0-100</validate>
+                    <tooltip>Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.</tooltip>
                 </field>
             </group>
             <group id="digital_stamp" translate="label" type="text " sortOrder="330" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -766,61 +696,25 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <tooltip>Activating the 'hide sender' option will remove the name and address of the sender from the label</tooltip>
                 </field>
-                <field id="insurance_100_active" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 100'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_100_from_price" translate="label comment" type="text" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
+                <field id="insurance_from_price" translate="label comment" type="text" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders from (€)</label>
                     <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.</tooltip>
-                    <depends>
-                        <field id="insurance_100_active">1</field>
-                    </depends>
+                    <tooltip>The minimum amount from when insurance is active.</tooltip>
                 </field>
-                <field id="insurance_250_active" translate="label" type="select" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 250'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="insurance_local_amount" translate="label comment" type="select" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLForYou\Local</source_model>
+                    <tooltip>This setting applies to domestic shipments only</tooltip>
                 </field>
-                <field id="insurance_250_from_price" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 250' operates above a certain order total amount. Only for Dutch shipments, shipments outside of the EU are insured up to € 200 by default.</tooltip>
-                    <depends>
-                        <field id="insurance_250_active">1</field>
-                    </depends>
+                <field id="insurance_belgium_amount" translate="label comment" type="select" sortOrder="233" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (BE)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLForYou\Belgium</source_model>
+                    <tooltip>A custom be insurance price within a range of possibilities.</tooltip>
                 </field>
-                <field id="insurance_500_active" translate="label" type="select" sortOrder="252" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 500'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_500_from_price" translate="label comment" type="text" sortOrder="253" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 500' operates above a certain order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_500_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_custom_active" translate="label" type="select" sortOrder="254" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insure custom active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_custom_amount" translate="label comment" type="select" sortOrder="255" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insured amount</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\PostNLInsurancePossibilities</source_model>
-                    <tooltip>A custom insurance price within a range of possibilities.</tooltip>
-                    <depends>
-                        <field id="insurance_custom_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_custom_from_price" translate="label comment" type="text" sortOrder="256" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance custom' operates above a certain custom order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_custom_active">1</field>
-                    </depends>
+                <field id="insurance_percentage" translate="label comment" type="text" sortOrder="236" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders for percentage</label>
+                    <validate>validate-number validate-number-range number-range-0-100</validate>
+                    <tooltip>Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.</tooltip>
                 </field>
             </group>
             <group id="mailbox" translate="label" type="text" sortOrder="350" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -962,61 +856,36 @@
             <group id="default_options" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
                 <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
-                <field id="insurance_100_active" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 100'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_100_from_price" translate="label comment" type="text" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
+                <field id="insurance_from_price" translate="label comment" type="text" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders from (€)</label>
                     <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.</tooltip>
-                    <depends>
-                        <field id="insurance_100_active">1</field>
-                    </depends>
+                    <tooltip>The minimum amount from when insurance is active.</tooltip>
                 </field>
-                <field id="insurance_250_active" translate="label" type="select" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 250'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="insurance_local_amount" translate="label comment" type="select" sortOrder="232" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\Local</source_model>
+                    <tooltip>This setting applies to domestic shipments only</tooltip>
                 </field>
-                <field id="insurance_250_from_price" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 250' operates above a certain order total amount. Only for Dutch shipments, shipments outside of the EU are insured up to € 200 by default.</tooltip>
-                    <depends>
-                        <field id="insurance_250_active">1</field>
-                    </depends>
+                <field id="insurance_belgium_amount" translate="label comment" type="select" sortOrder="233" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (BE)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\Belgium</source_model>
+                    <tooltip>A custom be insurance price within a range of possibilities.</tooltip>
                 </field>
-                <field id="insurance_500_active" translate="label" type="select" sortOrder="252" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 500'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="insurance_eu_amount" translate="label comment" type="select" sortOrder="234" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (EU)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\EU</source_model>
+                    <tooltip>A custom eu insurance price within a range of possibilities.</tooltip>
                 </field>
-                <field id="insurance_500_from_price" translate="label comment" type="text" sortOrder="253" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 500' operates above a certain order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_500_active">1</field>
-                    </depends>
+                <field id="insurance_row_amount" translate="label comment" type="select" sortOrder="235" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (ROW)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\ROW</source_model>
+                    <tooltip>A custom row insurance price within a range of possibilities.</tooltip>
                 </field>
-                <field id="insurance_custom_active" translate="label" type="select" sortOrder="254" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insure custom active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_custom_amount" translate="label comment" type="select" sortOrder="255" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insured amount</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\PostNLInsurancePossibilities</source_model>
-                    <tooltip>A custom insurance price within a range of possibilities.</tooltip>
-                    <depends>
-                        <field id="insurance_custom_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_custom_from_price" translate="label comment" type="text" sortOrder="256" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance custom' operates above a certain custom order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_custom_active">1</field>
-                    </depends>
+<!--                todo: validatie dat de waarde hoogstens 100 is en minstens 0-->
+                <field id="insurance_percentage" translate="label comment" type="text" sortOrder="236" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders for percentage</label>
+                    <validate>validate-number validate-number-range number-range-0-100</validate>
+                    <tooltip>Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.</tooltip>
                 </field>
             </group>
         </section>
@@ -1122,61 +991,25 @@
             <group id="default_options" translate="label comment" type="text" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
                 <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
-                <field id="insurance_100_active" translate="label" type="select" sortOrder="240" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 100'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_100_from_price" translate="label comment" type="text" sortOrder="241" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
+                <field id="insurance_from_price" translate="label comment" type="text" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders from (€)</label>
                     <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 100' operates above a certain order total amount. Only for dutch shipments.</tooltip>
-                    <depends>
-                        <field id="insurance_100_active">1</field>
-                    </depends>
+                    <tooltip>The minimum amount from when insurance is active.</tooltip>
                 </field>
-                <field id="insurance_250_active" translate="label" type="select" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 250'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="insurance_eu_amount" translate="label comment" type="select" sortOrder="234" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (EU)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\EU</source_model>
+                    <tooltip>A custom eu insurance price within a range of possibilities.</tooltip>
                 </field>
-                <field id="insurance_250_from_price" translate="label comment" type="text" sortOrder="251" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 250' operates above a certain order total amount. Only for Dutch shipments, shipments outside of the EU are insured up to € 200 by default.</tooltip>
-                    <depends>
-                        <field id="insurance_250_active">1</field>
-                    </depends>
+                <field id="insurance_row_amount" translate="label comment" type="select" sortOrder="235" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (ROW)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\ROW</source_model>
+                    <tooltip>A custom row insurance price within a range of possibilities.</tooltip>
                 </field>
-                <field id="insurance_500_active" translate="label" type="select" sortOrder="252" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Automate 'Insurance € 500'</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_500_from_price" translate="label comment" type="text" sortOrder="253" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance € 500' operates above a certain order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_500_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_custom_active" translate="label" type="select" sortOrder="254" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insure custom active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
-                <field id="insurance_custom_amount" translate="label comment" type="select" sortOrder="255" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Insured amount</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\PostNLInsurancePossibilities</source_model>
-                    <tooltip>A custom insurance price within a range of possibilities.</tooltip>
-                    <depends>
-                        <field id="insurance_custom_active">1</field>
-                    </depends>
-                </field>
-                <field id="insurance_custom_from_price" translate="label comment" type="text" sortOrder="256" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>From price</label>
-                    <validate>validate-number validate-zero-or-greater</validate>
-                    <tooltip>'Insurance custom' operates above a certain custom order total amount.</tooltip>
-                    <depends>
-                        <field id="insurance_custom_active">1</field>
-                    </depends>
+                <field id="insurance_percentage" translate="label comment" type="text" sortOrder="236" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders for percentage</label>
+                    <validate>validate-number validate-number-range number-range-0-100</validate>
+                    <tooltip>Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.</tooltip>
                 </field>
             </group>
             <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1">
