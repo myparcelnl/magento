@@ -139,7 +139,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         /** @var \Magento\Quote\Model\Quote\Address\RateRequest $result */
         $result = $this->_rateFactory->create();
         $result = $this->addShippingMethods($result);
-die(' werhwefhewiurhkjw');
+
         return $result;
     }
 
