@@ -22,6 +22,7 @@ use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
+use Magento\Quote\Model\Cart\ShippingMethod;
 use Magento\Quote\Model\ShippingMethodManagement;
 use MyParcelNL\Magento\Model\Rate\Result;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
@@ -108,44 +109,27 @@ class Checkout extends Data
     /**
      * Set shipping base price
      *
-     * @param \Magento\Quote\Model\Quote $quoteId
-     *
+     * @param int $quoteId
+     * @param array $forAddress
      * @return Checkout
      */
-    public function setBasePriceFromQuote($quoteId)
+    public function setBasePriceFromQuote(int $quoteId, array $forAddress = []): Checkout
     {
-        $price = $this->getParentRatePriceFromQuote($quoteId);
+        $method = $this->getParentRateFromQuote($quoteId, $forAddress);
+        $price  = ($method) ? $method->getPriceInclTax() : 0;
+
         $this->setBasePrice((double) $price);
 
         return $this;
     }
 
     /**
-     * @param \Magento\Quote\Model\Quote $quoteId
-     *
-     * @return string
+     * @param int $quoteId
+     * @param array $forAddress
+     * @return ShippingMethod|null
      */
-    public function getParentRatePriceFromQuote($quoteId)
+    public function getParentRateFromQuote(int $quoteId, array $forAddress = [])
     {
-        $method = $this->getParentRateFromQuote($quoteId);
-        if ($method === null) {
-            return null;
-        }
-
-        return $method->getPriceInclTax();
-    }
-
-    /**
-     * @param \Magento\Quote\Model\Quote $quoteId
-     *
-     * @return \Magento\Quote\Model\Cart\ShippingMethod|null
-     */
-    public function getParentRateFromQuote($quoteId, array $forAddress = [])
-    {
-        if (null === $quoteId) {
-            return null;
-        }
-
         $parentCarriers   = explode(',', $this->getGeneralConfig('shipping_methods/methods') ?? '');
 
         /**
@@ -185,7 +169,7 @@ class Checkout extends Data
         $address = $this->estimatedAddressFactory->create();
 
         if (isset($fromClient['countryId'])) {
-            $address->setCountryId($fromClient['countryId'] ?? self::DEFAULT_COUNTRY_CODE);
+            $address->setCountryId($fromClient['countryId']);
             $address->setPostcode($fromClient['postcode'] ??  '');
             $address->setRegion($fromClient['region'] ??  '');
         } else {
