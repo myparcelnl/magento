@@ -48,6 +48,12 @@
 
         <myparcelnl_magento_postnl_settings>
             <default_options>
+                <insurance_from_price>0</insurance_from_price>
+                <insurance_local_amount>0</insurance_local_amount>
+                <insurance_belgium_amount>0</insurance_belgium_amount>
+                <insurance_eu_amount>0</insurance_eu_amount>
+                <insurance_row_amount>0</insurance_row_amount>
+                <insurance_percentage>0</insurance_percentage>
                 <signature_active>0</signature_active>
                 <signature_from_price>1</signature_from_price>
                 <only_recipient_active>0</only_recipient_active>
@@ -57,18 +63,6 @@
                 <large_format_active>No</large_format_active>
                 <large_format_from_price>1</large_format_from_price>
                 <age_check_active>0</age_check_active>
-                <insurance_100_active>0</insurance_100_active>
-                <insurance_100_from_price>1</insurance_100_from_price>
-                <insurance_250_active>0</insurance_250_active>
-                <insurance_250_from_price>1</insurance_250_from_price>
-                <insurance_500_active>0</insurance_500_active>
-                <insurance_500_from_price>1</insurance_500_from_price>
-                <insurance_custom_active>0</insurance_custom_active>
-                <insurance_custom_amount>1000</insurance_custom_amount>
-                <insurance_custom_from_price>1</insurance_custom_from_price>
-                <insurance_belgium_custom_active>0</insurance_belgium_custom_active>
-                <insurance_belgium_custom_amount>0</insurance_belgium_custom_amount>
-                <insurance_belgium_custom_from_price>1</insurance_belgium_custom_from_price>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
@@ -121,18 +115,10 @@
                 <only_recipient_active>0</only_recipient_active>
                 <only_recipient_from_price>1</only_recipient_from_price>
                 <age_check_active>0</age_check_active>
-                <insurance_100_active>0</insurance_100_active>
-                <insurance_100_from_price>1</insurance_100_from_price>
-                <insurance_250_active>0</insurance_250_active>
-                <insurance_250_from_price>1</insurance_250_from_price>
-                <insurance_500_active>0</insurance_500_active>
-                <insurance_500_from_price>1</insurance_500_from_price>
-                <insurance_custom_active>0</insurance_custom_active>
-                <insurance_custom_amount>1000</insurance_custom_amount>
-                <insurance_custom_from_price>1</insurance_custom_from_price>
-                <insurance_belgium_custom_active>0</insurance_belgium_custom_active>
-                <insurance_belgium_custom_amount>0</insurance_belgium_custom_amount>
-                <insurance_belgium_custom_from_price>1</insurance_belgium_custom_from_price>
+                <insurance_from_price>0</insurance_from_price>
+                <insurance_local_amount>0</insurance_local_amount>
+                <insurance_belgium_amount>0</insurance_belgium_amount>
+                <insurance_percentage>0</insurance_percentage>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
@@ -164,18 +150,12 @@
 
         <myparcelnl_magento_dhleuroplus_settings>
             <default_options>
-                <insurance_100_active>0</insurance_100_active>
-                <insurance_100_from_price>1</insurance_100_from_price>
-                <insurance_250_active>0</insurance_250_active>
-                <insurance_250_from_price>1</insurance_250_from_price>
-                <insurance_500_active>0</insurance_500_active>
-                <insurance_500_from_price>1</insurance_500_from_price>
-                <insurance_custom_active>0</insurance_custom_active>
-                <insurance_custom_amount>1000</insurance_custom_amount>
-                <insurance_custom_from_price>1</insurance_custom_from_price>
-                <insurance_belgium_custom_active>0</insurance_belgium_custom_active>
-                <insurance_belgium_custom_amount>0</insurance_belgium_custom_amount>
-                <insurance_belgium_custom_from_price>1</insurance_belgium_custom_from_price>
+                <insurance_from_price>0</insurance_from_price>
+                <insurance_local_amount>0</insurance_local_amount>
+                <insurance_belgium_amount>0</insurance_belgium_amount>
+                <insurance_eu_amount>0</insurance_eu_amount>
+                <insurance_row_amount>0</insurance_row_amount>
+                <insurance_percentage>0</insurance_percentage>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
@@ -192,18 +172,10 @@
 
         <myparcelnl_magento_dhlparcelconnect_settings>
             <default_options>
-                <insurance_100_active>0</insurance_100_active>
-                <insurance_100_from_price>1</insurance_100_from_price>
-                <insurance_250_active>0</insurance_250_active>
-                <insurance_250_from_price>1</insurance_250_from_price>
-                <insurance_500_active>0</insurance_500_active>
-                <insurance_500_from_price>1</insurance_500_from_price>
-                <insurance_custom_active>0</insurance_custom_active>
-                <insurance_custom_amount>1000</insurance_custom_amount>
-                <insurance_custom_from_price>1</insurance_custom_from_price>
-                <insurance_belgium_custom_active>0</insurance_belgium_custom_active>
-                <insurance_belgium_custom_amount>0</insurance_belgium_custom_amount>
-                <insurance_belgium_custom_from_price>1</insurance_belgium_custom_from_price>
+                <insurance_from_price>0</insurance_from_price>
+                <insurance_eu_amount>0</insurance_eu_amount>
+                <insurance_row_amount>0</insurance_row_amount>
+                <insurance_percentage>0</insurance_percentage>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
