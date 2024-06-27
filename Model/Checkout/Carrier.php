@@ -176,8 +176,7 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     public function getAllowedMethods()
     {
-        $methods = self::getMethods();
-        return $methods;
+        return self::getMethods();
     }
 
     /**

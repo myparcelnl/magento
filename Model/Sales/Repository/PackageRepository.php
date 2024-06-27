@@ -291,7 +291,7 @@ class PackageRepository extends Package
         $settings = $this->getConfigValue("{$carrierPath}package_small");
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
-            $this->_logger->critical("Can't set settings with path: {$carrierPath}digital_stamp");
+            $this->_logger->critical("Can't set settings with path: {$carrierPath}package_small");
 
             return $this;
         }
