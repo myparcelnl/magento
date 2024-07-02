@@ -194,15 +194,15 @@ class Checkout extends Data
      */
     public function getMethodPrice(string $carrier, string $key, bool $addBasePrice = true): float
     {
-        $value = $this->getCarrierConfig($key, $carrier);
-        $showTotalPrice   = $this->getCarrierConfig('shipping_methods/delivery_options_prices', Data::XML_PATH_GENERAL) === PriceDeliveryOptionsView::TOTAL;
+        $value = (float) $this->getCarrierConfig($key, $carrier);
+        $showTotalPrice = $this->getCarrierConfig('shipping_methods/delivery_options_prices', Data::XML_PATH_GENERAL) === PriceDeliveryOptionsView::TOTAL;
 
         if ($showTotalPrice && $addBasePrice) {
             // Calculate value
-            $value = $this->getBasePrice() + $value;
+            $value = (float) $this->getBasePrice() + $value;
         }
 
-        return (float) $value;
+        return $value;
     }
 
     /**
