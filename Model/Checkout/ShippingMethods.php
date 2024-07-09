@@ -35,7 +35,7 @@ class ShippingMethods implements ShippingMethodsInterface
      */
     public function getFromDeliveryOptions($deliveryOptions): array
     {
-        if (!$deliveryOptions[0]) {
+        if (! $deliveryOptions[0]) {
             return [];
         }
 
@@ -49,7 +49,7 @@ class ShippingMethods implements ShippingMethodsInterface
             ];
         } catch (Exception $e) {
             $response = [
-                'code' => '422',
+                'code'    => '422',
                 'message' => $e->getMessage(),
             ];
         }
