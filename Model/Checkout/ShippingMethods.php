@@ -5,6 +5,7 @@ namespace MyParcelNL\Magento\Model\Checkout;
 use Exception;
 use Magento\Checkout\Model\Session;
 use MyParcelNL\Magento\Api\ShippingMethodsInterface;
+use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 
 /**
  * @since 3.0.0
@@ -23,7 +24,7 @@ class ShippingMethods implements ShippingMethodsInterface
      */
     public function __construct(Session $session)
     {
-        $this->session       = $session;
+        $this->session = $session;
     }
 
     /**
@@ -68,12 +69,13 @@ class ShippingMethods implements ShippingMethodsInterface
     public function persistDeliveryOptions(array $deliveryOptions): array
     {
         $quote = $this->session->getQuote();
-        $quote->addData(['myparcel_delivery_options' => json_encode($deliveryOptions)]);
+        $adapted = DeliveryOptionsAdapterFactory::create($deliveryOptions);
+        $quote->addData(['myparcel_delivery_options' => json_encode($adapted->toArray())]);
         $quote->save();
 
         return [
             'delivery_options' => $deliveryOptions,
-            'message'          => 'Delivery options persisted in quote ' . $quote->getId(),
+            'message' => "Delivery options persisted in quote {$quote->getId()}",
         ];
     }
 }
