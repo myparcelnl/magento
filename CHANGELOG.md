@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.15.1](https://github.com/myparcelnl/magento/compare/v4.15.0...v4.15.1) (2024-07-11)
+
+
+### :bug: Bug Fixes
+
+* allow exporting without delivery options ([#848](https://github.com/myparcelnl/magento/issues/848)) ([7f88b09](https://github.com/myparcelnl/magento/commit/7f88b09e0fb2bf80801ab3ea04b333f3e2c9a45c))
+* allow package type mailbox when postnl is disabled ([#850](https://github.com/myparcelnl/magento/issues/850)) ([c3357eb](https://github.com/myparcelnl/magento/commit/c3357eb1f30f54b1f2b28450961ee3d0a9bfb136))
+* **checkout:** honor monday delivery setting ([#849](https://github.com/myparcelnl/magento/issues/849)) ([359eef0](https://github.com/myparcelnl/magento/commit/359eef0c1fc27f929478ad3da81ada91a926d1f8))
+* **checkout:** show delivery options also when totalprice is chosen ([#852](https://github.com/myparcelnl/magento/issues/852)) ([0408cad](https://github.com/myparcelnl/magento/commit/0408cad82248c0d02206ed08e03897c198354601))
+* **checkout:** show delivery options even if not all mailbox settings are present ([#853](https://github.com/myparcelnl/magento/issues/853)) ([cfc33e8](https://github.com/myparcelnl/magento/commit/cfc33e8a6d8126a40c9b37702de8574fc52dd940))
+* **checkout:** take carrier specific mailbox weight into account ([#855](https://github.com/myparcelnl/magento/issues/855)) ([6ce5131](https://github.com/myparcelnl/magento/commit/6ce513178c424ac7ba8c3d2af5bc68a3fb0dc324))
+* **checkout:** update shipping price in delivery options on change ([#846](https://github.com/myparcelnl/magento/issues/846)) ([52bc15f](https://github.com/myparcelnl/magento/commit/52bc15f0ba7a6dc16b04afb11dc66b559c2611ba))
+* **checkout:** use backwards compatible delivery options ([#854](https://github.com/myparcelnl/magento/issues/854)) ([f8727ee](https://github.com/myparcelnl/magento/commit/f8727ee850f7c9dadcd5fcf8f40bf5c06f9a5c06))
+* prevent dhl shipments being rejected for size ([#851](https://github.com/myparcelnl/magento/issues/851)) ([cec93a9](https://github.com/myparcelnl/magento/commit/cec93a9baeb3f734db91a1726944ae08e5578cf9))
+
 ## [4.15.0](https://github.com/myparcelnl/magento/compare/v4.14.4...v4.15.0) (2024-06-10)
 
 
