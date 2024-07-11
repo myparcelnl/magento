@@ -172,6 +172,8 @@ class PackageRepository extends Package
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
             $this->_logger->critical("Can't set settings with path: {$carrierPath}mailbox");
+
+            return $this;
         }
 
         $this->setMailboxActive('1' === $settings['active']);
