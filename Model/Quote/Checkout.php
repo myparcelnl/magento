@@ -221,7 +221,9 @@ class Checkout
                 && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             if ($allowDeliveryOptions && $packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
-                $allowDeliveryOptions = $this->helper->getBoolConfig($carrierPath, 'mailbox/active');
+                $this->package->setMailboxSettings($carrierPath);
+                $allowDeliveryOptions = $this->helper->getBoolConfig($carrierPath, 'mailbox/active')
+                    && $this->package->getMaxMailboxWeight() >= $this->package->getWeight();
             }
 
             $myParcelConfig['carrierSettings'][$carrier] = [
