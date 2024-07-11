@@ -61,14 +61,14 @@
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
             <argument name="carrierName" xsi:type="string">postnl</argument>
-            <argument name="type" xsi:type="string">europe</argument>
+            <argument name="type" xsi:type="string">EU</argument>
         </arguments>
     </virtualType>
 
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
             <argument name="carrierName" xsi:type="string">postnl</argument>
-            <argument name="type" xsi:type="string">row</argument>
+            <argument name="type" xsi:type="string">ROW</argument>
         </arguments>
     </virtualType>
 
@@ -105,14 +105,14 @@
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
             <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
-            <argument name="type" xsi:type="string">europe</argument>
+            <argument name="type" xsi:type="string">EU</argument>
         </arguments>
     </virtualType>
 
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
             <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
-            <argument name="type" xsi:type="string">row</argument>
+            <argument name="type" xsi:type="string">ROW</argument>
         </arguments>
     </virtualType>
 
@@ -120,14 +120,14 @@
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
             <argument name="carrierName" xsi:type="string">dhlparcelconnect</argument>
-            <argument name="type" xsi:type="string">europe</argument>
+            <argument name="type" xsi:type="string">EU</argument>
         </arguments>
     </virtualType>
 
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
             <argument name="carrierName" xsi:type="string">dhlparcelconnect</argument>
-            <argument name="type" xsi:type="string">row</argument>
+            <argument name="type" xsi:type="string">ROW</argument>
         </arguments>
     </virtualType>
 </config>

@@ -8,6 +8,7 @@ use Exception;
 use Magento\Framework\Data\OptionSourceInterface;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Services\CountryCodes;
 
 abstract class AbstractInsurancePossibilities implements OptionSourceInterface
 {
@@ -48,6 +49,12 @@ abstract class AbstractInsurancePossibilities implements OptionSourceInterface
         }
         if ($this->type === AbstractConsignment::CC_BE) {
             $cc = AbstractConsignment::CC_BE;
+        }
+        if ($this->type === CountryCodes::ZONE_EU) {
+            $cc = CountryCodes::ZONE_EU;
+        }
+        if ($this->type === CountryCodes::ZONE_ROW) {
+            $cc = CountryCodes::ZONE_ROW;
         }
 
         return array_reduce($this->getInsurancePossibilitiesArray($cc), static function ($array, $insuranceValue) {
