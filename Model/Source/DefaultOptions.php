@@ -34,7 +34,6 @@ class DefaultOptions
      * @deprecated
      */
     private const INSURANCE_BELGIUM          = 'insurance_belgium_custom';
-//    private const INSURANCE_BELGIUM_AMOUNT   = 500;
     /**
      * @deprecated
      */
@@ -214,50 +213,6 @@ class DefaultOptions
         }
 
         return $this->getInsurance($carrier, self::INSURANCE_ROW_AMOUNT, $shippingCountry);
-    }
-
-    /**
-     * @param string $carrier
-     * @param string $shippingCountry
-     * @return int
-     * @throws Exception
-     */
-    private function getDefaultEuInsurance(string $carrier, string $shippingCountry): int
-    {
-        if ($this->hasDefault(self::INSURANCE_EU_AMOUNT, $carrier)) {
-            return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT, $shippingCountry);
-        }
-
-        return 0;
-    }
-
-    /**
-     * @param string $carrier
-     * @param string $shippingCountry
-     * @return int
-     * @throws Exception
-     */
-    private function getDefaultBeInsurance(string $carrier, string $shippingCountry): int
-    {
-        if ($this->hasDefault(self::INSURANCE_BELGIUM_AMOUNT, $carrier)) {
-            return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT, $shippingCountry);
-        }
-
-        return 0;
-    }
-
-    /**
-     * @param string $carrier
-     * @param string $shippingCountry
-     * @return int
-     * @throws Exception
-     */
-    private function getDefaultLocalInsurance(string $carrier, string $shippingCountry): int
-    {
-        if ($this->hasDefault(self::INSURANCE_LOCAL_AMOUNT, $carrier)) {
-            return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT, $shippingCountry);
-        }
-        return 0;
     }
 
     /**
