@@ -125,27 +125,7 @@ class DefaultOptions
             return true;
         }
 
-//        $total     = self::$order->getGrandTotal();
-//        $settings  = self::$helper->getStandardConfig($carrier, 'default_options');
-//        $activeKey = "{$option}_active";
-//
-//        if (! isset($settings[$activeKey])) {
-//            return false;
-//        }
-//
-//        $priceKey = "{$option}_from_price";
-//
-//        return '1' === $settings[$activeKey]
-//            && (! ($settings[$priceKey] ?? false) || $total > (int) $settings[$priceKey]);
-
-
-        $total     = self::$order->getGrandTotal();
-        $settings  = self::$helper->getStandardConfig($carrier, 'default_options');
-        $totalAfterPercentage = $total * ($settings["insurance_percentage"] / 100);
-
-        return  isset($settings[$option])
-                && $settings[$option] !== 0
-                && $settings["insurance_from_price"] <= $totalAfterPercentage;
+        return false;
     }
 
     /**
@@ -222,23 +202,18 @@ class DefaultOptions
         $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : AbstractConsignment::CC_NL;
 
         if (AbstractConsignment::CC_NL === $shippingCountry) {
-            $localInsurance = $this->getDefaultLocalInsurance($carrier, $shippingCountry);
-            return $localInsurance;
-
+            return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT, $shippingCountry);
         }
 
         if (AbstractConsignment::CC_BE === $shippingCountry) {
-            $beInsurance = $this->getDefaultBeInsurance($carrier, $shippingCountry);
-            return $beInsurance;
+            return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT, $shippingCountry);
         }
 
         if (in_array($shippingCountry, AbstractConsignment::EURO_COUNTRIES)) {
-            $euInsurance = $this->getDefaultEuInsurance($carrier, $shippingCountry);
-            return $euInsurance;
+            return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT, $shippingCountry);
         }
 
-        //todo: is this method needed?
-        return $this->getDefaultRowInsurance($carrier);
+        return $this->getInsurance($carrier, self::INSURANCE_ROW_AMOUNT, $shippingCountry);
     }
 
     /**
@@ -290,16 +265,26 @@ class DefaultOptions
      */
     private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
     {
-        $total     = self::$order->getGrandTotal();
-        $settings  = self::$helper->getStandardConfig($carrierName, 'default_options');
-        $totalAfterPercentage = $total * ($settings["insurance_percentage"] / 100);
+        $total = self::$order->getGrandTotal();
+        $settings = self::$helper->getStandardConfig($carrierName, 'default_options');
+        $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
+
+        if (! isset($settings[$priceKey])
+            || $settings[$priceKey] === 0
+            || $totalAfterPercentage < $settings[self::INSURANCE_FROM_PRICE]) {
+            return 0;
+        }
+
         $carrier = consignmentFactory::createByCarrierName($carrierName);
         $insuranceTiers = $carrier->getInsurancePossibilities($shippingCountry);
         sort($insuranceTiers);
 
         $insurance = 0;
         foreach ($insuranceTiers as $insuranceTier) {
-            if ($totalAfterPercentage <= $insuranceTier && $insuranceTier <= $settings[$priceKey]) {
+            $totalPriceFallsIntoTier = $totalAfterPercentage <= $insuranceTier;
+            $atMaxInsuranceTier      = $insuranceTier >= $settings[$priceKey];
+
+            if ($totalPriceFallsIntoTier || $atMaxInsuranceTier) {
                 $insurance = $insuranceTier;
                 break;
             }
@@ -374,10 +359,5 @@ class DefaultOptions
     public static function getDefaultCarrier(): AbstractCarrier
     {
         return CarrierFactory::createFromClass(CarrierPostNL::class);
-    }
-
-    private function getDefaultRowInsurance(string $carrier): int
-    {
-        return 1;
     }
 }
