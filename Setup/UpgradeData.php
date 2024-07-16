@@ -854,7 +854,7 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
-        if (version_compare($context->getVersion(), '4.15.1', '<=')) {
+        if (version_compare($context->getVersion(), '4.15.2', '<')) {
             $scope = 'default';
             $scopeId = 0;
 
@@ -916,72 +916,139 @@ class UpgradeData implements UpgradeDataInterface
                 'dhlparcelconnect' => [],
             ];
 
+            //todo: 2 maak voor de andere carriers ook een soortgelijke array, let goed op dat ze niet verschillende amounts sleutels hebben.
+            // Je kan het afkijken van $newPathNames hierboven.
             $postnl = [
                 'basePath' => 'myparcelnl_magento_postnl_settings/default_options/',
                 'newPaths' => [
-                    'insurance_from_price' => 'myparcelnl_magento_postnl_settings/default_options/insurance_from_price',
-                    'amounts' =>[
-                        'insurance_local_amount' => 'myparcelnl_magento_postnl_settings/default_options/insurance_local_amount',
-                        'insurance_belgium_amount' => 'myparcelnl_magento_postnl_settings/default_options/insurance_belgium_amount',
-                        'insurance_eu_amount' => 'myparcelnl_magento_postnl_settings/default_options/insurance_eu_amount',
-                        'insurance_row_amount' => 'myparcelnl_magento_postnl_settings/default_options/insurance_row_amount',
-                    ],
-                    'insurance_percentage' => 'myparcelnl_magento_postnl_settings/default_options/insurance_percentage',
+                        'insurance_local_amount',
+                        'insurance_belgium_amount',
+                        'insurance_eu_amount',
+                        'insurance_row_amount',
                 ],
             ];
 
             $carriers = [$postnl];
-            $scope = 'default';
-            $scopeId = 0;
 
-            foreach ($carriers as $carrier) {
-                $percentage = 100;
-                $insure_from_price = 0;
-                $carrierPaths = [];
-                $basePath = $carrier['basePath'];
-
-                $updates = [
-                    $basePath . 'insurance_from_price' => $insure_from_price,
-                    $basePath . 'insurance_percentage' => $percentage,
-                ];
-
-                foreach ($oldPathNames as $oldPathName) {
-                    $carrierPaths[] = $carrier['basePath'] . $oldPathName;
-                }
-                $query = $connection->select()->from($table, ['config_id', 'path', 'value'])->where('path IN (?)', $carrierPaths);
-                $queryString = $query->__toString();
-                $rows = $connection->fetchAll($connection->select()->from($table, ['config_id', 'path', 'value'])->where('path IN (?)', $carrierPaths));
-
-                foreach ($carrier['newPaths']['amounts'] as $type => $amountPath) {
-                    if ($type === 'insurance_local_amount') {
-                        $insuranceLocalAmount = 0;
-                        $insurance100Active = $rows[$carrier['basePath'] . 'insurance_100_active'] ?? null;
-                        if ($insurance100Active && $insurance100Active['value'] === '1') {
-                            $insuranceLocalAmount = 99;
-                        }
-                        $updates[$basePath . 'insurance_local_amount'] = $insuranceLocalAmount;
+            $getFromPriceFunction = static function ($path, $rows, $insuranceFromPriceArray) {
+                foreach ($rows as $row) {
+                    if ($row['path'] === $path) {
+                        $insuranceFromPriceArray[] = $row['value'];
+                        break;
                     }
                 }
 
-                // ONTHOU DAT JE STEEDS DE VERSIE TERUG MOET ZETTEN!
-                //todo: laat dit stukje hieronder werken. Daarna kun je verder.
-                // Stap 2 voeg de rest van de logica toe
+                return $insuranceFromPriceArray;
+            };
+
+            $insuranceLocalFunction = static function ($rows, $basePath, $insuranceFromPriceArray, $getFromPriceFunction) {
+                $insuranceLocalAmount = 0;
+                foreach ($rows as $row) {
+                    if ($row['path'] === $basePath . 'insurance_100_active' && $row['value'] === '1') {
+                        $insuranceLocalAmount = 100;
+                        $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_100_from_price', $rows, $insuranceFromPriceArray);
+                    }
+                    if ($row['path'] === $basePath . 'insurance_250_active' && $row['value'] === '1') {
+                        $insuranceLocalAmount = 250;
+                        $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_250_from_price', $rows, $insuranceFromPriceArray);
+                    }
+                    if ($row['path'] === $basePath . 'insurance_500_active' && $row['value'] === '1') {
+                        $insuranceLocalAmount = 500;
+                        $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_500_from_price', $rows, $insuranceFromPriceArray);
+                    }
+                    if ($row['path'] === $basePath . 'insurance_custom_active' && $row['value'] === '1') {
+                        $insuranceLocalAmount = 'custom'; //todo: 1.5 make getCustomAmountFunction
+                        $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_custom_from_price', $rows, $insuranceFromPriceArray);
+                    }
+                }
+                if ($insuranceLocalAmount === 'custom') {
+                    foreach ($rows as $row) {
+                        if ($row['path'] === $basePath . 'insurance_custom_amount') {
+                            $insuranceLocalAmount = $row['value'];
+                            break;
+                        }
+                    }
+                }
+                return [$insuranceLocalAmount, $insuranceFromPriceArray];
+            };
+
+            $insuranceBelgiumFunction = static function ($rows, $basePath, $insuranceFromPriceArray, $getFromPriceFunction) {
+                $insuranceBelgiumAmount = 0;
+                $insuranceBelgiumActive = false;
+                foreach ($rows as $row) {
+                    if ($row['path'] === $basePath . 'insurance_belgium_custom_active' && $row['value'] === '1') {
+                        $insuranceBelgiumActive = true;
+                        $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_belgium_custom_from_price', $rows, $insuranceFromPriceArray);
+                    }
+                }
+                if ($insuranceBelgiumActive) {
+                    foreach ($rows as $row) {
+                        if ($row['path'] === $basePath . 'insurance_belgium_custom_amount') {
+                            $insuranceBelgiumAmount = $row['value'];
+                            break;
+                        }
+                    }
+                }
+                return [$insuranceBelgiumAmount, $insuranceFromPriceArray];
+            };
+
+            $insuranceEuFunction = static function ($rows, $basePath, $insuranceFromPriceArray, $getFromPriceFunction) {
+                $insuranceEuAmount = 0;
+                foreach ($rows as $row) {
+                    if ($row['path'] === $basePath . 'insurance_eu_50_active' && $row['value'] === '1') {
+                        $insuranceEuAmount = 50;
+                        $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_eu_50_from_price', $rows, $insuranceFromPriceArray);
+                    }
+                    if ($row['path'] === $basePath . 'insurance_eu_500_active' && $row['value'] === '1') {
+                        $insuranceEuAmount = 500;
+                        $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_eu_500_from_price', $rows, $insuranceFromPriceArray);
+                    }
+                }
+                return [$insuranceEuAmount, $insuranceFromPriceArray];
+            };
+
+            foreach ($carriers as $carrier) {
+                $insure_from_price_array = [];
+                $basePath = $carrier['basePath'];
+
+                $updates = [
+                    $basePath . 'insurance_percentage' => 100,
+                ];
+
+                $carrierPaths = [];
+                foreach ($oldPathNames as $oldPathName) {
+                    $carrierPaths[] = $carrier['basePath'] . $oldPathName;
+                }
+                $rows = $connection->fetchAll($connection->select()->from($table, ['config_id', 'path', 'value'])->where('path IN (?)', $carrierPaths));
+
+                foreach ($carrier['newPaths'] as $type) {
+                    if ($type === 'insurance_local_amount') {
+                        [$insuranceLocalAmount, $insure_from_price_array] = $insuranceLocalFunction($rows, $basePath, $insure_from_price_array, $getFromPriceFunction);
+                        $updates[$basePath . 'insurance_local_amount'] = $insuranceLocalAmount;
+                    }
+                    if ($type === 'insurance_belgium_amount') {
+                        [$insuranceBelgiumAmount, $insure_from_price_array] = $insuranceBelgiumFunction($rows, $basePath, $insure_from_price_array, $getFromPriceFunction);
+                        $updates[$basePath . 'insurance_belgium_amount'] = $insuranceBelgiumAmount;
+                    }
+                    if ($type === 'insurance_eu_amount') {
+                        [$insuranceEuAmount, $insure_from_price_array] = $insuranceEuFunction($rows, $basePath, $insure_from_price_array, $getFromPriceFunction);
+                        $updates[$basePath . 'insurance_eu_amount'] = $insuranceEuAmount;
+                    }
+                    if ($type === 'insurance_row_amount') {
+                        $updates[$basePath . 'insurance_row_amount'] = 0;
+                    }
+                }
+
+                // The lowest from price out of all will become the from price.
+                sort($insure_from_price_array);
+                //todo: 1 write something for when the from price array is empty and test it.
+                $updates[$basePath . 'insurance_from_price'] = $insure_from_price_array[0];
+
                 foreach ($updates as $path => $value) {
                     $connection->delete($table, ['path = ?' => $path, 'scope = ?' => $scope, 'scope_id = ?' => $scopeId]);
                     $connection->insert($table, ['path' => $path, 'value' => $value, 'scope' => $scope, 'scope_id' => $scopeId]);
                 }
             }
-
-
-
-
-            // maak een array met alle nieuwe waardes. Gebruik hiervoor de oude waardes.
-
-            // voor elke nieuwe waarde kijk je of hij al in de db staat, zo ja, dan update je hem. Zo nee, dan insert je hem.
-
-
-//            $rows = $connection->fetchAll($connection->select()->distinct()->from($table, ['scope', 'scope_id']));
-//            $connection->insert($table, ['path' => 'myparcel/florian-insert-test', 'value' => 'test waarde', 'scope' => 'default', 'scope_id' => 1]);
         }
 
         $setup->endSetup();
