@@ -893,14 +893,17 @@ class UpgradeData implements UpgradeDataInterface
                 'myparcelnl_magento_dhleuroplus_settings/default_options/'      => 'myparcelnl_magento_dhleuroplus_settings/default_options/insurance_eu_amount',
                 'myparcelnl_magento_dhleuroplus_settings/default_options/'      => 'myparcelnl_magento_dhleuroplus_settings/default_options/insurance_row_amount',
                 'myparcelnl_magento_dhleuroplus_settings/default_options/'      => 'myparcelnl_magento_dhleuroplus_settings/default_options/insurance_percentage',
+
                 'myparcelnl_magento_dhlparcelconnect_settings/default_options/' => 'myparcelnl_magento_dhlparcelconnect_settings/default_options/insurance_from_price',
                 'myparcelnl_magento_dhlparcelconnect_settings/default_options/' => 'myparcelnl_magento_dhlparcelconnect_settings/default_options/insurance_eu_amount',
                 'myparcelnl_magento_dhlparcelconnect_settings/default_options/' => 'myparcelnl_magento_dhlparcelconnect_settings/default_options/insurance_row_amount',
                 'myparcelnl_magento_dhlparcelconnect_settings/default_options/' => 'myparcelnl_magento_dhlparcelconnect_settings/default_options/insurance_percentage',
+
                 'myparcelnl_magento_dhlforyou_settings/default_options/'        => 'myparcelnl_magento_dhlforyou_settings/default_options/insurance_from_price',
                 'myparcelnl_magento_dhlforyou_settings/default_options/'        => 'myparcelnl_magento_dhlforyou_settings/default_options/insurance_local_amount',
                 'myparcelnl_magento_dhlforyou_settings/default_options/'        => 'myparcelnl_magento_dhlforyou_settings/default_options/insurance_belgium_amount',
                 'myparcelnl_magento_dhlforyou_settings/default_options/'        => 'myparcelnl_magento_dhlforyou_settings/default_options/insurance_percentage',
+
                 'myparcelnl_magento_postnl_settings/default_options/'           => 'myparcelnl_magento_postnl_settings/default_options/insurance_from_price',
                 'myparcelnl_magento_postnl_settings/default_options/'           => 'myparcelnl_magento_postnl_settings/default_options/insurance_local_amount',
                 'myparcelnl_magento_postnl_settings/default_options/'           => 'myparcelnl_magento_postnl_settings/default_options/insurance_belgium_amount',
@@ -928,6 +931,14 @@ class UpgradeData implements UpgradeDataInterface
                 ],
             ];
 
+            $dhlForYou = [
+                'basePath' => 'myparcelnl_magento_dhlforyou_settings/default_options/',
+                'newPaths' => [
+                        'insurance_local_amount',
+                        'insurance_belgium_amount',
+                ],
+            ];
+
             $carriers = [$postnl];
 
             $getFromPriceFunction = static function ($path, $rows, $insuranceFromPriceArray) {
@@ -941,7 +952,18 @@ class UpgradeData implements UpgradeDataInterface
                 return $insuranceFromPriceArray;
             };
 
-            $insuranceLocalFunction = static function ($rows, $basePath, $insuranceFromPriceArray, $getFromPriceFunction) {
+            $getCustomAmountFunction = static function ($rows, $path) {
+                $insuranceCustomAmount = 0;
+                foreach ($rows as $row) {
+                    if ($row['path'] === $path) {
+                        $insuranceCustomAmount = $row['value'];
+                        break;
+                    }
+                }
+
+                return $insuranceCustomAmount;
+            };
+            $insuranceLocalFunction = static function ($rows, $basePath, $insuranceFromPriceArray, $getFromPriceFunction, $getCustomAmountFunction) {
                 $insuranceLocalAmount = 0;
                 foreach ($rows as $row) {
                     if ($row['path'] === $basePath . 'insurance_100_active' && $row['value'] === '1') {
@@ -957,38 +979,23 @@ class UpgradeData implements UpgradeDataInterface
                         $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_500_from_price', $rows, $insuranceFromPriceArray);
                     }
                     if ($row['path'] === $basePath . 'insurance_custom_active' && $row['value'] === '1') {
-                        $insuranceLocalAmount = 'custom'; //todo: 1.5 make getCustomAmountFunction
+                        $insuranceLocalAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_custom_amount');
                         $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_custom_from_price', $rows, $insuranceFromPriceArray);
                     }
                 }
-                if ($insuranceLocalAmount === 'custom') {
-                    foreach ($rows as $row) {
-                        if ($row['path'] === $basePath . 'insurance_custom_amount') {
-                            $insuranceLocalAmount = $row['value'];
-                            break;
-                        }
-                    }
-                }
+
                 return [$insuranceLocalAmount, $insuranceFromPriceArray];
             };
 
-            $insuranceBelgiumFunction = static function ($rows, $basePath, $insuranceFromPriceArray, $getFromPriceFunction) {
+            $insuranceBelgiumFunction = static function ($rows, $basePath, $insuranceFromPriceArray, $getFromPriceFunction, $getCustomAmountFunction) {
                 $insuranceBelgiumAmount = 0;
-                $insuranceBelgiumActive = false;
                 foreach ($rows as $row) {
                     if ($row['path'] === $basePath . 'insurance_belgium_custom_active' && $row['value'] === '1') {
-                        $insuranceBelgiumActive = true;
+                        $insuranceBelgiumAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_belgium_custom_amount');
                         $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_belgium_custom_from_price', $rows, $insuranceFromPriceArray);
                     }
                 }
-                if ($insuranceBelgiumActive) {
-                    foreach ($rows as $row) {
-                        if ($row['path'] === $basePath . 'insurance_belgium_custom_amount') {
-                            $insuranceBelgiumAmount = $row['value'];
-                            break;
-                        }
-                    }
-                }
+
                 return [$insuranceBelgiumAmount, $insuranceFromPriceArray];
             };
 
@@ -1004,6 +1011,7 @@ class UpgradeData implements UpgradeDataInterface
                         $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_eu_500_from_price', $rows, $insuranceFromPriceArray);
                     }
                 }
+
                 return [$insuranceEuAmount, $insuranceFromPriceArray];
             };
 
@@ -1023,11 +1031,11 @@ class UpgradeData implements UpgradeDataInterface
 
                 foreach ($carrier['newPaths'] as $type) {
                     if ($type === 'insurance_local_amount') {
-                        [$insuranceLocalAmount, $insure_from_price_array] = $insuranceLocalFunction($rows, $basePath, $insure_from_price_array, $getFromPriceFunction);
+                        [$insuranceLocalAmount, $insure_from_price_array] = $insuranceLocalFunction($rows, $basePath, $insure_from_price_array, $getFromPriceFunction, $getCustomAmountFunction);
                         $updates[$basePath . 'insurance_local_amount'] = $insuranceLocalAmount;
                     }
                     if ($type === 'insurance_belgium_amount') {
-                        [$insuranceBelgiumAmount, $insure_from_price_array] = $insuranceBelgiumFunction($rows, $basePath, $insure_from_price_array, $getFromPriceFunction);
+                        [$insuranceBelgiumAmount, $insure_from_price_array] = $insuranceBelgiumFunction($rows, $basePath, $insure_from_price_array, $getFromPriceFunction, $getCustomAmountFunction);
                         $updates[$basePath . 'insurance_belgium_amount'] = $insuranceBelgiumAmount;
                     }
                     if ($type === 'insurance_eu_amount') {
@@ -1041,8 +1049,7 @@ class UpgradeData implements UpgradeDataInterface
 
                 // The lowest from price out of all will become the from price.
                 sort($insure_from_price_array);
-                //todo: 1 write something for when the from price array is empty and test it.
-                $updates[$basePath . 'insurance_from_price'] = $insure_from_price_array[0];
+                $updates[$basePath . 'insurance_from_price'] = $insure_from_price_array[0] ?? 0;
 
                 foreach ($updates as $path => $value) {
                     $connection->delete($table, ['path = ?' => $path, 'scope = ?' => $scope, 'scope_id = ?' => $scopeId]);
