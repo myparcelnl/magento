@@ -856,7 +856,7 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
-        if (version_compare($context->getVersion(), '4.15.2', '<')) {
+        if (version_compare($context->getVersion(), '4.16.0', '<')) {
             $scope = 'default';
             $scopeId = 0;
 
