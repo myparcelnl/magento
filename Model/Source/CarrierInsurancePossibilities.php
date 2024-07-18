@@ -23,7 +23,7 @@ class CarrierInsurancePossibilities implements OptionSourceInterface
     public function __construct(string $carrierName, string $type)
     {
         $this->type = $type;
-        $this->carrier = consignmentFactory::createByCarrierName($carrierName);
+        $this->carrier = ConsignmentFactory::createByCarrierName($carrierName);
     }
 
     /**
@@ -54,6 +54,7 @@ class CarrierInsurancePossibilities implements OptionSourceInterface
             return $array;
         }, [0]);
     }
+
     /**
      * @throws Exception
      */
@@ -65,21 +66,25 @@ class CarrierInsurancePossibilities implements OptionSourceInterface
     /**
      * @return string|null
      */
-    public function getCc(): ?string
+    private function getCc(): ?string
     {
         $cc = null;
         if ($this->type === 'local') {
             $cc = $this->carrier->getLocalCountryCode();
         }
+
         if ($this->type === AbstractConsignment::CC_BE) {
             $cc = AbstractConsignment::CC_BE;
         }
+
         if ($this->type === CountryCodes::ZONE_EU) {
             $cc = CountryCodes::ZONE_EU;
         }
+
         if ($this->type === CountryCodes::ZONE_ROW) {
             $cc = CountryCodes::ZONE_ROW;
         }
+
         return $cc;
     }
 }

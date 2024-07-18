@@ -30,41 +30,27 @@ class DefaultOptions
 {
     // Maximum characters length of company name.
     private const COMPANY_NAME_MAX_LENGTH    = 50;
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     private const INSURANCE_BELGIUM          = 'insurance_belgium_custom';
-    /**
-     * @deprecated
-     */
+    /**\@deprecated*/
     private const INSURANCE_EU_AMOUNT_50     = 'insurance_eu_50';
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     private const INSURANCE_EU_AMOUNT_500    = 'insurance_eu_500';
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     private const INSURANCE_AMOUNT_100       = 'insurance_100';
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     private const INSURANCE_AMOUNT_250       = 'insurance_250';
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     private const INSURANCE_AMOUNT_500       = 'insurance_500';
-    /**
-     * @deprecated
-     */
+    /** @deprecated */
     private const INSURANCE_AMOUNT_CUSTOM    = 'insurance_custom';
 
-    private const INSURANCE_FROM_PRICE       = "insurance_from_price";
-    private const INSURANCE_LOCAL_AMOUNT     = "insurance_local_amount";
-    private const INSURANCE_BELGIUM_AMOUNT   = "insurance_belgium_amount";
-    private const INSURANCE_EU_AMOUNT        = "insurance_eu_amount";
-    private const INSURANCE_ROW_AMOUNT       = "insurance_row_amount";
-    private const INSURANCE_PERCENTAGE       = "insurance_percentage";
+    private const INSURANCE_FROM_PRICE       = 'insurance_from_price';
+    private const INSURANCE_LOCAL_AMOUNT     = 'insurance_local_amount';
+    private const INSURANCE_BELGIUM_AMOUNT   = 'insurance_belgium_amount';
+    private const INSURANCE_EU_AMOUNT        = 'insurance_eu_amount';
+    private const INSURANCE_ROW_AMOUNT       = 'insurance_row_amount';
+    private const INSURANCE_PERCENTAGE       = 'insurance_percentage';
     public const  DEFAULT_OPTION_VALUE       = 'default';
 
     /**
@@ -230,7 +216,7 @@ class DefaultOptions
             return 0;
         }
 
-        $carrier = consignmentFactory::createByCarrierName($carrierName);
+        $carrier = ConsignmentFactory::createByCarrierName($carrierName);
         $insuranceTiers = $carrier->getInsurancePossibilities($shippingCountry);
         sort($insuranceTiers);
 
