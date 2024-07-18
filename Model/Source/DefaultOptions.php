@@ -59,12 +59,12 @@ class DefaultOptions
      */
     private const INSURANCE_AMOUNT_CUSTOM    = 'insurance_custom';
 
-    private const INSURANCE_FROM_PRICE = "insurance_from_price";
-    private const INSURANCE_LOCAL_AMOUNT = "insurance_local_amount";
-    private const INSURANCE_BELGIUM_AMOUNT = "insurance_belgium_amount";
-    private const INSURANCE_EU_AMOUNT = "insurance_eu_amount";
-    private const INSURANCE_ROW_AMOUNT = "insurance_row_amount";
-    private const INSURANCE_PERCENTAGE = "insurance_percentage";
+    private const INSURANCE_FROM_PRICE       = "insurance_from_price";
+    private const INSURANCE_LOCAL_AMOUNT     = "insurance_local_amount";
+    private const INSURANCE_BELGIUM_AMOUNT   = "insurance_belgium_amount";
+    private const INSURANCE_EU_AMOUNT        = "insurance_eu_amount";
+    private const INSURANCE_ROW_AMOUNT       = "insurance_row_amount";
+    private const INSURANCE_PERCENTAGE       = "insurance_percentage";
     public const  DEFAULT_OPTION_VALUE       = 'default';
 
     /**
@@ -309,7 +309,7 @@ class DefaultOptions
      * TODO: In the future, when multiple carriers will be available for Rest of World shipments, replace PostNL with a setting for default carrier
      *
      * @return \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier
-     * @throws Exception
+     * @throws \Exception
      */
     public static function getDefaultCarrier(): AbstractCarrier
     {

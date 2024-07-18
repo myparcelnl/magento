@@ -922,7 +922,7 @@ class UpgradeData implements UpgradeDataInterface
 
             $carriers = [$postnl, $dhlForYou, $dhlParcelConnect, $dhlEuroPlus];
 
-            $getFromPriceFunction = static function ($path, $rows, $insuranceFromPriceArray) {
+            $getFromPriceFunction = static function ($path, $rows) {
                 foreach ($rows as $row) {
                     if ($row['path'] === $path) {
                         $insuranceFromPriceArray[] = $row['value'];
@@ -987,19 +987,19 @@ class UpgradeData implements UpgradeDataInterface
                         foreach ($rows as $row) {
                             if ($row['path'] === $basePath . 'insurance_100_active' && $row['value'] === '1') {
                                 $insuranceLocalAmount = 100;
-                                $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_100_from_price', $rows, $insuranceFromPriceArray);
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_100_from_price', $rows);
                             }
                             if ($row['path'] === $basePath . 'insurance_250_active' && $row['value'] === '1') {
                                 $insuranceLocalAmount = 250;
-                                $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_250_from_price', $rows, $insuranceFromPriceArray);
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_250_from_price', $rows);
                             }
                             if ($row['path'] === $basePath . 'insurance_500_active' && $row['value'] === '1') {
                                 $insuranceLocalAmount = 500;
-                                $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_500_from_price', $rows, $insuranceFromPriceArray);
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_500_from_price', $rows);
                             }
                             if ($row['path'] === $basePath . 'insurance_custom_active' && $row['value'] === '1') {
                                 $insuranceLocalAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_custom_amount');
-                                $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_custom_from_price', $rows, $insuranceFromPriceArray);
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_custom_from_price', $rows);
                             }
                         }
                         $insuranceTiersLocal = $carrierConsignment->getInsurancePossibilities(CountryCodes::CC_NL);
@@ -1012,7 +1012,7 @@ class UpgradeData implements UpgradeDataInterface
                         foreach ($rows as $row) {
                             if ($row['path'] === $basePath . 'insurance_belgium_custom_active' && $row['value'] === '1') {
                                 $insuranceBelgiumAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_belgium_custom_amount');
-                                $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_belgium_custom_from_price', $rows, $insuranceFromPriceArray);
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_belgium_custom_from_price', $rows);
                             }
                         }
                         $insuranceTiersBe = $carrierConsignment->getInsurancePossibilities(CountryCodes::CC_BE);
@@ -1025,11 +1025,11 @@ class UpgradeData implements UpgradeDataInterface
                         foreach ($rows as $row) {
                             if ($row['path'] === $basePath . 'insurance_eu_50_active' && $row['value'] === '1') {
                                 $insuranceEuAmount = 50;
-                                $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_eu_50_from_price', $rows, $insuranceFromPriceArray);
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_eu_50_from_price', $rows);
                             }
                             if ($row['path'] === $basePath . 'insurance_eu_500_active' && $row['value'] === '1') {
                                 $insuranceEuAmount = 500;
-                                $insuranceFromPriceArray = $getFromPriceFunction($basePath . 'insurance_eu_500_from_price', $rows, $insuranceFromPriceArray);
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_eu_500_from_price', $rows);
                             }
                         }
 
