@@ -179,7 +179,7 @@ class DefaultOptions
      * @param string $carrier
      *
      * @return int
-     * @throws Exception
+     * @throws \Exception
      */
     public function getDefaultInsurance(string $carrier): int
     {
