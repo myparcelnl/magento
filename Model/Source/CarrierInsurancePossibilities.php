@@ -12,8 +12,8 @@ use MyParcelNL\Sdk\src\Services\CountryCodes;
 
 class CarrierInsurancePossibilities implements OptionSourceInterface
 {
-    protected string $type;
-    protected AbstractConsignment $carrier;
+    protected $type;
+    protected $carrier;
 
     /**
      * @param string $carrierName
