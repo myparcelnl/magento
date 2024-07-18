@@ -32,7 +32,7 @@ class DefaultOptions
     private const COMPANY_NAME_MAX_LENGTH    = 50;
     /** @deprecated */
     private const INSURANCE_BELGIUM          = 'insurance_belgium_custom';
-    /**\@deprecated*/
+    /** @deprecated */
     private const INSURANCE_EU_AMOUNT_50     = 'insurance_eu_50';
     /** @deprecated */
     private const INSURANCE_EU_AMOUNT_500    = 'insurance_eu_500';
