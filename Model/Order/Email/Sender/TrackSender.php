@@ -15,7 +15,7 @@
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 0.1.0
  */
-namespace MyParcelNL\Magento\Model\Order\Email\Sender;
+namespace MyParcelBE\Magento\Model\Order\Email\Sender;
 
 use Magento\Framework\DataObject;
 use Magento\Payment\Helper\Data as PaymentHelper;
@@ -26,7 +26,7 @@ use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Sales\Model\Order\Address\Renderer;
 use Magento\Framework\Event\ManagerInterface;
-use MyParcelNL\Magento\Model\Order\Email\Container\TrackIdentity;
+use MyParcelBE\Magento\Model\Order\Email\Container\TrackIdentity;
 
 class TrackSender extends Sender
 {

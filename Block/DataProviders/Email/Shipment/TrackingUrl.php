@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelNL\Magento\Block\DataProviders\Email\Shipment;
+namespace MyParcelBE\Magento\Block\DataProviders\Email\Shipment;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
@@ -29,11 +29,15 @@ if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl'
              */
             $order = (ObjectManager::getInstance())->create(Order::class)->load($track->getOrderId());
 
-            return (new TrackTraceUrl())->create(
+            // Generate the original Track & Trace URL
+            $originalUrl = (new TrackTraceUrl())->create(
                 $track->getNumber(),
                 $order->getShippingAddress()->getPostcode(),
                 $order->getShippingAddress()->getCountryId()
             );
+
+            // Replace the domain with the custom one
+            return str_replace('https://myparcel.me', 'https://sendmyparcel.me', $originalUrl);
         }
     }
 
@@ -58,11 +62,14 @@ if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl'
              */
             $order = (ObjectManager::getInstance())->create(Order::class)->load($track->getOrderId());
 
-            return (new TrackTraceUrl())->create(
+            // Generate the original Track & Trace URL
+            $originalUrl = (new TrackTraceUrl())->create(
                 $track->getNumber(),
                 $order->getShippingAddress()->getPostcode(),
                 $order->getShippingAddress()->getCountryId()
             );
+
+            return str_replace('https://myparcel.me', 'https://sendmyparcel.me', $originalUrl);
         }
     }
 }

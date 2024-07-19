@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Source;
+namespace MyParcelBE\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
 
 class ExportMode implements OptionSourceInterface
 {

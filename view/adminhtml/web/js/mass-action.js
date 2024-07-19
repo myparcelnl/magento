@@ -2,7 +2,7 @@ define(
     [
         'jquery',
         'Magento_Ui/js/modal/confirm',
-        'text!MyParcelNL_Magento/template/grid/order_massaction.html',
+        'text!MyParcelBE_Magento/template/grid/order_massaction.html',
         'Magento_Ui/js/modal/alert',
         'loadingPopup',
         'mage/translate'

@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\magento\Test\Unit;
+namespace MyParcelBE\magento\Test\Unit;
 
 
 class Constants extends \PHPUnit_Framework_TestCase

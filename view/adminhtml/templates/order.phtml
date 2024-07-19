@@ -1,8 +1,8 @@
-<?php /** @var $block \MyParcelNL\Magento\Block\Sales\OrdersAction */ ?>
+<?php /** @var $block \MyParcelBE\Magento\Block\Sales\OrdersAction */ ?>
 <script type="text/x-magento-init">
    {
        ".page-footer": {
-           "myparcelnl_massaction": {
+           "myparcelbe_massaction": {
                 "has_api_key": "<?= $block->hasApiKey(); ?>",
                 "url": "<?= $block->getOrderAjaxUrl(); ?>",
                 "settings": <?= $block->getPrintSettings(); ?>,

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Setup\Migrations;
+namespace MyParcelBE\Magento\Setup\Migrations;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Setup\SchemaSetupInterface;
-use MyParcelNL\Magento\Setup\QueryBuilder;
+use MyParcelBE\Magento\Setup\QueryBuilder;
 
 class ReplaceDisableCheckout
 {
@@ -26,7 +26,7 @@ class ReplaceDisableCheckout
     private $newEavAttributeId;
 
     /**
-     * @var \MyParcelNL\Magento\Setup\QueryBuilder
+     * @var \MyParcelBE\Magento\Setup\QueryBuilder
      */
     private $queryBuilder;
 
@@ -36,7 +36,7 @@ class ReplaceDisableCheckout
     private $setup;
 
     /**
-     * @param  \MyParcelNL\Magento\Setup\QueryBuilder        $queryBuilder
+     * @param  \MyParcelBE\Magento\Setup\QueryBuilder        $queryBuilder
      * @param  \Magento\Framework\Setup\SchemaSetupInterface $setup
      */
     public function __construct(

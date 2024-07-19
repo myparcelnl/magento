@@ -16,10 +16,10 @@
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelNL\Magento\Model\Sales\Repository;
+namespace MyParcelBE\Magento\Model\Sales\Repository;
 
-use MyParcelNL\Magento\Model\Sales\Package;
-use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelBE\Magento\Model\Sales\Package;
+use MyParcelBE\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
@@ -106,7 +106,7 @@ class PackageRepository extends Package
     /**
      * @param array $products
      *
-     * @return \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
+     * @return \MyParcelBE\Magento\Model\Sales\Repository\PackageRepository
      */
     public function productWithoutDeliveryOptions(array $products): PackageRepository
     {
@@ -201,7 +201,7 @@ class PackageRepository extends Package
     /**
      * @param $products
      *
-     * @return \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
+     * @return \MyParcelBE\Magento\Model\Sales\Repository\PackageRepository
      */
     public function isDeliveryOptionsDisabled($products)
     {
@@ -388,7 +388,7 @@ class PackageRepository extends Package
         $sql = $connection
             ->select('entity_type_id')
             ->from($tableName)
-            ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
+            ->where('attribute_code = ?', 'myparcelbe_' . $databaseColumn);
 
         return $connection->fetchOne($sql);
     }

@@ -16,15 +16,15 @@ declare(strict_types=1);
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Helper;
+namespace MyParcelBE\Magento\Helper;
 
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\ShippingMethodManagement;
-use MyParcelNL\Magento\Model\Rate\Result;
-use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
+use MyParcelBE\Magento\Model\Rate\Result;
+use MyParcelBE\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Checkout extends Data
@@ -33,7 +33,7 @@ class Checkout extends Data
     public const FIELD_MYPARCEL_CARRIER = 'myparcel_carrier';
     public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
     public const FIELD_TRACK_STATUS     = 'track_status';
-    public const DEFAULT_COUNTRY_CODE   = 'NL';
+    public const DEFAULT_COUNTRY_CODE   = 'BE';
 
     /**
      * @var int

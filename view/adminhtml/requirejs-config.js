@@ -1,8 +1,8 @@
 var config = {
     "map": {
         "*": {
-            "myparcelnl_massaction": "MyParcelNL_Magento/js/mass-action",
-            "myparcelnl_newshipment": "MyParcelNL_Magento/js/new-shipment",
+            "myparcelbe_massaction": "MyParcelBE_Magento/js/mass-action",
+            "myparcelbe_newshipment": "MyParcelBE_Magento/js/new-shipment",
         }
     }
 };

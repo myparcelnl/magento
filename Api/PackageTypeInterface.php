@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelNL\Magento\Api;
+namespace MyParcelBE\Magento\Api;
 
 /**
  * Get package type

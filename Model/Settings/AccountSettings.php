@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Settings;
+namespace MyParcelBE\Magento\Model\Settings;
 
-use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
+use MyParcelBE\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
 use MyParcelNL\Sdk\src\Factory\Account\CarrierConfigurationFactory;
 use MyParcelNL\Sdk\src\Model\Account\Account;
 use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
@@ -153,7 +153,7 @@ class AccountSettings extends BaseModel
     /**
      * Get the one instance of this class that is loaded or can be loaded.
      *
-     * @return \MyParcelNL\Magento\Model\Settings\AccountSettings
+     * @return \MyParcelBE\Magento\Model\Settings\AccountSettings
      */
     public static function getInstance(): self
     {

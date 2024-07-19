@@ -1,14 +1,16 @@
 <?php
 
-namespace MyParcelNL\Magento\Helper;
+namespace MyParcelBE\Magento\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelBE\Magento\Model\Checkout\Carrier;
+use MyParcelBE\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierBpost;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLParcelConnect;
@@ -21,14 +23,15 @@ use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Data extends AbstractHelper
 {
-    public const MODULE_NAME                        = 'MyParcelNL_Magento';
-    public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
-    public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
-    public const XML_PATH_DHLFORYOU_SETTINGS        = 'myparcelnl_magento_dhlforyou_settings/';
-    public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
-    public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelnl_magento_dhlparcelconnect_settings/';
-    public const XML_PATH_UPS_SETTINGS              = 'myparcelnl_magento_ups_settings/';
-    public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
+    public const MODULE_NAME                        = 'MyParcelBE_Magento';
+    public const XML_PATH_GENERAL                   = 'myparcelbe_magento_general/';
+    public const XML_PATH_POSTNL_SETTINGS           = 'myparcelbe_magento_postnl_settings/';
+    public const XML_PATH_DHLFORYOU_SETTINGS        = 'myparcelbe_magento_dhlforyou_settings/';
+    public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelbe_magento_dhleuroplus_settings/';
+    public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelbe_magento_dhlparcelconnect_settings/';
+    public const XML_PATH_UPS_SETTINGS              = 'myparcelbe_magento_ups_settings/';
+    public const XML_PATH_DPD_SETTINGS              = 'myparcelbe_magento_dpd_settings/';
+    public const XML_PATH_BPOST_SETTINGS            = 'myparcelbe_magento_bpost_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
     public const DEFAULT_WEIGHT                     = 1000;
     public const CARRIERS_XML_PATH_MAP              = [
@@ -38,6 +41,7 @@ class Data extends AbstractHelper
         CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
         CarrierUPS::NAME              => self::XML_PATH_UPS_SETTINGS,
         CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
+        CarrierBpost::NAME            => self::XML_PATH_BPOST_SETTINGS,
     ];
 
     /**

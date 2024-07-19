@@ -12,10 +12,10 @@
  * @since       File available since Release v2.0.0
  */
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelBE\Magento\Model\Checkout;
 
-use MyParcelNL\Magento\Api\DeliveryOptionsInterface;
-use MyParcelNL\Magento\Model\Quote\Checkout;
+use MyParcelBE\Magento\Api\DeliveryOptionsInterface;
+use MyParcelBE\Magento\Model\Quote\Checkout;
 
 class DeliveryOptions implements DeliveryOptionsInterface
 {

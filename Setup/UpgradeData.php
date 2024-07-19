@@ -15,7 +15,7 @@ declare(strict_types=1);
  * @since       File available since Release v3.0.0
  */
 
-namespace MyParcelNL\Magento\Setup;
+namespace MyParcelBE\Magento\Setup;
 
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ResourceModel\Eav\Attribute;
@@ -26,11 +26,11 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
-use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
-use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
-use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Setup\Migrations\ReplaceDpzRange;
+use MyParcelBE\Magento\Setup\Migrations\ReplaceFitInMailbox;
+use MyParcelBE\Magento\Setup\Migrations\ReplaceDisableCheckout;
+use MyParcelBE\Magento\Model\Source\FitInMailboxOptions;
 use Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend;
 
 /**
@@ -76,26 +76,26 @@ class UpgradeData implements UpgradeDataInterface
     private $eavSetupFactory;
 
     /**
-     * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox
+     * @var \MyParcelBE\Magento\Setup\Migrations\ReplaceFitInMailbox
      */
     private $replaceFitInMailbox;
 
     /**
-     * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout
+     * @var \MyParcelBE\Magento\Setup\Migrations\ReplaceDisableCheckout
      */
     private $replaceDisableCheckout;
 
     /**
-     * @var \MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange
+     * @var \MyParcelBE\Magento\Setup\Migrations\ReplaceDpzRange
      */
     private $replaceDpzRange;
 
     /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                 $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                          $eavSetupFactory
-     * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
-     * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout $replaceDisableCheckout
-     * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange        $replaceDpzRange
+     * @param  \MyParcelBE\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
+     * @param  \MyParcelBE\Magento\Setup\Migrations\ReplaceDisableCheckout $replaceDisableCheckout
+     * @param  \MyParcelBE\Magento\Setup\Migrations\ReplaceDpzRange        $replaceDpzRange
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -140,7 +140,7 @@ class UpgradeData implements UpgradeDataInterface
                     'label'                   => 'Fit in Mailbox',
                     'input'                   => 'select',
                     'class'                   => '',
-                    'source'                  => 'MyParcelNL\Magento\Model\Source\FitInMailboxOptions',
+                    'source'                  => 'MyParcelBE\Magento\Model\Source\FitInMailboxOptions',
                     'global'                  => Attribute::SCOPE_GLOBAL,
                     'visible'                 => true,
                     'required'                => false,
@@ -316,7 +316,7 @@ class UpgradeData implements UpgradeDataInterface
                     'label'                   => 'Dropoff-delay',
                     'input'                   => 'select',
                     'class'                   => '',
-                    'source'                  => 'MyParcelNL\Magento\Model\Source\DropOffDelayDays',
+                    'source'                  => 'MyParcelBE\Magento\Model\Source\DropOffDelayDays',
                     'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
                     'visible'                 => true,
                     'required'                => false,
@@ -337,13 +337,13 @@ class UpgradeData implements UpgradeDataInterface
                 $table,
                 ['config_id', 'path', 'value']
             )->where(
-                '`path` = "myparcelnl_magento_general/print/paper_type"'
+                '`path` = "myparcelbe_magento_general/print/paper_type"'
             );
 
             $paperType = $connection->fetchAll($selectPaperTypeSetting) ?? [];
 
             foreach ($paperType as $value) {
-                $fullPath = 'myparcelnl_magento_general/basic_settings/paper_type';
+                $fullPath = 'myparcelbe_magento_general/basic_settings/paper_type';
                 $bind     = ['path' => $fullPath, 'value' => $value['value']];
                 $where    = 'config_id = ' . $value['config_id'];
                 $connection->update($table, $bind, $where);
@@ -377,12 +377,12 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` = "myparcelnl_magento_checkout/general/shipping_methods"'
+                    '`path` = "myparcelbe_magento_checkout/general/shipping_methods"'
                 );
 
                 $shippingMethodData = $connection->fetchAll($selectShippingMethodSettings) ?? [];
                 foreach ($shippingMethodData as $value) {
-                    $fullPath = 'myparcelnl_magento_general/shipping_methods/methods';
+                    $fullPath = 'myparcelbe_magento_general/shipping_methods/methods';
                     $bind     = ['path' => $fullPath, 'value' => $value['value']];
                     $where    = 'config_id = ' . $value['config_id'];
                     $connection->update($table, $bind, $where);
@@ -393,12 +393,12 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` = "myparcelnl_magento_checkout/delivery/standard_delivery_title"'
+                    '`path` = "myparcelbe_magento_checkout/delivery/standard_delivery_title"'
                 );
 
                 $defaultDeliveryTitle = $connection->fetchAll($selectDefaultDeliveryTitle) ?? [];
                 foreach ($defaultDeliveryTitle as $value) {
-                    $fullPath = 'myparcelnl_magento_general/delivery_titles/standard_delivery_title';
+                    $fullPath = 'myparcelbe_magento_general/delivery_titles/standard_delivery_title';
                     $bind     = ['path' => $fullPath, 'value' => $value['value']];
                     $where    = 'config_id = ' . $value['config_id'];
                     $connection->update($table, $bind, $where);
@@ -409,12 +409,12 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` = "myparcelnl_magento_checkout/delivery/delivery_title"'
+                    '`path` = "myparcelbe_magento_checkout/delivery/delivery_title"'
                 );
 
                 $deliveryTitle = $connection->fetchAll($selectDeliveryTitle) ?? [];
                 foreach ($deliveryTitle as $value) {
-                    $fullPath = 'myparcelnl_magento_general/delivery_titles/delivery_title';
+                    $fullPath = 'myparcelbe_magento_general/delivery_titles/delivery_title';
                     $bind     = ['path' => $fullPath, 'value' => $value['value']];
                     $where    = 'config_id = ' . $value['config_id'];
                     $connection->update($table, $bind, $where);
@@ -425,12 +425,12 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` = "myparcelnl_magento_checkout/delivery/delivery_title"'
+                    '`path` = "myparcelbe_magento_checkout/delivery/delivery_title"'
                 );
 
                 $signatureTitle = $connection->fetchAll($selectSignatureTitle) ?? [];
                 foreach ($signatureTitle as $value) {
-                    $fullPath = 'myparcelnl_magento_general/delivery_titles/signature_title';
+                    $fullPath = 'myparcelbe_magento_general/delivery_titles/signature_title';
                     $bind     = ['path' => $fullPath, 'value' => $value['value']];
                     $where    = 'config_id = ' . $value['config_id'];
                     $connection->update($table, $bind, $where);
@@ -441,12 +441,12 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` = "myparcelnl_magento_checkout/pickup/title"'
+                    '`path` = "myparcelbe_magento_checkout/pickup/title"'
                 );
 
                 $pickupTitle = $connection->fetchAll($selectPickupTitle) ?? [];
                 foreach ($pickupTitle as $value) {
-                    $fullPath = 'myparcelnl_magento_general/delivery_titles/pickup_title';
+                    $fullPath = 'myparcelbe_magento_general/delivery_titles/pickup_title';
                     $bind     = ['path' => $fullPath, 'value' => $value['value']];
                     $where    = 'config_id = ' . $value['config_id'];
                     $connection->update($table, $bind, $where);
@@ -457,14 +457,14 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` LIKE "myparcelnl_magento_standard/options/insurance_500%"'
+                    '`path` LIKE "myparcelbe_magento_standard/options/insurance_500%"'
                 );
 
                 $insuranceData = $connection->fetchAll($selectDefaultInsurance) ?? [];
                 foreach ($insuranceData as $value) {
                     $path    = $value['path'];
                     $path    = explode("/", $path ?? '');
-                    $path[0] = 'myparcelnl_magento_postnl_settings';
+                    $path[0] = 'myparcelbe_magento_postnl_settings';
                     $path[1] = 'default_options';
 
                     $fullPath = implode("/", $path);
@@ -479,14 +479,14 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` LIKE "myparcelnl_magento_standard/options/signature%"'
+                    '`path` LIKE "myparcelbe_magento_standard/options/signature%"'
                 );
 
                 $signatureData = $connection->fetchAll($selectDefaultSignature) ?? [];
                 foreach ($signatureData as $value) {
                     $path    = $value['path'];
                     $path    = explode("/", $path ?? '');
-                    $path[0] = 'myparcelnl_magento_postnl_settings';
+                    $path[0] = 'myparcelbe_magento_postnl_settings';
                     $path[1] = 'default_options';
 
                     $fullPath = implode("/", $path);
@@ -501,14 +501,14 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` LIKE "myparcelnl_magento_checkout/%"'
+                    '`path` LIKE "myparcelbe_magento_checkout/%"'
                 );
 
                 $checkoutData = $connection->fetchAll($selectCheckoutSettings) ?? [];
                 foreach ($checkoutData as $value) {
                     $path    = $value['path'];
                     $path    = explode("/", $path ?? '');
-                    $path[0] = 'myparcelnl_magento_postnl_settings';
+                    $path[0] = 'myparcelbe_magento_postnl_settings';
 
                     $fullPath = implode("/", $path);
 
@@ -523,7 +523,7 @@ class UpgradeData implements UpgradeDataInterface
                     $table,
                     ['config_id', 'path', 'value']
                 )->where(
-                    '`path` = "myparcelnl_magento_postnl_settings/delivery/active"'
+                    '`path` = "myparcelbe_magento_postnl_settings/delivery/active"'
                 );
 
                 $deliveryActive = $connection->fetchAll($selectDeliveryActive) ?? [];
@@ -534,7 +534,7 @@ class UpgradeData implements UpgradeDataInterface
                         [
                             'scope'    => 'default',
                             'scope_id' => 0,
-                            'path'     => 'myparcelnl_magento_postnl_settings/delivery/active',
+                            'path'     => 'myparcelbe_magento_postnl_settings/delivery/active',
                             'value'    => 1
                         ]
                     );
@@ -547,7 +547,7 @@ class UpgradeData implements UpgradeDataInterface
             $selectLargeFormatData = $connection->select()->from($table,
                 ['config_id', 'path', 'value']
             )->where(
-                '`path` = "myparcelnl_magento_postnl_settings/default_options/large_format_active"'
+                '`path` = "myparcelbe_magento_postnl_settings/default_options/large_format_active"'
             );
 
             $largeFormatData = $connection->fetchAll($selectLargeFormatData);
@@ -577,7 +577,7 @@ class UpgradeData implements UpgradeDataInterface
                     'label'                   => 'Age check 18+',
                     'input'                   => 'select',
                     'class'                   => '',
-                    'source'                  => 'MyParcelNL\Magento\Model\Source\AgeCheckOptions',
+                    'source'                  => 'MyParcelBE\Magento\Model\Source\AgeCheckOptions',
                     'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
                     'visible'                 => true,
                     'required'                => false,
@@ -597,9 +597,9 @@ class UpgradeData implements UpgradeDataInterface
             $selectDeliveryDaysWindow = $connection->select()->from($table,
                 ['config_id', 'path', 'value']
             )->where(
-                '`path` = "myparcelnl_magento_postnl_settings/general/deliverydays_window"'
+                '`path` = "myparcelbe_magento_postnl_settings/general/deliverydays_window"'
             );
-            $allowShowDeliveryDatePath = 'myparcelnl_magento_postnl_settings/general/allow_show_delivery_date';
+            $allowShowDeliveryDatePath = 'myparcelbe_magento_postnl_settings/general/allow_show_delivery_date';
 
             $connection->delete($table, ['path = ?' => $allowShowDeliveryDatePath]);
 
@@ -613,7 +613,7 @@ class UpgradeData implements UpgradeDataInterface
                 $bind  = ['path' => $allowShowDeliveryDatePath, 'value' => $allowValue];
                 $connection->insert($table, $bind);
             }
-            $insuranceBelgium = 'myparcelnl_magento_postnl_settings/default_options/insurance_belgium_active';
+            $insuranceBelgium = 'myparcelbe_magento_postnl_settings/default_options/insurance_belgium_active';
             $connection->delete($table, ['path = ?' => $insuranceBelgium]);
             $connection->insert($table, ['path' => $insuranceBelgium, 'value' => 1]);
         }
@@ -842,9 +842,9 @@ class UpgradeData implements UpgradeDataInterface
                  * migrate the carrier specific date settings to general settings
                  */
                 $updates = [
-                    'myparcelnl_magento_general/date_settings/allow_show_delivery_date' => $allowShowDeliveryDate ? '1' : '0',
-                    'myparcelnl_magento_general/date_settings/deliverydays_window' => $deliveryDaysWindow,
-                    'myparcelnl_magento_general/date_settings/dropoff_delay' => $dropOffDelay,
+                    'myparcelbe_magento_general/date_settings/allow_show_delivery_date' => $allowShowDeliveryDate ? '1' : '0',
+                    'myparcelbe_magento_general/date_settings/deliverydays_window' => $deliveryDaysWindow,
+                    'myparcelbe_magento_general/date_settings/dropoff_delay' => $dropOffDelay,
                 ];
 
                 foreach ($updates as $path => $value) {

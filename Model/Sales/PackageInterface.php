@@ -16,7 +16,7 @@
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelNL\Magento\Model\Sales;
+namespace MyParcelBE\Magento\Model\Sales;
 
 
 interface PackageInterface

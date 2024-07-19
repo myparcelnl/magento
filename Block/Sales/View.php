@@ -16,12 +16,12 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Block\Sales;
+namespace MyParcelBE\Magento\Block\Sales;
 
 use DateTime;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
+use MyParcelBE\Magento\Helper\Checkout as CheckoutHelper;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 

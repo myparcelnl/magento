@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Source;
+namespace MyParcelBE\Magento\Model\Source;
 
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 

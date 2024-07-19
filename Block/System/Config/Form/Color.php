@@ -15,7 +15,7 @@
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release 1.0.5
  */
-namespace MyParcelNL\Magento\Block\System\Config\Form;
+namespace MyParcelBE\Magento\Block\System\Config\Form;
 
 class Color extends \Magento\Config\Block\System\Config\Form\Field {
 

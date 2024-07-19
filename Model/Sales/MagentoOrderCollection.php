@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Sales;
+namespace MyParcelBE\Magento\Model\Sales;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
@@ -10,12 +10,12 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
-use MyParcelNL\Magento\Cron\UpdateStatus;
-use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
-use MyParcelNL\Magento\Helper\ShipmentOptions;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelBE\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use MyParcelBE\Magento\Cron\UpdateStatus;
+use MyParcelBE\Magento\Helper\CustomsDeclarationFromOrder;
+use MyParcelBE\Magento\Helper\ShipmentOptions;
+use MyParcelBE\Magento\Model\Source\DefaultOptions;
+use MyParcelBE\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
@@ -34,7 +34,7 @@ use MyParcelNL\Sdk\src\Support\Str;
 /**
  * Class MagentoOrderCollection
  *
- * @package MyParcelNL\Magento\Model\Sales
+ * @package MyParcelBE\Magento\Model\Sales
  */
 class MagentoOrderCollection extends MagentoCollection
 {
@@ -135,6 +135,7 @@ class MagentoOrderCollection extends MagentoCollection
          * @var Order          $order
          * @var Order\Shipment $shipment
          */
+
         foreach ($this->getShipmentsCollection() as $shipment) {
             $i = 1;
 

@@ -8,12 +8,12 @@
 var config = {
   config: {
     mixins: {
-      'Magento_Checkout/js/view/shipping': {'MyParcelNL_Magento/js/view/shipping': true},
+      'Magento_Checkout/js/view/shipping': {'MyParcelBE_Magento/js/view/shipping': true},
     },
   },
   map: {
     '*': {
-      'Magento_Checkout/js/model/shipping-save-processor/default': 'MyParcelNL_Magento/js/model/shipping-save-processor-default',
+      'Magento_Checkout/js/model/shipping-save-processor/default': 'MyParcelBE_Magento/js/model/shipping-save-processor-default',
     },
   },
   paths: {

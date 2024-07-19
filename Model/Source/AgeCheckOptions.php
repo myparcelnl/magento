@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelNL\Magento\Model\Source;
+namespace MyParcelBE\Magento\Model\Source;
 
 use Magento\Eav\Model\Entity\Attribute\Source\AbstractSource;
 

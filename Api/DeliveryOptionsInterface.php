@@ -11,7 +11,7 @@
  * @since       File available since Release v2.0.0
  */
 
-namespace MyParcelNL\Magento\Api;
+namespace MyParcelBE\Magento\Api;
 
 /**
  * Get delivery options

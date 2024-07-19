@@ -16,11 +16,11 @@
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelNL\Magento\Model\Sales;
+namespace MyParcelBE\Magento\Model\Sales;
 
 
 use Magento\Framework\Module\ModuleListInterface;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 use Magento\Framework\App\Helper\Context;
 use Psr\Log\LoggerInterface;
 

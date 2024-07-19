@@ -19,15 +19,15 @@ declare(strict_types=1);
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Cron;
+namespace MyParcelBE\Magento\Cron;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Api\ShipmentStatus;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelBE\Magento\Api\ShipmentStatus;
+use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelBE\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
 
@@ -54,7 +54,7 @@ class UpdateStatus
     private $orderResource;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
+     * @var \MyParcelBE\Magento\Model\Sales\MagentoOrderCollection
      */
     private $orderCollection;
 

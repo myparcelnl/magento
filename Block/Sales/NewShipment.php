@@ -12,7 +12,7 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Block\Sales;
+namespace MyParcelBE\Magento\Block\Sales;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
@@ -20,17 +20,17 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelBE\Magento\Helper\Checkout;
+use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelBE\Magento\Model\Source\DefaultOptions;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipment extends AbstractItems
 {
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     private $dataHelper;
 
@@ -45,17 +45,17 @@ class NewShipment extends AbstractItems
     private $objectManager;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     * @var \MyParcelBE\Magento\Model\Source\DefaultOptions
      */
     private $defaultOptions;
 
     /**
-     * @var \MyParcelNL\Magento\Block\Sales\NewShipmentForm
+     * @var \MyParcelBE\Magento\Block\Sales\NewShipmentForm
      */
     private $form;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
+     * @var \MyParcelBE\Magento\Model\Sales\MagentoOrderCollection
      */
     private $orderCollection;
 
@@ -177,7 +177,7 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * @return \MyParcelNL\Magento\Block\Sales\NewShipmentForm
+     * @return \MyParcelBE\Magento\Block\Sales\NewShipmentForm
      */
     public function getNewShipmentForm(): NewShipmentForm
     {

@@ -12,7 +12,7 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
+namespace MyParcelBE\Magento\Ui\Component\Listing\Column;
 
 use \Magento\Sales\Api\OrderRepositoryInterface;
 use \Magento\Framework\View\Element\UiComponent\ContextInterface;

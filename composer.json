@@ -1,5 +1,5 @@
 {
-  "name": "myparcelnl/magento",
+  "name": "myparcelbe/magento",
   "version": "4.15.0",
   "description": "A Magento 2 module that creates MyParcel labels",
   "keywords": [
@@ -7,7 +7,7 @@
     "postnl",
     "magento2"
   ],
-  "homepage": "https://www.myparcel.nl",
+  "homepage": "https://sendmyparcel.be/",
   "license": "MIT",
   "authors": [
     {
@@ -41,7 +41,7 @@
       "registration.php"
     ],
     "psr-4": {
-      "MyParcelNL\\Magento\\": ""
+      "MyParcelBE\\Magento\\": ""
     }
   },
   "extra": {
@@ -50,6 +50,6 @@
     }
   },
   "scripts": {
-    "pre-package-uninstall": "MyParcelNL\\Magento\\Setup\\Uninstall::uninstall"
+    "pre-package-uninstall": "MyParcelBE\\Magento\\Setup\\Uninstall::uninstall"
   }
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Observer;
+namespace MyParcelBE\Magento\Observer;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\Observer;
@@ -11,12 +11,12 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Status\History;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\src\Model\Fulfilment\OrderNote;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 
 class SalesOrderStatusHistoryObserver implements ObserverInterface
 {
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     private $helper;
 

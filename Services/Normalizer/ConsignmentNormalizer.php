@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Services\Normalizer;
+namespace MyParcelBE\Magento\Services\Normalizer;
 
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\BpostConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 
 class ConsignmentNormalizer
@@ -22,7 +23,7 @@ class ConsignmentNormalizer
     public function normalize(): array
     {
         $data                 = $this->data;
-        $data['carrier']      = $data['carrier'] ?? PostNLConsignment::CARRIER_NAME;
+        $data['carrier']      = $data['carrier'] ?? BpostConsignment::CARRIER_NAME;
         $data['deliveryType'] = $data['deliveryType'] ?? AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME;
         $data['package_type'] = $data['package_type'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
 

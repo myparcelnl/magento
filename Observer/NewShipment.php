@@ -12,14 +12,14 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Observer;
+namespace MyParcelBE\Magento\Observer;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order\Shipment;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
 
 class NewShipment implements ObserverInterface
 {
@@ -56,14 +56,14 @@ class NewShipment implements ObserverInterface
     private $orderCollection;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     private $helper;
 
     /**
      * NewShipment constructor.
      *
-     * @param \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
+     * @param \MyParcelBE\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
      */
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
@@ -72,7 +72,7 @@ class NewShipment implements ObserverInterface
         $this->redirectFactory = $this->objectManager->get('Magento\Framework\Controller\Result\RedirectFactory');
         $this->messageManager  = $this->objectManager->get('Magento\Framework\Message\Manager');
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
+        $this->helper          = $this->objectManager->get('MyParcelBE\Magento\Helper\Data');
         $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
     }
 
@@ -120,7 +120,7 @@ class NewShipment implements ObserverInterface
 
         $amount = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
 
-        /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
+        /** @var \MyParcelBE\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
         $useMultiCollo     = false;

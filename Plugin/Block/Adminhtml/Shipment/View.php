@@ -12,7 +12,7 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Plugin\Block\Adminhtml\Shipment;
+namespace MyParcelBE\Magento\Plugin\Block\Adminhtml\Shipment;
 
 class View
 {
@@ -24,7 +24,7 @@ class View
     public function beforeGetPrintUrl(\Magento\Shipping\Block\Adminhtml\View $view)
     {
         $view->addButton(
-            'myparcelnl_print_label',
+            'myparcelbe_print_label',
             [
                 'label' => __('Print label'),
                 'class' => 'action-myparcel',

@@ -12,7 +12,7 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Plugin\Block\Adminhtml\Order;
+namespace MyParcelBE\Magento\Plugin\Block\Adminhtml\Order;
 
 class View
 {
@@ -24,7 +24,7 @@ class View
     public function beforeSetLayout(\Magento\Sales\Block\Adminhtml\Order\View $view)
     {
         $view->addButton(
-            'myparcelnl_print_label',
+            'myparcelbe_print_label',
             [
                 'label' => __('Print label'),
                 'class' => 'action-myparcel',
@@ -32,7 +32,7 @@ class View
         );
         if ($view->getOrder()->hasShipments() == true) {
             $view->addButton(
-                'myparcelnl_print_retour_label',
+                'myparcelbe_print_retour_label',
                 [
                     'label' => __('Send return label'),
                     'class' => 'action-myparcel_send_return_mail',

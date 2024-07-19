@@ -12,7 +12,7 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Block\Sales;
+namespace MyParcelBE\Magento\Block\Sales;
 
 use Magento\Backend\Block\Template\Context;
 use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;

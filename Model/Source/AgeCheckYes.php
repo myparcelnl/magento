@@ -13,11 +13,11 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Source;
+namespace MyParcelBE\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 
 /**

@@ -1,17 +1,17 @@
 <?php
 
-namespace MyParcelNL\Magento\Helper;
+namespace MyParcelBE\Magento\Helper;
 
 use Magento\Catalog\Model\Product;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use MyParcelNL\Sdk\src\Support\Str;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 
 class CustomsDeclarationFromOrder
 {

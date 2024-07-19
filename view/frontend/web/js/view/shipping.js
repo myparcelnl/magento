@@ -4,8 +4,8 @@
 
 define([
   'ko',
-  'MyParcelNL_Magento/js/view/delivery-options',
-  'MyParcelNL_Magento/js/model/checkout',
+  'MyParcelBE_Magento/js/view/delivery-options',
+  'MyParcelBE_Magento/js/model/checkout',
 ], function(
   ko,
   deliveryOptions,

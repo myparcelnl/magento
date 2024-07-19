@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Setup\Methods;
+namespace MyParcelBE\Magento\Setup\Methods;
 
-use MyParcelNL\Magento\Setup\Methods\Interfaces\QueryInterface;
+use MyParcelBE\Magento\Setup\Methods\Interfaces\QueryInterface;
 
 class Delete implements QueryInterface
 {

@@ -1,11 +1,11 @@
 <?php
 
-namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
+namespace MyParcelBE\Magento\Controller\Adminhtml\Order;
 
 use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
 
 /**
  * Action to send mails with a return label

@@ -6,7 +6,7 @@
   "homepage": "https://myparcelnl.github.io/magento",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/myparcelnl/magento.git"
+    "url": "git+https://github.com/myparcelbe/magento"
   },
   "license": "MIT",
   "main": "index.js",

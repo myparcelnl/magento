@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
+namespace MyParcelBE\Magento\Ui\Component\Listing\Column;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;

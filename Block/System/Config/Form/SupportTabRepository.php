@@ -16,9 +16,9 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Block\System\Config\Form;
+namespace MyParcelBE\Magento\Block\System\Config\Form;
 
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 
 class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
 {/**
@@ -26,7 +26,7 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      */
     protected $moduleList;
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     private $helper;
 
@@ -36,14 +36,14 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      * @param \Magento\Backend\Block\Template\Context $context
      * @param \Magento\Framework\Registry             $registry
      * @param \Magento\Sales\Helper\Admin             $adminHelper
-     * @param \MyParcelNL\Magento\Helper\Data         $helper
+     * @param \MyParcelBE\Magento\Helper\Data         $helper
      * @param array                                   $data
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Sales\Helper\Admin $adminHelper,
-        \MyParcelNL\Magento\Helper\Data $helper,
+        \MyParcelBE\Magento\Helper\Data $helper,
         array $data = []
     ) {
         parent::__construct($context, $registry, $adminHelper, $data);
@@ -58,7 +58,7 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      */
     public function getCssUrl()
     {
-        $cssUrl = $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/support_tab/style.css')->getUrl();
+        $cssUrl = $this->_assetRepo->createAsset('MyParcelBE_Magento::css/config/support_tab/style.css')->getUrl();
 
         return $cssUrl;
     }

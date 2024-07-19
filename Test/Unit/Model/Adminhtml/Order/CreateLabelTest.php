@@ -16,11 +16,11 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\magento\Test\Unit\Model\Adminhtml\Order;
+namespace MyParcelBE\magento\Test\Unit\Model\Adminhtml\Order;
 
 include_once('../../../Constants.php');
 
-use MyParcelNL\magento\Test\Unit\Constants;
+use MyParcelBE\magento\Test\Unit\Constants;
 
 class CreateLabelTest extends Constants
 {

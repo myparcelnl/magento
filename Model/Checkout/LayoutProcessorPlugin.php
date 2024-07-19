@@ -16,16 +16,16 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelBE\Magento\Model\Checkout;
 
 use Magento\Checkout\Block\Checkout\LayoutProcessor;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
-use MyParcelNL\Magento\Model\Quote\Checkout;
+use MyParcelBE\Magento\Helper\Checkout as CheckoutHelper;
+use MyParcelBE\Magento\Model\Quote\Checkout;
 
 class LayoutProcessorPlugin
 {
     /**
-     * @var \MyParcelNL\Magento\Model\Quote\Checkout
+     * @var \MyParcelBE\Magento\Model\Quote\Checkout
      */
     private $settings;
 

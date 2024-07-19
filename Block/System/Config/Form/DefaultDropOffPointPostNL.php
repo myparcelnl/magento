@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Block\System\Config\Form;
+namespace MyParcelBE\Magento\Block\System\Config\Form;
 
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 

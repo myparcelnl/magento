@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Block\System\Config\Form;
+namespace MyParcelBE\Magento\Block\System\Config\Form;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Form\Element\AbstractElement;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 
 abstract class AbstractDefaultDropOffPoint extends Field
@@ -19,7 +19,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
      *
      * @var string
      */
-    protected $_template = 'MyParcelNL_Magento::default_drop_off_point.phtml';
+    protected $_template = 'MyParcelBE_Magento::default_drop_off_point.phtml';
 
     /**
      * @var \MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint
@@ -93,7 +93,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
      */
     public function getCssUrl(): string
     {
-        return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/DropOffPoint/style.css')
+        return $this->_assetRepo->createAsset('MyParcelBE_Magento::css/config/DropOffPoint/style.css')
             ->getUrl();
     }
 

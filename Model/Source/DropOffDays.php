@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Source;
+namespace MyParcelBE\Magento\Model\Source;
 
 
 class DropOffDays implements \Magento\Framework\Option\ArrayInterface

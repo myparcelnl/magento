@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="admin">
         <route id="myparcel" frontName="myparcel">
-            <module name="MyParcelNL_Magento" />
+            <module name="MyParcelBE_Magento" />
         </route>
     </router>
 </config>

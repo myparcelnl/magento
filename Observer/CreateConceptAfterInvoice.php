@@ -11,7 +11,7 @@
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-namespace MyParcelNL\Magento\Observer;
+namespace MyParcelBE\Magento\Observer;
 
 use Exception;
 use Magento\Framework\App\ObjectManager;
@@ -23,10 +23,10 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelBE\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 
@@ -81,7 +81,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
         $this->objectManager   = ObjectManager::getInstance();
         $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
+        $this->helper          = $this->objectManager->get('MyParcelBE\Magento\Helper\Data');
         $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
         $this->orderFactory    = $this->objectManager->get('\Magento\Sales\Model\Order');
     }

@@ -1,7 +1,8 @@
 <?php
 
-namespace MyParcelNL\Magento\Block\Sales;
+namespace MyParcelBE\Magento\Block\Sales;
 
+use MyParcelBE\Magento\Model\Checkout\Carrier;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
@@ -10,6 +11,7 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierBpost;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipmentForm
@@ -21,6 +23,7 @@ class NewShipmentForm
         CarrierDHLParcelConnect::class,
         CarrierUPS::class,
         CarrierDPD::class,
+        CarrierBpost::class,
     ];
 
     public const PACKAGE_TYPE_HUMAN_MAP = [

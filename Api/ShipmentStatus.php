@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Api;
+namespace MyParcelBE\Magento\Api;
 
 class ShipmentStatus
 {

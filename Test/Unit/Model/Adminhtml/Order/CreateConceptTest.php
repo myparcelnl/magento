@@ -16,11 +16,11 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\magento\Test\Unit\Model\Adminhtml\Order;
+namespace MyParcelBE\magento\Test\Unit\Model\Adminhtml\Order;
 
 include_once('../../../Constants.php');
 
-use MyParcelNL\magento\Test\Unit\Constants;
+use MyParcelBE\magento\Test\Unit\Constants;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 
 class CreateConceptTest extends Constants
@@ -33,7 +33,7 @@ class CreateConceptTest extends Constants
 
     public function testExecute()
     {
-         $orderId = $this->setOrder();
+        $orderId = $this->setOrder();
         $response = $this->createConcept($orderId);
 
         // Check if track has consignment id

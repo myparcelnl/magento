@@ -1,9 +1,9 @@
 <?php
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelBE\Magento\Model\Checkout;
 
-use MyParcelNL\Magento\Api\PackageTypeInterface;
-use MyParcelNL\Magento\Model\Quote\Checkout;
+use MyParcelBE\Magento\Api\PackageTypeInterface;
+use MyParcelBE\Magento\Model\Quote\Checkout;
 
 /**
  * @since 3.0.0

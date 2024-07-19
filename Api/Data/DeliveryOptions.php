@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelNL\Magento\Api\Data;
+namespace MyParcelBE\Magento\Api\Data;
 
 interface DeliveryOptions
 {

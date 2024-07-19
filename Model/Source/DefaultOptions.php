@@ -11,17 +11,18 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Source;
+namespace MyParcelBE\Magento\Model\Source;
 
 use BadMethodCallException;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelBE\Magento\Helper\Checkout;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierBpost;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class DefaultOptions
@@ -64,9 +65,8 @@ class DefaultOptions
         self::$helper = $helper;
         self::$order  = $order;
         try {
-            self::$chosenOptions = DeliveryOptionsAdapterFactory::create(
-                (array) json_decode($order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)
-            )->toArray();
+            $data = $order->getData(Checkout::FIELD_DELIVERY_OPTIONS);
+            self::$chosenOptions = $data ? (array) json_decode($data, true) : [];
         } catch (BadMethodCallException $e) {
             self::$chosenOptions = [];
         }
@@ -259,7 +259,7 @@ class DefaultOptions
      */
     public function getDigitalStampDefaultWeight(): string
     {
-        return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
+        return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelbe_magento_postnl_settings/');
     }
 
     /**
@@ -295,7 +295,7 @@ class DefaultOptions
             }
         }
 
-        return CarrierPostNL::NAME;
+        return CarrierBpost::NAME;
     }
 
     /**
@@ -317,6 +317,6 @@ class DefaultOptions
      */
     public static function getDefaultCarrier(): AbstractCarrier
     {
-        return CarrierFactory::createFromClass(CarrierPostNL::class);
+        return CarrierFactory::createFromClass(CarrierBpost::class);
     }
 }

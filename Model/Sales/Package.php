@@ -16,9 +16,9 @@
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelNL\Magento\Model\Sales;
+namespace MyParcelBE\Magento\Model\Sales;
 
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 
 class Package extends Data implements PackageInterface
 {

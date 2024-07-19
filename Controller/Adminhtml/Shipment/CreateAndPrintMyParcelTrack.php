@@ -1,12 +1,12 @@
 <?php
 
-namespace MyParcelNL\Magento\Controller\Adminhtml\Shipment;
+namespace MyParcelBE\Magento\Controller\Adminhtml\Shipment;
 
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
-use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelBE\Magento\Model\Sales\MagentoShipmentCollection;
 
 /**
  * Action to create and print MyParcel Track

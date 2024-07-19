@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
+namespace MyParcelBE\Magento\Ui\Component\Listing\Column;
 
 use Magento\Ui\Component\Listing\Columns\Column;
 

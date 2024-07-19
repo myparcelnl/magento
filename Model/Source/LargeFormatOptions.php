@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Source;
+namespace MyParcelBE\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 
 class LargeFormatOptions implements OptionSourceInterface
 {

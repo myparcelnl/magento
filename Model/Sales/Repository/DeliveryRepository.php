@@ -16,9 +16,9 @@
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelNL\Magento\Model\Sales\Repository;
+namespace MyParcelBE\Magento\Model\Sales\Repository;
 
-use MyParcelNL\Magento\Model\Sales\Delivery;
+use MyParcelBE\Magento\Model\Sales\Delivery;
 
 class DeliveryRepository extends Delivery
 {

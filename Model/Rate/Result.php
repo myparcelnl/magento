@@ -16,14 +16,14 @@ declare(strict_types=1);
  * @since       File available since Release 2.0.0
  */
 
-namespace MyParcelNL\Magento\Model\Rate;
+namespace MyParcelBE\Magento\Model\Rate;
 
 use Countable;
 use Magento\Checkout\Model\Session;
 use Magento\Quote\Model\Quote\Address\RateResult\Method;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelBE\Magento\Helper\Checkout;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
@@ -50,7 +50,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private $myParcelHelper;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
+     * @var \MyParcelBE\Magento\Model\Sales\Repository\PackageRepository
      */
     private $package;
 

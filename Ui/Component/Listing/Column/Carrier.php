@@ -12,7 +12,7 @@
  * @since       File available since Release v3.0.0
  */
 
-namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
+namespace MyParcelBE\Magento\Ui\Component\Listing\Column;
 
 use Magento\Sales\Model\Order;
 use Magento\Ui\Component\Listing\Columns\Column;

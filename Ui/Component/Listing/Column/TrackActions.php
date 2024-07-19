@@ -1,6 +1,6 @@
 <?php
 
-namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
+namespace MyParcelBE\Magento\Ui\Component\Listing\Column;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
@@ -8,8 +8,8 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Model\Sales\TrackTraceHolder;
 
 /**
  * Class DepartmentActions
@@ -19,7 +19,7 @@ class TrackActions extends Column
     const NAME = 'track_actions';
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     private $helper;
 
@@ -32,7 +32,7 @@ class TrackActions extends Column
      * @param  ContextInterface                $context
      * @param  UiComponentFactory              $uiComponentFactory
      * @param  UrlInterface                    $urlBuilder
-     * @param  \MyParcelNL\Magento\Helper\Data $helper
+     * @param  \MyParcelBE\Magento\Helper\Data $helper
      * @param  array                           $components
      * @param  array                           $data
      */

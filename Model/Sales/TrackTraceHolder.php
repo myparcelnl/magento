@@ -11,7 +11,7 @@
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Sales;
+namespace MyParcelBE\Magento\Model\Sales;
 
 use BadMethodCallException;
 use Exception;
@@ -22,12 +22,12 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
-use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Helper\ShipmentOptions;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelBE\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\ShipmentOptions;
+use MyParcelBE\Magento\Model\Source\DefaultOptions;
+use MyParcelBE\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelBE\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
@@ -39,7 +39,7 @@ use RuntimeException;
 /**
  * Class TrackTraceHolder
  *
- * @package MyParcelNL\Magento\Model\Sales
+ * @package MyParcelBE\Magento\Model\Sales
  */
 class TrackTraceHolder
 {
@@ -52,7 +52,7 @@ class TrackTraceHolder
     public const EXPORT_MODE_SHIPMENTS = 'shipments';
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     * @var \MyParcelBE\Magento\Model\Source\DefaultOptions
      */
     private static $defaultOptions;
 
@@ -77,7 +77,7 @@ class TrackTraceHolder
     private $carrier;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     private $dataHelper;
 
@@ -87,7 +87,7 @@ class TrackTraceHolder
     private $objectManager;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\ShipmentOptions
+     * @var \MyParcelBE\Magento\Helper\ShipmentOptions
      */
     private $shipmentOptionsHelper;
 

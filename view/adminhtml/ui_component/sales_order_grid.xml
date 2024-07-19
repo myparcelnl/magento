@@ -14,7 +14,7 @@
         </massaction>
     </listingToolbar>
     <columns name="sales_order_columns">
-        <column name="track_status" class="MyParcelNL\Magento\Ui\Component\Listing\Column\ShippingStatus">
+        <column name="track_status" class="MyParcelBE\Magento\Ui\Component\Listing\Column\ShippingStatus">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
@@ -27,7 +27,7 @@
                 </item>
             </argument>
         </column>
-        <column name="track_number" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace">
+        <column name="track_number" class="MyParcelBE\Magento\Ui\Component\Listing\Column\TrackAndTrace">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
@@ -40,7 +40,7 @@
                 </item>
             </argument>
         </column>
-        <column name="drop_off_day" class="MyParcelNL\Magento\Ui\Component\Listing\Column\DeliveryDate">
+        <column name="drop_off_day" class="MyParcelBE\Magento\Ui\Component\Listing\Column\DeliveryDate">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="bodyTmpl" xsi:type="string">ui/grid/cells/html</item>
@@ -54,7 +54,7 @@
             </argument>
         </column>
         <!-- Action column -->
-        <actionsColumn name="track_actions" class="MyParcelNL\Magento\Ui\Component\Listing\Column\TrackActions">
+        <actionsColumn name="track_actions" class="MyParcelBE\Magento\Ui\Component\Listing\Column\TrackActions">
             <argument name="data" xsi:type="array">
                 <item name="config" xsi:type="array">
                     <item name="label" xsi:type="string" translate="true">Shipment</item>

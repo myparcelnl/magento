@@ -12,16 +12,16 @@ declare(strict_types=1);
  * @since       File available since Release v0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Sales;
+namespace MyParcelBE\Magento\Model\Sales;
 
 use Magento\Framework\Module\Manager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
-use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
-use MyParcelNL\Magento\Model\Source\SourceItem;
-use MyParcelNL\Magento\Observer\NewShipment;
-use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelBE\Magento\Model\Order\Email\Sender\TrackSender;
+use MyParcelBE\Magento\Model\Source\ReturnInTheBox;
+use MyParcelBE\Magento\Model\Source\SourceItem;
+use MyParcelBE\Magento\Observer\NewShipment;
+use MyParcelBE\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -31,11 +31,11 @@ use Magento\Framework\App\ResourceConnection;
 /**
  * Class MagentoOrderCollection
  *
- * @package MyParcelNL\Magento\Model\Sales
+ * @package MyParcelBE\Magento\Model\Sales
  */
 abstract class MagentoCollection implements MagentoCollectionInterface
 {
-    public const PATH_HELPER_DATA                    = '\MyParcelNL\Magento\Helper\Data';
+    public const PATH_HELPER_DATA                    = '\MyParcelBE\Magento\Helper\Data';
     public const PATH_MODEL_ORDER                    = '\Magento\Sales\Model\ResourceModel\Order\Collection';
     public const PATH_MODEL_SHIPMENT                 = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
     public const ERROR_ORDER_HAS_NO_SHIPMENT         = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
@@ -57,7 +57,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected $moduleManager;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\SourceItem
+     * @var \MyParcelBE\Magento\Model\Source\SourceItem
      */
     protected $sourceItem;
 
@@ -92,7 +92,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected $messageManager;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     protected $helper;
 
@@ -136,7 +136,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->moduleManager      = $objectManager->get(Manager::class);
         $this->request            = $request;
         $this->trackSender        = $this->objectManager->get(
-            'MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender'
+            'MyParcelBE\Magento\Model\Order\Email\Sender\TrackSender'
         );
         $this->helper             = $objectManager->create(self::PATH_HELPER_DATA);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
@@ -411,7 +411,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     public function createMyParcelConcepts(): self
     {
         if (! count($this->myParcelCollection)) {
-            $this->messageManager->addWarningMessage(__('myparcelnl_magento_error_no_shipments_to_process'));
+            $this->messageManager->addWarningMessage(__('myparcelbe_magento_error_no_shipments_to_process'));
             return $this;
         }
 
@@ -665,7 +665,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected function getMyparcelConsignmentIdsForShipments(): array
     {
         $shipments = $this->getShipmentsCollection();
-
         $consignmentIds = [];
 
         foreach ($shipments as $shipment) {

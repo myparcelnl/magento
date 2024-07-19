@@ -1,13 +1,13 @@
 <?php
 
-namespace MyParcelNL\Magento\Model\Quote;
+namespace MyParcelBE\Magento\Model\Quote;
 
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
 use Magento\Store\Model\StoreManagerInterface;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
-use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelBE\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
@@ -17,7 +17,7 @@ class Checkout
     private const PACKAGE_TYPE_MAILBOX = 'mailbox';
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Checkout
+     * @var \MyParcelBE\Magento\Helper\Checkout
      */
     private $helper;
 
@@ -51,7 +51,7 @@ class Checkout
      *
      * @param \Magento\Checkout\Model\Session            $session
      * @param \Magento\Checkout\Model\Cart               $cart
-     * @param \MyParcelNL\Magento\Helper\Checkout        $helper
+     * @param \MyParcelBE\Magento\Helper\Checkout        $helper
      * @param PackageRepository                          $package
      * @param \Magento\Store\Model\StoreManagerInterface $currency
      *
@@ -59,7 +59,7 @@ class Checkout
     public function __construct(
         Session $session,
         Cart $cart,
-        \MyParcelNL\Magento\Helper\Checkout $helper,
+        \MyParcelBE\Magento\Helper\Checkout $helper,
         PackageRepository $package,
         StoreManagerInterface $currency
     ) {

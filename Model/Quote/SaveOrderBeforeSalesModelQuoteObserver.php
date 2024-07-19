@@ -18,15 +18,15 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Quote;
+namespace MyParcelBE\Magento\Model\Quote;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Model\Checkout\Carrier;
-use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
+use MyParcelBE\Magento\Helper\Checkout;
+use MyParcelBE\Magento\Model\Checkout\Carrier;
+use MyParcelBE\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
 use MyParcelNL\Sdk\src\Helper\ValidateStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;

@@ -5,9 +5,9 @@ define(
     'Magento_Checkout/js/model/shipping-rate-registry',
     'Magento_Checkout/js/action/select-shipping-method',
     'Magento_Checkout/js/model/quote',
-    'MyParcelNL_Magento/js/model/checkout',
-    'MyParcelNL_Magento/js/polyfill/array_prototype_find',
-    'MyParcelNL_Magento/js/vendor/object-path',
+    'MyParcelBE_Magento/js/model/checkout',
+    'MyParcelBE_Magento/js/polyfill/array_prototype_find',
+    'MyParcelBE_Magento/js/vendor/object-path',
     'myparcelDeliveryOptions',
     'leaflet',
     'jquery'
@@ -57,46 +57,46 @@ define(
        */
       hiddenDataInput: '[name="myparcel_delivery_options"]',
 
-      methodCodeStandardDelivery: 'myparcelnl_magento_postnl_settings/delivery',
+      methodCodeStandardDelivery: 'myparcelbe_magento_postnl_settings/delivery',
 
       /**
        * Maps shipping method codes to prices in the delivery options config.
        */
       methodCodeDeliveryOptionsConfigMap: {
-        'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
-        'myparcelnl_magento_postnl_settings/mailbox': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
-        'myparcelnl_magento_postnl_settings/package_small': 'config.carrierSettings.postnl.pricePackageTypePackageSmall',
-        'myparcelnl_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeDigitalStamp',
-        'myparcelnl_magento_postnl_settings/morning': 'config.carrierSettings.postnl.priceMorningDelivery',
-        'myparcelnl_magento_postnl_settings/evening': 'config.carrierSettings.postnl.priceEveningDelivery',
-        'myparcelnl_magento_postnl_settings/morning/only_recipient': 'config.carrierSettings.postnl.priceMorningDelivery',
-        'myparcelnl_magento_postnl_settings/evening/only_recipient': 'config.carrierSettings.postnl.priceEveningDelivery',
-        'myparcelnl_magento_postnl_settings/pickup': 'config.carrierSettings.postnl.pricePickup',
-        'myparcelnl_magento_postnl_settings/morning/only_recipient/signature': 'config.carrierSettings.postnl.priceMorningSignature',
-        'myparcelnl_magento_postnl_settings/evening/only_recipient/signature': 'config.carrierSettings.postnl.priceEveningSignature',
-        'myparcelnl_magento_postnl_settings/delivery/only_recipient/signature': 'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
-        'myparcelnl_magento_dhlforyou_settings/delivery': 'config.carrierSettings.dhlforyou.priceStandardDelivery',
-        'myparcelnl_magento_dhlforyou_settings/mailbox': 'config.carrierSettings.dhlforyou.pricePackageTypeMailbox',
-        'myparcelnl_magento_dhlforyou_settings/pickup': 'config.carrierSettings.dhlforyou.pricePickup',
-        'myparcelnl_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
-        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
-        'myparcelnl_magento_dhleuroplus_settings/delivery': 'config.carrierSettings.dhleuroplus.priceStandardDelivery',
-        'myparcelnl_magento_dhlparcelconnect_settings/delivery': 'config.carrierSettings.dhlparcelconnect.priceStandardDelivery',
-        'myparcelnl_magento_ups_settings/delivery': 'config.carrierSettings.ups.priceStandardDelivery',
-        'myparcelnl_magento_dpd_settings/delivery': 'config.carrierSettings.dpd.priceStandardDelivery',
-        'myparcelnl_magento_dpd_settings/pickup': 'config.carrierSettings.dpd.pricePickup',
-        'myparcelnl_magento_dpd_settings/mailbox': 'config.carrierSettings.dpd.pricePackageTypeMailbox',
+        'myparcelbe_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
+        'myparcelbe_magento_postnl_settings/mailbox': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
+        'myparcelbe_magento_postnl_settings/package_small': 'config.carrierSettings.postnl.pricePackageTypePackageSmall',
+        'myparcelbe_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeDigitalStamp',
+        'myparcelbe_magento_postnl_settings/morning': 'config.carrierSettings.postnl.priceMorningDelivery',
+        'myparcelbe_magento_postnl_settings/evening': 'config.carrierSettings.postnl.priceEveningDelivery',
+        'myparcelbe_magento_postnl_settings/morning/only_recipient': 'config.carrierSettings.postnl.priceMorningDelivery',
+        'myparcelbe_magento_postnl_settings/evening/only_recipient': 'config.carrierSettings.postnl.priceEveningDelivery',
+        'myparcelbe_magento_postnl_settings/pickup': 'config.carrierSettings.postnl.pricePickup',
+        'myparcelbe_magento_postnl_settings/morning/only_recipient/signature': 'config.carrierSettings.postnl.priceMorningSignature',
+        'myparcelbe_magento_postnl_settings/evening/only_recipient/signature': 'config.carrierSettings.postnl.priceEveningSignature',
+        'myparcelbe_magento_postnl_settings/delivery/only_recipient/signature': 'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
+        'myparcelbe_magento_dhlforyou_settings/delivery': 'config.carrierSettings.dhlforyou.priceStandardDelivery',
+        'myparcelbe_magento_dhlforyou_settings/mailbox': 'config.carrierSettings.dhlforyou.pricePackageTypeMailbox',
+        'myparcelbe_magento_dhlforyou_settings/pickup': 'config.carrierSettings.dhlforyou.pricePickup',
+        'myparcelbe_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
+        'myparcelbe_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
+        'myparcelbe_magento_dhleuroplus_settings/delivery': 'config.carrierSettings.dhleuroplus.priceStandardDelivery',
+        'myparcelbe_magento_dhlparcelconnect_settings/delivery': 'config.carrierSettings.dhlparcelconnect.priceStandardDelivery',
+        'myparcelbe_magento_ups_settings/delivery': 'config.carrierSettings.ups.priceStandardDelivery',
+        'myparcelbe_magento_dpd_settings/delivery': 'config.carrierSettings.dpd.priceStandardDelivery',
+        'myparcelbe_magento_dpd_settings/pickup': 'config.carrierSettings.dpd.pricePickup',
+        'myparcelbe_magento_dpd_settings/mailbox': 'config.carrierSettings.dpd.pricePackageTypeMailbox',
       },
 
       /**
        * Maps shipping method codes to prices in the delivery options config.
        */
       methodCodeShipmentOptionsConfigMap: {
-        'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
-        'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
-        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient': 'config.carrierSettings.dhlforyou.priceOnlyRecipient',
-        'myparcelnl_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
-        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
+        'myparcelbe_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
+        'myparcelbe_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
+        'myparcelbe_magento_dhlforyou_settings/delivery/only_recipient': 'config.carrierSettings.dhlforyou.priceOnlyRecipient',
+        'myparcelbe_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
+        'myparcelbe_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
       },
 
       /**

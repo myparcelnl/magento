@@ -1,10 +1,10 @@
 <?php
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelBE\Magento\Model\Checkout;
 
 use Exception;
 use Magento\Checkout\Model\Session;
-use MyParcelNL\Magento\Api\ShippingMethodsInterface;
+use MyParcelBE\Magento\Api\ShippingMethodsInterface;
 
 /**
  * @since 3.0.0

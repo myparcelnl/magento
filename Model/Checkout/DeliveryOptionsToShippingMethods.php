@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelBE\Magento\Model\Checkout;
 
 use Exception;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelBE\Magento\Helper\Data;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 
 class DeliveryOptionsToShippingMethods

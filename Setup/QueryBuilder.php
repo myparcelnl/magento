@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Setup;
+namespace MyParcelBE\Magento\Setup;
 
-use MyParcelNL\Magento\Setup\Methods\Select;
-use MyParcelNL\Magento\Setup\Methods\Update;
-use MyParcelNL\Magento\Setup\Methods\Insert;
-use MyParcelNL\Magento\Setup\Methods\Delete;
+use MyParcelBE\Magento\Setup\Methods\Select;
+use MyParcelBE\Magento\Setup\Methods\Update;
+use MyParcelBE\Magento\Setup\Methods\Insert;
+use MyParcelBE\Magento\Setup\Methods\Delete;
 
 class QueryBuilder
 {
     /**
      * @param  string ...$select
      *
-     * @return \MyParcelNL\Magento\Setup\Methods\Select
+     * @return \MyParcelBE\Magento\Setup\Methods\Select
      */
     public function select(string ...$select): Select
     {
@@ -24,7 +24,7 @@ class QueryBuilder
     /**
      * @param  string $into
      *
-     * @return \MyParcelNL\Magento\Setup\Methods\Insert
+     * @return \MyParcelBE\Magento\Setup\Methods\Insert
      */
     public function insert(string $into): Insert
     {
@@ -34,7 +34,7 @@ class QueryBuilder
     /**
      * @param  string $table
      *
-     * @return \MyParcelNL\Magento\Setup\Methods\Update
+     * @return \MyParcelBE\Magento\Setup\Methods\Update
      */
     public function update(string $table): Update
     {
@@ -44,7 +44,7 @@ class QueryBuilder
     /**
      * @param  string $table
      *
-     * @return \MyParcelNL\Magento\Setup\Methods\Delete
+     * @return \MyParcelBE\Magento\Setup\Methods\Delete
      */
     public function delete(string $table): Delete
     {

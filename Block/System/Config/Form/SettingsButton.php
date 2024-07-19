@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Block\System\Config\Form;
+namespace MyParcelBE\Magento\Block\System\Config\Form;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
@@ -16,7 +16,7 @@ class SettingsButton extends Field
      *
      * @var string
      */
-    protected $_template = 'MyParcelNL_Magento::settings_button.phtml';
+    protected $_template = 'MyParcelBE_Magento::settings_button.phtml';
 
     public function __construct(Context $context, array $data = [])
     {

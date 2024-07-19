@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
+namespace MyParcelBE\Magento\Controller\Adminhtml\Settings;
 
 use Magento\Config\Model\ResourceModel\Config;
 use Magento\Backend\App\Action;
@@ -15,8 +15,8 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Message\MessageInterface;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelBE\Magento\Helper\Data;
+use MyParcelBE\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\src\Support\Collection;

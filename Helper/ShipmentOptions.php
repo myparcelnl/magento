@@ -1,10 +1,10 @@
 <?php
 
-namespace MyParcelNL\Magento\Helper;
+namespace MyParcelBE\Magento\Helper;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelBE\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use Magento\Framework\App\ResourceConnection;
 
@@ -31,7 +31,7 @@ class ShipmentOptions
     private $carrier;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     * @var \MyParcelBE\Magento\Model\Source\DefaultOptions
      */
     private static $defaultOptions;
 
@@ -46,7 +46,7 @@ class ShipmentOptions
     private $options;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var \MyParcelBE\Magento\Helper\Data
      */
     private $helper;
 
@@ -61,8 +61,8 @@ class ShipmentOptions
     private $cc;
 
     /**
-     * @param  \MyParcelNL\Magento\Model\Source\DefaultOptions $defaultOptions
-     * @param  \MyParcelNL\Magento\Helper\Data                 $helper
+     * @param  \MyParcelBE\Magento\Model\Source\DefaultOptions $defaultOptions
+     * @param  \MyParcelBE\Magento\Helper\Data                 $helper
      * @param  \Magento\Sales\Model\Order                      $order
      * @param  \Magento\Framework\ObjectManagerInterface       $objectManager
      * @param  string                                          $carrier

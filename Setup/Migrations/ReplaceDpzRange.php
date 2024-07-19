@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Setup\Migrations;
+namespace MyParcelBE\Magento\Setup\Migrations;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Setup\SchemaSetupInterface;
-use MyParcelNL\Magento\Setup\QueryBuilder;
+use MyParcelBE\Magento\Setup\QueryBuilder;
 
 class ReplaceDpzRange
 {
     /** @var string $pathDigitalStampDefault */
-    private $pathDigitalStampDefault  = 'myparcelnl_magento_postnl_settings/digital_stamp/default_weight';
+    private $pathDigitalStampDefault  = 'myparcelbe_magento_postnl_settings/digital_stamp/default_weight';
 
-    /** @var \MyParcelNL\Magento\Setup\QueryBuilder $queryBuilder */
+    /** @var \MyParcelBE\Magento\Setup\QueryBuilder $queryBuilder */
     private $queryBuilder;
 
     /** @var \Magento\Framework\Setup\SchemaSetupInterface $setup */
