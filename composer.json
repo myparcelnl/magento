@@ -25,7 +25,11 @@
     {
       "name": "Richard Perdaan",
       "email": "support@myparcel.nl"
-    }
+    },
+      {
+          "name": "Jochem Gravendeel",
+          "email": "support@myparcel.nl"
+      }
   ],
   "type": "magento2-module",
   "require": {

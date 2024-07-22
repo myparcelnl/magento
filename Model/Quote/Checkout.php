@@ -13,7 +13,7 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class Checkout
 {
-    private const PLATFORM             = 'myparcel';
+    private const PLATFORM             = 'belgie';
     private const PACKAGE_TYPE_MAILBOX = 'mailbox';
 
     /**
@@ -307,22 +307,22 @@ class Checkout
     private function getDeliveryOptionsStrings(): array
     {
         return [
-            'deliveryTitle'             => $this->helper->getGeneralConfig('delivery_titles/delivery_title'),
-            'deliveryStandardTitle'     => $this->helper->getGeneralConfig('delivery_titles/standard_delivery_title'),
-            'deliveryMorningTitle'      => $this->helper->getGeneralConfig('delivery_titles/morning_title'),
-            'deliveryEveningTitle'      => $this->helper->getGeneralConfig('delivery_titles/evening_title'),
-            'deliveryPickupTitle'       => $this->helper->getGeneralConfig('delivery_titles/pickup_title'),
-            'pickupTitle'               => $this->helper->getGeneralConfig('delivery_titles/pickup_title'),
-            'deliverySameDayTitle'      => $this->helper->getGeneralConfig('delivery_titles/same_day_title') ?: __('Same day delivery'),
-            'hideSenderTitle'           => $this->helper->getGeneralConfig('delivery_titles/hide_sender_title') ?: __('Hide sender'),
-            'list'                      => $this->helper->getGeneralConfig('delivery_titles/pickup_list_button_title'),
-            'map'                       => $this->helper->getGeneralConfig('delivery_titles/pickup_map_button_title'),
-            'packageTypeMailbox'        => $this->helper->getGeneralConfig('delivery_titles/mailbox_title'),
-            'packageTypeDigitalStamp'   => $this->helper->getGeneralConfig('delivery_titles/digital_stamp_title'),
-            'packageTypePackageSmall'   => $this->helper->getGeneralConfig('delivery_titles/package_small_title') ?: __('Packet'),
-            'signatureTitle'            => $this->helper->getGeneralConfig('delivery_titles/signature_title'),
-            'onlyRecipientTitle'        => $this->helper->getGeneralConfig('delivery_titles/only_recipient_title'),
-            'saturdayDeliveryTitle'     => $this->helper->getGeneralConfig('delivery_titles/saturday_title'),
+            'deliveryTitle'             => $this->helper->getGeneralConfig('delivery_titles/delivery_title') ?: __('delivery_title'),
+            'deliveryStandardTitle'     => $this->helper->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_delivery'),
+            'deliveryMorningTitle'      => $this->helper->getGeneralConfig('delivery_titles/morning_title') ?: __('morning_title'),
+            'deliveryEveningTitle'      => $this->helper->getGeneralConfig('delivery_titles/evening_title') ?: __('evening_title'),
+            'deliveryPickupTitle'       => $this->helper->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
+            'pickupTitle'               => $this->helper->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
+            'deliverySameDayTitle'      => $this->helper->getGeneralConfig('delivery_titles/same_day_title') ?: __('same_day_title'),
+            'hideSenderTitle'           => $this->helper->getGeneralConfig('delivery_titles/hide_sender_title') ?: __('hide_sender_title'),
+            'list'                      => $this->helper->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
+            'map'                       => $this->helper->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
+            'packageTypeMailbox'        => $this->helper->getGeneralConfig('delivery_titles/mailbox_title') ?: __('mailbox_title'),
+            'packageTypeDigitalStamp'   => $this->helper->getGeneralConfig('delivery_titles/digital_stamp_title') ?: __('digital_stamp_title'),
+            'packageTypePackageSmall'   => $this->helper->getGeneralConfig('delivery_titles/package_small_title') ?: __('packet_title'),
+            'signatureTitle'            => $this->helper->getGeneralConfig('delivery_titles/signature_title') ?: __('signature_title'),
+            'onlyRecipientTitle'        => $this->helper->getGeneralConfig('delivery_titles/only_recipient_title') ?: __('only_recipient_title'),
+            'saturdayDeliveryTitle'     => $this->helper->getGeneralConfig('delivery_titles/saturday_title') ?: __('saturday_delivery_title'),
 
             'wrongPostalCodeCity' => __('Postcode/city combination unknown'),
             'addressNotFound'     => __('Address details are not entered'),

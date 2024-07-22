@@ -205,3 +205,19 @@ Large package,Plus grand que 100 x 70 x 58 cm ou plus lourd que 23 kg
 {field} is required.,{field} est requis.
 Address not found.,Adresse introuvable.
 Postal code is invalid for the current country.,Le code postal n’est pas valide pour le pays actuel.
+
+delivery_title, Options de livraison
+standard_title, Livraison standard
+morning_title, Livraison du lundi
+evening_title, Livraison en soirée
+pickup_title, Points de collecte
+same_day_title, Livraison le jour même
+hide_sender_title, Masquer l'expéditeur
+list_title, Liste
+map_title, Carte
+mailbox_title, Colis boîte aux lettres
+digital_stamp_title, Timbre digital
+packet_title, Colis
+signature_title, Signature à réception
+only_recipient_title, Adresse de résidence uniquement
+saturday_delivery, Livraison le samedi
