@@ -324,7 +324,7 @@ class PackageRepository extends Package
      */
     private function fitInPackageSmall(): bool
     {
-        return  $this->isPackageSmallActive()
+        return $this->isPackageSmallActive()
             && $this->getWeight() <= $this->getMaxPackageSmallWeight();
     }
 
