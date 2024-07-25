@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.15.2](https://github.com/myparcelnl/magento/compare/v4.15.1...v4.15.2) (2024-07-25)
+
+
+### :bug: Bug Fixes
+
+* add correct translations for delivery options ([#858](https://github.com/myparcelnl/magento/issues/858)) ([2df7796](https://github.com/myparcelnl/magento/commit/2df779672f10ee8b32702005522bbee57815633f))
+
 ## [4.15.1](https://github.com/myparcelnl/magento/compare/v4.15.0...v4.15.1) (2024-07-11)
 
 
