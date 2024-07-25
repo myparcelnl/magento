@@ -89,7 +89,7 @@ class TrackActions extends Column
                         'hidden' => ! $orderManagementActivated,
                     ];
                 } else {
-                    $item[$this->getData('name')]['action-download_package_label']       = [
+                    $item[$this->getData('name')]['action-download_package_label'] = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
                             [
@@ -99,6 +99,18 @@ class TrackActions extends Column
                             ]
                         ),
                         'label'  => __('Download package label'),
+                        'hidden' => $orderManagementActivated,
+                    ];
+                    $item[$this->getData('name')]['action-download_small_package_label'] = [
+                        'href'   => $this->urlBuilder->getUrl(
+                            'myparcel/order/CreateAndPrintMyParcelTrack',
+                            [
+                                'selected_ids'      => $item['entity_id'],
+                                'mypa_package_type' => 6,
+                                'mypa_request_type' => 'download',
+                            ]
+                        ),
+                        'label'  => __('Download small package label'),
                         'hidden' => $orderManagementActivated,
                     ];
                     $item[$this->getData('name')]['action-download_digital_stamp_label'] = [
@@ -113,7 +125,7 @@ class TrackActions extends Column
                         'label'  => __('Download digital stamp label'),
                         'hidden' => $orderManagementActivated,
                     ];
-                    $item[$this->getData('name')]['action-download_mailbox_label']       = [
+                    $item[$this->getData('name')]['action-download_mailbox_label'] = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
                             [
@@ -125,7 +137,7 @@ class TrackActions extends Column
                         'label'  => __('Download mailbox label'),
                         'hidden' => $orderManagementActivated,
                     ];
-                    $item[$this->getData('name')]['action-download_letter_label']        = [
+                    $item[$this->getData('name')]['action-download_letter_label'] = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
                             [
@@ -137,7 +149,7 @@ class TrackActions extends Column
                         'label'  => __('Download letter label'),
                         'hidden' => $orderManagementActivated,
                     ];
-                    $item[$this->getData('name')]['action-create_concept']               = [
+                    $item[$this->getData('name')]['action-create_concept'] = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
                             [
@@ -148,7 +160,7 @@ class TrackActions extends Column
                         'label'  => __('Create new concept'),
                         'hidden' => $orderManagementActivated,
                     ];
-                    $item[$this->getData('name')]['action-ship_direct']                  = [
+                    $item[$this->getData('name')]['action-ship_direct'] = [
                         'href'   => $this->urlBuilder->getUrl(
                             'adminhtml/order_shipment/start',
                             [
@@ -162,7 +174,7 @@ class TrackActions extends Column
             }
 
             if (isset($item[ShippingStatus::NAME])) {
-                $item[$this->getData('name')]['action-create_concept']            = [
+                $item[$this->getData('name')]['action-create_concept'] = [
                     'href'   => $this->urlBuilder->getUrl(
                         'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
@@ -173,7 +185,7 @@ class TrackActions extends Column
                     'label'  => __('Already exported'),
                     'hidden' => ! $orderManagementActivated,
                 ];
-                $item[$this->getData('name')]['action-download_package_label']    = [
+                $item[$this->getData('name')]['action-download_package_label'] = [
                     'href'   => $this->urlBuilder->getUrl(
                         'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
