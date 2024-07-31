@@ -324,8 +324,7 @@ class PackageRepository extends Package
      */
     private function fitInPackageSmall(): bool
     {
-        return AbstractConsignment::CC_BE !== $this->getCurrentCountry()
-            && $this->isPackageSmallActive()
+        return $this->isPackageSmallActive()
             && $this->getWeight() <= $this->getMaxPackageSmallWeight();
     }
 
