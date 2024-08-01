@@ -19,6 +19,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
@@ -29,14 +30,27 @@ class DefaultOptions
 {
     // Maximum characters length of company name.
     private const COMPANY_NAME_MAX_LENGTH    = 50;
+    /** @deprecated */
     private const INSURANCE_BELGIUM          = 'insurance_belgium_custom';
-    private const INSURANCE_BELGIUM_AMOUNT   = 500;
+    /** @deprecated */
     private const INSURANCE_EU_AMOUNT_50     = 'insurance_eu_50';
+    /** @deprecated */
     private const INSURANCE_EU_AMOUNT_500    = 'insurance_eu_500';
+    /** @deprecated */
     private const INSURANCE_AMOUNT_100       = 'insurance_100';
+    /** @deprecated */
     private const INSURANCE_AMOUNT_250       = 'insurance_250';
+    /** @deprecated */
     private const INSURANCE_AMOUNT_500       = 'insurance_500';
+    /** @deprecated */
     private const INSURANCE_AMOUNT_CUSTOM    = 'insurance_custom';
+
+    private const INSURANCE_FROM_PRICE       = 'insurance_from_price';
+    private const INSURANCE_LOCAL_AMOUNT     = 'insurance_local_amount';
+    private const INSURANCE_BELGIUM_AMOUNT   = 'insurance_belgium_amount';
+    private const INSURANCE_EU_AMOUNT        = 'insurance_eu_amount';
+    private const INSURANCE_ROW_AMOUNT       = 'insurance_row_amount';
+    private const INSURANCE_PERCENTAGE       = 'insurance_percentage';
     public const  DEFAULT_OPTION_VALUE       = 'default';
 
     /**
@@ -96,18 +110,7 @@ class DefaultOptions
             return true;
         }
 
-        $total     = self::$order->getGrandTotal();
-        $settings  = self::$helper->getStandardConfig($carrier, 'default_options');
-        $activeKey = "{$option}_active";
-
-        if (! isset($settings[$activeKey])) {
-            return false;
-        }
-
-        $priceKey = "{$option}_from_price";
-
-        return '1' === $settings[$activeKey]
-            && (! ($settings[$priceKey] ?? false) || $total > (int) $settings[$priceKey]);
+        return false;
     }
 
     /**
@@ -173,9 +176,10 @@ class DefaultOptions
     /**
      * Get default value of insurance based on order grand total
      *
-     * @param  string $carrier
+     * @param string $carrier
      *
      * @return int
+     * @throws \Exception
      */
     public function getDefaultInsurance(string $carrier): int
     {
@@ -183,74 +187,51 @@ class DefaultOptions
         $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : AbstractConsignment::CC_NL;
 
         if (AbstractConsignment::CC_NL === $shippingCountry) {
-            return $this->getDefaultLocalInsurance($carrier);
+            return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT, $shippingCountry);
         }
 
         if (AbstractConsignment::CC_BE === $shippingCountry) {
-            return $this->getDefaultBeInsurance($carrier);
+            return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT, $shippingCountry);
         }
 
-        return $this->getDefaultEuInsurance($carrier);
+        if (in_array($shippingCountry, AbstractConsignment::EURO_COUNTRIES)) {
+            return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT, $shippingCountry);
+        }
+
+        return $this->getInsurance($carrier, self::INSURANCE_ROW_AMOUNT, $shippingCountry);
     }
 
     /**
-     * @param  string $carrier
-     *
-     * @return int
+     * @throws Exception
      */
-    private function getDefaultEuInsurance(string $carrier): int
+    private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
     {
-        if ($this->hasDefault(self::INSURANCE_EU_AMOUNT_500, $carrier)) {
-            return 500;
+        $total = self::$order->getGrandTotal();
+        $settings = self::$helper->getStandardConfig($carrierName, 'default_options');
+        $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
+
+        if (! isset($settings[$priceKey])
+            || $settings[$priceKey] === 0
+            || $totalAfterPercentage < $settings[self::INSURANCE_FROM_PRICE]) {
+            return 0;
         }
 
-        if ($this->hasDefault(self::INSURANCE_EU_AMOUNT_50, $carrier)) {
-            return 50;
+        $carrier = ConsignmentFactory::createByCarrierName($carrierName);
+        $insuranceTiers = $carrier->getInsurancePossibilities($shippingCountry);
+        sort($insuranceTiers);
+
+        $insurance = 0;
+        foreach ($insuranceTiers as $insuranceTier) {
+            $totalPriceFallsIntoTier = $totalAfterPercentage <= $insuranceTier;
+            $atMaxInsuranceTier      = $insuranceTier >= $settings[$priceKey];
+
+            if ($totalPriceFallsIntoTier || $atMaxInsuranceTier) {
+                $insurance = $insuranceTier;
+                break;
+            }
         }
 
-        return 0;
-    }
-
-    /**
-     * @param  string $carrier
-     *
-     * @return int
-     */
-    private function getDefaultBeInsurance(string $carrier): int
-    {
-        if ($this->hasDefault(self::INSURANCE_BELGIUM, $carrier)) {
-            return self::$helper->getConfigValue(Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_belgium_custom_amount');
-        }
-
-        return $this->hasDefault(self::INSURANCE_BELGIUM, $carrier) ? self::$helper->getConfigValue(
-            Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_belgium_custom_amount'
-        ) : 0;
-    }
-
-    /**
-     * @param  string $carrier
-     *
-     * @return int
-     */
-    private function getDefaultLocalInsurance(string $carrier): int
-    {
-        if ($this->hasDefault(self::INSURANCE_AMOUNT_CUSTOM, $carrier)) {
-            return self::$helper->getConfigValue(Data::CARRIERS_XML_PATH_MAP[$carrier] . 'default_options/insurance_custom_amount');
-        }
-
-        if ($this->hasDefault(self::INSURANCE_AMOUNT_500, $carrier)) {
-            return 500;
-        }
-
-        if ($this->hasDefault(self::INSURANCE_AMOUNT_250, $carrier)) {
-            return 250;
-        }
-
-        if ($this->hasDefault(self::INSURANCE_AMOUNT_100, $carrier)) {
-            return 100;
-        }
-
-        return 0;
+        return $insurance;
     }
 
     /**

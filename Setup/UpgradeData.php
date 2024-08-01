@@ -32,6 +32,8 @@ use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
 use Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend;
+use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
+use MyParcelNL\Sdk\src\Services\CountryCodes;
 
 /**
  * Upgrade Data script
@@ -846,6 +848,203 @@ class UpgradeData implements UpgradeDataInterface
                     'myparcelnl_magento_general/date_settings/deliverydays_window' => $deliveryDaysWindow,
                     'myparcelnl_magento_general/date_settings/dropoff_delay' => $dropOffDelay,
                 ];
+
+                foreach ($updates as $path => $value) {
+                    $connection->delete($table, ['path = ?' => $path, 'scope = ?' => $scope, 'scope_id = ?' => $scopeId]);
+                    $connection->insert($table, ['path' => $path, 'value' => $value, 'scope' => $scope, 'scope_id' => $scopeId]);
+                }
+            }
+        }
+
+        if (version_compare($context->getVersion(), '4.16.0', '<')) {
+            $scope = 'default';
+            $scopeId = 0;
+
+            $oldPathNames = [
+                'insurance_belgium_active',
+                'insurance_100_active',
+                'insurance_250_active',
+                'insurance_500_active',
+                'insurance_custom_active',
+                'insurance_belgium_custom_active',
+                'insurance_eu_50_active',
+                'insurance_eu_500_active',
+                'insurance_100_from_price',
+                'insurance_250_from_price',
+                'insurance_500_from_price',
+                'insurance_custom_amount',
+                'insurance_custom_from_price',
+                'insurance_belgium_custom_amount',
+                'insurance_belgium_custom_from_price',
+                'insurance_eu_50_from_price',
+                'insurance_eu_500_from_price',
+            ];
+
+            $postnl = [
+                'carrierName' => 'postnl',
+                'basePath' => 'myparcelnl_magento_postnl_settings/default_options/',
+                'newPaths' => [
+                        'insurance_local_amount',
+                        'insurance_belgium_amount',
+                        'insurance_eu_amount',
+                        'insurance_row_amount',
+                ],
+            ];
+
+            $dhlForYou = [
+                'carrierName' => 'dhlforyou',
+                'basePath' => 'myparcelnl_magento_dhlforyou_settings/default_options/',
+                'newPaths' => [
+                        'insurance_local_amount',
+                        'insurance_belgium_amount',
+                ],
+            ];
+
+            $dhlParcelConnect = [
+                'carrierName' => 'dhlparcelconnect',
+                'basePath' => 'myparcelnl_magento_dhlparcelconnect_settings/default_options/',
+                'newPaths' => [
+                        'insurance_eu_amount',
+                        'insurance_row_amount',
+                ],
+            ];
+
+            $dhlEuroPlus = [
+                'carrierName' => 'dhleuroplus',
+                'basePath' => 'myparcelnl_magento_dhleuroplus_settings/default_options/',
+                'newPaths' => [
+                        'insurance_local_amount',
+                        'insurance_belgium_amount',
+                        'insurance_eu_amount',
+                        'insurance_row_amount',
+                ],
+            ];
+
+            $carriers = [$postnl, $dhlForYou, $dhlParcelConnect, $dhlEuroPlus];
+
+            $getFromPriceFunction = static function ($path, $rows) {
+                foreach ($rows as $row) {
+                    if ($row['path'] === $path) {
+                        $insuranceFromPriceArray[] = $row['value'];
+                        break;
+                    }
+                }
+
+                return $insuranceFromPriceArray;
+            };
+
+            $getCustomAmountFunction = static function ($rows, $path) {
+                $insuranceCustomAmount = 0;
+                foreach ($rows as $row) {
+                    if ($row['path'] === $path) {
+                        $insuranceCustomAmount = $row['value'];
+                        break;
+                    }
+                }
+
+                return $insuranceCustomAmount;
+            };
+
+            $compareAmountWithTiers = static function ($insuranceAmount, $insuranceTiers) {
+                if ($insuranceAmount === 0) {
+                    return 0;
+                }
+                sort($insuranceTiers);
+                $amountOfTiers = count($insuranceTiers);
+                for ($i = 0; $i < $amountOfTiers; $i++) {
+                    // Check if the insurance falls into the tier
+                    if ($insuranceAmount <= $insuranceTiers[$i]) {
+                        $insuranceAmount = $insuranceTiers[$i];
+                        break;
+                    }
+                    // If the insurance is even larger than the largest tier we use the largest tier instead.
+                    if ($i === $amountOfTiers - 1) {
+                        $insuranceAmount = $insuranceTiers[$i];
+                    }
+                }
+
+                return $insuranceAmount;
+            };
+
+            foreach ($carriers as $carrier) {
+                $carrierConsignment = ConsignmentFactory::createByCarrierName($carrier['carrierName']);
+                $insuranceFromPriceArray = [];
+                $basePath = $carrier['basePath'];
+
+                $updates = [
+                    $basePath . 'insurance_percentage' => 100,
+                ];
+
+                $carrierPaths = [];
+                foreach ($oldPathNames as $oldPathName) {
+                    $carrierPaths[] = $carrier['basePath'] . $oldPathName;
+                }
+                $rows = $connection->fetchAll($connection->select()->from($table, ['config_id', 'path', 'value'])->where('path IN (?)', $carrierPaths));
+
+                foreach ($carrier['newPaths'] as $type) {
+                    if ($type === 'insurance_local_amount') {
+                        $insuranceLocalAmount = 0;
+                        foreach ($rows as $row) {
+                            if ($row['path'] === $basePath . 'insurance_100_active' && $row['value'] === '1') {
+                                $insuranceLocalAmount = 100;
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_100_from_price', $rows);
+                            }
+                            if ($row['path'] === $basePath . 'insurance_250_active' && $row['value'] === '1') {
+                                $insuranceLocalAmount = 250;
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_250_from_price', $rows);
+                            }
+                            if ($row['path'] === $basePath . 'insurance_500_active' && $row['value'] === '1') {
+                                $insuranceLocalAmount = 500;
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_500_from_price', $rows);
+                            }
+                            if ($row['path'] === $basePath . 'insurance_custom_active' && $row['value'] === '1') {
+                                $insuranceLocalAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_custom_amount');
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_custom_from_price', $rows);
+                            }
+                        }
+                        $insuranceTiersLocal = $carrierConsignment->getInsurancePossibilities(CountryCodes::CC_NL);
+                        $insuranceLocalAmount = $compareAmountWithTiers($insuranceLocalAmount, $insuranceTiersLocal);
+                        $updates[$basePath . 'insurance_local_amount'] = $insuranceLocalAmount;
+                    }
+
+                    if ($type === 'insurance_belgium_amount') {
+                        $insuranceBelgiumAmount = 0;
+                        foreach ($rows as $row) {
+                            if ($row['path'] === $basePath . 'insurance_belgium_custom_active' && $row['value'] === '1') {
+                                $insuranceBelgiumAmount = $getCustomAmountFunction($rows, $basePath . 'insurance_belgium_custom_amount');
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_belgium_custom_from_price', $rows);
+                            }
+                        }
+                        $insuranceTiersBe = $carrierConsignment->getInsurancePossibilities(CountryCodes::CC_BE);
+                        $insuranceBelgiumAmount = $compareAmountWithTiers($insuranceBelgiumAmount, $insuranceTiersBe);
+                        $updates[$basePath . 'insurance_belgium_amount'] = $insuranceBelgiumAmount;
+                    }
+
+                    if ($type === 'insurance_eu_amount') {
+                        $insuranceEuAmount = 0;
+                        foreach ($rows as $row) {
+                            if ($row['path'] === $basePath . 'insurance_eu_50_active' && $row['value'] === '1') {
+                                $insuranceEuAmount = 50;
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_eu_50_from_price', $rows);
+                            }
+                            if ($row['path'] === $basePath . 'insurance_eu_500_active' && $row['value'] === '1') {
+                                $insuranceEuAmount = 500;
+                                $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_eu_500_from_price', $rows);
+                            }
+                        }
+
+                        $insuranceTiersEu = $carrierConsignment->getInsurancePossibilities(CountryCodes::ZONE_EU);
+                        $insuranceEuAmount = $compareAmountWithTiers($insuranceEuAmount, $insuranceTiersEu);
+                        $updates[$basePath . 'insurance_eu_amount'] = $insuranceEuAmount;
+                    }
+                    if ($type === 'insurance_row_amount') {
+                        $updates[$basePath . 'insurance_row_amount'] = 0;
+                    }
+                }
+
+                // The lowest from price out of all will become the from price.
+                sort($insuranceFromPriceArray);
+                $updates[$basePath . 'insurance_from_price'] = $insuranceFromPriceArray[0] ?? 0;
 
                 foreach ($updates as $path => $value) {
                     $connection->delete($table, ['path = ?' => $path, 'scope = ?' => $scope, 'scope_id = ?' => $scopeId]);

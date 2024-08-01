@@ -41,5 +41,93 @@
         <plugin name="save-in-quote" type="MyParcelNL\Magento\Model\Checkout\ShippingInformationManagementPlugin" sortOrder="10"/>
     </type>
     <!-- Get all Rates -->
-    <preference for="Magento\Shipping\Model\Rate\Result" type="MyParcelNL\Magento\Model\Rate\Result" />
+    <preference for="Magento\Shipping\Model\Rate\Result" type="MyParcelNL\Magento\Model\Rate\Result"/>
+
+    <!-- Get the insurance rates for Postnl -->
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">postnl</argument>
+            <argument name="type" xsi:type="string">local</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">postnl</argument>
+            <argument name="type" xsi:type="string">BE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">postnl</argument>
+            <argument name="type" xsi:type="string">EU</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">postnl</argument>
+            <argument name="type" xsi:type="string">ROW</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Get the insurance rates for DHLForYou -->
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLForYou\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">dhlforyou</argument>
+            <argument name="type" xsi:type="string">local</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLForYou\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">dhlforyou</argument>
+            <argument name="type" xsi:type="string">BE</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Get the insurance rates for DHLEuroPlus -->
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
+            <argument name="type" xsi:type="string">local</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
+            <argument name="type" xsi:type="string">BE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
+            <argument name="type" xsi:type="string">EU</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLEuroPlus\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">dhleuroplus</argument>
+            <argument name="type" xsi:type="string">ROW</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Get the insurance rates for DHLParcelConnect -->
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">dhlparcelconnect</argument>
+            <argument name="type" xsi:type="string">EU</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">dhlparcelconnect</argument>
+            <argument name="type" xsi:type="string">ROW</argument>
+        </arguments>
+    </virtualType>
 </config>
