@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.16.0](https://github.com/myparcelnl/magento/compare/v4.15.2...v4.16.0) (2024-08-06)
+
+
+### :sparkles: New Features
+
+* small package belgium ([#859](https://github.com/myparcelnl/magento/issues/859)) ([84aaae1](https://github.com/myparcelnl/magento/commit/84aaae13ab49d78b1eaba073dc1da491add2681f))
+* update insurance settings ([#856](https://github.com/myparcelnl/magento/issues/856)) ([129bd68](https://github.com/myparcelnl/magento/commit/129bd6870fedabe4a9973adde434aa13c6e5a1e4))
+
 ## [4.15.2](https://github.com/myparcelnl/magento/compare/v4.15.1...v4.15.2) (2024-07-25)
 
 
