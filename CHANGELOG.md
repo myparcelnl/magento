@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.16.1](https://github.com/myparcelnl/magento/compare/v4.16.0...v4.16.1) (2024-08-08)
+
+
+### :bug: Bug Fixes
+
+* **splitstreet:** use latest regex for be ([#861](https://github.com/myparcelnl/magento/issues/861)) ([fca229e](https://github.com/myparcelnl/magento/commit/fca229efe6fcc8fd7fce7ffb5ebb9744b662e4a4))
+* use country codes from sdk ([5b1339e](https://github.com/myparcelnl/magento/commit/5b1339e3889bf559eee8a6fa47f36984bb33b9e1))
+
 ## [4.16.0](https://github.com/myparcelnl/magento/compare/v4.15.2...v4.16.0) (2024-08-06)
 
 
