@@ -170,6 +170,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function addMyParcelRates(Method $parentRate): void
     {
+        return;//todo joeri
         $parentShippingMethod = $parentRate->getData('carrier');
         if (! in_array($parentShippingMethod, $this->parentMethods, true)) {
             return;

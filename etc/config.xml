@@ -244,5 +244,18 @@
                 <copy_method>bcc</copy_method>
             </track>
         </sales_email>
+
+        <carriers>
+            <myparcelnl_delivery>
+                <active>1</active>
+                <title>Custom Shipping Title</title>
+                <name>Custom Shipping Method Name</name>
+                <shipping_cost>10</shipping_cost>
+                <sallowspecific>0</sallowspecific>
+                <sort_order>15</sort_order>
+                <model>MyparcelNL\Magento\Model\Carrier\Carrier</model>
+            </myparcelnl_delivery>
+        </carriers>
+
     </default>
 </config>
