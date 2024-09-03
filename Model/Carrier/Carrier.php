@@ -16,7 +16,7 @@
  * @since       File available since Release 0.1.0
  */
 
-namespace MyParcelNL\Magento\Model\Checkout;
+namespace MyParcelNL\Magento\Model\Carrier;
 
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Checkout\Model\Session;
@@ -28,6 +28,7 @@ use Magento\Framework\DataObject;
 use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
+use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Simplexml\ElementFactory;
@@ -39,11 +40,12 @@ use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use Psr\Log\LoggerInterface;
 
-class Carrier extends AbstractCarrierOnline implements CarrierInterface
+class Carrier extends AbstractCarrier implements CarrierInterface
 {
-    const CODE = 'mypa';
+    const CODE = 'myparcelnl_delivery';
+
     protected $_code = self::CODE;
-    protected $_localeFormat;
+    protected $_freeShipping;
 
     /**
      * @var \Magento\Quote\Model\Quote
@@ -105,12 +107,14 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         Session $session,
         Checkout $myParcelHelper,
         PackageRepository $package,
+        \Magento\OfflineShipping\Model\Carrier\Freeshipping $freeShipping,
         array $data = []
     ) {
         parent::__construct(
             $scopeConfig,
             $rateErrorFactory,
             $logger,
+            $data, // remove this line when you extend AbstractCarrierOnline, add it for AbstractCarrier
             $xmlSecurity,
             $xmlElFactory,
             $rateFactory,
@@ -128,6 +132,9 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
         $this->quote = $session->getQuote();
         $this->myParcelHelper = $myParcelHelper;
         $this->package = $package;
+        $this->_rateFactory = $rateFactory;
+        $this->_rateMethodFactory = $rateMethodFactory;
+        $this->_freeShipping = $freeShipping;
     }
 
     protected function _doShipmentRequest(DataObject $request)
@@ -136,6 +143,33 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
 
     public function collectRates(RateRequest $request)
     {
+        if (!$this->getConfigFlag('active')) {
+            return false;
+        }
+        /** @var \Magento\Shipping\Model\Rate\Result $result */
+        $result = $this->_rateFactory->create();
+
+        /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
+        $method = $this->_rateMethodFactory->create();
+
+        // todo: get actual title based on chosen and possible options for this quote / cart
+        $method->setCarrier($this->_code);
+        $method->setCarrierTitle('MyParcel');
+
+        $method->setMethod($this->_code);
+        $method->setMethodTitle('Todo: chosen options here');
+
+        $freeShippingIsAvailable = false; // todo // $this->_freeShipping->getConfigData('active')
+        // todo: get actual price based on chosen and possible options for this quote / cart
+        $amount = $freeShippingIsAvailable ? '0.00' : '10.00';
+
+        $method->setPrice($amount);
+        $method->setCost($amount);
+
+        //$result->append($method);
+        $result = $this->addShippingMethods($result);
+//$bla = $this->quote->getCheckoutMethod();
+        return $result;
         /** @var \Magento\Quote\Model\Quote\Address\RateRequest $result */
         $result = $this->_rateFactory->create();
         $result = $this->addShippingMethods($result);
@@ -248,10 +282,16 @@ class Carrier extends AbstractCarrierOnline implements CarrierInterface
      */
     private function createPrice($alias, $settingPath)
     {
-        $price = 0;
+        if ($this->_freeShipping->getConfigData('active')) {
+            return 0;
+        }
 
-        $price += $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias);
+        return 10 + $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias);
+    }
 
-        return $price;
+    public function isTrackingAvailable(): bool
+    {
+        // TODO: Implement isTrackingAvailable() method.
+        return true;
     }
 }
