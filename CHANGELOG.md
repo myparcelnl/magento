@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.16.2](https://github.com/myparcelnl/magento/compare/v4.16.1...v4.16.2) (2024-09-10)
+
+
+### :bug: Bug Fixes
+
+* honor package type choice from admin ([#862](https://github.com/myparcelnl/magento/issues/862)) ([c93eef4](https://github.com/myparcelnl/magento/commit/c93eef46bea8b72828d81053a969a099b6f40719))
+
 ## [4.16.1](https://github.com/myparcelnl/magento/compare/v4.16.0...v4.16.1) (2024-08-08)
 
 
