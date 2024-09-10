@@ -199,6 +199,7 @@ class TrackTraceHolder
         }
 
         $packageType  = $this->getPackageType($magentoTrack, $address, $options, $deliveryOptions);
+        $deliveryDate = 6 === $packageType && 'NL' !== $address->getCountryId() ? null : $deliveryOptionsAdapter->getDate();
         $dropOffPoint = $this->dataHelper->getDropOffPoint(
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
@@ -212,7 +213,7 @@ class TrackTraceHolder
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($this->shipmentOptionsHelper->getLabelDescription())
-            ->setDeliveryDate($this->dataHelper->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
+            ->setDeliveryDate($this->dataHelper->convertDeliveryDate($deliveryDate))
             ->setDeliveryType($this->dataHelper->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
             ->setPackageType($packageType)
             ->setDropOffPoint($dropOffPoint)
