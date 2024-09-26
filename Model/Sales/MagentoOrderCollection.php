@@ -15,7 +15,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
+use MyParcelNL\Magento\Service\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;

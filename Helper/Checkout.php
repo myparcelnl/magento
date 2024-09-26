@@ -74,6 +74,7 @@ class Checkout extends Data
         CheckApiKeyService $checkApiKeyService,
         Session $session
     ) {
+        throw new \Exception('Do not use Helper/Checkout.php');
         parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->estimatedAddressFactory  = $estimatedAddressFactory;
@@ -85,6 +86,7 @@ class Checkout extends Data
      */
     public function getBasePrice()
     {
+        return 5; //joeri
         return $this->base_price;
     }
 
@@ -194,45 +196,12 @@ class Checkout extends Data
      */
     public function getMethodPrice(string $carrier, string $key, bool $addBasePrice = true): float
     {
-        $value = (float) $this->getCarrierConfig($key, $carrier);
-        $showTotalPrice = $this->getCarrierConfig('shipping_methods/delivery_options_prices', Data::XML_PATH_GENERAL) === PriceDeliveryOptionsView::TOTAL;
+        $value = (float) $this->getConfigValue("$carrier$key");
+        $showTotalPrice = $this->getConfigValue(Data::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
 
         if ($showTotalPrice && $addBasePrice) {
             // Calculate value
             $value = (float) $this->getBasePrice() + $value;
-        }
-
-        return $value;
-    }
-
-    /**
-     * Get shipping price
-     *
-     * @param $price
-     * @param $flag
-     *
-     * @return mixed
-     */
-    /*private function getShippingPrice($price, $flag = false)
-    {
-        $flag = $flag ? true : Mage::helper('tax')->displayShippingPriceIncludingTax();
-        return (float)Mage::helper('tax')->getShippingPrice($price, $flag, $quoteId->getShippingAddress());
-    }*/
-
-    /**
-     * Get checkout setting
-     *
-     * @param  string $carrier
-     * @param  string $code
-     *
-     * @return mixed
-     */
-    public function getCarrierConfig(string $code, string $carrier)
-    {
-        $value = $this->getConfigValue($carrier . $code);
-        if (null === $value) {
-            $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
-            return 0;
         }
 
         return $value;
@@ -248,7 +217,7 @@ class Checkout extends Data
      */
     public function getBoolConfig(string $carrier, string $key): bool
     {
-        return '1' === $this->getCarrierConfig($key, $carrier);
+        return '1' === $this->getConfigValue("$carrier$key");
     }
 
     /**
@@ -261,7 +230,7 @@ class Checkout extends Data
      */
     public function getTimeConfig(string $carrier, string $key): string
     {
-        $timeAsString   = str_replace(',', ':', (string) $this->getCarrierConfig($key, $carrier));
+        $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key"));
         $timeComponents = explode(':', $timeAsString ?? '');
         if (count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;
@@ -283,7 +252,7 @@ class Checkout extends Data
     {
         return array_map(static function($val) {
             return is_numeric($val) ? (int) $val : $val;
-        }, explode(',', (string) ($this->getCarrierConfig($key, $carrier) ?? '')));
+        }, explode(',', (string) ($this->getConfigValue("$carrier$key") ?? '')));
     }
 
     /**
@@ -296,6 +265,6 @@ class Checkout extends Data
      */
     public function getIntegerConfig($carrier, $key)
     {
-        return (float) $this->getCarrierConfig($key, $carrier);
+        return (float) $this->getConfigValue("$carrier$key");
     }
 }

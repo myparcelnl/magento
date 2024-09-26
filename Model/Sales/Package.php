@@ -18,15 +18,10 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
-class Package extends Data implements PackageInterface
+class Package extends ConfigService implements PackageInterface //used to extend MyParcelNL\Magento\Helper\Data;
 {
-    const PACKAGE_TYPE_NORMAL        = 1;
-    const PACKAGE_TYPE_MAILBOX       = 2;
-    const PACKAGE_TYPE_LETTER        = 3;
-    const PACKAGE_TYPE_DIGITAL_STAMP = 4;
-
     /**
      * @var int
      */
@@ -245,17 +240,6 @@ class Package extends Data implements PackageInterface
     }
 
     /**
-     * @param bool $allProductsFit
-     * @deprecated fit in what? use PackageRepository->selectPackageType() to get the relevant package type
-     */
-    public function setAllProductsFit(bool $allProductsFit): void
-    {
-        if ($allProductsFit === false) {
-            $this->allProductsFit = $allProductsFit;
-        }
-    }
-
-    /**
      * @return int
      */
     public function getPackageType(): int
@@ -263,6 +247,7 @@ class Package extends Data implements PackageInterface
         if (! isset($this->packageType)) {
             throw new \RuntimeException('Use setPackageType() before you can getPackageType()');
         }
+        throw new \Exception('Please remove Package.php and PackageRepository.php and use a service');
         return $this->packageType;
     }
 
@@ -292,5 +277,10 @@ class Package extends Data implements PackageInterface
         }
 
         $this->currentCountry = $currentCountry;
+    }
+
+    public function setAllProductsFit(bool $all_products_fit)
+    {
+        // TODO: Implement setAllProductsFit() method.
     }
 }

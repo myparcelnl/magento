@@ -5,13 +5,13 @@ namespace MyParcelNL\Magento\Helper;
 use Magento\Catalog\Model\Product;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
+use MyParcelNL\Magento\Service\Weight\WeightService;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use MyParcelNL\Sdk\src\Support\Str;
-use MyParcelNL\Magento\Helper\Data;
 
 class CustomsDeclarationFromOrder
 {
@@ -33,14 +33,19 @@ class CustomsDeclarationFromOrder
     private $order;
 
     /**
+     * @var WeightService
+     */
+    private $WeightService;
+
+    /**
      * @param  \Magento\Sales\Model\Order                $order
      * @param  \Magento\Framework\ObjectManagerInterface $objectManager
      */
-    public function __construct(Order $order, ObjectManagerInterface $objectManager)
+    public function __construct(Order $order, ObjectManagerInterface $objectManager, WeightService $WeightService)
     {
         $this->order         = $order;
         $this->objectManager = $objectManager;
-        $this->helper        = $this->objectManager->get(Data::class);
+        $this->WeightService = $WeightService;
     }
 
     /**
@@ -61,15 +66,15 @@ class CustomsDeclarationFromOrder
             }
 
             $amount      = (float) $item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
-            $totalWeight += $this->helper->convertToGrams($product->getWeight() * $amount);
+            $totalWeight += $this->WeightService->convertToGrams($product->getWeight() * $amount);
             $description = Str::limit($product->getName(), AbstractConsignment::DESCRIPTION_MAX_LENGTH);
 
             $customsItem = (new MyParcelCustomsItem())
                 ->setDescription($description)
                 ->setAmount($amount)
-                ->setWeight($this->helper->convertToGrams($product->getWeight()))
+                ->setWeight($this->WeightService->convertToGrams($product->getWeight()))
                 ->setItemValueArray([
-                    'amount'   => TrackTraceHolder::getCentsByPrice($product->getPrice()),
+                    'amount'   => DeliveryCostsService::getCentsByPrice($product->getPrice()),
                     'currency' => $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO,
                 ])
                 ->setCountry($this->getCountryOfOrigin($product))

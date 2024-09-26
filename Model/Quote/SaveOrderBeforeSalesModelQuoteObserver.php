@@ -24,9 +24,9 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
 use MyParcelNL\Sdk\src\Helper\ValidateStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -46,15 +46,15 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     /**
      * SaveOrderBeforeSalesModelQuoteObserver constructor.
      *
-     * @param DeliveryRepository  $delivery
-     * @param Checkout            $checkoutHelper
+     * @param DeliveryRepository $delivery
+     * @param ConfigService $configService
      */
     public function __construct(
         DeliveryRepository $delivery,
-        Checkout $checkoutHelper
+        ConfigService $configService
     ) {
         $this->delivery      = $delivery;
-        $this->parentMethods = explode(',', $checkoutHelper->getGeneralConfig('shipping_methods/methods') ?? '');
+        $this->parentMethods = explode(',', $configService->getGeneralConfig('shipping_methods/methods') ?? '');
     }
 
     /**
@@ -65,6 +65,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
+        throw new \Exception('Use the newer classes to handle this (Joeri)');
         /* @var Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
 
@@ -80,24 +81,24 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $destinationCountry = $order->getShippingAddress()->getCountryId();
 
         if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
-            $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
+            $order->setData(ConfigService::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
         }
 
         if (! ValidatePostalCode::validate($postcode, $destinationCountry)) {
-            $order->setData(Checkout::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
+            $order->setData(ConfigService::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
         }
 
-        if ($quote->hasData(Checkout::FIELD_DELIVERY_OPTIONS) && $this->hasMyParcelDeliveryOptions($quote)) {
-            $jsonDeliveryOptions = $quote->getData(Checkout::FIELD_DELIVERY_OPTIONS) ?? '';
+        if ($quote->hasData(ConfigService::FIELD_DELIVERY_OPTIONS) && $this->hasMyParcelDeliveryOptions($quote)) {
+            $jsonDeliveryOptions = $quote->getData(ConfigService::FIELD_DELIVERY_OPTIONS) ?? '';
             $deliveryOptions     = json_decode($jsonDeliveryOptions, true) ?? [];
 
-            $order->setData(Checkout::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
+            $order->setData(ConfigService::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
 
             $dropOffDay = $this->delivery->getDropOffDayFromDeliveryOptions($deliveryOptions);
-            $order->setData(Checkout::FIELD_DROP_OFF_DAY, $dropOffDay);
+            $order->setData(ConfigService::FIELD_DROP_OFF_DAY, $dropOffDay);
 
             $selectedCarrier = $this->delivery->getCarrierFromDeliveryOptions($deliveryOptions);
-            $order->setData(Checkout::FIELD_MYPARCEL_CARRIER, $selectedCarrier);
+            $order->setData(ConfigService::FIELD_MYPARCEL_CARRIER, $selectedCarrier);
         }
 
         return $this;

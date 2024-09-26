@@ -18,7 +18,6 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
-use MyParcelNL\Sdk\src\Services\CountryCodes;
 
 class Data extends AbstractHelper
 {
@@ -31,16 +30,14 @@ class Data extends AbstractHelper
     public const XML_PATH_UPS_SETTINGS              = 'myparcelnl_magento_ups_settings/';
     public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
-    public const DEFAULT_WEIGHT                     = 1000;
-    public const CARRIERS_XML_PATH_MAP
-                                                    = [
-            CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
-            CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
-            CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
-            CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
-            CarrierUPS::NAME              => self::XML_PATH_UPS_SETTINGS,
-            CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
-        ];
+    public const CARRIERS_XML_PATH_MAP              = [
+        CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
+        CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
+        CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
+        CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
+        CarrierUPS::NAME              => self::XML_PATH_UPS_SETTINGS,
+        CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
+    ];
 
     /**
      * @var \Magento\Framework\Module\ModuleListInterface
@@ -55,26 +52,26 @@ class Data extends AbstractHelper
     /**
      * Get settings by field
      *
-     * @param Context             $context
-     * @param ModuleListInterface $moduleList
-     * @param CheckApiKeyService  $checkApiKeyService
+     * @param  Context             $context
+     * @param  ModuleListInterface $moduleList
+     * @param  CheckApiKeyService  $checkApiKeyService
      */
     public function __construct(
         Context             $context,
         ModuleListInterface $moduleList,
         CheckApiKeyService  $checkApiKeyService
-    )
-    {
+    ) {
         parent::__construct($context);
         $this->moduleList         = $moduleList;
         $this->checkApiKeyService = $checkApiKeyService;
+        throw new \Exception('do not use Data.php');
     }
 
     /**
      * Get settings by field
      *
      * @param       $field
-     * @param null  $storeId
+     * @param  null $storeId
      *
      * @return mixed
      */
@@ -86,8 +83,8 @@ class Data extends AbstractHelper
     /**
      * Get general settings
      *
-     * @param string   $code
-     * @param null|int $storeId
+     * @param  string   $code
+     * @param  null|int $storeId
      *
      * @return mixed
      */
@@ -120,40 +117,15 @@ class Data extends AbstractHelper
     /**
      * Get default settings
      *
-     * @param string $carrier
-     * @param string $code
-     * @param null   $storeId
+     * @param  string $carrier
+     * @param  string $code
+     * @param  null   $storeId
      *
      * @return mixed
      */
-    public function getStandardConfig(string $carrier, string $code = '', $storeId = null)
+    public function getCarrierConfig(string $carrier, string $code = '', $storeId = null)
     {
         return $this->getConfigValue(self::CARRIERS_XML_PATH_MAP[$carrier] . $code, $storeId);
-    }
-
-    /**
-     * Get carrier setting
-     *
-     * @param string $code
-     * @param string $carrier
-     *
-     * @return mixed
-     */
-    public function getCarrierConfig(string $code, string $carrier)
-    {
-        $settings = $this->getConfigValue($carrier . $code);
-
-        if (null === $settings) {
-            $value = $this->getConfigValue($carrier . $code);
-
-            if (null === $value) {
-                $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
-            }
-
-            return $value;
-        }
-
-        return $settings;
     }
 
     /**
@@ -177,7 +149,7 @@ class Data extends AbstractHelper
         $apiKey = $this->getApiKey();
 
         return $this->checkApiKeyService->setApiKey($apiKey)
-                                        ->apiKeyIsCorrect();
+            ->apiKeyIsCorrect();
     }
 
     /**
@@ -203,7 +175,7 @@ class Data extends AbstractHelper
     /**
      * Get date in YYYY-MM-DD HH:MM:SS format
      *
-     * @param string|null $date
+     * @param  string|null $date
      *
      * @return string|null
      */
@@ -227,7 +199,7 @@ class Data extends AbstractHelper
     /**
      * Get delivery type and when it is null use 'standard'
      *
-     * @param int|null $deliveryType
+     * @param  int|null $deliveryType
      *
      * @return int
      */
@@ -241,16 +213,16 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param int    $orderId
-     * @param string $status
+     * @param  int    $orderId
+     * @param  string $status
      */
     public function setOrderStatus(int $orderId, string $status): void
     {
         $order = ObjectManager::getInstance()
-                              ->create('\Magento\Sales\Model\Order')
-                              ->load($orderId);
+            ->create('\Magento\Sales\Model\Order')
+            ->load($orderId);
         $order->setState($status)
-              ->setStatus($status);
+            ->setStatus($status);
         $order->save();
     }
 
@@ -259,59 +231,19 @@ class Data extends AbstractHelper
         /**
          * Business logic determining what shipment options to show, if any.
          */
-        if (AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE === $shipmentOption
-            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $consignment->getDeliveryType()
-        ) {
-            return false; // receipt code is only available for standard delivery
-        }
-
         if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
             return $consignment->canHaveShipmentOption($shipmentOption);
         }
 
-        // For PostNL in Belgium - recipient-only, signature and receipt code are available
+        // For PostNL in Belgium - only recipient-only/signature is available
         if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
             return in_array($shipmentOption, [
                 AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
-                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE,
-                AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE,
-            ], true);
+                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
         }
 
-        // UPS shipment options are available for all countries in the EU
-        if (CarrierUPS::NAME === $consignment->getCarrierName()
-            && in_array($consignment->getCountry(), CountryCodes::EU_COUNTRIES, false)
-        ) {
-            return true;
-        }
-
-        // No shipment options available in any other case
+        // No shipment options available in any other cases
         return false;
     }
 
-    /**
-     * Get the correct weight type
-     *
-     * @param null|float $weight
-     *
-     * @return int
-     */
-    public function convertToGrams(?float $weight): int
-    {
-        $weightType = $this->getGeneralConfig('print/weight_indication');
-
-        if ('kilo' === $weightType) {
-            return (int) ($weight * 1000);
-        }
-
-        return (int) $weight ?: self::DEFAULT_WEIGHT;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getExportMode(): ?string
-    {
-        return $this->getGeneralConfig('print/export_mode');
-    }
 }

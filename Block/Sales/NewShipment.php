@@ -14,105 +14,103 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-use Exception;
 use Magento\Backend\Block\Template\Context;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Weight\WeightService;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipment extends AbstractItems
 {
-    /**
-     * @var \MyParcelNL\Magento\Helper\Data
-     */
-    private $dataHelper;
-
     /**
      * @var \Magento\Sales\Model\Order
      */
     private $order;
 
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
      * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
-    private $defaultOptions;
+    private DefaultOptions $defaultOptions;
 
     /**
      * @var \MyParcelNL\Magento\Block\Sales\NewShipmentForm
      */
-    private $form;
+    private NewShipmentForm $form;
 
     /**
      * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
      */
-    private $orderCollection;
+    private MagentoOrderCollection $orderCollection;
 
     /**
-     * @var mixed
-     */
-    private $request;
-
-    /**
-     * @param \Magento\Backend\Block\Template\Context                   $context
-     * @param \Magento\CatalogInventory\Api\StockRegistryInterface      $stockRegistry
-     * @param \Magento\CatalogInventory\Api\StockConfigurationInterface $stockConfiguration
-     * @param \Magento\Framework\Registry                               $registry
-     * @param \Magento\Framework\ObjectManagerInterface                 $objectManager
+     * @param Context $context
+     * @param WeightService $weightService
+     * @param StockRegistryInterface $stockRegistry
+     * @param StockConfigurationInterface $stockConfiguration
+     * @param Registry $registry
+     * @param ConfigService $configService
      */
     public function __construct(
-        Context                     $context,
-        Data                        $helper,
-        StockRegistryInterface      $stockRegistry,
+        Context $context,
+        WeightService $weightService,
+        StockRegistryInterface $stockRegistry,
         StockConfigurationInterface $stockConfiguration,
-        Registry                    $registry,
-        ObjectManagerInterface      $objectManager
-    )
-    {
-        // Set order
+        Registry $registry,
+        ObjectManagerInterface $objectManager
+    ) {
         $this->order         = $registry->registry('current_shipment')->getOrder();
-        $this->dataHelper    = $helper;
-        $this->objectManager = $objectManager;
+        $this->weightService = $weightService;
         $this->form          = new NewShipmentForm();
 
         $this->defaultOptions = new DefaultOptions(
             $this->order,
-            $this->objectManager->get(Data::class)
+            $objectManager->get(ConfigService::class),
+            $weightService
         );
 
-        $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
+        $request         = $objectManager->get('Magento\Framework\App\RequestInterface');
+        $this->orderCollection = new MagentoOrderCollection($objectManager, $request);
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
 
     /**
-     * @param string $option 'signature', 'only_recipient'
-     * @param string $carrier
+     * @param  string $option 'signature', 'only_recipient'
+     * @param  string $carrier
      *
      * @return bool
      */
     public function hasDefaultOption(string $option, string $carrier): bool
     {
-        return $this->defaultOptions->hasOptionSet($option, $carrier);
+        return $this->defaultOptions->hasDefault($option, $carrier);
+    }
+
+    /**
+     * Get default value of age check
+     *
+     * @param  string $carrier
+     * @param  string $option
+     *
+     * @return bool
+     */
+    public function hasDefaultOptionsWithoutPrice(string $carrier, string $option): bool
+    {
+        return $this->defaultOptions->hasDefaultOptionsWithoutPrice($carrier, $option);
     }
 
     /**
      * Get default value of insurance based on order grand total
      *
-     * @param string $carrier
+     * @param  string $carrier
      *
      * @return int
      */
@@ -127,7 +125,7 @@ class NewShipment extends AbstractItems
      */
     public function getDigitalStampWeight(): int
     {
-        $weight = $this->dataHelper->convertToGrams($this->order->getWeight() ?? 0.0);
+        $weight = $this->weightService->convertToGrams($this->order->getWeight() ?? 0.0);
 
         if (0 === $weight) {
             $weight = $this->defaultOptions->getDigitalStampDefaultWeight();
@@ -160,21 +158,24 @@ class NewShipment extends AbstractItems
         return $this->order->getShippingAddress()->getCountryId();
     }
 
-    public function getDeliveryType(): int
-    {
-        try {
-            $deliveryTypeName = json_decode($this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)['deliveryType'];
-            $deliveryType     = AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP[$deliveryTypeName];
-        } catch (Exception $e) {
-            $deliveryType = AbstractConsignment::DEFAULT_DELIVERY_TYPE;
-        }
-
-        return $deliveryType;
-    }
-
     public function consignmentHasShipmentOption(AbstractConsignment $consignment, string $shipmentOption): bool
     {
-        return $this->dataHelper->consignmentHasShipmentOption($consignment, $shipmentOption);
+        /**
+         * Business logic determining what shipment options to show, if any.
+         */
+        if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
+            return $consignment->canHaveShipmentOption($shipmentOption);
+        }
+
+        // For PostNL in Belgium - only recipient-only/signature is available
+        if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
+            return in_array($shipmentOption, [
+                AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
+                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
+        }
+
+        // No shipment options available in any other cases
+        return false;
     }
 
     /**
