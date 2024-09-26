@@ -65,7 +65,6 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      */
     public function execute(Observer $observer)
     {
-        throw new \Exception('Use the newer classes to handle this (Joeri)');
         /* @var Quote $quote */
         $quote = $observer->getEvent()->getData('quote');
 
@@ -111,18 +110,12 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      */
     private function hasMyParcelDeliveryOptions(Quote $quote): bool
     {
-        $myParcelMethods = array_keys(Carrier::getMethods());
         $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
 
-        if ($this->isMyParcelRelated($shippingMethod, $myParcelMethods)) {
-            return true;
-        }
+        // TODO JOERI get the _code and stuff not hardcoded string
+        if ('myparcelnl_delivery_MyParcel' === $shippingMethod) return true;
 
-        if ($this->isMyParcelRelated($shippingMethod, $this->parentMethods)) {
-            return true;
-        }
-
-        return array_key_exists('myparcel_delivery_options', $quote->getData());
+        return array_key_exists(ConfigService::FIELD_DELIVERY_OPTIONS, $quote->getData());
     }
 
     /**

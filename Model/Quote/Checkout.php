@@ -200,19 +200,19 @@ class Checkout
             if ($canHaveMailbox) {
                 $cc = $this->country ?? $this->cart->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
                 if (AbstractConsignment::CC_NL === $cc) {
-                    $mailboxFee = $this->configService->getMethodPrice($carrierPath, 'mailbox/fee', false);
+                    $mailboxFee = $this->deliveryCostsService->getMethodPrice($carrierPath, 'mailbox/fee', false);
                 } else {
-                    $mailboxFee = $this->configService->getMethodPrice($carrierPath, 'mailbox/international_fee', false);
+                    $mailboxFee = $this->deliveryCostsService->getMethodPrice($carrierPath, 'mailbox/international_fee', false);
                 }
             }
 
             $basePrice        = $this->deliveryCostsService->getBasePrice($consignment);
-            $mondayFee        = $canHaveMonday ? $this->configService->getMethodPrice($carrierPath, 'delivery/monday_fee') : 0;
-            $morningFee       = $canHaveMorning ? $this->configService->getMethodPrice($carrierPath, 'morning/fee') : 0;
-            $eveningFee       = $canHaveEvening ? $this->configService->getMethodPrice($carrierPath, 'evening/fee') : 0;
-            $sameDayFee       = $canHaveSameDay ? (int) $this->configService->getMethodPrice($carrierPath, 'delivery/same_day_delivery_fee') : 0;
-            $signatureFee     = $canHaveSignature ? $this->configService->getMethodPrice($carrierPath, 'delivery/signature_fee', false) : 0;
-            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->configService->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
+            $mondayFee        = $canHaveMonday ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'delivery/monday_fee') : 0;
+            $morningFee       = $canHaveMorning ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'morning/fee') : 0;
+            $eveningFee       = $canHaveEvening ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'evening/fee') : 0;
+            $sameDayFee       = $canHaveSameDay ? (int) $this->deliveryCostsService->getMethodPrice($carrierPath, 'delivery/same_day_delivery_fee') : 0;
+            $signatureFee     = $canHaveSignature ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'delivery/signature_fee', false) : 0;
+            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $allowPickup           = $this->configService->getBoolConfig($carrierPath, 'pickup/active');
@@ -254,10 +254,10 @@ class Checkout
                 'priceEveningSignature'          => ($eveningFee + $signatureFee),
                 'priceSignatureAndOnlyRecipient' => ($basePrice + $signatureFee + $onlyRecipientFee),
 
-                'pricePickup'                  => $canHavePickup ? $this->configService->getMethodPrice($carrierPath, 'pickup/fee') : 0,
+                'pricePickup'                  => $canHavePickup ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'pickup/fee') : 0,
                 'pricePackageTypeMailbox'      => $mailboxFee,
-                'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->configService->getMethodPrice($carrierPath, 'digital_stamp/fee', false) : 0,
-                'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->configService->getMethodPrice($carrierPath, 'package_small/fee', false) : 0,
+                'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'digital_stamp/fee', false) : 0,
+                'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'package_small/fee', false) : 0,
             ];
         }
 
