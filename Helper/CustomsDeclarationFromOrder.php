@@ -38,8 +38,9 @@ class CustomsDeclarationFromOrder
     private $WeightService;
 
     /**
-     * @param  \Magento\Sales\Model\Order                $order
-     * @param  \Magento\Framework\ObjectManagerInterface $objectManager
+     * @param Order $order
+     * @param ObjectManagerInterface $objectManager
+     * @param WeightService $WeightService
      */
     public function __construct(Order $order, ObjectManagerInterface $objectManager, WeightService $WeightService)
     {

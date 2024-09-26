@@ -21,6 +21,8 @@ use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
+use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Weight\WeightService;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
@@ -94,7 +96,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * @var \MyParcelNL\Magento\Helper\Data
      */
-    protected $helper;
+    protected $configService;
 
     /**
      * @var array
@@ -116,6 +118,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         'return_in_the_box'                 => false,
         'same_day_delivery'                 => false,
     ];
+    /**
+     * @var mixed
+     */
+    private $weightService;
 
     /**
      * @param ObjectManagerInterface $objectManager
@@ -138,11 +144,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->trackSender        = $this->objectManager->get(
             'MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender'
         );
-        $this->helper             = $objectManager->create(self::PATH_HELPER_DATA);
+        $this->configService             = $objectManager->create(ConfigService::class);
+        $this->weightService = $objectManager->create(WeightService::class);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
-            ['Magento2' => $this->helper->getVersion()]
+            ['Magento2' => $this->configService->getVersion()]
         );
 
         $this->setSourceItemWhenInventoryApiEnabled();
@@ -189,7 +196,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $this->options['create_track_if_one_already_exist'] = false;
         }
 
-        $returnInTheBox = $this->helper->getGeneralConfig('print/return_in_the_box');
+        $returnInTheBox = $this->configService->getGeneralConfig('print/return_in_the_box');
         if (ReturnInTheBox::NO_OPTIONS === $returnInTheBox || ReturnInTheBox::EQUAL_TO_SHIPMENT === $returnInTheBox) {
             $this->options['return_in_the_box'] = $returnInTheBox;
         }
@@ -239,7 +246,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function getApiKey(): string
     {
-        return $this->helper->getApiKey();
+        return $this->configService->getApiKey();
     }
 
     /**
@@ -247,7 +254,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function getExportMode(): ?string
     {
-        return $this->helper->getExportMode();
+        return $this->configService->getExportMode();
     }
 
     /**
@@ -255,7 +262,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function apiKeyIsCorrect(): bool
     {
-        return $this->helper->apiKeyIsCorrect();
+        return $this->configService->apiKeyIsCorrect();
     }
 
     /**
@@ -375,7 +382,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     {
         $trackTraceHolder = new TrackTraceHolder(
             $this->objectManager,
-            $this->helper,
             $magentoTrack->getShipment()->getOrder()
         );
         $trackTraceHolder->convertDataFromMagentoToApi($magentoTrack, $this->options);

@@ -33,7 +33,6 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use RuntimeException;
@@ -99,27 +98,21 @@ class TrackTraceHolder
      * TrackTraceHolder constructor.
      *
      * @param ObjectManagerInterface $objectManager
-     * @param ConfigService $configService
-     * @param WeightService $weightService
-     * @param DeliveryCostsService $deliveryCostsService
      * @param Order $order
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
-        ConfigService          $configService,
-        WeightService $weightService,
-        DeliveryCostsService $deliveryCostsService,
         Order                  $order
     ) {
         $this->objectManager  = $objectManager;
-        $this->configService  = $configService;
-        $this->weightService  = $weightService;
-        $this->deliveryCostsService = $deliveryCostsService;
+        $this->configService  = $objectManager->create(ConfigService::class);
+        $this->weightService  = $objectManager->create(WeightService::class);
+        $this->deliveryCostsService = $objectManager->create(DeliveryCostsService::class);
         $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
         self::$defaultOptions = new DefaultOptions(
             $order,
-            $configService,
-            $weightService
+            $this->configService,
+            $this->weightService
         );
     }
 
