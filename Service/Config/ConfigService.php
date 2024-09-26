@@ -29,11 +29,11 @@ class ConfigService extends AbstractHelper
     public const XML_PATH_UPS_SETTINGS = 'myparcelnl_magento_ups_settings/';
     public const XML_PATH_DPD_SETTINGS = 'myparcelnl_magento_dpd_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT = 'general/locale/weight_unit';
-    public const FIELD_DROP_OFF_DAY     = 'drop_off_day';
+    public const FIELD_DROP_OFF_DAY = 'drop_off_day';
     public const FIELD_MYPARCEL_CARRIER = 'myparcel_carrier';
     public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
-    public const FIELD_TRACK_STATUS     = 'track_status';
-    public const DEFAULT_COUNTRY_CODE   = 'NL';
+    public const FIELD_TRACK_STATUS = 'track_status';
+    public const DEFAULT_COUNTRY_CODE = 'NL';
 
     public const CARRIERS_XML_PATH_MAP = [
         CarrierPostNL::NAME => self::XML_PATH_POSTNL_SETTINGS,
@@ -82,6 +82,42 @@ class ConfigService extends AbstractHelper
         return $this->scopeConfig->getValue($field, ScopeInterface::SCOPE_STORE, $storeId);
     }
 
+    /**
+     * @param string $path
+     * @param string $key
+     * @return bool
+     */
+    public function getBoolConfig(string $path, string $key): bool
+    {
+        return '1' === $this->getConfigValue("$path$key");
+    }
+
+    public function getFloatConfig($path, $key): float
+    {
+        return (float)$this->getConfigValue("$path$key");
+    }
+
+    public function getTimeConfig(string $carrier, string $key): string
+    {
+        $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key"));
+        $timeComponents = explode(':', $timeAsString ?? '');
+        if (count($timeComponents) >= 3) {
+            [$hours, $minutes] = $timeComponents;
+            $timeAsString = $hours . ':' . $minutes;
+        }
+
+        return $timeAsString;
+    }
+
+    /**
+     * @param $path
+     * @param $key
+     * @return int
+     */
+    public function getIntegerConfig($path, $key): int
+    {
+        return (int)$this->getConfigValue("$path$key");
+    }
 
     /**
      * Get setting for carrier
@@ -120,6 +156,7 @@ class ConfigService extends AbstractHelper
     }
 
     // TODO everything below here must be refactored out
+
     /**
      * Get the version number of the installed module
      *
@@ -130,7 +167,7 @@ class ConfigService extends AbstractHelper
         $moduleCode = self::MODULE_NAME;
         $moduleInfo = $this->moduleList->getOne($moduleCode);
 
-        return (string) $moduleInfo['setup_version'];
+        return (string)$moduleInfo['setup_version'];
     }
 
     /**
@@ -167,19 +204,19 @@ class ConfigService extends AbstractHelper
     /**
      * Get date in YYYY-MM-DD HH:MM:SS format
      *
-     * @param  string|null $date
+     * @param string|null $date
      *
      * @return string|null
      */
     public function convertDeliveryDate(?string $date): ?string
     {
-        if (! $date) {
+        if (!$date) {
             return null;
         }
 
         $checkoutDate = json_decode($date, true)['date'] ?? substr($date, 0, 10);
         $deliveryDate = strtotime(date('Y-m-d', strtotime($checkoutDate)));
-        $currentDate  = strtotime(date('Y-m-d'));
+        $currentDate = strtotime(date('Y-m-d'));
 
         if ($deliveryDate <= $currentDate) {
             return date('Y-m-d H:i:s', strtotime('now +1 day'));
@@ -189,8 +226,8 @@ class ConfigService extends AbstractHelper
     }
 
     /**
-     * @param  int    $orderId
-     * @param  string $status
+     * @param int $orderId
+     * @param string $status
      */
     public function setOrderStatus(int $orderId, string $status): void
     {

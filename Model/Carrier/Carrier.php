@@ -189,30 +189,30 @@ return $amount;
      *
      * @return array
      */
-    public function getAllowedMethods()
+    public function getAllowedMethods(): array
     {
         return self::getMethods();
     }
 
-    /**
-     * @param \Magento\Quote\Model\Quote\Address\RateRequest $result
-     * @return mixed
-     */
-    private function addShippingMethods($result)
-    {
-        $this->package->setDigitalStampSettings();
-        $this->package->setMailboxSettings();
-
-        foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-            $active = $this->configService->getConfigValue(ConfigService::XML_PATH_POSTNL_SETTINGS . $settingPath . 'active') === '1';
-            if ($active) {
-                $method = $this->getShippingMethod($alias, $settingPath);
-                $result->append($method);
-            }
-        }
-
-        return $result;
-    }
+//    /**
+//     * @param \Magento\Quote\Model\Quote\Address\RateRequest $result
+//     * @return mixed
+//     */
+//    private function addShippingMethods($result)
+//    {
+//        $this->package->setDigitalStampSettings();
+//        $this->package->setMailboxSettings();
+//
+//        foreach ($this->getAllowedMethods() as $alias => $settingPath) {
+//            $active = $this->configService->getConfigValue(ConfigService::XML_PATH_POSTNL_SETTINGS . $settingPath . 'active') === '1';
+//            if ($active) {
+//                $method = $this->getShippingMethod($alias, $settingPath);
+//                $result->append($method);
+//            }
+//        }
+//
+//        return $result;
+//    }
 
     /**
      * @param $alias

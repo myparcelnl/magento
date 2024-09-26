@@ -185,29 +185,6 @@ class Checkout extends Data
     }
 
     /**
-     * Get MyParcel method/option price.
-     * Check if total shipping price is not below 0 euro
-     *
-     * @param  string $carrier
-     * @param  string $key
-     * @param  bool   $addBasePrice
-     *
-     * @return float
-     */
-    public function getMethodPrice(string $carrier, string $key, bool $addBasePrice = true): float
-    {
-        $value = (float) $this->getConfigValue("$carrier$key");
-        $showTotalPrice = $this->getConfigValue(Data::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
-
-        if ($showTotalPrice && $addBasePrice) {
-            // Calculate value
-            $value = (float) $this->getBasePrice() + $value;
-        }
-
-        return $value;
-    }
-
-    /**
      * Get bool of setting
      *
      * @param  string $carrier
