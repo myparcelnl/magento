@@ -8,8 +8,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 /**
  * Class DepartmentActions
@@ -21,7 +20,7 @@ class TrackActions extends Column
     /**
      * @var \MyParcelNL\Magento\Helper\Data
      */
-    private $helper;
+    private $configService;
 
     /**
      * @var UrlInterface
@@ -32,7 +31,6 @@ class TrackActions extends Column
      * @param  ContextInterface                $context
      * @param  UiComponentFactory              $uiComponentFactory
      * @param  UrlInterface                    $urlBuilder
-     * @param  \MyParcelNL\Magento\Helper\Data $helper
      * @param  array                           $components
      * @param  array                           $data
      */
@@ -45,7 +43,7 @@ class TrackActions extends Column
     ) {
         $this->urlBuilder = $urlBuilder;
         $objectManager    = ObjectManager::getInstance();
-        $this->helper     = $objectManager->create(Data::class);
+        $this->configService     = $objectManager->create(ConfigService::class);
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
@@ -63,10 +61,10 @@ class TrackActions extends Column
             return $dataSource;
         }
 
-        $orderManagementActivated = TrackTraceHolder::EXPORT_MODE_PPS === $this->helper->getExportMode();
+        $orderManagementActivated = ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode();
 
         foreach ($dataSource['data']['items'] as &$item) {
-            if (! key_exists(ShippingStatus::NAME, $item)) {
+            if (! array_key_exists(ShippingStatus::NAME, $item)) {
                 throw new LocalizedException(
                     __(
                         'Note that the installation of the extension was not successful. Some columns have not been added to the database. The installation should be reversed. Use the following command to reinstall the module: DELETE FROM `setup_module` WHERE `setup_module`.`module` = \'MyParcelNL_Magento\''
@@ -76,7 +74,7 @@ class TrackActions extends Column
             }
 
             if (! isset($item[ShippingStatus::NAME])) {
-                if (TrackTraceHolder::EXPORT_MODE_PPS === $this->helper->getExportMode()) {
+                if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
                     $item[$this->getData('name')]['action-create_concept'] = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',

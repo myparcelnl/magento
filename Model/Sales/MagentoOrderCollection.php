@@ -166,13 +166,13 @@ class MagentoOrderCollection extends MagentoCollection
         $orderLines      = new Collection();
 
         foreach ($this->getOrders() as $magentoOrder) {
-            $defaultOptions          = new DefaultOptions($magentoOrder, $this->helper);
+            $defaultOptions          = new DefaultOptions($magentoOrder, $this->configService);
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $selectedCarrier         = $deliveryOptions['carrier'] ?? $this->options['carrier'] ?? CarrierPostNL::NAME;
             $shipmentOptionsHelper   = new ShipmentOptions(
                 $defaultOptions,
-                $this->helper,
+                $this->configService,
                 $magentoOrder,
                 $this->objectManager,
                 $selectedCarrier,
@@ -208,7 +208,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setOrderDate($this->getLocalCreatedAtDate())
                 ->setExternalIdentifier($this->order->getIncrementId())
                 ->setDropOffPoint(
-                    $this->helper->getDropOffPoint(
+                    $this->configService->getDropOffPoint(
                         CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
                     )
                 );
@@ -351,7 +351,7 @@ class MagentoOrderCollection extends MagentoCollection
             $totalWeight += $product->getWeight() * $item->getQtyOrdered();
         }
 
-        return $this->helper->convertToGrams($totalWeight);
+        return $this->configService->convertToGrams($totalWeight);
     }
 
     /**

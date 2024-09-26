@@ -34,6 +34,10 @@ class ConfigService extends AbstractHelper
     public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
     public const FIELD_TRACK_STATUS = 'track_status';
     public const DEFAULT_COUNTRY_CODE = 'NL';
+    public const MYPARCEL_TRACK_TITLE  = 'MyParcel';
+    public const MYPARCEL_CARRIER_CODE = 'myparcel';
+    public const EXPORT_MODE_PPS       = 'pps';
+    public const EXPORT_MODE_SHIPMENTS = 'shipments';
 
     public const CARRIERS_XML_PATH_MAP = [
         CarrierPostNL::NAME => self::XML_PATH_POSTNL_SETTINGS,
