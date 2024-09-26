@@ -19,11 +19,14 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Rate;
 
 use Countable;
+use Magento\Backend\Model\Session\Quote;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote\Address\RateResult\Method;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Data;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
@@ -47,7 +50,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * @var Checkout
      */
-    private $myParcelHelper;
+    private $configService;
 
     /**
      * @var \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
@@ -72,29 +75,29 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     /**
      * Result constructor.
      *
-     * @param  \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param  \Magento\Backend\Model\Session\Quote       $quote
-     * @param  Session                                    $session
-     * @param  Checkout                                   $myParcelHelper
-     * @param  PackageRepository                          $package
+     * @param StoreManagerInterface $storeManager
+     * @param Quote $quote
+     * @param Session $session
+     * @param ConfigService $configService
+     * @param PackageRepository $package
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      * @internal param \Magento\Checkout\Model\Session $session
      */
     public function __construct(
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Backend\Model\Session\Quote       $quote,
         Session                                    $session,
-        Checkout                                   $myParcelHelper,
+        ConfigService                              $configService,
         PackageRepository                          $package
     ) {
         parent::__construct($storeManager);
-
-        $this->myParcelHelper = $myParcelHelper;
+throw new \Exception(' Result is everything ');
+        $this->configService = $configService;
         $this->session        = $session;
         $this->quote          = $quote;
-        $this->parentMethods  = explode(',', $this->myParcelHelper->getGeneralConfig('shipping_methods/methods') ?? '');
+        $this->parentMethods  = explode(',', $this->configService->getGeneralConfig('shipping_methods/methods') ?? '');
         $package->setCurrentCountry(
             $this->getQuoteFromCartOrSession()
                 ->getShippingAddress()
@@ -176,8 +179,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             return;
         }
 
-        foreach (Data::CARRIERS_XML_PATH_MAP as $carrier => $carrierPath) {
-            if (! $this->myParcelHelper->getConfigValue("{$carrierPath}delivery/active")) {
+        foreach (ConfigService::CARRIERS_XML_PATH_MAP as $carrier => $carrierPath) {
+            if (! $this->configService->getConfigValue("{$carrierPath}delivery/active")) {
                 continue;
             }
 
@@ -261,7 +264,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $settingPathParts = explode("/", $settingPath ?? '');
         $baseSetting      = $settingPathParts[0];
 
-        if (! $this->myParcelHelper->getConfigValue("{$map}{$baseSetting}/active")) {
+        if (! $this->configService->getConfigValue("{$map}{$baseSetting}/active")) {
             return false;
         }
 
@@ -270,7 +273,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
                 continue;
             }
             $fullPath = "{$map}delivery/{$option}{$separator}active";
-            if (! $this->myParcelHelper->getConfigValue($fullPath)) {
+            if (! $this->configService->getConfigValue($fullPath)) {
                 return false;
             }
         }
@@ -315,7 +318,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function getShippingMethod(string $settingPath, Method $parentRate): Method
     {
         $method = clone $parentRate;
-        $this->myParcelHelper->setBasePrice($parentRate->getData('price'));
+        $this->configService->setBasePrice($parentRate->getData('price'));
 
         $title = $this->createTitle($settingPath);
         $price = $this->getPrice($settingPath);
@@ -353,7 +356,8 @@ class Result extends \Magento\Shipping\Model\Rate\Result
      */
     private function getPrice($settingPath): float
     {
-        $basePrice  = $this->myParcelHelper->getBasePrice();
+        throw new \Exception('You must get the price from the DeliveryCostsService');
+        $basePrice  = $this->configService->getBasePrice();
         $settingFee = 0;
 
         // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
@@ -362,7 +366,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         // Check if the selected delivery options are delivery, only_recipient and signature
         // delivery/only_recipient/signature
         if (isset($settingPath[self::THIRD_PART], $settingPath[self::FOURTH_PART]) && 'delivery' === $settingPath[self::SECOND_PART]) {
-            $settingFee += (float) $this->myParcelHelper->getConfigValue(
+            $settingFee += (float) $this->configService->getConfigValue(
                 sprintf(
                     "%s/%s/%s_fee",
                     $settingPath[self::FIRST_PART],
@@ -370,7 +374,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
                     $settingPath[self::THIRD_PART]
                 )
             );
-            $settingFee += (float) $this->myParcelHelper->getConfigValue(
+            $settingFee += (float) $this->configService->getConfigValue(
                 sprintf(
                     "%s/%s/%sfee",
                     $settingPath[self::FIRST_PART],
@@ -382,7 +386,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
 
         // Check if the selected delivery is morning or evening and select the fee
         if (AbstractConsignment::DELIVERY_TYPE_MORNING_NAME === $settingPath[self::SECOND_PART] || AbstractConsignment::DELIVERY_TYPE_EVENING_NAME === $settingPath[self::SECOND_PART]) {
-            $settingFee = (float) $this->myParcelHelper->getConfigValue(
+            $settingFee = (float) $this->configService->getConfigValue(
                 sprintf("%s/%s/fee", $settingPath[self::FIRST_PART], $settingPath[self::SECOND_PART])
             );
 
@@ -394,14 +398,14 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             unset($settingPath[self::THIRD_PART]);
         }
 
-        $settingFee  += (float) $this->myParcelHelper->getConfigValue(implode('/', $settingPath ?? []) . 'fee');
+        $settingFee  += (float) $this->configService->getConfigValue(implode('/', $settingPath ?? []) . 'fee');
 
         // For mailbox and digital stamp the base price should not be calculated
         if (AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $settingPath[self::SECOND_PART]) {
             // for international mailbox, we have a different price :-)
             $cc = $this->session->getQuote()->getShippingAddress()->getCountryId();
             if ($cc !== 'NL') {
-                $settingFee = (float) $this->myParcelHelper->getConfigValue(
+                $settingFee = (float) $this->configService->getConfigValue(
                     sprintf("%s/%s/international_fee", $settingPath[self::FIRST_PART], $settingPath[self::SECOND_PART])
                 );
             }

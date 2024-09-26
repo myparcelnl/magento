@@ -18,44 +18,29 @@
 
 namespace MyParcelNL\Magento\Model\Carrier;
 
-use Magento\CatalogInventory\Api\StockRegistryInterface;
+use Composer\Config;
 use Magento\Checkout\Model\Session;
-use Magento\Directory\Model\CountryFactory;
-use Magento\Directory\Model\CurrencyFactory;
-use Magento\Directory\Model\RegionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Xml\Security;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Shipping\Model\Carrier\AbstractCarrier;
-use Magento\Shipping\Model\Carrier\AbstractCarrierOnline;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
-use Magento\Shipping\Model\Simplexml\ElementFactory;
-use Magento\Shipping\Model\Tracking\Result\ErrorFactory;
-use Magento\Shipping\Model\Tracking\Result\StatusFactory;
-use Magento\Shipping\Model\Tracking\ResultFactory;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
+use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
+use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
 {
     const CODE = 'myparcelnl_delivery';
 
-    protected $_code = self::CODE;
+    protected $_code = self::CODE; // $_code is a mandatory property for Magento carrier
     protected $_freeShipping;
 
-    /**
-     * @var \Magento\Quote\Model\Quote
-     */
-    private $quote;
-
-    /**
-     * @var Checkout
-     */
-    private $myParcelHelper;
 
     /**
      * @var PackageRepository
@@ -81,7 +66,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * @param \Magento\Directory\Helper\Data                              $directoryData
      * @param \Magento\CatalogInventory\Api\StockRegistryInterface        $stockRegistry
      * @param \Magento\Checkout\Model\Session                             $session
-     * @param Checkout                                                    $myParcelHelper
      * @param PackageRepository                                           $package
      * @param array                                                       $data
      *
@@ -92,20 +76,11 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         ScopeConfigInterface $scopeConfig,
         \Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory $rateErrorFactory,
         LoggerInterface $logger,
-        Security $xmlSecurity,
-        ElementFactory $xmlElFactory,
+        ConfigService $configService,
+        DeliveryCostsService $deliveryCostsService,
         \Magento\Shipping\Model\Rate\ResultFactory $rateFactory,
         MethodFactory $rateMethodFactory,
-        ResultFactory $trackFactory,
-        ErrorFactory $trackErrorFactory,
-        StatusFactory $trackStatusFactory,
-        RegionFactory $regionFactory,
-        CountryFactory $countryFactory,
-        CurrencyFactory $currencyFactory,
-        \Magento\Directory\Helper\Data $directoryData,
-        StockRegistryInterface $stockRegistry,
         Session $session,
-        Checkout $myParcelHelper,
         PackageRepository $package,
         \Magento\OfflineShipping\Model\Carrier\Freeshipping $freeShipping,
         array $data = []
@@ -114,27 +89,20 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $scopeConfig,
             $rateErrorFactory,
             $logger,
-            $data, // remove this line when you extend AbstractCarrierOnline, add it for AbstractCarrier
-            $xmlSecurity,
-            $xmlElFactory,
-            $rateFactory,
-            $rateMethodFactory,
-            $trackFactory,
-            $trackErrorFactory,
-            $trackStatusFactory,
-            $regionFactory,
-            $countryFactory,
-            $currencyFactory,
-            $directoryData,
-            $stockRegistry,
-            $data
+            $data,
         );
-        $this->quote = $session->getQuote();
-        $this->myParcelHelper = $myParcelHelper;
+        //$this->quote = $session->getQuote();
+        try {
+            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($session->getQuote()->getData('myparcel_delivery_options'), true));
+        } catch (\Throwable $e) {
+            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
+        }
         $this->package = $package;
-        $this->_rateFactory = $rateFactory;
-        $this->_rateMethodFactory = $rateMethodFactory;
+        $this->rateResultFactory = $rateFactory;
+        $this->rateMethodFactory = $rateMethodFactory;
         $this->_freeShipping = $freeShipping;
+        $this->configService  = $configService;
+        $this->deliveryCostsService = $deliveryCostsService;
     }
 
     protected function _doShipmentRequest(DataObject $request)
@@ -146,35 +114,48 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         if (!$this->getConfigFlag('active')) {
             return false;
         }
-        /** @var \Magento\Shipping\Model\Rate\Result $result */
-        $result = $this->_rateFactory->create();
 
-        /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
-        $method = $this->_rateMethodFactory->create();
+        $result = $this->rateResultFactory->create();
+        $method = $this->rateMethodFactory->create();
 
-        // todo: get actual title based on chosen and possible options for this quote / cart
         $method->setCarrier($this->_code);
         $method->setCarrierTitle('MyParcel');
+        $method->setMethod('MyParcel');
+        $method->setMethodTitle($this->getMethodTitle());
+        $method->setPrice((string) $this->getMethodAmount());
 
-        $method->setMethod($this->_code);
-        $method->setMethodTitle('Todo: chosen options here');
+        $result->append($method);
 
+        return $result;
+    }
+
+    private function getMethodAmount(): float {
+        $path = ConfigService::CARRIERS_XML_PATH_MAP[$this->deliveryOptions->getCarrier()]??'';
+        $dinges = [
+            "{$this->deliveryOptions->getDeliveryType()}/fee"=>true,
+            "{$this->deliveryOptions->getPackageType()}/fee"=>true,
+            'delivery/signature_fee'=> $this->deliveryOptions->getShipmentOptions()->hasSignature(),
+            'delivery/only_recipient_fee'=> $this->deliveryOptions->getShipmentOptions()->hasOnlyRecipient(),
+        ];
+        $amount = $this->deliveryCostsService->getBasePrice();
+        foreach ($dinges as $key=>$value) {
+            //echo $key, '  ', $value, ': ',$this->myParcelHelper->getCarrierConfig($key, $path), PHP_EOL;
+            if (! $value) continue;
+            $amount += (float) $this->configService->getConfigValue("$path$key");
+        }
+        //$bla = $this->myParcelHelper->getCarrierConfig('evening/fee', $path);
+        return $amount;
+        die(' weflweiuryfuhj');
+        //$this->configService->getMethodPrice(ConfigService::XML_PATH_POSTNL_SETTINGS . 'fee', $alias);
         $freeShippingIsAvailable = false; // todo // $this->_freeShipping->getConfigData('active')
         // todo: get actual price based on chosen and possible options for this quote / cart
-        $amount = $freeShippingIsAvailable ? '0.00' : '10.00';
+        $amount = $freeShippingIsAvailable ? 0.00 : 10.00;
+return $amount;
+    }
 
-        $method->setPrice($amount);
-        $method->setCost($amount);
-
-        //$result->append($method);
-        $result = $this->addShippingMethods($result);
-//$bla = $this->quote->getCheckoutMethod();
-        return $result;
-        /** @var \Magento\Quote\Model\Quote\Address\RateRequest $result */
-        $result = $this->_rateFactory->create();
-        $result = $this->addShippingMethods($result);
-
-        return $result;
+    private function getMethodTitle(): string {
+        // todo make a nice title from the options
+        return var_export($this->deliveryOptions, true);
     }
 
     public function proccessAdditionalValidation(DataObject $request)
@@ -223,7 +204,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $this->package->setMailboxSettings();
 
         foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-            $active = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath . 'active') === '1';
+            $active = $this->configService->getConfigValue(ConfigService::XML_PATH_POSTNL_SETTINGS . $settingPath . 'active') === '1';
             if ($active) {
                 $method = $this->getShippingMethod($alias, $settingPath);
                 $result->append($method);
@@ -244,7 +225,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $title = $this->createTitle($settingPath);
         $price = $this->createPrice($alias, $settingPath);
 
-        $method = $this->_rateMethodFactory->create();
+        $method = $this->rateMethodFactory->create();
         $method->setCarrier($this->_code);
         $method->setCarrierTitle($alias);
         $method->setMethod($alias);
@@ -263,7 +244,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      */
     private function createTitle($settingPath)
     {
-        $title = $this->myParcelHelper->getConfigValue(Data::XML_PATH_POSTNL_SETTINGS . $settingPath . 'title');
+        $title = $this->configService->getConfigValue(ConfigService::XML_PATH_POSTNL_SETTINGS . $settingPath . 'title');
 
         if ($title === null) {
             $title = __($settingPath . 'title');
@@ -286,7 +267,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             return 0;
         }
 
-        return 10 + $this->myParcelHelper->getMethodPrice($settingPath . 'fee', $alias);
+        return 10 + $this->configService->getMethodPrice($settingPath . 'fee', $alias);
     }
 
     public function isTrackingAvailable(): bool

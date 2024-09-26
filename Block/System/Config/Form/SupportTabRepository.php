@@ -18,17 +18,11 @@
 
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
-use MyParcelNL\Magento\Helper\Data;
-
 class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
 {/**
      * @var \Magento\Framework\Module\ModuleListInterface
      */
     protected $moduleList;
-    /**
-     * @var \MyParcelNL\Magento\Helper\Data
-     */
-    private $helper;
 
     /**
      * MyParcelSupportTab constructor

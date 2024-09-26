@@ -18,10 +18,33 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
-use MyParcelNL\Magento\Model\Sales\Delivery;
+use MyParcelNL\Magento\Model\Sales\DeliveryInterface;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
-class DeliveryRepository extends Delivery
+class DeliveryRepository extends ConfigService implements DeliveryInterface // used to extend MyParcelNL\Magento\Helper\Data;
 {
+    /**
+     * @var int
+     */
+    private int $deliveryDateTime;
+
+    /**
+     * @return int
+     */
+    public function getDeliveryDateTime()
+    {
+        return $this->deliveryDateTime;
+    }
+
+    /**
+     * @param int $deliveryDateTime
+     * @return int
+     */
+    public function setDeliveryDateTime($deliveryDateTime)
+    {
+        $this->deliveryDateTime = $deliveryDateTime;
+    }
+
     /**
      * Get drop off day with chosen options from checkout
      *

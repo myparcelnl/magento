@@ -5,6 +5,7 @@ namespace MyParcelNL\Magento\Helper;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use Magento\Framework\App\ResourceConnection;
 
@@ -48,7 +49,7 @@ class ShipmentOptions
     /**
      * @var \MyParcelNL\Magento\Helper\Data
      */
-    private $helper;
+    private $configService;
 
     /**
      * @var \Magento\Sales\Model\Order
@@ -62,7 +63,7 @@ class ShipmentOptions
 
     /**
      * @param  \MyParcelNL\Magento\Model\Source\DefaultOptions $defaultOptions
-     * @param  \MyParcelNL\Magento\Helper\Data                 $helper
+     * @param  \MyParcelNL\Magento\Helper\ConfigService                 $configService
      * @param  \Magento\Sales\Model\Order                      $order
      * @param  \Magento\Framework\ObjectManagerInterface       $objectManager
      * @param  string                                          $carrier
@@ -70,14 +71,14 @@ class ShipmentOptions
      */
     public function __construct(
         DefaultOptions             $defaultOptions,
-        Data                       $helper,
+        ConfigService              $configService,
         \Magento\Sales\Model\Order $order,
         ObjectManagerInterface     $objectManager,
         string                     $carrier,
         array                      $options = []
     ) {
         self::$defaultOptions = $defaultOptions;
-        $this->helper         = $helper;
+        $this->configService  = $configService;
         $this->order          = $order;
         $this->objectManager  = $objectManager;
         $this->carrier        = $carrier;
@@ -288,7 +289,7 @@ class ShipmentOptions
     public function getLabelDescription(): string
     {
         $checkoutData     = $this->order->getData('myparcel_delivery_options');
-        $labelDescription = $this->helper->getGeneralConfig(
+        $labelDescription = $this->configService->getGeneralConfig(
             'print/label_description',
             $this->order->getStoreId()
         );
@@ -298,7 +299,7 @@ class ShipmentOptions
         }
 
         $productInfo      = $this->getItemsCollectionByShipmentId($this->order->getId());
-        $deliveryDate     = $checkoutData ? date('d-m-Y', strtotime($this->helper->convertDeliveryDate($checkoutData))) : null;
+        $deliveryDate     = $checkoutData ? date('d-m-Y', strtotime($this->configService->convertDeliveryDate($checkoutData))) : null;
         $labelDescription = str_replace(
             [
                 self::ORDER_NUMBER,
@@ -309,7 +310,7 @@ class ShipmentOptions
             ],
             [
                 $this->order->getIncrementId(),
-                $this->helper->convertDeliveryDate($checkoutData) ? $deliveryDate : '',
+                $this->configService->convertDeliveryDate($checkoutData) ? $deliveryDate : '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
                 $productInfo ? round($this->getProductInfo($productInfo, 'qty')) : null,

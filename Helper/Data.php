@@ -30,7 +30,6 @@ class Data extends AbstractHelper
     public const XML_PATH_UPS_SETTINGS              = 'myparcelnl_magento_ups_settings/';
     public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
-    public const DEFAULT_WEIGHT                     = 1000;
     public const CARRIERS_XML_PATH_MAP              = [
         CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
         CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
@@ -65,6 +64,7 @@ class Data extends AbstractHelper
         parent::__construct($context);
         $this->moduleList         = $moduleList;
         $this->checkApiKeyService = $checkApiKeyService;
+        throw new \Exception('do not use Data.php');
     }
 
     /**
@@ -123,34 +123,9 @@ class Data extends AbstractHelper
      *
      * @return mixed
      */
-    public function getStandardConfig(string $carrier, string $code = '', $storeId = null)
+    public function getCarrierConfig(string $carrier, string $code = '', $storeId = null)
     {
         return $this->getConfigValue(self::CARRIERS_XML_PATH_MAP[$carrier] . $code, $storeId);
-    }
-
-    /**
-     * Get carrier setting
-     *
-     * @param  string $code
-     * @param  string $carrier
-     *
-     * @return mixed
-     */
-    public function getCarrierConfig(string $code, string $carrier)
-    {
-        $settings = $this->getConfigValue($carrier . $code);
-
-        if (null === $settings) {
-            $value = $this->getConfigValue($carrier . $code);
-
-            if (null === $value) {
-                $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
-            }
-
-            return $value;
-        }
-
-        return $settings;
     }
 
     /**
@@ -271,29 +246,4 @@ class Data extends AbstractHelper
         return false;
     }
 
-    /**
-     * Get the correct weight type
-     *
-     * @param  null|float $weight
-     *
-     * @return int
-     */
-    public function convertToGrams(?float $weight): int
-    {
-        $weightType = $this->getGeneralConfig('print/weight_indication');
-
-        if ('kilo' === $weightType) {
-            return (int) ($weight * 1000);
-        }
-
-        return (int) $weight ?: self::DEFAULT_WEIGHT;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getExportMode(): ?string
-    {
-        return $this->getGeneralConfig('print/export_mode');
-    }
 }

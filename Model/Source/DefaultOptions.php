@@ -13,12 +13,11 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use BadMethodCallException;
 use Exception;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Weight\WeightService;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
@@ -53,34 +52,24 @@ class DefaultOptions
     private const INSURANCE_PERCENTAGE       = 'insurance_percentage';
     public const  DEFAULT_OPTION_VALUE       = 'default';
 
-    /**
-     * @var Data
-     */
-    private static $helper;
+    private static ConfigService $configService;
+    private static Order $order;
+    private static array $chosenOptions;
+    private static WeightService $weightService;
 
     /**
-     * @var Order
+     * @param Order $order
+     * @param ConfigService $configService
+     * @param WeightService $weightService
      */
-    private static $order;
-
-    /**
-     * @var array
-     */
-    private static $chosenOptions;
-
-    /**
-     * Insurance constructor.
-     *
-     * @param  Order $order
-     * @param  Data  $helper
-     */
-    public function __construct(Order $order, Data $helper)
+    public function __construct(Order $order, ConfigService $configService, WeightService $weightService)
     {
-        self::$helper = $helper;
+        self::$configService = $configService;
+        self::$weightService = $weightService;
         self::$order  = $order;
         try {
             self::$chosenOptions = DeliveryOptionsAdapterFactory::create(
-                (array) json_decode($order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)
+                (array) json_decode($order->getData(ConfigService::FIELD_DELIVERY_OPTIONS), true)
             )->toArray();
         } catch (Exception $e) {
             self::$chosenOptions = [];
@@ -138,9 +127,9 @@ class DefaultOptions
     public function hasDefaultLargeFormat(string $carrier, string $option): bool
     {
         $price  = self::$order->getGrandTotal();
-        $weight = self::$helper->convertToGrams(self::$order->getWeight());
+        $weight = self::$weightService->convertToGrams(self::$order->getWeight());
 
-        $settings  = self::$helper->getStandardConfig($carrier, 'default_options');
+        $settings  = self::$configService->getCarrierConfig($carrier, 'default_options');
         $activeKey = "{$option}_active";
 
         if (isset($settings[$activeKey]) &&
@@ -168,7 +157,7 @@ class DefaultOptions
      */
     public function hasDefaultOptionsWithoutPrice(string $carrier, string $option): bool
     {
-        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
+        $settings = self::$configService->getCarrierConfig($carrier, 'default_options');
 
         return '1' === ($settings[$option . '_active'] ?? null);
     }
@@ -207,7 +196,7 @@ class DefaultOptions
     private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
     {
         $total = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig($carrierName, 'default_options');
+        $settings = self::$configService->getCarrierConfig($carrierName, 'default_options');
         $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
         if (! isset($settings[$priceKey])
@@ -241,7 +230,7 @@ class DefaultOptions
      */
     public function getDigitalStampDefaultWeight(): string
     {
-        return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
+        return self::$configService->getConfigValue('myparcelnl_magento_postnl_settings/digital_stamp/default_weight');
     }
 
     /**
@@ -278,17 +267,6 @@ class DefaultOptions
         }
 
         return CarrierPostNL::NAME;
-    }
-
-    /**
-     * Get package type name as a string by default
-     *
-     * @return string
-     */
-    public function getPackageTypeName(): string
-    {
-        $packageTypesMap = array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP);
-        return $packageTypesMap[$this->getPackageType()];
     }
 
     /**
