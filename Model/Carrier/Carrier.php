@@ -19,20 +19,35 @@
 namespace MyParcelNL\Magento\Model\Carrier;
 
 use Composer\Config;
+use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Checkout\Model\Session;
+use Magento\Directory\Helper\Data;
+use Magento\Directory\Model\CountryFactory;
+use Magento\Directory\Model\CurrencyFactory;
+use Magento\Directory\Model\RegionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Phrase;
 use Magento\Framework\Xml\Security;
+use Magento\OfflineShipping\Model\Carrier\Freeshipping;
 use Magento\Quote\Model\Quote\Address\RateRequest;
+use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
+use Magento\Quote\Model\Quote\Address\RateResult\Method;
 use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
+use Magento\Shipping\Model\Rate\ResultFactory;
+use Magento\Shipping\Model\Simplexml\ElementFactory;
+use Magento\Shipping\Model\Tracking\Result\StatusFactory;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
 {
@@ -50,41 +65,42 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     /**
      * Carrier constructor.
      *
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface          $scopeConfig
-     * @param \Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory  $rateErrorFactory
-     * @param \Psr\Log\LoggerInterface                                    $logger
-     * @param Security                                                    $xmlSecurity
-     * @param \Magento\Shipping\Model\Simplexml\ElementFactory            $xmlElFactory
-     * @param \Magento\Shipping\Model\Rate\ResultFactory                  $rateFactory
-     * @param \Magento\Quote\Model\Quote\Address\RateResult\MethodFactory $rateMethodFactory
-     * @param \Magento\Shipping\Model\Tracking\ResultFactory              $trackFactory
-     * @param \Magento\Shipping\Model\Tracking\Result\ErrorFactory        $trackErrorFactory
-     * @param \Magento\Shipping\Model\Tracking\Result\StatusFactory       $trackStatusFactory
-     * @param \Magento\Directory\Model\RegionFactory                      $regionFactory
-     * @param \Magento\Directory\Model\CountryFactory                     $countryFactory
-     * @param \Magento\Directory\Model\CurrencyFactory                    $currencyFactory
-     * @param \Magento\Directory\Helper\Data                              $directoryData
-     * @param \Magento\CatalogInventory\Api\StockRegistryInterface        $stockRegistry
-     * @param \Magento\Checkout\Model\Session                             $session
-     * @param PackageRepository                                           $package
-     * @param array                                                       $data
+     * @param ScopeConfigInterface $scopeConfig
+     * @param ErrorFactory $rateErrorFactory
+     * @param LoggerInterface $logger
+     * @param Security $xmlSecurity
+     * @param ElementFactory $xmlElFactory
+     * @param ResultFactory $rateFactory
+     * @param MethodFactory $rateMethodFactory
+     * @param \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory
+     * @param \Magento\Shipping\Model\Tracking\Result\ErrorFactory $trackErrorFactory
+     * @param StatusFactory $trackStatusFactory
+     * @param RegionFactory $regionFactory
+     * @param CountryFactory $countryFactory
+     * @param CurrencyFactory $currencyFactory
+     * @param Data $directoryData
+     * @param StockRegistryInterface $stockRegistry
+     * @param Session $session
+     * @param PackageRepository $package
+     * @param array $data
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
-        \Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory $rateErrorFactory,
-        LoggerInterface $logger,
-        ConfigService $configService,
+        ErrorFactory         $rateErrorFactory,
+        LoggerInterface      $logger,
+        ConfigService        $configService,
         DeliveryCostsService $deliveryCostsService,
-        \Magento\Shipping\Model\Rate\ResultFactory $rateFactory,
-        MethodFactory $rateMethodFactory,
-        Session $session,
-        PackageRepository $package,
-        \Magento\OfflineShipping\Model\Carrier\Freeshipping $freeShipping,
-        array $data = []
-    ) {
+        ResultFactory        $rateFactory,
+        MethodFactory        $rateMethodFactory,
+        Session              $session,
+        PackageRepository    $package,
+        Freeshipping         $freeShipping,
+        array                $data = []
+    )
+    {
         parent::__construct(
             $scopeConfig,
             $rateErrorFactory,
@@ -94,14 +110,14 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         //$this->quote = $session->getQuote();
         try {
             $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($session->getQuote()->getData('myparcel_delivery_options'), true));
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
         }
-        $this->package = $package;
-        $this->rateResultFactory = $rateFactory;
-        $this->rateMethodFactory = $rateMethodFactory;
-        $this->_freeShipping = $freeShipping;
-        $this->configService  = $configService;
+        $this->package              = $package;
+        $this->rateResultFactory    = $rateFactory;
+        $this->rateMethodFactory    = $rateMethodFactory;
+        $this->_freeShipping        = $freeShipping;
+        $this->configService        = $configService;
         $this->deliveryCostsService = $deliveryCostsService;
     }
 
@@ -122,26 +138,27 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $method->setCarrierTitle('MyParcel');
         $method->setMethod('MyParcel');
         $method->setMethodTitle($this->getMethodTitle());
-        $method->setPrice((string) $this->getMethodAmount());
+        $method->setPrice((string)$this->getMethodAmount());
 
         $result->append($method);
 
         return $result;
     }
 
-    private function getMethodAmount(): float {
-        $path = ConfigService::CARRIERS_XML_PATH_MAP[$this->deliveryOptions->getCarrier()]??'';
+    private function getMethodAmount(): float
+    {
+        $path   = ConfigService::CARRIERS_XML_PATH_MAP[$this->deliveryOptions->getCarrier()] ?? '';
         $dinges = [
-            "{$this->deliveryOptions->getDeliveryType()}/fee"=>true,
-            "{$this->deliveryOptions->getPackageType()}/fee"=>true,
-            'delivery/signature_fee'=> $this->deliveryOptions->getShipmentOptions()->hasSignature(),
-            'delivery/only_recipient_fee'=> $this->deliveryOptions->getShipmentOptions()->hasOnlyRecipient(),
+            "{$this->deliveryOptions->getDeliveryType()}/fee" => true,
+            "{$this->deliveryOptions->getPackageType()}/fee"  => true,
+            'delivery/signature_fee'                          => $this->deliveryOptions->getShipmentOptions()->hasSignature(),
+            'delivery/only_recipient_fee'                     => $this->deliveryOptions->getShipmentOptions()->hasOnlyRecipient(),
         ];
         $amount = $this->deliveryCostsService->getBasePrice();
-        foreach ($dinges as $key=>$value) {
+        foreach ($dinges as $key => $value) {
             //echo $key, '  ', $value, ': ',$this->myParcelHelper->getCarrierConfig($key, $path), PHP_EOL;
-            if (! $value) continue;
-            $amount += (float) $this->configService->getConfigValue("$path$key");
+            if (!$value) continue;
+            $amount += (float)$this->configService->getConfigValue("$path$key");
         }
         //$bla = $this->myParcelHelper->getCarrierConfig('evening/fee', $path);
         return $amount;
@@ -150,10 +167,11 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $freeShippingIsAvailable = false; // todo // $this->_freeShipping->getConfigData('active')
         // todo: get actual price based on chosen and possible options for this quote / cart
         $amount = $freeShippingIsAvailable ? 0.00 : 10.00;
-return $amount;
+        return $amount;
     }
 
-    private function getMethodTitle(): string {
+    private function getMethodTitle(): string
+    {
         // todo make a nice title from the options
         return var_export($this->deliveryOptions, true);
     }
@@ -194,31 +212,11 @@ return $amount;
         return self::getMethods();
     }
 
-//    /**
-//     * @param \Magento\Quote\Model\Quote\Address\RateRequest $result
-//     * @return mixed
-//     */
-//    private function addShippingMethods($result)
-//    {
-//        $this->package->setDigitalStampSettings();
-//        $this->package->setMailboxSettings();
-//
-//        foreach ($this->getAllowedMethods() as $alias => $settingPath) {
-//            $active = $this->configService->getConfigValue(ConfigService::XML_PATH_POSTNL_SETTINGS . $settingPath . 'active') === '1';
-//            if ($active) {
-//                $method = $this->getShippingMethod($alias, $settingPath);
-//                $result->append($method);
-//            }
-//        }
-//
-//        return $result;
-//    }
-
     /**
      * @param $alias
-     * @param  string $settingPath
+     * @param string $settingPath
      *
-     * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
+     * @return Method
      */
     private function getShippingMethod($alias, string $settingPath)
     {
@@ -240,7 +238,7 @@ return $amount;
      * If no title isset in config, get title from translation
      *
      * @param $settingPath
-     * @return \Magento\Framework\Phrase|mixed
+     * @return Phrase|mixed
      */
     private function createTitle($settingPath)
     {

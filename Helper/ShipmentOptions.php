@@ -4,27 +4,29 @@ namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Date\DatingService;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use Magento\Framework\App\ResourceConnection;
 
 class ShipmentOptions
 {
-    private const INSURANCE         = 'insurance';
-    private const ONLY_RECIPIENT    = 'only_recipient';
+    private const INSURANCE = 'insurance';
+    private const ONLY_RECIPIENT = 'only_recipient';
     private const SAME_DAY_DELIVERY = 'same_day_delivery';
-    private const SIGNATURE         = 'signature';
-    private const RETURN            = 'return';
-    private const AGE_CHECK         = 'age_check';
-    private const LARGE_FORMAT      = 'large_format';
-    private const HIDE_SENDER       = 'hide_sender';
+    private const SIGNATURE = 'signature';
+    private const RETURN = 'return';
+    private const AGE_CHECK = 'age_check';
+    private const LARGE_FORMAT = 'large_format';
+    private const HIDE_SENDER = 'hide_sender';
     private const LABEL_DESCRIPTION = 'label_description';
-    private const ORDER_NUMBER      = '%order_nr%';
-    private const DELIVERY_DATE     = '%delivery_date%';
-    private const PRODUCT_ID        = '%product_id%';
-    private const PRODUCT_NAME      = '%product_name%';
-    private const PRODUCT_QTY       = '%product_qty%';
+    private const ORDER_NUMBER = '%order_nr%';
+    private const DELIVERY_DATE = '%delivery_date%';
+    private const PRODUCT_ID = '%product_id%';
+    private const PRODUCT_NAME = '%product_name%';
+    private const PRODUCT_QTY = '%product_qty%';
 
     /**
      * @var string
@@ -32,12 +34,12 @@ class ShipmentOptions
     private $carrier;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     * @var DefaultOptions
      */
     private static $defaultOptions;
 
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
+     * @var ObjectManagerInterface
      */
     private $objectManager;
 
@@ -47,38 +49,39 @@ class ShipmentOptions
     private $options;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var Data
      */
     private $configService;
 
     /**
-     * @var \Magento\Sales\Model\Order
+     * @var Order
      */
     private $order;
 
     /**
      * @var string|null
      */
-    private $cc;
+    private ?string $cc;
+    private DatingService $datingService;
 
     /**
-     * @param  \MyParcelNL\Magento\Model\Source\DefaultOptions $defaultOptions
-     * @param  \MyParcelNL\Magento\Helper\ConfigService                 $configService
-     * @param  \Magento\Sales\Model\Order                      $order
-     * @param  \Magento\Framework\ObjectManagerInterface       $objectManager
-     * @param  string                                          $carrier
-     * @param  array                                           $options
+     * @param DefaultOptions $defaultOptions
+     * @param Order $order
+     * @param ObjectManagerInterface $objectManager
+     * @param string $carrier
+     * @param array $options
      */
     public function __construct(
-        DefaultOptions             $defaultOptions,
-        ConfigService              $configService,
-        \Magento\Sales\Model\Order $order,
-        ObjectManagerInterface     $objectManager,
-        string                     $carrier,
-        array                      $options = []
-    ) {
+        DefaultOptions         $defaultOptions,
+        Order                  $order,
+        ObjectManagerInterface $objectManager,
+        string                 $carrier,
+        array                  $options = []
+    )
+    {
         self::$defaultOptions = $defaultOptions;
-        $this->configService  = $configService;
+        $this->configService  = $objectManager->get(ConfigService::class);
+        $this->datingService  = $objectManager->get(DatingService::class);
         $this->order          = $order;
         $this->objectManager  = $objectManager;
         $this->carrier        = $carrier;
@@ -177,7 +180,7 @@ class ShipmentOptions
                 'age_check'
             );
 
-            if (! isset($productAgeCheck) || '' === $productAgeCheck) {
+            if (!isset($productAgeCheck) || '' === $productAgeCheck) {
                 $hasAgeCheck = null;
             } elseif ('1' === $productAgeCheck) {
                 return true;
@@ -188,9 +191,9 @@ class ShipmentOptions
     }
 
     /**
-     * @param  string $tableName
-     * @param  string $entityId
-     * @param  string $column
+     * @param string $tableName
+     * @param string $entityId
+     * @param string $column
      *
      * @return null|string
      */
@@ -215,8 +218,8 @@ class ShipmentOptions
 
     /**
      * @param         $connection
-     * @param  string $tableName
-     * @param  string $databaseColumn
+     * @param string $tableName
+     * @param string $databaseColumn
      *
      * @return mixed
      */
@@ -231,10 +234,10 @@ class ShipmentOptions
     }
 
     /**
-     * @param  object $connection
-     * @param  string $tableName
-     * @param  string $attributeId
-     * @param  string $entityId
+     * @param object $connection
+     * @param string $tableName
+     * @param string $attributeId
+     * @param string $entityId
      *
      * @return string|null
      */
@@ -243,7 +246,8 @@ class ShipmentOptions
         string $tableName,
         string $attributeId,
         string $entityId
-    ): ?string {
+    ): ?string
+    {
         $sql = $connection
             ->select()
             ->from($tableName, ['value'])
@@ -254,18 +258,18 @@ class ShipmentOptions
     }
 
     /**
-     * @param  string $key
-     * @param  array  $options
+     * @param string $key
+     * @param array $options
      *
      * @return bool|null boolean value of the option named $key, or null when not set in $options
      */
     public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
     {
-        if (! isset($options[$key])) {
+        if (!isset($options[$key])) {
             return null;
         }
 
-        return (bool) $options[$key];
+        return (bool)$options[$key];
     }
 
     /**
@@ -273,7 +277,7 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        if (! in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
+        if (!in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
             return false;
         }
 
@@ -288,18 +292,18 @@ class ShipmentOptions
      */
     public function getLabelDescription(): string
     {
-        $checkoutData     = $this->order->getData('myparcel_delivery_options');
         $labelDescription = $this->configService->getGeneralConfig(
             'print/label_description',
             $this->order->getStoreId()
         );
 
-        if (! $labelDescription) {
+        if (!$labelDescription) {
             return '';
         }
 
+        $deliveryOptions  = $this->order->getData(ConfigService::FIELD_DELIVERY_OPTIONS);
+        $checkoutDate     = json_decode($deliveryOptions, true)['date'] ?? null;
         $productInfo      = $this->getItemsCollectionByShipmentId($this->order->getId());
-        $deliveryDate     = $checkoutData ? date('d-m-Y', strtotime($this->configService->convertDeliveryDate($checkoutData))) : null;
         $labelDescription = str_replace(
             [
                 self::ORDER_NUMBER,
@@ -310,7 +314,7 @@ class ShipmentOptions
             ],
             [
                 $this->order->getIncrementId(),
-                $this->configService->convertDeliveryDate($checkoutData) ? $deliveryDate : '',
+                $this->datingService->convertDeliveryDate($checkoutDate, 'd-m-Y') ?: '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
                 $productInfo ? round($this->getProductInfo($productInfo, 'qty')) : null,
@@ -318,12 +322,12 @@ class ShipmentOptions
             $labelDescription
         );
 
-        return (string) $labelDescription;
+        return (string)$labelDescription;
     }
 
     /**
-     * @param  array  $productInfo
-     * @param  string $field
+     * @param array $productInfo
+     * @param string $field
      *
      * @return string|null
      */
@@ -343,14 +347,14 @@ class ShipmentOptions
      */
     public function getItemsCollectionByShipmentId($shipmentId): array
     {
-        /** @var \Magento\Framework\App\ResourceConnection $connection */
+        /** @var ResourceConnection $connection */
         $connection = $this->objectManager->create(ResourceConnection::class);
         $conn       = $connection->getConnection();
         $select     = $conn->select()
-            ->from(
-                ['main_table' => $connection->getTableName('sales_shipment_item')]
-            )
-            ->where('main_table.parent_id=?', $shipmentId);
+                           ->from(
+                               ['main_table' => $connection->getTableName('sales_shipment_item')]
+                           )
+                           ->where('main_table.parent_id=?', $shipmentId);
         return $conn->fetchAll($select);
     }
 
@@ -364,11 +368,11 @@ class ShipmentOptions
      */
     private function optionIsEnabled($optionKey): bool
     {
-        if (! isset($this->options[$optionKey])) {
+        if (!isset($this->options[$optionKey])) {
             return self::$defaultOptions->hasDefault($optionKey, $this->carrier);
         }
 
-        return (bool) $this->options[$optionKey];
+        return (bool)$this->options[$optionKey];
     }
 
     /**
