@@ -20,6 +20,7 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 class NewShipment implements ObserverInterface
 {
@@ -58,7 +59,7 @@ class NewShipment implements ObserverInterface
     /**
      * @var \MyParcelNL\Magento\Helper\Data
      */
-    private $helper;
+    private $configService;
 
     /**
      * NewShipment constructor.
@@ -72,8 +73,7 @@ class NewShipment implements ObserverInterface
         $this->redirectFactory = $this->objectManager->get('Magento\Framework\Controller\Result\RedirectFactory');
         $this->messageManager  = $this->objectManager->get('Magento\Framework\Message\Manager');
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
-        $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
+        $this->configService   = $this->objectManager->get(ConfigService::class);
     }
 
     /**
@@ -127,7 +127,7 @@ class NewShipment implements ObserverInterface
 
         while ($i <= $amount) {
             // Set MyParcel options
-            $trackTraceHolder = (new TrackTraceHolder($this->objectManager, $this->helper, $shipment->getOrder()))
+            $trackTraceHolder = (new TrackTraceHolder($this->objectManager, $shipment->getOrder()))
                 ->createTrackTraceFromShipment($shipment);
             $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
 
@@ -151,7 +151,7 @@ class NewShipment implements ObserverInterface
             );
         }
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             $this->exportEntireOrder($shipment);
             $this->updateTrackGrid($shipment, true);
 
@@ -186,7 +186,7 @@ class NewShipment implements ObserverInterface
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
-        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderId]);
         $this->orderCollection->setOrderCollection($collection);
         $this->orderCollection->setFulfilment();

@@ -5,25 +5,18 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
-use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 class LargeFormatOptions implements OptionSourceInterface
 {
-    /**
-     * @var Data
-     */
-    static private $helper;
+    static private ConfigService $configService;
 
     /**
-     * Insurance constructor.
-     *
-     * @param $order Order
-     * @param $helper Data
+     * @param $configService ConfigService
      */
-    public function __construct(Data $helper)
+    public function __construct(ConfigService $configService)
     {
-        self::$helper = $helper;
+        self::$configService = $configService;
     }
 
     /**

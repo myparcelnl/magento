@@ -17,14 +17,11 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 class ShipmentsAction extends Template
 {
-    /**
-     * @var \MyParcelNL\Magento\Helper\Data
-     */
-    private $helper;
+    private ConfigService $configService;
 
     /**
      * @param  Context $context
@@ -35,7 +32,7 @@ class ShipmentsAction extends Template
         array   $data = []
     ) {
         $objectManager = ObjectManager::getInstance();
-        $this->helper  = $objectManager->get(Data::class);
+        $this->configService = $objectManager->get(ConfigService::class);
         parent::__construct($context, $data);
     }
 
@@ -46,7 +43,7 @@ class ShipmentsAction extends Template
      */
     public function hasApiKey(): bool
     {
-        return $this->helper->hasApiKey();
+        return $this->configService->hasApiKey();
     }
 
     /**
@@ -86,7 +83,7 @@ class ShipmentsAction extends Template
      */
     public function getPrintSettings(): string
     {
-        $settings = $this->helper->getGeneralConfig('print');
+        $settings = $this->configService->getGeneralConfig('print');
 
         return json_encode($settings);
     }

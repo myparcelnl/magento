@@ -11,6 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
@@ -36,15 +37,9 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     const PATH_MODEL_ORDER     = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
-    /**
-     * @var \Magento\Backend\App\Action\Context
-     */
-    private $context;
 
-    /**
-     * @var MagentoOrderCollection
-     */
-    private $orderCollection;
+    private MagentoOrderCollection $orderCollection;
+    private ConfigService $configService;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -53,12 +48,13 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     public function __construct(Context $context)
     {
-        $this->context = $context;
-        parent::__construct($this->context);
+        // TODO joeri don’t use deprecated action
+        parent::__construct($context);
 
-        $this->resultRedirectFactory = $this->context->getResultRedirectFactory();
+        $this->configService = $this->_objectManager->get(ConfigService::class);
+        $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->orderCollection       = new MagentoOrderCollection(
-            $context->getObjectManager(),
+            $this->_objectManager,
             $this->getRequest(),
             null
         );
@@ -92,7 +88,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     private function massAction()
     {
-        if (! $this->orderCollection->apiKeyIsCorrect()) {
+        if (! $this->configService->apiKeyIsCorrect()) {
             $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
@@ -115,7 +111,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             $this->orderCollection->setFulfilment();
 
             return $this;
@@ -163,7 +159,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
-        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
     }
@@ -175,8 +171,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     private function filterCorrectAddress(array $orderIds): array
     {
-        $objectManager = ObjectManager::getInstance();
-        $order         = $objectManager->get(Order::class);
+        $order         = $this->_objectManager->get(Order::class);
         // Go through the selected orders and check if the address details are correct
         foreach ($orderIds as $orderId) {
             $order->load($orderId);

@@ -45,14 +45,6 @@ use RuntimeException;
 class TrackTraceHolder
 {
     /**
-     * Track title showing in Magento
-     */
-    public const MYPARCEL_TRACK_TITLE  = 'MyParcel';
-    public const MYPARCEL_CARRIER_CODE = 'myparcel';
-    public const EXPORT_MODE_PPS       = 'pps';
-    public const EXPORT_MODE_SHIPMENTS = 'shipments';
-
-    /**
      * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
     private static $defaultOptions;
@@ -105,15 +97,11 @@ class TrackTraceHolder
         Order                  $order
     ) {
         $this->objectManager  = $objectManager;
-        $this->configService  = $objectManager->create(ConfigService::class);
-        $this->weightService  = $objectManager->create(WeightService::class);
-        $this->deliveryCostsService = $objectManager->create(DeliveryCostsService::class);
+        $this->configService  = $objectManager->get(ConfigService::class);
+        $this->weightService  = $objectManager->get(WeightService::class);
+        $this->deliveryCostsService = $objectManager->get(DeliveryCostsService::class);
         $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
-        self::$defaultOptions = new DefaultOptions(
-            $order,
-            $this->configService,
-            $this->weightService
-        );
+        self::$defaultOptions = new DefaultOptions($order);
     }
 
     /**
@@ -269,8 +257,8 @@ class TrackTraceHolder
         $this->mageTrack
             ->setOrderId($shipment->getOrderId())
             ->setShipment($shipment)
-            ->setCarrierCode(self::MYPARCEL_CARRIER_CODE)
-            ->setTitle(self::MYPARCEL_TRACK_TITLE)
+            ->setCarrierCode(ConfigService::MYPARCEL_CARRIER_CODE)
+            ->setTitle(ConfigService::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber(TrackAndTrace::VALUE_EMPTY);
 

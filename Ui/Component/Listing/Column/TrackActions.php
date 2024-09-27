@@ -43,7 +43,7 @@ class TrackActions extends Column
     ) {
         $this->urlBuilder = $urlBuilder;
         $objectManager    = ObjectManager::getInstance();
-        $this->configService     = $objectManager->create(ConfigService::class);
+        $this->configService     = $objectManager->get(ConfigService::class);
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 

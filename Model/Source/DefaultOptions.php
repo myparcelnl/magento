@@ -14,6 +14,7 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use Exception;
+use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Service\Config\ConfigService;
@@ -59,13 +60,12 @@ class DefaultOptions
 
     /**
      * @param Order $order
-     * @param ConfigService $configService
-     * @param WeightService $weightService
      */
-    public function __construct(Order $order, ConfigService $configService, WeightService $weightService)
+    public function __construct(Order $order)
     {
-        self::$configService = $configService;
-        self::$weightService = $weightService;
+        $objectManager = ObjectManager::getInstance();
+        self::$configService = $objectManager->get(ConfigService::class);
+        self::$weightService = $objectManager->get(WeightService::class);
         self::$order  = $order;
         try {
             self::$chosenOptions = DeliveryOptionsAdapterFactory::create(

@@ -23,17 +23,15 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 
 class CreateConceptAfterInvoice implements ObserverInterface
 {
-    const DEFAULT_LABEL_AMOUNT = 1;
-
     protected $orderFactory;
 
     /**
@@ -56,10 +54,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     private $orderCollection;
 
-    /**
-     * @var Data
-     */
-    private $helper;
+    private ConfigService $configService;
 
     /**
      * @var MagentoShipmentCollection
@@ -78,12 +73,12 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
-        $this->objectManager   = ObjectManager::getInstance();
-        $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
+        $objectManager   = ObjectManager::getInstance();
+        //$this->request         = $objectManager->get('Magento\Framework\App\RequestInterface');
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
-        $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
-        $this->orderFactory    = $this->objectManager->get('\Magento\Sales\Model\Order');
+        $this->configService   = $objectManager->get(ConfigService::class);
+        //$this->modelTrack      = $objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
+        //$this->orderFactory    = $objectManager->get('\Magento\Sales\Model\Order');
     }
 
     /**
@@ -96,7 +91,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     public function execute(Observer $observer): self
     {
-        if ($this->helper->getGeneralConfig('print/create_concept_after_invoice')) {
+        if ($this->configService->getGeneralConfig('print/create_concept_after_invoice')) {
             $order = $observer
                 ->getEvent()
                 ->getInvoice()
@@ -133,7 +128,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
             ->setOptionsFromParameters()
             ->setNewMagentoShipment();
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             $this->orderCollection->setFulfilment();
 
             return $this;
@@ -151,12 +146,12 @@ class CreateConceptAfterInvoice implements ObserverInterface
     /**
      * @param $orderIds int[]
      */
-    private function addOrdersToCollection($orderIds)
+    private function addOrdersToCollection($orderIds): void
     {
         /**
          * @var Collection $collection
          */
-        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection = $this->objectManager->get(MagentoCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
     }
