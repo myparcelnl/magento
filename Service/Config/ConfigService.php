@@ -6,7 +6,6 @@ namespace MyParcelNL\Magento\Service\Config;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
@@ -15,7 +14,6 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLParcelConnect;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
-use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 use MyParcelNL\Sdk\src\Services\Web\CheckApiKeyWebService;
 
 class ConfigService extends AbstractHelper
@@ -34,19 +32,20 @@ class ConfigService extends AbstractHelper
     public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
     public const FIELD_TRACK_STATUS = 'track_status';
     public const DEFAULT_COUNTRY_CODE = 'NL';
-    public const MYPARCEL_TRACK_TITLE  = 'MyParcel';
+    public const MYPARCEL_TRACK_TITLE = 'MyParcel';
     public const MYPARCEL_CARRIER_CODE = 'myparcel';
-    public const EXPORT_MODE_PPS       = 'pps';
+    public const EXPORT_MODE_PPS = 'pps';
     public const EXPORT_MODE_SHIPMENTS = 'shipments';
 
-    public const CARRIERS_XML_PATH_MAP = [
-        CarrierPostNL::NAME => self::XML_PATH_POSTNL_SETTINGS,
-        CarrierDHLForYou::NAME => self::XML_PATH_DHLFORYOU_SETTINGS,
-        CarrierDHLEuroplus::NAME => self::XML_PATH_DHLEUROPLUS_SETTINGS,
-        CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
-        CarrierUPS::NAME => self::XML_PATH_UPS_SETTINGS,
-        CarrierDPD::NAME => self::XML_PATH_DPD_SETTINGS,
-    ];
+    public const CARRIERS_XML_PATH_MAP
+        = [
+            CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
+            CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
+            CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
+            CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
+            CarrierUPS::NAME              => self::XML_PATH_UPS_SETTINGS,
+            CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
+        ];
 
     /**
      * @var ModuleListInterface
@@ -69,7 +68,7 @@ class ConfigService extends AbstractHelper
     )
     {
         parent::__construct($context);
-        $this->moduleList = $moduleList;
+        $this->moduleList            = $moduleList;
         $this->checkApiKeyWebService = $checkApiKeyWebService;
     }
 
@@ -103,7 +102,7 @@ class ConfigService extends AbstractHelper
 
     public function getTimeConfig(string $carrier, string $key): string
     {
-        $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key"));
+        $timeAsString   = str_replace(',', ':', (string)$this->getConfigValue("$carrier$key"));
         $timeComponents = explode(':', $timeAsString ?? '');
         if (count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;
@@ -182,7 +181,7 @@ class ConfigService extends AbstractHelper
         $apiKey = $this->getApiKey();
 
         return $this->checkApiKeyWebService->setApiKey($apiKey)
-            ->apiKeyIsCorrect();
+                                           ->apiKeyIsCorrect();
     }
 
     /**
@@ -203,43 +202,5 @@ class ConfigService extends AbstractHelper
         $apiKey = $this->getApiKey();
 
         return isset($apiKey);
-    }
-
-    /**
-     * Get date in YYYY-MM-DD HH:MM:SS format
-     *
-     * @param string|null $date
-     *
-     * @return string|null
-     */
-    public function convertDeliveryDate(?string $date): ?string
-    {
-        if (!$date) {
-            return null;
-        }
-
-        $checkoutDate = json_decode($date, true)['date'] ?? substr($date, 0, 10);
-        $deliveryDate = strtotime(date('Y-m-d', strtotime($checkoutDate)));
-        $currentDate = strtotime(date('Y-m-d'));
-
-        if ($deliveryDate <= $currentDate) {
-            return date('Y-m-d H:i:s', strtotime('now +1 day'));
-        }
-
-        return $checkoutDate;
-    }
-
-    /**
-     * @param int $orderId
-     * @param string $status
-     */
-    public function setOrderStatus(int $orderId, string $status): void
-    {
-        $order = ObjectManager::getInstance()
-            ->create('\Magento\Sales\Model\Order')
-            ->load($orderId);
-        $order->setState($status)
-            ->setStatus($status);
-        $order->save();
     }
 }

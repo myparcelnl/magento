@@ -10,40 +10,31 @@ use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 
-/**
- * Class DepartmentActions
- */
 class TrackActions extends Column
 {
-    const NAME = 'track_actions';
+    public const NAME = 'track_actions';
+
+    private ConfigService $configService;
+    private UrlInterface $urlBuilder;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
-     */
-    private $configService;
-
-    /**
-     * @var UrlInterface
-     */
-    private $urlBuilder;
-
-    /**
-     * @param  ContextInterface                $context
-     * @param  UiComponentFactory              $uiComponentFactory
-     * @param  UrlInterface                    $urlBuilder
-     * @param  array                           $components
-     * @param  array                           $data
+     * @param ContextInterface $context
+     * @param UiComponentFactory $uiComponentFactory
+     * @param UrlInterface $urlBuilder
+     * @param array $components
+     * @param array $data
      */
     public function __construct(
-        ContextInterface $context,
+        ContextInterface   $context,
         UiComponentFactory $uiComponentFactory,
-        UrlInterface $urlBuilder,
-        array $components = [],
-        array $data = []
-    ) {
-        $this->urlBuilder = $urlBuilder;
-        $objectManager    = ObjectManager::getInstance();
-        $this->configService     = $objectManager->get(ConfigService::class);
+        UrlInterface       $urlBuilder,
+        array              $components = [],
+        array              $data = []
+    )
+    {
+        $this->urlBuilder    = $urlBuilder;
+        $objectManager       = ObjectManager::getInstance();
+        $this->configService = $objectManager->get(ConfigService::class);
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
@@ -57,14 +48,14 @@ class TrackActions extends Column
      */
     public function prepareDataSource(array $dataSource)
     {
-        if (! isset($dataSource['data']['items'])) {
+        if (!isset($dataSource['data']['items'])) {
             return $dataSource;
         }
 
         $orderManagementActivated = ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode();
 
         foreach ($dataSource['data']['items'] as &$item) {
-            if (! array_key_exists(ShippingStatus::NAME, $item)) {
+            if (!array_key_exists(ShippingStatus::NAME, $item)) {
                 throw new LocalizedException(
                     __(
                         'Note that the installation of the extension was not successful. Some columns have not been added to the database. The installation should be reversed. Use the following command to reinstall the module: DELETE FROM `setup_module` WHERE `setup_module`.`module` = \'MyParcelNL_Magento\''
@@ -73,7 +64,7 @@ class TrackActions extends Column
                 continue;
             }
 
-            if (! isset($item[ShippingStatus::NAME])) {
+            if (!isset($item[ShippingStatus::NAME])) {
                 if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
                     $item[$this->getData('name')]['action-create_concept'] = [
                         'href'   => $this->urlBuilder->getUrl(
@@ -84,10 +75,10 @@ class TrackActions extends Column
                             ]
                         ),
                         'label'  => __('Export to MyParcel'),
-                        'hidden' => ! $orderManagementActivated,
+                        'hidden' => !$orderManagementActivated,
                     ];
                 } else {
-                    $item[$this->getData('name')]['action-download_package_label'] = [
+                    $item[$this->getData('name')]['action-download_package_label']       = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
                             [
@@ -123,7 +114,7 @@ class TrackActions extends Column
                         'label'  => __('Download digital stamp label'),
                         'hidden' => $orderManagementActivated,
                     ];
-                    $item[$this->getData('name')]['action-download_mailbox_label'] = [
+                    $item[$this->getData('name')]['action-download_mailbox_label']       = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
                             [
@@ -135,7 +126,7 @@ class TrackActions extends Column
                         'label'  => __('Download mailbox label'),
                         'hidden' => $orderManagementActivated,
                     ];
-                    $item[$this->getData('name')]['action-download_letter_label'] = [
+                    $item[$this->getData('name')]['action-download_letter_label']        = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
                             [
@@ -147,7 +138,7 @@ class TrackActions extends Column
                         'label'  => __('Download letter label'),
                         'hidden' => $orderManagementActivated,
                     ];
-                    $item[$this->getData('name')]['action-create_concept'] = [
+                    $item[$this->getData('name')]['action-create_concept']               = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
                             [
@@ -158,7 +149,7 @@ class TrackActions extends Column
                         'label'  => __('Create new concept'),
                         'hidden' => $orderManagementActivated,
                     ];
-                    $item[$this->getData('name')]['action-ship_direct'] = [
+                    $item[$this->getData('name')]['action-ship_direct']                  = [
                         'href'   => $this->urlBuilder->getUrl(
                             'adminhtml/order_shipment/start',
                             [
@@ -172,7 +163,7 @@ class TrackActions extends Column
             }
 
             if (isset($item[ShippingStatus::NAME])) {
-                $item[$this->getData('name')]['action-create_concept'] = [
+                $item[$this->getData('name')]['action-create_concept']            = [
                     'href'   => $this->urlBuilder->getUrl(
                         'myparcel/order/CreateAndPrintMyParcelTrack',
                         [
@@ -181,9 +172,9 @@ class TrackActions extends Column
                         ]
                     ),
                     'label'  => __('Already exported'),
-                    'hidden' => ! $orderManagementActivated,
+                    'hidden' => !$orderManagementActivated,
                 ];
-                $item[$this->getData('name')]['action-download_package_label'] = [
+                $item[$this->getData('name')]['action-download_package_label']    = [
                     'href'   => $this->urlBuilder->getUrl(
                         'myparcel/order/CreateAndPrintMyParcelTrack',
                         [

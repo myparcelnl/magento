@@ -4,9 +4,16 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use BadMethodCallException;
+use DateTime;
+use DateTimeZone;
+use Exception;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Store\Model\ScopeInterface;
@@ -19,12 +26,16 @@ use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
+use MyParcelNL\Sdk\src\Exception\AccountNotActiveException;
+use MyParcelNL\Sdk\src\Exception\ApiException;
+use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Helper\SplitStreet;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Model\Consignment\PostNLConsignment;
 use MyParcelNL\Sdk\src\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\src\Model\Fulfilment\OrderNote;
 use MyParcelNL\Sdk\src\Model\PickupLocation;
@@ -40,29 +51,29 @@ use MyParcelNL\Sdk\src\Support\Str;
 class MagentoOrderCollection extends MagentoCollection
 {
     /**
-     * @var \Magento\Sales\Model\ResourceModel\Order\Collection
+     * @var OrderResource\Collection
      */
     private $orders = null;
 
     /**
-     * @var \Magento\Sales\Model\Order
+     * @var Order
      */
     private $order;
 
     /**
-     * @var \MyParcelNL\Sdk\src\Model\Recipient
+     * @var Recipient
      */
     private $billingRecipient;
 
     /**
-     * @var \MyParcelNL\Sdk\src\Model\Recipient
+     * @var Recipient
      */
     private $shippingRecipient;
 
     /**
      * Get all Magento orders
      *
-     * @return \Magento\Sales\Model\ResourceModel\Order\Collection
+     * @return OrderResource\Collection
      */
     public function getOrders()
     {
@@ -72,7 +83,7 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Set Magento collection
      *
-     * @param \Magento\Sales\Model\ResourceModel\Order\Collection|Order[] $orderCollection
+     * @param OrderResource\Collection|Order[] $orderCollection
      *
      * @return $this
      */
@@ -94,7 +105,7 @@ class MagentoOrderCollection extends MagentoCollection
 
         $orders = [];
         foreach ($ids as $orderId) {
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $objectManager = ObjectManager::getInstance();
             $orders[]      = $objectManager->create(Order::class)->load($orderId);
         }
 
@@ -106,13 +117,13 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Set existing or create new Magento Track and set API consignment to collection
      *
-     * @throws \Exception
+     * @throws Exception
      * @throws LocalizedException
      */
     public function setNewMagentoShipment(bool $notifyClientsByEmail = true): MagentoOrderCollection
     {
         /** @var Order $order */
-        /** @var Order\Shipment $shipment */
+        /** @var Shipment $shipment */
         foreach ($this->getOrders() as $order) {
             if ($order->canShip()) {
                 $this->createMagentoShipment($order, $notifyClientsByEmail);
@@ -128,13 +139,13 @@ class MagentoOrderCollection extends MagentoCollection
      * Create new Magento Track and save order
      *
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     public function setMagentoTrack(): MagentoOrderCollection
     {
         /**
-         * @var Order          $order
-         * @var Order\Shipment $shipment
+         * @var Order $order
+         * @var Shipment $shipment
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
             $i = 1;
@@ -157,7 +168,7 @@ class MagentoOrderCollection extends MagentoCollection
 
     /**
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      *
      */
     public function setFulfilment(): self
@@ -173,7 +184,6 @@ class MagentoOrderCollection extends MagentoCollection
             $selectedCarrier         = $deliveryOptions['carrier'] ?? $this->options['carrier'] ?? CarrierPostNL::NAME;
             $shipmentOptionsHelper   = new ShipmentOptions(
                 $defaultOptions,
-                $this->configService,
                 $magentoOrder,
                 $this->objectManager,
                 $selectedCarrier,
@@ -185,16 +195,16 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
+            $deliveryOptions['carrier']         = $selectedCarrier;
 
             try {
                 // create new instance from known json
-                $deliveryOptions['carrier'] = $selectedCarrier;
-                $deliveryOptionsAdapter     = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
-            } catch (\BadMethodCallException $e) {
+                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array)$deliveryOptions);
+            } catch (BadMethodCallException $e) {
                 // create new instance from unknown json data
-                $deliveryOptions                = (new ConsignmentNormalizer((array) $deliveryOptions))->normalize();
-                $deliveryOptions['packageType'] = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-                $deliveryOptionsAdapter         = DeliveryOptionsAdapterFactory::create($deliveryOptions);
+                $deliveryOptions['packageType']  = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+                $deliveryOptions['deliveryType'] = $deliveryOptions['deliveryType'] ?? AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME;
+                $deliveryOptionsAdapter          = DeliveryOptionsAdapterFactory::create($deliveryOptions);
             }
 
             $this->order = $magentoOrder;
@@ -217,15 +227,15 @@ class MagentoOrderCollection extends MagentoCollection
             if ($deliveryOptionsAdapter->isPickup()) {
                 $pickupData     = $deliveryOptionsAdapter->getPickupLocation();
                 $pickupLocation = new PickupLocation([
-                    'cc'                => $pickupData->getCountry(),
-                    'city'              => $pickupData->getCity(),
-                    'postal_code'       => $pickupData->getPostalCode(),
-                    'street'            => $pickupData->getStreet(),
-                    'number'            => $pickupData->getNumber(),
-                    'location_name'     => $pickupData->getLocationName(),
-                    'location_code'     => $pickupData->getLocationCode(),
-                    'retail_network_id' => $pickupData->getRetailNetworkId(),
-                ]);
+                                                         'cc'                => $pickupData->getCountry(),
+                                                         'city'              => $pickupData->getCity(),
+                                                         'postal_code'       => $pickupData->getPostalCode(),
+                                                         'street'            => $pickupData->getStreet(),
+                                                         'number'            => $pickupData->getNumber(),
+                                                         'location_name'     => $pickupData->getLocationName(),
+                                                         'location_code'     => $pickupData->getLocationCode(),
+                                                         'retail_network_id' => $pickupData->getRetailNetworkId(),
+                                                     ]);
                 $order->setPickupLocation($pickupLocation);
             }
 
@@ -237,7 +247,7 @@ class MagentoOrderCollection extends MagentoCollection
 
             $order->setOrderLines($orderLines);
 
-            if (! in_array($this->shippingRecipient->getCc(), AbstractConsignment::EURO_COUNTRIES, true)) {
+            if (!in_array($this->shippingRecipient->getCc(), AbstractConsignment::EURO_COUNTRIES, true)) {
                 $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order);
                 $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
                 $order->setCustomsDeclaration($customsDeclaration);
@@ -250,13 +260,13 @@ class MagentoOrderCollection extends MagentoCollection
         try {
             $this->myParcelCollection = $orderCollection->save();
             $this->setMagentoOrdersAsExported();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
         try {
             $this->saveOrderNotes();
-        } catch(\Exception $e) {
+        } catch (Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
@@ -264,21 +274,21 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws AccountNotActiveException
+     * @throws ApiException
+     * @throws MissingFieldException
      */
     private function saveOrderNotes(): void
     {
         $notes = (new OrderNotesCollection())->setApiKey($this->configService->getApiKey());
 
-        $this->myParcelCollection->each(function(FulfilmentOrder $order) use ($notes) {
+        $this->myParcelCollection->each(function (FulfilmentOrder $order) use ($notes) {
 
-            $this->getAllNotesForOrder($order)->each(function(OrderNote $note) use ($notes) {
+            $this->getAllNotesForOrder($order)->each(function (OrderNote $note) use ($notes) {
                 try {
                     $note->validate();
                     $notes->push($note);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     $this->messageManager->addWarningMessage(
                         sprintf(
                             'Note `%s` not exported. %s',
@@ -298,19 +308,19 @@ class MagentoOrderCollection extends MagentoCollection
         $notes        = new OrderNotesCollection();
         $orderUuid    = $fulfilmentOrder->getUuid();
         $magentoOrder = $this->objectManager->create(Order::class)
-            ->loadByIncrementId($fulfilmentOrder->getExternalIdentifier());
+                                            ->loadByIncrementId($fulfilmentOrder->getExternalIdentifier());
 
         foreach ($magentoOrder->getStatusHistoryCollection() as $status) {
-            if (! $status->getComment()) {
+            if (!$status->getComment()) {
                 continue;
             }
 
             $notes->push(
                 new OrderNote([
-                    'orderUuid' => $orderUuid,
-                    'note'      => $status->getComment(),
-                    'author'    => 'webshop',
-                ])
+                                  'orderUuid' => $orderUuid,
+                                  'note'      => $status->getComment(),
+                                  'author'    => 'webshop',
+                              ])
             );
         }
 
@@ -322,7 +332,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
 
-            $fulfilmentOrder = $this->myParcelCollection->first(function(FulfilmentOrder $order) use ($magentoOrder){
+            $fulfilmentOrder = $this->myParcelCollection->first(function (FulfilmentOrder $order) use ($magentoOrder) {
                 return $order->getExternalIdentifier() === $magentoOrder->getIncrementId();
             });
 
@@ -345,7 +355,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->order->getItems() as $item) {
             $product = $item->getProduct();
 
-            if (! $product) {
+            if (!$product) {
                 continue;
             }
 
@@ -356,14 +366,14 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @param  string $format
+     * @param string $format
      *
      * @return string
      */
     public function getLocalCreatedAtDate(string $format = 'Y-m-d H:i:s'): string
     {
         $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
-        $datetime    = \DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
+        $datetime    = DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
         $timezone    = $scopeConfig->getValue(
             'general/locale/timezone',
             ScopeInterface::SCOPE_STORE,
@@ -371,7 +381,7 @@ class MagentoOrderCollection extends MagentoCollection
         );
 
         if ($timezone) {
-            $storeTime = new \DateTimeZone($timezone);
+            $storeTime = new DateTimeZone($timezone);
             $datetime->setTimezone($storeTime);
         }
 
@@ -397,7 +407,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @return \MyParcelNL\Sdk\src\Model\Recipient|null
+     * @return Recipient|null
      */
     public function getBillingRecipient(): ?Recipient
     {
@@ -406,15 +416,15 @@ class MagentoOrderCollection extends MagentoCollection
 
     /**
      * @return self
-     * @throws \Exception
+     * @throws Exception
      */
     public function setShippingRecipient(): self
     {
-        $carrier                  = ConsignmentFactory::createByCarrierName(CarrierPostNL::NAME);
-        $street                   = implode(
+        $carrier = ConsignmentFactory::createByCarrierName(CarrierPostNL::NAME);
+        $street  = implode(
             ' ',
             $this->order->getShippingAddress()
-                ->getStreet() ?? []
+                        ->getStreet() ?? []
         );
 
         $country     = $this->order->getShippingAddress()->getCountryId();
@@ -428,16 +438,16 @@ class MagentoOrderCollection extends MagentoCollection
             ->setPerson($this->getFullCustomerName())
             ->setPostalCode($this->order->getShippingAddress()->getPostcode())
             ->setStreet($streetParts->getStreet())
-            ->setNumber((string) $streetParts->getNumber())
-            ->setNumberSuffix((string) $streetParts->getNumberSuffix())
-            ->setBoxNumber((string) $streetParts->getBoxNumber())
+            ->setNumber((string)$streetParts->getNumber())
+            ->setNumberSuffix((string)$streetParts->getNumberSuffix())
+            ->setBoxNumber((string)$streetParts->getBoxNumber())
             ->setPhone($this->order->getShippingAddress()->getTelephone());
 
         return $this;
     }
 
     /**
-     * @return \MyParcelNL\Sdk\src\Model\Recipient|null
+     * @return Recipient|null
      */
     public function getShippingRecipient(): ?Recipient
     {
@@ -460,7 +470,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Set PDF content and convert status 'Concept' to 'Registered'
      *
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     public function setPdfOfLabels(): self
     {
@@ -473,7 +483,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Download PDF directly
      *
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     public function downloadPdfOfLabels(): self
     {
@@ -487,7 +497,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Update MyParcel collection
      *
      * @return $this
-     * @throws \Exception
+     * @throws Exception
      */
     public function setLatestData(): self
     {
@@ -502,8 +512,8 @@ class MagentoOrderCollection extends MagentoCollection
 
     /**
      * @return $this
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException|\MyParcelNL\Sdk\src\Exception\AccountNotActiveException
+     * @throws ApiException
+     * @throws MissingFieldException|AccountNotActiveException
      */
     public function sendReturnLabelMails()
     {
@@ -543,9 +553,9 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
+     * @return ShipmentResource\Collection
      */
-    protected function getShipmentsCollection(): \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
+    protected function getShipmentsCollection(): ShipmentResource\Collection
     {
         $orderIds = [];
         foreach ($this->getOrders() as $order) {
@@ -571,14 +581,14 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Send shipment email with Track and trace variable
      *
-     * @param \Magento\Sales\Model\Order $order
+     * @param Order $order
      *
      * @return $this
      */
     private function sendTrackEmailFromOrder(Order $order): self
     {
         /**
-         * @var \Magento\Sales\Model\Order\Shipment $shipment
+         * @var Shipment $shipment
          */
         if ($this->trackSender->isEnabled() == false) {
             return $this;
@@ -594,7 +604,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     * @throws AlreadyExistsException
      */
     public function createMagentoShipment(Order $order, bool $notifyClientByEmail = true): void
     {
@@ -609,11 +619,11 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         foreach ($order->getAllItems() as $orderItem) {
-            if (! $orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
+            if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                 continue;
             }
 
-            $qtyShipped = $orderItem->getQtyToShip();
+            $qtyShipped   = $orderItem->getQtyToShip();
             $shipmentItem = $convertOrder->itemToShipmentItem($orderItem)->setQty($qtyShipped);
             $shipment->addItem($shipmentItem);
         }
@@ -624,7 +634,7 @@ class MagentoOrderCollection extends MagentoCollection
         try {
             $this->objectManager->get(ShipmentResource::class)->save($shipment);
             $this->objectManager->get(OrderResource::class)->save($shipment->getOrder());
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (preg_match('/' . MagentoOrderCollection::DEFAULT_ERROR_ORDER_HAS_NO_SOURCE . '/', $e->getMessage())) {
                 $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SOURCE));
             } else {
@@ -636,7 +646,7 @@ class MagentoOrderCollection extends MagentoCollection
 
         if ($notifyClientByEmail) {
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
-                ->notify($shipment);
+                                ->notify($shipment);
         }
     }
 }

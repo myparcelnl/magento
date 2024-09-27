@@ -4,7 +4,11 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Settings;
 
+use Exception;
 use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
+use MyParcelNL\Sdk\src\Exception\AccountNotActiveException;
+use MyParcelNL\Sdk\src\Exception\ApiException;
+use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\Account\CarrierConfigurationFactory;
 use MyParcelNL\Sdk\src\Model\Account\Account;
 use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
@@ -24,16 +28,16 @@ class AccountSettings extends BaseModel
     private static self $instance;
 
     /**
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     * @throws \Exception
+     * @throws ApiException
+     * @throws AccountNotActiveException
+     * @throws MissingFieldException
+     * @throws Exception
      */
     public function __construct()
     {
         $settings = CarrierConfigurationImport::getAccountSettings();
 
-        if (! $settings) {
+        if (!$settings) {
             return;
         }
 
@@ -60,8 +64,7 @@ class AccountSettings extends BaseModel
         return $carrierConfigurations
             ->filter(
                 static function (CarrierConfiguration $carrierConfiguration) use ($carrier) {
-                    return $carrier->getId() === $carrierConfiguration->getCarrier()
-                            ->getId();
+                    return $carrier->getId() === $carrierConfiguration->getCarrier()->getId();
                 }
             )
             ->first();
@@ -77,7 +80,7 @@ class AccountSettings extends BaseModel
 
     /** c
      *
-     * @return \MyParcelNL\Sdk\src\Model\Account\CarrierOptions[]|Collection
+     * @return CarrierOptions[]|Collection
      */
     public function getCarrierOptions(): Collection
     {
@@ -87,7 +90,7 @@ class AccountSettings extends BaseModel
     /**
      * @param AbstractCarrier $carrier
      *
-     * @return null|\MyParcelNL\Sdk\src\Model\Account\CarrierOptions
+     * @return null|CarrierOptions
      */
     public function getCarrierOptionsByCarrier(AbstractCarrier $carrier): ?CarrierOptions
     {
@@ -96,8 +99,7 @@ class AccountSettings extends BaseModel
         return $carrierOptions
             ->filter(
                 static function (CarrierOptions $carrierOptions) use ($carrier) {
-                    return $carrier->getId() === $carrierOptions->getCarrier()
-                            ->getId();
+                    return $carrier->getId() === $carrierOptions->getCarrier()->getId();
                 }
             )
             ->first();
@@ -112,13 +114,13 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDropOffPoint(AbstractCarrier $carrier): ?DropOffPoint
     {
         $carrierConfiguration = $this->getCarrierConfigurationByCarrier($carrier);
 
-        if (! $carrierConfiguration) {
+        if (!$carrierConfiguration) {
             return null;
         }
 
@@ -138,13 +140,13 @@ class AccountSettings extends BaseModel
      */
     private function fillProperties(Collection $settings): void
     {
-        $shop                         = $settings->get('shop');
-        $account                      = $settings->get('account');
-        $carrierOptions               = $settings->get('carrier_options');
-        $carrierConfigurations        = $settings->get('carrier_configurations');
-        $this->shop                   = new Shop($shop);
-        $account['shops']             = [$shop];
-        $this->account                = new Account($account);
+        $shop                        = $settings->get('shop');
+        $account                     = $settings->get('account');
+        $carrierOptions              = $settings->get('carrier_options');
+        $carrierConfigurations       = $settings->get('carrier_configurations');
+        $this->shop                  = new Shop($shop);
+        $account['shops']            = [$shop];
+        $this->account               = new Account($account);
         $this->carrierOptions        = (new Collection($carrierOptions))->mapInto(CarrierOptions::class);
         $this->carrierConfigurations = (new Collection($carrierConfigurations))->map(function (array $data) {
             return CarrierConfigurationFactory::create($data);
