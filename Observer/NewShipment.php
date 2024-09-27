@@ -14,18 +14,13 @@
 
 namespace MyParcelNL\Magento\Observer;
 
-use Exception;
-use Magento\Backend\Model\View\Result\RedirectFactory;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\Message\Manager;
 use Magento\Sales\Model\Order\Shipment;
-use Magento\Sales\Model\ResourceModel\Order\Collection;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 class NewShipment implements ObserverInterface
 {
@@ -52,14 +47,19 @@ class NewShipment implements ObserverInterface
     private $request;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
+     * @var \Magento\Sales\Model\Order\Shipment\Track
+     */
+    private $modelTrack;
+
+    /**
+     * @var MagentoOrderCollection
      */
     private $orderCollection;
 
     /**
      * @var \MyParcelNL\Magento\Helper\Data
      */
-    private $helper;
+    private $configService;
 
     /**
      * NewShipment constructor.
@@ -69,20 +69,20 @@ class NewShipment implements ObserverInterface
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
         $this->objectManager   = ObjectManager::getInstance();
-        $this->request         = $this->objectManager->get(RequestInterface::class);
-        $this->redirectFactory = $this->objectManager->get(RedirectFactory::class);
-        $this->messageManager  = $this->objectManager->get(Manager::class);
+        $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
+        $this->redirectFactory = $this->objectManager->get('Magento\Framework\Controller\Result\RedirectFactory');
+        $this->messageManager  = $this->objectManager->get('Magento\Framework\Message\Manager');
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper          = $this->objectManager->get(Data::class);
+        $this->configService   = $this->objectManager->get(ConfigService::class);
     }
 
     /**
      * Create MyParcel concept
      *
-     * @param \Magento\Framework\Event\Observer $observer
+     * @param Observer $observer
      *
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     public function execute(Observer $observer)
     {
@@ -92,7 +92,7 @@ class NewShipment implements ObserverInterface
 
             try {
                 $this->setMagentoAndMyParcelTrack($shipment);
-            } catch (Exception $e) {
+            } catch (\Exception $e) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             }
 
@@ -107,12 +107,12 @@ class NewShipment implements ObserverInterface
      *
      * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
-     * @throws Exception
+     * @throws \Exception
      */
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
         $options = $this->orderCollection->setOptionsFromParameters()
-                                         ->getOptions();
+            ->getOptions();
 
         if (isset($options['carrier']) && false === $options['carrier']) {
             unset($options['carrier']);
@@ -120,14 +120,14 @@ class NewShipment implements ObserverInterface
 
         $amount = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
 
-        /** @var TrackTraceHolder[] $trackTraceHolders */
+        /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
         $useMultiCollo     = false;
 
         while ($i <= $amount) {
             // Set MyParcel options
-            $trackTraceHolder = (new TrackTraceHolder($this->objectManager, $this->helper, $shipment->getOrder()))
+            $trackTraceHolder = (new TrackTraceHolder($this->objectManager, $shipment->getOrder()))
                 ->createTrackTraceFromShipment($shipment);
             $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
 
@@ -151,7 +151,7 @@ class NewShipment implements ObserverInterface
             );
         }
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             $this->exportEntireOrder($shipment);
             $this->updateTrackGrid($shipment, true);
 
@@ -177,16 +177,16 @@ class NewShipment implements ObserverInterface
      * @param $shipment
      *
      * @return void
-     * @throws Exception
+     * @throws \Exception
      */
     private function exportEntireOrder($shipment): void
     {
         $orderId = $shipment->getOrderId();
 
         /**
-         * @var Collection $collection
+         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
-        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderId]);
         $this->orderCollection->setOrderCollection($collection);
         $this->orderCollection->setFulfilment();
@@ -199,7 +199,7 @@ class NewShipment implements ObserverInterface
      *
      * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
-     * @throws Exception
+     * @throws \Exception
      */
     private function updateTrackGrid($shipment, $entireOrder): void
     {
@@ -210,8 +210,8 @@ class NewShipment implements ObserverInterface
         }
 
         $shipment->getOrder()
-                 ->setData('track_status', $aHtml['track_status'])
-                 ->setData('track_number', $aHtml['track_number'])
-                 ->save();
+            ->setData('track_status', $aHtml['track_status'])
+            ->setData('track_number', $aHtml['track_number'])
+            ->save();
     }
 }

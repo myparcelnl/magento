@@ -17,7 +17,6 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 
@@ -27,10 +26,7 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
  */
 class AgeCheckYes implements OptionSourceInterface
 {
-    /**
-     * @var Data
-     */
-    static private $configService;
+    static private ConfigService $configService;
 
     /**
      * Insurance constructor.

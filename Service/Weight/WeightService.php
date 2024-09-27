@@ -8,16 +8,13 @@ use MyParcelNL\Magento\Service\Config\ConfigService;
 
 class WeightService
 {
-    public const DEFAULT_WEIGHT                     = 1000;
+    public const DEFAULT_WEIGHT = 1000;
 
-    /**
-     * @var ConfigService
-     */
-    private $configService;
+    private ConfigService $configService;
 
     public function __construct(ConfigService $configService)
     {
-        $this->$configService = $configService;
+        $this->configService = $configService;
     }
     /**
      * Get the correct weight type

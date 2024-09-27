@@ -25,44 +25,32 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Api\ShipmentStatus;
+use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
 
 class UpdateStatus
 {
-    public const ORDER_ID_NOT_TO_PROCESS         = '000000000';
-    public const ORDER_STATUS_EXPORTED           = 'Exported';
-    public const PATH_MODEL_ORDER_TRACK          = Collection::class;
-    public const PATH_MODEL_ORDER                = \Magento\Sales\Model\ResourceModel\Order\Collection::class;
+    public const ORDER_ID_NOT_TO_PROCESS = '000000000';
+    public const ORDER_STATUS_EXPORTED = 'Exported';
+    public const PATH_MODEL_ORDER_TRACK = Collection::class;
 
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
-    private $logger;
 
-    /**
-     * @var ObjectManager
-     */
-    private $objectManager;
-
-    /**
-     * @var \Magento\Sales\Model\ResourceModel\Order
-     */
-    private $orderResource;
-
-    /**
-     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
-     */
-    private $orderCollection;
+    private \Psr\Log\LoggerInterface $logger;
+    private ObjectManager $objectManager;
+    private \Magento\Sales\Model\ResourceModel\Order $orderResource;
+    private MagentoOrderCollection $orderCollection;
+    private ConfigService $configService;
 
     /**
      * UpdateStatus constructor.
      *
-     * @param \Magento\Framework\App\AreaList          $areaList
-     * @param \Psr\Log\LoggerInterface                 $logger
+     * @param \Magento\Framework\App\AreaList $areaList
+     * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Sales\Model\ResourceModel\Order $orderResource
      *
      * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
@@ -71,11 +59,13 @@ class UpdateStatus
         \Magento\Framework\App\AreaList          $areaList,
         \Psr\Log\LoggerInterface                 $logger,
         \Magento\Sales\Model\ResourceModel\Order $orderResource
-    ) {
-        $this->objectManager   = ObjectManager::getInstance();
+    )
+    {
+        $this->objectManager = $objectManager = ObjectManager::getInstance();
+        $this->configService = $objectManager->get(ConfigService::class);
         $this->orderCollection = new MagentoOrderCollection($this->objectManager, null, $areaList);
-        $this->logger          = $logger;
-        $this->orderResource   = $orderResource;
+        $this->logger = $logger;
+        $this->orderResource = $orderResource;
     }
 
     /**
@@ -87,14 +77,14 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
-            return $this->updateStatusOrderbeheer();
+        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+            return $this->updateStatusPPS();
         }
         return $this->updateStatusShipments();
     }
 
     /**
-     * Handles orders exported using Orderbeheer setting.
+     * Handles orders exported using Orderbeheer (PPS) setting.
      * Gets (max 300) orders from Magento that are eligible, gets the most recently updated orders from the api.
      * When the api order is one of the eligible Magento orders and it is shipped, adds the shipment in Magento.
      *
@@ -113,12 +103,12 @@ class UpdateStatus
      * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws \Exception
      */
-    private function updateStatusOrderbeheer(): self
+    private function updateStatusPPS(): self
     {
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $magentoOrders
          */
-        $magentoOrders = $this->objectManager->get(self::PATH_MODEL_ORDER);
+        $magentoOrders = $this->objectManager->get(MagentoCollection::PATH_MODEL_ORDER_COLLECTION);
         $magentoOrders
             ->addFieldToSelect('increment_id')
             ->addFieldToSelect('entity_id')
@@ -128,31 +118,31 @@ class UpdateStatus
             ->setOrder('increment_id', 'DESC');
 
         $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'increment_id'));
-        $apiOrders       = OrderCollection::query($this->orderCollection->getApiKey());
-        $orderIdsDone    = [];
+        $apiOrders = OrderCollection::query($this->configService->getApiKey());
+        $orderIdsDone = [];
 
         foreach ($apiOrders->getIterator() as $apiOrder) {
             $incrementId = $apiOrder->getExternalIdentifier();
-            $shipment    = $apiOrder->getOrderShipments()[0]['shipment'] ?? null;
+            $shipment = $apiOrder->getOrderShipments()[0]['shipment'] ?? null;
 
-            if (! $incrementId
-                || ! $shipment
+            if (!$incrementId
+                || !$shipment
                 || isset($orderIdsDone[$incrementId])
-                || ! array_contains($orderIdsToCheck, $incrementId)) {
+                || !array_contains($orderIdsToCheck, $incrementId)) {
                 continue;
             }
 
             $orderIdsDone[$incrementId] = $incrementId;
-            $barcode                    = $shipment['external_identifier'] ?? TrackAndTrace::VALUE_PRINTED;
+            $barcode = $shipment['external_identifier'] ?? TrackAndTrace::VALUE_PRINTED;
 
-            if (! $this->apiShipmentIsShipped($shipment)) {
+            if (!$this->apiShipmentIsShipped($shipment)) {
                 continue;
             }
 
             $magentoOrder = $this->objectManager->create('Magento\Sales\Model\Order')
                 ->loadByIncrementId($incrementId);
 
-            if (! $magentoOrder->canShip()) {
+            if (!$magentoOrder->canShip()) {
                 $orderIdsDone[$incrementId] = self::ORDER_ID_NOT_TO_PROCESS;
 
                 $this->logger->notice('Order is shipped from backoffice but Magento will not create a shipment.');
@@ -160,32 +150,32 @@ class UpdateStatus
             }
         }
 
-        if (! $orderIdsDone) {
-            $this->logger->notice('Orderbeheer: no orders updated');
+        if (!$orderIdsDone) {
+            $this->logger->notice('PPS: no orders updated');
 
             return $this;
         }
 
         $orderIncrementIds = array_unique(array_values($orderIdsDone));
-        $index             = array_search(self::ORDER_ID_NOT_TO_PROCESS, $orderIncrementIds);
+        $index = array_search(self::ORDER_ID_NOT_TO_PROCESS, $orderIncrementIds);
         if (false !== $index) {
             unset($orderIncrementIds[$index]);
         }
-        $orderEntityIds    = [];
+        $orderEntityIds = [];
         $arrayWithIdsArray = $magentoOrders->getData();
 
         foreach ($arrayWithIdsArray as $arrayWithIds) {
-            if (! in_array($arrayWithIds['increment_id'], $orderIncrementIds)) {
+            if (!in_array($arrayWithIds['increment_id'], $orderIncrementIds)) {
                 continue;
             }
             $orderEntityIds[] = $arrayWithIds['entity_id'];
         }
 
-        if (! $orderEntityIds) {
+        if (!$orderEntityIds) {
             return $this;
         }
 
-        $this->logger->notice(sprintf('Orderbeheer: update orders %s', implode(', ', $orderIncrementIds ?? [])));
+        $this->logger->notice(sprintf('PPS: update orders %s', implode(', ', $orderIncrementIds ?? [])));
         $this->addOrdersToCollection($orderEntityIds);
 
         $this->orderCollection->setNewMagentoShipment(false)
@@ -241,7 +231,7 @@ class UpdateStatus
         $status = $shipment['status'] ?? null;
 
         return $status >= ShipmentStatus::PRINTED_MINIMUM
-            && (! in_array($status, [ShipmentStatus::CREDITED, ShipmentStatus::CANCELLED]));
+            && (!in_array($status, [ShipmentStatus::CREDITED, ShipmentStatus::CANCELLED], true));
     }
 
     /**
@@ -274,7 +264,7 @@ class UpdateStatus
             ->addFieldToSelect('order_id')
             ->addAttributeToFilter('myparcel_status', [1, 2, 3, 4, 5, 6, 8])
             ->addAttributeToFilter('myparcel_consignment_id', ['notnull' => true])
-            ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, TrackTraceHolder::MYPARCEL_CARRIER_CODE)
+            ->addAttributeToFilter(ShipmentTrackInterface::CARRIER_CODE, ConfigService::MYPARCEL_CARRIER_CODE)
             ->setPageSize(300)
             ->setOrder('order_id', 'DESC');
 
@@ -292,7 +282,7 @@ class UpdateStatus
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
         $now = new \DateTime('now -14 day');
-        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection = $this->objectManager->get(MagentoCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection
             ->addAttributeToFilter('entity_id', ['in' => $orderIds])
             ->addFieldToFilter('created_at', ['gteq' => $now->format('Y-m-d H:i:s')]);

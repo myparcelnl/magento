@@ -17,30 +17,23 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 class OrdersAction extends Template
 {
-    /**
-     * @var \Magento\Framework\ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
-     * @var \MyParcelNL\Magento\Helper\Data
-     */
-    private $helper;
+    private ConfigService $configService;
 
     /**
      * @param Context $context
-     * @param array   $data
+     * @param array $data
      */
     public function __construct(
         Context $context,
-        array $data = []
-    ) {
-        $this->objectManager = ObjectManager::getInstance();
-        $this->helper        = $this->objectManager->get(Data::class);
+        array   $data = []
+    )
+    {
+        $objectManager = ObjectManager::getInstance();
+        $this->configService = $objectManager->get(ConfigService::class);
         parent::__construct($context, $data);
     }
 
@@ -51,7 +44,7 @@ class OrdersAction extends Template
      */
     public function hasApiKey(): bool
     {
-        return $this->helper->hasApiKey();
+        return $this->configService->hasApiKey();
     }
 
     /**
@@ -91,7 +84,7 @@ class OrdersAction extends Template
      */
     public function getPrintSettings()
     {
-        $settings = $this->helper->getGeneralConfig('print');
+        $settings = $this->configService->getGeneralConfig('print');
 
         return json_encode($settings);
     }

@@ -12,35 +12,16 @@ use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\src\Model\Account\Shop;
 use MyParcelNL\Sdk\src\Model\BaseModel;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
+use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
 use MyParcelNL\Sdk\src\Support\Collection;
 
 class AccountSettings extends BaseModel
 {
-
-    /**
-     * @var
-     */
-    protected $shop;
-
-    /**
-     * @var
-     */
-    protected $account;
-
-    /**
-     * @var
-     */
-    protected $carrier_options;
-
-    /**
-     * @var
-     */
-    protected $carrier_configurations;
-
-    /**
-     * @var self
-     */
-    private static $instance;
+    protected Shop $shop;
+    protected Account $account;
+    protected Collection $carrier_options;
+    protected Collection $carrier_configurations;
+    private static self $instance;
 
     /**
      * @throws \MyParcelNL\Sdk\src\Exception\ApiException
@@ -60,7 +41,7 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @return null|\MyParcelNL\Sdk\src\Model\Account\Account
+     * @return null|Account
      */
     public function getAccount(): ?Account
     {
@@ -68,9 +49,9 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @param  \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier $carrier
+     * @param AbstractCarrier $carrier
      *
-     * @return null|\MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration
+     * @return null|CarrierConfiguration
      */
     public function getCarrierConfigurationByCarrier(AbstractCarrier $carrier): ?CarrierConfiguration
     {
@@ -87,7 +68,7 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @return \MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration[]|\MyParcelNL\Sdk\src\Support\Collection
+     * @return CarrierConfiguration[]|Collection
      */
     public function getCarrierConfigurations(): Collection
     {
@@ -96,7 +77,7 @@ class AccountSettings extends BaseModel
 
     /** c
      *
-     * @return \MyParcelNL\Sdk\src\Model\Account\CarrierOptions[]|\MyParcelNL\Sdk\src\Support\Collection
+     * @return \MyParcelNL\Sdk\src\Model\Account\CarrierOptions[]|Collection
      */
     public function getCarrierOptions(): Collection
     {
@@ -104,7 +85,7 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @param  \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier $carrier
+     * @param AbstractCarrier $carrier
      *
      * @return null|\MyParcelNL\Sdk\src\Model\Account\CarrierOptions
      */
@@ -123,7 +104,7 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @return null|\MyParcelNL\Sdk\src\Model\Account\Shop
+     * @return null|Shop
      */
     public function getShop(): ?Shop
     {
@@ -131,7 +112,27 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @param  \MyParcelNL\Sdk\src\Support\Collection $settings
+     * @throws \Exception
+     */
+    public function getDropOffPoint(AbstractCarrier $carrier): ?DropOffPoint
+    {
+        $carrierConfiguration = $this->getCarrierConfigurationByCarrier($carrier);
+
+        if (! $carrierConfiguration) {
+            return null;
+        }
+
+        $dropOffPoint = $carrierConfiguration->getDefaultDropOffPoint();
+
+        if ($dropOffPoint && null === $dropOffPoint->getNumberSuffix()) {
+            $dropOffPoint->setNumberSuffix('');
+        }
+
+        return $dropOffPoint;
+    }
+
+    /**
+     * @param Collection $settings
      *
      * @return void
      */

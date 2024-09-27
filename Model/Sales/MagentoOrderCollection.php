@@ -161,12 +161,12 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setFulfilment(): self
     {
-        $apiKey          = $this->getApiKey();
+        $apiKey          = $this->configService->getApiKey();
         $orderCollection = (new OrderCollection())->setApiKey($apiKey);
         $orderLines      = new Collection();
 
         foreach ($this->getOrders() as $magentoOrder) {
-            $defaultOptions          = new DefaultOptions($magentoOrder, $this->configService);
+            $defaultOptions          = new DefaultOptions($magentoOrder);
             $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $selectedCarrier         = $deliveryOptions['carrier'] ?? $this->options['carrier'] ?? CarrierPostNL::NAME;
@@ -269,7 +269,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private function saveOrderNotes(): void
     {
-        $notes = (new OrderNotesCollection())->setApiKey($this->getApiKey());
+        $notes = (new OrderNotesCollection())->setApiKey($this->configService->getApiKey());
 
         $this->myParcelCollection->each(function(FulfilmentOrder $order) use ($notes) {
 
@@ -551,7 +551,7 @@ class MagentoOrderCollection extends MagentoCollection
             $orderIds[] = $order->getEntityId();
         }
 
-        $shipmentsCollection = $this->objectManager->get(MagentoShipmentCollection::PATH_MODEL_SHIPMENT);
+        $shipmentsCollection = $this->objectManager->get(MagentoShipmentCollection::PATH_MODEL_SHIPMENT_COLLECTION);
         $shipmentsCollection->addAttributeToFilter('order_id', ['in' => $orderIds]);
 
         return $shipmentsCollection;

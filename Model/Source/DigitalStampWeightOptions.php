@@ -16,8 +16,6 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
-use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 
@@ -27,9 +25,6 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
  */
 class DigitalStampWeightOptions implements OptionSourceInterface
 {
-    /**
-     * @var Data
-     */
     static private $configService;
 
     /**
@@ -60,14 +55,12 @@ class DigitalStampWeightOptions implements OptionSourceInterface
      */
     public function toOptionArray()
     {
-        $digitalStampOptions = [
+        return [
             ['value' => 0, 'label' => __('No standard weight')],
             ['value' => 20, 'label' => __('0 - 20 gram')],
             ['value' => 50, 'label' => __('20 - 50 gram')],
             ['value' => 200, 'label' => __('50 - 350 gram')],
             ['value' => 2000, 'label' => __('350 - 2000 gram')]
         ];
-
-        return $digitalStampOptions;
     }
 }

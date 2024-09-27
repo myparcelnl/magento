@@ -22,7 +22,6 @@ use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Weight\WeightService;
@@ -53,29 +52,23 @@ class NewShipment extends AbstractItems
 
     /**
      * @param Context $context
-     * @param WeightService $weightService
      * @param StockRegistryInterface $stockRegistry
      * @param StockConfigurationInterface $stockConfiguration
      * @param Registry $registry
-     * @param ConfigService $configService
      */
     public function __construct(
         Context $context,
-        WeightService $weightService,
         StockRegistryInterface $stockRegistry,
         StockConfigurationInterface $stockConfiguration,
         Registry $registry,
         ObjectManagerInterface $objectManager
     ) {
         $this->order         = $registry->registry('current_shipment')->getOrder();
-        $this->weightService = $weightService;
+        $this->weightService = $objectManager->get(WeightService::class);
+        $this->configService = $objectManager->get(ConfigService::class);
         $this->form          = new NewShipmentForm();
 
-        $this->defaultOptions = new DefaultOptions(
-            $this->order,
-            $objectManager->get(ConfigService::class),
-            $weightService
-        );
+        $this->defaultOptions = new DefaultOptions($this->order);
 
         $request         = $objectManager->get('Magento\Framework\App\RequestInterface');
         $this->orderCollection = new MagentoOrderCollection($objectManager, $request);
@@ -191,6 +184,6 @@ class NewShipment extends AbstractItems
      */
     public function isOrderManagementEnabled(): bool
     {
-        return TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode();
+        return ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode();
     }
 }

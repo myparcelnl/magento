@@ -6,6 +6,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 /**
  * Action to send mails with a return label
@@ -21,13 +22,10 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
  */
 class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
 {
-    const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
-    /**
-     * @var MagentoOrderCollection
-     */
-    private $orderCollection;
+    private MagentoOrderCollection $orderCollection;
+    private ConfigService $configService;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -38,6 +36,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
     {
         parent::__construct($context);
 
+        $this->configService = $context->getObjectManager()->get(ConfigService::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->orderCollection = new MagentoOrderCollection(
             $context->getObjectManager(),
@@ -69,7 +68,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
-        if ($this->orderCollection->apiKeyIsCorrect() !== true) {
+        if ($this->configService->apiKeyIsCorrect() !== true) {
             $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
@@ -123,7 +122,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
-        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
     }

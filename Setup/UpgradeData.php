@@ -26,7 +26,7 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
@@ -777,7 +777,7 @@ class UpgradeData implements UpgradeDataInterface
                     continue;
                 }
 
-                foreach (Data::CARRIERS_XML_PATH_MAP as $carrierName => $carrierPath) {
+                foreach (ConfigService::CARRIERS_XML_PATH_MAP as $carrierName => $carrierPath) {
                     echo "\nMigrating $carrierName for scope $scope ($scopeId)";
                     /**
                      * update the carrier specific date settings to a single setting for later

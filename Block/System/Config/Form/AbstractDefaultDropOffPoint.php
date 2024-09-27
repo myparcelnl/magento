@@ -9,7 +9,8 @@ use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Form\Element\AbstractElement;
-use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 
 abstract class AbstractDefaultDropOffPoint extends Field
@@ -31,9 +32,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
      */
     public function __construct(Context $context, array $data = [])
     {
-        $objectManager      = ObjectManager::getInstance();
-        $helper             = $objectManager->get(Data::class);
-        $dropOffPoint       = $helper->getDropOffPoint(CarrierFactory::createFromId($this->getCarrierId()));
+        $dropOffPoint = AccountSettings::getInstance()->getDropOffPoint(CarrierFactory::createFromId($this->getCarrierId()));
         $this->dropOffPoint = $dropOffPoint;
         parent::__construct($context, $data);
     }
@@ -46,7 +45,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
     /**
      * Retrieve HTML markup for given form element
      *
-     * @param  \Magento\Framework\Data\Form\Element\AbstractElement $element
+     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      *
      * @return string
      */
@@ -61,7 +60,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
     /**
      * Retrieve element HTML markup
      *
-     * @param  \Magento\Framework\Data\Form\Element\AbstractElement $element
+     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      *
      * @return string
      */
@@ -75,14 +74,20 @@ abstract class AbstractDefaultDropOffPoint extends Field
      */
     public function getDropOffPointDetails(): ?array
     {
-        return $this->dropOffPoint ? [
-            'location_name' => $this->dropOffPoint->getLocationName(),
-            'city'          => $this->dropOffPoint->getCity(),
-            'street'        => $this->dropOffPoint->getStreet(),
-            'number'        => $this->dropOffPoint->getNumber(),
-            'number_suffix' => $this->dropOffPoint->getNumberSuffix(),
-            'postal_code'   => $this->dropOffPoint->getPostalCode(),
-        ] : null;
+        if (!$this->dropOffPoint) {
+            return null;
+        }
+
+        $dropOffPoint = $this->dropOffPoint;
+
+        return [
+            'location_name' => $dropOffPoint->getLocationName(),
+            'city' => $dropOffPoint->getCity(),
+            'street' => $dropOffPoint->getStreet(),
+            'number' => $dropOffPoint->getNumber(),
+            'number_suffix' => $dropOffPoint->getNumberSuffix(),
+            'postal_code' => $dropOffPoint->getPostalCode(),
+        ];
     }
 
     /**
@@ -106,7 +111,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
         $button = $this->getLayout()
             ->createBlock(Button::class)
             ->setData([
-                'id'    => 'settings-button',
+                'id' => 'settings-button',
                 'label' => __('Import'),
             ]);
         return $button->toHtml();

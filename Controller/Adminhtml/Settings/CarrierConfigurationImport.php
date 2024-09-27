@@ -12,11 +12,8 @@ use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Message\ManagerInterface;
-use Magento\Framework\Message\MessageInterface;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\src\Support\Collection;
@@ -26,15 +23,9 @@ use MyParcelNL\Sdk\src\Services\Web\CarrierOptionsWebService;
 
 class CarrierConfigurationImport extends Action
 {
-    /**
-     * @var string
-     */
-    private $apiKey;
-
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    private $config;
+    private string $apiKey;
+    private ScopeConfigInterface $config;
+    private Pool $pool;
 
     /**
      * @var mixed
@@ -45,11 +36,6 @@ class CarrierConfigurationImport extends Action
      * @var mixed
      */
     private $typeListInterface;
-
-    /**
-     * @var Pool
-     */
-    private $pool;
 
     /**
      * @param  \Magento\Framework\Controller\Result\JsonFactory   $resultFactory
@@ -70,7 +56,7 @@ class CarrierConfigurationImport extends Action
         parent::__construct($context);
         $this->resultFactory     = $resultFactory;
         $this->config            = $config;
-        $this->apiKey            = $this->config->getValue(Data::XML_PATH_GENERAL . 'api/key');
+        $this->apiKey            = $this->config->getValue(ConfigService::XML_PATH_GENERAL . 'api/key');
         $this->context           = $dbContext;
         $this->typeListInterface = $typeListInterface;
         $this->pool              = $pool;
@@ -84,7 +70,7 @@ class CarrierConfigurationImport extends Action
     public function execute()
     {
         $config        = new Config($this->context);
-        $path          = Data::XML_PATH_GENERAL . 'account_settings';
+        $path          = ConfigService::XML_PATH_GENERAL . 'account_settings';
         $configuration = $this->fetchConfigurations();
         $config->saveConfig($path, json_encode($this->createArray($configuration)));
 
@@ -134,7 +120,7 @@ class CarrierConfigurationImport extends Action
     {
         $objectManager   = ObjectManager::getInstance();
         $accountSettings = $objectManager->get(ScopeConfigInterface::class)
-            ->getValue(Data::XML_PATH_GENERAL . 'account_settings');
+            ->getValue(ConfigService::XML_PATH_GENERAL . 'account_settings');
 
         if (! $accountSettings) {
             return null;

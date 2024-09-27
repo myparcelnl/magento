@@ -181,7 +181,7 @@ class ConfigService extends AbstractHelper
     {
         $apiKey = $this->getApiKey();
 
-        return $this->checkApiKeyService->setApiKey($apiKey)
+        return $this->checkApiKeyWebService->setApiKey($apiKey)
             ->apiKeyIsCorrect();
     }
 

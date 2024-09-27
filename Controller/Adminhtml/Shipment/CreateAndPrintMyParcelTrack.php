@@ -6,7 +6,9 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
+use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 /**
  * Action to create and print MyParcel Track
@@ -22,13 +24,13 @@ use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
  */
 class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 {
-    const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
     const PATH_URI_SHIPMENT_INDEX = 'sales/shipment/index';
 
     /**
      * @var MagentoShipmentCollection
      */
     private $shipmentCollection;
+    private ConfigService $configService;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -39,6 +41,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     {
         parent::__construct($context);
 
+        $this->configService = $context->getObjectManager()->get(ConfigService::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->shipmentCollection = new MagentoShipmentCollection(
             $context->getObjectManager(),
@@ -73,7 +76,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     private function massAction()
     {
-        if (! $this->shipmentCollection->apiKeyIsCorrect()) {
+        if (! $this->configService->apiKeyIsCorrect()) {
             $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
@@ -126,7 +129,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $collection
          */
-        $collection = $this->_objectManager->get(MagentoShipmentCollection::PATH_MODEL_SHIPMENT);
+        $collection = $this->_objectManager->get(MagentoCollection::PATH_MODEL_SHIPMENT_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $shipmentIds]);
         $this->shipmentCollection->setShipmentCollection($collection);
     }
