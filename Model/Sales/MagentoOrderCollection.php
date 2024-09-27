@@ -15,6 +15,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
@@ -167,7 +168,7 @@ class MagentoOrderCollection extends MagentoCollection
 
         foreach ($this->getOrders() as $magentoOrder) {
             $defaultOptions          = new DefaultOptions($magentoOrder);
-            $myparcelDeliveryOptions = $magentoOrder['myparcel_delivery_options'] ?? '';
+            $myparcelDeliveryOptions = $magentoOrder[ConfigService::FIELD_DELIVERY_OPTIONS] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $selectedCarrier         = $deliveryOptions['carrier'] ?? $this->options['carrier'] ?? CarrierPostNL::NAME;
             $shipmentOptionsHelper   = new ShipmentOptions(
@@ -237,7 +238,7 @@ class MagentoOrderCollection extends MagentoCollection
             $order->setOrderLines($orderLines);
 
             if (! in_array($this->shippingRecipient->getCc(), AbstractConsignment::EURO_COUNTRIES, true)) {
-                $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order, $this->objectManager);
+                $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order);
                 $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
                 $order->setCustomsDeclaration($customsDeclaration);
             }

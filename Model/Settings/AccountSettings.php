@@ -19,8 +19,8 @@ class AccountSettings extends BaseModel
 {
     protected Shop $shop;
     protected Account $account;
-    protected Collection $carrier_options;
-    protected Collection $carrier_configurations;
+    protected Collection $carrierOptions;
+    protected Collection $carrierConfigurations;
     private static self $instance;
 
     /**
@@ -72,7 +72,7 @@ class AccountSettings extends BaseModel
      */
     public function getCarrierConfigurations(): Collection
     {
-        return $this->carrier_configurations ?? new Collection();
+        return $this->carrierConfigurations ?? new Collection();
     }
 
     /** c
@@ -81,7 +81,7 @@ class AccountSettings extends BaseModel
      */
     public function getCarrierOptions(): Collection
     {
-        return $this->carrier_options ?? new Collection();
+        return $this->carrierOptions ?? new Collection();
     }
 
     /**
@@ -145,8 +145,8 @@ class AccountSettings extends BaseModel
         $this->shop                   = new Shop($shop);
         $account['shops']             = [$shop];
         $this->account                = new Account($account);
-        $this->carrier_options        = (new Collection($carrierOptions))->mapInto(CarrierOptions::class);
-        $this->carrier_configurations = (new Collection($carrierConfigurations))->map(function (array $data) {
+        $this->carrierOptions        = (new Collection($carrierOptions))->mapInto(CarrierOptions::class);
+        $this->carrierConfigurations = (new Collection($carrierConfigurations))->map(function (array $data) {
             return CarrierConfigurationFactory::create($data);
         });
     }
@@ -154,11 +154,11 @@ class AccountSettings extends BaseModel
     /**
      * Get the one instance of this class that is loaded or can be loaded.
      *
-     * @return \MyParcelNL\Magento\Model\Settings\AccountSettings
+     * @return AccountSettings
      */
     public static function getInstance(): self
     {
-        if (null === static::$instance) {
+        if (!isset(static::$instance)) {
             static::$instance = new static();
         }
 

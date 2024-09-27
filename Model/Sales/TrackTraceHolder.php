@@ -24,6 +24,7 @@ use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
+use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
@@ -33,6 +34,7 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
 use RuntimeException;
@@ -116,7 +118,6 @@ class TrackTraceHolder
      */
     public function convertDataFromMagentoToApi(Track $magentoTrack, array $options): self
     {
-        throw new \Exception('refactor completely joeri');
         $shipment                       = $magentoTrack->getShipment();
         $address                        = $shipment->getShippingAddress();
         $order                          = $shipment->getOrder();
@@ -135,8 +136,7 @@ class TrackTraceHolder
             $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
         } catch (BadMethodCallException $e) {
             // create new instance from unknown json data
-            $deliveryOptions        = (new ConsignmentNormalizer((array) $deliveryOptions + $options))->normalize();
-            $deliveryOptionsAdapter = new DeliveryOptionsFromOrderAdapter($deliveryOptions);
+            $deliveryOptionsAdapter = new DeliveryOptionsFromOrderAdapter((array) $deliveryOptions + $options);
         }
 
         $pickupLocationAdapter = $deliveryOptionsAdapter->getPickupLocation();
@@ -185,9 +185,9 @@ class TrackTraceHolder
             $options['package_type'] = $deliveryOptions['packageType'];
         }
         $packageType  = $this->getPackageType($options, $magentoTrack, $address);
-//        $dropOffPoint = $this->configService->getDropOffPoint(
-//            CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
-//        );
+        $dropOffPoint = AccountSettings::getInstance()->getDropOffPoint(
+            CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
+        );
 
         $regionCode = $address->getRegionCode();
         $state = $regionCode && strlen($regionCode) === 2 ? $regionCode : null;
@@ -199,7 +199,7 @@ class TrackTraceHolder
             ->setEmail($address->getEmail())
             ->setLabelDescription($this->shipmentOptionsHelper->getLabelDescription())
             ->setDeliveryDate($this->configService->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
-            ->setDeliveryType($this->configService->checkDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId()))
+            ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId() ?? AbstractConsignment::DELIVERY_TYPE_STANDARD)
             ->setPackageType($packageType)
             ->setDropOffPoint($dropOffPoint)
             ->setOnlyRecipient($this->shipmentOptionsHelper->hasOnlyRecipient())
@@ -216,7 +216,7 @@ class TrackTraceHolder
             )
             ->setSaveRecipientAddress(false);
 
-        if ($deliveryOptionsAdapter->isPickup() && $pickupLocationAdapter) {
+        if ($pickupLocationAdapter && $deliveryOptionsAdapter->isPickup()) {
             $this->consignment
                 ->setPickupPostalCode($pickupLocationAdapter->getPostalCode())
                 ->setPickupStreet($pickupLocationAdapter->getStreet())
@@ -225,7 +225,6 @@ class TrackTraceHolder
                 ->setPickupCountry($pickupLocationAdapter->getCountry())
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode())
-                ->setPickupNetworkId($pickupLocationAdapter->getPickupNetworkId())
                 ->setReturn(false);
 
             if ($pickupLocationAdapter->getRetailNetworkId()) {
