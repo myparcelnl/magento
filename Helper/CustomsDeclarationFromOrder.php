@@ -3,6 +3,7 @@
 namespace MyParcelNL\Magento\Helper;
 
 use Magento\Catalog\Model\Product;
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
@@ -35,18 +36,17 @@ class CustomsDeclarationFromOrder
     /**
      * @var WeightService
      */
-    private $WeightService;
+    private $weightService;
 
     /**
      * @param Order $order
-     * @param ObjectManagerInterface $objectManager
-     * @param WeightService $WeightService
      */
-    public function __construct(Order $order, ObjectManagerInterface $objectManager, WeightService $WeightService)
+    public function __construct(Order $order)
     {
+        $objectManager       = ObjectManager::getInstance();
         $this->order         = $order;
         $this->objectManager = $objectManager;
-        $this->WeightService = $WeightService;
+        $this->weightService = $objectManager->get(WeightService::class);
     }
 
     /**
@@ -67,13 +67,13 @@ class CustomsDeclarationFromOrder
             }
 
             $amount      = (float) $item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
-            $totalWeight += $this->WeightService->convertToGrams($product->getWeight() * $amount);
+            $totalWeight += $this->weightService->convertToGrams($product->getWeight() * $amount);
             $description = Str::limit($product->getName(), AbstractConsignment::DESCRIPTION_MAX_LENGTH);
 
             $customsItem = (new MyParcelCustomsItem())
                 ->setDescription($description)
                 ->setAmount($amount)
-                ->setWeight($this->WeightService->convertToGrams($product->getWeight()))
+                ->setWeight($this->weightService->convertToGrams($product->getWeight()))
                 ->setItemValueArray([
                     'amount'   => DeliveryCostsService::getCentsByPrice($product->getPrice()),
                     'currency' => $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO,
