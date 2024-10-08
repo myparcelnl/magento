@@ -184,6 +184,10 @@ class TrackTraceHolder
             $options['package_type'] = $deliveryOptions['packageType'];
         }
         $packageType  = $this->getPackageType($options, $magentoTrack, $address);
+        $deliveryDate = (
+            AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
+            && 'NL' !== $address->getCountryId()
+        ) ? null : $this->datingService->convertDeliveryDate($deliveryOptionsAdapter->getDate());
         $dropOffPoint = AccountSettings::getInstance()->getDropOffPoint(
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
@@ -197,8 +201,8 @@ class TrackTraceHolder
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($this->shipmentOptionsHelper->getLabelDescription())
-            ->setDeliveryDate($this->datingService->convertDeliveryDate($deliveryOptionsAdapter->getDate()))
             ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId() ?? AbstractConsignment::DELIVERY_TYPE_STANDARD)
+            ->setDeliveryDate($deliveryDate)
             ->setPackageType($packageType)
             ->setDropOffPoint($dropOffPoint)
             ->setOnlyRecipient($this->shipmentOptionsHelper->hasOnlyRecipient())
