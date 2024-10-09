@@ -14,6 +14,7 @@
  * @var $block \Magento\Multishipping\Block\Checkout\Shipping
  */
 ?>
+<h3 style="color: pink">Overwrite</h3>
 <form action="<?= $block->escapeUrl($block->getPostActionUrl()) ?>" method="post" id="shipping_method_form" class="form multicheckout shipping">
     <?php foreach ($block->getAddresses() as $_index => $_address) : ?>
         <div class="block block-shipping">
@@ -52,7 +53,6 @@
                                                         <strong><?= $block->escapeHtml($_rate->getCarrierTitle()) ?>: <?= $block->escapeHtml($_rate->getErrorMessage()) ?></strong>
                                                     <?php else : ?>
                                                         <div class="control">
-                                                            <p>overwrite</p>
                                                             <?php if ($_sole) : ?>
                                                                 <input type="radio" name="shipping_method[<?= (int) $_address->getId() ?>]" value="<?= $block->escapeHtmlAttr($_rate->getCode()) ?>" id="s_method_<?= (int) $_address->getId() ?>_<?= $block->escapeHtmlAttr($_rate->getCode()) ?>" class="radio solo method" checked="checked"/>
                                                             <?php else : ?>
