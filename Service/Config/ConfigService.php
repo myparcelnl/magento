@@ -19,6 +19,7 @@ use MyParcelNL\Sdk\src\Services\Web\CheckApiKeyWebService;
 class ConfigService extends AbstractHelper
 {
     public const MODULE_NAME = 'MyParcelNL_Magento';
+    public const PLATFORM = 'myparcel';
     public const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
     public const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
     public const XML_PATH_DHLFORYOU_SETTINGS = 'myparcelnl_magento_dhlforyou_settings/';
@@ -33,7 +34,6 @@ class ConfigService extends AbstractHelper
     public const FIELD_TRACK_STATUS = 'track_status';
     public const DEFAULT_COUNTRY_CODE = 'NL';
     public const MYPARCEL_TRACK_TITLE = 'MyParcel';
-    public const MYPARCEL_CARRIER_CODE = 'myparcel';
     public const EXPORT_MODE_PPS = 'pps';
     public const EXPORT_MODE_SHIPMENTS = 'shipments';
 
