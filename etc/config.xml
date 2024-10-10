@@ -5,7 +5,8 @@
  * See COPYING.txt for license details.
  */
 -->
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <dev>
             <js>
@@ -252,15 +253,15 @@
         </sales_email>
 
         <carriers>
-            <myparcelnl_delivery>
+            <myparcel>
                 <active>1</active>
-                <title>Custom Shipping Title</title>
-                <name>Custom Shipping Method Name</name>
+                <title>MyParcel</title>
+                <name>MyParcel</name>
                 <shipping_cost>10</shipping_cost>
                 <sallowspecific>0</sallowspecific>
                 <sort_order>15</sort_order>
                 <model>MyparcelNL\Magento\Model\Carrier\Carrier</model>
-            </myparcelnl_delivery>
+            </myparcel>
         </carriers>
 
     </default>

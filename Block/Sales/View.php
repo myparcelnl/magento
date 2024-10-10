@@ -19,11 +19,13 @@
 namespace MyParcelNL\Magento\Block\Sales;
 
 use DateTime;
-use Magento\Framework\App\ObjectManager;
+use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
+use Throwable;
 
 class View extends AbstractOrder
 {
@@ -31,21 +33,21 @@ class View extends AbstractOrder
      * Collect options selected at checkout and calculate type consignment
      *
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Exception
+     * @throws LocalizedException
+     * @throws Exception
      */
     public function getCheckoutOptionsHtml(): string
     {
         $order = $this->getOrder();
 
         /** @var object $data Data from checkout */
-        $data = $order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS) !== null ? json_decode($order->getData(CheckoutHelper::FIELD_DELIVERY_OPTIONS), true) : null;
+        $data = json_decode($order->getData(ConfigService::FIELD_DELIVERY_OPTIONS) ?? null, true);
 
-        if (! is_array($data)) {
+        if (!is_array($data)) {
             return '';
         }
 
-        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
+        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array)$data);
         $returnString    = '';
 
         try {
@@ -56,8 +58,8 @@ class View extends AbstractOrder
             if ($deliveryOptions->getDate()) {
                 $returnString = htmlentities($this->getCheckoutOptionsDeliveryHtml($deliveryOptions));
             }
-        } catch (\Throwable $e) {
-            ObjectManager::getInstance()->get(CheckoutHelper::class)->log($e->getMessage());
+        } catch (Throwable $e) {
+            $this->_logger->critical($e->getMessage());
             $returnString = __('MyParcel options data not found');
         }
 
@@ -68,7 +70,8 @@ class View extends AbstractOrder
      * @param AbstractDeliveryOptionsAdapter $deliveryOptions
      * @return string
      */
-    private function getCheckoutOptionsPickupHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string {
+    private function getCheckoutOptionsPickupHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string
+    {
         ob_start();
 
         echo __("{$deliveryOptions->getCarrier()} location:"), ' ';
@@ -90,9 +93,10 @@ class View extends AbstractOrder
     /**
      * @param AbstractDeliveryOptionsAdapter $deliveryOptions
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
-    private function getCheckoutOptionsDeliveryHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string {
+    private function getCheckoutOptionsDeliveryHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string
+    {
         ob_start();
 
         if ($deliveryOptions->getPackageType()) {

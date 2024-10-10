@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config\ConfigService;
 
 class ExportMode implements OptionSourceInterface
 {
@@ -16,11 +17,11 @@ class ExportMode implements OptionSourceInterface
     {
         return [
             [
-                'value' => TrackTraceHolder::EXPORT_MODE_SHIPMENTS,
+                'value' => ConfigService::EXPORT_MODE_SHIPMENTS,
                 'label' => __('Export shipping details only')
             ],
             [
-                'value' => TrackTraceHolder::EXPORT_MODE_PPS,
+                'value' => ConfigService::EXPORT_MODE_PPS,
                 'label' => __('Export entire order')
             ]
         ];
@@ -32,8 +33,8 @@ class ExportMode implements OptionSourceInterface
     public function toArray(): array
     {
         return [
-            'shipments' => __(TrackTraceHolder::EXPORT_MODE_SHIPMENTS),
-            'pps'       => __(TrackTraceHolder::EXPORT_MODE_PPS)
+            'shipments' => __(ConfigService::EXPORT_MODE_SHIPMENTS),
+            'pps'       => __(ConfigService::EXPORT_MODE_PPS)
         ];
     }
 }

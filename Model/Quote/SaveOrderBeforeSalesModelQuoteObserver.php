@@ -51,8 +51,9 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
      */
     public function __construct(
         DeliveryRepository $delivery,
-        ConfigService $configService
-    ) {
+        ConfigService      $configService
+    )
+    {
         $this->delivery      = $delivery;
         $this->parentMethods = explode(',', $configService->getGeneralConfig('shipping_methods/methods') ?? '');
     }
@@ -79,11 +80,11 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         $postcode           = $order->getShippingAddress()->getPostcode();
         $destinationCountry = $order->getShippingAddress()->getCountryId();
 
-        if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
+        if (!ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
             $order->setData(ConfigService::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
         }
 
-        if (! ValidatePostalCode::validate($postcode, $destinationCountry)) {
+        if (!ValidatePostalCode::validate($postcode, $destinationCountry)) {
             $order->setData(ConfigService::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
         }
 
@@ -104,35 +105,19 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     }
 
     /**
-     * @param  Quote $quote
+     * @param Quote $quote
      *
      * @return bool
      */
     private function hasMyParcelDeliveryOptions(Quote $quote): bool
     {
-        $shippingMethod  = $quote->getShippingAddress()->getShippingMethod();
+        $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
+        $myparcelMethod = Carrier::CODE . '_MyParcel';// TODO JOERI get the _code and stuff not hardcoded string
 
-        // TODO JOERI get the _code and stuff not hardcoded string
-        if ('myparcelnl_delivery_MyParcel' === $shippingMethod) return true;
+        if ($myparcelMethod === $shippingMethod) {
+            return true;
+        }
 
         return array_key_exists(ConfigService::FIELD_DELIVERY_OPTIONS, $quote->getData());
-    }
-
-    /**
-     * @param string $input
-     * @param array  $data
-     *
-     * @return bool
-     */
-    private function isMyParcelRelated(string $input, array $data): bool
-    {
-        $result = array_filter(
-            $data,
-            static function ($item) use ($input) {
-                return stripos($input, $item) !== false;
-            }
-        );
-
-        return count($result) > 0;
     }
 }
