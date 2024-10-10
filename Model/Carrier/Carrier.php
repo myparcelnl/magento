@@ -55,6 +55,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     public const CODE = 'myparcel'; // same as in /etc/config.xml
 
     protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
+    protected $_name;
+    protected $_title;
     protected $_freeShipping;
 
 
@@ -100,12 +102,16 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $logger,
             $data,
         );
-        //$this->quote = $session->getQuote();
+
+        $this->_name  = $configService->getConfigValue('carriers/myparcel_delivery/name') ?: self::CODE;
+        $this->_title = $configService->getConfigValue('carriers/myparcel_delivery/title') ?: self::CODE;
+
         try {
             $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($session->getQuote()->getData(ConfigService::FIELD_DELIVERY_OPTIONS), true));
         } catch (Throwable $e) {
             $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
         }
+
         $this->package              = $package;
         $this->rateResultFactory    = $rateFactory;
         $this->rateMethodFactory    = $rateMethodFactory;
@@ -128,8 +134,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $method = $this->rateMethodFactory->create();
 
         $method->setCarrier($this->_code);
-        $method->setCarrierTitle('MyParcel');
-        $method->setMethod('MyParcel');
+        $method->setCarrierTitle($this->_title);
+        $method->setMethod($this->_name);
         $method->setMethodTitle($this->getMethodTitle());
         $method->setPrice((string)$this->getMethodAmount());
 

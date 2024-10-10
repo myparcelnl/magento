@@ -30,6 +30,7 @@ use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
 use MyParcelNL\Sdk\src\Helper\ValidateStreet;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Support\Str;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 {
@@ -112,9 +113,8 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
     private function hasMyParcelDeliveryOptions(Quote $quote): bool
     {
         $shippingMethod = $quote->getShippingAddress()->getShippingMethod();
-        $myparcelMethod = Carrier::CODE . '_MyParcel';// TODO JOERI get the _code and stuff not hardcoded string
 
-        if ($myparcelMethod === $shippingMethod) {
+        if (Str::startswith($shippingMethod, Carrier::CODE)) {
             return true;
         }
 
