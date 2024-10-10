@@ -18,7 +18,7 @@
 
 namespace MyParcelNL\Magento\Model\Carrier;
 
-use Composer\Config;
+use Exception;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Directory\Helper\Data;
@@ -45,15 +45,16 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
+use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
 {
-    const CODE = 'myparcelnl_delivery';
+    public const CODE = 'myparcel'; // same as in /etc/config.xml
 
-    protected $_code = self::CODE; // $_code is a mandatory property for Magento carrier
+    protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
     protected $_freeShipping;
 
 
@@ -68,24 +69,16 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * @param ScopeConfigInterface $scopeConfig
      * @param ErrorFactory $rateErrorFactory
      * @param LoggerInterface $logger
-     * @param Security $xmlSecurity
-     * @param ElementFactory $xmlElFactory
+     * @param ConfigService $configService
+     * @param DeliveryCostsService $deliveryCostsService
      * @param ResultFactory $rateFactory
      * @param MethodFactory $rateMethodFactory
-     * @param \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory
-     * @param \Magento\Shipping\Model\Tracking\Result\ErrorFactory $trackErrorFactory
-     * @param StatusFactory $trackStatusFactory
-     * @param RegionFactory $regionFactory
-     * @param CountryFactory $countryFactory
-     * @param CurrencyFactory $currencyFactory
-     * @param Data $directoryData
-     * @param StockRegistryInterface $stockRegistry
      * @param Session $session
      * @param PackageRepository $package
+     * @param Freeshipping $freeShipping
      * @param array $data
      *
-     * @throws LocalizedException
-     * @throws NoSuchEntityException
+     * @throws Exception
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -109,7 +102,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         );
         //$this->quote = $session->getQuote();
         try {
-            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($session->getQuote()->getData('myparcel_delivery_options'), true));
+            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($session->getQuote()->getData(ConfigService::FIELD_DELIVERY_OPTIONS), true));
         } catch (Throwable $e) {
             $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
         }
@@ -147,18 +140,20 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
     private function getMethodAmount(): float
     {
-        $path   = ConfigService::CARRIERS_XML_PATH_MAP[$this->deliveryOptions->getCarrier()] ?? '';
-        $dinges = [
+        $configPath      = ConfigService::CARRIERS_XML_PATH_MAP[$this->deliveryOptions->getCarrier()] ?? '';
+        $shipmentOptions = $this->deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
+        $dinges          = [
             "{$this->deliveryOptions->getDeliveryType()}/fee" => true,
             "{$this->deliveryOptions->getPackageType()}/fee"  => true,
-            'delivery/signature_fee'                          => $this->deliveryOptions->getShipmentOptions()->hasSignature(),
-            'delivery/only_recipient_fee'                     => $this->deliveryOptions->getShipmentOptions()->hasOnlyRecipient(),
+            'delivery/signature_fee'                          => $shipmentOptions->hasSignature(),
+            'delivery/only_recipient_fee'                     => $shipmentOptions->hasOnlyRecipient(),
         ];
-        $amount = $this->deliveryCostsService->getBasePrice();
+        $amount          = $this->deliveryCostsService->getBasePrice();
         foreach ($dinges as $key => $value) {
-            //echo $key, '  ', $value, ': ',$this->myParcelHelper->getCarrierConfig($key, $path), PHP_EOL;
-            if (!$value) continue;
-            $amount += (float)$this->configService->getConfigValue("$path$key");
+            if (!$value) {
+                continue;
+            }
+            $amount += (float)$this->configService->getConfigValue("$configPath$key");
         }
         //$bla = $this->myParcelHelper->getCarrierConfig('evening/fee', $path);
         return $amount;
