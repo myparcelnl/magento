@@ -401,7 +401,7 @@ class TrackTraceHolder
                     ->setDescription($product->getName())
                     ->setAmount($product->getQty())
                     ->setWeight($this->weightService->convertToGrams($product->getWeight()) ?: 1)
-                    ->setItemValue($this->deliveryCostsService->getCentsByPrice($product->getPrice()))
+                    ->setItemValue($this->deliveryCostsService->getPriceInCents($product->getPrice()))
                     ->setClassification(
                         (int)$this->getAttributeValue(
                             'catalog_product_entity_int',

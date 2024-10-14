@@ -22,6 +22,7 @@ use DateTime;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
@@ -59,7 +60,7 @@ class View extends AbstractOrder
                 $returnString = htmlentities($this->getCheckoutOptionsDeliveryHtml($deliveryOptions));
             }
         } catch (Throwable $e) {
-            $this->_logger->critical($e->getMessage());
+            Logger::critical($e->getMessage());
             $returnString = __('MyParcel options data not found');
         }
 

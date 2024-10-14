@@ -2,16 +2,17 @@
 
 namespace MyParcelNL\Magento\Helper;
 
+use Exception;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
 use MyParcelNL\Magento\Service\Weight\WeightService;
+use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\src\Model\MyParcelCustomsItem;
-use Magento\Catalog\Api\ProductRepositoryInterface;
 use MyParcelNL\Sdk\src\Support\Str;
 
 class CustomsDeclarationFromOrder
@@ -24,12 +25,12 @@ class CustomsDeclarationFromOrder
     private $helper;
 
     /**
-     * @var \Magento\Framework\App\ObjectManager
+     * @var ObjectManager
      */
     private $objectManager;
 
     /**
-     * @var \Magento\Sales\Model\Order
+     * @var Order
      */
     private $order;
 
@@ -50,9 +51,9 @@ class CustomsDeclarationFromOrder
     }
 
     /**
-     * @return \MyParcelNL\Sdk\src\Model\CustomsDeclaration
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
-     * @throws \Exception
+     * @return CustomsDeclaration
+     * @throws MissingFieldException
+     * @throws Exception
      */
     public function createCustomsDeclaration(): CustomsDeclaration
     {
@@ -62,11 +63,11 @@ class CustomsDeclarationFromOrder
         foreach ($this->order->getItems() as $item) {
             $product = $item->getProduct();
 
-            if (! $product) {
+            if (!$product) {
                 continue;
             }
 
-            $amount      = (float) $item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
+            $amount      = (float)$item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
             $totalWeight += $this->weightService->convertToGrams($product->getWeight() * $amount);
             $description = Str::limit($product->getName(), AbstractConsignment::DESCRIPTION_MAX_LENGTH);
 
@@ -75,9 +76,9 @@ class CustomsDeclarationFromOrder
                 ->setAmount($amount)
                 ->setWeight($this->weightService->convertToGrams($product->getWeight()))
                 ->setItemValueArray([
-                    'amount'   => DeliveryCostsService::getCentsByPrice($product->getPrice()),
-                    'currency' => $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO,
-                ])
+                                        'amount'   => DeliveryCostsService::getPriceInCents($product->getPrice()),
+                                        'currency' => $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO,
+                                    ])
                 ->setCountry($this->getCountryOfOrigin($product))
                 ->setClassification($this->getHsCode($product));
 
@@ -93,7 +94,7 @@ class CustomsDeclarationFromOrder
     }
 
     /**
-     * @param  \Magento\Catalog\Model\Product $product
+     * @param Product $product
      *
      * @return string
      */
@@ -108,13 +109,13 @@ class CustomsDeclarationFromOrder
     }
 
     /**
-     * @param  \Magento\Catalog\Model\Product $product
+     * @param Product $product
      *
      * @return int
      */
     private function getHsCode(Product $product): int
     {
-        return (int) ShipmentOptions::getAttributeValue(
+        return (int)ShipmentOptions::getAttributeValue(
             'catalog_product_entity_int',
             $product->getId(),
             'classification'

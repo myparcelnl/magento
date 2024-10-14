@@ -31,6 +31,7 @@ use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
 use MyParcelNL\Magento\Api\ShipmentStatus;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
@@ -59,21 +60,18 @@ class UpdateStatus
      * UpdateStatus constructor.
      *
      * @param AreaList $areaList
-     * @param LoggerInterface $logger
      * @param \Magento\Sales\Model\ResourceModel\Order $orderResource
      *
      * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
      */
     public function __construct(
-        AreaList          $areaList,
-        LoggerInterface                 $logger,
+        AreaList                                 $areaList,
         \Magento\Sales\Model\ResourceModel\Order $orderResource
     )
     {
         $this->objectManager   = $objectManager = ObjectManager::getInstance();
         $this->configService   = $objectManager->get(ConfigService::class);
         $this->orderCollection = new MagentoOrderCollection($this->objectManager, null, $areaList);
-        $this->logger          = $logger;
         $this->orderResource   = $orderResource;
     }
 
@@ -154,13 +152,13 @@ class UpdateStatus
             if (!$magentoOrder->canShip()) {
                 $orderIdsDone[$incrementId] = self::ORDER_ID_NOT_TO_PROCESS;
 
-                $this->logger->notice('Order is shipped from backoffice but Magento will not create a shipment.');
+                Logger::notice('Order is shipped from backoffice but Magento will not create a shipment.');
                 $this->setShippedWithoutShipment($magentoOrder, $barcode);
             }
         }
 
         if (!$orderIdsDone) {
-            $this->logger->notice('PPS: no orders updated');
+            Logger::notice('PPS: no orders updated');
 
             return $this;
         }
@@ -184,7 +182,7 @@ class UpdateStatus
             return $this;
         }
 
-        $this->logger->notice(sprintf('PPS: update orders %s', implode(', ', $orderIncrementIds ?? [])));
+        Logger::notice(sprintf('PPS: update orders %s', implode(', ', $orderIncrementIds ?? [])));
         $this->addOrdersToCollection($orderEntityIds);
 
         $this->orderCollection->setNewMagentoShipment(false)
@@ -219,7 +217,7 @@ class UpdateStatus
      */
     private function setShippedWithoutShipment(Order $magentoOrder, string $barcode): void
     {
-        $this->logger->notice(
+        Logger::notice(
             sprintf(
                 'Order %s set to shipped without shipment',
                 $magentoOrder->getIncrementId()

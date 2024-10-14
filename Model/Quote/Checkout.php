@@ -8,6 +8,7 @@ use Magento\Eav\Model\Entity\Collection\AbstractCollection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Magento\Service\Config\ConfigService;
@@ -25,7 +26,7 @@ class Checkout
     /**
      * @var AbstractCollection[]
      */
-    private $cart;
+    private $quote;
 
     /**
      * @var StoreManagerInterface
@@ -36,6 +37,7 @@ class Checkout
      * @var mixed
      */
     private $country;
+    private Session $session;
 
     /**
      * Checkout constructor.
@@ -55,9 +57,10 @@ class Checkout
         StoreManagerInterface $currency
     )
     {
+        $this->session              = $session;
         $this->configService        = $configService;
         $this->deliveryCostsService = $deliveryCostsService;
-        $this->cart                 = $cart->getQuote();
+        $this->quote                = $cart->getQuote();
         $this->package              = $package;
         $this->currency             = $currency;
     }
@@ -118,7 +121,7 @@ class Checkout
             'dropOffDelay'               => $this->getDropOffDelay(ConfigService::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
             'pickupLocationsDefaultView' => $this->configService->getConfigValue(ConfigService::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
             'showPriceSurcharge'         => $this->configService->getConfigValue(ConfigService::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
-            'basePrice'                  => $this->deliveryCostsService->getBasePrice(),
+            'basePrice'                  => $this->deliveryCostsService->getBasePrice($this->quote),
         ];
     }
 
@@ -161,7 +164,6 @@ class Checkout
         $activeCarriers = $this->getActiveCarriers();
         $carrierPaths   = ConfigService::CARRIERS_XML_PATH_MAP;
         $showTotalPrice = $this->configService->getConfigValue(ConfigService::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
-
         foreach ($activeCarriers as $carrier) {
             $carrierPath = $carrierPaths[$carrier];
 
@@ -169,7 +171,7 @@ class Checkout
                 $consignment = ConsignmentFactory::createByCarrierName($carrier);
                 $consignment->setPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE);
             } catch (Throwable $ex) {
-                $this->configService->log(sprintf('getDeliveryData: Could not create default consignment for %s', $carrier));
+                Logger::info(sprintf('getDeliveryData: Could not create default consignment for %s', $carrier));
                 continue;
             }
 
@@ -187,21 +189,22 @@ class Checkout
 
             $mailboxFee = 0;
             if ($canHaveMailbox) {
-                $cc = $this->country ?? $this->cart->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
+                $cc = $this->country ?? $this->quote->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
                 if (AbstractConsignment::CC_NL === $cc) {
-                    $mailboxFee = $this->deliveryCostsService->getMethodPrice($carrierPath, 'mailbox/fee', false);
+                    $mailboxFee = $this->configService->getFloatConfig($carrierPath, 'mailbox/fee');
                 } else {
-                    $mailboxFee = $this->deliveryCostsService->getMethodPrice($carrierPath, 'mailbox/international_fee', false);
+                    $mailboxFee = $this->configService->getFloatConfig($carrierPath, 'mailbox/international_fee');
                 }
             }
 
-            $basePrice        = $this->deliveryCostsService->getBasePrice($consignment);
-            $mondayFee        = $canHaveMonday ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'delivery/monday_fee') : 0;
-            $morningFee       = $canHaveMorning ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'morning/fee') : 0;
-            $eveningFee       = $canHaveEvening ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'evening/fee') : 0;
-            $sameDayFee       = $canHaveSameDay ? (int)$this->deliveryCostsService->getMethodPrice($carrierPath, 'delivery/same_day_delivery_fee') : 0;
-            $signatureFee     = $canHaveSignature ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'delivery/signature_fee', false) : 0;
-            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
+            $basePrice        = $this->deliveryCostsService->getBasePrice($this->quote);
+            $addBasePrice     = ($showTotalPrice) ? $basePrice : 0;
+            $mondayFee        = $canHaveMonday ? $this->configService->getFloatConfig($carrierPath, 'delivery/monday_fee') + $addBasePrice : 0;
+            $morningFee       = $canHaveMorning ? $this->configService->getFloatConfig($carrierPath, 'morning/fee') + $addBasePrice : 0;
+            $eveningFee       = $canHaveEvening ? $this->configService->getFloatConfig($carrierPath, 'evening/fee') + $addBasePrice : 0;
+            $sameDayFee       = $canHaveSameDay ? (int)$this->configService->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee') + $addBasePrice : 0;
+            $signatureFee     = $canHaveSignature ? $this->configService->getFloatConfig($carrierPath, 'delivery/signature_fee') : 0;
+            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->configService->getFloatConfig($carrierPath, 'delivery/only_recipient_fee') : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $allowPickup           = $this->configService->getBoolConfig($carrierPath, 'pickup/active');
@@ -232,7 +235,7 @@ class Checkout
 
                 'priceSignature'                       => $signatureFee,
                 'priceOnlyRecipient'                   => $onlyRecipientFee,
-                'priceStandardDelivery'                => $showTotalPrice ? $basePrice : 0,
+                'priceStandardDelivery'                => $addBasePrice,
                 'priceMondayDelivery'                  => $mondayFee,
                 'priceMorningDelivery'                 => $morningFee,
                 'priceEveningDelivery'                 => $eveningFee,
@@ -243,10 +246,10 @@ class Checkout
                 'priceEveningSignature'          => ($eveningFee + $signatureFee),
                 'priceSignatureAndOnlyRecipient' => ($basePrice + $signatureFee + $onlyRecipientFee),
 
-                'pricePickup'                  => $canHavePickup ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'pickup/fee') : 0,
+                'pricePickup'                  => $canHavePickup ? $this->configService->getFloatConfig($carrierPath, 'pickup/fee') + $basePrice : 0,
                 'pricePackageTypeMailbox'      => $mailboxFee,
-                'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'digital_stamp/fee', false) : 0,
-                'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->deliveryCostsService->getMethodPrice($carrierPath, 'package_small/fee', false) : 0,
+                'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->configService->getFloatConfig($carrierPath, 'digital_stamp/fee') : 0,
+                'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->configService->getFloatConfig($carrierPath, 'package_small/fee') : 0,
             ];
         }
 
@@ -356,14 +359,14 @@ class Checkout
         try {
             $consignment = ConsignmentFactory::createByCarrierName($carrier);
         } catch (Throwable $e) {
-            $this->configService->log(sprintf('checkPackageType: Could not create default consignment for %s', $carrier));
+            Logger::critical(sprintf('checkPackageType: Could not create default consignment for %s', $carrier));
 
             return AbstractConsignment::DEFAULT_PACKAGE_TYPE_NAME;
         }
 
         $carrierPath         = ConfigService::CARRIERS_XML_PATH_MAP[$carrier];
-        $products            = $this->cart->getAllItems();
-        $country             = $country ?? $this->country ?? $this->cart->getShippingAddress()->getCountryId();
+        $products            = $this->quote->getAllItems();
+        $country             = $country ?? $this->country ?? $this->quote->getShippingAddress()->getCountryId();
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
         $canHaveMailbox      = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
         $canHavePackageSmall = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
@@ -396,7 +399,7 @@ class Checkout
      */
     public function isAgeCheckActive(string $carrierPath): bool
     {
-        $products = $this->cart->getAllItems();
+        $products = $this->quote->getAllItems();
 
         return $this->package->getAgeCheck($products, $carrierPath);
     }
@@ -409,7 +412,7 @@ class Checkout
      */
     public function getDropOffDelay(string $carrierPath, string $key): int
     {
-        $products     = $this->cart->getAllItems();
+        $products     = $this->quote->getAllItems();
         $productDelay = (int)$this->package->getProductDropOffDelay($products);
         $configDelay  = $this->configService->getIntegerConfig($carrierPath, $key);
 
@@ -421,7 +424,7 @@ class Checkout
      */
     public function hideDeliveryOptionsForProduct()
     {
-        $products = $this->cart->getAllItems();
+        $products = $this->quote->getAllItems();
         $this->package->productWithoutDeliveryOptions($products);
 
         return $this;
