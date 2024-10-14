@@ -4,39 +4,27 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\Costs;
 
-use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use Magento\Quote\Model\Quote;
+use MyParcelNL\Magento\Service\Weight\WeightService;
 
 class DeliveryCostsService
 {
-    private ConfigService $configService;
+    private WeightService $weightService;
 
-    public function __construct(ConfigService $configService)
+    public function __construct(WeightService $weightService)
     {
-        $this->configService = $configService;
+        $this->weightService = $weightService;
     }
 
-    /**
-     * @param string $carrier
-     * @param string $key
-     * @param bool $addBasePrice
-     * @return float
-     */
-    public function getMethodPrice(string $carrier, string $key, bool $addBasePrice = true): float
+    public function getBasePrice(Quote $quote): float
     {
-        $value          = $this->configService->getFloatConfig($carrier, $key);
-        $showTotalPrice = $this->configService->getConfigValue(ConfigService::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
+        $carrier     = $quote->getShippingAddress()->getShippingMethod(); // todo get actual (chosen) carrier
+        $countryCode = $quote->getShippingAddress()->getCountryId();
+        $packageType = 'package'; // todo get actual (chosen) package type
+        $weight      = $this->weightService->getEmptyPackageWeightInGrams($packageType)
+            + $this->weightService->getQuoteWeightInGrams($quote);
 
-        if ($showTotalPrice && $addBasePrice) {
-            $value = $this->getBasePrice() + $value;
-        }
-
-        return $value;
-    }
-
-    // todo: accept country, weight, packagetype, carrier, deliverytype etc. Or maybe a consignment then?
-    public function getBasePrice(): float
-    {
+        // todo implement the actual logic based on configured multi dimensional object
         return 5;
     }
 
@@ -45,8 +33,8 @@ class DeliveryCostsService
      *
      * @return int
      */
-    public function getCentsByPrice(float $price): int
+    public function getPriceInCents(float $price): int
     {
-        return (int)$price * 100;
+        return (int)($price * 100);
     }
 }
