@@ -13,7 +13,6 @@
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use BadMethodCallException;
 use Exception;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Helper\Checkout;
@@ -29,29 +28,29 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 class DefaultOptions
 {
     // Maximum characters length of company name.
-    private const COMPANY_NAME_MAX_LENGTH    = 50;
+    private const COMPANY_NAME_MAX_LENGTH = 50;
     /** @deprecated */
-    private const INSURANCE_BELGIUM          = 'insurance_belgium_custom';
+    private const INSURANCE_BELGIUM = 'insurance_belgium_custom';
     /** @deprecated */
-    private const INSURANCE_EU_AMOUNT_50     = 'insurance_eu_50';
+    private const INSURANCE_EU_AMOUNT_50 = 'insurance_eu_50';
     /** @deprecated */
-    private const INSURANCE_EU_AMOUNT_500    = 'insurance_eu_500';
+    private const INSURANCE_EU_AMOUNT_500 = 'insurance_eu_500';
     /** @deprecated */
-    private const INSURANCE_AMOUNT_100       = 'insurance_100';
+    private const INSURANCE_AMOUNT_100 = 'insurance_100';
     /** @deprecated */
-    private const INSURANCE_AMOUNT_250       = 'insurance_250';
+    private const INSURANCE_AMOUNT_250 = 'insurance_250';
     /** @deprecated */
-    private const INSURANCE_AMOUNT_500       = 'insurance_500';
+    private const INSURANCE_AMOUNT_500 = 'insurance_500';
     /** @deprecated */
-    private const INSURANCE_AMOUNT_CUSTOM    = 'insurance_custom';
+    private const INSURANCE_AMOUNT_CUSTOM = 'insurance_custom';
 
-    private const INSURANCE_FROM_PRICE       = 'insurance_from_price';
-    private const INSURANCE_LOCAL_AMOUNT     = 'insurance_local_amount';
-    private const INSURANCE_BELGIUM_AMOUNT   = 'insurance_belgium_amount';
-    private const INSURANCE_EU_AMOUNT        = 'insurance_eu_amount';
-    private const INSURANCE_ROW_AMOUNT       = 'insurance_row_amount';
-    private const INSURANCE_PERCENTAGE       = 'insurance_percentage';
-    public const  DEFAULT_OPTION_VALUE       = 'default';
+    private const INSURANCE_FROM_PRICE = 'insurance_from_price';
+    private const INSURANCE_LOCAL_AMOUNT = 'insurance_local_amount';
+    private const INSURANCE_BELGIUM_AMOUNT = 'insurance_belgium_amount';
+    private const INSURANCE_EU_AMOUNT = 'insurance_eu_amount';
+    private const INSURANCE_ROW_AMOUNT = 'insurance_row_amount';
+    private const INSURANCE_PERCENTAGE = 'insurance_percentage';
+    public const  DEFAULT_OPTION_VALUE = 'default';
 
     /**
      * @var Data
@@ -71,8 +70,8 @@ class DefaultOptions
     /**
      * Insurance constructor.
      *
-     * @param  Order $order
-     * @param  Data  $helper
+     * @param Order $order
+     * @param Data $helper
      */
     public function __construct(Order $order, Data $helper)
     {
@@ -80,7 +79,7 @@ class DefaultOptions
         self::$order  = $order;
         try {
             self::$chosenOptions = DeliveryOptionsAdapterFactory::create(
-                (array) json_decode($order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)
+                (array)json_decode($order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)
             )->toArray();
         } catch (Exception $e) {
             self::$chosenOptions = [];
@@ -90,8 +89,8 @@ class DefaultOptions
     /**
      * Get default of the option
      *
-     * @param  string $option 'only_recipient'|'signature'|'return'|'large_format'
-     * @param  string $carrier
+     * @param string $option 'only_recipient'|'signature'|'receipt_code'|'return'|'large_format'
+     * @param string $carrier
      *
      * @return bool
      */
@@ -130,8 +129,8 @@ class DefaultOptions
     /**
      * Get default value of options without price check
      *
-     * @param  string $carrier
-     * @param  string $option
+     * @param string $carrier
+     * @param string $option
      *
      * @return bool
      */
@@ -144,7 +143,7 @@ class DefaultOptions
         $activeKey = "{$option}_active";
 
         if (isset($settings[$activeKey]) &&
-             'weight' === $settings[$activeKey] &&
+            'weight' === $settings[$activeKey] &&
             $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
         ) {
             return true;
@@ -161,8 +160,8 @@ class DefaultOptions
     }
 
     /**
-     * @param  string $carrier
-     * @param  string $option
+     * @param string $carrier
+     * @param string $option
      *
      * @return bool
      */
@@ -179,7 +178,7 @@ class DefaultOptions
      * @param string $carrier
      *
      * @return int
-     * @throws \Exception
+     * @throws Exception
      */
     public function getDefaultInsurance(string $carrier): int
     {
@@ -206,8 +205,8 @@ class DefaultOptions
      */
     private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
     {
-        $total = self::$order->getGrandTotal();
-        $settings = self::$helper->getStandardConfig($carrierName, 'default_options');
+        $total                = self::$order->getGrandTotal();
+        $settings             = self::$helper->getStandardConfig($carrierName, 'default_options');
         $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
         if (! isset($settings[$priceKey])
@@ -216,7 +215,7 @@ class DefaultOptions
             return 0;
         }
 
-        $carrier = ConsignmentFactory::createByCarrierName($carrierName);
+        $carrier        = ConsignmentFactory::createByCarrierName($carrierName);
         $insuranceTiers = $carrier->getInsurancePossibilities($shippingCountry);
         sort($insuranceTiers);
 
@@ -255,7 +254,7 @@ class DefaultOptions
             $keyIsPresent = array_key_exists('packageType', self::$chosenOptions);
 
             if ($keyIsPresent) {
-                $packageType  = self::$chosenOptions['packageType'];
+                $packageType = self::$chosenOptions['packageType'];
 
                 return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
             }
@@ -294,8 +293,8 @@ class DefaultOptions
     /**
      * TODO: In the future, when multiple carriers will be available for Rest of World shipments, replace PostNL with a setting for default carrier
      *
-     * @return \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier
-     * @throws \Exception
+     * @return AbstractCarrier
+     * @throws Exception
      */
     public static function getDefaultCarrier(): AbstractCarrier
     {

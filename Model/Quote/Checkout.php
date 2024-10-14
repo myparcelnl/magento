@@ -4,16 +4,20 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
+use Magento\Eav\Model\Entity\Collection\AbstractCollection;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use Throwable;
 
 class Checkout
 {
-    private const PLATFORM             = 'myparcel';
+    private const PLATFORM = 'myparcel';
     private const PACKAGE_TYPE_MAILBOX = 'mailbox';
 
     /**
@@ -22,7 +26,7 @@ class Checkout
     private $helper;
 
     /**
-     * @var \Magento\Quote\Model\Quote
+     * @var Quote
      */
     private $quoteId;
 
@@ -32,12 +36,12 @@ class Checkout
     private $package;
 
     /**
-     * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
+     * @var AbstractCollection[]
      */
     private $cart;
 
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     private $currency;
 
@@ -49,11 +53,11 @@ class Checkout
     /**
      * Checkout constructor.
      *
-     * @param \Magento\Checkout\Model\Session            $session
-     * @param \Magento\Checkout\Model\Cart               $cart
-     * @param \MyParcelNL\Magento\Helper\Checkout        $helper
-     * @param PackageRepository                          $package
-     * @param \Magento\Store\Model\StoreManagerInterface $currency
+     * @param Session $session
+     * @param Cart $cart
+     * @param \MyParcelNL\Magento\Helper\Checkout $helper
+     * @param PackageRepository $package
+     * @param StoreManagerInterface $currency
      *
      */
     public function __construct(
@@ -62,7 +66,8 @@ class Checkout
         \MyParcelNL\Magento\Helper\Checkout $helper,
         PackageRepository $package,
         StoreManagerInterface $currency
-    ) {
+    )
+    {
         $this->helper   = $helper;
         $this->quoteId  = $session->getQuoteId();
         $this->cart     = $cart->getQuote();
@@ -76,11 +81,11 @@ class Checkout
      * @param array $forAddress associative array holding the latest address from the client
      *
      * @return array
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     public function getDeliveryOptions(array $forAddress = []): array
     {
-        $this->helper->setBasePriceFromQuote((int) $this->quoteId, $forAddress);
+        $this->helper->setBasePriceFromQuote((int)$this->quoteId, $forAddress);
         $this->hideDeliveryOptionsForProduct();
 
         if (isset($forAddress['countryId'])) {
@@ -103,8 +108,8 @@ class Checkout
 
         return [
             'root' => [
-                'version' => (string) $this->helper->getVersion(),
-                'data'    => (array) $data,
+                'version' => (string)$this->helper->getVersion(),
+                'data'    => (array)$data,
             ],
         ];
     }
@@ -113,7 +118,7 @@ class Checkout
      * Get general data
      *
      * @return array)
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
     private function getGeneralData()
     {
@@ -177,7 +182,7 @@ class Checkout
             try {
                 $consignment = ConsignmentFactory::createByCarrierName($carrier);
                 $consignment->setPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE);
-            } catch (\Throwable $ex) {
+            } catch (Throwable $ex) {
                 $this->helper->log(sprintf('getDeliveryData: Could not create default consignment for %s', $carrier));
                 continue;
             }
@@ -190,6 +195,7 @@ class Checkout
             $canHaveMorning       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
             $canHaveEvening       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EVENING_NAME);
             $canHaveSignature     = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_SIGNATURE);
+            $canHaveReceiptCode   = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE);
             $canHaveOnlyRecipient = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT);
             $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
             $canHavePickup        = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
@@ -208,8 +214,9 @@ class Checkout
             $mondayFee        = $canHaveMonday ? $this->helper->getMethodPrice($carrierPath, 'delivery/monday_fee') : 0;
             $morningFee       = $canHaveMorning ? $this->helper->getMethodPrice($carrierPath, 'morning/fee') : 0;
             $eveningFee       = $canHaveEvening ? $this->helper->getMethodPrice($carrierPath, 'evening/fee') : 0;
-            $sameDayFee       = $canHaveSameDay ? (int) $this->helper->getMethodPrice($carrierPath, 'delivery/same_day_delivery_fee') : 0;
+            $sameDayFee       = $canHaveSameDay ? (int)$this->helper->getMethodPrice($carrierPath, 'delivery/same_day_delivery_fee') : 0;
             $signatureFee     = $canHaveSignature ? $this->helper->getMethodPrice($carrierPath, 'delivery/signature_fee', false) : 0;
+            $receiptCodeFee   = $canHaveReceiptCode ? $this->helper->getMethodPrice($carrierPath, 'delivery/receipt_code_fee', false) : 0;
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->helper->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
@@ -230,6 +237,7 @@ class Checkout
                 'allowDeliveryOptions'  => $allowDeliveryOptions,
                 'allowStandardDelivery' => $allowStandardDelivery,
                 'allowSignature'        => $canHaveSignature && $this->helper->getBoolConfig($carrierPath, 'delivery/signature_active'),
+                'allowReceiptCode'      => $canHaveReceiptCode && $this->helper->getBoolConfig($carrierPath, 'delivery/receipt_code_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->helper->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
@@ -237,9 +245,10 @@ class Checkout
                 'allowMondayDelivery'   => $canHaveMonday && $this->helper->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->helper->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
 
-                'dropOffDays'           => $this->getDropOffDays($carrierPath),
+                'dropOffDays' => $this->getDropOffDays($carrierPath),
 
                 'priceSignature'                       => $signatureFee,
+                'priceReceiptCode'                     => $receiptCodeFee,
                 'priceOnlyRecipient'                   => $onlyRecipientFee,
                 'priceStandardDelivery'                => $showTotalPrice ? $basePrice : 0,
                 'priceMondayDelivery'                  => $mondayFee,
@@ -281,16 +290,17 @@ class Checkout
         return $carriers;
     }
 
-    private function getDropOffDays(string $carrierPath): array {
+    private function getDropOffDays(string $carrierPath): array
+    {
         $dropOffDays = [];
         for ($weekday = 0; $weekday < 7; $weekday++) {
             $cutoffTimeSameDay = $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$weekday");
-            $sameDayTimeEntry = $cutoffTimeSameDay ? ['cutoffTimeSameDay' => $cutoffTimeSameDay] : [];
+            $sameDayTimeEntry  = $cutoffTimeSameDay ? ['cutoffTimeSameDay' => $cutoffTimeSameDay] : [];
             if ($this->helper->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
-                $dropOffDays[] = (object) array_merge([
-                    'weekday' => $weekday,
-                    'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
-                ], $sameDayTimeEntry);
+                $dropOffDays[] = (object)array_merge([
+                                                         'weekday' => $weekday,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
+                                                     ], $sameDayTimeEntry);
             }
         }
 
@@ -305,22 +315,22 @@ class Checkout
     private function getDeliveryOptionsStrings(): array
     {
         return [
-            'deliveryTitle'             => $this->helper->getGeneralConfig('delivery_titles/delivery_title') ?: __('delivery_title'),
-            'deliveryStandardTitle'     => $this->helper->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_delivery'),
-            'deliveryMorningTitle'      => $this->helper->getGeneralConfig('delivery_titles/morning_title') ?: __('morning_title'),
-            'deliveryEveningTitle'      => $this->helper->getGeneralConfig('delivery_titles/evening_title') ?: __('evening_title'),
-            'deliveryPickupTitle'       => $this->helper->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
-            'pickupTitle'               => $this->helper->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
-            'deliverySameDayTitle'      => $this->helper->getGeneralConfig('delivery_titles/same_day_title') ?: __('same_day_title'),
-            'hideSenderTitle'           => $this->helper->getGeneralConfig('delivery_titles/hide_sender_title') ?: __('hide_sender_title'),
-            'list'                      => $this->helper->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
-            'map'                       => $this->helper->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
-            'packageTypeMailbox'        => $this->helper->getGeneralConfig('delivery_titles/mailbox_title') ?: __('mailbox_title'),
-            'packageTypeDigitalStamp'   => $this->helper->getGeneralConfig('delivery_titles/digital_stamp_title') ?: __('digital_stamp_title'),
-            'packageTypePackageSmall'   => $this->helper->getGeneralConfig('delivery_titles/package_small_title') ?: __('packet_title'),
-            'signatureTitle'            => $this->helper->getGeneralConfig('delivery_titles/signature_title') ?: __('signature_title'),
-            'onlyRecipientTitle'        => $this->helper->getGeneralConfig('delivery_titles/only_recipient_title') ?: __('only_recipient_title'),
-            'saturdayDeliveryTitle'     => $this->helper->getGeneralConfig('delivery_titles/saturday_title') ?: __('saturday_delivery_title'),
+            'deliveryTitle'           => $this->helper->getGeneralConfig('delivery_titles/delivery_title') ?: __('delivery_title'),
+            'deliveryStandardTitle'   => $this->helper->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_delivery'),
+            'deliveryMorningTitle'    => $this->helper->getGeneralConfig('delivery_titles/morning_title') ?: __('morning_title'),
+            'deliveryEveningTitle'    => $this->helper->getGeneralConfig('delivery_titles/evening_title') ?: __('evening_title'),
+            'deliveryPickupTitle'     => $this->helper->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
+            'pickupTitle'             => $this->helper->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
+            'deliverySameDayTitle'    => $this->helper->getGeneralConfig('delivery_titles/same_day_title') ?: __('same_day_title'),
+            'hideSenderTitle'         => $this->helper->getGeneralConfig('delivery_titles/hide_sender_title') ?: __('hide_sender_title'),
+            'list'                    => $this->helper->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
+            'map'                     => $this->helper->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
+            'packageTypeMailbox'      => $this->helper->getGeneralConfig('delivery_titles/mailbox_title') ?: __('mailbox_title'),
+            'packageTypeDigitalStamp' => $this->helper->getGeneralConfig('delivery_titles/digital_stamp_title') ?: __('digital_stamp_title'),
+            'packageTypePackageSmall' => $this->helper->getGeneralConfig('delivery_titles/package_small_title') ?: __('packet_title'),
+            'signatureTitle'          => $this->helper->getGeneralConfig('delivery_titles/signature_title') ?: __('signature_title'),
+            'onlyRecipientTitle'      => $this->helper->getGeneralConfig('delivery_titles/only_recipient_title') ?: __('only_recipient_title'),
+            'saturdayDeliveryTitle'   => $this->helper->getGeneralConfig('delivery_titles/saturday_title') ?: __('saturday_delivery_title'),
 
             'wrongPostalCodeCity' => __('Postcode/city combination unknown'),
             'addressNotFound'     => __('Address details are not entered'),
@@ -336,22 +346,22 @@ class Checkout
             'showMoreHours'       => __('Show more opening hours'),
             'showMoreLocations'   => __('Show more locations'),
 
-            'error3212'         => __('{field} is required.'),
-            'error3501'         => __('Address not found.'),
-            'error3505'         => __('Postal code is invalid for the current country.'),
+            'error3212' => __('{field} is required.'),
+            'error3501' => __('Address not found.'),
+            'error3505' => __('Postal code is invalid for the current country.'),
 
-            'cityText'       => __('City'),
-            'city'           => __('City'),
-            'cc'             => __('Country'),
-            'houseNumber'    => __('House number'),
-            'numberText'     => __('House number'),
-            'postalCode'     => __('Postal code'),
-            'street'         => __('Street'),
+            'cityText'    => __('City'),
+            'city'        => __('City'),
+            'cc'          => __('Country'),
+            'houseNumber' => __('House number'),
+            'numberText'  => __('House number'),
+            'postalCode'  => __('Postal code'),
+            'street'      => __('Street'),
         ];
     }
 
     /**
-     * @param string      $carrier
+     * @param string $carrier
      * @param string|null $country
      *
      * @return string
@@ -360,7 +370,7 @@ class Checkout
     {
         try {
             $consignment = ConsignmentFactory::createByCarrierName($carrier);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->helper->log(sprintf('checkPackageType: Could not create default consignment for %s', $carrier));
 
             return AbstractConsignment::DEFAULT_PACKAGE_TYPE_NAME;
@@ -421,7 +431,7 @@ class Checkout
             $productDelay = $this->helper->getIntegerConfig($carrierPath, $key);
         }
 
-        return (int) $productDelay;
+        return (int)$productDelay;
     }
 
     /**
@@ -436,7 +446,7 @@ class Checkout
     }
 
     /**
-     * @param  string $carrier
+     * @param string $carrier
      *
      * @return bool
      */

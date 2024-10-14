@@ -1,19 +1,19 @@
 <?php
 /** @var MyParcelNL\Magento\Block\Sales\NewShipment $block */
 
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 ?>
-<input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden" /><!-- MyParcel options -->
-<div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
+<input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden"/><!-- MyParcel options -->
+<div
+    class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
     <input
         id="mypa_create_from_observer"
         class="admin__control-checkbox"
         name="mypa_create_from_observer"
         value="1"
         type="checkbox"
-        checked="checked" />
+        checked="checked"/>
     <label class="admin__field-label" for="mypa_create_from_observer">
         <span><?= ($block->isOrderManagementEnabled()) ? __('Export Entire Order') : __('Create MyParcel consignment') ?></span>
     </label>
@@ -125,7 +125,8 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                         style="display: block">
                         <span><?= __('Label amount:') ?></span>
                     </label>
-                    <?php $label_amount = 1; ?>
+                    <?php
+                    $label_amount = 1; ?>
                     <select
                         name="mypa_label_amount"
                         id="mypa_label_amount_<?= $carrierName ?>_<?= $packageTypeId ?>"
@@ -142,12 +143,12 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                 <?php
                 try {
                     $abstractConsignment->setPackageType($packageTypeId);
-                } catch (\Exception $e) {
+                } catch (Exception $e) {
                     continue;
                 }
                 foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
                     if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
-                        || ! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
+                        || !$block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
                     ) {
                         continue;
                     }
@@ -170,6 +171,11 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                             class="admin__field-label"
                             for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
                             <span><?= $form->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?>
+                                <?php
+                                if ($explanation = $form->getShipmentOptionsExplanationMap()[$shipmentOption] ?? '') {
+                                    echo '<div class="tooltip"><span class="help"><span></span></span><div
+                                        class="tooltip-content">', htmlentities($explanation), '</div></div>';
+                                } ?>
                             </span>
                         </label>
                     </div>
@@ -186,7 +192,8 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                         <label class="admin__field-label" for="mypa_insurance" style="display: block">
                             <span><?= __('Insured up to:') ?></span>
                         </label>
-                        <?php $defaultInsurance = $block->getDefaultInsurance($carrierName); ?>
+                        <?php
+                        $defaultInsurance = $block->getDefaultInsurance($carrierName); ?>
                         <select
                             name="mypa_insurance"
                             id="mypa_insurance"
@@ -217,10 +224,10 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
 } // end foreach carrier
 ?>
 <script type="text/x-magento-init">
-{
-    ".page-footer": {
-        "myparcelnl_newshipment": {
-            "carrier": "<?= $block->getCarrier() ?>",
+    {
+        ".page-footer": {
+            "myparcelnl_newshipment": {
+                "carrier": "<?= $block->getCarrier() ?>",
             "packageType":"<?= array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
     }
 }

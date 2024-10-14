@@ -14,10 +14,16 @@
 
 namespace MyParcelNL\Magento\Observer;
 
+use Exception;
+use Magento\Backend\Model\View\Result\RedirectFactory;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order\Shipment;
+use Magento\Sales\Model\Order\Shipment\Track;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
+use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 
@@ -31,22 +37,22 @@ class NewShipment implements ObserverInterface
     private $messageManager;
 
     /**
-     * @var \Magento\Framework\App\ObjectManager
+     * @var ObjectManager
      */
     private $objectManager;
 
     /**
-     * @var \Magento\Backend\Model\View\Result\RedirectFactory
+     * @var RedirectFactory
      */
     private $redirectFactory;
 
     /**
-     * @var \Magento\Framework\App\RequestInterface
+     * @var RequestInterface
      */
     private $request;
 
     /**
-     * @var \Magento\Sales\Model\Order\Shipment\Track
+     * @var Track
      */
     private $modelTrack;
 
@@ -56,14 +62,14 @@ class NewShipment implements ObserverInterface
     private $orderCollection;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var Data
      */
     private $helper;
 
     /**
      * NewShipment constructor.
      *
-     * @param \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
+     * @param MagentoOrderCollection|null $orderCollection
      */
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
@@ -82,7 +88,7 @@ class NewShipment implements ObserverInterface
      * @param Observer $observer
      *
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     public function execute(Observer $observer)
     {
@@ -92,7 +98,7 @@ class NewShipment implements ObserverInterface
 
             try {
                 $this->setMagentoAndMyParcelTrack($shipment);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             }
 
@@ -105,14 +111,14 @@ class NewShipment implements ObserverInterface
     /**
      * Set MyParcel Tracks and update order grid
      *
-     * @param \Magento\Sales\Model\Order\Shipment $shipment
+     * @param Shipment $shipment
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
         $options = $this->orderCollection->setOptionsFromParameters()
-            ->getOptions();
+                                         ->getOptions();
 
         if (isset($options['carrier']) && false === $options['carrier']) {
             unset($options['carrier']);
@@ -120,7 +126,7 @@ class NewShipment implements ObserverInterface
 
         $amount = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
 
-        /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
+        /** @var TrackTraceHolder[] $trackTraceHolders */
         $trackTraceHolders = [];
         $i                 = 1;
         $useMultiCollo     = false;
@@ -177,14 +183,14 @@ class NewShipment implements ObserverInterface
      * @param $shipment
      *
      * @return void
-     * @throws \Exception
+     * @throws Exception
      */
     private function exportEntireOrder($shipment): void
     {
         $orderId = $shipment->getOrderId();
 
         /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
+         * @var Collection $collection
          */
         $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderId]);
@@ -197,9 +203,9 @@ class NewShipment implements ObserverInterface
      *
      * Magento puts our two columns sales_order automatically to sales_order_grid
      *
-     * @param \Magento\Sales\Model\Order\Shipment $shipment
+     * @param Shipment $shipment
      *
-     * @throws \Exception
+     * @throws Exception
      */
     private function updateTrackGrid($shipment, $entireOrder): void
     {
@@ -210,8 +216,8 @@ class NewShipment implements ObserverInterface
         }
 
         $shipment->getOrder()
-            ->setData('track_status', $aHtml['track_status'])
-            ->setData('track_number', $aHtml['track_number'])
-            ->save();
+                 ->setData('track_status', $aHtml['track_status'])
+                 ->setData('track_number', $aHtml['track_number'])
+                 ->save();
     }
 }

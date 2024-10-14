@@ -89,6 +89,7 @@ Show map first,Toon kaart eerst
 Default shipping options,Standaard verzendinstellingen
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Vul hier uw standaard voorkeuren in voor uw verzendopties. Deze instellingen worden als default op al uw zendingen toegepast, indien van toepassing. Deze opties zijn later, per zending, uiteraard nog wel aan te passen tijdens het verwerken."
 Automate 'Signature on receipt',Automatiseer 'Handtekening voor ontvangst'
+Automate 'Receipt code',Automatiseer 'Ontvangstcode'
 Automate 'Home address only',Automatiseer 'Alleen huisadres'
 Automate 'Return if no answer',Automatiseer 'Retour bij geen gehoor'
 Automate 'Large format',Automatiseer 'Groter dan 100 x 70 x 58 cm of zwaarder dan 23 kg'
@@ -125,6 +126,8 @@ Monday delivery,Maandag levering
 "Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.","Levering op maandag kan speciale voorwaarden vereisen in vergelijking met andere (week)dagen, waaronder maar niet beperkt tot kosten en laatste bestelmoment."
 Number of days,Aantal dagen
 Delivery enabled,Bezorging ingeschakeld
+Receipt code,Ontvangstcode
+Receipt code fee,Ontvangstcode kosten
 Home address only,Alleen huisadres
 Home address only fee,Alleen huisadres kosten
 Digital stamp settings,Digitalepostzegel instellingen

@@ -3,27 +3,30 @@
 namespace MyParcelNL\Magento\Helper;
 
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\ObjectManagerInterface;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class ShipmentOptions
 {
-    private const INSURANCE         = 'insurance';
-    private const ONLY_RECIPIENT    = 'only_recipient';
+    private const INSURANCE = 'insurance';
+    private const ONLY_RECIPIENT = 'only_recipient';
     private const SAME_DAY_DELIVERY = 'same_day_delivery';
-    private const SIGNATURE         = 'signature';
-    private const RETURN            = 'return';
-    private const AGE_CHECK         = 'age_check';
-    private const LARGE_FORMAT      = 'large_format';
-    private const HIDE_SENDER       = 'hide_sender';
+    private const SIGNATURE = 'signature';
+    private const RECEIPT_CODE = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
+    private const RETURN = 'return';
+    private const AGE_CHECK = 'age_check';
+    private const LARGE_FORMAT = 'large_format';
+    private const HIDE_SENDER = 'hide_sender';
     private const LABEL_DESCRIPTION = 'label_description';
-    private const ORDER_NUMBER      = '%order_nr%';
-    private const DELIVERY_DATE     = '%delivery_date%';
-    private const PRODUCT_ID        = '%product_id%';
-    private const PRODUCT_NAME      = '%product_name%';
-    private const PRODUCT_QTY       = '%product_qty%';
+    private const ORDER_NUMBER = '%order_nr%';
+    private const DELIVERY_DATE = '%delivery_date%';
+    private const PRODUCT_ID = '%product_id%';
+    private const PRODUCT_NAME = '%product_name%';
+    private const PRODUCT_QTY = '%product_qty%';
 
     /**
      * @var string
@@ -31,12 +34,12 @@ class ShipmentOptions
     private $carrier;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
+     * @var DefaultOptions
      */
     private static $defaultOptions;
 
     /**
-     * @var \Magento\Framework\ObjectManagerInterface
+     * @var ObjectManagerInterface
      */
     private $objectManager;
 
@@ -46,12 +49,12 @@ class ShipmentOptions
     private $options;
 
     /**
-     * @var \MyParcelNL\Magento\Helper\Data
+     * @var Data
      */
     private $helper;
 
     /**
-     * @var \Magento\Sales\Model\Order
+     * @var Order
      */
     private $order;
 
@@ -61,21 +64,22 @@ class ShipmentOptions
     private $cc;
 
     /**
-     * @param  \MyParcelNL\Magento\Model\Source\DefaultOptions $defaultOptions
-     * @param  \MyParcelNL\Magento\Helper\Data                 $helper
-     * @param  \Magento\Sales\Model\Order                      $order
-     * @param  \Magento\Framework\ObjectManagerInterface       $objectManager
-     * @param  string                                          $carrier
-     * @param  array                                           $options
+     * @param DefaultOptions $defaultOptions
+     * @param Data $helper
+     * @param Order $order
+     * @param ObjectManagerInterface $objectManager
+     * @param string $carrier
+     * @param array $options
      */
     public function __construct(
-        DefaultOptions             $defaultOptions,
-        Data                       $helper,
-        \Magento\Sales\Model\Order $order,
-        ObjectManagerInterface     $objectManager,
-        string                     $carrier,
-        array                      $options = []
-    ) {
+        DefaultOptions $defaultOptions,
+        Data $helper,
+        Order $order,
+        ObjectManagerInterface $objectManager,
+        string $carrier,
+        array $options = []
+    )
+    {
         self::$defaultOptions = $defaultOptions;
         $this->helper         = $helper;
         $this->order          = $order;
@@ -105,6 +109,15 @@ class ShipmentOptions
         $signatureFromOptions = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
 
         return $signatureFromOptions ?? $this->optionIsEnabled(self::SIGNATURE);
+    }
+
+    public function hasReceiptCode(): bool
+    {
+        if (AbstractConsignment::CC_NL !== $this->cc || CarrierPostNL::NAME !== $this->carrier) {
+            return false;
+        }
+
+        return self::getValueOfOptionWhenSet(self::RECEIPT_CODE, $this->options) ?? $this->optionIsEnabled(self::RECEIPT_CODE);
     }
 
     /**
@@ -187,9 +200,9 @@ class ShipmentOptions
     }
 
     /**
-     * @param  string $tableName
-     * @param  string $entityId
-     * @param  string $column
+     * @param string $tableName
+     * @param string $entityId
+     * @param string $column
      *
      * @return null|string
      */
@@ -214,8 +227,8 @@ class ShipmentOptions
 
     /**
      * @param         $connection
-     * @param  string $tableName
-     * @param  string $databaseColumn
+     * @param string $tableName
+     * @param string $databaseColumn
      *
      * @return mixed
      */
@@ -230,10 +243,10 @@ class ShipmentOptions
     }
 
     /**
-     * @param  object $connection
-     * @param  string $tableName
-     * @param  string $attributeId
-     * @param  string $entityId
+     * @param object $connection
+     * @param string $tableName
+     * @param string $attributeId
+     * @param string $entityId
      *
      * @return string|null
      */
@@ -242,7 +255,8 @@ class ShipmentOptions
         string $tableName,
         string $attributeId,
         string $entityId
-    ): ?string {
+    ): ?string
+    {
         $sql = $connection
             ->select()
             ->from($tableName, ['value'])
@@ -253,8 +267,8 @@ class ShipmentOptions
     }
 
     /**
-     * @param  string $key
-     * @param  array  $options
+     * @param string $key
+     * @param array $options
      *
      * @return bool|null boolean value of the option named $key, or null when not set in $options
      */
@@ -321,8 +335,8 @@ class ShipmentOptions
     }
 
     /**
-     * @param  array  $productInfo
-     * @param  string $field
+     * @param array $productInfo
+     * @param string $field
      *
      * @return string|null
      */
@@ -342,14 +356,14 @@ class ShipmentOptions
      */
     public function getItemsCollectionByShipmentId($shipmentId): array
     {
-        /** @var \Magento\Framework\App\ResourceConnection $connection */
+        /** @var ResourceConnection $connection */
         $connection = $this->objectManager->create(ResourceConnection::class);
         $conn       = $connection->getConnection();
         $select     = $conn->select()
-            ->from(
-                ['main_table' => $connection->getTableName('sales_shipment_item')]
-            )
-            ->where('main_table.parent_id=?', $shipmentId);
+                           ->from(
+                               ['main_table' => $connection->getTableName('sales_shipment_item')]
+                           )
+                           ->where('main_table.parent_id=?', $shipmentId);
         return $conn->fetchAll($select);
     }
 
@@ -380,6 +394,7 @@ class ShipmentOptions
             self::RETURN            => $this->hasReturn(),
             self::ONLY_RECIPIENT    => $this->hasOnlyRecipient(),
             self::SIGNATURE         => $this->hasSignature(),
+            self::RECEIPT_CODE      => $this->hasReceiptCode(),
             self::AGE_CHECK         => $this->hasAgeCheck(),
             self::LARGE_FORMAT      => $this->hasLargeFormat(),
             self::LABEL_DESCRIPTION => $this->getLabelDescription(),
