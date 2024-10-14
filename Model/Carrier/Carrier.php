@@ -19,19 +19,12 @@
 namespace MyParcelNL\Magento\Model\Carrier;
 
 use Exception;
-use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Checkout\Model\Session;
-use Magento\Directory\Helper\Data;
-use Magento\Directory\Model\CountryFactory;
-use Magento\Directory\Model\CurrencyFactory;
-use Magento\Directory\Model\RegionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Phrase;
-use Magento\Framework\Xml\Security;
 use Magento\OfflineShipping\Model\Carrier\Freeshipping;
+use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
 use Magento\Quote\Model\Quote\Address\RateResult\Method;
@@ -39,8 +32,6 @@ use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
-use Magento\Shipping\Model\Simplexml\ElementFactory;
-use Magento\Shipping\Model\Tracking\Result\StatusFactory;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
@@ -64,6 +55,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * @var PackageRepository
      */
     private $package;
+    private Quote $quote;
 
     /**
      * Carrier constructor.
@@ -106,8 +98,10 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $this->_name  = $configService->getConfigValue('carriers/myparcel_delivery/name') ?: self::CODE;
         $this->_title = $configService->getConfigValue('carriers/myparcel_delivery/title') ?: self::CODE;
 
+        $this->quote = $session->getQuote();
+
         try {
-            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($session->getQuote()->getData(ConfigService::FIELD_DELIVERY_OPTIONS), true));
+            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($this->quote->getData(ConfigService::FIELD_DELIVERY_OPTIONS), true));
         } catch (Throwable $e) {
             $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
         }
@@ -148,24 +142,23 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     {
         $configPath      = ConfigService::CARRIERS_XML_PATH_MAP[$this->deliveryOptions->getCarrier()] ?? '';
         $shipmentOptions = $this->deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
-        $dinges          = [
+        $shipmentFees    = [
             "{$this->deliveryOptions->getDeliveryType()}/fee" => true,
-            "{$this->deliveryOptions->getPackageType()}/fee"  => true,
+            //"{$this->deliveryOptions->getPackageType()}/fee"  => true,
             'delivery/signature_fee'                          => $shipmentOptions->hasSignature(),
             'delivery/only_recipient_fee'                     => $shipmentOptions->hasOnlyRecipient(),
         ];
-        $amount          = $this->deliveryCostsService->getBasePrice();
-        foreach ($dinges as $key => $value) {
+        $amount          = $this->deliveryCostsService->getBasePrice($this->quote);
+        foreach ($shipmentFees as $key => $value) {
             if (!$value) {
                 continue;
             }
             $amount += (float)$this->configService->getConfigValue("$configPath$key");
         }
-        //$bla = $this->myParcelHelper->getCarrierConfig('evening/fee', $path);
+
         return $amount;
-        die(' weflweiuryfuhj');
         //$this->configService->getMethodPrice(ConfigService::XML_PATH_POSTNL_SETTINGS . 'fee', $alias);
-        $freeShippingIsAvailable = false; // todo // $this->_freeShipping->getConfigData('active')
+        $freeShippingIsAvailable = false; // todo find out if this order has free shipping // $this->_freeShipping->getConfigData('active')
         // todo: get actual price based on chosen and possible options for this quote / cart
         $amount = $freeShippingIsAvailable ? 0.00 : 10.00;
         return $amount;
@@ -173,8 +166,19 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
     private function getMethodTitle(): string
     {
-        // todo make a nice title from the options
-        return var_export($this->deliveryOptions, true);
+        $d = $this->deliveryOptions;
+        $s = $d->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
+
+        ob_start();
+        echo __("{$d->getDeliveryType()}_title"), ' ';
+
+        foreach ($s->toArray() as $key => $value) {
+            if ($value) {
+                echo __("{$key}_title"), ' ';
+            }
+        }
+
+        return ob_get_clean();
     }
 
     public function proccessAdditionalValidation(DataObject $request)
@@ -187,30 +191,9 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      *
      * @return array
      */
-    public static function getMethods()
-    {
-        $methods = [
-            'signature_only_recip' => 'delivery/signature_and_only_recipient_',
-            'morning'              => 'morning/',
-            'morning_signature'    => 'morning_signature/',
-            'evening'              => 'evening/',
-            'evening_signature'    => 'evening_signature/',
-            'pickup'               => 'pickup/',
-            'mailbox'              => 'mailbox/',
-            'digital_stamp'        => 'digital_stamp/',
-        ];
-
-        return $methods;
-    }
-
-    /**
-     * Get allowed shipping methods
-     *
-     * @return array
-     */
     public function getAllowedMethods(): array
     {
-        return self::getMethods();
+        return [$this->_name];
     }
 
     /**

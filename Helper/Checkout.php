@@ -18,23 +18,28 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Helper;
 
+use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Quote\Api\Data\EstimateAddressInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Model\Cart\ShippingMethod;
+use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\ShippingMethodManagement;
 use MyParcelNL\Magento\Model\Rate\Result;
-use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
 
 class Checkout extends Data
 {
-    public const FIELD_DROP_OFF_DAY     = 'drop_off_day';
+    public const FIELD_DROP_OFF_DAY = 'drop_off_day';
     public const FIELD_MYPARCEL_CARRIER = 'myparcel_carrier';
     public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
-    public const FIELD_TRACK_STATUS     = 'track_status';
-    public const DEFAULT_COUNTRY_CODE   = 'NL';
+    public const FIELD_TRACK_STATUS = 'track_status';
+    public const DEFAULT_COUNTRY_CODE = 'NL';
 
     /**
      * @var int
@@ -51,30 +56,31 @@ class Checkout extends Data
     private $estimatedAddressFactory;
 
     /**
-     * @var \Magento\Quote\Model\Quote
+     * @var Quote
      */
     private $quote;
 
     /**
-     * @param Context                         $context
-     * @param ModuleListInterface             $moduleList
+     * @param Context $context
+     * @param ModuleListInterface $moduleList
      * @param EstimateAddressInterfaceFactory $estimatedAddressFactory
-     * @param ShippingMethodManagement        $shippingMethodManagement
-     * @param CheckApiKeyService              $checkApiKeyService
-     * @param Session                         $session
+     * @param ShippingMethodManagement $shippingMethodManagement
+     * @param CheckApiKeyService $checkApiKeyService
+     * @param Session $session
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function __construct(
-        Context $context,
-        ModuleListInterface $moduleList,
+        Context                         $context,
+        ModuleListInterface             $moduleList,
         EstimateAddressInterfaceFactory $estimatedAddressFactory,
-        ShippingMethodManagement $shippingMethodManagement,
-        CheckApiKeyService $checkApiKeyService,
-        Session $session
-    ) {
-        throw new \Exception('Do not use Helper/Checkout.php');
+        ShippingMethodManagement        $shippingMethodManagement,
+        CheckApiKeyService              $checkApiKeyService,
+        Session                         $session
+    )
+    {
+        throw new Exception('Do not use Helper/Checkout.php');
         parent::__construct($context, $moduleList, $checkApiKeyService);
         $this->shippingMethodManagement = $shippingMethodManagement;
         $this->estimatedAddressFactory  = $estimatedAddressFactory;
@@ -88,16 +94,6 @@ class Checkout extends Data
     {
         return 5; //joeri
         return $this->base_price;
-    }
-
-    /**
-     * @param  string $message
-     *
-     * @return void
-     */
-    public function log(string $message): void
-    {
-        $this->_logger->critical($message);
     }
 
     /**
@@ -120,7 +116,7 @@ class Checkout extends Data
         $method = $this->getParentRateFromQuote($quoteId, $forAddress);
         $price  = ($method) ? $method->getPriceInclTax() : 0;
 
-        $this->setBasePrice((double) $price);
+        $this->setBasePrice((double)$price);
 
         return $this;
     }
@@ -132,22 +128,22 @@ class Checkout extends Data
      */
     public function getParentRateFromQuote(int $quoteId, array $forAddress = [])
     {
-        $parentCarriers   = explode(',', $this->getGeneralConfig('shipping_methods/methods') ?? '');
+        $parentCarriers = explode(',', $this->getGeneralConfig('shipping_methods/methods') ?? '');
 
         /**
-         * @var \Magento\Quote\Api\Data\EstimateAddressInterface $estimatedAddress
-         * @var \Magento\Quote\Model\Cart\ShippingMethod[]       $methods
+         * @var EstimateAddressInterface $estimatedAddress
+         * @var ShippingMethod[] $methods
          */
         $estimatedAddress = $this->getEstimatedAddress($forAddress, $this->quote->getShippingAddress());
-        $magentoMethods  = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
-        $myParcelMethods = array_keys(Result::getMethods());
+        $magentoMethods   = $this->shippingMethodManagement->estimateByAddress($quoteId, $estimatedAddress);
+        $myParcelMethods  = array_keys(Result::getMethods());
 
         foreach ($magentoMethods as $method) {
             $methodCode       = explode('/', $method->getMethodCode() ?? '');
             $latestMethodCode = array_pop($methodCode);
 
             if (
-                ! in_array($latestMethodCode, $myParcelMethods, true)
+                !in_array($latestMethodCode, $myParcelMethods, true)
                 && in_array($method->getCarrierCode(), $parentCarriers, true)
             ) {
                 return $method;
@@ -158,22 +154,22 @@ class Checkout extends Data
     }
 
     /**
-     * @param array                              $fromClient
-     * @param \Magento\Quote\Model\Quote\Address $fromQuote
+     * @param array $fromClient
+     * @param Address $fromQuote
      *
-     * @return \Magento\Quote\Api\Data\EstimateAddressInterface
+     * @return EstimateAddressInterface
      */
     private function getEstimatedAddress(
-        array $fromClient,
-        \Magento\Quote\Model\Quote\Address $fromQuote
-    ): \Magento\Quote\Api\Data\EstimateAddressInterface
+        array                              $fromClient,
+        Address $fromQuote
+    ): EstimateAddressInterface
     {
         $address = $this->estimatedAddressFactory->create();
 
         if (isset($fromClient['countryId'])) {
             $address->setCountryId($fromClient['countryId']);
-            $address->setPostcode($fromClient['postcode'] ??  '');
-            $address->setRegion($fromClient['region'] ??  '');
+            $address->setPostcode($fromClient['postcode'] ?? '');
+            $address->setRegion($fromClient['region'] ?? '');
         } else {
             $address->setCountryId($fromQuote->getCountryId() ?? self::DEFAULT_COUNTRY_CODE);
             $address->setPostcode($fromQuote->getPostcode() ?? '');
@@ -187,8 +183,8 @@ class Checkout extends Data
     /**
      * Get bool of setting
      *
-     * @param  string $carrier
-     * @param  string $key
+     * @param string $carrier
+     * @param string $key
      *
      * @return bool
      */
@@ -207,7 +203,7 @@ class Checkout extends Data
      */
     public function getTimeConfig(string $carrier, string $key): string
     {
-        $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key"));
+        $timeAsString   = str_replace(',', ':', (string)$this->getConfigValue("$carrier$key"));
         $timeComponents = explode(':', $timeAsString ?? '');
         if (count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;
@@ -227,9 +223,9 @@ class Checkout extends Data
      */
     public function getArrayConfig(string $carrier, string $key): array
     {
-        return array_map(static function($val) {
-            return is_numeric($val) ? (int) $val : $val;
-        }, explode(',', (string) ($this->getConfigValue("$carrier$key") ?? '')));
+        return array_map(static function ($val) {
+            return is_numeric($val) ? (int)$val : $val;
+        }, explode(',', (string)($this->getConfigValue("$carrier$key") ?? '')));
     }
 
     /**
@@ -242,6 +238,6 @@ class Checkout extends Data
      */
     public function getIntegerConfig($carrier, $key)
     {
-        return (float) $this->getConfigValue("$carrier$key");
+        return (float)$this->getConfigValue("$carrier$key");
     }
 }
