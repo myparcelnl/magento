@@ -57,11 +57,11 @@ class Checkout
      * @param \Magento\Store\Model\StoreManagerInterface                   $currency
      */
     public function __construct(
-        Session               $session,
-        Cart                  $cart,
-        Checkout              $helper,
-        PackageRepository     $package,
-        StoreManagerInterface $currency
+        Session                             $session,
+        Cart                                $cart,
+        \MyParcelNL\Magento\Helper\Checkout $helper, // FQCN required for Magento
+        PackageRepository                   $package,
+        StoreManagerInterface               $currency
     )
     {
         $this->helper   = $helper;
