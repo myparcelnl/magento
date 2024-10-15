@@ -17,7 +17,7 @@ use Throwable;
 
 class Checkout
 {
-    private const PLATFORM = 'myparcel';
+    private const PLATFORM             = 'myparcel';
     private const PACKAGE_TYPE_MAILBOX = 'mailbox';
 
     /**
@@ -53,19 +53,19 @@ class Checkout
     /**
      * Checkout constructor.
      *
-     * @param Session $session
-     * @param Cart $cart
+     * @param Session                             $session
+     * @param Cart                                $cart
      * @param \MyParcelNL\Magento\Helper\Checkout $helper
-     * @param PackageRepository $package
-     * @param StoreManagerInterface $currency
+     * @param PackageRepository                   $package
+     * @param StoreManagerInterface               $currency
      *
      */
     public function __construct(
-        Session $session,
-        Cart $cart,
+        Session                             $session,
+        Cart                                $cart,
         \MyParcelNL\Magento\Helper\Checkout $helper,
-        PackageRepository $package,
-        StoreManagerInterface $currency
+        PackageRepository                   $package,
+        StoreManagerInterface               $currency
     )
     {
         $this->helper   = $helper;
@@ -85,7 +85,7 @@ class Checkout
      */
     public function getDeliveryOptions(array $forAddress = []): array
     {
-        $this->helper->setBasePriceFromQuote((int)$this->quoteId, $forAddress);
+        $this->helper->setBasePriceFromQuote((int) $this->quoteId, $forAddress);
         $this->hideDeliveryOptionsForProduct();
 
         if (isset($forAddress['countryId'])) {
@@ -108,8 +108,8 @@ class Checkout
 
         return [
             'root' => [
-                'version' => (string)$this->helper->getVersion(),
-                'data'    => (array)$data,
+                'version' => (string) $this->helper->getVersion(),
+                'data'    => (array) $data,
             ],
         ];
     }
@@ -214,7 +214,7 @@ class Checkout
             $mondayFee        = $canHaveMonday ? $this->helper->getMethodPrice($carrierPath, 'delivery/monday_fee') : 0;
             $morningFee       = $canHaveMorning ? $this->helper->getMethodPrice($carrierPath, 'morning/fee') : 0;
             $eveningFee       = $canHaveEvening ? $this->helper->getMethodPrice($carrierPath, 'evening/fee') : 0;
-            $sameDayFee       = $canHaveSameDay ? (int)$this->helper->getMethodPrice($carrierPath, 'delivery/same_day_delivery_fee') : 0;
+            $sameDayFee       = $canHaveSameDay ? (int) $this->helper->getMethodPrice($carrierPath, 'delivery/same_day_delivery_fee') : 0;
             $signatureFee     = $canHaveSignature ? $this->helper->getMethodPrice($carrierPath, 'delivery/signature_fee', false) : 0;
             $receiptCodeFee   = $canHaveReceiptCode ? $this->helper->getMethodPrice($carrierPath, 'delivery/receipt_code_fee', false) : 0;
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->helper->getMethodPrice($carrierPath, 'delivery/only_recipient_fee', false) : 0;
@@ -297,10 +297,10 @@ class Checkout
             $cutoffTimeSameDay = $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$weekday");
             $sameDayTimeEntry  = $cutoffTimeSameDay ? ['cutoffTimeSameDay' => $cutoffTimeSameDay] : [];
             if ($this->helper->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
-                $dropOffDays[] = (object)array_merge([
-                                                         'weekday' => $weekday,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
-                                                     ], $sameDayTimeEntry);
+                $dropOffDays[] = (object) array_merge([
+                                                          'weekday' => $weekday,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
+                                                      ], $sameDayTimeEntry);
             }
         }
 
@@ -361,7 +361,7 @@ class Checkout
     }
 
     /**
-     * @param string $carrier
+     * @param string      $carrier
      * @param string|null $country
      *
      * @return string
@@ -431,7 +431,7 @@ class Checkout
             $productDelay = $this->helper->getIntegerConfig($carrierPath, $key);
         }
 
-        return (int)$productDelay;
+        return (int) $productDelay;
     }
 
     /**

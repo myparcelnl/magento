@@ -47,9 +47,9 @@ class TrackTraceHolder
     /**
      * Track title showing in Magento
      */
-    public const MYPARCEL_TRACK_TITLE = 'MyParcel';
+    public const MYPARCEL_TRACK_TITLE  = 'MyParcel';
     public const MYPARCEL_CARRIER_CODE = 'myparcel';
-    public const EXPORT_MODE_PPS = 'pps';
+    public const EXPORT_MODE_PPS       = 'pps';
     public const EXPORT_MODE_SHIPMENTS = 'shipments';
 
     /**
@@ -96,13 +96,13 @@ class TrackTraceHolder
      * TrackTraceHolder constructor.
      *
      * @param ObjectManagerInterface $objectManager
-     * @param Data $helper
-     * @param Order $order
+     * @param Data                   $helper
+     * @param Order                  $order
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
-        Data $helper,
-        Order $order
+        Data                   $helper,
+        Order                  $order
     )
     {
         $this->objectManager  = $objectManager;
@@ -128,7 +128,7 @@ class TrackTraceHolder
      * Set all data to MyParcel object
      *
      * @param Order\Shipment\Track $magentoTrack
-     * @param array $options
+     * @param array                $options
      *
      * @return $this
      * @throws Exception
@@ -326,7 +326,7 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     * @param int $totalWeight
+     * @param int                  $totalWeight
      *
      * @return TrackTraceHolder
      * @throws LocalizedException
@@ -438,8 +438,8 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     * @param object $address
-     * @param array $options
+     * @param object               $address
+     * @param array                $options
      *
      * @return bool
      * @throws LocalizedException
@@ -503,9 +503,9 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     * @param object $address
-     * @param array $options
-     * @param array $deliveryOptions
+     * @param object               $address
+     * @param array                $options
+     * @param array                $deliveryOptions
      *
      * @return int
      * @throws LocalizedException

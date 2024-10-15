@@ -48,15 +48,15 @@ use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
  */
 abstract class MagentoCollection implements MagentoCollectionInterface
 {
-    public const PATH_HELPER_DATA = '\MyParcelNL\Magento\Helper\Data';
-    public const PATH_MODEL_ORDER = '\Magento\Sales\Model\ResourceModel\Order\Collection';
-    public const PATH_MODEL_SHIPMENT = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
-    public const ERROR_ORDER_HAS_NO_SHIPMENT = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
-    public const ERROR_ORDER_HAS_NO_SOURCE = 'Creating shipments via bulk actions is not possible for orders without a source. Go to the details of the order and process the shipment manually.';
+    public const PATH_HELPER_DATA                  = '\MyParcelNL\Magento\Helper\Data';
+    public const PATH_MODEL_ORDER                  = '\Magento\Sales\Model\ResourceModel\Order\Collection';
+    public const PATH_MODEL_SHIPMENT               = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Collection';
+    public const ERROR_ORDER_HAS_NO_SHIPMENT       = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
+    public const ERROR_ORDER_HAS_NO_SOURCE         = 'Creating shipments via bulk actions is not possible for orders without a source. Go to the details of the order and process the shipment manually.';
     public const DEFAULT_ERROR_ORDER_HAS_NO_SOURCE = 'Source item not found by source code';
 
-    private const PATH_ORDER_TRACK = '\Magento\Sales\Model\Order\Shipment\Track';
-    private const PATH_MANAGER_INTERFACE = '\Magento\Framework\Message\ManagerInterface';
+    private const PATH_ORDER_TRACK            = '\Magento\Sales\Model\Order\Shipment\Track';
+    private const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
     private const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
 
     /**
@@ -134,13 +134,13 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
     /**
      * @param ObjectManagerInterface $objectManager
-     * @param null $request
-     * @param null $areaList
+     * @param null                   $request
+     * @param null                   $areaList
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
-        $request = null,
-        $areaList = null
+                               $request = null,
+                               $areaList = null
     )
     {
         // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
@@ -456,7 +456,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $multiColloConsignments = [];
         /**
          * @var Order\Shipment $shipment
-         * @var Track $magentoTrack
+         * @var Track          $magentoTrack
          */
         foreach ($shipments as $shipment) {
             $magentoTracks = $this->getTrackByShipment($shipment)->getItems();
@@ -510,7 +510,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
     /**
      * @param AbstractConsignment $consignment
-     * @param int $quantity
+     * @param int                 $quantity
      *
      * @throws MissingFieldException
      */
@@ -687,7 +687,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         foreach ($shipments as $shipment) {
             $trackCollection = $shipment->getAllTracks();
             foreach ($trackCollection as $magentoTrack) {
-                $consignmentId = (int)$magentoTrack->getData('myparcel_consignment_id');
+                $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
                 if ($consignmentId) {
                     $consignmentIds[] = $consignmentId;
                 }

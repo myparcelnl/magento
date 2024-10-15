@@ -12,21 +12,21 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class ShipmentOptions
 {
-    private const INSURANCE = 'insurance';
-    private const ONLY_RECIPIENT = 'only_recipient';
+    private const INSURANCE         = 'insurance';
+    private const ONLY_RECIPIENT    = 'only_recipient';
     private const SAME_DAY_DELIVERY = 'same_day_delivery';
-    private const SIGNATURE = 'signature';
-    private const RECEIPT_CODE = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
-    private const RETURN = 'return';
-    private const AGE_CHECK = 'age_check';
-    private const LARGE_FORMAT = 'large_format';
-    private const HIDE_SENDER = 'hide_sender';
+    private const SIGNATURE         = 'signature';
+    private const RECEIPT_CODE      = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
+    private const RETURN            = 'return';
+    private const AGE_CHECK         = 'age_check';
+    private const LARGE_FORMAT      = 'large_format';
+    private const HIDE_SENDER       = 'hide_sender';
     private const LABEL_DESCRIPTION = 'label_description';
-    private const ORDER_NUMBER = '%order_nr%';
-    private const DELIVERY_DATE = '%delivery_date%';
-    private const PRODUCT_ID = '%product_id%';
-    private const PRODUCT_NAME = '%product_name%';
-    private const PRODUCT_QTY = '%product_qty%';
+    private const ORDER_NUMBER      = '%order_nr%';
+    private const DELIVERY_DATE     = '%delivery_date%';
+    private const PRODUCT_ID        = '%product_id%';
+    private const PRODUCT_NAME      = '%product_name%';
+    private const PRODUCT_QTY       = '%product_qty%';
 
     /**
      * @var string
@@ -64,20 +64,20 @@ class ShipmentOptions
     private $cc;
 
     /**
-     * @param DefaultOptions $defaultOptions
-     * @param Data $helper
-     * @param Order $order
+     * @param DefaultOptions         $defaultOptions
+     * @param Data                   $helper
+     * @param Order                  $order
      * @param ObjectManagerInterface $objectManager
-     * @param string $carrier
-     * @param array $options
+     * @param string                 $carrier
+     * @param array                  $options
      */
     public function __construct(
-        DefaultOptions $defaultOptions,
-        Data $helper,
-        Order $order,
+        DefaultOptions         $defaultOptions,
+        Data                   $helper,
+        Order                  $order,
         ObjectManagerInterface $objectManager,
-        string $carrier,
-        array $options = []
+        string                 $carrier,
+        array                  $options = []
     )
     {
         self::$defaultOptions = $defaultOptions;
@@ -227,8 +227,8 @@ class ShipmentOptions
 
     /**
      * @param         $connection
-     * @param string $tableName
-     * @param string $databaseColumn
+     * @param string  $tableName
+     * @param string  $databaseColumn
      *
      * @return mixed
      */
@@ -268,7 +268,7 @@ class ShipmentOptions
 
     /**
      * @param string $key
-     * @param array $options
+     * @param array  $options
      *
      * @return bool|null boolean value of the option named $key, or null when not set in $options
      */
@@ -335,7 +335,7 @@ class ShipmentOptions
     }
 
     /**
-     * @param array $productInfo
+     * @param array  $productInfo
      * @param string $field
      *
      * @return string|null
