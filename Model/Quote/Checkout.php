@@ -4,9 +4,6 @@ namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
-use Magento\Eav\Model\Entity\Collection\AbstractCollection;
-use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
@@ -26,22 +23,22 @@ class Checkout
     private $helper;
 
     /**
-     * @var Quote
+     * @var \Magento\Quote\Model\Quote
      */
     private $quoteId;
 
     /**
-     * @var PackageRepository
+     * @var \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
      */
     private $package;
 
     /**
-     * @var AbstractCollection[]
+     * @var \Magento\Eav\Model\Entity\Collection\AbstractCollection[]
      */
     private $cart;
 
     /**
-     * @var StoreManagerInterface
+     * @var \Magento\Store\Model\StoreManagerInterface
      */
     private $currency;
 
@@ -53,19 +50,18 @@ class Checkout
     /**
      * Checkout constructor.
      *
-     * @param Session                             $session
-     * @param Cart                                $cart
-     * @param \MyParcelNL\Magento\Helper\Checkout $helper
-     * @param PackageRepository                   $package
-     * @param StoreManagerInterface               $currency
-     *
+     * @param \Magento\Checkout\Model\Session                              $session
+     * @param \Magento\Checkout\Model\Cart                                 $cart
+     * @param \MyParcelNL\Magento\Helper\Checkout                          $helper
+     * @param \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository $package
+     * @param \Magento\Store\Model\StoreManagerInterface                   $currency
      */
     public function __construct(
-        Session                             $session,
-        Cart                                $cart,
-        \MyParcelNL\Magento\Helper\Checkout $helper,
-        PackageRepository                   $package,
-        StoreManagerInterface               $currency
+        Session               $session,
+        Cart                  $cart,
+        Checkout              $helper,
+        PackageRepository     $package,
+        StoreManagerInterface $currency
     )
     {
         $this->helper   = $helper;
@@ -81,7 +77,7 @@ class Checkout
      * @param array $forAddress associative array holding the latest address from the client
      *
      * @return array
-     * @throws NoSuchEntityException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getDeliveryOptions(array $forAddress = []): array
     {
@@ -117,8 +113,8 @@ class Checkout
     /**
      * Get general data
      *
-     * @return array)
-     * @throws NoSuchEntityException
+     * @return array
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     private function getGeneralData()
     {
@@ -298,9 +294,9 @@ class Checkout
             $sameDayTimeEntry  = $cutoffTimeSameDay ? ['cutoffTimeSameDay' => $cutoffTimeSameDay] : [];
             if ($this->helper->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
                 $dropOffDays[] = (object) array_merge([
-                                                          'weekday' => $weekday,
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
-                                                      ], $sameDayTimeEntry);
+                    'weekday'    => $weekday,
+                    'cutoffTime' => $this->helper->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
+                ], $sameDayTimeEntry);
             }
         }
 
@@ -435,7 +431,7 @@ class Checkout
     }
 
     /**
-     * @return $this
+     * @return self
      */
     public function hideDeliveryOptionsForProduct()
     {
