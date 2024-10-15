@@ -226,9 +226,9 @@ class ShipmentOptions
     }
 
     /**
-     * @param         $connection
-     * @param string  $tableName
-     * @param string  $databaseColumn
+     * @param        $connection
+     * @param string $tableName
+     * @param string $databaseColumn
      *
      * @return mixed
      */
