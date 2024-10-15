@@ -34,12 +34,12 @@ class ShipmentOptions
     private $carrier;
 
     /**
-     * @var DefaultOptions
+     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
     private static $defaultOptions;
 
     /**
-     * @var ObjectManagerInterface
+     * @var \Magento\Framework\ObjectManagerInterface
      */
     private $objectManager;
 
@@ -49,12 +49,12 @@ class ShipmentOptions
     private $options;
 
     /**
-     * @var Data
+     * @var \MyParcelNL\Magento\Helper\Data
      */
     private $helper;
 
     /**
-     * @var Order
+     * @var \Magento\Sales\Model\Order
      */
     private $order;
 
@@ -64,12 +64,12 @@ class ShipmentOptions
     private $cc;
 
     /**
-     * @param DefaultOptions         $defaultOptions
-     * @param Data                   $helper
-     * @param Order                  $order
-     * @param ObjectManagerInterface $objectManager
-     * @param string                 $carrier
-     * @param array                  $options
+     * @param \MyParcelNL\Magento\Model\Source\DefaultOptions $defaultOptions
+     * @param \MyParcelNL\Magento\Helper\Data                 $helper
+     * @param \Magento\Sales\Model\Order                      $order
+     * @param \Magento\Framework\ObjectManagerInterface       $objectManager
+     * @param string                                          $carrier
+     * @param array                                           $options
      */
     public function __construct(
         DefaultOptions         $defaultOptions,

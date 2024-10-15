@@ -20,8 +20,8 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Message\Manager;
 use Magento\Sales\Model\Order\Shipment;
-use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
 use MyParcelNL\Magento\Helper\Data;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
@@ -37,55 +37,49 @@ class NewShipment implements ObserverInterface
     private $messageManager;
 
     /**
-     * @var ObjectManager
+     * @var \Magento\Framework\App\ObjectManager
      */
     private $objectManager;
 
     /**
-     * @var RedirectFactory
+     * @var \Magento\Backend\Model\View\Result\RedirectFactory
      */
     private $redirectFactory;
 
     /**
-     * @var RequestInterface
+     * @var \Magento\Framework\App\RequestInterface
      */
     private $request;
 
     /**
-     * @var Track
-     */
-    private $modelTrack;
-
-    /**
-     * @var MagentoOrderCollection
+     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
      */
     private $orderCollection;
 
     /**
-     * @var Data
+     * @var \MyParcelNL\Magento\Helper\Data
      */
     private $helper;
 
     /**
      * NewShipment constructor.
      *
-     * @param MagentoOrderCollection|null $orderCollection
+     * @param \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection|null $orderCollection
      */
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
         $this->objectManager   = ObjectManager::getInstance();
-        $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->redirectFactory = $this->objectManager->get('Magento\Framework\Controller\Result\RedirectFactory');
-        $this->messageManager  = $this->objectManager->get('Magento\Framework\Message\Manager');
+        $this->request         = $this->objectManager->get(RequestInterface::class);
+        $this->redirectFactory = $this->objectManager->get(RedirectFactory::class);
+        $this->messageManager  = $this->objectManager->get(Manager::class);
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->helper          = $this->objectManager->get('MyParcelNL\Magento\Helper\Data');
-        $this->modelTrack      = $this->objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
+        $this->helper          = $this->objectManager->get(Data::class);
     }
 
     /**
      * Create MyParcel concept
      *
-     * @param Observer $observer
+     * @param \Magento\Framework\Event\Observer $observer
      *
      * @return void
      * @throws Exception
@@ -111,7 +105,7 @@ class NewShipment implements ObserverInterface
     /**
      * Set MyParcel Tracks and update order grid
      *
-     * @param Shipment $shipment
+     * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
      * @throws Exception
      */
@@ -203,7 +197,7 @@ class NewShipment implements ObserverInterface
      *
      * Magento puts our two columns sales_order automatically to sales_order_grid
      *
-     * @param Shipment $shipment
+     * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
      * @throws Exception
      */

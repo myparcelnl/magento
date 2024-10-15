@@ -18,7 +18,6 @@ use Exception;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
@@ -29,7 +28,6 @@ use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Services\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
-use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
@@ -53,22 +51,22 @@ class TrackTraceHolder
     public const EXPORT_MODE_SHIPMENTS = 'shipments';
 
     /**
-     * @var DefaultOptions
+     * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
     private static $defaultOptions;
 
     /**
-     * @var AbstractConsignment|null
+     * @var \MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment|null
      */
     public $consignment;
 
     /**
-     * @var Order\Shipment\Track
+     * @var \Magento\Sales\Model\Order\Shipment\Track
      */
     public $mageTrack;
 
     /**
-     * @var ManagerInterface
+     * @var \Magento\Framework\Message\ManagerInterface
      */
     protected $messageManager;
 
@@ -78,26 +76,26 @@ class TrackTraceHolder
     private $carrier;
 
     /**
-     * @var Data
+     * @var \MyParcelNL\Magento\Helper\Data
      */
     private $dataHelper;
 
     /**
-     * @var ObjectManagerInterface
+     * @var \Magento\Framework\ObjectManagerInterface
      */
     private $objectManager;
 
     /**
-     * @var ShipmentOptions
+     * @var \MyParcelNL\Magento\Helper\ShipmentOptions
      */
     private $shipmentOptionsHelper;
 
     /**
      * TrackTraceHolder constructor.
      *
-     * @param ObjectManagerInterface $objectManager
-     * @param Data                   $helper
-     * @param Order                  $order
+     * @param \Magento\Framework\ObjectManagerInterface $objectManager
+     * @param \MyParcelNL\Magento\Helper\Data           $helper
+     * @param \Magento\Sales\Model\Order                $order
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
@@ -127,10 +125,10 @@ class TrackTraceHolder
     /**
      * Set all data to MyParcel object
      *
-     * @param Order\Shipment\Track $magentoTrack
-     * @param array                $options
+     * @param \Magento\Sales\Model\Order\Shipment\Track $magentoTrack
+     * @param array                                     $options
      *
-     * @return $this
+     * @return self
      * @throws Exception
      * @throws LocalizedException
      */
@@ -264,9 +262,9 @@ class TrackTraceHolder
     /**
      * Create Magento Track from Magento shipment
      *
-     * @param Shipment $shipment
+     * @param \Magento\Sales\Model\Order\Shipment $shipment
      *
-     * @return $this
+     * @return self
      */
     public function createTrackTraceFromShipment(Shipment $shipment)
     {
@@ -285,7 +283,7 @@ class TrackTraceHolder
     /**
      * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
      *
-     * @param $product_id
+     * @param int $product_id
      *
      * @return string
      */
@@ -308,8 +306,8 @@ class TrackTraceHolder
      *
      * @param null|string $apiKey
      *
-     * @return $this
-     * @throws LocalizedException
+     * @return self
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function validateApiKey(?string $apiKey): self
     {
@@ -328,8 +326,8 @@ class TrackTraceHolder
      * @param Order\Shipment\Track $magentoTrack
      * @param int                  $totalWeight
      *
-     * @return TrackTraceHolder
-     * @throws LocalizedException
+     * @return \MyParcelNL\Magento\Model\Sales\TrackTraceHolder
+     * @throws \Magento\Framework\Exception\LocalizedException
      * @throws Exception
      */
     private function calculateTotalWeight(Track $magentoTrack, int $totalWeight = 0): self
@@ -382,9 +380,9 @@ class TrackTraceHolder
     /**
      * @param Order\Shipment\Track $magentoTrack
      *
-     * @return $this
-     * @throws LocalizedException
-     * @throws MissingFieldException
+     * @return self
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
      * @throws Exception
      */
     private function convertDataForCdCountry(Track $magentoTrack)
@@ -437,12 +435,12 @@ class TrackTraceHolder
     }
 
     /**
-     * @param Order\Shipment\Track $magentoTrack
-     * @param object               $address
-     * @param array                $options
+     * @param \Magento\Sales\Model\Order\Shipment\Track $magentoTrack
+     * @param object                                    $address
+     * @param array                                     $options
      *
      * @return bool
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function getAgeCheck(Track $magentoTrack, $address, array $options = []): bool
     {
@@ -502,13 +500,13 @@ class TrackTraceHolder
     }
 
     /**
-     * @param Order\Shipment\Track $magentoTrack
-     * @param object               $address
-     * @param array                $options
-     * @param array                $deliveryOptions
+     * @param \Magento\Sales\Model\Order\Shipment\Track $magentoTrack
+     * @param object                                    $address
+     * @param array                                     $options
+     * @param array                                     $deliveryOptions
      *
      * @return int
-     * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function getPackageType(Track $magentoTrack, $address, array $options, array $deliveryOptions): int
     {

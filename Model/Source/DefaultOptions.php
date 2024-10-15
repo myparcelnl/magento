@@ -70,8 +70,8 @@ class DefaultOptions
     /**
      * Insurance constructor.
      *
-     * @param Order $order
-     * @param Data  $helper
+     * @param \Magento\Sales\Model\Order      $order
+     * @param \MyParcelNL\Magento\Helper\Data $helper
      */
     public function __construct(Order $order, Data $helper)
     {
@@ -293,7 +293,7 @@ class DefaultOptions
     /**
      * TODO: In the future, when multiple carriers will be available for Rest of World shipments, replace PostNL with a setting for default carrier
      *
-     * @return AbstractCarrier
+     * @return \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier
      * @throws Exception
      */
     public static function getDefaultCarrier(): AbstractCarrier
