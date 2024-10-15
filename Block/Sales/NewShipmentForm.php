@@ -2,6 +2,7 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
+use Exception;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
@@ -14,33 +15,41 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipmentForm
 {
-    public const ALLOWED_CARRIER_CLASSES = [
-        CarrierPostNL::class,
-        CarrierDHLForYou::class,
-        CarrierDHLEuroplus::class,
-        CarrierDHLParcelConnect::class,
-        CarrierUPS::class,
-        CarrierDPD::class,
-    ];
+    public const ALLOWED_CARRIER_CLASSES
+        = [
+            CarrierPostNL::class,
+            CarrierDHLForYou::class,
+            CarrierDHLEuroplus::class,
+            CarrierDHLParcelConnect::class,
+            CarrierUPS::class,
+            CarrierDPD::class,
+        ];
 
-    public const PACKAGE_TYPE_HUMAN_MAP = [
-        AbstractConsignment::PACKAGE_TYPE_PACKAGE       => 'Package',
-        AbstractConsignment::PACKAGE_TYPE_MAILBOX       => 'Mailbox',
-        AbstractConsignment::PACKAGE_TYPE_LETTER        => 'Letter',
-        AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => 'Digital stamp',
-        AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL => 'Small package',
-    ];
+    public const PACKAGE_TYPE_HUMAN_MAP
+        = [
+            AbstractConsignment::PACKAGE_TYPE_PACKAGE       => 'Package',
+            AbstractConsignment::PACKAGE_TYPE_MAILBOX       => 'Mailbox',
+            AbstractConsignment::PACKAGE_TYPE_LETTER        => 'Letter',
+            AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => 'Digital stamp',
+            AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL => 'Small package',
+        ];
 
     /**
      * @var array
      */
     private $shipmentOptionsHumanMap;
 
+    /**
+     * @var array
+     */
+    private $shipmentOptionsExplanation;
+
 
     public function __construct()
     {
-        $this->shipmentOptionsHumanMap = [
+        $this->shipmentOptionsHumanMap    = [
             AbstractConsignment::SHIPMENT_OPTION_SIGNATURE         => __('Signature on receipt'),
+            AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE      => __('Receiving code'),
             AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT    => __('Home address only'),
             AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK         => __('Age check 18+'),
             AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER       => __('Hide sender'),
@@ -48,10 +57,14 @@ class NewShipmentForm
             AbstractConsignment::SHIPMENT_OPTION_RETURN            => __('Return if no answer'),
             AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY => __('Same day delivery'),
         ];
+        $this->shipmentOptionsExplanation = [
+            AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE => __('Insurance is mandatory and will be set. Other shipment options will be removed.'),
+        ];
     }
+
     /**
      * @return AbstractConsignment[]
-     * @throws \Exception
+     * @throws Exception
      */
     public function getCarrierSpecificAbstractConsignments(): array
     {
@@ -70,5 +83,13 @@ class NewShipmentForm
     public function getShipmentOptionsHumanMap(): array
     {
         return $this->shipmentOptionsHumanMap;
+    }
+
+    /**
+     * @return array
+     */
+    public function getShipmentOptionsExplanationMap(): array
+    {
+        return $this->shipmentOptionsExplanation;
     }
 }

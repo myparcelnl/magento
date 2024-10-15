@@ -31,14 +31,15 @@ class Data extends AbstractHelper
     public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
     public const DEFAULT_WEIGHT                     = 1000;
-    public const CARRIERS_XML_PATH_MAP              = [
-        CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
-        CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
-        CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
-        CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
-        CarrierUPS::NAME              => self::XML_PATH_UPS_SETTINGS,
-        CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
-    ];
+    public const CARRIERS_XML_PATH_MAP
+                                                    = [
+            CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
+            CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
+            CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
+            CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
+            CarrierUPS::NAME              => self::XML_PATH_UPS_SETTINGS,
+            CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
+        ];
 
     /**
      * @var \Magento\Framework\Module\ModuleListInterface
@@ -53,15 +54,16 @@ class Data extends AbstractHelper
     /**
      * Get settings by field
      *
-     * @param  Context             $context
-     * @param  ModuleListInterface $moduleList
-     * @param  CheckApiKeyService  $checkApiKeyService
+     * @param Context             $context
+     * @param ModuleListInterface $moduleList
+     * @param CheckApiKeyService  $checkApiKeyService
      */
     public function __construct(
         Context             $context,
         ModuleListInterface $moduleList,
         CheckApiKeyService  $checkApiKeyService
-    ) {
+    )
+    {
         parent::__construct($context);
         $this->moduleList         = $moduleList;
         $this->checkApiKeyService = $checkApiKeyService;
@@ -71,7 +73,7 @@ class Data extends AbstractHelper
      * Get settings by field
      *
      * @param       $field
-     * @param  null $storeId
+     * @param null  $storeId
      *
      * @return mixed
      */
@@ -83,8 +85,8 @@ class Data extends AbstractHelper
     /**
      * Get general settings
      *
-     * @param  string   $code
-     * @param  null|int $storeId
+     * @param string   $code
+     * @param null|int $storeId
      *
      * @return mixed
      */
@@ -117,9 +119,9 @@ class Data extends AbstractHelper
     /**
      * Get default settings
      *
-     * @param  string $carrier
-     * @param  string $code
-     * @param  null   $storeId
+     * @param string $carrier
+     * @param string $code
+     * @param null   $storeId
      *
      * @return mixed
      */
@@ -131,8 +133,8 @@ class Data extends AbstractHelper
     /**
      * Get carrier setting
      *
-     * @param  string $code
-     * @param  string $carrier
+     * @param string $code
+     * @param string $carrier
      *
      * @return mixed
      */
@@ -174,7 +176,7 @@ class Data extends AbstractHelper
         $apiKey = $this->getApiKey();
 
         return $this->checkApiKeyService->setApiKey($apiKey)
-            ->apiKeyIsCorrect();
+                                        ->apiKeyIsCorrect();
     }
 
     /**
@@ -200,7 +202,7 @@ class Data extends AbstractHelper
     /**
      * Get date in YYYY-MM-DD HH:MM:SS format
      *
-     * @param  string|null $date
+     * @param string|null $date
      *
      * @return string|null
      */
@@ -224,7 +226,7 @@ class Data extends AbstractHelper
     /**
      * Get delivery type and when it is null use 'standard'
      *
-     * @param  int|null $deliveryType
+     * @param int|null $deliveryType
      *
      * @return int
      */
@@ -238,16 +240,16 @@ class Data extends AbstractHelper
     }
 
     /**
-     * @param  int    $orderId
-     * @param  string $status
+     * @param int    $orderId
+     * @param string $status
      */
     public function setOrderStatus(int $orderId, string $status): void
     {
         $order = ObjectManager::getInstance()
-            ->create('\Magento\Sales\Model\Order')
-            ->load($orderId);
+                              ->create('\Magento\Sales\Model\Order')
+                              ->load($orderId);
         $order->setState($status)
-            ->setStatus($status);
+              ->setStatus($status);
         $order->save();
     }
 
@@ -267,14 +269,14 @@ class Data extends AbstractHelper
                 AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
         }
 
-        // No shipment options available in any other cases
+        // No shipment options available in any other case
         return false;
     }
 
     /**
      * Get the correct weight type
      *
-     * @param  null|float $weight
+     * @param null|float $weight
      *
      * @return int
      */
