@@ -371,8 +371,8 @@ class TrackTraceHolder
         }
 
         $this->consignment->setPhysicalProperties([
-                                                      'weight' => $totalWeight,
-                                                  ]);
+            'weight' => $totalWeight,
+        ]);
 
         return $this;
     }

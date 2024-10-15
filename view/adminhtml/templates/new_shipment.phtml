@@ -5,8 +5,7 @@ use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 ?>
 <input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden"/><!-- MyParcel options -->
-<div
-        class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
+<div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
     <input
             id="mypa_create_from_observer"
             class="admin__control-checkbox"
@@ -148,6 +147,8 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                 foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
                     if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
                         || ! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
+                        || ($shipmentOption === AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE
+                            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $block->getDeliveryType())
                     ) {
                         continue;
                     }
@@ -171,7 +172,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                                 for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
                             <span><?= $form->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?>
                                 <?php
-                                if ($explanation = $form->getShipmentOptionsExplanationMap()[$shipmentOption] ?? '') {
+                                if (($explanation = $form->getShipmentOptionsExplanationMap()[$shipmentOption] ?? '')) {
                                     echo '<div class="tooltip"><span class="help"><span></span></span><div
                                         class="tooltip-content">', htmlentities($explanation), '</div></div>';
                                 } ?>
