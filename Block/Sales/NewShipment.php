@@ -14,6 +14,7 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
+use Exception;
 use Magento\Backend\Block\Template\Context;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
@@ -21,10 +22,10 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Helper\Checkout;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Helper\Data;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipment extends AbstractItems
@@ -72,13 +73,14 @@ class NewShipment extends AbstractItems
      * @param \Magento\Framework\ObjectManagerInterface                 $objectManager
      */
     public function __construct(
-        Context $context,
-        Data $helper,
-        StockRegistryInterface $stockRegistry,
+        Context                     $context,
+        Data                        $helper,
+        StockRegistryInterface      $stockRegistry,
         StockConfigurationInterface $stockConfiguration,
-        Registry $registry,
-        ObjectManagerInterface $objectManager
-    ) {
+        Registry                    $registry,
+        ObjectManagerInterface      $objectManager
+    )
+    {
         // Set order
         $this->order         = $registry->registry('current_shipment')->getOrder();
         $this->dataHelper    = $helper;
@@ -97,8 +99,8 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * @param  string $option 'signature', 'only_recipient'
-     * @param  string $carrier
+     * @param string $option 'signature', 'only_recipient'
+     * @param string $carrier
      *
      * @return bool
      */
@@ -110,8 +112,8 @@ class NewShipment extends AbstractItems
     /**
      * Get default value of age check
      *
-     * @param  string $carrier
-     * @param  string $option
+     * @param string $carrier
+     * @param string $option
      *
      * @return bool
      */
@@ -123,7 +125,7 @@ class NewShipment extends AbstractItems
     /**
      * Get default value of insurance based on order grand total
      *
-     * @param  string $carrier
+     * @param string $carrier
      *
      * @return int
      */
@@ -169,6 +171,18 @@ class NewShipment extends AbstractItems
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
+    }
+
+    public function getDeliveryType(): int
+    {
+        try {
+            $deliveryTypeName = json_decode($this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)['deliveryType'];
+            $deliveryType     = AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP[$deliveryTypeName];
+        } catch (Exception $e) {
+            $deliveryType = AbstractConsignment::DEFAULT_DELIVERY_TYPE;
+        }
+
+        return $deliveryType;
     }
 
     public function consignmentHasShipmentOption(AbstractConsignment $consignment, string $shipmentOption): bool

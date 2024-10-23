@@ -75,6 +75,7 @@ Select a standard orientation for printing labels.,Sélectionnez une orientation
 Default shipping options,Options d'expédition standards
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Indiquez ici vos préférences standards quant aux options d'expédition. S'ils sont d'application, ces paramètres seront utilisés par défaut pour tous vos envois. Ces options peuvent bien sûr toujours être modifiées lors du traitement."
 Automate 'Signature on receipt',Automatisation de la 'Signature pour réception'
+Automate 'Receipt code',Automatisation de la 'Code de réception'
 Signature on receipt' operates above a certain order total amount,La 'Signature pour réception' est activée lorsque le montant total dépasse le montant indiqué ci-dessus
 Automate 'Insurance € 500',Automatisation de l''Assurance jusqu'à € 500'
 "Insurance € 500' operates above a certain order total amount.","L''Assurance jusqu'à € 500' est activée lorsque le montant total dépasse le montant ci-dessus."
@@ -85,6 +86,8 @@ Track action,Action de suivi
 MyParcel options,Options MyParcel
 Package,Colis
 Signature on receipt,Signature pour réception
+Receipt code,Code de réception
+Receipt code fee,Frais de code de réception
 Home address only,Livraison à domicile uniquement
 Hide sender title,Titre de masquer l'expéditeur
 Insured up to:,Assuré jusqu'à :
@@ -221,5 +224,6 @@ mailbox_title, Colis boîte aux lettres
 digital_stamp_title, Timbre digital
 packet_title, Colis
 signature_title, Signature à réception
+receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
 saturday_delivery, Livraison le samedi
