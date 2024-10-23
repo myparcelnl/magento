@@ -86,10 +86,6 @@ class ShipmentOptions
         $this->carrier        = $carrier;
         $this->options        = $options;
         $this->cc             = $order->getShippingAddress() ? $order->getShippingAddress()->getCountryId() : null;
-
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log',
-            'SIGNATURE: ' . $defaultOptions->hasOptionSet(self::SIGNATURE, $carrier) . ', ' . var_export($this->optionIsEnabled(self::SIGNATURE), true) . PHP_EOL
-            , FILE_APPEND);
     }
 
     /**
