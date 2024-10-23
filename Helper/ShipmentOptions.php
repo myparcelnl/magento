@@ -72,12 +72,12 @@ class ShipmentOptions
      * @param array                                           $options
      */
     public function __construct(
-        DefaultOptions             $defaultOptions,
-        Data                       $helper,
-        \Magento\Sales\Model\Order $order,
-        ObjectManagerInterface     $objectManager,
-        string                     $carrier,
-        array                      $options = []
+        DefaultOptions         $defaultOptions,
+        Data                   $helper,
+        Order                  $order,
+        ObjectManagerInterface $objectManager,
+        string                 $carrier,
+        array                  $options = []
     ) {
         $this->defaultOptions = $defaultOptions;
         $this->helper         = $helper;
