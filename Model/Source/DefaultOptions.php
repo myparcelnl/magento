@@ -55,17 +55,17 @@ class DefaultOptions
     /**
      * @var Data
      */
-    private static $helper;
+    private $helper;
 
     /**
      * @var Order
      */
-    private static $order;
+    private $order;
 
     /**
      * @var array
      */
-    private static $chosenOptions;
+    private $chosenOptions;
 
     /**
      * Insurance constructor.
@@ -75,14 +75,14 @@ class DefaultOptions
      */
     public function __construct(Order $order, Data $helper)
     {
-        self::$helper = $helper;
-        self::$order  = $order;
+        $this->helper = $helper;
+        $this->order  = $order;
         try {
-            self::$chosenOptions = DeliveryOptionsAdapterFactory::create(
+            $this->chosenOptions = DeliveryOptionsAdapterFactory::create(
                 (array) json_decode($order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)
             )->toArray();
         } catch (Exception $e) {
-            self::$chosenOptions = [];
+            $this->chosenOptions = [];
         }
     }
 
@@ -94,22 +94,22 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function hasDefault(string $option, string $carrier): bool
+    public function hasOptionSet(string $option, string $carrier): bool
     {
         if (AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $option) {
             return $this->hasDefaultLargeFormat($carrier, $option);
         }
 
         // Check that the customer has already chosen this option in the checkout
-        if (is_array(self::$chosenOptions) &&
-            array_key_exists('shipmentOptions', self::$chosenOptions) &&
-            array_key_exists($option, self::$chosenOptions['shipmentOptions']) &&
-            self::$chosenOptions['shipmentOptions'][$option]
+        if (is_array($this->chosenOptions) &&
+            array_key_exists('shipmentOptions', $this->chosenOptions) &&
+            array_key_exists($option, $this->chosenOptions['shipmentOptions']) &&
+            $this->chosenOptions['shipmentOptions'][$option]
         ) {
             return true;
         }
 
-        return false;
+        return $this->hasDefaultOption($carrier, $option);
     }
 
     /**
@@ -136,10 +136,10 @@ class DefaultOptions
      */
     public function hasDefaultLargeFormat(string $carrier, string $option): bool
     {
-        $price  = self::$order->getGrandTotal();
-        $weight = self::$helper->convertToGrams(self::$order->getWeight());
+        $price  = $this->order->getGrandTotal();
+        $weight = $this->helper->convertToGrams($this->order->getWeight());
 
-        $settings  = self::$helper->getStandardConfig($carrier, 'default_options');
+        $settings  = $this->helper->getStandardConfig($carrier, 'default_options');
         $activeKey = "{$option}_active";
 
         if (isset($settings[$activeKey]) &&
@@ -165,11 +165,17 @@ class DefaultOptions
      *
      * @return bool
      */
-    public function hasDefaultOptionsWithoutPrice(string $carrier, string $option): bool
+    public function hasDefaultOption(string $carrier, string $option): bool
     {
-        $settings = self::$helper->getStandardConfig($carrier, 'default_options');
+        $settings = $this->helper->getStandardConfig($carrier, 'default_options');
+        if ('1' !== ($settings[$option . '_active'] ?? null)) {
+            return false;
+        }
 
-        return '1' === ($settings[$option . '_active'] ?? null);
+        $fromPrice = $settings[$option . '_from_price'] ?? 0;
+        $orderAmount = $this->order->getGrandTotal() ?? 0.0;
+
+        return $fromPrice <= $orderAmount;
     }
 
     /**
@@ -182,7 +188,7 @@ class DefaultOptions
      */
     public function getDefaultInsurance(string $carrier): int
     {
-        $shippingAddress = self::$order->getShippingAddress();
+        $shippingAddress = $this->order->getShippingAddress();
         $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : AbstractConsignment::CC_NL;
 
         if (AbstractConsignment::CC_NL === $shippingCountry) {
@@ -205,13 +211,13 @@ class DefaultOptions
      */
     private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
     {
-        $total                = self::$order->getGrandTotal();
-        $settings             = self::$helper->getStandardConfig($carrierName, 'default_options');
+        $total = $this->order->getGrandTotal();
+        $settings = $this->helper->getStandardConfig($carrierName, 'default_options');
         $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
         if (! isset($settings[$priceKey])
-            || $settings[$priceKey] === 0
-            || $totalAfterPercentage < $settings[self::INSURANCE_FROM_PRICE]) {
+            || (int) $settings[$priceKey] === 0
+            || $totalAfterPercentage < (int) $settings[self::INSURANCE_FROM_PRICE]) {
             return 0;
         }
 
@@ -240,7 +246,7 @@ class DefaultOptions
      */
     public function getDigitalStampDefaultWeight(): string
     {
-        return self::$helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
+        return $this->helper->getCarrierConfig('digital_stamp/default_weight', 'myparcelnl_magento_postnl_settings/');
     }
 
     /**
@@ -250,11 +256,11 @@ class DefaultOptions
      */
     public function getPackageType(): int
     {
-        if (self::$chosenOptions) {
-            $keyIsPresent = array_key_exists('packageType', self::$chosenOptions);
+        if ($this->chosenOptions) {
+            $keyIsPresent = array_key_exists('packageType', $this->chosenOptions);
 
             if ($keyIsPresent) {
-                $packageType = self::$chosenOptions['packageType'];
+                $packageType  = $this->chosenOptions['packageType'];
 
                 return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
             }
@@ -268,11 +274,11 @@ class DefaultOptions
      */
     public function getCarrier(): string
     {
-        if (self::$chosenOptions) {
-            $keyIsPresent = array_key_exists('carrier', self::$chosenOptions);
+        if ($this->chosenOptions) {
+            $keyIsPresent = array_key_exists('carrier', $this->chosenOptions);
 
             if ($keyIsPresent) {
-                return self::$chosenOptions['carrier'];
+                return $this->chosenOptions['carrier'];
             }
         }
 
