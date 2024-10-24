@@ -36,7 +36,7 @@ class ShipmentOptions
     /**
      * @var \MyParcelNL\Magento\Model\Source\DefaultOptions
      */
-    private static $defaultOptions;
+    private $defaultOptions;
 
     /**
      * @var \Magento\Framework\ObjectManagerInterface
@@ -78,9 +78,8 @@ class ShipmentOptions
         ObjectManagerInterface $objectManager,
         string                 $carrier,
         array                  $options = []
-    )
-    {
-        self::$defaultOptions = $defaultOptions;
+    ) {
+        $this->defaultOptions = $defaultOptions;
         $this->helper         = $helper;
         $this->order          = $order;
         $this->objectManager  = $objectManager;
@@ -94,7 +93,7 @@ class ShipmentOptions
      */
     public function getInsurance(): int
     {
-        return $this->options['insurance'] ?? self::$defaultOptions->getDefaultInsurance($this->carrier);
+        return $this->options['insurance'] ?? $this->defaultOptions->getDefaultInsurance($this->carrier);
     }
 
     /**
@@ -167,7 +166,7 @@ class ShipmentOptions
 
         $ageCheckFromOptions  = self::getValueOfOptionWhenSet(self::AGE_CHECK, $this->options);
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
-        $ageCheckFromSettings = self::$defaultOptions->hasDefaultOptionsWithoutPrice($this->carrier, self::AGE_CHECK);
+        $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, self::AGE_CHECK);
 
         return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
@@ -297,7 +296,7 @@ class ShipmentOptions
         }
 
         $largeFormatFromOptions  = self::getValueOfOptionWhenSet(self::LARGE_FORMAT, $this->options);
-        $largeFormatFromSettings = self::$defaultOptions->hasDefault(self::LARGE_FORMAT, $this->carrier);
+        $largeFormatFromSettings = $this->defaultOptions->hasOptionSet(self::LARGE_FORMAT, $this->carrier);
 
         return $largeFormatFromOptions ?? $largeFormatFromSettings;
     }
@@ -384,7 +383,7 @@ class ShipmentOptions
     private function optionIsEnabled($optionKey): bool
     {
         if (! isset($this->options[$optionKey])) {
-            return self::$defaultOptions->hasDefault($optionKey, $this->carrier);
+            return $this->defaultOptions->hasOptionSet($optionKey, $this->carrier);
         }
 
         return (bool) $this->options[$optionKey];
