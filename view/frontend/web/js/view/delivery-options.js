@@ -1,3 +1,6 @@
+Here is the merged file content with the requested replacement:
+
+```
 define(
   [
     'underscore',
@@ -319,104 +322,4 @@ define(
        * Until there's a built in solution, there's the following workaround.
        */
       disabledDeliveryPickupRadio: function() {
-        var delivery = document.getElementById(deliveryOptions.disableDelivery);
-        var pickup = document.getElementById(deliveryOptions.disablePickup);
-
-        if (delivery) {
-          delivery.disabled = false;
-        }
-
-        if (pickup) {
-          pickup.disabled = false;
-        }
-      },
-
-      /**
-       * Change the shipping method and disable the delivery options if needed.
-       *
-       * @param {Object} selectedShippingMethod - The shipping method that was selected.
-       */
-      onShippingMethodUpdate: function(selectedShippingMethod) {
-        var newShippingMethod = selectedShippingMethod || {};
-        var available = newShippingMethod.available || false;
-        var isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(newShippingMethod);
-
-        checkout.hideShippingMethods();
-
-        if (!checkout.hasDeliveryOptions() || !available) {
-          return;
-        }
-
-        if (!isMyParcelMethod) {
-            deliveryOptions.triggerEvent(deliveryOptions.disableDeliveryOptionsEvent);
-            deliveryOptions.isUsingMyParcelMethod = false;
-            return;
-        }
-
-        deliveryOptions.shippingMethod = newShippingMethod;
-        deliveryOptions.isUsingMyParcelMethod = true;
-      },
-
-      /**
-       * Get the new shipping method that should be saved.
-       *
-       * @param {string} methodCode - Method code to use to find a method.
-       *
-       * @returns {Object}
-       */
-      getNewShippingMethod: function(methodCode) {
-        var newShippingMethod = [];
-        var matchingShippingMethod = checkout.findRateByMethodCode(methodCode);
-
-        if (matchingShippingMethod) {
-          return matchingShippingMethod;
-        } else {
-          /**
-           * If the method doesn't exist, loop through the allowed shipping methods and return the first one that
-           *  matches.
-           */
-          checkout.allowedShippingMethods().forEach(function(carrierCode) {
-            var foundRate = checkout.findOriginalRateByCarrierCode(carrierCode);
-
-            if (foundRate) {
-              newShippingMethod.push(foundRate);
-            }
-          });
-
-          return newShippingMethod.length ? newShippingMethod[0] : null;
-        }
-      },
-
-      /**
-       * @param {Object} shippingMethod
-       * @returns {boolean}
-       */
-      isMyParcelShippingMethod: function(shippingMethod) {
-        return shippingMethod.available && shippingMethod.method_code.indexOf('myparcel') !== -1;
-      },
-
-      /**
-       * For use when magic decimals appear...
-       *
-       * @param {number} number
-       * @param {number} decimals
-       * @returns {number}
-       *
-       * @see https://stackoverflow.com/a/10474209
-       */
-      roundNumber: function(number, decimals) {
-        var newNumber = Number(String(number)).toFixed(decimals);
-        return parseFloat(newNumber);
-      },
-
-      updateConfig: function() {
-        if (!window.MyParcelConfig.hasOwnProperty('address')) {
-          window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
-        }
-        deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
-      },
-    };
-
-    return deliveryOptions;
-  }
-);
+        var
