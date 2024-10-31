@@ -17,8 +17,8 @@ class ShipmentOptions
     private const ONLY_RECIPIENT = 'only_recipient';
     private const SAME_DAY_DELIVERY = 'same_day_delivery';
     private const SIGNATURE = 'signature';
-    private const RETURN = 'return';
-    private const AGE_CHECK = 'age_check';
+    private const RETURN       = 'return';
+    public const AGE_CHECK     = 'age_check';
     private const LARGE_FORMAT = 'large_format';
     private const HIDE_SENDER = 'hide_sender';
     private const LABEL_DESCRIPTION = 'label_description';
@@ -36,7 +36,7 @@ class ShipmentOptions
     /**
      * @var DefaultOptions
      */
-    private static $defaultOptions;
+    private $defaultOptions;
 
     /**
      * @var ObjectManagerInterface
@@ -79,7 +79,7 @@ class ShipmentOptions
         array                  $options = []
     )
     {
-        self::$defaultOptions = $defaultOptions;
+        $this->defaultOptions = $defaultOptions;
         $this->configService  = $objectManager->get(ConfigService::class);
         $this->datingService  = $objectManager->get(DatingService::class);
         $this->order          = $order;
@@ -94,7 +94,7 @@ class ShipmentOptions
      */
     public function getInsurance(): int
     {
-        return $this->options['insurance'] ?? self::$defaultOptions->getDefaultInsurance($this->carrier);
+        return $this->options['insurance'] ?? $this->defaultOptions->getDefaultInsurance($this->carrier);
     }
 
     /**
@@ -152,7 +152,7 @@ class ShipmentOptions
 
         $ageCheckFromOptions  = self::getValueOfOptionWhenSet(self::AGE_CHECK, $this->options);
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
-        $ageCheckFromSettings = self::$defaultOptions->hasDefaultOptionsWithoutPrice($this->carrier, self::AGE_CHECK);
+        $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, self::AGE_CHECK);
 
         return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
@@ -177,7 +177,7 @@ class ShipmentOptions
             $productAgeCheck = self::getAttributeValue(
                 'catalog_product_entity_varchar',
                 $product['product_id'],
-                'age_check'
+                self::AGE_CHECK
             );
 
             if (!isset($productAgeCheck) || '' === $productAgeCheck) {
@@ -282,7 +282,7 @@ class ShipmentOptions
         }
 
         $largeFormatFromOptions  = self::getValueOfOptionWhenSet(self::LARGE_FORMAT, $this->options);
-        $largeFormatFromSettings = self::$defaultOptions->hasDefault(self::LARGE_FORMAT, $this->carrier);
+        $largeFormatFromSettings = $this->defaultOptions->hasOptionSet(self::LARGE_FORMAT, $this->carrier);
 
         return $largeFormatFromOptions ?? $largeFormatFromSettings;
     }
@@ -369,7 +369,7 @@ class ShipmentOptions
     private function optionIsEnabled($optionKey): bool
     {
         if (!isset($this->options[$optionKey])) {
-            return self::$defaultOptions->hasDefault($optionKey, $this->carrier);
+            return $this->defaultOptions->hasOptionSet($optionKey, $this->carrier);
         }
 
         return (bool)$this->options[$optionKey];
