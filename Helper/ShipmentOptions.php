@@ -8,18 +8,20 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Date\DatingService;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use Magento\Framework\App\ResourceConnection;
 
 class ShipmentOptions
 {
-    private const INSURANCE = 'insurance';
-    private const ONLY_RECIPIENT = 'only_recipient';
+    public const INSURANCE      = 'insurance';
+    public const ONLY_RECIPIENT = 'only_recipient';
     private const SAME_DAY_DELIVERY = 'same_day_delivery';
-    private const SIGNATURE = 'signature';
-    private const RETURN       = 'return';
-    public const AGE_CHECK     = 'age_check';
-    private const LARGE_FORMAT = 'large_format';
+    public const SIGNATURE          = 'signature';
+    public const RECEIPT_CODE = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
+    public const RETURN       = 'return';
+    public const AGE_CHECK    = 'age_check';
+    public const LARGE_FORMAT = 'large_format';
     private const HIDE_SENDER = 'hide_sender';
     private const LABEL_DESCRIPTION = 'label_description';
     private const ORDER_NUMBER = '%order_nr%';
@@ -109,6 +111,21 @@ class ShipmentOptions
         $signatureFromOptions = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
 
         return $signatureFromOptions ?? $this->optionIsEnabled(self::SIGNATURE);
+    }
+
+    public function hasReceiptCode(): bool
+    {
+        $deliveryOptions = $this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS) ?? [];
+        $deliveryType    = $deliveryOptions['deliveryType'] ?? AbstractConsignment::DEFAULT_DELIVERY_TYPE;
+
+        if (AbstractConsignment::CC_NL !== $this->cc
+            || CarrierPostNL::NAME !== $this->carrier
+            || AbstractConsignment::DELIVERY_TYPE_STANDARD !== $deliveryType
+        ) {
+            return false;
+        }
+
+        return self::getValueOfOptionWhenSet(self::RECEIPT_CODE, $this->options) ?? $this->optionIsEnabled(self::RECEIPT_CODE);
     }
 
     /**
@@ -385,6 +402,7 @@ class ShipmentOptions
             self::RETURN            => $this->hasReturn(),
             self::ONLY_RECIPIENT    => $this->hasOnlyRecipient(),
             self::SIGNATURE         => $this->hasSignature(),
+            self::RECEIPT_CODE      => $this->hasReceiptCode(),
             self::AGE_CHECK         => $this->hasAgeCheck(),
             self::LARGE_FORMAT      => $this->hasLargeFormat(),
             self::LABEL_DESCRIPTION => $this->getLabelDescription(),

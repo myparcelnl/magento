@@ -25,6 +25,7 @@ use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\src\Support\Str;
 
 class DefaultOptions
 {
@@ -79,7 +80,7 @@ class DefaultOptions
     /**
      * Get default of the option
      *
-     * @param string $option 'only_recipient'|'signature'|'return'|'large_format'
+     * @param string $option 'only_recipient'|'signature'|'receipt_code'|'return'|'large_format'
      * @param string $carrier
      *
      * @return bool
@@ -108,11 +109,7 @@ class DefaultOptions
      */
     public function getMaxCompanyName(?string $company): ?string
     {
-        if ($company !== null && (strlen($company) >= self::COMPANY_NAME_MAX_LENGTH)) {
-            $company = substr($company, 0, 47) . '...';
-        }
-
-        return $company;
+        return Str::limit($company, self::COMPANY_NAME_MAX_LENGTH);
     }
 
     /**

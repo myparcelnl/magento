@@ -19,8 +19,12 @@ use Throwable;
 
 class Checkout
 {
-    private ConfigService $configService;
+    private ConfigService        $configService;
     private DeliveryCostsService $deliveryCostsService;
+
+    /**
+     * @var \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
+     */
     private PackageRepository $package;
 
     /**
@@ -36,16 +40,16 @@ class Checkout
     /**
      * @var mixed
      */
-    private $country;
+    private         $country;
     private Session $session;
 
     /**
      * Checkout constructor.
      *
-     * @param Session $session
-     * @param Cart $cart
-     * @param ConfigService $configService
-     * @param PackageRepository $package
+     * @param Session               $session
+     * @param Cart                  $cart
+     * @param ConfigService         $configService
+     * @param PackageRepository     $package
      * @param StoreManagerInterface $currency
      */
     public function __construct(
@@ -106,7 +110,7 @@ class Checkout
     /**
      * Get general data
      *
-     * @return array)
+     * @return array
      * @throws NoSuchEntityException|LocalizedException
      */
     private function getGeneralData()
@@ -183,6 +187,7 @@ class Checkout
             $canHaveMorning       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
             $canHaveEvening       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EVENING_NAME);
             $canHaveSignature     = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_SIGNATURE);
+            $canHaveReceiptCode   = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE);
             $canHaveOnlyRecipient = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT);
             $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
             $canHavePickup        = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
@@ -202,16 +207,17 @@ class Checkout
             $mondayFee        = $canHaveMonday ? $this->configService->getFloatConfig($carrierPath, 'delivery/monday_fee') + $addBasePrice : 0;
             $morningFee       = $canHaveMorning ? $this->configService->getFloatConfig($carrierPath, 'morning/fee') + $addBasePrice : 0;
             $eveningFee       = $canHaveEvening ? $this->configService->getFloatConfig($carrierPath, 'evening/fee') + $addBasePrice : 0;
-            $sameDayFee       = $canHaveSameDay ? (int)$this->configService->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee') + $addBasePrice : 0;
+            $sameDayFee       = $canHaveSameDay ? (int) $this->configService->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee') + $addBasePrice : 0;
             $signatureFee     = $canHaveSignature ? $this->configService->getFloatConfig($carrierPath, 'delivery/signature_fee') : 0;
+            $receiptCodeFee   = $canHaveReceiptCode ? $this->configService->getFloatConfig($carrierPath, 'delivery/receipt_code_fee') : 0;
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->configService->getFloatConfig($carrierPath, 'delivery/only_recipient_fee') : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $allowPickup           = $this->configService->getBoolConfig($carrierPath, 'pickup/active');
             $allowStandardDelivery = $this->configService->getBoolConfig($carrierPath, 'delivery/active');
-            $allowMorningDelivery  = !$isAgeCheckActive && $canHaveMorning && $this->configService->getBoolConfig($carrierPath, 'morning/active');
-            $allowEveningDelivery  = !$isAgeCheckActive && $canHaveEvening && $this->configService->getBoolConfig($carrierPath, 'evening/active');
-            $allowDeliveryOptions  = !$this->package->deliveryOptionsDisabled
+            $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveMorning && $this->configService->getBoolConfig($carrierPath, 'morning/active');
+            $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveEvening && $this->configService->getBoolConfig($carrierPath, 'evening/active');
+            $allowDeliveryOptions  = ! $this->package->deliveryOptionsDisabled
                 && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             if ($allowDeliveryOptions && $packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
@@ -224,6 +230,7 @@ class Checkout
                 'allowDeliveryOptions'  => $allowDeliveryOptions,
                 'allowStandardDelivery' => $allowStandardDelivery,
                 'allowSignature'        => $canHaveSignature && $this->configService->getBoolConfig($carrierPath, 'delivery/signature_active'),
+                'allowReceiptCode'      => $canHaveReceiptCode && $this->configService->getBoolConfig($carrierPath, 'delivery/receipt_code_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->configService->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
@@ -234,6 +241,7 @@ class Checkout
                 'dropOffDays' => $this->getDropOffDays($carrierPath),
 
                 'priceSignature'                       => $signatureFee,
+                'priceReceiptCode'                     => $receiptCodeFee,
                 'priceOnlyRecipient'                   => $onlyRecipientFee,
                 'priceStandardDelivery'                => $addBasePrice,
                 'priceMondayDelivery'                  => $mondayFee,
@@ -282,7 +290,7 @@ class Checkout
             $cutoffTimeSameDay = $this->configService->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$weekday");
             $sameDayTimeEntry  = $cutoffTimeSameDay ? ['cutoffTimeSameDay' => $cutoffTimeSameDay] : [];
             if ($this->configService->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
-                $dropOffDays[] = (object)array_merge(
+                $dropOffDays[] = (object) array_merge(
                     [
                         'weekday'    => $weekday,
                         'cutoffTime' => $this->configService->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
@@ -349,7 +357,7 @@ class Checkout
     }
 
     /**
-     * @param string $carrier
+     * @param string      $carrier
      * @param string|null $country
      *
      * @return string
@@ -413,14 +421,14 @@ class Checkout
     public function getDropOffDelay(string $carrierPath, string $key): int
     {
         $products     = $this->quote->getAllItems();
-        $productDelay = (int)$this->package->getProductDropOffDelay($products);
+        $productDelay = (int) $this->package->getProductDropOffDelay($products);
         $configDelay  = $this->configService->getIntegerConfig($carrierPath, $key);
 
         return max($productDelay, $configDelay);
     }
 
     /**
-     * @return $this
+     * @return self
      */
     public function hideDeliveryOptionsForProduct()
     {
@@ -440,8 +448,8 @@ class Checkout
         $isMailboxPackage     = AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $this->getPackageType();
         $pickupEnabled        = $this->configService->getBoolConfig($carrier, 'pickup/active');
         $showPickupForMailbox = $this->configService->getBoolConfig($carrier, 'mailbox/pickup_mailbox');
-        $showPickup           = !$isMailboxPackage || $showPickupForMailbox;
+        $showPickup           = ! $isMailboxPackage || $showPickupForMailbox;
 
-        return !$this->package->deliveryOptionsDisabled && $pickupEnabled && $showPickup;
+        return ! $this->package->deliveryOptionsDisabled && $pickupEnabled && $showPickup;
     }
 }

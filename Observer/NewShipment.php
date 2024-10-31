@@ -15,8 +15,11 @@
 namespace MyParcelNL\Magento\Observer;
 
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Message\Manager;
 use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
@@ -47,11 +50,6 @@ class NewShipment implements ObserverInterface
     private $request;
 
     /**
-     * @var \Magento\Sales\Model\Order\Shipment\Track
-     */
-    private $modelTrack;
-
-    /**
      * @var MagentoOrderCollection
      */
     private $orderCollection;
@@ -69,9 +67,9 @@ class NewShipment implements ObserverInterface
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
         $this->objectManager   = ObjectManager::getInstance();
-        $this->request         = $this->objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->redirectFactory = $this->objectManager->get('Magento\Framework\Controller\Result\RedirectFactory');
-        $this->messageManager  = $this->objectManager->get('Magento\Framework\Message\Manager');
+        $this->request         = $this->objectManager->get(RequestInterface::class);
+        $this->redirectFactory = $this->objectManager->get(RedirectFactory::class);
+        $this->messageManager  = $this->objectManager->get(Manager::class);
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
         $this->configService   = $this->objectManager->get(ConfigService::class);
     }
@@ -112,7 +110,7 @@ class NewShipment implements ObserverInterface
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
         $options = $this->orderCollection->setOptionsFromParameters()
-            ->getOptions();
+                                         ->getOptions();
 
         if (isset($options['carrier']) && false === $options['carrier']) {
             unset($options['carrier']);
@@ -210,8 +208,8 @@ class NewShipment implements ObserverInterface
         }
 
         $shipment->getOrder()
-            ->setData('track_status', $aHtml['track_status'])
-            ->setData('track_number', $aHtml['track_number'])
-            ->save();
+                 ->setData('track_status', $aHtml['track_status'])
+                 ->setData('track_number', $aHtml['track_number'])
+                 ->save();
     }
 }
