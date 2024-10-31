@@ -14,12 +14,14 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
+use Exception;
 use Magento\Backend\Block\Template\Context;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
+use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
@@ -51,18 +53,19 @@ class NewShipment extends AbstractItems
     private MagentoOrderCollection $orderCollection;
 
     /**
-     * @param Context $context
-     * @param StockRegistryInterface $stockRegistry
+     * @param Context                     $context
+     * @param StockRegistryInterface      $stockRegistry
      * @param StockConfigurationInterface $stockConfiguration
-     * @param Registry $registry
+     * @param Registry                    $registry
      */
     public function __construct(
-        Context $context,
-        StockRegistryInterface $stockRegistry,
+        Context                     $context,
+        StockRegistryInterface      $stockRegistry,
         StockConfigurationInterface $stockConfiguration,
-        Registry $registry,
-        ObjectManagerInterface $objectManager
-    ) {
+        Registry                    $registry,
+        ObjectManagerInterface      $objectManager
+    )
+    {
         $this->order         = $registry->registry('current_shipment')->getOrder();
         $this->weightService = $objectManager->get(WeightService::class);
         $this->configService = $objectManager->get(ConfigService::class);
@@ -70,15 +73,15 @@ class NewShipment extends AbstractItems
 
         $this->defaultOptions = new DefaultOptions($this->order);
 
-        $request         = $objectManager->get('Magento\Framework\App\RequestInterface');
+        $request               = $objectManager->get('Magento\Framework\App\RequestInterface');
         $this->orderCollection = new MagentoOrderCollection($objectManager, $request);
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
 
     /**
-     * @param  string $option 'signature', 'only_recipient'
-     * @param  string $carrier
+     * @param string $option 'signature', 'only_recipient'
+     * @param string $carrier
      *
      * @return bool
      */
@@ -90,7 +93,7 @@ class NewShipment extends AbstractItems
     /**
      * Get default value of insurance based on order grand total
      *
-     * @param  string $carrier
+     * @param string $carrier
      *
      * @return int
      */
@@ -136,6 +139,18 @@ class NewShipment extends AbstractItems
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
+    }
+
+    public function getDeliveryType(): int
+    {
+        try {
+            $deliveryTypeName = json_decode($this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)['deliveryType'];
+            $deliveryType     = AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP[$deliveryTypeName];
+        } catch (Exception $e) {
+            $deliveryType = AbstractConsignment::DEFAULT_DELIVERY_TYPE;
+        }
+
+        return $deliveryType;
     }
 
     public function consignmentHasShipmentOption(AbstractConsignment $consignment, string $shipmentOption): bool

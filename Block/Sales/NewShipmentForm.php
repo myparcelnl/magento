@@ -2,6 +2,7 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
+use Exception;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
@@ -34,7 +35,12 @@ class NewShipmentForm
     /**
      * @var array
      */
-    private $shipmentOptionsHumanMap;
+    private array $shipmentOptionsHumanMap;
+
+    /**
+     * @var array
+     */
+    private array $shipmentOptionsExplanation;
 
 
     public function __construct()
@@ -48,10 +54,15 @@ class NewShipmentForm
             AbstractConsignment::SHIPMENT_OPTION_RETURN            => __('Return if no answer'),
             AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY => __('Same day delivery'),
         ];
+
+        $this->shipmentOptionsExplanation = [
+            AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE => __('Insurance is mandatory and will be set. Other shipment options will be removed.'),
+        ];
     }
+
     /**
      * @return AbstractConsignment[]
-     * @throws \Exception
+     * @throws Exception
      */
     public function getCarrierSpecificAbstractConsignments(): array
     {
@@ -70,5 +81,13 @@ class NewShipmentForm
     public function getShipmentOptionsHumanMap(): array
     {
         return $this->shipmentOptionsHumanMap;
+    }
+
+    /**
+     * @return array
+     */
+    public function getShipmentOptionsExplanationMap(): array
+    {
+        return $this->shipmentOptionsExplanation;
     }
 }

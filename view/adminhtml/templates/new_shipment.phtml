@@ -148,6 +148,8 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                 foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
                     if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
                         || ! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
+                        || ($shipmentOption === AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE
+                            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $block->getDeliveryType())
                     ) {
                         continue;
                     }
@@ -170,6 +172,11 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                             class="admin__field-label"
                             for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
                             <span><?= $form->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?>
+                                <?php
+                                if (($explanation = $form->getShipmentOptionsExplanationMap()[$shipmentOption] ?? '')) {
+                                    echo '<div class="tooltip"><span class="help"><span></span></span><div
+                                        class="tooltip-content">', htmlentities($explanation), '</div></div>';
+                                } ?>
                             </span>
                         </label>
                     </div>

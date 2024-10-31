@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Adapter;
 
+use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractShipmentOptionsAdapter;
 
@@ -17,11 +18,12 @@ class ShipmentOptionsFromAdapter extends AbstractShipmentOptionsAdapter
     public function __construct(array $inputData)
     {
         $options              = $inputData ?? [];
-        $this->signature      = (bool) ($options['signature'] ?? false);
-        $this->only_recipient = (bool) ($options['only_recipient'] ?? false);
-        $this->large_format   = (bool) ($options['large_format'] ?? false);
-        $this->age_check      = (bool) ($options['age_check'] ?? false);
-        $this->return         = (bool) ($options['return'] ?? false);
-        $this->insurance      = (int) ($options['insurance'] ?? self::DEFAULT_INSURANCE);
+        $this->signature      = (bool) ($options[ShipmentOptions::SIGNATURE] ?? false);
+        $this->receipt_code   = (bool) ($options[ShipmentOptions::RECEIPT_CODE] ?? false);
+        $this->only_recipient = (bool) ($options[ShipmentOptions::ONLY_RECIPIENT] ?? false);
+        $this->large_format   = (bool) ($options[ShipmentOptions::LARGE_FORMAT] ?? false);
+        $this->age_check      = (bool) ($options[ShipmentOptions::AGE_CHECK] ?? false);
+        $this->return         = (bool) ($options[ShipmentOptions::RETURN] ?? false);
+        $this->insurance      = (int) ($options[ShipmentOptions::INSURANCE] ?? self::DEFAULT_INSURANCE);
     }
 }
