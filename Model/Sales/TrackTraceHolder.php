@@ -51,7 +51,7 @@ class TrackTraceHolder
     /**
      * @var DefaultOptions
      */
-    private static $defaultOptions;
+    private $defaultOptions;
 
     /**
      * @var AbstractConsignment|null
@@ -104,7 +104,7 @@ class TrackTraceHolder
         $this->datingService        = $objectManager->get(DatingService::class);
         $this->deliveryCostsService = $objectManager->get(DeliveryCostsService::class);
         $this->messageManager       = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
-        self::$defaultOptions       = new DefaultOptions($order);
+        $this->defaultOptions       = new DefaultOptions($order);
     }
 
     /**
@@ -130,7 +130,7 @@ class TrackTraceHolder
                              ->getName();
 
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int)$options['digital_stamp_weight']
-            : (int)self::$defaultOptions->getDigitalStampDefaultWeight();
+            : (int)$this->defaultOptions->getDigitalStampDefaultWeight();
 
         try {
             // create new instance from known json
@@ -149,7 +149,7 @@ class TrackTraceHolder
         $this->validateApiKey($apiKey);
         $this->carrier               = $deliveryOptionsAdapter->getCarrier();
         $this->shipmentOptionsHelper = new ShipmentOptions(
-            self::$defaultOptions,
+            $this->defaultOptions,
             $order,
             $this->objectManager,
             $this->carrier,
@@ -161,7 +161,7 @@ class TrackTraceHolder
             ->setReferenceIdentifier($shipment->getEntityId())
             ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
-            ->setCompany(self::$defaultOptions->getMaxCompanyName($address->getCompany()))
+            ->setCompany($this->defaultOptions->getMaxCompanyName($address->getCompany()))
             ->setPerson($address->getName());
 
         try {
@@ -344,7 +344,7 @@ class TrackTraceHolder
             return $this;
         }
 
-        $weightFromSettings = (int)self::$defaultOptions->getDigitalStampDefaultWeight();
+        $weightFromSettings = (int)$this->defaultOptions->getDigitalStampDefaultWeight();
         if ($weightFromSettings) {
             $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
 
@@ -450,9 +450,9 @@ class TrackTraceHolder
             return false;
         }
 
-        $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet('age_check', $options);
+        $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet(ShipmentOptions::AGE_CHECK, $options);
         $ageCheckOfProduct    = ShipmentOptions::getAgeCheckFromProduct($magentoTrack);
-        $ageCheckFromSettings = self::$defaultOptions->hasDefaultOptionsWithoutPrice($this->carrier, 'age_check');
+        $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, ShipmentOptions::AGE_CHECK);
 
         return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
@@ -494,7 +494,7 @@ class TrackTraceHolder
 
         if (array_key_exists('carrier', $options) && $options['carrier']) {
             $carrier
-                = DefaultOptions::DEFAULT_OPTION_VALUE === $options['carrier'] ? self::$defaultOptions->getCarrier()
+                = DefaultOptions::DEFAULT_OPTION_VALUE === $options['carrier'] ? $this->defaultOptions->getCarrier()
                 : $options['carrier'];
         }
 
@@ -519,11 +519,11 @@ class TrackTraceHolder
         // get package type from selected radio buttons and check if package type is set
         $packageType = $options['package_type'] ?? 'default';
         if ('default' === $packageType) {
-            $packageType = self::$defaultOptions->getPackageType();
+            $packageType = $this->defaultOptions->getPackageType();
         }
 
         if (!is_numeric($packageType)) {
-            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType] ?? self::$defaultOptions->getPackageType();
+            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType] ?? $this->defaultOptions->getPackageType();
         }
 
         return $packageType;

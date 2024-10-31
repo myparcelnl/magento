@@ -84,20 +84,7 @@ class NewShipment extends AbstractItems
      */
     public function hasDefaultOption(string $option, string $carrier): bool
     {
-        return $this->defaultOptions->hasDefault($option, $carrier);
-    }
-
-    /**
-     * Get default value of age check
-     *
-     * @param  string $carrier
-     * @param  string $option
-     *
-     * @return bool
-     */
-    public function hasDefaultOptionsWithoutPrice(string $carrier, string $option): bool
-    {
-        return $this->defaultOptions->hasDefaultOptionsWithoutPrice($carrier, $option);
+        return $this->defaultOptions->hasOptionSet($option, $carrier);
     }
 
     /**
