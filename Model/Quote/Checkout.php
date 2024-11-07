@@ -206,9 +206,8 @@ class Checkout
                 }
             }
 
-            $basePrice        = $this->helper->getBasePrice();
             $deliveryFee      = $this->helper->getMethodPrice($carrierPath, 'delivery/delivery_fee', false);
-            $basePrice        += $deliveryFee;
+            $basePrice        = $this->helper->getBasePrice() + $deliveryFee;
             $mondayFee        = $canHaveMonday ? $this->helper->getMethodPrice($carrierPath, 'delivery/monday_fee') : 0;
             $morningFee       = $canHaveMorning ? $this->helper->getMethodPrice($carrierPath, 'morning/fee') : 0;
             $eveningFee       = $canHaveEvening ? $this->helper->getMethodPrice($carrierPath, 'evening/fee') : 0;

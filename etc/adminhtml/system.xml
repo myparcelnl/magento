@@ -731,6 +731,15 @@
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="delivery_fee" translate="label comment" type="text" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery fee</label>
+                    <validate>validate-number</validate>
+                    <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
+                    <tooltip>This will be added to or subtracted from the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
                 <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Signature on receipt</label>
@@ -1012,6 +1021,15 @@
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="delivery_fee" translate="label comment" type="text" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery fee</label>
+                    <validate>validate-number</validate>
+                    <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
+                    <tooltip>This will be added to or subtracted from the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1"
                    showInWebsite="1" showInStore="1">
@@ -1177,6 +1195,15 @@
                        showInWebsite="1" showInStore="1">
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="delivery_fee" translate="label comment" type="text" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery fee</label>
+                    <validate>validate-number</validate>
+                    <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
+                    <tooltip>This will be added to or subtracted from the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
                 </field>
             </group>
             <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1"
@@ -1351,6 +1378,15 @@
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="delivery_fee" translate="label comment" type="text" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery fee</label>
+                    <validate>validate-number</validate>
+                    <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
+                    <tooltip>This will be added to or subtracted from the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1"
                    showInWebsite="1" showInStore="1">
@@ -1517,6 +1553,15 @@
                        showInWebsite="1" showInStore="1">
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="delivery_fee" translate="label comment" type="text" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery fee</label>
+                    <validate>validate-number</validate>
+                    <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
+                    <tooltip>This will be added to or subtracted from the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
                 </field>
             </group>
             <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1"
