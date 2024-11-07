@@ -195,13 +195,12 @@ class Checkout extends Data
     public function getMethodPrice(string $carrier, string $key, bool $addBasePrice = true): float
     {
         $value = (float) $this->getCarrierConfig($key, $carrier);
+        file_put_contents('/Applications/MAMP/htdocs/MagentoNL/var/log/joeri.log', "$value $carrier $key\n",FILE_APPEND);
         $showTotalPrice = $this->getCarrierConfig('shipping_methods/delivery_options_prices', Data::XML_PATH_GENERAL) === PriceDeliveryOptionsView::TOTAL;
-
         if ($showTotalPrice && $addBasePrice) {
             // Calculate value
             $value = (float) $this->getBasePrice() + $value;
         }
-
         return $value;
     }
 
@@ -234,7 +233,6 @@ class Checkout extends Data
             $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
             return 0;
         }
-
         return $value;
     }
 

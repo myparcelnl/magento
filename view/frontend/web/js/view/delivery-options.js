@@ -64,6 +64,7 @@ define(
        */
       methodCodeDeliveryOptionsConfigMap: {
         'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
+        'myparcelnl_magento_postnl_settings/delivery_fee': 'config.carrierSettings.postnl.priceDeliveryFee',
         'myparcelnl_magento_postnl_settings/mailbox': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
         'myparcelnl_magento_postnl_settings/package_small': 'config.carrierSettings.postnl.pricePackageTypePackageSmall',
         'myparcelnl_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeDigitalStamp',
