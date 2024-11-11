@@ -354,7 +354,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
     private function getPrice($settingPath): float
     {
         $basePrice  = $this->myParcelHelper->getBasePrice();
-        $settingFee = (float) $this->myParcelHelper->getConfigValue("{$settingPath}delivery_fee");
+        $settingFee = 0;
 
         // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
         $settingPath    = explode('/', $settingPath ?? '');
