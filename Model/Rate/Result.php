@@ -156,6 +156,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             'digital_stamp'                     => 'digital_stamp',
             'same_day_delivery'                 => 'delivery/same_day_delivery',
             'same_day_delivery_only_recipient'  => 'delivery/only_recipient/same_day_delivery',
+            'delivery_fee'                      => 'delivery/delivery_fee',
         ];
     }
 
@@ -408,6 +409,13 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         }
         if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $settingPath[self::SECOND_PART]){
             return min($settingFee, $basePrice);
+        }
+
+        if ($settingPath[self::SECOND_PART] === 'delivery') {
+            $deliveryFee = (float) $this->myParcelHelper->getConfigValue(
+                sprintf("%s/default_options/delivery_fee", $settingPath[self::FIRST_PART])
+            );
+            return $basePrice + $deliveryFee;
         }
 
         return $basePrice + $settingFee;
