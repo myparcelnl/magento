@@ -75,6 +75,7 @@ Select a standard orientation for printing labels.,Sélectionnez une orientation
 Default shipping options,Options d'expédition standards
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Indiquez ici vos préférences standards quant aux options d'expédition. S'ils sont d'application, ces paramètres seront utilisés par défaut pour tous vos envois. Ces options peuvent bien sûr toujours être modifiées lors du traitement."
 Automate 'Signature on receipt',Automatisation de la 'Signature pour réception'
+Automate 'Collect package',Automatisation de 'Livré en 1 jour'
 Automate 'Receipt code',Automatisation de la 'Code de réception'
 Signature on receipt' operates above a certain order total amount,La 'Signature pour réception' est activée lorsque le montant total dépasse le montant indiqué ci-dessus
 Automate 'Insurance € 500',Automatisation de l''Assurance jusqu'à € 500'
@@ -139,6 +140,9 @@ Cut-off time,Heure limite de commande
 "If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Lorsqu'une commande est passée après la dernière heure de commande le vendredi et avant celle-ci le lundi, c'est donc le mardi qui sera affiché comme premier jour de livraison."
 Drop-off days,Jours de dépôt
 Monday delivery,Livraison le lundi
+Express delivery,Livré en un jour
+Express delivery fee,Livré en un jour - prix
+Express delivery active,Livré en un jour actif
 Same day delivery,Livraison le jour même
 Same day title,Titre le jour même
 "Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.","La livraison le lundi peut nécessiter des conditions spéciales par rapport aux autres jours de la semaine, y compris mais sans s'y limiter, des frais et heure limite de commande."

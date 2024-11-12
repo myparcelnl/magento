@@ -89,6 +89,7 @@ Show map first,Toon kaart eerst
 Default shipping options,Standaard verzendinstellingen
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Vul hier uw standaard voorkeuren in voor uw verzendopties. Deze instellingen worden als default op al uw zendingen toegepast, indien van toepassing. Deze opties zijn later, per zending, uiteraard nog wel aan te passen tijdens het verwerken."
 Automate 'Signature on receipt',Automatiseer 'Handtekening voor ontvangst'
+Automate 'Collect package',Automatiseer 'Pakket laten ophalen'
 Automate 'Receipt code',Automatiseer 'Ontvangstcode'
 Automate 'Home address only',Automatiseer 'Alleen huisadres'
 Automate 'Return if no answer',Automatiseer 'Retour bij geen gehoor'
@@ -115,6 +116,9 @@ Enter a basic price for a mailbox. The regular price will not affect this price.
 Morning delivery,Ochtendlevering
 Evening delivery,Avondlevering
 Evening delivery fee,Avondlevering kosten
+Express delivery,Binnen 1 dag bezorgd
+Express delivery fee,Binnen 1 dag bezorgd kosten
+Express delivery active,Binnen 1 dag bezorgd ingeschakeld
 Same day delivery,Zelfde dag bezorgd
 Same day title,Zelfde dag titel
 Morning delivery active,Ochtendlevering ingeschakeld
