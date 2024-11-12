@@ -208,6 +208,7 @@ class TrackTraceHolder
             ->setDropOffPoint($dropOffPoint)
             ->setOnlyRecipient($this->shipmentOptionsHelper->hasOnlyRecipient())
             ->setSignature($this->shipmentOptionsHelper->hasSignature())
+            ->setCollect($this->shipmentOptionsHelper->hasCollect())
             ->setReceiptCode($this->shipmentOptionsHelper->hasReceiptCode())
             ->setReturn($this->shipmentOptionsHelper->hasReturn())
             ->setSameDayDelivery($this->shipmentOptionsHelper->hasSameDayDelivery())

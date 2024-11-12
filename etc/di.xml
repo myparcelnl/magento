@@ -70,6 +70,13 @@
         </arguments>
     </virtualType>
 
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\UPS\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">ups</argument>
+            <argument name="type" xsi:type="string">local</argument>
+        </arguments>
+    </virtualType>
+
     <!-- Get the insurance rates for DHLForYou -->
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLForYou\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>

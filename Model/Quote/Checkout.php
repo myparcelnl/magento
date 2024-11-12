@@ -186,7 +186,9 @@ class Checkout
             $canHaveMonday        = $consignment->canHaveExtraOption(AbstractConsignment::EXTRA_OPTION_DELIVERY_MONDAY);
             $canHaveMorning       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
             $canHaveEvening       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EVENING_NAME);
+            $canHaveExpress       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EXPRESS_NAME);
             $canHaveSignature     = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_SIGNATURE);
+            $canHaveCollect       = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_COLLECT);
             $canHaveReceiptCode   = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE);
             $canHaveOnlyRecipient = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT);
             $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
@@ -209,6 +211,7 @@ class Checkout
             $eveningFee       = $canHaveEvening ? $this->configService->getFloatConfig($carrierPath, 'evening/fee') + $addBasePrice : 0;
             $sameDayFee       = $canHaveSameDay ? (int) $this->configService->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee') + $addBasePrice : 0;
             $signatureFee     = $canHaveSignature ? $this->configService->getFloatConfig($carrierPath, 'delivery/signature_fee') : 0;
+            $collectFee       = $canHaveCollect ? $this->helper->getMethodPrice($carrierPath, 'delivery/collect_fee', false) : 0;
             $receiptCodeFee   = $canHaveReceiptCode ? $this->configService->getFloatConfig($carrierPath, 'delivery/receipt_code_fee') : 0;
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->configService->getFloatConfig($carrierPath, 'delivery/only_recipient_fee') : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
@@ -217,6 +220,7 @@ class Checkout
             $allowStandardDelivery = $this->configService->getBoolConfig($carrierPath, 'delivery/active');
             $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveMorning && $this->configService->getBoolConfig($carrierPath, 'morning/active');
             $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveEvening && $this->configService->getBoolConfig($carrierPath, 'evening/active');
+            $allowExpressDelivery  = $canHaveExpress && $this->configService->getBoolConfig($carrierPath, 'express/active');
             $allowDeliveryOptions  = ! $this->package->deliveryOptionsDisabled
                 && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
@@ -230,6 +234,7 @@ class Checkout
                 'allowDeliveryOptions'  => $allowDeliveryOptions,
                 'allowStandardDelivery' => $allowStandardDelivery,
                 'allowSignature'        => $canHaveSignature && $this->configService->getBoolConfig($carrierPath, 'delivery/signature_active'),
+                'allowCollect'          => $canHaveCollect && $this->configService->getBoolConfig($carrierPath, 'delivery/collect_active'),
                 'allowReceiptCode'      => $canHaveReceiptCode && $this->configService->getBoolConfig($carrierPath, 'delivery/receipt_code_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->configService->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
                 'allowMorningDelivery'  => $allowMorningDelivery,
@@ -237,10 +242,12 @@ class Checkout
                 'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath),
                 'allowMondayDelivery'   => $canHaveMonday && $this->configService->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->configService->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
+                'allowExpressDelivery'  => $allowExpressDelivery,
 
                 'dropOffDays' => $this->getDropOffDays($carrierPath),
 
                 'priceSignature'                       => $signatureFee,
+                'priceCollect'                         => $collectFee,
                 'priceReceiptCode'                     => $receiptCodeFee,
                 'priceOnlyRecipient'                   => $onlyRecipientFee,
                 'priceStandardDelivery'                => $addBasePrice,
@@ -248,6 +255,7 @@ class Checkout
                 'priceMorningDelivery'                 => $morningFee,
                 'priceEveningDelivery'                 => $eveningFee,
                 'priceSameDayDelivery'                 => $sameDayFee,
+                'priceExpressdelivery'                 => $allowExpressDelivery ? $this->configService->getFloatConfig($carrierPath, 'express/fee') : 0,
                 'priceSameDayDeliveryAndOnlyRecipient' => $sameDayFee + $onlyRecipientFee,
 
                 'priceMorningSignature'          => ($morningFee + $signatureFee),

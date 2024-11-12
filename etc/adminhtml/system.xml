@@ -1206,6 +1206,58 @@
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Signature on receipt</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="signature_fee" translate="label comment" type="text" sortOrder="311" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Signature on receipt fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="signature_active">1</field>
+                    </depends>
+                </field>
+                <field id="receipt_code_active" translate="label comment" type="select" sortOrder="314"
+                       showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Receipt code</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="receipt_code_fee" translate="label comment" type="text" sortOrder="315" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Receipt code fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="receipt_code_active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_active" translate="label comment" type="select" sortOrder="320"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Home address only</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="325" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Home address only fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="only_recipient_active">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Drop-off days</label>
@@ -1293,6 +1345,98 @@
                         <field id="day_0_active">1</field>
                     </depends>
                     <tooltip>For orders before this time, the drop-off is considered done on this day.</tooltip>
+                </field>
+            </group>
+            <group id="default_options" translate="label comment" type="text" sortOrder="270" showInDefault="1"
+                   showInWebsite="1" showInStore="1">
+                <label>Default shipping options</label>
+                <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in
+                    the order grid. When creating a single shipment, these settings can be changed manually. These
+                    settings will activate based on the order total amount.
+                </comment>
+                <field id="signature_active" translate="label" type="select" sortOrder="201" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Automate 'Signature on receipt'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="signature_from_price" translate="label comment" type="text" sortOrder="202" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <tooltip>'Signature on receipt' operates above a certain order total amount</tooltip>
+                    <depends>
+                        <field id="signature_active">1</field>
+                    </depends>
+                </field>
+                <field id="collect_active" translate="label" type="select" sortOrder="203" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Automate 'Collect package'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="collect_from_price" translate="label comment" type="text" sortOrder="204"
+                       showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <depends>
+                        <field id="collect_active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_active" translate="label" type="select" sortOrder="205" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Automate 'Home address only'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="only_recipient_from_price" translate="label comment" type="text" sortOrder="206"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From price</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <tooltip>'Home address only' operates above a certain order total amount</tooltip>
+                    <depends>
+                        <field id="only_recipient_active">1</field>
+                    </depends>
+                </field>
+                <field id="age_check_active" translate="label" type="select" sortOrder="230" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Automate 'Age check 18+'</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="insurance_from_price" translate="label comment" type="text" sortOrder="231" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Insure orders from (€)</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <tooltip>The minimum amount from when insurance is active.</tooltip>
+                </field>
+                <field id="insurance_local_amount" translate="label comment" type="select" sortOrder="232"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\UPS\Local</source_model>
+                </field>
+                <field id="insurance_percentage" translate="label comment" type="text" sortOrder="236" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Insure orders for percentage</label>
+                    <validate>validate-number validate-number-range number-range-0-100</validate>
+                    <tooltip>Use percentage of total order amount for insurance. After the calculation, the next
+                        available price scale is selected.
+                    </tooltip>
+                </field>
+            </group>
+            <group id="express" translate="label comment" type="text" sortOrder="370" showInDefault="1"
+                   showInWebsite="1" showInStore="1">
+                <label>Express delivery</label>
+                <field id="active" translate="label comment" type="select" sortOrder="375" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Express delivery active</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>UPS guarantees delivery within one day with this option active.</tooltip>
+                </field>
+                <field id="fee" translate="label comment" type="text" sortOrder="380" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Express delivery fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
