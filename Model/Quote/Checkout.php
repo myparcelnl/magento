@@ -224,7 +224,6 @@ class Checkout
             $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveMorning && $this->helper->getBoolConfig($carrierPath, 'morning/active');
             $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveEvening && $this->helper->getBoolConfig($carrierPath, 'evening/active');
             $allowExpressDelivery  = $canHaveExpress && $this->helper->getBoolConfig($carrierPath, 'express/active');
-file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "$carrier: $canHaveExpress, $allowExpressDelivery\n", FILE_APPEND);
             $allowDeliveryOptions  = ! $this->package->deliveryOptionsDisabled
                 && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
