@@ -19,6 +19,7 @@ class ShipmentOptionsFromAdapter extends AbstractShipmentOptionsAdapter
     {
         $options              = $inputData ?? [];
         $this->signature      = (bool) ($options[ShipmentOptions::SIGNATURE] ?? false);
+        $this->collect        = (bool) ($options['collect'] ?? false);
         $this->receipt_code   = (bool) ($options[ShipmentOptions::RECEIPT_CODE] ?? false);
         $this->only_recipient = (bool) ($options[ShipmentOptions::ONLY_RECIPIENT] ?? false);
         $this->large_format   = (bool) ($options[ShipmentOptions::LARGE_FORMAT] ?? false);

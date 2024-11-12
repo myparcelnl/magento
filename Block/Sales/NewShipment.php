@@ -28,6 +28,7 @@ use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Service\Config\ConfigService;
 use MyParcelNL\Magento\Service\Weight\WeightService;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
 class NewShipment extends AbstractItems
@@ -167,6 +168,11 @@ class NewShipment extends AbstractItems
             return in_array($shipmentOption, [
                 AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
                 AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
+        }
+
+        // For UPS shipment options are available for all countries in the EU
+        if (CarrierUPS::NAME === $consignment->getCarrierName()) {
+            return true;
         }
 
         // No shipment options available in any other cases

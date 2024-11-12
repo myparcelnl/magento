@@ -80,7 +80,7 @@ class DefaultOptions
     /**
      * Get default of the option
      *
-     * @param string $option 'only_recipient'|'signature'|'receipt_code'|'return'|'large_format'
+     * @param string $option 'only_recipient'|'signature'|'collect'|'receipt_code'|'return'|'large_format'
      * @param string $carrier
      *
      * @return bool

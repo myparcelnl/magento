@@ -18,6 +18,7 @@ class ShipmentOptions
     public const ONLY_RECIPIENT = 'only_recipient';
     private const SAME_DAY_DELIVERY = 'same_day_delivery';
     public const SIGNATURE          = 'signature';
+    public const COLLECT      = AbstractConsignment::SHIPMENT_OPTION_COLLECT;
     public const RECEIPT_CODE = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
     public const RETURN       = 'return';
     public const AGE_CHECK    = 'age_check';
@@ -111,6 +112,13 @@ class ShipmentOptions
         $signatureFromOptions = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
 
         return $signatureFromOptions ?? $this->optionIsEnabled(self::SIGNATURE);
+    }
+
+    public function hasCollect(): bool
+    {
+        $collectFromOptions = self::getValueOfOptionWhenSet(self::COLLECT, $this->options);
+
+        return $collectFromOptions ?? $this->optionIsEnabled(self::COLLECT);
     }
 
     public function hasReceiptCode(): bool
@@ -402,6 +410,7 @@ class ShipmentOptions
             self::RETURN            => $this->hasReturn(),
             self::ONLY_RECIPIENT    => $this->hasOnlyRecipient(),
             self::SIGNATURE         => $this->hasSignature(),
+            self::COLLECT           => $this->hasCollect(),
             self::RECEIPT_CODE      => $this->hasReceiptCode(),
             self::AGE_CHECK         => $this->hasAgeCheck(),
             self::LARGE_FORMAT      => $this->hasLargeFormat(),

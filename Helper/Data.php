@@ -242,6 +242,11 @@ class Data extends AbstractHelper
                 AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
         }
 
+        // For UPS shipment options are available for all countries in the EU
+        if (CarrierUPS::NAME === $consignment->getCarrierName()) {
+            return true;
+        }
+
         // No shipment options available in any other cases
         return false;
     }
