@@ -357,65 +357,62 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $settingFee = 0;
 
         // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
-        $settingPath    = explode('/', $settingPath ?? '');
+        $settingPathParts = explode('/', $settingPath ?? '');
 
         // Check if the selected delivery options are delivery, only_recipient and signature
         // delivery/only_recipient/signature
-        if (isset($settingPath[self::THIRD_PART], $settingPath[self::FOURTH_PART]) && 'delivery' === $settingPath[self::SECOND_PART]) {
+        if (isset($settingPathParts[self::THIRD_PART], $settingPathParts[self::FOURTH_PART]) && 'delivery' === $settingPathParts[self::SECOND_PART]) {
             $settingFee += (float) $this->myParcelHelper->getConfigValue(
                 sprintf(
                     "%s/%s/%s_fee",
-                    $settingPath[self::FIRST_PART],
-                    $settingPath[self::SECOND_PART],
-                    $settingPath[self::THIRD_PART]
+                    $settingPathParts[self::FIRST_PART],
+                    $settingPathParts[self::SECOND_PART],
+                    $settingPathParts[self::THIRD_PART]
                 )
             );
             $settingFee += (float) $this->myParcelHelper->getConfigValue(
                 sprintf(
                     "%s/%s/%sfee",
-                    $settingPath[self::FIRST_PART],
-                    $settingPath[self::SECOND_PART],
-                    $settingPath[self::FOURTH_PART]
+                    $settingPathParts[self::FIRST_PART],
+                    $settingPathParts[self::SECOND_PART],
+                    $settingPathParts[self::FOURTH_PART]
                 )
             );
         }
 
         // Check if the selected delivery is morning or evening and select the fee
-        if (AbstractConsignment::DELIVERY_TYPE_MORNING_NAME === $settingPath[self::SECOND_PART] || AbstractConsignment::DELIVERY_TYPE_EVENING_NAME === $settingPath[self::SECOND_PART]) {
+        if (AbstractConsignment::DELIVERY_TYPE_MORNING_NAME === $settingPathParts[self::SECOND_PART] || AbstractConsignment::DELIVERY_TYPE_EVENING_NAME === $settingPathParts[self::SECOND_PART]) {
             $settingFee = (float) $this->myParcelHelper->getConfigValue(
-                sprintf("%s/%s/fee", $settingPath[self::FIRST_PART], $settingPath[self::SECOND_PART])
+                sprintf("%s/%s/fee", $settingPathParts[self::FIRST_PART], $settingPathParts[self::SECOND_PART])
             );
 
             // change delivery type if there is a signature selected
-            if (isset($settingPath[self::FOURTH_PART])) {
-                $settingPath[self::SECOND_PART] = 'delivery';
+            if (isset($settingPathParts[self::FOURTH_PART])) {
+                $settingPathParts[self::SECOND_PART] = 'delivery';
             }
             // Unset only_recipient to select the correct price
-            unset($settingPath[self::THIRD_PART]);
+            unset($settingPathParts[self::THIRD_PART]);
+        } else {
+            $settingFee += (float) $this->myParcelHelper->getConfigValue(
+                sprintf("%s/delivery/delivery_fee", $settingPathParts[self::FIRST_PART])
+            );
         }
 
-        $settingFee  += (float) $this->myParcelHelper->getConfigValue(implode('/', $settingPath ?? []) . 'fee');
+        $settingFee  += (float) $this->myParcelHelper->getConfigValue(implode('/', $settingPathParts ?? []) . 'fee');
 
         // For mailbox and digital stamp the base price should not be calculated
-        if (AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $settingPath[self::SECOND_PART]) {
+        if (AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $settingPathParts[self::SECOND_PART]) {
             // for international mailbox, we have a different price :-)
             $cc = $this->session->getQuote()->getShippingAddress()->getCountryId();
             if ($cc !== 'NL') {
                 $settingFee = (float) $this->myParcelHelper->getConfigValue(
-                    sprintf("%s/%s/international_fee", $settingPath[self::FIRST_PART], $settingPath[self::SECOND_PART])
+                    sprintf("%s/%s/international_fee", $settingPathParts[self::FIRST_PART], $settingPathParts[self::SECOND_PART])
                 );
             }
             return min($settingFee, $basePrice);
         }
-        if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $settingPath[self::SECOND_PART]){
+        if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME === $settingPathParts[self::SECOND_PART]){
             return min($settingFee, $basePrice);
-        }
-
-        if ($settingPath[self::SECOND_PART] === 'delivery') {
-            $deliveryFee = (float) $this->myParcelHelper->getConfigValue(
-                sprintf("%s/default_options/delivery_fee", $settingPath[self::FIRST_PART])
-            );
-            return $basePrice + $deliveryFee;
         }
 
         return $basePrice + $settingFee;
