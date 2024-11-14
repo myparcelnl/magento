@@ -268,7 +268,7 @@ class Data extends AbstractHelper
             return $consignment->canHaveShipmentOption($shipmentOption);
         }
 
-        // For PostNL in Belgium - recipient-only, signature and recieipt code are available
+        // For PostNL in Belgium - recipient-only, signature and receipt code are available
         if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
             return in_array($shipmentOption, [
                 AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
