@@ -1509,26 +1509,6 @@
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="monday_active" translate="label comment" type="select" sortOrder="306" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Monday delivery</label>
-                    <tooltip>Delivery on monday may require special conditions compared to other (week)days including
-                        but not limited to fee and cutoff time.
-                    </tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="monday_fee" translate="label comment" type="text" sortOrder="307" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Monday delivery fee</label>
-                    <tooltip>This will be added to the regular shipping price</tooltip>
-                    <depends>
-                        <field id="monday_active">1</field>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
                 <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Signature on receipt</label>

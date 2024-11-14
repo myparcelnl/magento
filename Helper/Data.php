@@ -18,6 +18,7 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
+use MyParcelNL\Sdk\src\Services\CountryCodes;
 
 class Data extends AbstractHelper
 {
@@ -269,8 +270,10 @@ class Data extends AbstractHelper
                 AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
         }
 
-        // For UPS shipment options are available for all countries in the EU
-        if (CarrierUPS::NAME === $consignment->getCarrierName()) {
+        // UPS shipment options are available for all countries in the EU
+        if (CarrierUPS::NAME === $consignment->getCarrierName()
+            && in_array($consignment->getCountry(), CountryCodes::EU_COUNTRIES, false)
+        ) {
             return true;
         }
 
