@@ -111,6 +111,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             'carrier'                           => 'postnl',
             'positions'                         => null,
             'signature'                         => null,
+            'collect'                           => null,
             'receipt_code'                      => null,
             'only_recipient'                    => null,
             'return'                            => null,

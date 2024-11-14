@@ -42,13 +42,14 @@ class NewShipmentForm
     /**
      * @var array
      */
-    private $shipmentOptionsExplanation;
+    private $shipmentOptionsExplanationMap;
 
 
     public function __construct()
     {
         $this->shipmentOptionsHumanMap    = [
             AbstractConsignment::SHIPMENT_OPTION_SIGNATURE         => __('Signature on receipt'),
+            AbstractConsignment::SHIPMENT_OPTION_COLLECT           => __('Collect package'),
             AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE      => __('Receiving code'),
             AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT    => __('Home address only'),
             AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK         => __('Age check 18+'),
@@ -57,8 +58,9 @@ class NewShipmentForm
             AbstractConsignment::SHIPMENT_OPTION_RETURN            => __('Return if no answer'),
             AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY => __('Same day delivery'),
         ];
-        $this->shipmentOptionsExplanation = [
+        $this->shipmentOptionsExplanationMap = [
             AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE => __('Insurance is mandatory and will be set. Other shipment options will be removed.'),
+            AbstractConsignment::SHIPMENT_OPTION_COLLECT      => __('The package will be collected at the location for this webshop. Please make sure you completely filled in the address including the company name in the MyParcel Backoffice. You can do so under ‘Shop settings’ -> ‘Company details’ under the tab ‘Return address’. Verify that you selected the shop corresponding to the API key you are using in your Magento installation.'),
         ];
     }
 
@@ -90,6 +92,6 @@ class NewShipmentForm
      */
     public function getShipmentOptionsExplanationMap(): array
     {
-        return $this->shipmentOptionsExplanation;
+        return $this->shipmentOptionsExplanationMap;
     }
 }
