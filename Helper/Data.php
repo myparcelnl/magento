@@ -18,6 +18,7 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
 use MyParcelNL\Sdk\src\Services\CheckApiKeyService;
+use MyParcelNL\Sdk\src\Services\CountryCodes;
 
 class Data extends AbstractHelper
 {
@@ -258,15 +259,30 @@ class Data extends AbstractHelper
         /**
          * Business logic determining what shipment options to show, if any.
          */
+        if (AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE === $shipmentOption
+            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $consignment->getDeliveryType()
+        ) {
+            return false; // receipt code is only available for standard delivery
+        }
+
         if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
             return $consignment->canHaveShipmentOption($shipmentOption);
         }
 
-        // For PostNL in Belgium - only recipient-only/signature is available
+        // For PostNL in Belgium - recipient-only, signature and receipt code are available
         if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
             return in_array($shipmentOption, [
                 AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
-                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
+                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE,
+                AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE,
+            ], true);
+        }
+
+        // UPS shipment options are available for all countries in the EU
+        if (CarrierUPS::NAME === $consignment->getCarrierName()
+            && in_array($consignment->getCountry(), CountryCodes::EU_COUNTRIES, false)
+        ) {
+            return true;
         }
 
         // No shipment options available in any other case

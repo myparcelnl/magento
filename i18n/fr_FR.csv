@@ -75,6 +75,7 @@ Select a standard orientation for printing labels.,Sélectionnez une orientation
 Default shipping options,Options d'expédition standards
 "Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Indiquez ici vos préférences standards quant aux options d'expédition. S'ils sont d'application, ces paramètres seront utilisés par défaut pour tous vos envois. Ces options peuvent bien sûr toujours être modifiées lors du traitement."
 Automate 'Signature on receipt',Automatisation de la 'Signature pour réception'
+Automate 'Collect package',Automatisation de 'Livré en 1 jour'
 Automate 'Receipt code',Automatisation de la 'Code de réception'
 Signature on receipt' operates above a certain order total amount,La 'Signature pour réception' est activée lorsque le montant total dépasse le montant indiqué ci-dessus
 Automate 'Insurance € 500',Automatisation de l''Assurance jusqu'à € 500'
@@ -88,6 +89,7 @@ Package,Colis
 Signature on receipt,Signature pour réception
 Receipt code,Code de réception
 Receipt code fee,Frais de code de réception
+Collect package,Faire récupérer le colis
 Home address only,Livraison à domicile uniquement
 Hide sender title,Titre de masquer l'expéditeur
 Insured up to:,Assuré jusqu'à :
@@ -139,6 +141,9 @@ Cut-off time,Heure limite de commande
 "If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Lorsqu'une commande est passée après la dernière heure de commande le vendredi et avant celle-ci le lundi, c'est donc le mardi qui sera affiché comme premier jour de livraison."
 Drop-off days,Jours de dépôt
 Monday delivery,Livraison le lundi
+Express delivery,Livré en un jour
+Express delivery fee,Livré en un jour - prix
+Express delivery active,Livré en un jour actif
 Same day delivery,Livraison le jour même
 Same day title,Titre le jour même
 "Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.","La livraison le lundi peut nécessiter des conditions spéciales par rapport aux autres jours de la semaine, y compris mais sans s'y limiter, des frais et heure limite de commande."
@@ -166,6 +171,8 @@ Hide sender,Masquer l'expéditeur
 This will be added to the regular shipping price, Ceci sera ajouté aux frais d'expédition standards
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Si les deux éléments sont sélectionnés, ce prix sera ajouté aux frais d'expédition standards. Laissez vide pour ignorer cette option.
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Pour utiliser cette fonction de manière optimale, spécifiez d'abord le poids ou le volume de vos produits. Les envois plus lourds que le poids spécifié ici ne seront pas considérés comme des envois pour Boîte aux lettres."
+"Insurance is mandatory and will be set. Other shipment options will be removed.","L’assurance est obligatoire et sera activée. Les autres options d'envoi seront supprimées."
+"The package will be collected at the location for this webshop. Please make sure you completely filled in the address including the company name in the MyParcel Backoffice. You can do so under ‘Shop settings’ -> ‘Company details’ under the tab ‘Return address’. Verify that you selected the shop corresponding to the API key you are using in your Magento installation.","Le colis sera collecté à l’adresse de ce webshop. Assurez-vous que l’adresse est complète, y compris le nom de l’entreprise, dans le backoffice de MyParcel. Vous pouvez le faire sous ‘Shop settings’ -> ‘Company details’ dans l’onglet ‘Adresse de retour’. Vérifiez que vous avez sélectionné la boutique correspondant à la clé API que vous utilisez dans votre installation Magento."
 This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
 Pickup at PostNL location,Collecte dans un point postnl
 Pickup active,Collecte active
