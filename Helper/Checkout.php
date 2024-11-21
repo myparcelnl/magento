@@ -196,10 +196,12 @@ class Checkout extends Data
     {
         $value = (float) $this->getCarrierConfig($key, $carrier);
         $showTotalPrice = $this->getCarrierConfig('shipping_methods/delivery_options_prices', Data::XML_PATH_GENERAL) === PriceDeliveryOptionsView::TOTAL;
+
         if ($showTotalPrice && $addBasePrice) {
             // Calculate value
             $value = (float) $this->getBasePrice() + $value;
         }
+
         return $value;
     }
 
@@ -232,6 +234,7 @@ class Checkout extends Data
             $this->_logger->critical('Can\'t get setting with path:' . $carrier . $code);
             return 0;
         }
+
         return $value;
     }
 

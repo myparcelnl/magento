@@ -357,7 +357,7 @@ class Result extends \Magento\Shipping\Model\Rate\Result
         $settingFee = 0;
 
         // Explode settingPath like: myparcelnl_magento_postnl_settings/delivery/only_recipient/signature
-        $settingPathParts = explode('/', $settingPath ?? '');// + [null, null, null, null];
+        $settingPathParts = explode('/', $settingPath ?? '');
 
         // Check if the selected delivery options are delivery, only_recipient and signature
         // delivery/only_recipient/signature
