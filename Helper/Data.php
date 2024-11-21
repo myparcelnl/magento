@@ -259,15 +259,23 @@ class Data extends AbstractHelper
         /**
          * Business logic determining what shipment options to show, if any.
          */
+        if (AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE === $shipmentOption
+            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $consignment->getDeliveryType()
+        ) {
+            return false; // receipt code is only available for standard delivery
+        }
+
         if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
             return $consignment->canHaveShipmentOption($shipmentOption);
         }
 
-        // For PostNL in Belgium - only recipient-only/signature is available
+        // For PostNL in Belgium - recipient-only, signature and receipt code are available
         if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
             return in_array($shipmentOption, [
                 AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
-                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
+                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE,
+                AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE,
+            ], true);
         }
 
         // UPS shipment options are available for all countries in the EU
