@@ -1560,6 +1560,7 @@
                     <validate>validate-number</validate>
                     <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
                     <tooltip>This will be added to or subtracted from the regular shipping price</tooltip>
+                </field>
 
                 <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1"
                        showInWebsite="1" showInStore="1">
