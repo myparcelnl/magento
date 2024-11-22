@@ -392,10 +392,6 @@ class Result extends \Magento\Shipping\Model\Rate\Result
             }
             // Unset only_recipient to select the correct price
             unset($settingPathParts[self::FIRST_SHIPPING_OPTION]);
-        } else {
-            $settingFee += (float) $this->myParcelHelper->getConfigValue(
-                sprintf("%s/delivery/delivery_fee", $settingPathParts[self::CARRIER_PATH])
-            );
         }
 
         $settingFee  += (float) $this->myParcelHelper->getConfigValue(implode('/', $settingPathParts ?? []) . 'fee');
