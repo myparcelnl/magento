@@ -63,6 +63,7 @@
                 <large_format_active>No</large_format_active>
                 <large_format_from_price>1</large_format_from_price>
                 <age_check_active>0</age_check_active>
+                <delivery_fee>0</delivery_fee>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
@@ -119,6 +120,7 @@
                 <insurance_local_amount>0</insurance_local_amount>
                 <insurance_belgium_amount>0</insurance_belgium_amount>
                 <insurance_percentage>0</insurance_percentage>
+                <delivery_fee>0</delivery_fee>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
@@ -156,6 +158,7 @@
                 <insurance_eu_amount>0</insurance_eu_amount>
                 <insurance_row_amount>0</insurance_row_amount>
                 <insurance_percentage>0</insurance_percentage>
+                <delivery_fee>0</delivery_fee>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
@@ -176,6 +179,7 @@
                 <insurance_eu_amount>0</insurance_eu_amount>
                 <insurance_row_amount>0</insurance_row_amount>
                 <insurance_percentage>0</insurance_percentage>
+                <delivery_fee>0</delivery_fee>
             </default_options>
             <general>
                 <deliverydays_window>14</deliverydays_window>
@@ -196,6 +200,7 @@
 
         <myparcelnl_magento_ups_settings>
             <default_options>
+                <delivery_fee>0</delivery_fee>
             </default_options>
             <general>
                 <deliverydays_window>3</deliverydays_window>
@@ -212,6 +217,7 @@
 
         <myparcelnl_magento_dpd_settings>
             <default_options>
+                <delivery_fee>0</delivery_fee>
             </default_options>
             <general>
                 <deliverydays_window>3</deliverydays_window>
