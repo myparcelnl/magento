@@ -33,8 +33,8 @@ use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
-use MyParcelNL\Magento\Service\Config\ConfigService;
-use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
@@ -61,16 +61,16 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * Carrier constructor.
      *
      * @param ScopeConfigInterface $scopeConfig
-     * @param ErrorFactory $rateErrorFactory
-     * @param LoggerInterface $logger
-     * @param ConfigService $configService
-     * @param DeliveryCostsService $deliveryCostsService
-     * @param ResultFactory $rateFactory
-     * @param MethodFactory $rateMethodFactory
-     * @param Session $session
-     * @param PackageRepository $package
-     * @param Freeshipping $freeShipping
-     * @param array $data
+     * @param ErrorFactory         $rateErrorFactory
+     * @param LoggerInterface      $logger
+     * @param Config               $configService
+     * @param DeliveryCosts        $deliveryCostsService
+     * @param ResultFactory        $rateFactory
+     * @param MethodFactory        $rateMethodFactory
+     * @param Session              $session
+     * @param PackageRepository    $package
+     * @param Freeshipping         $freeShipping
+     * @param array                $data
      *
      * @throws Exception
      */
@@ -78,8 +78,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         ScopeConfigInterface $scopeConfig,
         ErrorFactory         $rateErrorFactory,
         LoggerInterface      $logger,
-        ConfigService        $configService,
-        DeliveryCostsService $deliveryCostsService,
+        Config               $configService,
+        DeliveryCosts        $deliveryCostsService,
         ResultFactory        $rateFactory,
         MethodFactory        $rateMethodFactory,
         Session              $session,
@@ -101,7 +101,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $this->quote = $session->getQuote();
 
         try {
-            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($this->quote->getData(ConfigService::FIELD_DELIVERY_OPTIONS), true));
+            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($this->quote->getData(Config::FIELD_DELIVERY_OPTIONS), true));
         } catch (Throwable $e) {
             $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
         }
@@ -140,7 +140,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
     private function getMethodAmount(): float
     {
-        $configPath      = ConfigService::CARRIERS_XML_PATH_MAP[$this->deliveryOptions->getCarrier()] ?? '';
+        $configPath      = Config::CARRIERS_XML_PATH_MAP[$this->deliveryOptions->getCarrier()] ?? '';
         $shipmentOptions = $this->deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
         $shipmentFees    = [
             "{$this->deliveryOptions->getDeliveryType()}/fee" => true,
@@ -226,7 +226,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      */
     private function createTitle($settingPath)
     {
-        $title = $this->configService->getConfigValue(ConfigService::XML_PATH_POSTNL_SETTINGS . $settingPath . 'title');
+        $title = $this->configService->getConfigValue(Config::XML_PATH_POSTNL_SETTINGS . $settingPath . 'title');
 
         if ($title === null) {
             $title = __($settingPath . 'title');

@@ -8,7 +8,7 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 
 /**
  * Action to create and print MyParcel Track
@@ -29,8 +29,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     /**
      * @var MagentoShipmentCollection
      */
-    private $shipmentCollection;
-    private ConfigService $configService;
+    private        $shipmentCollection;
+    private Config $configService;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -41,7 +41,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     {
         parent::__construct($context);
 
-        $this->configService = $context->getObjectManager()->get(ConfigService::class);
+        $this->configService = $context->getObjectManager()->get(Config::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->shipmentCollection = new MagentoShipmentCollection(
             $context->getObjectManager(),

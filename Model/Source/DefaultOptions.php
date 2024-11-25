@@ -17,8 +17,8 @@ use Exception;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
-use MyParcelNL\Magento\Service\Config\ConfigService;
-use MyParcelNL\Magento\Service\Weight\WeightService;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
@@ -54,10 +54,10 @@ class DefaultOptions
     private const INSURANCE_PERCENTAGE     = 'insurance_percentage';
     public const  DEFAULT_OPTION_VALUE     = 'default';
 
-    private ConfigService $configService;
-    private Order         $order;
-    private array         $chosenOptions;
-    private WeightService $weightService;
+    private Config $configService;
+    private Order  $order;
+    private array  $chosenOptions;
+    private Weight $weightService;
 
     /**
      * @param Order $order
@@ -65,12 +65,12 @@ class DefaultOptions
     public function __construct(Order $order)
     {
         $objectManager       = ObjectManager::getInstance();
-        $this->configService = $objectManager->get(ConfigService::class);
-        $this->weightService = $objectManager->get(WeightService::class);
+        $this->configService = $objectManager->get(Config::class);
+        $this->weightService = $objectManager->get(Weight::class);
         $this->order         = $order;
         try {
             $this->chosenOptions = DeliveryOptionsAdapterFactory::create(
-                (array) json_decode($order->getData(ConfigService::FIELD_DELIVERY_OPTIONS), true)
+                (array) json_decode($order->getData(Config::FIELD_DELIVERY_OPTIONS), true)
             )->toArray();
         } catch (Exception $e) {
             $this->chosenOptions = [];
@@ -109,6 +109,10 @@ class DefaultOptions
      */
     public function getMaxCompanyName(?string $company): ?string
     {
+        if (null === $company) {
+            return null;
+        }
+
         return Str::limit($company, self::COMPANY_NAME_MAX_LENGTH);
     }
 

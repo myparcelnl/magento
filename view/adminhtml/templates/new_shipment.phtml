@@ -148,8 +148,6 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                 foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
                     if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
                         || ! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
-                        || ($shipmentOption === AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE
-                            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $block->getDeliveryType())
                     ) {
                         continue;
                     }

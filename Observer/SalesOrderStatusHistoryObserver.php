@@ -9,18 +9,18 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Status\History;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\src\Model\Fulfilment\OrderNote;
 
 class SalesOrderStatusHistoryObserver implements ObserverInterface
 {
-    private ConfigService $configService;
+    private Config        $configService;
     private ObjectManager $objectManager;
 
     public function __construct() {
         $this->objectManager = ObjectManager::getInstance();
-        $this->configService = $this->objectManager->get(ConfigService::class);
+        $this->configService = $this->objectManager->get(Config::class);
     }
 
     /**

@@ -47,6 +47,7 @@ class NewShipmentForm
     {
         $this->shipmentOptionsHumanMap = [
             AbstractConsignment::SHIPMENT_OPTION_SIGNATURE         => __('Signature on receipt'),
+            AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE      => __('Receiving code'),
             AbstractConsignment::SHIPMENT_OPTION_COLLECT           => __('Collect package'),
             AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT    => __('Home address only'),
             AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK         => __('Age check 18+'),

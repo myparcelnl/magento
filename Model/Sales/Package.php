@@ -18,9 +18,9 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 
-class Package extends ConfigService implements PackageInterface //used to extend MyParcelNL\Magento\Helper\Data;
+class Package extends Config implements PackageInterface //used to extend MyParcelNL\Magento\Helper\Data;
 {
     /**
      * @var int

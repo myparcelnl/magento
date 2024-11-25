@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Service\Costs;
+namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
-use MyParcelNL\Magento\Service\Weight\WeightService;
+use MyParcelNL\Magento\Service\Weight;
 
-class DeliveryCostsService
+class DeliveryCosts
 {
-    private WeightService $weightService;
+    private Weight $weightService;
 
-    public function __construct(WeightService $weightService)
+    public function __construct(Weight $weightService)
     {
         $this->weightService = $weightService;
     }

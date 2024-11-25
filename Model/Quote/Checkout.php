@@ -11,16 +11,16 @@ use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
-use MyParcelNL\Magento\Service\Config\ConfigService;
-use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use Throwable;
 
 class Checkout
 {
-    private ConfigService        $configService;
-    private DeliveryCostsService $deliveryCostsService;
+    private Config        $configService;
+    private DeliveryCosts $deliveryCostsService;
 
     /**
      * @var \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
@@ -48,15 +48,15 @@ class Checkout
      *
      * @param Session               $session
      * @param Cart                  $cart
-     * @param ConfigService         $configService
+     * @param Config                $configService
      * @param PackageRepository     $package
      * @param StoreManagerInterface $currency
      */
     public function __construct(
         Session               $session,
         Cart                  $cart,
-        ConfigService         $configService,
-        DeliveryCostsService  $deliveryCostsService,
+        Config                $configService,
+        DeliveryCosts         $deliveryCostsService,
         PackageRepository     $package,
         StoreManagerInterface $currency
     )
@@ -117,14 +117,14 @@ class Checkout
     {
         return [
             'allowRetry'                 => true,
-            'platform'                   => ConfigService::PLATFORM,
+            'platform'                   => Config::PLATFORM,
             'carriers'                   => $this->getActiveCarriers(),
             'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
-            'allowShowDeliveryDate'      => $this->configService->getBoolConfig(ConfigService::XML_PATH_GENERAL, 'date_settings/allow_show_delivery_date'),
-            'deliveryDaysWindow'         => $this->configService->getIntegerConfig(ConfigService::XML_PATH_GENERAL, 'date_settings/deliverydays_window'),
-            'dropOffDelay'               => $this->getDropOffDelay(ConfigService::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
-            'pickupLocationsDefaultView' => $this->configService->getConfigValue(ConfigService::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
-            'showPriceSurcharge'         => $this->configService->getConfigValue(ConfigService::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
+            'allowShowDeliveryDate'      => $this->configService->getBoolConfig(Config::XML_PATH_GENERAL, 'date_settings/allow_show_delivery_date'),
+            'deliveryDaysWindow'         => $this->configService->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window'),
+            'dropOffDelay'               => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
+            'pickupLocationsDefaultView' => $this->configService->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
+            'showPriceSurcharge'         => $this->configService->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
             'basePrice'                  => $this->deliveryCostsService->getBasePrice($this->quote),
         ];
     }
@@ -166,8 +166,8 @@ class Checkout
     {
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
-        $carrierPaths   = ConfigService::CARRIERS_XML_PATH_MAP;
-        $showTotalPrice = $this->configService->getConfigValue(ConfigService::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
+        $carrierPaths   = Config::CARRIERS_XML_PATH_MAP;
+        $showTotalPrice = $this->configService->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
         foreach ($activeCarriers as $carrier) {
             $carrierPath = $carrierPaths[$carrier];
 
@@ -187,12 +187,12 @@ class Checkout
             $canHaveMorning       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
             $canHaveEvening       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EVENING_NAME);
             $canHaveExpress       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EXPRESS_NAME);
+            $canHavePickup        = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
             $canHaveSignature     = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_SIGNATURE);
             $canHaveCollect       = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_COLLECT);
             $canHaveReceiptCode   = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE);
             $canHaveOnlyRecipient = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT);
             $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
-            $canHavePickup        = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
 
             $mailboxFee = 0;
             if ($canHaveMailbox) {
@@ -211,7 +211,7 @@ class Checkout
             $eveningFee       = $canHaveEvening ? $this->configService->getFloatConfig($carrierPath, 'evening/fee') + $addBasePrice : 0;
             $sameDayFee       = $canHaveSameDay ? (int) $this->configService->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee') + $addBasePrice : 0;
             $signatureFee     = $canHaveSignature ? $this->configService->getFloatConfig($carrierPath, 'delivery/signature_fee') : 0;
-            $collectFee       = $canHaveCollect ? $this->helper->getMethodPrice($carrierPath, 'delivery/collect_fee', false) : 0;
+            $collectFee       = $canHaveCollect ? $this->configService->getFloatConfig($carrierPath, 'delivery/collect_fee', false) : 0;
             $receiptCodeFee   = $canHaveReceiptCode ? $this->configService->getFloatConfig($carrierPath, 'delivery/receipt_code_fee') : 0;
             $onlyRecipientFee = $canHaveOnlyRecipient ? $this->configService->getFloatConfig($carrierPath, 'delivery/only_recipient_fee') : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
@@ -280,7 +280,7 @@ class Checkout
     public function getActiveCarriers(): array
     {
         $carriers = [];
-        foreach (ConfigService::CARRIERS_XML_PATH_MAP as $carrier => $path) {
+        foreach (Config::CARRIERS_XML_PATH_MAP as $carrier => $path) {
             if ($this->configService->getBoolConfig($path, 'delivery/active') ||
                 $this->configService->getBoolConfig($path, 'pickup/active')
             ) {
@@ -380,7 +380,7 @@ class Checkout
             return AbstractConsignment::DEFAULT_PACKAGE_TYPE_NAME;
         }
 
-        $carrierPath         = ConfigService::CARRIERS_XML_PATH_MAP[$carrier];
+        $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrier];
         $products            = $this->quote->getAllItems();
         $country             = $country ?? $this->country ?? $this->quote->getShippingAddress()->getCountryId();
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);

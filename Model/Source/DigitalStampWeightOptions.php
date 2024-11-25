@@ -16,7 +16,7 @@
 namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 
 /**
@@ -28,9 +28,9 @@ class DigitalStampWeightOptions implements OptionSourceInterface
     static private $configService;
 
     /**
-     * @param $configService ConfigService
+     * @param $configService Config
      */
-    public function __construct(ConfigService $configService)
+    public function __construct(Config $configService)
     {
         self::$configService = $configService;
     }

@@ -34,8 +34,8 @@ use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
-use MyParcelNL\Magento\Service\Config\ConfigService;
-use MyParcelNL\Magento\Service\Weight\WeightService;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\src\Exception\ApiException;
@@ -71,8 +71,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected ObjectManagerInterface $objectManager;
     protected Track                  $modelTrack;
     protected AreaList               $areaList;
-    protected ManagerInterface       $messageManager;
-    protected ConfigService          $configService;
+    protected ManagerInterface $messageManager;
+    protected Config           $configService;
 
     /**
      * @var array
@@ -122,8 +122,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->moduleManager      = $objectManager->get(Manager::class);
         $this->request            = $request;
         $this->trackSender        = $this->objectManager->get(TrackSender::class);
-        $this->configService      = $objectManager->get(ConfigService::class);
-        $this->weightService      = $objectManager->get(WeightService::class);
+        $this->configService      = $objectManager->get(Config::class);
+        $this->weightService      = $objectManager->get(Weight::class);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
@@ -299,7 +299,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             ->setOrderId($shipment->getOrderId())
             ->setShipment($shipment)
             ->setCarrierCode(Carrier::CODE)
-            ->setTitle(ConfigService::MYPARCEL_TRACK_TITLE)
+            ->setTitle(Config::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber(TrackAndTrace::VALUE_EMPTY)
             ->save();

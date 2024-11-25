@@ -23,7 +23,7 @@ use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use Throwable;
@@ -42,7 +42,7 @@ class View extends AbstractOrder
         $order = $this->getOrder();
 
         /** @var object $data Data from checkout */
-        $data = json_decode($order->getData(ConfigService::FIELD_DELIVERY_OPTIONS) ?? null, true);
+        $data = json_decode($order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? null, true);
 
         if (!is_array($data)) {
             return '';

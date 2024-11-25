@@ -19,9 +19,9 @@
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
 use MyParcelNL\Magento\Model\Sales\DeliveryInterface;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 
-class DeliveryRepository extends ConfigService implements DeliveryInterface // used to extend MyParcelNL\Magento\Helper\Data;
+class DeliveryRepository extends Config implements DeliveryInterface // used to extend MyParcelNL\Magento\Helper\Data;
 {
     /**
      * @var int

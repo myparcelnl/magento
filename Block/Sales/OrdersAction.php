@@ -17,11 +17,11 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 
 class OrdersAction extends Template
 {
-    private ConfigService $configService;
+    private Config $configService;
 
     /**
      * @param Context $context
@@ -33,7 +33,7 @@ class OrdersAction extends Template
     )
     {
         $objectManager = ObjectManager::getInstance();
-        $this->configService = $objectManager->get(ConfigService::class);
+        $this->configService = $objectManager->get(Config::class);
         parent::__construct($context, $data);
     }
 
