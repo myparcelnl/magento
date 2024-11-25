@@ -35,7 +35,7 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Exception\AccountNotActiveException;
@@ -54,7 +54,7 @@ class UpdateStatus
     private ObjectManager $objectManager;
     private \Magento\Sales\Model\ResourceModel\Order $orderResource;
     private MagentoOrderCollection $orderCollection;
-    private ConfigService $configService;
+    private Config                 $configService;
 
     /**
      * UpdateStatus constructor.
@@ -70,7 +70,7 @@ class UpdateStatus
     )
     {
         $this->objectManager   = $objectManager = ObjectManager::getInstance();
-        $this->configService   = $objectManager->get(ConfigService::class);
+        $this->configService   = $objectManager->get(Config::class);
         $this->orderCollection = new MagentoOrderCollection($this->objectManager, null, $areaList);
         $this->orderResource   = $orderResource;
     }
@@ -84,7 +84,7 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+        if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             return $this->updateStatusPPS();
         }
         return $this->updateStatusShipments();

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Checkout;
 
 use Exception;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 
 class DeliveryOptionsToShippingMethods
@@ -57,8 +57,8 @@ class DeliveryOptionsToShippingMethods
     {
         $carrier = $this->deliveryOptions->getCarrier();
 
-        if (array_key_exists($carrier, ConfigService::CARRIERS_XML_PATH_MAP)) {
-            return ConfigService::CARRIERS_XML_PATH_MAP[$carrier];
+        if (array_key_exists($carrier, Config::CARRIERS_XML_PATH_MAP)) {
+            return Config::CARRIERS_XML_PATH_MAP[$carrier];
         }
 
         throw new Exception("No XML path found for carrier '{$carrier}'.");

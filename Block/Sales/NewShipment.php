@@ -25,8 +25,8 @@ use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
-use MyParcelNL\Magento\Service\Config\ConfigService;
-use MyParcelNL\Magento\Service\Weight\WeightService;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -68,8 +68,8 @@ class NewShipment extends AbstractItems
     )
     {
         $this->order         = $registry->registry('current_shipment')->getOrder();
-        $this->weightService = $objectManager->get(WeightService::class);
-        $this->configService = $objectManager->get(ConfigService::class);
+        $this->weightService = $objectManager->get(Weight::class);
+        $this->configService = $objectManager->get(Config::class);
         $this->form          = new NewShipmentForm();
 
         $this->defaultOptions = new DefaultOptions($this->order);
@@ -159,15 +159,23 @@ class NewShipment extends AbstractItems
         /**
          * Business logic determining what shipment options to show, if any.
          */
+        if (AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE === $shipmentOption
+            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $this->getDeliveryType()
+        ) {
+            return false; // receipt code is only available for standard delivery
+        }
+
         if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
             return $consignment->canHaveShipmentOption($shipmentOption);
         }
 
-        // For PostNL in Belgium - only recipient-only/signature is available
+        // For PostNL in Belgium - recipient-only, signature and receipt-code are available
         if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
             return in_array($shipmentOption, [
                 AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
-                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE], true);
+                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE,
+                AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE,
+            ], true);
         }
 
         // For UPS shipment options are available for all countries in the EU
@@ -192,6 +200,6 @@ class NewShipment extends AbstractItems
      */
     public function isOrderManagementEnabled(): bool
     {
-        return ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode();
+        return Config::EXPORT_MODE_PPS === $this->configService->getExportMode();
     }
 }

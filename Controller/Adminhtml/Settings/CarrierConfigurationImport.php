@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 
-use Magento\Config\Model\ResourceModel\Config;
+use Magento\Config\Model\ResourceModel\Config as resourceConfig;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Cache\Frontend\Pool;
@@ -13,7 +13,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\src\Support\Collection;
@@ -55,8 +55,7 @@ class CarrierConfigurationImport extends Action
     ) {
         parent::__construct($context);
         $this->resultFactory     = $resultFactory;
-        $this->config            = $config;
-        $this->apiKey            = $this->config->getValue(ConfigService::XML_PATH_GENERAL . 'api/key');
+        $this->apiKey            = $config->getValue(Config::XML_PATH_GENERAL . 'api/key');
         $this->context           = $dbContext;
         $this->typeListInterface = $typeListInterface;
         $this->pool              = $pool;
@@ -69,8 +68,8 @@ class CarrierConfigurationImport extends Action
      */
     public function execute()
     {
-        $config        = new Config($this->context);
-        $path          = ConfigService::XML_PATH_GENERAL . 'account_settings';
+        $config        = new ResourceConfig($this->context);
+        $path          = Config::XML_PATH_GENERAL . 'account_settings';
         $configuration = $this->fetchConfigurations();
         $config->saveConfig($path, json_encode($this->createArray($configuration)));
 
@@ -120,7 +119,7 @@ class CarrierConfigurationImport extends Action
     {
         $objectManager   = ObjectManager::getInstance();
         $accountSettings = $objectManager->get(ScopeConfigInterface::class)
-            ->getValue(ConfigService::XML_PATH_GENERAL . 'account_settings');
+            ->getValue(Config::XML_PATH_GENERAL . 'account_settings');
 
         if (! $accountSettings) {
             return null;

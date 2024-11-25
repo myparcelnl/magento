@@ -6,30 +6,30 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\Config\ConfigService;
-use MyParcelNL\Magento\Service\Date\DatingService;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use Magento\Framework\App\ResourceConnection;
 
 class ShipmentOptions
 {
-    public const INSURANCE      = 'insurance';
-    public const ONLY_RECIPIENT = 'only_recipient';
-    private const SAME_DAY_DELIVERY = 'same_day_delivery';
-    public const SIGNATURE          = 'signature';
-    public const COLLECT      = AbstractConsignment::SHIPMENT_OPTION_COLLECT;
-    public const RECEIPT_CODE = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
-    public const RETURN       = 'return';
-    public const AGE_CHECK    = 'age_check';
-    public const LARGE_FORMAT = 'large_format';
-    private const HIDE_SENDER = 'hide_sender';
+    public const  INSURANCE         = AbstractConsignment::SHIPMENT_OPTION_INSURANCE;
+    public const  ONLY_RECIPIENT    = AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT;
+    private const SAME_DAY_DELIVERY = AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY;
+    public const  SIGNATURE         = AbstractConsignment::SHIPMENT_OPTION_SIGNATURE;
+    public const  COLLECT           = AbstractConsignment::SHIPMENT_OPTION_COLLECT;
+    public const  RECEIPT_CODE      = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
+    public const RETURN             = AbstractConsignment::SHIPMENT_OPTION_RETURN;
+    public const  AGE_CHECK         = AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK;
+    public const  LARGE_FORMAT      = AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT;
+    private const HIDE_SENDER       = AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER;
     private const LABEL_DESCRIPTION = 'label_description';
-    private const ORDER_NUMBER = '%order_nr%';
-    private const DELIVERY_DATE = '%delivery_date%';
-    private const PRODUCT_ID = '%product_id%';
-    private const PRODUCT_NAME = '%product_name%';
-    private const PRODUCT_QTY = '%product_qty%';
+    private const ORDER_NUMBER      = '%order_nr%';
+    private const DELIVERY_DATE     = '%delivery_date%';
+    private const PRODUCT_ID        = '%product_id%';
+    private const PRODUCT_NAME      = '%product_name%';
+    private const PRODUCT_QTY       = '%product_qty%';
 
     /**
      * @var string
@@ -65,14 +65,14 @@ class ShipmentOptions
      * @var string|null
      */
     private ?string $cc;
-    private DatingService $datingService;
+    private Dating  $datingService;
 
     /**
-     * @param DefaultOptions $defaultOptions
-     * @param Order $order
+     * @param DefaultOptions         $defaultOptions
+     * @param Order                  $order
      * @param ObjectManagerInterface $objectManager
-     * @param string $carrier
-     * @param array $options
+     * @param string                 $carrier
+     * @param array                  $options
      */
     public function __construct(
         DefaultOptions         $defaultOptions,
@@ -83,8 +83,8 @@ class ShipmentOptions
     )
     {
         $this->defaultOptions = $defaultOptions;
-        $this->configService  = $objectManager->get(ConfigService::class);
-        $this->datingService  = $objectManager->get(DatingService::class);
+        $this->configService  = $objectManager->get(Config::class);
+        $this->datingService  = $objectManager->get(Dating::class);
         $this->order          = $order;
         $this->objectManager  = $objectManager;
         $this->carrier        = $carrier;
@@ -205,7 +205,7 @@ class ShipmentOptions
                 self::AGE_CHECK
             );
 
-            if (!isset($productAgeCheck) || '' === $productAgeCheck) {
+            if (! isset($productAgeCheck) || '' === $productAgeCheck) {
                 $hasAgeCheck = null;
             } elseif ('1' === $productAgeCheck) {
                 return true;
@@ -243,8 +243,8 @@ class ShipmentOptions
 
     /**
      * @param         $connection
-     * @param string $tableName
-     * @param string $databaseColumn
+     * @param string  $tableName
+     * @param string  $databaseColumn
      *
      * @return mixed
      */
@@ -284,17 +284,17 @@ class ShipmentOptions
 
     /**
      * @param string $key
-     * @param array $options
+     * @param array  $options
      *
      * @return bool|null boolean value of the option named $key, or null when not set in $options
      */
     public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
     {
-        if (!isset($options[$key])) {
+        if (! isset($options[$key])) {
             return null;
         }
 
-        return (bool)$options[$key];
+        return (bool) $options[$key];
     }
 
     /**
@@ -302,7 +302,7 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        if (!in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
+        if (! in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
             return false;
         }
 
@@ -322,11 +322,11 @@ class ShipmentOptions
             $this->order->getStoreId()
         );
 
-        if (!$labelDescription) {
+        if (! $labelDescription) {
             return '';
         }
 
-        $deliveryOptions  = $this->order->getData(ConfigService::FIELD_DELIVERY_OPTIONS);
+        $deliveryOptions  = $this->order->getData(Config::FIELD_DELIVERY_OPTIONS);
         $checkoutDate     = json_decode($deliveryOptions, true)['date'] ?? null;
         $productInfo      = $this->getItemsCollectionByShipmentId($this->order->getId());
         $labelDescription = str_replace(
@@ -347,11 +347,11 @@ class ShipmentOptions
             $labelDescription
         );
 
-        return (string)$labelDescription;
+        return (string) $labelDescription;
     }
 
     /**
-     * @param array $productInfo
+     * @param array  $productInfo
      * @param string $field
      *
      * @return string|null
@@ -393,11 +393,11 @@ class ShipmentOptions
      */
     private function optionIsEnabled($optionKey): bool
     {
-        if (!isset($this->options[$optionKey])) {
+        if (! isset($this->options[$optionKey])) {
             return $this->defaultOptions->hasOptionSet($optionKey, $this->carrier);
         }
 
-        return (bool)$this->options[$optionKey];
+        return (bool) $this->options[$optionKey];
     }
 
     /**
@@ -420,4 +420,3 @@ class ShipmentOptions
         ];
     }
 }
-

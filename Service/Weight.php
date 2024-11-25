@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Service\Weight;
+namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 
-class WeightService
+class Weight
 {
     public const DEFAULT_WEIGHT = 1000;
 
-    private ConfigService $configService;
+    private Config $config;
 
-    public function __construct(ConfigService $configService)
+    public function __construct(Config $config)
     {
-        $this->configService = $configService;
+        $this->config = $config;
     }
 
     /**
@@ -28,7 +28,7 @@ class WeightService
      */
     public function convertToGrams(?float $weight): int
     {
-        $weightType = $this->configService->getGeneralConfig('print/weight_indication');
+        $weightType = $this->config->getGeneralConfig('print/weight_indication');
 
         if ('kilo' === $weightType) {
             return (int)($weight * 1000) ?: self::DEFAULT_WEIGHT;
@@ -49,7 +49,7 @@ class WeightService
             return 0;
         }
 
-        return $this->configService->getGeneralConfig("$packageType/empty_package_weight") ?: 0;
+        return $this->config->getGeneralConfig("$packageType/empty_package_weight") ?: 0;
     }
 
     /**

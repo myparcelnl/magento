@@ -22,7 +22,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
@@ -179,7 +179,7 @@ class MagentoOrderCollection extends MagentoCollection
 
         foreach ($this->getOrders() as $magentoOrder) {
             $defaultOptions          = new DefaultOptions($magentoOrder);
-            $myparcelDeliveryOptions = $magentoOrder[ConfigService::FIELD_DELIVERY_OPTIONS] ?? '';
+            $myparcelDeliveryOptions = $magentoOrder[Config::FIELD_DELIVERY_OPTIONS] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $selectedCarrier         = $deliveryOptions['carrier'] ?? $this->options['carrier'] ?? CarrierPostNL::NAME;
             $shipmentOptionsHelper   = new ShipmentOptions(

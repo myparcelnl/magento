@@ -11,7 +11,7 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
@@ -39,7 +39,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
 
     private MagentoOrderCollection $orderCollection;
-    private ConfigService $configService;
+    private Config                 $configService;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -51,7 +51,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         // TODO joeri don’t use deprecated action
         parent::__construct($context);
 
-        $this->configService = $this->_objectManager->get(ConfigService::class);
+        $this->configService = $this->_objectManager->get(Config::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->orderCollection       = new MagentoOrderCollection(
             $this->_objectManager,
@@ -112,7 +112,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
-        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+        if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             $this->orderCollection->setFulfilment();
 
             return $this;

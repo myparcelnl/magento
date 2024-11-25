@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Service\Config;
+namespace MyParcelNL\Magento\Service;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -16,7 +16,7 @@ use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
 use MyParcelNL\Sdk\src\Services\Web\CheckApiKeyWebService;
 
-class ConfigService extends AbstractHelper
+class Config extends AbstractHelper
 {
     public const MODULE_NAME = 'MyParcelNL_Magento';
     public const PLATFORM = 'myparcel';

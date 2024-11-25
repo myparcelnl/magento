@@ -8,13 +8,13 @@ use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 
 class TrackActions extends Column
 {
     public const NAME = 'track_actions';
 
-    private ConfigService $configService;
+    private Config       $configService;
     private UrlInterface $urlBuilder;
 
     /**
@@ -34,7 +34,7 @@ class TrackActions extends Column
     {
         $this->urlBuilder    = $urlBuilder;
         $objectManager       = ObjectManager::getInstance();
-        $this->configService = $objectManager->get(ConfigService::class);
+        $this->configService = $objectManager->get(Config::class);
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
@@ -52,7 +52,7 @@ class TrackActions extends Column
             return $dataSource;
         }
 
-        $orderManagementActivated = ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode();
+        $orderManagementActivated = Config::EXPORT_MODE_PPS === $this->configService->getExportMode();
 
         foreach ($dataSource['data']['items'] as &$item) {
             if (!array_key_exists(ShippingStatus::NAME, $item)) {
@@ -65,7 +65,7 @@ class TrackActions extends Column
             }
 
             if (!isset($item[ShippingStatus::NAME])) {
-                if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+                if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
                     $item[$this->getData('name')]['action-create_concept'] = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',

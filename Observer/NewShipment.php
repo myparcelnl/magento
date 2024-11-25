@@ -23,7 +23,7 @@ use Magento\Framework\Message\Manager;
 use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 
 class NewShipment implements ObserverInterface
 {
@@ -71,7 +71,7 @@ class NewShipment implements ObserverInterface
         $this->redirectFactory = $this->objectManager->get(RedirectFactory::class);
         $this->messageManager  = $this->objectManager->get(Manager::class);
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->configService   = $this->objectManager->get(ConfigService::class);
+        $this->configService   = $this->objectManager->get(Config::class);
     }
 
     /**
@@ -149,7 +149,7 @@ class NewShipment implements ObserverInterface
             );
         }
 
-        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+        if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             $this->exportEntireOrder($shipment);
             $this->updateTrackGrid($shipment, true);
 

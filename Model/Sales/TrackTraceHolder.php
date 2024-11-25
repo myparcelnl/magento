@@ -28,10 +28,10 @@ use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\Config\ConfigService;
-use MyParcelNL\Magento\Service\Costs\DeliveryCostsService;
-use MyParcelNL\Magento\Service\Date\DatingService;
-use MyParcelNL\Magento\Service\Weight\WeightService;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\Dating;
+use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
@@ -73,7 +73,7 @@ class TrackTraceHolder
      */
     private $carrier;
 
-    private ConfigService $configService;
+    private Config $configService;
 
     /**
      * @var ObjectManagerInterface
@@ -83,9 +83,10 @@ class TrackTraceHolder
     /**
      * @var ShipmentOptions
      */
-    private                      $shipmentOptionsHelper;
-    private WeightService        $weightService;
-    private DeliveryCostsService $deliveryCostsService;
+    private               $shipmentOptionsHelper;
+    private Weight        $weight;
+    private DeliveryCosts $deliveryCosts;
+    private Dating        $dating;
 
     /**
      * TrackTraceHolder constructor.
@@ -98,13 +99,13 @@ class TrackTraceHolder
         Order                  $order
     )
     {
-        $this->objectManager        = $objectManager;
-        $this->configService        = $objectManager->get(ConfigService::class);
-        $this->weightService        = $objectManager->get(WeightService::class);
-        $this->datingService        = $objectManager->get(DatingService::class);
-        $this->deliveryCostsService = $objectManager->get(DeliveryCostsService::class);
-        $this->messageManager       = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
-        $this->defaultOptions       = new DefaultOptions($order);
+        $this->objectManager  = $objectManager;
+        $this->configService  = $objectManager->get(Config::class);
+        $this->weight         = $objectManager->get(Weight::class);
+        $this->dating         = $objectManager->get(Dating::class);
+        $this->deliveryCosts  = $objectManager->get(DeliveryCosts::class);
+        $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
+        $this->defaultOptions = new DefaultOptions($order);
     }
 
     /**
@@ -188,7 +189,7 @@ class TrackTraceHolder
         $deliveryDate = (
             AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
             && 'NL' !== $address->getCountryId()
-        ) ? null : $this->datingService->convertDeliveryDate($deliveryOptionsAdapter->getDate());
+        ) ? null : $this->dating->convertDeliveryDate($deliveryOptionsAdapter->getDate());
         $dropOffPoint = AccountSettings::getInstance()->getDropOffPoint(
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
@@ -263,7 +264,7 @@ class TrackTraceHolder
             ->setOrderId($shipment->getOrderId())
             ->setShipment($shipment)
             ->setCarrierCode(Carrier::CODE)
-            ->setTitle(ConfigService::MYPARCEL_TRACK_TITLE)
+            ->setTitle(Config::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber(TrackAndTrace::VALUE_EMPTY);
 
@@ -361,7 +362,7 @@ class TrackTraceHolder
             $totalWeight += $shipmentItem['weight'] * $shipmentItem['qty'];
         }
 
-        $totalWeight = $this->weightService->convertToGrams($totalWeight);
+        $totalWeight = $this->weight->convertToGrams($totalWeight);
 
         if (0 === $totalWeight) {
             throw new RuntimeException(
@@ -402,8 +403,8 @@ class TrackTraceHolder
                 $myParcelProduct = (new MyParcelCustomsItem())
                     ->setDescription($product->getName())
                     ->setAmount($product->getQty())
-                    ->setWeight($this->weightService->convertToGrams($product->getWeight()) ?: 1)
-                    ->setItemValue($this->deliveryCostsService->getPriceInCents($product->getPrice()))
+                    ->setWeight($this->weight->convertToGrams($product->getWeight()) ?: 1)
+                    ->setItemValue($this->deliveryCosts->getPriceInCents($product->getPrice()))
                     ->setClassification(
                         (int) $this->getAttributeValue(
                             'catalog_product_entity_int',
@@ -421,7 +422,7 @@ class TrackTraceHolder
             $myParcelProduct = (new MyParcelCustomsItem())
                 ->setDescription($item->getName())
                 ->setAmount($item->getQty())
-                ->setWeight($this->weightService->convertToGrams($item->getWeight() * $item->getQty()))
+                ->setWeight($this->weight->convertToGrams($item->getWeight() * $item->getQty()))
                 ->setItemValue($item->getPrice() * 100)
                 ->setClassification(
                     (int) $this->getAttributeValue(

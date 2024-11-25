@@ -26,7 +26,7 @@ use Magento\Sales\Model\ResourceModel\Order\Collection;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\src\Exception\ApiException;
 use MyParcelNL\Sdk\src\Exception\MissingFieldException;
 
@@ -54,7 +54,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     private $orderCollection;
 
-    private ConfigService $configService;
+    private Config $configService;
 
     /**
      * @var MagentoShipmentCollection
@@ -76,7 +76,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
         $objectManager   = ObjectManager::getInstance();
         //$this->request         = $objectManager->get('Magento\Framework\App\RequestInterface');
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->configService   = $objectManager->get(ConfigService::class);
+        $this->configService   = $objectManager->get(Config::class);
         //$this->modelTrack      = $objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
         //$this->orderFactory    = $objectManager->get('\Magento\Sales\Model\Order');
     }
@@ -128,7 +128,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
             ->setOptionsFromParameters()
             ->setNewMagentoShipment();
 
-        if (ConfigService::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+        if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             $this->orderCollection->setFulfilment();
 
             return $this;

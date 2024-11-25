@@ -6,7 +6,7 @@ use Magento\Framework\App\ResponseInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Service\Config\ConfigService;
+use MyParcelNL\Magento\Service\Config;
 
 /**
  * Action to send mails with a return label
@@ -25,7 +25,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
     private MagentoOrderCollection $orderCollection;
-    private ConfigService $configService;
+    private Config                 $configService;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -36,7 +36,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
     {
         parent::__construct($context);
 
-        $this->configService = $context->getObjectManager()->get(ConfigService::class);
+        $this->configService = $context->getObjectManager()->get(Config::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->orderCollection = new MagentoOrderCollection(
             $context->getObjectManager(),
