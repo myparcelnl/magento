@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace MyParcelNL\Magento\Service\Date;
+namespace MyParcelNL\Magento\Service;
 
 use DateTimeImmutable;
 use Exception;
 
-class DatingService
+class Dating
 {
     /**
      * Get date in YYYY-MM-DD HH:MM:SS format
