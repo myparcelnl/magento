@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.18.0](https://github.com/myparcelnl/magento/compare/v4.17.0...v4.18.0) (2024-11-26)
+
+
+### :sparkles: New Features
+
+* add delivery fee ([#872](https://github.com/myparcelnl/magento/issues/872)) ([64a7c2b](https://github.com/myparcelnl/magento/commit/64a7c2b8499007aad6e143b8a20b47c1dc31b3c6))
+* add receipt code for belgium ([#875](https://github.com/myparcelnl/magento/issues/875)) ([8a219ad](https://github.com/myparcelnl/magento/commit/8a219ade827ef6d32d8b1aacefd0874af704256e))
+* **carriers:** add ups shipping options ([#873](https://github.com/myparcelnl/magento/issues/873)) ([b223ac7](https://github.com/myparcelnl/magento/commit/b223ac71e5a99630fe12d98446b0c3aa1d86f1c3))
+
 ## [4.17.0](https://github.com/myparcelnl/magento/compare/v4.16.2...v4.17.0) (2024-10-29)
 
 
