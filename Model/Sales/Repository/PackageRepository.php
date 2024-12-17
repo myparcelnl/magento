@@ -30,7 +30,6 @@ class PackageRepository extends Package
     public const DEFAULT_MAXIMUM_MAILBOX_WEIGHT = 2000;
     public const MAXIMUM_DIGITAL_STAMP_WEIGHT   = 2000;
     public const MAXIMUM_PACKAGE_SMALL_WEIGHT   = 2000;
-    public const DEFAULT_LARGE_FORMAT_WEIGHT    = 23000;
     public const CARRIER_TYPE_CUSTOM            = 'custom';
 
     /**

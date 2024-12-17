@@ -137,26 +137,13 @@ class DefaultOptions
     public function hasDefaultLargeFormat(string $carrier, string $option): bool
     {
         $price  = $this->order->getGrandTotal();
-        $weight = $this->helper->convertToGrams($this->order->getWeight());
 
         $settings  = $this->helper->getStandardConfig($carrier, 'default_options');
         $activeKey = "{$option}_active";
 
-        if (isset($settings[$activeKey]) &&
-            'weight' === $settings[$activeKey] &&
-            $weight >= PackageRepository::DEFAULT_LARGE_FORMAT_WEIGHT
-        ) {
-            return true;
-        }
-
-        if (isset($settings[$activeKey]) &&
+        return isset($settings[$activeKey]) &&
             'price' === $settings[$activeKey] &&
-            $price >= $settings["{$option}_from_price"]
-        ) {
-            return true;
-        }
-
-        return false;
+            $price >= $settings["{$option}_from_price"];
     }
 
     /**
