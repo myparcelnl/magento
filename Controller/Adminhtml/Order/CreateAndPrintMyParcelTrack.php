@@ -124,10 +124,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         if (! $this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
-        }
-
-        if ($this->messageManager->getMessages()->getErrors()) {
-            $this->messageManager->getMessages();
 
             return $this;
         }
