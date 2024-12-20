@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.18.1](https://github.com/myparcelnl/magento/compare/v4.18.0...v4.18.1) (2024-12-20)
+
+
+### :bug: Bug Fixes
+
+* prevent random error messages from halting shipment creation ([#878](https://github.com/myparcelnl/magento/issues/878)) ([399f16a](https://github.com/myparcelnl/magento/commit/399f16ae087c1d68638af5adf07f660f4dd91b5d))
+
 ## [4.18.0](https://github.com/myparcelnl/magento/compare/v4.17.0...v4.18.0) (2024-11-26)
 
 
