@@ -76,6 +76,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
             $this->massAction();
         } catch (ApiException | MissingFieldException $e) {
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+            $this->messageManager->addErrorMessage(__($e->getMessage()));
         }
 
         return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
