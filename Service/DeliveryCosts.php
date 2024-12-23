@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
-use MyParcelNL\Magento\Service\Weight;
 
 class DeliveryCosts
 {
