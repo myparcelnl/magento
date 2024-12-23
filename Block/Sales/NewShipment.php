@@ -21,10 +21,8 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
-use MyParcelNL\Magento\Helper\Checkout;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
@@ -145,7 +143,7 @@ class NewShipment extends AbstractItems
     public function getDeliveryType(): int
     {
         try {
-            $deliveryTypeName = json_decode($this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS), true)['deliveryType'];
+            $deliveryTypeName = json_decode($this->order->getData(Config::FIELD_DELIVERY_OPTIONS), true)['deliveryType'];
             $deliveryType     = AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP[$deliveryTypeName];
         } catch (Exception $e) {
             $deliveryType = AbstractConsignment::DEFAULT_DELIVERY_TYPE;

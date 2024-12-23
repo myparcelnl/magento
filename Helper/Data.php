@@ -61,6 +61,7 @@ class Data extends AbstractHelper
         ModuleListInterface $moduleList,
         CheckApiKeyService  $checkApiKeyService
     ) {
+        throw new Exception('Do not use Helper/Data.php');
         parent::__construct($context);
         $this->moduleList         = $moduleList;
         $this->checkApiKeyService = $checkApiKeyService;

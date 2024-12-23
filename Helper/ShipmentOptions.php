@@ -123,7 +123,7 @@ class ShipmentOptions
 
     public function hasReceiptCode(): bool
     {
-        $deliveryOptions = $this->order->getData(Checkout::FIELD_DELIVERY_OPTIONS) ?? [];
+        $deliveryOptions = $this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? [];
         $deliveryType    = $deliveryOptions['deliveryType'] ?? AbstractConsignment::DEFAULT_DELIVERY_TYPE;
 
         if (AbstractConsignment::CC_NL !== $this->cc
