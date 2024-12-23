@@ -20,7 +20,6 @@ namespace MyParcelNL\Magento\Model\Carrier;
 
 use Exception;
 use http\Exception\InvalidArgumentException;
-use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Phrase;
@@ -36,15 +35,14 @@ use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
-use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
-use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
+use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
-use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
 {
+    use NeedsQuoteProps;
+
     public const CODE = 'myparcel'; // same as in /etc/config.xml
 
     protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
@@ -58,16 +56,14 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      */
     private $package;
 
-    private AbstractDeliveryOptionsAdapter $deliveryOptions;
-
     /**
      * Carrier constructor.
      *
      * @param ScopeConfigInterface $scopeConfig
      * @param ErrorFactory $rateErrorFactory
      * @param LoggerInterface $logger
-     * @param Config $configService
-     * @param DeliveryCosts $deliveryCostsService
+     * @param Config $config
+     * @param DeliveryCosts $deliveryCosts
      * @param ResultFactory $rateFactory
      * @param MethodFactory $rateMethodFactory
      * @param PackageRepository $package
@@ -80,8 +76,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         ScopeConfigInterface $scopeConfig,
         ErrorFactory         $rateErrorFactory,
         LoggerInterface      $logger,
-        Config               $configService,
-        DeliveryCosts        $deliveryCostsService,
+        Config               $config,
+        DeliveryCosts        $deliveryCosts,
         ResultFactory        $rateFactory,
         MethodFactory        $rateMethodFactory,
         PackageRepository    $package,
@@ -96,15 +92,15 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $data,
         );
 
-        $this->_name = $configService->getMagentoCarrierConfig('name') ?: self::CODE;
-        $this->_title = $configService->getMagentoCarrierConfig('title') ?: self::CODE;
+        $this->_name = $config->getMagentoCarrierConfig('name') ?: self::CODE;
+        $this->_title = $config->getMagentoCarrierConfig('title') ?: self::CODE;
 
+        $this->config = $config;
         $this->package = $package;
         $this->rateResultFactory = $rateFactory;
         $this->rateMethodFactory = $rateMethodFactory;
         $this->_freeShipping = $freeShipping;
-        $this->configService = $configService;
-        $this->deliveryCostsService = $deliveryCostsService;
+        $this->deliveryCosts = $deliveryCosts;
     }
 
     protected function _doShipmentRequest(DataObject $request)
@@ -117,7 +113,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             return false;
         }
 
-        $quote = $this->getQuoteFromRequest($request);
+        $quote = $this->getQuoteFromRateRequest($request);
+
         if (null === $quote) {
             throw new InvalidArgumentException('No quote found in request');
         }
@@ -147,12 +144,12 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'delivery/signature_fee' => $shipmentOptions->hasSignature(),
             'delivery/only_recipient_fee' => $shipmentOptions->hasOnlyRecipient(),
         ];
-        $amount = $this->deliveryCostsService->getBasePrice($quote);
+        $amount = $this->deliveryCosts->getBasePrice($quote);
         foreach ($shipmentFees as $key => $value) {
             if (!$value) {
                 continue;
             }
-            $amount += (float)$this->configService->getConfigValue("$configPath$key");
+            $amount += (float)$this->config->getConfigValue("$configPath$key");
         }
 
         return $amount;
@@ -231,7 +228,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      */
     private function createTitle($settingPath)
     {
-        $title = $this->configService->getConfigValue(Config::XML_PATH_POSTNL_SETTINGS . "{$settingPath}title");
+        $title = $this->config->getConfigValue(Config::XML_PATH_POSTNL_SETTINGS . "{$settingPath}title");
 
         if ($title === null) {
             $title = __("{$settingPath}title");
@@ -254,47 +251,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             return 0;
         }
 
-        return 10 + $this->configService->getFloatConfig("{$settingPath}fee", $alias);
-    }
-
-    private function getQuoteFromRequest(RateRequest $request): ?Quote
-    {
-        /**
-         * Do not use checkoutSession->getQuote()!!! it will cause infinite loop for
-         * quotes with trigger_recollect = 1, see Quote::_afterLoad()
-         * https://magento.stackexchange.com/questions/340048/how-to-properly-get-current-quote-in-carrier-collect-rates-function
-         */
-        $items = $request->getAllItems();
-        if (empty($items)) {
-            return null;
-        }
-
-        /** @var \Magento\Quote\Model\Quote\Item $firstItem */
-        $firstItem = reset($items);
-        if (!$firstItem) {
-            return null;
-        }
-
-        $quote = $firstItem->getQuote();
-        if (!($quote instanceof Quote)) {
-            return null;
-        }
-
-        return $quote;
-    }
-
-    private function getDeliveryOptionsFromQuote(Quote $quote): AbstractDeliveryOptionsAdapter
-    {
-        if (isset($this->deliveryOptions)) {
-            return $this->deliveryOptions;
-        }
-
-        try {
-            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 512, JSON_THROW_ON_ERROR));
-        } catch (Throwable $e) {
-            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
-        }
-
-        return $this->deliveryOptions;
+        return 10 + $this->config->getFloatConfig("{$settingPath}fee", $alias);
     }
 }

@@ -16,7 +16,7 @@ class Dating
      * @param string $format
      * @return string|null
      */
-    public function convertDeliveryDate(?string $date, string $format = 'Y-m-d H:i:s'): ?string
+    public static function convertDeliveryDate(?string $date, string $format = 'Y-m-d H:i:s'): ?string
     {
         if (null === $date) {
             return null;
@@ -36,5 +36,4 @@ class Dating
 
         return date($format, $deliveryDate);
     }
-
 }

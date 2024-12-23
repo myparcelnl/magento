@@ -65,7 +65,6 @@ class ShipmentOptions
      * @var string|null
      */
     private ?string $cc;
-    private Dating  $datingService;
 
     /**
      * @param DefaultOptions         $defaultOptions
@@ -84,7 +83,6 @@ class ShipmentOptions
     {
         $this->defaultOptions = $defaultOptions;
         $this->configService  = $objectManager->get(Config::class);
-        $this->datingService  = $objectManager->get(Dating::class);
         $this->order          = $order;
         $this->objectManager  = $objectManager;
         $this->carrier        = $carrier;
@@ -339,7 +337,7 @@ class ShipmentOptions
             ],
             [
                 $this->order->getIncrementId(),
-                $this->datingService->convertDeliveryDate($checkoutDate, 'd-m-Y') ?: '',
+                Dating::convertDeliveryDate($checkoutDate, 'd-m-Y') ?: '',
                 $this->getProductInfo($productInfo, 'product_id'),
                 $this->getProductInfo($productInfo, 'name'),
                 $productInfo ? round($this->getProductInfo($productInfo, 'qty')) : null,
