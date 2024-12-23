@@ -21,6 +21,7 @@ namespace MyParcelNL\Magento\Model\Checkout;
 use Magento\Checkout\Block\Checkout\LayoutProcessor;
 use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
 use MyParcelNL\Magento\Model\Quote\Checkout;
+use MyParcelNL\Magento\Service\Config;
 
 class LayoutProcessorPlugin
 {
@@ -49,7 +50,7 @@ class LayoutProcessorPlugin
                 $jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']
                 ['children']['shippingAddress']['children']['before-shipping-method-form']['children'],
                 [
-                    CheckoutHelper::FIELD_DELIVERY_OPTIONS => [
+                    Config::FIELD_DELIVERY_OPTIONS => [
                         'component' => 'Magento_Ui/js/form/element/abstract',
                         'config' => [
                             'customScope' => 'shippingAddress',
@@ -58,7 +59,7 @@ class LayoutProcessorPlugin
                             'options' => [],
                             'id' => 'myparcel-delivery-options',
                         ],
-                        'dataScope' => 'shippingAddress.' . CheckoutHelper::FIELD_DELIVERY_OPTIONS,
+                        'dataScope' => 'shippingAddress.' . Config::FIELD_DELIVERY_OPTIONS,
                         'label' => 'Delivery Options',
                         'provider' => 'checkoutProvider',
                         'visible' => false,

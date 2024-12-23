@@ -96,8 +96,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $data,
         );
 
-        $this->_name = $configService->getConfigValue('carriers/myparcel_delivery/name') ?: self::CODE;
-        $this->_title = $configService->getConfigValue('carriers/myparcel_delivery/title') ?: self::CODE;
+        $this->_name = $configService->getMagentoCarrierConfig('name') ?: self::CODE;
+        $this->_title = $configService->getMagentoCarrierConfig('title') ?: self::CODE;
 
         $this->package = $package;
         $this->rateResultFactory = $rateFactory;
@@ -134,47 +134,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $result->append($method);
 
         return $result;
-    }
-
-    private function getDeliveryOptionsFromQuote(Quote $quote): AbstractDeliveryOptionsAdapter
-    {
-        if (isset($this->deliveryOptions)) {
-            return $this->deliveryOptions;
-        }
-
-        try {
-            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 512, JSON_THROW_ON_ERROR));
-        } catch (Throwable $e) {
-            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
-        }
-
-        return $this->deliveryOptions;
-    }
-
-    private function getQuoteFromRequest(RateRequest $request): ?Quote
-    {
-        /**
-         * Do not use checkoutSession->getQuote()!!! it will cause infinite loop for
-         * quotes with trigger_recollect = 1, see Quote::_afterLoad()
-         * https://magento.stackexchange.com/questions/340048/how-to-properly-get-current-quote-in-carrier-collect-rates-function
-         */
-        $items = $request->getAllItems();
-        if (empty($items)) {
-            return null;
-        }
-
-        /** @var \Magento\Quote\Model\Quote\Item $firstItem */
-        $firstItem = reset($items);
-        if (!$firstItem) {
-            return null;
-        }
-
-        $quote = $firstItem->getQuote();
-        if (!($quote instanceof Quote)) {
-            return null;
-        }
-
-        return $quote;
     }
 
     private function getMethodAmount(Quote $quote): float
@@ -236,6 +195,12 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         return [$this->_name];
     }
 
+    public function isTrackingAvailable(): bool
+    {
+        // TODO: Implement isTrackingAvailable() method.
+        return true;
+    }
+
     /**
      * @param $alias
      * @param string $settingPath
@@ -292,9 +257,44 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         return 10 + $this->configService->getFloatConfig("{$settingPath}fee", $alias);
     }
 
-    public function isTrackingAvailable(): bool
+    private function getQuoteFromRequest(RateRequest $request): ?Quote
     {
-        // TODO: Implement isTrackingAvailable() method.
-        return true;
+        /**
+         * Do not use checkoutSession->getQuote()!!! it will cause infinite loop for
+         * quotes with trigger_recollect = 1, see Quote::_afterLoad()
+         * https://magento.stackexchange.com/questions/340048/how-to-properly-get-current-quote-in-carrier-collect-rates-function
+         */
+        $items = $request->getAllItems();
+        if (empty($items)) {
+            return null;
+        }
+
+        /** @var \Magento\Quote\Model\Quote\Item $firstItem */
+        $firstItem = reset($items);
+        if (!$firstItem) {
+            return null;
+        }
+
+        $quote = $firstItem->getQuote();
+        if (!($quote instanceof Quote)) {
+            return null;
+        }
+
+        return $quote;
+    }
+
+    private function getDeliveryOptionsFromQuote(Quote $quote): AbstractDeliveryOptionsAdapter
+    {
+        if (isset($this->deliveryOptions)) {
+            return $this->deliveryOptions;
+        }
+
+        try {
+            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 512, JSON_THROW_ON_ERROR));
+        } catch (Throwable $e) {
+            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(DeliveryOptionsV3Adapter::DEFAULTS);
+        }
+
+        return $this->deliveryOptions;
     }
 }
