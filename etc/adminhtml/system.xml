@@ -198,7 +198,7 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="signature_fee" translate="label comment" type="text" sortOrder="315" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="signature_fee" translate="label comment" type="text" sortOrder="311" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt fee</label>
                     <tooltip>This will be added to the regular shipping price</tooltip>
                     <depends>
@@ -1206,39 +1206,21 @@
                     <label>Delivery enabled</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="signature_active" translate="label comment" type="select" sortOrder="310" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
+                <field id="signature_active" translate="label comment" type="select" sortOrder="310"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="signature_fee" translate="label comment" type="text" sortOrder="311" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
+                <field id="signature_fee" translate="label comment" type="text" sortOrder="311"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Signature on receipt fee</label>
                     <tooltip>This will be added to the regular shipping price</tooltip>
                     <depends>
                         <field id="active">1</field>
                         <field id="signature_active">1</field>
-                    </depends>
-                </field>
-                <field id="receipt_code_active" translate="label comment" type="select" sortOrder="314"
-                       showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Receipt code</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="receipt_code_fee" translate="label comment" type="text" sortOrder="315" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Receipt code fee</label>
-                    <tooltip>This will be added to the regular shipping price</tooltip>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="receipt_code_active">1</field>
                     </depends>
                 </field>
                 <field id="only_recipient_active" translate="label comment" type="select" sortOrder="320"
