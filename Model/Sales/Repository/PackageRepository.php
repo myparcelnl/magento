@@ -170,8 +170,6 @@ class PackageRepository extends Package
         $settings = $this->getConfigValue("{$carrierPath}mailbox");
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
-            $this->_logger->critical("Can't set settings with path: {$carrierPath}mailbox");
-
             return $this;
         }
 
@@ -266,8 +264,6 @@ class PackageRepository extends Package
         $settings = $this->getConfigValue("{$carrierPath}digital_stamp");
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
-            $this->_logger->critical("Can't set settings with path: {$carrierPath}digital_stamp");
-
             return $this;
         }
 
@@ -292,8 +288,6 @@ class PackageRepository extends Package
         $settings = $this->getConfigValue("{$carrierPath}package_small");
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
-            $this->_logger->critical("Can't set settings with path: {$carrierPath}package_small");
-
             return $this;
         }
 

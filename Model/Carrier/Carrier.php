@@ -48,13 +48,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
     protected $_name;
     protected $_title;
-    protected $_freeShipping;
-
-
-    /**
-     * @var PackageRepository
-     */
-    private $package;
+    protected Freeshipping $_freeShipping;
 
     /**
      * Carrier constructor.
@@ -66,7 +60,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * @param DeliveryCosts $deliveryCosts
      * @param ResultFactory $rateFactory
      * @param MethodFactory $rateMethodFactory
-     * @param PackageRepository $package
      * @param Freeshipping $freeShipping
      * @param array $data
      *
@@ -80,7 +73,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         DeliveryCosts        $deliveryCosts,
         ResultFactory        $rateFactory,
         MethodFactory        $rateMethodFactory,
-        PackageRepository    $package,
         Freeshipping         $freeShipping,
         array                $data = []
     )
@@ -96,7 +88,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $this->_title = $config->getMagentoCarrierConfig('title') ?: self::CODE;
 
         $this->config = $config;
-        $this->package = $package;
         $this->rateResultFactory = $rateFactory;
         $this->rateMethodFactory = $rateMethodFactory;
         $this->_freeShipping = $freeShipping;
