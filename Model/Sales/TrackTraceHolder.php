@@ -85,8 +85,6 @@ class TrackTraceHolder
      */
     private               $shipmentOptionsHelper;
     private Weight        $weight;
-    private DeliveryCosts $deliveryCosts;
-    private Dating        $dating;
 
     /**
      * TrackTraceHolder constructor.
@@ -102,8 +100,6 @@ class TrackTraceHolder
         $this->objectManager  = $objectManager;
         $this->configService  = $objectManager->get(Config::class);
         $this->weight         = $objectManager->get(Weight::class);
-        $this->dating         = $objectManager->get(Dating::class);
-        $this->deliveryCosts  = $objectManager->get(DeliveryCosts::class);
         $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
         $this->defaultOptions = new DefaultOptions($order);
     }
@@ -189,7 +185,7 @@ class TrackTraceHolder
         $deliveryDate = (
             AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
             && 'NL' !== $address->getCountryId()
-        ) ? null : $this->dating->convertDeliveryDate($deliveryOptionsAdapter->getDate());
+        ) ? null : Dating::convertDeliveryDate($deliveryOptionsAdapter->getDate());
         $dropOffPoint = AccountSettings::getInstance()->getDropOffPoint(
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
