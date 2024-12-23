@@ -50,10 +50,16 @@ trait NeedsQuoteProps
             return $this->deliveryOptions;
         }
 
-        try {
-            $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 512, JSON_THROW_ON_ERROR));
-        } catch (\Throwable $e) {
-            Logger::log('warning', 'Failed to retrieve delivery options from quote ' . $quote->getId());
+        $do = $quote->getData(Config::FIELD_DELIVERY_OPTIONS);
+
+        if (is_string($do)) {
+            try {
+                $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($do, true, 512, JSON_THROW_ON_ERROR));
+            } catch (\Throwable $e) {
+                Logger::log('warning', 'Failed to retrieve delivery options from quote ' . $quote->getId(), (array)$do);
+                $this->deliveryOptions = new DeliveryOptionsV3Adapter();
+            }
+        } else {
             $this->deliveryOptions = new DeliveryOptionsV3Adapter();
         }
 
