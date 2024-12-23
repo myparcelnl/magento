@@ -20,6 +20,7 @@ class Config extends AbstractHelper
 {
     public const MODULE_NAME = 'MyParcelNL_Magento';
     public const PLATFORM = 'myparcel';
+    public const XML_PATH_MAGENTO_CARRIER = 'carriers/myparcel_delivery/';
     public const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
     public const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
     public const XML_PATH_DHLFORYOU_SETTINGS = 'myparcelnl_magento_dhlforyou_settings/';
@@ -32,7 +33,6 @@ class Config extends AbstractHelper
     public const FIELD_MYPARCEL_CARRIER = 'myparcel_carrier';
     public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
     public const FIELD_TRACK_STATUS = 'track_status';
-    public const DEFAULT_COUNTRY_CODE = 'NL';
     public const MYPARCEL_TRACK_TITLE = 'MyParcel';
     public const EXPORT_MODE_PPS = 'pps';
     public const EXPORT_MODE_SHIPMENTS = 'shipments';
@@ -133,7 +133,13 @@ class Config extends AbstractHelper
      */
     public function getCarrierConfig(string $carrier, string $code = '', $storeId = null)
     {
-        return $this->getConfigValue(self::CARRIERS_XML_PATH_MAP[$carrier] . $code, $storeId);
+        $path = self::CARRIERS_XML_PATH_MAP[$carrier] ?? null;
+
+        if (null === $path) {
+            return null;
+        }
+
+        return $this->getConfigValue("$path$code", $storeId);
     }
 
 
@@ -148,6 +154,11 @@ class Config extends AbstractHelper
     public function getGeneralConfig(string $code = '', int $storeId = null)
     {
         return $this->getConfigValue(self::XML_PATH_GENERAL . $code, $storeId);
+    }
+
+    public function getMagentoCarrierConfig(string $code = '', int $storeId = null)
+    {
+        return $this->getConfigValue(self::XML_PATH_MAGENTO_CARRIER . $code, $storeId);
     }
 
     /**

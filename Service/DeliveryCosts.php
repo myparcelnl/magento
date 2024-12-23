@@ -9,11 +9,13 @@ use MyParcelNL\Magento\Service\Weight;
 
 class DeliveryCosts
 {
-    private Weight $weightService;
+    private Weight $weight;
+    private Config $config;
 
-    public function __construct(Weight $weightService)
+    public function __construct(Weight $weight , Config $config)
     {
-        $this->weightService = $weightService;
+        $this->weight = $weight;
+        $this->config = $config;
     }
 
     public function getBasePrice(Quote $quote): float
@@ -21,11 +23,11 @@ class DeliveryCosts
         $carrier     = $quote->getShippingAddress()->getShippingMethod(); // todo get actual (chosen) carrier
         $countryCode = $quote->getShippingAddress()->getCountryId();
         $packageType = 'package'; // todo get actual (chosen) package type
-        $weight      = $this->weightService->getEmptyPackageWeightInGrams($packageType)
-            + $this->weightService->getQuoteWeightInGrams($quote);
+        $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
+            + $this->weight->getQuoteWeightInGrams($quote);
 
         // todo implement the actual logic based on configured multi dimensional object
-        return 5;
+        return (float) $this->config->getMagentoCarrierConfig('shipping_cost');
     }
 
     /**
@@ -33,7 +35,7 @@ class DeliveryCosts
      *
      * @return int
      */
-    public function getPriceInCents(float $price): int
+    public static function getPriceInCents(float $price): int
     {
         return (int)($price * 100);
     }
