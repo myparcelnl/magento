@@ -28,7 +28,6 @@ class LargeFormatOptions implements OptionSourceInterface
     {
         return [
             ['value' => 'price', 'label' => __('Price')],
-            ['value' => 'weight', 'label' => __('Weight')],
             ['value' => '0', 'label' => __('No')]
         ];
     }
@@ -42,7 +41,6 @@ class LargeFormatOptions implements OptionSourceInterface
     {
         return [
             'price' => __('Price'),
-            'weight' => __('Weight'),
             '0' => __('No')
         ];
     }
