@@ -77,6 +77,7 @@ function(
      * Initialize by requesting the MyParcel settings configuration from Magento.
      */
     initialize: function() {
+      console.error(' Joeri debugging ');
       Model.compute = ko.computed(function() {
         const configuration = Model.configuration();
         const rates = Model.rates();
