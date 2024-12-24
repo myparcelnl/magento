@@ -132,10 +132,18 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $shipmentFees = [
             "{$deliveryOptions->getDeliveryType()}/fee" => true,
             //"{$this->deliveryOptions->getPackageType()}/fee"  => true,
-            'delivery/signature_fee' => $shipmentOptions->hasSignature(),
             'delivery/only_recipient_fee' => $shipmentOptions->hasOnlyRecipient(),
+            'delivery/signature_fee' => $shipmentOptions->hasSignature(),
+            'delivery/receipt_code_fee' => $shipmentOptions->hasReceiptCode(),
         ];
-        $amount = $this->deliveryCosts->getBasePrice($quote);
+
+        if ($this->isFreeShippingAvailable($quote)) {
+            $amount = 0.0;
+        } else {
+            $amount = $this->deliveryCosts->getBasePrice($quote);
+        }
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'DOEDOE: ' . var_export($amount, true) . "\n", FILE_APPEND);
+
         foreach ($shipmentFees as $key => $value) {
             if (!$value) {
                 continue;
@@ -143,11 +151,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $amount += (float)$this->config->getConfigValue("$configPath$key");
         }
 
-        return $amount;
-        //$this->configService->getMethodPrice(ConfigService::XML_PATH_POSTNL_SETTINGS . 'fee', $alias);
-        $freeShippingIsAvailable = false; // todo find out if this order has free shipping // $this->_freeShipping->getConfigData('active')
-        // todo: get actual price based on chosen and possible options for this quote / cart
-        $amount = $freeShippingIsAvailable ? 0.00 : 10.00;
         return $amount;
     }
 
@@ -157,15 +160,15 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $s = $d->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
 
         ob_start();
-        echo __("{$d->getDeliveryType()}_title"), ' ';
+        echo __("{$d->getDeliveryType()}_title"), ', ';
 
         foreach ($s->toArray() as $key => $value) {
             if ($value) {
-                echo __("{$key}_title"), ' ';
+                echo __("{$key}_title"), ', ';
             }
         }
 
-        return ob_get_clean();
+        return substr(trim(ob_get_clean()), 0, -1);
     }
 
     public function proccessAdditionalValidation(DataObject $request)

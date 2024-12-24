@@ -34,7 +34,6 @@ define([
        */
       checkout.hasDeliveryOptions.subscribe(function(enabled) {
         checkout.hideShippingMethods();
-
         if (enabled) {
           deliveryOptions.initialize();
         } else {

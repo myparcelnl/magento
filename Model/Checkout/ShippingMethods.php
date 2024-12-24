@@ -15,7 +15,7 @@ class ShippingMethods implements ShippingMethodsInterface
     /**
      * @var \Magento\Checkout\Model\Session
      */
-    private $session;
+    private Session $session;
 
     /**
      * ShippingMethods constructor.
@@ -40,11 +40,11 @@ class ShippingMethods implements ShippingMethodsInterface
         }
 
         try {
-            $shipping = new DeliveryOptionsToShippingMethods($deliveryOptions[0]);
+            //$shipping = new DeliveryOptionsToShippingMethods($deliveryOptions[0]);
 
             $response = [
                 'root' => [
-                    'element_id' => $shipping->getShippingMethod(),
+                    'element_id' => 'myparcel-miep',//TODO get the user inputted title here //$shipping->getShippingMethod(),
                 ],
             ];
         } catch (Exception $e) {
