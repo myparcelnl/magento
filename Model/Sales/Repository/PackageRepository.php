@@ -20,6 +20,7 @@ namespace MyParcelNL\Magento\Model\Sales\Repository;
 
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
@@ -149,7 +150,8 @@ class PackageRepository extends Package
      */
     public function fitInDigitalStamp(): bool
     {
-        $orderWeight               = $this->convertToGrams($this->getWeight());
+        // TODO temporary weight calculation since PackageRepository will be removed alltogether
+        $orderWeight               = (new Weight($this))->convertToGrams($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
         return $this->getCurrentCountry() === AbstractConsignment::CC_NL

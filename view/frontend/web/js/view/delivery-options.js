@@ -220,6 +220,7 @@ define(
        * @param {string} identifier - Name of the event.
        */
       triggerEvent: function(identifier) {
+        //document.body.dispatchEvent(new CustomEvent(identifier, { bubbles: true, cancelable: false }));
         var event = document.createEvent('HTMLEvents');
         event.initEvent(identifier, true, false);
         document.querySelector('body').dispatchEvent(event);
@@ -311,7 +312,7 @@ define(
              */
             var cacheObject = JSON.parse(localStorage.getItem('mage-cache-storage'));
             if (cacheObject.hasOwnProperty('checkout-data')) {
-              cacheObject['checkout-data']['selectedShippingRate'] = response[0].element_id;
+              cacheObject['checkout-data']['selectedShippingRate'] = 'TITLE YO JOERI';// response[0].element_id;
               localStorage.setItem('mage-cache-storage', JSON.stringify(cacheObject));
             }
             /**

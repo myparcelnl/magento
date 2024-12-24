@@ -76,6 +76,7 @@ function(
      * Initialize by requesting the MyParcel settings configuration from Magento.
      */
     initialize: function() {
+      console.error(' Joeri debugging ');
       Model.compute = ko.computed(function() {
         var configuration = Model.configuration();
         var rates = Model.rates();
@@ -152,9 +153,7 @@ function(
        */
     findOriginalRateByCarrierCode: function(carrierCode) {
       return Model.rates().find(function(rate) {
-          if (-1 === rate.method_code.indexOf('myparcel')) {
-              return rate.carrier_code === carrierCode;
-          }
+        return rate.carrier_code === carrierCode;
       });
     },
 
@@ -290,7 +289,6 @@ function(
         isAllowed = true;
       }
     });
-
     Model.hasDeliveryOptions(isAllowed);
     Model.hideShippingMethods();
   }
