@@ -46,7 +46,8 @@ trait NeedsQuoteProps
         if (!($quote instanceof Quote)) {
             return null;
         }
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'free shipping rate request: ' . var_export($this->isFreeShippingAvailable($quote), true) . "\n", FILE_APPEND);
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "free shipping rate request: \n", FILE_APPEND);
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'RESULT: ' . var_export($this->isFreeShippingAvailable($quote), true) . "\n", FILE_APPEND);
 
         return $quote;
     }
@@ -59,7 +60,8 @@ trait NeedsQuoteProps
         if (!($quote instanceof Quote)) {
             return null;
         }
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'free shipping current session: ' . var_export($this->isFreeShippingAvailable($quote), true) . "\n", FILE_APPEND);
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "free shipping current session:\n", FILE_APPEND);
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'RESULT: ' . var_export($this->isFreeShippingAvailable($quote), true) . "\n", FILE_APPEND);
 
         return $quote;
     }
@@ -94,7 +96,6 @@ trait NeedsQuoteProps
     public function getShippingMethodsFromQuote(Quote $quote): array
     {
         $quoteId = $quote->getId();
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'quoteId: ' . var_export($quoteId, true) . "\n", FILE_APPEND);
 
         try {
             $shippingMethodManagement = ObjectManager::getInstance()->get(ShippingMethodManagementInterface::class);
@@ -105,8 +106,6 @@ trait NeedsQuoteProps
                 /** @var ShippingMethodInterface $method */
                 $methods[] = $method;
             }
-        } catch (StateException $stateException) {
-            throw new LocalizedException(__($stateException->getMessage()));
         } catch (\Exception $exception) {
             throw new LocalizedException(__($exception->getMessage()));
         }
@@ -122,18 +121,33 @@ trait NeedsQuoteProps
      */
     public function isFreeShippingAvailable(Quote $quote): bool
     {
-        try {
-            $shippingMethods = $this->getShippingMethodsFromQuote($quote);
-            // loop through the methods to see if one is free (price = 0)
-            foreach ($shippingMethods as $method) {
-                /** @var ShippingMethodInterface $method */
-                if (0.0 === $method->getAmount()) {
-                    return true;
-                }
+        $address = $quote->getShippingAddress();
+        $resource = ObjectManager::getInstance()->get(\Magento\Framework\App\ResourceConnection::class);
+        $connection = $resource->getConnection();
+        $tableName = $resource->getTableName('quote_shipping_rate');
+        $sql = "SELECT code FROM " . $tableName . " WHERE address_id = " . $address->getId();
+        $rates = $connection->fetchAll($sql);
+        // TODO get code from quote_shipping_rate table where address_id = $address->getId()
+        foreach ($rates as $row) {
+            file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'shppingaddress: ' . var_export($row, true) . "\n", FILE_APPEND);
+            if ('freeshipping_freeshipping' === $row['code']) {
+                return true;
             }
-        } catch (LocalizedException $e) {
-            Logger::critical($e->getMessage());
         }
+
+//        try {
+//            $shippingMethods = $this->getShippingMethodsFromQuote($quote);
+//            // loop through the methods to see if free shipping is available
+//            foreach ($shippingMethods as $method) {
+//                file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'joeri shipping method: ' . var_export($method->getCarrierCode(), true) . "\n", FILE_APPEND);
+//                /** @var ShippingMethodInterface $method */
+//                if ('freeshipping' === $method->getCarrierCode()) {
+//                    return true;
+//                }
+//            }
+//        } catch (LocalizedException $e) {
+//            Logger::critical($e->getMessage());
+//        }
 
         return false;
     }
