@@ -37,6 +37,7 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
@@ -124,6 +125,23 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         return $result;
     }
 
+    public function getMethodAsArray(Quote $quote): array
+    {
+        //todo joeri inc / ex tax and, where is this specific structure / array coming from? Not method->toArray unfortunately
+        return [
+            'amount' => $this->getMethodAmount($quote),
+            'available' => true,
+            'base_amount' => $this->getMethodAmount($quote),
+            'carrier_code' => $this->_code,
+            'carrier_title' => $this->_title,
+            'error_message' => '',
+            'method_code' => $this->_name,
+            'method_title' => $this->getMethodTitle($quote),
+            'price_excl_tax' => $this->getMethodAmount($quote),
+            'price_incl_tax' => $this->getMethodAmount($quote),
+        ];
+    }
+
     private function getMethodAmount(Quote $quote): float
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
@@ -131,7 +149,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
         $shipmentFees = [
             "{$deliveryOptions->getDeliveryType()}/fee" => true,
-            //"{$this->deliveryOptions->getPackageType()}/fee"  => true,
+            //"{$deliveryOptions->getPackageType()}/fee"  => true,
             'delivery/only_recipient_fee' => $shipmentOptions->hasOnlyRecipient(),
             'delivery/signature_fee' => $shipmentOptions->hasSignature(),
             'delivery/receipt_code_fee' => $shipmentOptions->hasReceiptCode(),
@@ -142,7 +160,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         } else {
             $amount = $this->deliveryCosts->getBasePrice($quote);
         }
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'DOEDOE: ' . var_export($amount, true) . "\n", FILE_APPEND);
 
         foreach ($shipmentFees as $key => $value) {
             if (!$value) {
@@ -150,28 +167,37 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             }
             $amount += (float)$this->config->getConfigValue("$configPath$key");
         }
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT YO: ' . var_export($amount, true) . "\n", FILE_APPEND);
 
         return $amount;
     }
 
     private function getMethodTitle(Quote $quote): string
     {
-        $d = $this->getDeliveryOptionsFromQuote($quote);
-        $s = $d->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
+        // todo joeri netjes maken
+        $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
+        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
+        $carrierName = $deliveryOptions->getCarrier();
+
+        if (null === $carrierName) {
+            return $this->_title;
+        }
+
+        $carrierHuman = CarrierFactory::createFromName($carrierName)->getHuman();
 
         ob_start();
-        echo __("{$d->getDeliveryType()}_title"), ', ';
+        echo $carrierHuman, ' ', __("{$deliveryOptions->getDeliveryType()}_title"), ', ';
 
-        foreach ($s->toArray() as $key => $value) {
+        foreach ($shipmentOptions->toArray() as $key => $value) {
             if ($value) {
                 echo __("{$key}_title"), ', ';
             }
         }
 
-        return substr(trim(ob_get_clean()), 0, -1);
+        return substr(trim(ob_get_clean()), 0, -1); // remove trailing comma
     }
 
-    public function proccessAdditionalValidation(DataObject $request)
+    public function processAdditionalValidation(DataObject $request): bool
     {
         return true;
     }
@@ -200,6 +226,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      */
     private function getShippingMethod($alias, string $settingPath)
     {
+        throw new \Exception('JOERI! We shouldn’t use this method anymore');
         $title = $this->createTitle($settingPath);
         $price = $this->createPrice($alias, $settingPath);
 
@@ -241,10 +268,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      */
     private function createPrice($alias, $settingPath)
     {
-        if ($this->_freeShipping->getConfigData('active')) {
-            return 0;
-        }
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "CreatePrice is called on Carrier\n", FILE_APPEND);
 
-        return 10 + $this->config->getFloatConfig("{$settingPath}fee", $alias);
+        return 10.21;
     }
 }

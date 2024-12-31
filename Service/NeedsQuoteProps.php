@@ -8,6 +8,7 @@ use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\StateException;
+use Magento\Quote\Api\Data\ShippingMethodInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use MyParcelNL\Magento\Facade\Logger;
@@ -45,6 +46,7 @@ trait NeedsQuoteProps
         if (!($quote instanceof Quote)) {
             return null;
         }
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'free shipping rate request: ' . var_export($this->isFreeShippingAvailable($quote), true) . "\n", FILE_APPEND);
 
         return $quote;
     }
@@ -57,6 +59,7 @@ trait NeedsQuoteProps
         if (!($quote instanceof Quote)) {
             return null;
         }
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'free shipping current session: ' . var_export($this->isFreeShippingAvailable($quote), true) . "\n", FILE_APPEND);
 
         return $quote;
     }
@@ -73,7 +76,7 @@ trait NeedsQuoteProps
             try {
                 $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($do, true, 512, JSON_THROW_ON_ERROR));
             } catch (\Throwable $e) {
-                Logger::log('warning', 'Failed to retrieve delivery options from quote ' . $quote->getId(), (array)$do);
+                Logger::log('warning', "Failed to retrieve delivery options from quote {$quote->getId()}", (array)$do);
                 $this->deliveryOptions = new DeliveryOptionsV3Adapter();
             }
         } else {
@@ -84,10 +87,8 @@ trait NeedsQuoteProps
     }
 
     /**
-     * Get shipping method array [method_title => amount] from quote
-     *
      * @param Quote $quote
-     * @return array Associative array by method title holding the amount for that method
+     * @return array indexed array of ShippingMethodInterface objects
      * @throws LocalizedException
      */
     public function getShippingMethodsFromQuote(Quote $quote): array
@@ -97,11 +98,12 @@ trait NeedsQuoteProps
 
         try {
             $shippingMethodManagement = ObjectManager::getInstance()->get(ShippingMethodManagementInterface::class);
-            $getShippingMethods = $shippingMethodManagement->getList($quoteId);
+            $shippingMethods = $shippingMethodManagement->getList($quoteId);
 
             $methods = [];
-            foreach ($getShippingMethods as $method) {
-                $methods[$method->getMethodTitle()] = $method->getAmount();
+            foreach ($shippingMethods as $method) {
+                /** @var ShippingMethodInterface $method */
+                $methods[] = $method;
             }
         } catch (StateException $stateException) {
             throw new LocalizedException(__($stateException->getMessage()));
@@ -122,10 +124,10 @@ trait NeedsQuoteProps
     {
         try {
             $shippingMethods = $this->getShippingMethodsFromQuote($quote);
-file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'shippingMethods: ' . var_export($shippingMethods, true) . "\n", FILE_APPEND);
             // loop through the methods to see if one is free (price = 0)
-            foreach ($shippingMethods as $methodName => $methodAmount) {
-                if (0.0 === $methodAmount) {
+            foreach ($shippingMethods as $method) {
+                /** @var ShippingMethodInterface $method */
+                if (0.0 === $method->getAmount()) {
                     return true;
                 }
             }

@@ -78,9 +78,7 @@ class Checkout
     {
         $this->hideDeliveryOptionsForProduct();
         /**
-         * Use 0.0 for baseprice when free shipping is available.
-         * Note that when free shipping is sorted before the MyParcel method, price will be 0 anyway.
-         * Sort it after the MyParcel method to be able to correctly apply surcharges from the checkout.
+         * Use 0.0 for base price when free shipping is available.
          */
         if ($this->isFreeShippingAvailable($this->quote)) {
             $basePrice = 0.0;
