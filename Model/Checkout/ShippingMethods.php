@@ -4,7 +4,11 @@ namespace MyParcelNL\Magento\Model\Checkout;
 
 use Exception;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\App\ObjectManager;
+use Magento\Quote\Model\QuoteRepository\SaveHandler;
 use MyParcelNL\Magento\Api\ShippingMethodsInterface;
+use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 
 /**
@@ -12,19 +16,19 @@ use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
  */
 class ShippingMethods implements ShippingMethodsInterface
 {
-    /**
-     * @var \Magento\Checkout\Model\Session
-     */
     private Session $session;
+    private Carrier $carrier;
 
     /**
      * ShippingMethods constructor.
      *
-     * @param \Magento\Checkout\Model\Session $session
+     * @param Session $session
+     * @param Carrier $carrier
      */
-    public function __construct(Session $session)
+    public function __construct(Session $session, Carrier $carrier)
     {
         $this->session = $session;
+        $this->carrier = $carrier;
     }
 
     /**
@@ -35,47 +39,18 @@ class ShippingMethods implements ShippingMethodsInterface
      */
     public function getFromDeliveryOptions($deliveryOptions): array
     {
-        if (! $deliveryOptions[0]) {
+        if (! isset($deliveryOptions[0]) || ! $deliveryOptions[0]) {
             return [];
         }
 
-        try {
-            //$shipping = new DeliveryOptionsToShippingMethods($deliveryOptions[0]);
-
-            $response = [
-                'root' => [
-                    'element_id' => 'myparcel-miep',//TODO get the user inputted title here //$shipping->getShippingMethod(),
-                ],
-            ];
-        } catch (Exception $e) {
-            $response = [
-                'code'    => '422',
-                'message' => $e->getMessage(),
-            ];
-        }
-
-        $response[] = $this->persistDeliveryOptions($deliveryOptions[0]);
-
-        return $response;
-    }
-
-    /**
-     * @param array $deliveryOptions
-     *
-     * @return array
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
-    public function persistDeliveryOptions(array $deliveryOptions): array
-    {
+        // save the delivery options in the quote
+        $adapted = DeliveryOptionsAdapterFactory::create($deliveryOptions[0]);
         $quote = $this->session->getQuote();
-        $adapted = DeliveryOptionsAdapterFactory::create($deliveryOptions);
-        $quote->addData(['myparcel_delivery_options' => json_encode($adapted->toArray())]);
-        $quote->save();
+        $quote->addData([Config::FIELD_DELIVERY_OPTIONS => json_encode($adapted->toArray(), JSON_THROW_ON_ERROR)]);
+        $saver = ObjectManager::getInstance()->get(SaveHandler::class);
+        $saver->save($quote);
 
-        return [
-            'delivery_options' => $deliveryOptions,
-            'message' => "Delivery options persisted in quote {$quote->getId()}",
-        ];
+        // return a fresh method from the carrier
+        return ['root' => $this->carrier->getMethodAsArray($quote)];
     }
 }

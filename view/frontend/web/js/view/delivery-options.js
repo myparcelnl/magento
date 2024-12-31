@@ -296,21 +296,7 @@ define(
             if (!response.length) {
               return;
             }
-
-            /**
-             * For the cart summary to display the correct shipping method name on the
-             * second page of the standard checkout, we need to update the storage.
-             */
-            var cacheObject = JSON.parse(localStorage.getItem('mage-cache-storage'));
-            if (cacheObject.hasOwnProperty('checkout-data')) {
-              cacheObject['checkout-data']['selectedShippingRate'] = 'TITLE YO JOERI';// response[0].element_id;
-              localStorage.setItem('mage-cache-storage', JSON.stringify(cacheObject));
-            }
-            /**
-             * Set the method to null first, for the price of options to update in the cart summary.
-             */
-            selectShippingMethodAction(null);
-            selectShippingMethodAction(deliveryOptions.getNewShippingMethod(response[0].element_id));
+            selectShippingMethodAction(response[0]);
           },
         });
       },
@@ -393,6 +379,7 @@ define(
        * @returns {boolean}
        */
       isMyParcelShippingMethod: function(shippingMethod) {
+        console.warn('JOERI NEWR',shippingMethod); // TODO this is what a shipping method looks like, but this is the wrong one
         return shippingMethod.available && shippingMethod.method_code.indexOf('myparcel') !== -1;
       },
 
