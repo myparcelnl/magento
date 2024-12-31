@@ -80,6 +80,7 @@ class Checkout
         /**
          * Use 0.0 for base price when free shipping is available.
          */
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "getDeliveryOptions \n", FILE_APPEND);
         if ($this->isFreeShippingAvailable($this->quote)) {
             $basePrice = 0.0;
         }else {

@@ -128,17 +128,18 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     public function getMethodAsArray(Quote $quote): array
     {
         //todo joeri inc / ex tax and, where is this specific structure / array coming from? Not method->toArray unfortunately
+        $amount = $this->getMethodAmount($quote);
         return [
-            'amount' => $this->getMethodAmount($quote),
+            'amount' => $amount,
             'available' => true,
-            'base_amount' => $this->getMethodAmount($quote),
+            'base_amount' => $amount,
             'carrier_code' => $this->_code,
             'carrier_title' => $this->_title,
             'error_message' => '',
             'method_code' => $this->_name,
             'method_title' => $this->getMethodTitle($quote),
-            'price_excl_tax' => $this->getMethodAmount($quote),
-            'price_incl_tax' => $this->getMethodAmount($quote),
+            'price_excl_tax' => $amount,
+            'price_incl_tax' => $amount,
         ];
     }
 
