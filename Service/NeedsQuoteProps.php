@@ -20,6 +20,8 @@ use Magento\Quote\Api\ShippingMethodManagementInterface;
  * Use this trait when you need to get the quote in several scenarios and have easy access to its properties.
  * During ‘raterequest’ the shipping methods are not always available, therefore we remember the availability of the
  * free shipping method in a session variable.
+ *
+ * @property AbstractDeliveryOptionsAdapter $deliveryOptions
  */
 trait NeedsQuoteProps
 {
@@ -54,11 +56,12 @@ trait NeedsQuoteProps
     protected function getQuoteFromCurrentSession(): ?Quote
     {
         $session = ObjectManager::getInstance()->get(Session::class);
-        $quote = $session->getQuote();
+        $quote   = $session->getQuote();
 
         if (!($quote instanceof Quote)) {
             return null;
         }
+
         /**
          * The available shipping methods can be found in the quote from the session, so force re-checking
          * of the availability of free shipping now, by unsetting the session variable.
@@ -101,7 +104,7 @@ trait NeedsQuoteProps
 
         try {
             $shippingMethodManagement = ObjectManager::getInstance()->get(ShippingMethodManagementInterface::class);
-            $shippingMethods = $shippingMethodManagement->getList($quoteId);
+            $shippingMethods          = $shippingMethodManagement->getList($quoteId);
 
             $methods = [];
             foreach ($shippingMethods as $method) {
