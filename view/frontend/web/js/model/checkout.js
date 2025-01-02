@@ -71,6 +71,7 @@ function(
      * Best package type.
      */
     bestPackageType: null,
+    carrierCode: 'myparcel', // default, may be overridden by carrierCode in configuration
 
     /**
      * Initialize by requesting the MyParcel settings configuration from Magento.
@@ -78,12 +79,14 @@ function(
     initialize: function() {
       console.error(' Joeri debugging ');
       Model.compute = ko.computed(function() {
-        var configuration = Model.configuration();
-        var rates = Model.rates();
+        const configuration = Model.configuration();
+        const rates = Model.rates();
 
         if (!configuration || !rates.length) {
           return false;
         }
+
+        if (configuration.carrierCode) Model.carrierCode = configuration.carrierCode;
 
         return {configuration: configuration, rates: rates};
       });
@@ -131,19 +134,6 @@ function(
       Model.hideShippingMethods();
     },
 
-    /**
-     * Search the rates for the given method code.
-     *
-     * @param {string} methodCode - Method code to search for.
-     *
-     * @returns {Object} - The found rate, if any.
-     */
-    findRateByMethodCode: function(methodCode) {
-      return Model.rates().find(function(rate) {
-        return rate.method_code === methodCode;
-      });
-    },
-
       /**
        * Search the rates for the given carrier code.
        *
@@ -161,32 +151,22 @@ function(
      * Hide the shipping methods the delivery options should replace.
      */
     hideShippingMethods: function() {
-      var rowsToHide = [];
+      const row = Model.rowElement();
 
-      Model.rates().forEach(function(rate) {
-        const hasDeliveryOptions = Model.hasDeliveryOptions();
-        const myParcelMethods = hasDeliveryOptions ? Model.configuration().methods || [] : [];
-        const cell = document.getElementById('label_method_' + rate.method_code + '_' + rate.carrier_code) || null;
-
-        if (!rate.available || !cell) {
-          return;
-        }
-
-        const row = cell.parentElement;
-
-        /**
-         * Hide MyParcel-specific methods, and the parent methods delivery options are bound to
-         */
-        if (rate.method_code.indexOf('myparcel') !== -1) {
-          rowsToHide.push(row);
-        } else if (myParcelMethods.includes(rate.carrier_code)) {
-          rowsToHide.push(row);
-        }
-      });
-
-      rowsToHide.forEach(function(row) {
+      if (row && Model.hasDeliveryOptions) {
         row.style.display = 'none';
-      });
+      }
+    },
+
+    rowElement: function() {
+      const rate = Model.findOriginalRateByCarrierCode(Model.carrierCode) || {},
+          cell = document.getElementById('label_method_' + rate.method_code + '_' + rate.carrier_code);
+
+      if (!cell) {
+        return null;
+      }
+
+      return cell.parentElement; // or cell.closest('tr');? who knows how this is structured in different checkouts?
     },
 
     /**
@@ -274,9 +254,10 @@ function(
      * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
      *  be left out.
      */
-    Model.allowedShippingMethods(Model.configuration().methods.filter(function(carrierCode) {
-      return !!Model.findOriginalRateByCarrierCode(carrierCode);
-    }));
+    const allowed = [],
+        row = Model.rowElement();
+    if (row) allowed.push(Model.carrierCode);
+    Model.allowedShippingMethods(allowed);
   }
 
   function updateHasDeliveryOptions() {

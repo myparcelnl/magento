@@ -8,6 +8,7 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLParcelConnect;
@@ -20,7 +21,7 @@ class Config extends AbstractHelper
 {
     public const MODULE_NAME = 'MyParcelNL_Magento';
     public const PLATFORM = 'myparcel';
-    public const XML_PATH_MAGENTO_CARRIER = 'carriers/myparcel_delivery/';
+    public const XML_PATH_MAGENTO_CARRIER = 'carriers/' . Carrier::CODE . '/';
     public const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
     public const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
     public const XML_PATH_DHLFORYOU_SETTINGS = 'myparcelnl_magento_dhlforyou_settings/';

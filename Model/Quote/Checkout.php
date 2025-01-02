@@ -5,9 +5,9 @@ namespace MyParcelNL\Magento\Model\Quote;
 use Magento\Eav\Model\Entity\Collection\AbstractCollection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Magento\Service\Config;
@@ -42,14 +42,14 @@ class Checkout
     /**
      * @var string
      */
-    private     string    $country;
+    private string $country;
 
     /**
      * Checkout constructor.
      *
-     * @param Config $config
-     * @param DeliveryCosts $deliveryCosts
-     * @param PackageRepository $package
+     * @param Config                $config
+     * @param DeliveryCosts         $deliveryCosts
+     * @param PackageRepository     $package
      * @param StoreManagerInterface $currency
      */
     public function __construct(
@@ -77,15 +77,7 @@ class Checkout
     public function getDeliveryOptions(array $forAddress = []): array
     {
         $this->hideDeliveryOptionsForProduct();
-        /**
-         * Use 0.0 for base price when free shipping is available.
-         */
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "getDeliveryOptions \n", FILE_APPEND);
-        if ($this->isFreeShippingAvailable($this->quote)) {
-            $basePrice = 0.0;
-        }else {
-            $basePrice = $this->deliveryCosts->getBasePrice($this->quote);
-        }
+        $basePrice   = $this->deliveryCosts->getBasePrice($this->quote);
         $packageType = $this->getPackageType();
 
         if (isset($forAddress['countryId'])) {
@@ -93,15 +85,14 @@ class Checkout
         }
 
         $data = [
-            /* the 'method' string here is actually the carrier_code of the method */
-            'methods'    => explode(',', $this->config->getGeneralConfig('shipping_methods/methods') ?? ''),
-            'config'     => array_merge(
+            'carrierCode' => Carrier::CODE,
+            'config'      => array_merge(
                 $this->getGeneralData(),
                 $this->getDeliveryData($packageType, $basePrice),
                 ['packageType' => $packageType]
             ),
-            'strings'    => $this->getDeliveryOptionsStrings(),
-            'forAddress' => $forAddress,
+            'strings'     => $this->getDeliveryOptionsStrings(),
+            'forAddress'  => $forAddress,
         ];
 
         return [
@@ -165,7 +156,7 @@ class Checkout
      * Get delivery data
      *
      * @param string $packageType
-     * @param float $basePrice
+     * @param float  $basePrice
      * @return array
      */
     private function getDeliveryData(string $packageType, float $basePrice): array
@@ -223,16 +214,16 @@ class Checkout
 
             $allowPickup           = $this->config->getBoolConfig($carrierPath, 'pickup/active');
             $allowStandardDelivery = $this->config->getBoolConfig($carrierPath, 'delivery/active');
-            $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveMorning && $this->config->getBoolConfig($carrierPath, 'morning/active');
-            $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveEvening && $this->config->getBoolConfig($carrierPath, 'evening/active');
+            $allowMorningDelivery  = !$isAgeCheckActive && $canHaveMorning && $this->config->getBoolConfig($carrierPath, 'morning/active');
+            $allowEveningDelivery  = !$isAgeCheckActive && $canHaveEvening && $this->config->getBoolConfig($carrierPath, 'evening/active');
             $allowExpressDelivery  = $canHaveExpress && $this->config->getBoolConfig($carrierPath, 'express/active');
-            $allowDeliveryOptions  = ! $this->package->deliveryOptionsDisabled
-                && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
+            $allowDeliveryOptions  = !$this->package->deliveryOptionsDisabled
+                                     && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             if ($allowDeliveryOptions && $packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
                 $this->package->setMailboxSettings($carrierPath);
                 $allowDeliveryOptions = $this->config->getBoolConfig($carrierPath, 'mailbox/active')
-                    && $this->package->getMaxMailboxWeight() >= $this->package->getWeight();
+                                        && $this->package->getMaxMailboxWeight() >= $this->package->getWeight();
             }
 
             $myParcelConfig['carrierSettings'][$carrier] = [
@@ -461,8 +452,8 @@ class Checkout
         $isMailboxPackage     = AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $this->getPackageType();
         $pickupEnabled        = $this->config->getBoolConfig($carrier, 'pickup/active');
         $showPickupForMailbox = $this->config->getBoolConfig($carrier, 'mailbox/pickup_mailbox');
-        $showPickup           = ! $isMailboxPackage || $showPickupForMailbox;
+        $showPickup           = !$isMailboxPackage || $showPickupForMailbox;
 
-        return ! $this->package->deliveryOptionsDisabled && $pickupEnabled && $showPickup;
+        return !$this->package->deliveryOptionsDisabled && $pickupEnabled && $showPickup;
     }
 }

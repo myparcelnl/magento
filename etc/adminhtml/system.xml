@@ -91,12 +91,6 @@
             </group>
             <group id="shipping_methods" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery methods</label>
-                <field id="methods" translate="label comment" type="multiselect" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Methods</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\ShippingMethods</source_model>
-                    <tooltip>The extra myparcel options are added to this shipping method</tooltip>
-                    <can_be_empty>1</can_be_empty>
-                </field>
                 <field id="pickup_locations_view" translate="label comment" type="select" sortOrder="221" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Preferred pickup locations view</label>
                     <source_model>MyParcelNL\Magento\Model\Source\PickupLocationsView</source_model>
@@ -1447,7 +1441,7 @@
             </group>
         </section>
         <section id="carriers" translate="label" type="text" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
-            <group id="myparcel_delivery" translate="label" type="text" sortOrder="900" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="myparcel" translate="label" type="text" sortOrder="-100" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>MyParcel</label>
                 <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
                     <label>Enabled</label>
