@@ -7,7 +7,6 @@ namespace MyParcelNL\Magento\Service;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Exception\StateException;
 use Magento\Quote\Api\Data\ShippingMethodInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
@@ -46,22 +45,23 @@ trait NeedsQuoteProps
         if (!($quote instanceof Quote)) {
             return null;
         }
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "free shipping rate request: \n", FILE_APPEND);
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'RESULT: ' . var_export($this->isFreeShippingAvailable($quote), true) . "\n", FILE_APPEND);
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "free shipping rate request:\n", FILE_APPEND);
 
         return $quote;
     }
 
     public function getQuoteFromCurrentSession(): ?Quote
     {
-        $checkoutSession = ObjectManager::getInstance()->get(Session::class);
-        $quote = $checkoutSession->getQuote();
+        $session = ObjectManager::getInstance()->get(Session::class);
+        $quote = $session->getQuote();
 
         if (!($quote instanceof Quote)) {
             return null;
         }
+        // remove free shipping flag, so it can be calculated anew
+        $session->unsMyParcelFreeShippingIsAvailable();
+
         file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "free shipping current session:\n", FILE_APPEND);
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'RESULT: ' . var_export($this->isFreeShippingAvailable($quote), true) . "\n", FILE_APPEND);
 
         return $quote;
     }
@@ -93,7 +93,7 @@ trait NeedsQuoteProps
      * @return array indexed array of ShippingMethodInterface objects
      * @throws LocalizedException
      */
-    public function getShippingMethodsFromQuote(Quote $quote): array
+    protected function getShippingMethodsFromQuote(Quote $quote): array
     {
         $quoteId = $quote->getId();
 
@@ -121,34 +121,46 @@ trait NeedsQuoteProps
      */
     public function isFreeShippingAvailable(Quote $quote): bool
     {
-        $address = $quote->getShippingAddress();
-        $resource = ObjectManager::getInstance()->get(\Magento\Framework\App\ResourceConnection::class);
-        $connection = $resource->getConnection();
-        $tableName = $resource->getTableName('quote_shipping_rate');
-        $sql = "SELECT code FROM " . $tableName . " WHERE address_id = " . $address->getId();
-        $rates = $connection->fetchAll($sql);
-        // TODO get code from quote_shipping_rate table where address_id = $address->getId()
-        foreach ($rates as $row) {
-            file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'shppingaddress: ' . var_export($row, true) . "\n", FILE_APPEND);
-            if ('freeshipping_freeshipping' === $row['code']) {
-                return true;
-            }
+        // todo: if free shipping flag is set, return its value
+        $session = ObjectManager::getInstance()->get(Session::class);
+        $freeShippingIsAvailable = $session->getMyParcelFreeShippingIsAvailable();
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'SESSION VALUE:' . var_export($freeShippingIsAvailable, true)."\n", FILE_APPEND);
+if (NULL !== $freeShippingIsAvailable) {
+            return $freeShippingIsAvailable;
         }
-
-//        try {
-//            $shippingMethods = $this->getShippingMethodsFromQuote($quote);
-//            // loop through the methods to see if free shipping is available
-//            foreach ($shippingMethods as $method) {
-//                file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'joeri shipping method: ' . var_export($method->getCarrierCode(), true) . "\n", FILE_APPEND);
-//                /** @var ShippingMethodInterface $method */
-//                if ('freeshipping' === $method->getCarrierCode()) {
-//                    return true;
-//                }
+        // else check if free shipping is available based on quote
+        // if free shipping is available, set flag to true
+//        $address = $quote->getShippingAddress();
+//        $resource = ObjectManager::getInstance()->get(\Magento\Framework\App\ResourceConnection::class);
+//        $connection = $resource->getConnection();
+//        $tableName = $resource->getTableName('quote_shipping_rate');
+//        $sql = "SELECT code FROM " . $tableName . " WHERE address_id = " . $address->getId();
+//        $rates = $connection->fetchAll($sql);
+//        // TODO get code from quote_shipping_rate table where address_id = $address->getId()
+//        foreach ($rates as $row) {
+//            file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'shppingaddress: ' . var_export($row, true) . "\n", FILE_APPEND);
+//            if ('freeshipping_freeshipping' === $row['code']) {
+//                return true;
 //            }
-//        } catch (LocalizedException $e) {
-//            Logger::critical($e->getMessage());
 //        }
 
+        try {
+            $shippingMethods = $this->getShippingMethodsFromQuote($quote);
+            // loop through the methods to see if free shipping is available
+            foreach ($shippingMethods as $method) {
+                file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'joeri shipping method: ' . var_export($method->getCarrierCode(), true) . "\n", FILE_APPEND);
+                /** @var ShippingMethodInterface $method */
+                if ('freeshipping' === $method->getCarrierCode()) {
+                    file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'HET is true zet te session: ' . "\n", FILE_APPEND);
+                    $session->setMyParcelFreeShippingIsAvailable(true);
+                    return true;
+                }
+            }
+        } catch (LocalizedException $e) {
+            Logger::critical($e->getMessage());
+        }
+
+        $session->setMyParcelFreeShippingIsAvailable(false);
         return false;
     }
 }
