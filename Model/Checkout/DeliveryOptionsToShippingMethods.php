@@ -31,6 +31,8 @@ class DeliveryOptionsToShippingMethods
     {
         $this->deliveryOptions = DeliveryOptionsAdapterFactory::create($deliveryOptions);
         $this->createShippingMethod();
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "DeliveryOptionsToShippingMethods is called / constructed and probably not working\n", FILE_APPEND);
+        throw new \Exception('DeliveryOptionsToShippingMethods is called, this is not working probably');
     }
 
     /**

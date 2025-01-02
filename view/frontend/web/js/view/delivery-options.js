@@ -57,48 +57,6 @@ define(
        */
       hiddenDataInput: '[name="myparcel_delivery_options"]',
 
-      methodCodeStandardDelivery: 'myparcelnl_magento_postnl_settings/delivery',
-
-      /**
-       * Maps shipping method codes to prices in the delivery options config.
-       */
-      methodCodeDeliveryOptionsConfigMap: {
-        'myparcelnl_magento_postnl_settings/delivery': 'config.carrierSettings.postnl.priceStandardDelivery',
-        'myparcelnl_magento_postnl_settings/mailbox': 'config.carrierSettings.postnl.pricePackageTypeMailbox',
-        'myparcelnl_magento_postnl_settings/package_small': 'config.carrierSettings.postnl.pricePackageTypePackageSmall',
-        'myparcelnl_magento_postnl_settings/digital_stamp': 'config.carrierSettings.postnl.pricePackageTypeDigitalStamp',
-        'myparcelnl_magento_postnl_settings/morning': 'config.carrierSettings.postnl.priceMorningDelivery',
-        'myparcelnl_magento_postnl_settings/evening': 'config.carrierSettings.postnl.priceEveningDelivery',
-        'myparcelnl_magento_postnl_settings/morning/only_recipient': 'config.carrierSettings.postnl.priceMorningDelivery',
-        'myparcelnl_magento_postnl_settings/evening/only_recipient': 'config.carrierSettings.postnl.priceEveningDelivery',
-        'myparcelnl_magento_postnl_settings/pickup': 'config.carrierSettings.postnl.pricePickup',
-        'myparcelnl_magento_postnl_settings/morning/only_recipient/signature': 'config.carrierSettings.postnl.priceMorningSignature',
-        'myparcelnl_magento_postnl_settings/evening/only_recipient/signature': 'config.carrierSettings.postnl.priceEveningSignature',
-        'myparcelnl_magento_postnl_settings/delivery/only_recipient/signature': 'config.carrierSettings.postnl.priceSignatureAndOnlyRecipient',
-        'myparcelnl_magento_dhlforyou_settings/delivery': 'config.carrierSettings.dhlforyou.priceStandardDelivery',
-        'myparcelnl_magento_dhlforyou_settings/mailbox': 'config.carrierSettings.dhlforyou.pricePackageTypeMailbox',
-        'myparcelnl_magento_dhlforyou_settings/pickup': 'config.carrierSettings.dhlforyou.pricePickup',
-        'myparcelnl_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
-        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
-        'myparcelnl_magento_dhleuroplus_settings/delivery': 'config.carrierSettings.dhleuroplus.priceStandardDelivery',
-        'myparcelnl_magento_dhlparcelconnect_settings/delivery': 'config.carrierSettings.dhlparcelconnect.priceStandardDelivery',
-        'myparcelnl_magento_ups_settings/delivery': 'config.carrierSettings.ups.priceStandardDelivery',
-        'myparcelnl_magento_dpd_settings/delivery': 'config.carrierSettings.dpd.priceStandardDelivery',
-        'myparcelnl_magento_dpd_settings/pickup': 'config.carrierSettings.dpd.pricePickup',
-        'myparcelnl_magento_dpd_settings/mailbox': 'config.carrierSettings.dpd.pricePackageTypeMailbox',
-      },
-
-      /**
-       * Maps shipping method codes to prices in the delivery options config.
-       */
-      methodCodeShipmentOptionsConfigMap: {
-        'myparcelnl_magento_postnl_settings/delivery/signature': 'config.carrierSettings.postnl.priceSignature',
-        'myparcelnl_magento_postnl_settings/delivery/only_recipient': 'config.carrierSettings.postnl.priceOnlyRecipient',
-        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient': 'config.carrierSettings.dhlforyou.priceOnlyRecipient',
-        'myparcelnl_magento_dhlforyou_settings/delivery/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDelivery',
-        'myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/same_day_delivery': 'config.carrierSettings.dhlforyou.priceSameDayDeliveryAndOnlyRecipient',
-      },
-
       /**
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
        */
@@ -324,17 +282,17 @@ define(
        * @param {Object} selectedShippingMethod - The shipping method that was selected.
        */
       onShippingMethodUpdate: function(selectedShippingMethod) {
-        var newShippingMethod = selectedShippingMethod || {};
-        var available = newShippingMethod.available || false;
-        var isMyParcelMethod = deliveryOptions.isMyParcelShippingMethod(newShippingMethod);
-
+        const newShippingMethod = selectedShippingMethod || {},
+            available = newShippingMethod.available || false,
+            carrierCode = newShippingMethod.carrier_code || '',
+            myparcelCarrierCode = checkout.carrierCode;
         checkout.hideShippingMethods();
 
         if (!checkout.hasDeliveryOptions() || !available) {
           return;
         }
 
-        if (!isMyParcelMethod) {
+        if (carrierCode !== myparcelCarrierCode) {
             deliveryOptions.triggerEvent(deliveryOptions.disableDeliveryOptionsEvent);
             deliveryOptions.isUsingMyParcelMethod = false;
             return;
@@ -342,45 +300,6 @@ define(
 
         deliveryOptions.shippingMethod = newShippingMethod;
         deliveryOptions.isUsingMyParcelMethod = true;
-      },
-
-      /**
-       * Get the new shipping method that should be saved.
-       *
-       * @param {string} methodCode - Method code to use to find a method.
-       *
-       * @returns {Object}
-       */
-      getNewShippingMethod: function(methodCode) {
-        var newShippingMethod = [];
-        var matchingShippingMethod = checkout.findRateByMethodCode(methodCode);
-
-        if (matchingShippingMethod) {
-          return matchingShippingMethod;
-        } else {
-          /**
-           * If the method doesn't exist, loop through the allowed shipping methods and return the first one that
-           *  matches.
-           */
-          checkout.allowedShippingMethods().forEach(function(carrierCode) {
-            var foundRate = checkout.findOriginalRateByCarrierCode(carrierCode);
-
-            if (foundRate) {
-              newShippingMethod.push(foundRate);
-            }
-          });
-
-          return newShippingMethod.length ? newShippingMethod[0] : null;
-        }
-      },
-
-      /**
-       * @param {Object} shippingMethod
-       * @returns {boolean}
-       */
-      isMyParcelShippingMethod: function(shippingMethod) {
-        console.warn('JOERI NEWR',shippingMethod); // TODO this is what a shipping method looks like, but this is the wrong one
-        return shippingMethod.available && shippingMethod.method_code.indexOf('myparcel') !== -1;
       },
 
       /**

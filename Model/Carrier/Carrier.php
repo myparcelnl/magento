@@ -32,7 +32,6 @@ use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
@@ -44,25 +43,25 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 {
     use NeedsQuoteProps;
 
-    public const CODE = 'myparcel'; // same as in /etc/config.xml
+    public const CODE = 'myparcel'; // same as in /etc/config.xml and the carrier group in system.xml
 
-    protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
-    protected $_name;
-    protected $_title;
+    protected              $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
+    protected              $_name;
+    protected              $_title;
     protected Freeshipping $_freeShipping;
 
     /**
      * Carrier constructor.
      *
      * @param ScopeConfigInterface $scopeConfig
-     * @param ErrorFactory $rateErrorFactory
-     * @param LoggerInterface $logger
-     * @param Config $config
-     * @param DeliveryCosts $deliveryCosts
-     * @param ResultFactory $rateFactory
-     * @param MethodFactory $rateMethodFactory
-     * @param Freeshipping $freeShipping
-     * @param array $data
+     * @param ErrorFactory         $rateErrorFactory
+     * @param LoggerInterface      $logger
+     * @param Config               $config
+     * @param DeliveryCosts        $deliveryCosts
+     * @param ResultFactory        $rateFactory
+     * @param MethodFactory        $rateMethodFactory
+     * @param Freeshipping         $freeShipping
+     * @param array                $data
      *
      * @throws Exception
      */
@@ -85,14 +84,14 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $data,
         );
 
-        $this->_name = $config->getMagentoCarrierConfig('name') ?: self::CODE;
+        $this->_name  = $config->getMagentoCarrierConfig('name') ?: self::CODE;
         $this->_title = $config->getMagentoCarrierConfig('title') ?: self::CODE;
 
-        $this->config = $config;
+        $this->config            = $config;
         $this->rateResultFactory = $rateFactory;
         $this->rateMethodFactory = $rateMethodFactory;
-        $this->_freeShipping = $freeShipping;
-        $this->deliveryCosts = $deliveryCosts;
+        //$this->_freeShipping     = $freeShipping; // todo joeri can we remove this?
+        $this->deliveryCosts     = $deliveryCosts;
     }
 
     protected function _doShipmentRequest(DataObject $request)
@@ -118,7 +117,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $method->setCarrierTitle($this->_title);
         $method->setMethod($this->_name);
         $method->setMethodTitle($this->getMethodTitle($quote));
-        $method->setPrice((string)$this->getMethodAmount($quote));
+        $method->setPrice((string) $this->getMethodAmount($quote));
 
         $result->append($method);
 
@@ -130,14 +129,14 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         //todo joeri inc / ex tax and, where is this specific structure / array coming from? Not method->toArray unfortunately
         $amount = $this->getMethodAmount($quote);
         return [
-            'amount' => $amount,
-            'available' => true,
-            'base_amount' => $amount,
-            'carrier_code' => $this->_code,
-            'carrier_title' => $this->_title,
-            'error_message' => '',
-            'method_code' => $this->_name,
-            'method_title' => $this->getMethodTitle($quote),
+            'amount'         => $amount,
+            'available'      => true,
+            'base_amount'    => $amount,
+            'carrier_code'   => $this->_code,
+            'carrier_title'  => $this->_title,
+            'error_message'  => '',
+            'method_code'    => $this->_name,
+            'method_title'   => $this->getMethodTitle($quote),
             'price_excl_tax' => $amount,
             'price_incl_tax' => $amount,
         ];
@@ -146,52 +145,51 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private function getMethodAmount(Quote $quote): float
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
-        $configPath = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
+        $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
-        $shipmentFees = [
+        $shipmentFees    = [
             "{$deliveryOptions->getDeliveryType()}/fee" => true,
             //"{$deliveryOptions->getPackageType()}/fee"  => true,
-            'delivery/only_recipient_fee' => $shipmentOptions->hasOnlyRecipient(),
-            'delivery/signature_fee' => $shipmentOptions->hasSignature(),
-            'delivery/receipt_code_fee' => $shipmentOptions->hasReceiptCode(),
+            'delivery/only_recipient_fee'               => $shipmentOptions->hasOnlyRecipient(),
+            'delivery/signature_fee'                    => $shipmentOptions->hasSignature(),
+            'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
         ];
 
-        if ($this->isFreeShippingAvailable($quote)) {
-            $amount = 0.0;
-        } else {
-            $amount = $this->deliveryCosts->getBasePrice($quote);
-        }
+        $amount = $this->deliveryCosts->getBasePrice($quote);
 
         foreach ($shipmentFees as $key => $value) {
             if (!$value) {
                 continue;
             }
-            $amount += (float)$this->config->getConfigValue("$configPath$key");
+            $amount += (float) $this->config->getConfigValue("$configPath$key");
         }
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT YO: ' . var_export($amount, true) . "\n", FILE_APPEND);
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT (JOERIDEBUG): ' . var_export($amount, true) . "\n", FILE_APPEND);
 
         return $amount;
     }
 
     private function getMethodTitle(Quote $quote): string
     {
-        // todo joeri netjes maken
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
-        $carrierName = $deliveryOptions->getCarrier();
+        $carrierName     = $deliveryOptions->getCarrier();
 
         if (null === $carrierName) {
             return $this->_title;
         }
 
-        $carrierHuman = CarrierFactory::createFromName($carrierName)->getHuman();
+        try {
+            $carrierHuman = CarrierFactory::createFromName($carrierName)->getHuman();
+        } catch (Exception $e) {
+            $carrierHuman = $carrierName;
+        }
 
         ob_start();
         echo $carrierHuman, ' ', __("{$deliveryOptions->getDeliveryType()}_title"), ', ';
 
         foreach ($shipmentOptions->toArray() as $key => $value) {
             if ($value) {
-                echo __("{$key}_title"), ', ';
+                echo trim(__("{$key}_title")), ', ';
             }
         }
 
@@ -220,7 +218,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     }
 
     /**
-     * @param $alias
+     * @param        $alias
      * @param string $settingPath
      *
      * @return Method
