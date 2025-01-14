@@ -191,16 +191,6 @@ class Checkout
             $canHaveOnlyRecipient = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT);
             $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
 
-            $mailboxFee = 0;
-            if ($canHaveMailbox) {
-                $cc = $this->country ?? $this->quote->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
-                if (AbstractConsignment::CC_NL === $cc) {
-                    $mailboxFee = $this->config->getFloatConfig($carrierPath, 'mailbox/fee');
-                } else {
-                    $mailboxFee = $this->config->getFloatConfig($carrierPath, 'mailbox/international_fee');
-                }
-            }
-
             $addBasePrice     = ($showTotalPrice) ? $basePrice : 0;
             $mondayFee        = $canHaveMonday ? $this->config->getFloatConfig($carrierPath, 'delivery/monday_fee') + $addBasePrice : 0;
             $morningFee       = $canHaveMorning ? $this->config->getFloatConfig($carrierPath, 'morning/fee') + $addBasePrice : 0;
@@ -258,10 +248,15 @@ class Checkout
                 'priceEveningSignature'          => ($eveningFee + $signatureFee),
                 'priceSignatureAndOnlyRecipient' => ($basePrice + $signatureFee + $onlyRecipientFee),
 
-                'pricePickup'                  => $canHavePickup ? $this->config->getFloatConfig($carrierPath, 'pickup/fee') + $basePrice : 0,
-                'pricePackageTypeMailbox'      => $mailboxFee,
-                'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->config->getFloatConfig($carrierPath, 'digital_stamp/fee') : 0,
-                'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->config->getFloatConfig($carrierPath, 'package_small/fee') : 0,
+                'pricePickup'                  => max(0, $canHavePickup ? $this->config->getFloatConfig($carrierPath, 'pickup/fee') + $basePrice : 0),
+                // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
+                'pricePackageTypeMailbox'      => $basePrice,
+                'pricePackageTypeDigitalStamp' => $basePrice,
+                'pricePackageTypePackageSmall' => $basePrice,
+                // if you want separate package type prices, get them with this: $this->deliveryCosts->getBasePrice($this->quote, $carrierName, $packageType, $this->country);
+                // 'pricePackageTypeMailbox'      => $mailboxFee,
+                // 'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->config->getFloatConfig($carrierPath, 'digital_stamp/fee') : 0,
+                // 'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->config->getFloatConfig($carrierPath, 'package_small/fee') : 0,
             ];
         }
 
