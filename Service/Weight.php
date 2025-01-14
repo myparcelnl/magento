@@ -43,13 +43,15 @@ class Weight
      * @param string $packageType
      * @return int
      */
-    public function getEmptyPackageWeightInGrams(string $packageType): int
+    public function getEmptyPackageWeightInGrams(int $packageType): int
     {
-        if (!in_array($packageType, AbstractConsignment::PACKAGE_TYPES_NAMES)) {
+        if (!in_array($packageType, AbstractConsignment::PACKAGE_TYPES_IDS, true)) {
             return 0;
         }
+        // todo if this array_flip is used in multiple places, consider making a method or something else
+        $packageTypeName = array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$packageType];
 
-        return $this->config->getGeneralConfig("$packageType/empty_package_weight") ?: 0;
+        return (int) $this->config->getGeneralConfig("empty_package_weight/$packageTypeName");
     }
 
     /**

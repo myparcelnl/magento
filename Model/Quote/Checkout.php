@@ -77,7 +77,6 @@ class Checkout
     public function getDeliveryOptions(array $forAddress = []): array
     {
         $this->hideDeliveryOptionsForProduct();
-        $basePrice   = $this->deliveryCosts->getBasePrice($this->quote);
         $packageType = $this->getPackageType();
 
         if (isset($forAddress['countryId'])) {
@@ -88,7 +87,7 @@ class Checkout
             'carrierCode' => Carrier::CODE,
             'config'      => array_merge(
                 $this->getGeneralData(),
-                $this->getDeliveryData($packageType, $basePrice),
+                $this->getDeliveryData($packageType),
                 ['packageType' => $packageType]
             ),
             'strings'     => $this->getDeliveryOptionsStrings(),
@@ -156,23 +155,24 @@ class Checkout
      * Get delivery data
      *
      * @param string $packageType
-     * @param float  $basePrice
      * @return array
      */
-    private function getDeliveryData(string $packageType, float $basePrice): array
+    private function getDeliveryData(string $packageType): array
     {
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
         $carrierPaths   = Config::CARRIERS_XML_PATH_MAP;
         $showTotalPrice = $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
-        foreach ($activeCarriers as $carrier) {
-            $carrierPath = $carrierPaths[$carrier];
+
+        foreach ($activeCarriers as $carrierName) {
+            $carrierPath = $carrierPaths[$carrierName];
+            $basePrice   = $this->deliveryCosts->getBasePrice($this->quote, $carrierName, $packageType, $this->country);
 
             try {
-                $consignment = ConsignmentFactory::createByCarrierName($carrier);
+                $consignment = ConsignmentFactory::createByCarrierName($carrierName);
                 $consignment->setPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE);
             } catch (Throwable $ex) {
-                Logger::info(sprintf('getDeliveryData: Could not create default consignment for %s', $carrier));
+                Logger::info(sprintf('getDeliveryData: Could not create default consignment for %s', $carrierName));
                 continue;
             }
 
@@ -226,7 +226,7 @@ class Checkout
                                         && $this->package->getMaxMailboxWeight() >= $this->package->getWeight();
             }
 
-            $myParcelConfig['carrierSettings'][$carrier] = [
+            $myParcelConfig['carrierSettings'][$carrierName] = [
                 'allowDeliveryOptions'  => $allowDeliveryOptions,
                 'allowStandardDelivery' => $allowStandardDelivery,
                 'allowSignature'        => $canHaveSignature && $this->config->getBoolConfig($carrierPath, 'delivery/signature_active'),

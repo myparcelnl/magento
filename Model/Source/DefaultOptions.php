@@ -15,7 +15,9 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Exception;
 use Magento\Framework\App\ObjectManager;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
@@ -55,22 +57,26 @@ class DefaultOptions
     public const  DEFAULT_OPTION_VALUE     = 'default';
 
     private Config $configService;
-    private Order  $order;
+    private        $quote;
     private array  $chosenOptions;
     private Weight $weightService;
 
     /**
-     * @param Order $order
+     * In Magento both Order and Quote have getData() and getShippingAddress() methods.
+     * However, they do not share an interface (?!), so we cannot type hint for both.
+     * As long as this class only needs to getData and getShippingAddress, we can use either.
+     *
+     * @param Order|Quote $quote
      */
-    public function __construct(Order $order)
+    public function __construct($quote)
     {
         $objectManager       = ObjectManager::getInstance();
         $this->configService = $objectManager->get(Config::class);
         $this->weightService = $objectManager->get(Weight::class);
-        $this->order         = $order;
+        $this->quote         = $quote;
         try {
             $this->chosenOptions = DeliveryOptionsAdapterFactory::create(
-                (array) json_decode($order->getData(Config::FIELD_DELIVERY_OPTIONS), true)
+                (array) json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 4, JSON_THROW_ON_ERROR)
             )->toArray();
         } catch (Exception $e) {
             $this->chosenOptions = [];
@@ -126,14 +132,14 @@ class DefaultOptions
      */
     public function hasDefaultLargeFormat(string $carrier, string $option): bool
     {
-        $price  = $this->order->getGrandTotal();
+        $price = $this->quote->getGrandTotal();
 
         $settings  = $this->configService->getCarrierConfig($carrier, 'default_options');
         $activeKey = "{$option}_active";
 
         return isset($settings[$activeKey]) &&
-            'price' === $settings[$activeKey] &&
-            $price >= $settings["{$option}_from_price"];
+               'price' === $settings[$activeKey] &&
+               $price >= $settings["{$option}_from_price"];
     }
 
     /**
@@ -151,7 +157,7 @@ class DefaultOptions
         }
 
         $fromPrice   = $settings["{$option}_from_price"] ?? 0;
-        $orderAmount = $this->order->getGrandTotal() ?? 0.0;
+        $orderAmount = $this->quote->getGrandTotal() ?? 0.0;
 
         return $fromPrice <= $orderAmount;
     }
@@ -166,7 +172,7 @@ class DefaultOptions
      */
     public function getDefaultInsurance(string $carrier): int
     {
-        $shippingAddress = $this->order->getShippingAddress();
+        $shippingAddress = $this->quote->getShippingAddress();
         $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : AbstractConsignment::CC_NL;
 
         if (AbstractConsignment::CC_NL === $shippingCountry) {
@@ -189,11 +195,11 @@ class DefaultOptions
      */
     private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
     {
-        $total                = $this->order->getGrandTotal();
+        $total                = $this->quote->getGrandTotal();
         $settings             = $this->configService->getCarrierConfig($carrierName, 'default_options');
         $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
-        if (! isset($settings[$priceKey])
+        if (!isset($settings[$priceKey])
             || (int) $settings[$priceKey] === 0
             || $totalAfterPercentage < (int) $settings[self::INSURANCE_FROM_PRICE]) {
             return 0;
@@ -250,7 +256,7 @@ class DefaultOptions
     /**
      * @return string
      */
-    public function getCarrier(): string
+    public function getCarrierName(): string
     {
         if ($this->chosenOptions) {
             $keyIsPresent = array_key_exists('carrier', $this->chosenOptions);
@@ -260,17 +266,6 @@ class DefaultOptions
             }
         }
 
-        return CarrierPostNL::NAME;
-    }
-
-    /**
-     * TODO: In the future, when multiple carriers will be available for Rest of World shipments, replace PostNL with a setting for default carrier
-     *
-     * @return \MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier
-     * @throws \Exception
-     */
-    public static function getDefaultCarrier(): AbstractCarrier
-    {
-        return CarrierFactory::createFromClass(CarrierPostNL::class);
+        return $this->configService->getDefaultCarrierName($this->quote->getShippingAddress());
     }
 }

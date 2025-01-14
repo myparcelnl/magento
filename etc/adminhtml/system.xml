@@ -29,6 +29,13 @@
                     <frontend_model>MyParcelNL\Magento\Block\System\Config\Form\SettingsButton</frontend_model>
                 </field>
             </group>
+            <group id="matrix" translate="label comment" type="text" sortOrder="125" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Delivery costs</label>
+                <tooltip>If you leave this empty or invalid, this shipping method will act as Flat rate using the Shipping cost defined under Sales->Delivery Methods->MyParcel</tooltip>
+                <field id="delivery_costs" translate="label comment" type="textarea" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery costs json object</label>
+                </field>
+            </group>
             <group id="date_settings" translate="label comment" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Date settings</label>
                 <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -89,7 +96,22 @@
 <!--                    <source_model>MyParcelNL\Magento\Model\Source\ReturnInTheBox</source_model>-->
 <!--                </field>-->
             </group>
-            <group id="shipping_methods" translate="label" type="text" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="empty_package_weight" translate="label" type="text" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Empty package weight</label>
+                <field id="digital_stamp" translate="label comment" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Digital stamp</label>
+                </field>
+                <field id="mailbox" translate="label comment" type="text" sortOrder="101" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Mailbox</label>
+                </field>
+                <field id="package_small" translate="label comment" type="text" sortOrder="102" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Small package</label>
+                </field>
+                <field id="package" translate="label comment" type="text" sortOrder="103" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Package</label>
+                </field>
+            </group>
+            <group id="shipping_methods" translate="label" type="text" sortOrder="219" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery methods</label>
                 <field id="pickup_locations_view" translate="label comment" type="select" sortOrder="221" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Preferred pickup locations view</label>
