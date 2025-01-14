@@ -21,6 +21,7 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
+use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
@@ -269,7 +270,7 @@ class DefaultOptions
             }
         }
 
-        return CarrierPostNL::NAME;
+        return self::getDefaultCarrier()->getName();
     }
 
     /**
@@ -291,6 +292,6 @@ class DefaultOptions
      */
     public static function getDefaultCarrier(): AbstractCarrier
     {
-        return CarrierFactory::createFromClass(CarrierPostNL::class);
+        return CarrierFactory::createFromClass(CarrierDPD::class);
     }
 }
