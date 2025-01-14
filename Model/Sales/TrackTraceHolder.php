@@ -121,10 +121,7 @@ class TrackTraceHolder
         $order                      = $shipment->getOrder();
         $checkoutData               = $order->getData('myparcel_delivery_options') ?? '';
         $deliveryOptions            = json_decode($checkoutData, true) ?? [];
-        $deliveryOptions['carrier'] = $this->getCarrierFromOptions($options)
-            ?? $deliveryOptions['carrier']
-            ?? DefaultOptions::getDefaultCarrier()
-                             ->getName();
+        $deliveryOptions['carrier'] = $this->defaultOptions->getCarrierName();
 
         $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
             : (int) $this->defaultOptions->getDigitalStampDefaultWeight();
@@ -493,7 +490,7 @@ class TrackTraceHolder
 
         if (array_key_exists('carrier', $options) && $options['carrier']) {
             $carrier
-                = DefaultOptions::DEFAULT_OPTION_VALUE === $options['carrier'] ? $this->defaultOptions->getCarrier()
+                = DefaultOptions::DEFAULT_OPTION_VALUE === $options['carrier'] ? $this->defaultOptions->getCarrierName()
                 : $options['carrier'];
         }
 
