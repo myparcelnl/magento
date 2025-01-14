@@ -163,7 +163,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             }
             $amount += (float) $this->config->getConfigValue("$configPath$key");
         }
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT (JOERIDEBUG): ' . var_export($amount, true) . "\n", FILE_APPEND);
+        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT (JOERIDEBUG): ' . var_export($amount, true) . "\n", FILE_APPEND);
 
         return $amount;
     }
