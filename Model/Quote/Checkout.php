@@ -444,11 +444,9 @@ class Checkout
      */
     private function isPickupAllowed(string $carrier): bool
     {
-        $isMailboxPackage     = AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME === $this->getPackageType();
-        $pickupEnabled        = $this->config->getBoolConfig($carrier, 'pickup/active');
-        $showPickupForMailbox = $this->config->getBoolConfig($carrier, 'mailbox/pickup_mailbox');
-        $showPickup           = !$isMailboxPackage || $showPickupForMailbox;
+        $pickupEnabled = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME === $this->getPackageType()
+                         && $this->config->getBoolConfig($carrier, 'pickup/active');
 
-        return !$this->package->deliveryOptionsDisabled && $pickupEnabled && $showPickup;
+        return !$this->package->deliveryOptionsDisabled && $pickupEnabled;
     }
 }
