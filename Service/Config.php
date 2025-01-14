@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Service;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Quote\Model\Quote\Address;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
@@ -19,24 +20,24 @@ use MyParcelNL\Sdk\src\Services\Web\CheckApiKeyWebService;
 
 class Config extends AbstractHelper
 {
-    public const MODULE_NAME = 'MyParcelNL_Magento';
-    public const PLATFORM = 'myparcel';
-    public const XML_PATH_MAGENTO_CARRIER = 'carriers/' . Carrier::CODE . '/';
-    public const XML_PATH_GENERAL = 'myparcelnl_magento_general/';
-    public const XML_PATH_POSTNL_SETTINGS = 'myparcelnl_magento_postnl_settings/';
-    public const XML_PATH_DHLFORYOU_SETTINGS = 'myparcelnl_magento_dhlforyou_settings/';
-    public const XML_PATH_DHLEUROPLUS_SETTINGS = 'myparcelnl_magento_dhleuroplus_settings/';
+    public const MODULE_NAME                        = 'MyParcelNL_Magento';
+    public const PLATFORM                           = 'myparcel';
+    public const XML_PATH_MAGENTO_CARRIER           = 'carriers/' . Carrier::CODE . '/';
+    public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
+    public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
+    public const XML_PATH_DHLFORYOU_SETTINGS        = 'myparcelnl_magento_dhlforyou_settings/';
+    public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
     public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelnl_magento_dhlparcelconnect_settings/';
-    public const XML_PATH_UPS_SETTINGS = 'myparcelnl_magento_ups_settings/';
-    public const XML_PATH_DPD_SETTINGS = 'myparcelnl_magento_dpd_settings/';
-    public const XML_PATH_LOCALE_WEIGHT_UNIT = 'general/locale/weight_unit';
-    public const FIELD_DROP_OFF_DAY = 'drop_off_day';
-    public const FIELD_MYPARCEL_CARRIER = 'myparcel_carrier';
-    public const FIELD_DELIVERY_OPTIONS = 'myparcel_delivery_options';
-    public const FIELD_TRACK_STATUS = 'track_status';
-    public const MYPARCEL_TRACK_TITLE = 'MyParcel';
-    public const EXPORT_MODE_PPS = 'pps';
-    public const EXPORT_MODE_SHIPMENTS = 'shipments';
+    public const XML_PATH_UPS_SETTINGS              = 'myparcelnl_magento_ups_settings/';
+    public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
+    public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
+    public const FIELD_DROP_OFF_DAY                 = 'drop_off_day';
+    public const FIELD_MYPARCEL_CARRIER             = 'myparcel_carrier';
+    public const FIELD_DELIVERY_OPTIONS             = 'myparcel_delivery_options';
+    public const FIELD_TRACK_STATUS                 = 'track_status';
+    public const MYPARCEL_TRACK_TITLE               = 'MyParcel';
+    public const EXPORT_MODE_PPS                    = 'pps';
+    public const EXPORT_MODE_SHIPMENTS              = 'shipments';
 
     public const CARRIERS_XML_PATH_MAP
         = [
@@ -58,8 +59,8 @@ class Config extends AbstractHelper
     private $checkApiKeyWebService;
 
     /**
-     * @param Context $context
-     * @param ModuleListInterface $moduleList
+     * @param Context               $context
+     * @param ModuleListInterface   $moduleList
      * @param CheckApiKeyWebService $checkApiKeyWebService
      */
     public function __construct(
@@ -77,7 +78,7 @@ class Config extends AbstractHelper
      * Get settings by field
      *
      * @param       $field
-     * @param null $storeId
+     * @param null  $storeId
      *
      * @return mixed
      */
@@ -98,12 +99,12 @@ class Config extends AbstractHelper
 
     public function getFloatConfig($path, $key): float
     {
-        return (float)$this->getConfigValue("$path$key");
+        return (float) $this->getConfigValue("$path$key");
     }
 
     public function getTimeConfig(string $carrier, string $key): string
     {
-        $timeAsString   = str_replace(',', ':', (string)$this->getConfigValue("$carrier$key"));
+        $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key"));
         $timeComponents = explode(':', $timeAsString ?? '');
         if (count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;
@@ -120,7 +121,7 @@ class Config extends AbstractHelper
      */
     public function getIntegerConfig($path, $key): int
     {
-        return (int)$this->getConfigValue("$path$key");
+        return (int) $this->getConfigValue("$path$key");
     }
 
     /**
@@ -128,7 +129,7 @@ class Config extends AbstractHelper
      *
      * @param string $carrier
      * @param string $code
-     * @param null $storeId
+     * @param null   $storeId
      *
      * @return mixed
      */
@@ -147,7 +148,7 @@ class Config extends AbstractHelper
     /**
      * Get general settings
      *
-     * @param string $code
+     * @param string   $code
      * @param null|int $storeId
      *
      * @return mixed
@@ -170,6 +171,17 @@ class Config extends AbstractHelper
         return $this->getGeneralConfig('print/export_mode');
     }
 
+    /**
+     * @param Address|null $address
+     * @return string the carrier name configured for this address
+     */
+    public function getDefaultCarrierName(?Address $address): string
+    {
+        return 'postnl';
+        // todo make config value that allows carriers per country / region / etc, select it here based on address.
+        return $this->getConfigValue(self::XML_PATH_GENERAL . "default_carrier/$country");
+    }
+
     // TODO everything below here must be refactored out
 
     /**
@@ -182,7 +194,7 @@ class Config extends AbstractHelper
         $moduleCode = self::MODULE_NAME;
         $moduleInfo = $this->moduleList->getOne($moduleCode);
 
-        return (string)$moduleInfo['setup_version'];
+        return (string) $moduleInfo['setup_version'];
     }
 
     /**
@@ -193,7 +205,8 @@ class Config extends AbstractHelper
         $apiKey = $this->getApiKey();
 
         return $this->checkApiKeyWebService->setApiKey($apiKey)
-                                           ->apiKeyIsCorrect();
+                                           ->apiKeyIsCorrect()
+        ;
     }
 
     /**
