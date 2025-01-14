@@ -79,19 +79,20 @@ class DeliveryCosts
             return (float) $this->config->getMagentoCarrierConfig('shipping_cost');
         }
 
-        $matrix   = json_decode($json, true, 8) ?? [];
-        $weighted = [];
+        $matrix = json_decode($json, true, 8) ?? [];
+        $return = [];
 
-        // TODO make a Conditions class and use that to prevent arbitrary arrays
+        // TODO (maybe) make a Conditions class and use that to prevent arbitrary arrays
         foreach ($matrix as $definition) {
+            //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "--THE MATRIX’ definition--\n" . var_export($definition, true) . "\n", FILE_APPEND);
             if (!isset($definition['conditions']) || !is_array(($definedConditions = $definition['conditions']))) {
                 continue;
             }
-            //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "--DEF--\n" . var_export($definition, true) . "\n", FILE_APPEND);
 
             // calculate relative weight of this option using hierarchy points by walking through the conditions
             $points = 0;
             foreach (self::AVAILABLE_CONDITIONS as $condition) {
+                //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "-- LOOPING AVAILABLE " . var_export($condition, true) . " --\n".var_export($definedConditions,true)."\n", FILE_APPEND);
                 // consider unspecified conditions as valid
                 if (!isset($definedConditions[$condition])) {
                     $points += self::HIERARCHY_POINTS['unspecified'];
@@ -105,6 +106,7 @@ class DeliveryCosts
                         }
                         break;
                     case 'country_part_of':
+                        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "-- LOOPING country_part_of --\n" . var_export($conditions['country'], true) . ' ' . var_export($definedConditions[$condition], true) . "\n", FILE_APPEND);
                         if (self::isCountryPartOf($conditions['country'], $definedConditions[$condition])) {
                             $points += self::HIERARCHY_POINTS[$condition];
                             continue 2;
@@ -116,31 +118,32 @@ class DeliveryCosts
                             continue 2;
                         }
                 }
-                // no points were added by the switch, this means the condition is not met
-                break 2;
+                // when condition is not met, don’t count it
+                continue 2;
             }
-            $weighted[] = [
+
+            $return[] = [
                 'definition' => $definition,
                 'points'     => $points,
             ];
         }
 
-        if (0 === count($weighted)) {
+        if (0 === count($return)) {
             // when nothing matched, act as a flat rate using the provided shipping cost
             return (float) $this->config->getMagentoCarrierConfig('shipping_cost');
         }
 
         // sort by points, highest first, and return the price from the first result
-        usort($weighted, static function ($a, $b) {
+        usort($return, static function ($a, $b) {
             return $b['points'] <=> $a['points'];
         });
 
-        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "--WEIGHTED--\n" . var_export($weighted, true) . "\n", FILE_APPEND);
+        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "--conditions--\n" . var_export($conditions, true) . "\n" . "--WEIGHTED--\n" . var_export($return, true) . "\n", FILE_APPEND);
 
-        return (float) $weighted[0]['definition']['price'];
+        return (float) $return[0]['definition']['price'];
     }
 
-    static function isCountryPartOf(string $needle, $haystackDefinition): bool
+    public static function isCountryPartOf(string $needle, $haystackDefinition): bool
     {
         switch ($haystackDefinition) {
             case is_array($haystackDefinition):// TODO make country_part_of an array, possibly?

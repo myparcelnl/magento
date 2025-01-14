@@ -34,7 +34,7 @@ class Weight
             return (int)($weight * 1000) ?: self::DEFAULT_WEIGHT;
         }
 
-        return (int)$weight ?: self::DEFAULT_WEIGHT;
+        return (int) $weight ?: self::DEFAULT_WEIGHT;
     }
 
     /**
@@ -68,7 +68,6 @@ class Weight
         foreach ($products as $product) {
             $productQty    = (float)$product->getQty();
             $productWeight = (float)$product->getWeight();
-
             if ($productQty < 1 || $productWeight <= 0) {
                 continue;
             }
