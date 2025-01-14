@@ -1,5 +1,5 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd" >
-    <module name="MyParcelNL_Magento" setup_version="4.16.1">
+    <module name="MyParcelNL_Magento" setup_version="5.0.0">
         <sequence>
             <module name="Magento_Sales"/>
         </sequence>
