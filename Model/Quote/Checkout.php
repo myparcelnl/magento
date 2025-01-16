@@ -2,9 +2,9 @@
 
 namespace MyParcelNL\Magento\Model\Quote;
 
-use Magento\Eav\Model\Entity\Collection\AbstractCollection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
@@ -13,6 +13,7 @@ use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
+use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
 use Throwable;
@@ -21,22 +22,11 @@ class Checkout
 {
     use NeedsQuoteProps;
 
-    private Config        $config;
-    private DeliveryCosts $deliveryCosts;
-
-    /**
-     * @var \MyParcelNL\Magento\Model\Sales\Repository\PackageRepository
-     */
-    private PackageRepository $package;
-
-    /**
-     * @var AbstractCollection[]
-     */
-    private $quote;
-
-    /**
-     * @var StoreManagerInterface
-     */
+    private Tax                   $tax;
+    private Config                $config;
+    private DeliveryCosts         $deliveryCosts;
+    private PackageRepository     $package;
+    private Quote                 $quote;
     private StoreManagerInterface $currency;
 
     /**
@@ -53,12 +43,14 @@ class Checkout
      * @param StoreManagerInterface $currency
      */
     public function __construct(
+        Tax                   $tax,
         Config                $config,
         DeliveryCosts         $deliveryCosts,
-        PackageRepository     $package, // TODO DEPRECATED
+        PackageRepository     $package, // TODO DEPRECATE / IMPROVE
         StoreManagerInterface $currency
     )
     {
+        $this->tax           = $tax;
         $this->config        = $config;
         $this->deliveryCosts = $deliveryCosts;
         $this->package       = $package;
@@ -120,7 +112,7 @@ class Checkout
             'dropOffDelay'               => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
             'pickupLocationsDefaultView' => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
             'showPriceSurcharge'         => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
-            'basePrice'                  => $this->deliveryCosts->getBasePrice($this->quote),
+            'basePrice'                  => $this->deliveryCosts->getBasePriceForClient($this->quote),
         ];
     }
 
@@ -166,7 +158,7 @@ class Checkout
 
         foreach ($activeCarriers as $carrierName) {
             $carrierPath = $carrierPaths[$carrierName];
-            $basePrice   = $this->deliveryCosts->getBasePrice($this->quote, $carrierName, $packageType, $this->country);
+            $basePrice   = $this->deliveryCosts->getBasePriceForClient($this->quote, $carrierName, $packageType, $this->country);
 
             try {
                 $consignment = ConsignmentFactory::createByCarrierName($carrierName);
@@ -176,9 +168,9 @@ class Checkout
                 continue;
             }
 
-            $canHaveDigitalStamp  = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
-            $canHaveMailbox       = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
-            $canHavePackageSmall  = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
+//            $canHaveDigitalStamp  = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
+//            $canHaveMailbox       = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
+//            $canHavePackageSmall  = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
             $canHaveSameDay       = $consignment->canHaveExtraOption(AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY);
             $canHaveMonday        = $consignment->canHaveExtraOption(AbstractConsignment::EXTRA_OPTION_DELIVERY_MONDAY);
             $canHaveMorning       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
@@ -192,14 +184,14 @@ class Checkout
             $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
 
             $addBasePrice     = ($showTotalPrice) ? $basePrice : 0;
-            $mondayFee        = $canHaveMonday ? $this->config->getFloatConfig($carrierPath, 'delivery/monday_fee') + $addBasePrice : 0;
-            $morningFee       = $canHaveMorning ? $this->config->getFloatConfig($carrierPath, 'morning/fee') + $addBasePrice : 0;
-            $eveningFee       = $canHaveEvening ? $this->config->getFloatConfig($carrierPath, 'evening/fee') + $addBasePrice : 0;
-            $sameDayFee       = $canHaveSameDay ? (int) $this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee') + $addBasePrice : 0;
-            $signatureFee     = $canHaveSignature ? $this->config->getFloatConfig($carrierPath, 'delivery/signature_fee') : 0;
-            $collectFee       = $canHaveCollect ? $this->config->getFloatConfig($carrierPath, 'delivery/collect_fee', false) : 0;
-            $receiptCodeFee   = $canHaveReceiptCode ? $this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee') : 0;
-            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee') : 0;
+            $mondayFee        = $canHaveMonday ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $this->quote) + $addBasePrice : 0;
+            $morningFee       = $canHaveMorning ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'morning/fee'), $this->quote) + $addBasePrice : 0;
+            $eveningFee       = $canHaveEvening ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'evening/fee'), $this->quote) + $addBasePrice : 0;
+            $sameDayFee       = $canHaveSameDay ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $this->quote) + $addBasePrice : 0;
+            $signatureFee     = $canHaveSignature ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $this->quote) : 0;
+            $collectFee       = $canHaveCollect ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $this->quote) : 0;
+            $receiptCodeFee   = $canHaveReceiptCode ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee'), $this->quote) : 0;
+            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $this->quote) : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $allowPickup           = $this->config->getBoolConfig($carrierPath, 'pickup/active');
