@@ -47,13 +47,13 @@ class DeliveryCosts
      * @param string|null $packageTypeName override package type from quote if you want
      * @param string|null $countryCode override country from quote->shippingAddress if you want
      * @return float
-     * @uses DeliveryCosts::getBasePriceForMethod()
+     * @uses DeliveryCosts::getBasePrice()
      */
     public function getBasePriceForClient(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
     {
-        $price = $this->getBasePriceForMethod($quote, $carrierName, $packageTypeName, $countryCode);
+        $price = $this->getBasePrice($quote, $carrierName, $packageTypeName, $countryCode);
 
-        return $this->tax->shippingPriceForDisplay($price, $quote);
+        return $this->tax->shippingPrice($price, $quote);
     }
 
     /**
@@ -65,7 +65,7 @@ class DeliveryCosts
      * @param string|null $countryCode override country from quote->shippingAddress if you want
      * @return float
      */
-    public function getBasePriceForMethod(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
+    public function getBasePrice(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
     {
         if ($this->isFreeShippingAvailable($quote)) {
             return 0.0;
@@ -171,7 +171,7 @@ class DeliveryCosts
     }
 
     /**
-     * @param string $needle the country code (2-letter ISO)
+     * @param string       $needle the country code (2-letter ISO)
      * @param string|array $haystackDefinition string denoting an existing array or array of countries (2-letter ISO)
      * @return bool whether the country is part of the haystack
      */

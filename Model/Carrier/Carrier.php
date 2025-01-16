@@ -34,6 +34,7 @@ use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
+use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
 use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
 use Psr\Log\LoggerInterface;
@@ -54,18 +55,19 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * @param ScopeConfigInterface $scopeConfig
      * @param ErrorFactory         $rateErrorFactory
      * @param LoggerInterface      $logger
+     * @param Tax                  $tax
      * @param Config               $config
      * @param DeliveryCosts        $deliveryCosts
      * @param ResultFactory        $rateFactory
      * @param MethodFactory        $rateMethodFactory
      * @param array                $data
      *
-     * @throws Exception
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
         ErrorFactory         $rateErrorFactory,
         LoggerInterface      $logger,
+        Tax                  $tax,
         Config               $config,
         DeliveryCosts        $deliveryCosts,
         ResultFactory        $rateFactory,
@@ -83,14 +85,11 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $this->_name  = $config->getMagentoCarrierConfig('name') ?: self::CODE;
         $this->_title = $config->getMagentoCarrierConfig('title') ?: self::CODE;
 
+        $this->tax               = $tax;
         $this->config            = $config;
         $this->rateResultFactory = $rateFactory;
         $this->rateMethodFactory = $rateMethodFactory;
         $this->deliveryCosts     = $deliveryCosts;
-    }
-
-    protected function _doShipmentRequest(DataObject $request)
-    {
     }
 
     public function collectRates(RateRequest $request)
@@ -112,18 +111,19 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $method->setCarrierTitle($this->_title);
         $method->setMethod($this->_name);
         $method->setMethodTitle($this->getMethodTitle($quote));
-        $method->setPrice((string) $this->getMethodAmount($quote));
+        $method->setPrice((string) $this->getMethodAmountExcludingVat($quote));
 
         $result->append($method);
 
         return $result;
     }
 
-    public function getMethodAsArray(Quote $quote): array
+    public function getMethodForFrontend(Quote $quote): array
     {
-        //todo joeri inc / ex tax and, where is this specific structure / array coming from? Not method->toArray unfortunately
-        $amount = $this->getMethodAmount($quote);
+        // Magento checkout needs the price ex vat for displaying in the cart summary, bypassing the admin settings
+        $amount = $this->getMethodAmountExcludingVat($quote);
 
+        //todo joeri where is this specific structure / array coming from? Not method->toArray unfortunately
         return [
             'amount'         => $amount,
             'available'      => true,
@@ -133,12 +133,13 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'error_message'  => '',
             'method_code'    => $this->_name,
             'method_title'   => $this->getMethodTitle($quote),
-            'price_excl_tax' => $amount, //todo JOERI whut?
-            'price_incl_tax' => $amount, //todo JOERI whut?
+            //todo JOERI where is excl / incl vat ever used? Some custom checkout maybe?
+            'price_excl_tax' => $amount,
+            'price_incl_tax' => $this->tax->addVatToExVatPrice($amount, $quote),
         ];
     }
 
-    private function getMethodAmount(Quote $quote): float
+    private function getMethodAmountExcludingVat(Quote $quote): float
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
         $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
@@ -151,13 +152,13 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
         ];
 
-        $amount = $this->deliveryCosts->getBasePriceForMethod($quote);
+        $amount = $this->tax->excludingVat($this->deliveryCosts->getBasePrice($quote), $quote);
 
         foreach ($shipmentFees as $key => $value) {
             if (!$value) {
                 continue;
             }
-            $amount += (float) $this->config->getConfigValue("$configPath$key");
+            $amount += $this->tax->excludingVat((float) $this->config->getConfigValue("$configPath$key"), $quote);
         }
         //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT (JOERIDEBUG): ' . var_export($amount, true) . "\n", FILE_APPEND);
 
@@ -211,28 +212,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     {
         // TODO: Implement isTrackingAvailable() method.
         return true;
-    }
-
-    /**
-     * @param        $alias
-     * @param string $settingPath
-     *
-     * @return Method
-     */
-    private function getShippingMethod($alias, string $settingPath)
-    {
-        throw new \Exception('JOERI! We shouldn’t use this method anymore');
-        $title = $this->createTitle($settingPath);
-        $price = $this->createPrice($alias, $settingPath);
-
-        $method = $this->rateMethodFactory->create();
-        $method->setCarrier($this->_code);
-        $method->setCarrierTitle($alias);
-        $method->setMethod($alias);
-        $method->setMethodTitle($title);
-        $method->setPrice($price);
-
-        return $method;
     }
 
     /**

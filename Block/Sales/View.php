@@ -48,7 +48,7 @@ class View extends AbstractOrder
             return '';
         }
 
-        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array)$data);
+        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
         $returnString    = '';
 
         try {

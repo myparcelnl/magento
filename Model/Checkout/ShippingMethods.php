@@ -32,6 +32,8 @@ class ShippingMethods implements ShippingMethodsInterface
     }
 
     /**
+     * Defined in etc/webapi.xml
+     *
      * @param mixed $deliveryOptions indexed array holding 1 deliveryOptions object
      *
      * @return array[]
@@ -51,6 +53,6 @@ class ShippingMethods implements ShippingMethodsInterface
         $saver->save($quote);
 
         // return a fresh method from the carrier
-        return ['root' => $this->carrier->getMethodAsArray($quote)];
+        return ['root' => $this->carrier->getMethodForFrontend($quote)];
     }
 }

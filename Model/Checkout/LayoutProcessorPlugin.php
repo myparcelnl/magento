@@ -19,7 +19,6 @@
 namespace MyParcelNL\Magento\Model\Checkout;
 
 use Magento\Checkout\Block\Checkout\LayoutProcessor;
-use MyParcelNL\Magento\Helper\Checkout as CheckoutHelper;
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Magento\Service\Config;
 

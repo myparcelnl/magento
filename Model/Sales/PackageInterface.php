@@ -35,11 +35,6 @@ interface PackageInterface
     public function addWeight(float $weight);
 
     /**
-     * @param bool $all_products_fit
-     */
-    public function setAllProductsFit(bool $all_products_fit);
-
-    /**
      * package = 1
      *
      * @return int
