@@ -15,6 +15,7 @@ class DeliveryCosts
 
     private Weight $weight;
     private Config $config;
+    private Tax $tax;
 
     private const AVAILABLE_CONDITIONS = [
         'country',
@@ -33,14 +34,15 @@ class DeliveryCosts
         'maximum_weight'  => 2,
     ];
 
-    public function __construct(Weight $weight, Config $config)
+    public function __construct(Weight $weight, Config $config, Tax $tax)
     {
         $this->weight = $weight;
         $this->config = $config;
+        $this->tax    = $tax;
     }
 
     /**
-     * @param Quote       $quote to get the weight and default carrier, package type and country
+     * @param Quote       $quote to get the weight and default carrier, package type and country, and calculate tax
      * @param string|null $carrierName override carrier from quote if you want
      * @param string|null $packageTypeName override package type from quote if you want
      * @param string|null $countryCode override country from quote->shippingAddress if you want
@@ -60,12 +62,14 @@ class DeliveryCosts
                        + $this->weight->getQuoteWeightInGrams($quote);
 
         // TODO make a Conditions class and use that to prevent arbitrary arrays
-        return $this->calculate([
-                                    'carrier_name' => $carrierName,
-                                    'package_type' => $packageType,
-                                    'country'      => $countryCode,
-                                    'weight'       => $weight,
-                                ]);
+        $price = $this->calculate([
+                                      'carrier_name' => $carrierName,
+                                      'package_type' => $packageType,
+                                      'country'      => $countryCode,
+                                      'weight'       => $weight,
+                                  ]);
+
+        return $this->tax->shippingPriceForDisplay($price, $quote);
     }
 
     private function calculate(array $conditions): float

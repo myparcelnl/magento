@@ -131,7 +131,7 @@ trait NeedsQuoteProps
         // NULL when not set, boolean value when set
         $freeShippingIsAvailable = $session->getMyParcelFreeShippingIsAvailable();
 
-        if (NULL !== $freeShippingIsAvailable) {
+        if (null !== $freeShippingIsAvailable) {
             return $freeShippingIsAvailable;
         }
 
