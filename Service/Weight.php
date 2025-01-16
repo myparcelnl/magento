@@ -31,7 +31,7 @@ class Weight
         $weightType = $this->config->getGeneralConfig('print/weight_indication');
 
         if ('kilo' === $weightType) {
-            return (int)($weight * 1000) ?: self::DEFAULT_WEIGHT;
+            return (int) ($weight * 1000) ?: self::DEFAULT_WEIGHT;
         }
 
         return (int) $weight ?: self::DEFAULT_WEIGHT;
@@ -66,8 +66,8 @@ class Weight
         $weight   = 0;
 
         foreach ($products as $product) {
-            $productQty    = (float)$product->getQty();
-            $productWeight = (float)$product->getWeight();
+            $productQty    = (float) $product->getQty();
+            $productWeight = (float) $product->getWeight();
             if ($productQty < 1 || $productWeight <= 0) {
                 continue;
             }

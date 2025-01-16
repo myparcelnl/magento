@@ -36,12 +36,42 @@ class Tax
     /**
      * Get shipping tax options from Magento and apply them to the price.
      * Prices display including tax unless specifically set to excluding tax in Magento admin.
+     * Optionally supply boolean to force excluding (false) or including (true) vat
      *
-     * @param float $price the shipping price you want altered for tax settings
-     * @param Quote $quote
+     * @param float     $price the shipping price you want altered for tax settings
+     * @param Quote     $quote
+     * @param bool|null $vat
      * @return float
      */
-    public function shippingPriceForDisplay(float $price, Quote $quote): float
+    public function shippingPrice(float $price, Quote $quote, ?bool $vat = null): float
+    {
+        $shippingTaxRate = $this->getShippingTaxRate($quote);
+        $including       = $vat ?? $this->displayIncluding;
+
+//        Debugging
+//        $dump = $this->taxRates + [
+//                'shippingTaxClass' => $this->shippingTaxClass,
+//                'priceIncludesTax' => $this->priceIncludesTax,
+//                'displayIncluding' => $this->displayIncluding,
+//                'price'            => $price,
+//            ];
+//        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'SHIPPING TAX RATE (JOERIDEBUG): ' . var_export($dump, true) . "\n", FILE_APPEND);
+
+        if ($this->priceIncludesTax === $including) {
+            return $price;
+        }
+
+        $taxAmount = $this->taxCalculation->calcTaxAmount($price, $shippingTaxRate, $this->priceIncludesTax);
+
+        if ($this->priceIncludesTax && !$including) {
+            return $price - $taxAmount;
+        }
+
+        // !$pricesIncludeTax && $including
+        return $price + $taxAmount;
+    }
+
+    private function getShippingTaxRate(Quote $quote)
     {
         // if the quote has changed, we need to recalculate the tax rates
         if (!isset($this->quote) || $this->quote->getId() !== $quote->getId()) {
@@ -49,32 +79,30 @@ class Tax
             // getTaxRates(...) ultimately returns an array of available rates holding (int) ‘tax class id’ => (float) ‘rate as percentage’
             $this->taxRates = $this->taxCalculation->getTaxRates($quote->getBillingAddress()->toArray(), $quote->getShippingAddress()->toArray(), $quote->getCustomerTaxClassId());
         }
-        $shippingTaxRate = $this->taxRates[$this->shippingTaxClass] ?? 0.0;
 
-        $dump = $this->taxRates + [
-                'shippingTaxClass' => $this->shippingTaxClass,
-                'priceIncludesTax' => $this->priceIncludesTax,
-                'displayIncluding' => $this->displayIncluding,
-                'price'            => $price,
-            ];
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'SHIPPING TAX RATE (JOERIDEBUG): ' . var_export($dump, true) . "\n", FILE_APPEND);
-
-        if ($this->priceIncludesTax === $this->displayIncluding) {
-            return $price;
-        }
-
-        $taxAmount = $this->taxCalculation->calcTaxAmount($price, $shippingTaxRate, $this->priceIncludesTax);
-
-        if ($this->priceIncludesTax && !$this->displayIncluding) {
-            return $price - $taxAmount;
-        }
-
-        // !$pricesIncludeTax && $displayIncluding
-        return $price + $taxAmount;
+        return $this->taxRates[$this->shippingTaxClass] ?? 0.0;
     }
 
-    public function splitPriceAccordingToSettings(float $price, array $prices = []): array
+    /**
+     * @param float $price
+     * @param Quote $quote
+     * @return float the price excluding VAT, accounting for settings in Magento admin
+     */
+    public function excludingVat(float $price, Quote $quote): float
     {
-        return [1, 2, 3];
+        return $this->shippingPrice($price, $quote, false);
+    }
+
+    public function includingVat(float $price, Quote $quote): float
+    {
+        return $this->shippingPrice($price, $quote, true);
+    }
+
+    public function addVatToExVatPrice(float $price, Quote $quote): float
+    {
+        $shippingTaxRate = $this->getShippingTaxRate($quote);
+        $taxAmount       = $this->taxCalculation->calcTaxAmount($price, $shippingTaxRate, false);
+
+        return $price + $taxAmount;
     }
 }
