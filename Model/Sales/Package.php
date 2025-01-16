@@ -278,9 +278,4 @@ class Package extends Config implements PackageInterface //used to extend MyParc
 
         $this->currentCountry = $currentCountry;
     }
-
-    public function setAllProductsFit(bool $all_products_fit)
-    {
-        // TODO: Implement setAllProductsFit() method.
-    }
 }

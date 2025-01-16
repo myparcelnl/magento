@@ -50,7 +50,6 @@ class UpdateStatus
     public const PATH_MODEL_ORDER_TRACK = Collection::class;
 
 
-    private LoggerInterface $logger;
     private ObjectManager $objectManager;
     private \Magento\Sales\Model\ResourceModel\Order $orderResource;
     private MagentoOrderCollection $orderCollection;
@@ -263,8 +262,8 @@ class UpdateStatus
     private function getOrderIdFromTrackToUpdate()
     {
         /**
-         * @var                                                                    $magentoTrack Order\Shipment\Track
-         * @var Collection $trackCollection
+         * @var Order\Shipment\Track $magentoTrack
+         * @var Collection           $trackCollection
          */
         $trackCollection = $this->objectManager->get(self::PATH_MODEL_ORDER_TRACK);
         $trackCollection

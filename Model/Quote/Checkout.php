@@ -156,9 +156,11 @@ class Checkout
         $carrierPaths   = Config::CARRIERS_XML_PATH_MAP;
         $showTotalPrice = $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
 
+        $quote = $this->quote;
+
         foreach ($activeCarriers as $carrierName) {
             $carrierPath = $carrierPaths[$carrierName];
-            $basePrice   = $this->deliveryCosts->getBasePriceForClient($this->quote, $carrierName, $packageType, $this->country);
+            $basePrice   = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $this->country);
 
             try {
                 $consignment = ConsignmentFactory::createByCarrierName($carrierName);
@@ -184,14 +186,14 @@ class Checkout
             $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
 
             $addBasePrice     = ($showTotalPrice) ? $basePrice : 0;
-            $mondayFee        = $canHaveMonday ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $this->quote) + $addBasePrice : 0;
-            $morningFee       = $canHaveMorning ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'morning/fee'), $this->quote) + $addBasePrice : 0;
-            $eveningFee       = $canHaveEvening ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'evening/fee'), $this->quote) + $addBasePrice : 0;
-            $sameDayFee       = $canHaveSameDay ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $this->quote) + $addBasePrice : 0;
-            $signatureFee     = $canHaveSignature ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $this->quote) : 0;
-            $collectFee       = $canHaveCollect ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $this->quote) : 0;
-            $receiptCodeFee   = $canHaveReceiptCode ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee'), $this->quote) : 0;
-            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->tax->shippingPriceForDisplay($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $this->quote) : 0;
+            $mondayFee        = $canHaveMonday ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice : 0;
+            $morningFee       = $canHaveMorning ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'morning/fee'), $quote) + $addBasePrice : 0;
+            $eveningFee       = $canHaveEvening ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'evening/fee'), $quote) + $addBasePrice : 0;
+            $sameDayFee       = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
+            $signatureFee     = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
+            $collectFee       = $canHaveCollect ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $quote) : 0;
+            $receiptCodeFee   = $canHaveReceiptCode ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee'), $quote) : 0;
+            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $quote) : 0;
             $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $allowPickup           = $this->config->getBoolConfig($carrierPath, 'pickup/active');

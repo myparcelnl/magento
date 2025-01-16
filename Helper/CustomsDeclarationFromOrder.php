@@ -115,7 +115,7 @@ class CustomsDeclarationFromOrder
      */
     private function getHsCode(Product $product): int
     {
-        return (int)ShipmentOptions::getAttributeValue(
+        return (int) ShipmentOptions::getAttributeValue(
             'catalog_product_entity_int',
             $product->getId(),
             'classification'
