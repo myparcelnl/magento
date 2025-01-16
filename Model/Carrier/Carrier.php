@@ -162,7 +162,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         }
         //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT (JOERIDEBUG): ' . var_export($amount, true) . "\n", FILE_APPEND);
 
-        return $amount;
+        // the method should never give a discount on the order, so we return 0 if the amount is negative
+        return max(0, $amount);
     }
 
     private function getMethodTitle(Quote $quote): string

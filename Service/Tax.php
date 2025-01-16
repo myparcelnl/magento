@@ -61,7 +61,7 @@ class Tax
             return $price;
         }
 
-        $taxAmount = $this->taxCalculation->calcTaxAmount($price, $shippingTaxRate, $this->priceIncludesTax);
+        $taxAmount = $this->taxCalculation->calcTaxAmount($price, $shippingTaxRate, $this->priceIncludesTax, false);
 
         if ($this->priceIncludesTax && !$including) {
             return $price - $taxAmount;
@@ -101,7 +101,7 @@ class Tax
     public function addVatToExVatPrice(float $price, Quote $quote): float
     {
         $shippingTaxRate = $this->getShippingTaxRate($quote);
-        $taxAmount       = $this->taxCalculation->calcTaxAmount($price, $shippingTaxRate, false);
+        $taxAmount       = $this->taxCalculation->calcTaxAmount($price, $shippingTaxRate, false, false);
 
         return $price + $taxAmount;
     }
