@@ -15,23 +15,21 @@ class DeliveryCosts
 
     private Weight $weight;
     private Config $config;
-    private Tax $tax;
+    private Tax    $tax;
 
-    private const AVAILABLE_CONDITIONS = [
-        'country',
-        'country_part_of',
-        'package_type',
-        'carrier_name',
-        'maximum_weight',
-    ];
-    private const HIERARCHY_POINTS     = [
-        'invalid'         => 0,
-        'unspecified'     => 1,
+    /**
+     * The points will be added to the total points for each condition that is met.
+     * The price associated with the condition with the most points will be used.
+     * Distribute points in a way that the most specific condition has the most points, and less specific conditions
+     * cannot override more specific conditions.
+     */
+    private const CONDITIONS = [
         'country'         => 32,
         'country_part_of' => 16,
         'package_type'    => 8,
         'carrier_name'    => 4,
         'maximum_weight'  => 2,
+        'unspecified'     => 1, // when a condition is not specified, it should be considered met, but least specific
     ];
 
     public function __construct(Weight $weight, Config $config, Tax $tax)
@@ -42,13 +40,32 @@ class DeliveryCosts
     }
 
     /**
+     * Returns the base price with Magento tax settings applied, for displaying to the client.
+     *
+     * @param Quote       $quote to get the weight and default carrier, package type and country, and calculate tax
+     * @param string|null $carrierName override carrier from quote if you want
+     * @param string|null $packageTypeName override package type from quote if you want
+     * @param string|null $countryCode override country from quote->shippingAddress if you want
+     * @return float
+     * @uses DeliveryCosts::getBasePriceForMethod()
+     */
+    public function getBasePriceForClient(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
+    {
+        $price = $this->getBasePriceForMethod($quote, $carrierName, $packageTypeName, $countryCode);
+
+        return $this->tax->shippingPriceForDisplay($price, $quote);
+    }
+
+    /**
+     * Returns the base price bare, without any tax settings applied, used inside Magento (it will apply tax settings later).
+     *
      * @param Quote       $quote to get the weight and default carrier, package type and country, and calculate tax
      * @param string|null $carrierName override carrier from quote if you want
      * @param string|null $packageTypeName override package type from quote if you want
      * @param string|null $countryCode override country from quote->shippingAddress if you want
      * @return float
      */
-    public function getBasePrice(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
+    public function getBasePriceForMethod(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
     {
         if ($this->isFreeShippingAvailable($quote)) {
             return 0.0;
@@ -61,17 +78,21 @@ class DeliveryCosts
         $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
                        + $this->weight->getQuoteWeightInGrams($quote);
 
-        // TODO make a Conditions class and use that to prevent arbitrary arrays
-        $price = $this->calculate([
-                                      'carrier_name' => $carrierName,
-                                      'package_type' => $packageType,
-                                      'country'      => $countryCode,
-                                      'weight'       => $weight,
-                                  ]);
-
-        return $this->tax->shippingPriceForDisplay($price, $quote);
+        return $this->calculate([
+                                    'carrier_name' => $carrierName,
+                                    'package_type' => $packageType,
+                                    'country'      => $countryCode,
+                                    'weight'       => $weight,
+                                ]);
     }
 
+    /**
+     * Calculates the actual price based on the conditions, using self::CONDITIONS to determine the hierarchy.
+     * If no conditions are met, the default shipping cost from the Magento carrier settings will be used.
+     *
+     * @param array $conditions
+     * @return float
+     */
     private function calculate(array $conditions): float
     {
         if (!isset($conditions['carrier_name'], $conditions['package_type'], $conditions['country'], $conditions['weight'])) {
@@ -86,7 +107,6 @@ class DeliveryCosts
         $matrix = json_decode($json, true, 8) ?? [];
         $return = [];
 
-        // TODO (maybe) make a Conditions class and use that to prevent arbitrary arrays
         foreach ($matrix as $definition) {
             //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "--THE MATRIX’ definition--\n" . var_export($definition, true) . "\n", FILE_APPEND);
             if (!isset($definition['conditions']) || !is_array(($definedConditions = $definition['conditions']))) {
@@ -94,31 +114,34 @@ class DeliveryCosts
             }
 
             // calculate relative weight of this option using hierarchy points by walking through the conditions
-            $points = 0;
-            foreach (self::AVAILABLE_CONDITIONS as $condition) {
+            $totalPoints = 0;
+            foreach (self::CONDITIONS as $condition => $points) {
                 //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "-- LOOPING AVAILABLE " . var_export($condition, true) . " --\n".var_export($definedConditions,true)."\n", FILE_APPEND);
+                if ('unspecified' === $condition) {
+                    continue;
+                }
                 // consider unspecified conditions as valid
                 if (!isset($definedConditions[$condition])) {
-                    $points += self::HIERARCHY_POINTS['unspecified'];
+                    $totalPoints += self::CONDITIONS['unspecified'];
                     continue;
                 }
                 switch ($condition) {
                     case 'maximum_weight':
                         if ((float) $conditions['weight'] <= (float) $definedConditions[$condition]) {
-                            $points += self::HIERARCHY_POINTS[$condition];
+                            $totalPoints += $points;
                             continue 2;
                         }
                         break;
                     case 'country_part_of':
                         //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "-- LOOPING country_part_of --\n" . var_export($conditions['country'], true) . ' ' . var_export($definedConditions[$condition], true) . "\n", FILE_APPEND);
                         if (self::isCountryPartOf($conditions['country'], $definedConditions[$condition])) {
-                            $points += self::HIERARCHY_POINTS[$condition];
+                            $totalPoints += $points;
                             continue 2;
                         }
                         break;
                     default:
                         if ($conditions[$condition] === $definedConditions[$condition]) {
-                            $points += self::HIERARCHY_POINTS[$condition];
+                            $totalPoints += $points;
                             continue 2;
                         }
                 }
@@ -128,7 +151,7 @@ class DeliveryCosts
 
             $return[] = [
                 'definition' => $definition,
-                'points'     => $points,
+                'points'     => $totalPoints,
             ];
         }
 
@@ -137,7 +160,7 @@ class DeliveryCosts
             return (float) $this->config->getMagentoCarrierConfig('shipping_cost');
         }
 
-        // sort by points, highest first, and return the price from the first result
+        // sort by points, highest first, then return the price from the first result
         usort($return, static function ($a, $b) {
             return $b['points'] <=> $a['points'];
         });
@@ -147,6 +170,11 @@ class DeliveryCosts
         return (float) $return[0]['definition']['price'];
     }
 
+    /**
+     * @param string $needle the country code (2-letter ISO)
+     * @param string|array $haystackDefinition string denoting an existing array or array of countries (2-letter ISO)
+     * @return bool whether the country is part of the haystack
+     */
     public static function isCountryPartOf(string $needle, $haystackDefinition): bool
     {
         switch ($haystackDefinition) {

@@ -23,7 +23,6 @@ use http\Exception\InvalidArgumentException;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
 use Magento\Framework\Phrase;
-use Magento\OfflineShipping\Model\Carrier\Freeshipping;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
@@ -45,10 +44,9 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
     public const CODE = 'myparcel'; // same as in /etc/config.xml and the carrier group in system.xml
 
-    protected              $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
-    protected              $_name;
-    protected              $_title;
-    protected Freeshipping $_freeShipping;
+    protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
+    protected $_name;
+    protected $_title;
 
     /**
      * Carrier constructor.
@@ -60,7 +58,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      * @param DeliveryCosts        $deliveryCosts
      * @param ResultFactory        $rateFactory
      * @param MethodFactory        $rateMethodFactory
-     * @param Freeshipping         $freeShipping
      * @param array                $data
      *
      * @throws Exception
@@ -73,7 +70,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         DeliveryCosts        $deliveryCosts,
         ResultFactory        $rateFactory,
         MethodFactory        $rateMethodFactory,
-        Freeshipping         $freeShipping,
         array                $data = []
     )
     {
@@ -90,7 +86,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $this->config            = $config;
         $this->rateResultFactory = $rateFactory;
         $this->rateMethodFactory = $rateMethodFactory;
-        //$this->_freeShipping     = $freeShipping; // todo joeri can we remove this?
         $this->deliveryCosts     = $deliveryCosts;
     }
 
@@ -128,6 +123,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     {
         //todo joeri inc / ex tax and, where is this specific structure / array coming from? Not method->toArray unfortunately
         $amount = $this->getMethodAmount($quote);
+
         return [
             'amount'         => $amount,
             'available'      => true,
@@ -137,8 +133,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'error_message'  => '',
             'method_code'    => $this->_name,
             'method_title'   => $this->getMethodTitle($quote),
-            'price_excl_tax' => $amount,
-            'price_incl_tax' => $amount,
+            'price_excl_tax' => $amount, //todo JOERI whut?
+            'price_incl_tax' => $amount, //todo JOERI whut?
         ];
     }
 
@@ -155,7 +151,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
         ];
 
-        $amount = $this->deliveryCosts->getBasePrice($quote);
+        $amount = $this->deliveryCosts->getBasePriceForMethod($quote);
 
         foreach ($shipmentFees as $key => $value) {
             if (!$value) {
