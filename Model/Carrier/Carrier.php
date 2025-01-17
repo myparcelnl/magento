@@ -110,7 +110,10 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $method->setCarrierTitle($this->_title);
         $method->setMethod($this->_name);
         $method->setMethodTitle($this->getMethodTitle($quote));
-        $method->setPrice((string) $this->getMethodAmountExcludingVat($quote));
+        file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE EX VAT (JOERIDEBUG): " . $this->tax->excludingVat($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
+        file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE IN VAT (JOERIDEBUG): " . $this->tax->includingVat($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
+        file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE SHIPPI (JOERIDEBUG): " . $this->tax->shippingPrice($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
+        $method->setPrice((string) $this->tax->shippingPrice(2,$quote));//$this->getMethodAmountExcludingVat($quote));
 
         $result->append($method);
 
@@ -119,8 +122,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
     public function getMethodForFrontend(Quote $quote): array
     {
-        // Magento checkout needs the price ex vat for displaying in the cart summary, bypassing the admin settings
-        $amount = $this->getMethodAmountExcludingVat($quote);
+        $amount = $this->getMethodAmount($quote);
 
         //todo joeri where is this specific structure / array coming from? Not method->toArray unfortunately
         return [
@@ -133,12 +135,12 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'method_code'    => $this->_name,
             'method_title'   => $this->getMethodTitle($quote),
             //todo JOERI where is excl / incl vat ever used? Some custom checkout maybe?
-            'price_excl_tax' => $amount,
-            'price_incl_tax' => $this->tax->addVatToExVatPrice($amount, $quote),
+            'price_excl_tax' => $this->tax->excludingVat($amount, $quote),
+            'price_incl_tax' => $this->tax->includingVat($amount, $quote),
         ];
     }
 
-    private function getMethodAmountExcludingVat(Quote $quote): float
+    private function getMethodAmount(Quote $quote): float
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
         $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
@@ -151,13 +153,13 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
         ];
 
-        $amount = $this->tax->excludingVat($this->deliveryCosts->getBasePrice($quote), $quote);
+        $amount = $this->deliveryCosts->getBasePrice($quote);
 
         foreach ($shipmentFees as $key => $value) {
             if (!$value) {
                 continue;
             }
-            $amount += $this->tax->excludingVat((float) $this->config->getConfigValue("$configPath$key"), $quote);
+            $amount += (float) $this->config->getConfigValue("$configPath$key");
         }
         //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT (JOERIDEBUG): ' . var_export($amount, true) . "\n", FILE_APPEND);
 
@@ -212,38 +214,5 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     {
         // TODO: Implement isTrackingAvailable() method.
         return true;
-    }
-
-    /**
-     * Create title for method
-     * If no title isset in config, get title from translation
-     *
-     * @param $settingPath
-     * @return Phrase|mixed
-     */
-    private function createTitle($settingPath)
-    {
-        $title = $this->config->getConfigValue(Config::XML_PATH_POSTNL_SETTINGS . "{$settingPath}title");
-
-        if ($title === null) {
-            $title = __("{$settingPath}title");
-        }
-
-        return $title;
-    }
-
-    /**
-     * Create price
-     * Calculate price if multiple options are chosen
-     *
-     * @param $alias
-     * @param $settingPath
-     * @return float
-     */
-    private function createPrice($alias, $settingPath)
-    {
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "CreatePrice is called on Carrier\n", FILE_APPEND);
-
-        return 10.21;
     }
 }
