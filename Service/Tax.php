@@ -29,7 +29,8 @@ class Tax
         // Tax -> Calculation Settings -> Shipping Prices: are prices entered as tax-inclusive or exclusive? Defaults to inclusive
         $this->priceIncludesTax = '0' !== $config->getConfigValue('tax/calculation/shipping_includes_tax');
         // Tax -> Shopping Cart Display Settings -> Display Shipping Amount, default to display including tax
-        $this->displayIncluding = self::DISPLAY_EXCLUDING_TAX !== $config->getConfigValue('tax/cart_display/shipping');
+        $this->displayIncluding = self::DISPLAY_INCLUDING_TAX === $config->getConfigValue('tax/cart_display/shipping');
+        /* ^ let op Magento verwacht ex btw als BOTH is gekozen todo */
     }
 
 
