@@ -22,7 +22,6 @@ use Exception;
 use InvalidArgumentException;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;
-use Magento\Framework\Phrase;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Quote\Model\Quote\Address\RateResult\ErrorFactory;
@@ -113,7 +112,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE EX VAT (JOERIDEBUG): " . $this->tax->excludingVat($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
         file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE IN VAT (JOERIDEBUG): " . $this->tax->includingVat($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
         file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE SHIPPI (JOERIDEBUG): " . $this->tax->shippingPrice($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
-        $method->setPrice((string) $this->tax->shippingPrice(2,$quote));//$this->getMethodAmountExcludingVat($quote));
+        $method->setPrice((string) $this->tax->shippingPrice($this->getMethodAmount($quote),$quote));
 
         $result->append($method);
 
