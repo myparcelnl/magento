@@ -254,7 +254,7 @@
                 <shipping_cost>10</shipping_cost>
                 <sallowspecific>0</sallowspecific>
                 <sort_order>15</sort_order>
-                <model>MyparcelNL\Magento\Model\Carrier\Carrier</model>
+                <model>MyParcelNL\Magento\Model\Carrier\Carrier</model>
             </myparcel>
         </carriers>
 
