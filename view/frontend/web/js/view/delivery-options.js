@@ -27,9 +27,7 @@ define(
   ) {
     'use strict';
 
-    var deliveryOptions;
-
-    deliveryOptions = {
+    const deliveryOptions = {
       rendered: ko.observable(false),
 
       splitStreetRegex: /(.*?)\s?(\d{1,5})[/\s-]{0,2}([A-z]\d{1,3}|-\d{1,4}|\d{2}\w{1,2}|[A-z][A-z\s]{0,3})?$/,
