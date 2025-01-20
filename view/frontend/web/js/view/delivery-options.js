@@ -73,14 +73,14 @@ define(
       },
 
       setToRenderWhenVisible: function() {
-        var shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
+        const shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
         /**
-         * Sometimes the shipping method div doesn't exist yet. Retry in 100ms if it happens.
+         * Sometimes the shipping method div doesn't exist yet. Retry in 151ms if it happens.
          */
         if (!shippingMethodDiv) {
           setTimeout(function() {
             deliveryOptions.setToRenderWhenVisible();
-          }, 100);
+          }, 151);
           return;
         }
 

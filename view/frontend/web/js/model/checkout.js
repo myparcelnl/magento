@@ -44,7 +44,7 @@ function(
 ) {
   'use strict';
 
-  var Model = {
+  const Model = {
     configuration: ko.observable(null),
 
     /**
@@ -77,22 +77,26 @@ function(
      * Initialize by requesting the MyParcel settings configuration from Magento.
      */
     initialize: function() {
-      console.error(' Joeri debugging ');
+      console.error(' Joeri debugging 2 ');
       Model.compute = ko.computed(function() {
         const configuration = Model.configuration();
         const rates = Model.rates();
 
         if (!configuration || !rates.length) {
+          console.warn('Geen zin', configuration, rates);
           return false;
         }
+        console.warn('Wel zin', configuration, rates);
 
+        // necessary vor updateAllowedShippingMethods()
         if (configuration.carrierCode) Model.carrierCode = configuration.carrierCode;
 
+        // the object with information that we need
         return {configuration: configuration, rates: rates};
       });
 
-      Model.compute.subscribe(function(a) {
-        if (!a) {
+      Model.compute.subscribe(function(objectWithInformation) {
+        if (!objectWithInformation) {
           return;
         }
 
@@ -106,7 +110,7 @@ function(
       doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onInitializeSuccess});
 
       function reloadConfig() {
-        var shippingAddress = quote.shippingAddress();
+        const shippingAddress = quote.shippingAddress();
 
         if (shippingAddress.countryId !== Model.countryId()) {
           doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onReFetchDeliveryOptionsConfig});
@@ -119,7 +123,7 @@ function(
     },
 
     onReFetchDeliveryOptionsConfig: function(response) {
-      var configuration = response[0].data;
+      const configuration = response[0].data;
       Model.bestPackageType = configuration.config.packageType;
       Model.setDeliveryOptionsConfig(configuration);
     },
@@ -160,7 +164,7 @@ function(
 
     rowElement: function() {
       const rate = Model.findOriginalRateByCarrierCode(Model.carrierCode) || {},
-          cell = document.getElementById('label_method_' + rate.method_code + '_' + rate.carrier_code);
+          cell = document.getElementById(`label_method_${rate.method_code}_${rate.carrier_code}`);
 
       if (!cell) {
         return null;
@@ -190,11 +194,11 @@ function(
      * @returns {XMLHttpRequest}
      */
     calculatePackageType: function(carrier) {
-      var list = document.querySelector('[name="country_id"]');
       function isVisible(el) {
         return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
       }
-      var countryId = (list && isVisible(list)) ? list.options[list.selectedIndex].value : Model.countryId();
+      const list = document.querySelector('[name="country_id"]'),
+          countryId = (list && isVisible(list)) ? list.options[list.selectedIndex].value : Model.countryId();
       return sendRequest(
         'rest/V1/package_type',
         'GET',
@@ -254,15 +258,13 @@ function(
      * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
      *  be left out.
      */
-    const allowed = [],
-        row = Model.rowElement();
-    if (row) allowed.push(Model.carrierCode);
-    Model.allowedShippingMethods(allowed);
+    const row = Model.rowElement();
+    if (!row) setTimeout(updateAllowedShippingMethods, 151);
+    Model.allowedShippingMethods([Model.carrierCode]);
   }
 
   function updateHasDeliveryOptions() {
     let isAllowed = false;
-    const shippingCountry = quote.shippingAddress().countryId;
 
     Model.allowedShippingMethods().forEach(function(carrierCode) {
       const rate = Model.findOriginalRateByCarrierCode(carrierCode);
@@ -298,7 +300,7 @@ function(
     };
 
     request().onload = function() {
-      var response = JSON.parse(this.response);
+      const response = JSON.parse(this.response);
 
       if (this.status >= STATUS_SUCCESS && this.status < STATUS_ERROR) {
         handlers.doHandler('onSuccess', response);
@@ -320,15 +322,15 @@ function(
    * @returns {XMLHttpRequest}
    */
   function sendRequest(endpoint, method, options) {
-    var url = mageUrl.build(endpoint);
-    var request = new XMLHttpRequest();
-    var query = [];
+    let url = mageUrl.build(endpoint);
+    const query = [],
+        request = new XMLHttpRequest();
 
     method = method || 'GET';
     options = options || {};
 
     if (method === 'GET') {
-      for (var key in options) {
+      for (const key in options) {
         query.push(key + '=' + encodeURIComponent(options[key]));
       }
     }
