@@ -108,7 +108,6 @@ class DeliveryCosts
         $return = [];
 
         foreach ($matrix as $definition) {
-            //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "--THE MATRIX’ definition--\n" . var_export($definition, true) . "\n", FILE_APPEND);
             if (!isset($definition['conditions']) || !is_array(($definedConditions = $definition['conditions']))) {
                 continue;
             }
@@ -116,7 +115,6 @@ class DeliveryCosts
             // calculate relative weight of this option using hierarchy points by walking through the conditions
             $totalPoints = 0;
             foreach (self::CONDITIONS as $condition => $points) {
-                //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "-- LOOPING AVAILABLE " . var_export($condition, true) . " --\n".var_export($definedConditions,true)."\n", FILE_APPEND);
                 if ('unspecified' === $condition) {
                     continue;
                 }
@@ -133,7 +131,6 @@ class DeliveryCosts
                         }
                         break;
                     case 'country_part_of':
-                        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "-- LOOPING country_part_of --\n" . var_export($conditions['country'], true) . ' ' . var_export($definedConditions[$condition], true) . "\n", FILE_APPEND);
                         if (self::isCountryPartOf($conditions['country'], $definedConditions[$condition])) {
                             $totalPoints += $points;
                             continue 2;

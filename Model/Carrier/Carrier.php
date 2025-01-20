@@ -109,10 +109,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $method->setCarrierTitle($this->_title);
         $method->setMethod($this->_name);
         $method->setMethodTitle($this->getMethodTitle($quote));
-        file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE EX VAT (JOERIDEBUG): " . $this->tax->excludingVat($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
-        file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE IN VAT (JOERIDEBUG): " . $this->tax->includingVat($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
-        file_put_contents('/var/www/magento2-prod/var/log/joeri.log', "METHOD PRICE SHIPPI (JOERIDEBUG): " . $this->tax->shippingPrice($this->getMethodAmount($quote), $quote) . "\n", FILE_APPEND);
-        $method->setPrice((string) $this->tax->shippingPrice($this->getMethodAmount($quote),$quote));
+        $method->setPrice((string) $this->getMethodAmount($quote));
 
         $result->append($method);
 
@@ -160,7 +157,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             }
             $amount += (float) $this->config->getConfigValue("$configPath$key");
         }
-        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'AMOUNT (JOERIDEBUG): ' . var_export($amount, true) . "\n", FILE_APPEND);
 
         // the method should never give a discount on the order, so we return 0 if the amount is negative
         return max(0, $amount);
