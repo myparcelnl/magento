@@ -113,24 +113,21 @@ define(
         deliveryOptions.triggerEvent(deliveryOptions.hideDeliveryOptionsEvent);
       },
 
-      /**
-       * Create the div the delivery options will be rendered in, if it doesn't exist yet.
-       */
       render: function() {
-        var hasUnrenderedDiv = document.querySelector('#myparcel-delivery-options');
-        var hasRenderedDeliveryOptions = document.querySelector('.myparcel-delivery-options__table');
-        var shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
-        var deliveryOptionsDiv = document.createElement('div');
-
+        const deliveryOptionsDiv = document.getElementById('myparcel-delivery-options'),
+            shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
         checkout.hideShippingMethods();
         deliveryOptions.rendered(false);
 
-        if (hasUnrenderedDiv || hasRenderedDeliveryOptions) {
+        if (deliveryOptionsDiv) {
           deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
-        } else if (!hasUnrenderedDiv) {
-          deliveryOptionsDiv.setAttribute('id', 'myparcel-delivery-options');
-          shippingMethodDiv.insertBefore(deliveryOptionsDiv, shippingMethodDiv.firstChild);
-          deliveryOptions.triggerEvent(deliveryOptions.renderDeliveryOptionsEvent);
+        } else {
+          const newDeliveryOptionsDiv = document.createElement('div');
+          newDeliveryOptionsDiv.setAttribute('id', 'myparcel-delivery-options');
+          shippingMethodDiv.insertAdjacentElement('afterbegin', newDeliveryOptionsDiv);
+          requestAnimationFrame(function() { // wait for the element to actually be added to the DOM
+            deliveryOptions.triggerEvent(deliveryOptions.renderDeliveryOptionsEvent)
+          });
         }
 
         deliveryOptions.rendered(true);
@@ -158,8 +155,8 @@ define(
        * @returns {integer|null} - The house number, if found. Otherwise null.
        */
       getHouseNumber: function(address) {
-        var result = deliveryOptions.splitStreetRegex.exec(address);
-        var numberIndex = 2;
+        const result = deliveryOptions.splitStreetRegex.exec(address),
+            numberIndex = 2;
         return result ? parseInt(result[numberIndex]) : null;
       },
 
@@ -169,10 +166,7 @@ define(
        * @param {string} identifier - Name of the event.
        */
       triggerEvent: function(identifier) {
-        //document.body.dispatchEvent(new CustomEvent(identifier, { bubbles: true, cancelable: false }));
-        var event = document.createEvent('HTMLEvents');
-        event.initEvent(identifier, true, false);
-        document.querySelector('body').dispatchEvent(event);
+        document.body.dispatchEvent(new Event(identifier, { bubbles: true, cancelable: false }));
       },
 
       /**
