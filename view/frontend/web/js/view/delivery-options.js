@@ -213,8 +213,8 @@ define(
        * @param {CustomEvent} event - The event that was sent.
        */
       onUpdatedDeliveryOptions: function(event) {
-        var element = document.getElementsByClassName('checkout-shipping-method').item(0);
-        var displayStyle = window.getComputedStyle(element, null).display;
+        const element = document.querySelector('.checkout-shipping-method'),
+            displayStyle = window.getComputedStyle(element, null).display;
 
         if ('none' === displayStyle) {
           return;
@@ -258,8 +258,8 @@ define(
        * Until there's a built in solution, there's the following workaround.
        */
       disabledDeliveryPickupRadio: function() {
-        var delivery = document.getElementById(deliveryOptions.disableDelivery);
-        var pickup = document.getElementById(deliveryOptions.disablePickup);
+        const pickup = document.getElementById(deliveryOptions.disablePickup),
+            delivery = document.getElementById(deliveryOptions.disableDelivery);
 
         if (delivery) {
           delivery.disabled = false;
@@ -306,8 +306,7 @@ define(
        * @see https://stackoverflow.com/a/10474209
        */
       roundNumber: function(number, decimals) {
-        var newNumber = Number(String(number)).toFixed(decimals);
-        return parseFloat(newNumber);
+        return parseFloat(Number(String(number)).toFixed(decimals));
       },
 
       updateConfig: function() {
