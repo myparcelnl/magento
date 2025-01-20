@@ -179,15 +179,16 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         }
 
         ob_start();
-        echo $carrierHuman, ' ', __("{$deliveryOptions->getDeliveryType()}_title"), ', ';
+        echo $carrierHuman, ' ', __("{$deliveryOptions->getDeliveryType()}_title"), ', ', __("{$deliveryOptions->getPackageType()}_title");
+
 
         foreach ($shipmentOptions->toArray() as $key => $value) {
             if ($value) {
-                echo trim(__("{$key}_title")), ', ';
+                echo ', ', trim(__("{$key}_title"));
             }
         }
 
-        return substr(trim(ob_get_clean()), 0, -1); // remove trailing comma
+        return trim(ob_get_clean());
     }
 
     public function processAdditionalValidation(DataObject $request): bool
