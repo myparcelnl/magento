@@ -83,10 +83,8 @@ function(
         const rates = Model.rates();
 
         if (!configuration || !rates.length) {
-          console.warn('Geen zin', configuration, rates);
           return false;
         }
-        console.warn('Wel zin', configuration, rates);
 
         // necessary vor updateAllowedShippingMethods()
         if (configuration.carrierCode) Model.carrierCode = configuration.carrierCode;
