@@ -230,7 +230,8 @@ list_title, Liste
 map_title, Carte
 mailbox_title, Colis boîte aux lettres
 digital_stamp_title, Timbre digital
-packet_title, Colis
+packet_title,Petit colis
+package_title,Colis
 signature_title, Signature à réception
 receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
