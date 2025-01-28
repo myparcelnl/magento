@@ -1,0 +1,19 @@
+<?php
+
+declare(strict_types=1);
+
+/* @var \MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix $block */
+?>
+<script type="text/x-magento-init">
+{
+    ".page-footer": {
+        "MyParcelNL_Magento/js/delivery-costs-matrix": {
+            "carriers": "<?= str_replace('"', '\"', json_encode($block->getCarriers())) ?>",
+            "packageTypes": "<?= str_replace('"', '\"', json_encode($block->getPackageTypes())) ?>",
+            "countryCodes": "<?= str_replace('"', '\"', json_encode($block->getCountryCodes())) ?>",
+            "countryParts": "<?= str_replace('"', '\"', json_encode($block->getCountryParts())) ?>",
+            "field": "myparcelnl_magento_general_matrix_delivery_costs"
+        }
+    }
+}
+</script>
