@@ -112,7 +112,7 @@ class DeliveryCosts
                 continue;
             }
 
-            // calculate relative weight of this option using hierarchy points by walking through the conditions
+            // calculate relative weight of this option (definition) using hierarchy points by walking through the conditions
             $totalPoints = 0;
             foreach (self::CONDITIONS as $condition => $points) {
                 if ('unspecified' === $condition) {
