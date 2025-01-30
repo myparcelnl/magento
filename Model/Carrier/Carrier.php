@@ -33,8 +33,8 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
-use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
+use MyParcelNL\Sdk\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
+use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrier implements CarrierInterface

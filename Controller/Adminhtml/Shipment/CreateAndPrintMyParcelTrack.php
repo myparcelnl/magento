@@ -55,8 +55,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      *
      * @return ResultInterface|ResponseInterface
      * @throws LocalizedException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \MyParcelNL\Sdk\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
      */
     public function execute()
     {
@@ -70,8 +70,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      *
      * @return $this
      * @throws LocalizedException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \MyParcelNL\Sdk\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
      * @throws \Exception
      */
     private function massAction()

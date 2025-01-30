@@ -6,8 +6,8 @@ namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\src\Services\CountryCodes;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCosts
 {

@@ -14,12 +14,12 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
-use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
-use MyParcelNL\Sdk\src\Support\Collection;
-use MyParcelNL\Sdk\src\Services\Web\AccountWebService;
-use MyParcelNL\Sdk\src\Services\Web\CarrierConfigurationWebService;
-use MyParcelNL\Sdk\src\Services\Web\CarrierOptionsWebService;
+use MyParcelNL\Sdk\Model\Account\CarrierConfiguration;
+use MyParcelNL\Sdk\Model\Account\CarrierOptions;
+use MyParcelNL\Sdk\Support\Collection;
+use MyParcelNL\Sdk\Services\Web\AccountWebService;
+use MyParcelNL\Sdk\Services\Web\CarrierConfigurationWebService;
+use MyParcelNL\Sdk\Services\Web\CarrierOptionsWebService;
 
 class CarrierConfigurationImport extends Action
 {
@@ -62,9 +62,9 @@ class CarrierConfigurationImport extends Action
     }
 
     /**
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \MyParcelNL\Sdk\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
      */
     public function execute()
     {
@@ -85,10 +85,10 @@ class CarrierConfigurationImport extends Action
     }
 
     /**
-     * @return \MyParcelNL\Sdk\src\Support\Collection
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @return \MyParcelNL\Sdk\Support\Collection
+     * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
      */
     public function fetchConfigurations(): Collection
     {
@@ -112,7 +112,7 @@ class CarrierConfigurationImport extends Action
     }
 
     /**
-     * @return \MyParcelNL\Sdk\src\Support\Collection|null
+     * @return \MyParcelNL\Sdk\Support\Collection|null
      * @throws \Exception
      */
     public static function getAccountSettings(): ?Collection
@@ -140,20 +140,20 @@ class CarrierConfigurationImport extends Action
     }
 
     /**
-     * @param  \MyParcelNL\Sdk\src\Support\Collection $settings
+     * @param  \MyParcelNL\Sdk\Support\Collection $settings
      *
      * @return array
      * @TODO sdk#326 remove this entire function and replace with toArray
      */
     private function createArray(Collection $settings): array
     {
-        /** @var \MyParcelNL\Sdk\src\Model\Account\Shop $shop */
+        /** @var \MyParcelNL\Sdk\Model\Account\Shop $shop */
         $shop = $settings->get('shop');
-        /** @var \MyParcelNL\Sdk\src\Model\Account\Account $account */
+        /** @var \MyParcelNL\Sdk\Model\Account\Account $account */
         $account = $settings->get('account');
-        /** @var \MyParcelNL\Sdk\src\Model\Account\CarrierOptions[]|Collection $carrierOptions */
+        /** @var \MyParcelNL\Sdk\Model\Account\CarrierOptions[]|Collection $carrierOptions */
         $carrierOptions = $settings->get('carrier_options');
-        /** @var \MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration[]|Collection $carrierConfigurations */
+        /** @var \MyParcelNL\Sdk\Model\Account\CarrierConfiguration[]|Collection $carrierConfigurations */
         $carrierConfigurations = $settings->get('carrier_configurations');
 
         return [

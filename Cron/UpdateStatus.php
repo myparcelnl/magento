@@ -37,10 +37,10 @@ use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
-use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderCollection;
-use MyParcelNL\Sdk\src\Exception\AccountNotActiveException;
-use MyParcelNL\Sdk\src\Exception\ApiException;
-use MyParcelNL\Sdk\src\Exception\MissingFieldException;
+use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
+use MyParcelNL\Sdk\Exception\AccountNotActiveException;
+use MyParcelNL\Sdk\Exception\ApiException;
+use MyParcelNL\Sdk\Exception\MissingFieldException;
 use Psr\Log\LoggerInterface;
 
 class UpdateStatus

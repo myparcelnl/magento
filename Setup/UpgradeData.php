@@ -32,8 +32,8 @@ use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
 use Magento\Eav\Model\Entity\Attribute\Backend\ArrayBackend;
-use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\src\Services\CountryCodes;
+use MyParcelNL\Sdk\Factory\ConsignmentFactory;
+use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
  * Upgrade Data script

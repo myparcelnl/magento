@@ -27,10 +27,10 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
-use MyParcelNL\Sdk\src\Helper\ValidateStreet;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\src\Support\Str;
+use MyParcelNL\Sdk\Helper\ValidatePostalCode;
+use MyParcelNL\Sdk\Helper\ValidateStreet;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Support\Str;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 {

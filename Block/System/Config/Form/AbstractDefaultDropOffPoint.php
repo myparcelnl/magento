@@ -11,7 +11,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
+use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 
 abstract class AbstractDefaultDropOffPoint extends Field
 {
@@ -23,7 +23,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
     protected $_template = 'MyParcelNL_Magento::default_drop_off_point.phtml';
 
     /**
-     * @var \MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint
+     * @var \MyParcelNL\Sdk\Model\Consignment\DropOffPoint
      */
     private $dropOffPoint;
 

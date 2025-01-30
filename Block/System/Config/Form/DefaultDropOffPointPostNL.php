@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 class DefaultDropOffPointPostNL extends AbstractDefaultDropOffPoint
 {

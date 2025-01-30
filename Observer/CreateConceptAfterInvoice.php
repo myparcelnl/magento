@@ -27,8 +27,8 @@ use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Exception\ApiException;
-use MyParcelNL\Sdk\src\Exception\MissingFieldException;
+use MyParcelNL\Sdk\Exception\ApiException;
+use MyParcelNL\Sdk\Exception\MissingFieldException;
 
 class CreateConceptAfterInvoice implements ObserverInterface
 {

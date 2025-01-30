@@ -6,18 +6,18 @@ namespace MyParcelNL\Magento\Model\Settings;
 
 use Exception;
 use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
-use MyParcelNL\Sdk\src\Exception\AccountNotActiveException;
-use MyParcelNL\Sdk\src\Exception\ApiException;
-use MyParcelNL\Sdk\src\Exception\MissingFieldException;
-use MyParcelNL\Sdk\src\Factory\Account\CarrierConfigurationFactory;
-use MyParcelNL\Sdk\src\Model\Account\Account;
-use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
-use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
-use MyParcelNL\Sdk\src\Model\Account\Shop;
-use MyParcelNL\Sdk\src\Model\BaseModel;
-use MyParcelNL\Sdk\src\Model\Carrier\AbstractCarrier;
-use MyParcelNL\Sdk\src\Model\Consignment\DropOffPoint;
-use MyParcelNL\Sdk\src\Support\Collection;
+use MyParcelNL\Sdk\Exception\AccountNotActiveException;
+use MyParcelNL\Sdk\Exception\ApiException;
+use MyParcelNL\Sdk\Exception\MissingFieldException;
+use MyParcelNL\Sdk\Factory\Account\CarrierConfigurationFactory;
+use MyParcelNL\Sdk\Model\Account\Account;
+use MyParcelNL\Sdk\Model\Account\CarrierConfiguration;
+use MyParcelNL\Sdk\Model\Account\CarrierOptions;
+use MyParcelNL\Sdk\Model\Account\Shop;
+use MyParcelNL\Sdk\Model\BaseModel;
+use MyParcelNL\Sdk\Model\Carrier\AbstractCarrier;
+use MyParcelNL\Sdk\Model\Consignment\DropOffPoint;
+use MyParcelNL\Sdk\Support\Collection;
 
 class AccountSettings extends BaseModel
 {

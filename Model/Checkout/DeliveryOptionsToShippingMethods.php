@@ -6,12 +6,12 @@ namespace MyParcelNL\Magento\Model\Checkout;
 
 use Exception;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
+use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
 class DeliveryOptionsToShippingMethods
 {
     /**
-     * @var \MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter
+     * @var \MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter
      */
     private $deliveryOptions;
 

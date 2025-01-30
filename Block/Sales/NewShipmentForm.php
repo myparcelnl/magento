@@ -3,15 +3,15 @@
 namespace MyParcelNL\Magento\Block\Sales;
 
 use Exception;
-use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLEuroplus;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLForYou;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierDHLParcelConnect;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierDPD;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierUPS;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Factory\ConsignmentFactory;
+use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
+use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
+use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
+use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
+use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
+use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Model\Carrier\CarrierUPS;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 class NewShipmentForm
 {

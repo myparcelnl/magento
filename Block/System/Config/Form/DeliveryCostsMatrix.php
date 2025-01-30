@@ -7,7 +7,7 @@ namespace MyParcelNL\Magento\Block\System\Config\Form;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
-use MyParcelNL\Sdk\src\Services\CountryCodes;
+use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCostsMatrix extends Field
 {
@@ -50,7 +50,7 @@ class DeliveryCostsMatrix extends Field
      *
      * @return string
      */
-    protected function _getElementHtml(AbstractElement $element)
+    protected function _getElementHtml(AbstractElement $element): string
     {
         return $this->_toHtml();
     }

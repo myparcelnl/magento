@@ -10,8 +10,8 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Status\History;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Collection\Fulfilment\OrderNotesCollection;
-use MyParcelNL\Sdk\src\Model\Fulfilment\OrderNote;
+use MyParcelNL\Sdk\Collection\Fulfilment\OrderNotesCollection;
+use MyParcelNL\Sdk\Model\Fulfilment\OrderNote;
 
 class SalesOrderStatusHistoryObserver implements ObserverInterface
 {

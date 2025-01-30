@@ -37,13 +37,13 @@ use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
-use MyParcelNL\Sdk\src\Exception\AccountNotActiveException;
-use MyParcelNL\Sdk\src\Exception\ApiException;
-use MyParcelNL\Sdk\src\Exception\MissingFieldException;
-use MyParcelNL\Sdk\src\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\src\Model\Consignment\BaseConsignment;
+use MyParcelNL\Sdk\Exception\AccountNotActiveException;
+use MyParcelNL\Sdk\Exception\ApiException;
+use MyParcelNL\Sdk\Exception\MissingFieldException;
+use MyParcelNL\Sdk\Helper\MyParcelCollection;
+use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Model\Consignment\BaseConsignment;
 
 /**
  * Class MagentoOrderCollection
