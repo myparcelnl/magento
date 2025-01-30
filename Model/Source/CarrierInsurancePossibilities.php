@@ -6,9 +6,9 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Exception;
 use Magento\Framework\Data\OptionSourceInterface;
-use MyParcelNL\Sdk\src\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\src\Services\CountryCodes;
+use MyParcelNL\Sdk\Factory\ConsignmentFactory;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Services\CountryCodes;
 
 class CarrierInsurancePossibilities implements OptionSourceInterface
 {

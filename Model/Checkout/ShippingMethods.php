@@ -9,7 +9,7 @@ use Magento\Quote\Model\QuoteRepository\SaveHandler;
 use MyParcelNL\Magento\Api\ShippingMethodsInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Factory\DeliveryOptionsAdapterFactory;
+use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
 /**
  * @since 3.0.0

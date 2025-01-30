@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Adapter;
 
-use MyParcelNL\Sdk\src\Model\Fulfilment\OrderLine;
+use MyParcelNL\Sdk\Model\Fulfilment\OrderLine;
 
 class OrderLineOptionsFromOrderAdapter extends OrderLine
 {

@@ -6,7 +6,7 @@ namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 class Weight
 {

@@ -17,7 +17,7 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\src\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
  * @api

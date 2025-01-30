@@ -5,7 +5,7 @@ namespace MyParcelNL\Magento\Block\DataProviders\Email\Shipment;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment\Track;
-use MyParcelNL\Sdk\src\Helper\TrackTraceUrl;
+use MyParcelNL\Sdk\Helper\TrackTraceUrl;
 
 // For Magento version < 2.3.2 the TrackingUrl is not exist. Therefore, it must be checked if the class exists and so that the class can be extended.
 if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl')) {

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Adapter;
 
 use MyParcelNL\Magento\Helper\ShipmentOptions;
-use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
-use MyParcelNL\Sdk\src\Adapter\DeliveryOptions\AbstractShipmentOptionsAdapter;
+use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
+use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractShipmentOptionsAdapter;
 
 class ShipmentOptionsFromAdapter extends AbstractShipmentOptionsAdapter
 {
