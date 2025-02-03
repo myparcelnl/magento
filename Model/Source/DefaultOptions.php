@@ -31,23 +31,6 @@ use MyParcelNL\Sdk\Support\Str;
 
 class DefaultOptions
 {
-    // Maximum characters length of company name.
-    private const COMPANY_NAME_MAX_LENGTH = 50;
-    /** @deprecated */
-    private const INSURANCE_BELGIUM = 'insurance_belgium_custom';
-    /** @deprecated */
-    private const INSURANCE_EU_AMOUNT_50 = 'insurance_eu_50';
-    /** @deprecated */
-    private const INSURANCE_EU_AMOUNT_500 = 'insurance_eu_500';
-    /** @deprecated */
-    private const INSURANCE_AMOUNT_100 = 'insurance_100';
-    /** @deprecated */
-    private const INSURANCE_AMOUNT_250 = 'insurance_250';
-    /** @deprecated */
-    private const INSURANCE_AMOUNT_500 = 'insurance_500';
-    /** @deprecated */
-    private const INSURANCE_AMOUNT_CUSTOM = 'insurance_custom';
-
     private const INSURANCE_FROM_PRICE     = 'insurance_from_price';
     private const INSURANCE_LOCAL_AMOUNT   = 'insurance_local_amount';
     private const INSURANCE_BELGIUM_AMOUNT = 'insurance_belgium_amount';
@@ -106,20 +89,6 @@ class DefaultOptions
         }
 
         return $this->hasDefaultOption($carrier, $option);
-    }
-
-    /**
-     * @param string|null $company
-     *
-     * @return string|null
-     */
-    public function getMaxCompanyName(?string $company): ?string
-    {
-        if (null === $company) {
-            return null;
-        }
-
-        return Str::limit($company, self::COMPANY_NAME_MAX_LENGTH);
     }
 
     /**

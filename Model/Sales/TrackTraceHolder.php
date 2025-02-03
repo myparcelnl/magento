@@ -155,7 +155,7 @@ class TrackTraceHolder
             ->setReferenceIdentifier($shipment->getEntityId())
             ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
-            ->setCompany($this->defaultOptions->getMaxCompanyName($address->getCompany()))
+            ->setCompany($address->getCompany())
             ->setPerson($address->getName());
 
         try {
