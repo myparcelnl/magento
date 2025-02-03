@@ -69,7 +69,7 @@ class CustomsDeclarationFromOrder
 
             $amount      = (float)$item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
             $totalWeight += $this->weightService->convertToGrams($product->getWeight() * $amount);
-            $description = Str::limit($product->getName(), AbstractConsignment::DESCRIPTION_MAX_LENGTH);
+            $description = Str::limit($product->getName(), AbstractConsignment::CUSTOMS_DECLARATION_DESCRIPTION_MAX_LENGTH);
 
             $customsItem = (new MyParcelCustomsItem())
                 ->setDescription($description)
