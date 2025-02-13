@@ -18,43 +18,44 @@
 
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
-class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\AbstractOrder
-{/**
-     * @var \Magento\Framework\Module\ModuleListInterface
+use Magento\Backend\Block\Template\Context;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Module\ModuleListInterface;
+use MyParcelNL\Magento\Service\Config;
+
+class SupportTabRepository extends \Magento\Backend\Block\Widget
+{
+    /**
+     * @var ModuleListInterface
      */
-    protected $moduleList;
+    protected ModuleListInterface $moduleList;
 
     /**
      * MyParcelSupportTab constructor
      *
-     * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Framework\Registry             $registry
-     * @param \Magento\Sales\Helper\Admin             $adminHelper
-     * @param \MyParcelNL\Magento\Helper\Data     $helper
-     * @param array                                   $data
+     * @param Context             $context
+     * @param ModuleListInterface $moduleList
+     * @param array               $data
      */
     public function __construct(
-        \Magento\Backend\Block\Template\Context $context,
-        \Magento\Framework\Registry             $registry,
-        \Magento\Sales\Helper\Admin             $adminHelper,
-        \MyParcelNL\Magento\Helper\Data     $helper,
-        array                                   $data = []
-    ) {
-        parent::__construct($context, $registry, $adminHelper, $data);
-        $this->helper = $helper;
+        Context             $context,
+        ModuleListInterface $moduleList,
+        array               $data = []
+    )
+    {
+        parent::__construct($context, $data);
+        $this->moduleList = $moduleList;
     }
 
     /**
      * Get the url of the stylesheet
      *
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
-    public function getCssUrl()
+    public function getCssUrl(): string
     {
-        $cssUrl = $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/support_tab/style.css')->getUrl();
-
-        return $cssUrl;
+        return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/support_tab/style.css')->getUrl();
     }
 
     /**
@@ -62,8 +63,11 @@ class SupportTabRepository extends \Magento\Sales\Block\Adminhtml\Order\Abstract
      *
      * @return string
      */
-    public function getModuleVersion()
+    public function getModuleVersion(): string
     {
-        return $this->helper->getVersion();
+        $moduleCode = Config::MODULE_NAME;
+        $moduleInfo = $this->moduleList->getOne($moduleCode);
+
+        return (string) $moduleInfo['setup_version'];
     }
 }

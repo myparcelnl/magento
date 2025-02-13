@@ -1,0 +1,61 @@
+div#mypa-options {
+    display: none;
+    list-style: none;
+    text-align: left;
+}
+
+div#mypa-options._active {
+    display: block;
+}
+
+.mypa__field__container {
+    display: inline-flex;
+    padding-right: 6rem;
+}
+
+.mypa_position_selector {
+    border: 1px solid #007bdb;
+    width: 247px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 10px;
+    padding: 5px;
+}
+
+.mypa_position_selector > label {
+    background-color: #e3e3e3;
+    width: 105px;
+    height: 148px;
+    display: inline-block;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.mypa_position_selector, .mypa_position_selector > input[type=checkbox] {
+    display: none;
+}
+
+.mypa_position_selector._active {
+    display: block;
+}
+
+input[type=checkbox]:checked + label.mypa_position_selector-item {
+    background-color: #79a22e;
+}
+
+input[type=checkbox] + label.mypa_position_selector-item:after {
+    position: absolute;
+    font-family: 'Admin Icons';
+    font-size: 2rem;
+    margin-left: 40px;
+    margin-top: 60px;
+    color: white;
+}
+
+input[type=checkbox]:checked + label.mypa_position_selector-item:after {
+    content: '\e62d';
+}
+
+input[type=checkbox]:not(:checked) + label.mypa_position_selector-item:after {
+    content: '\e632';
+}

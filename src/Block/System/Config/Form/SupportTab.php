@@ -19,6 +19,7 @@
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use Magento\Framework\Exception\LocalizedException;
 
 class SupportTab extends \Magento\Backend\Block\AbstractBlock implements
     \Magento\Framework\Data\Form\Element\Renderer\RendererInterface
@@ -29,15 +30,14 @@ class SupportTab extends \Magento\Backend\Block\AbstractBlock implements
      * @param AbstractElement $element
      *
      * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
-    public function render(AbstractElement $element)
+    public function render(AbstractElement $element): string
     {
-        $template = $this->getLayout()
-            ->createBlock('MyParcelNL\Magento\Block\System\Config\Form\SupportTabRepository')
-            ->setTemplate('MyParcelNL_Magento::support_tab.phtml')
-            ->toHtml();
-
-        return $template;
+        return $this->getLayout()
+                    ->createBlock(SupportTabRepository::class)
+                    ->setTemplate('MyParcelNL_Magento::support_tab.phtml')
+                    ->toHtml()
+        ;
     }
 }
