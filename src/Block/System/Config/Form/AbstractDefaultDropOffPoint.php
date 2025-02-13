@@ -9,7 +9,6 @@ use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 
 abstract class AbstractDefaultDropOffPoint extends Field

@@ -34,6 +34,7 @@ use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Services\CountryCodes;
+use function MyParcelNL\Magento\Setup\sort;
 
 /**
  * Upgrade Data script

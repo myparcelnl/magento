@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Config\Model\ResourceModel\Config as resourceConfig;
 use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
