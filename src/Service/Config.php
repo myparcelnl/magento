@@ -189,9 +189,7 @@ class Config extends AbstractHelper
      */
     public function apiKeyIsCorrect(): bool
     {
-        $apiKey = $this->getApiKey();
-
-        return $this->checkApiKeyWebService->setApiKey($apiKey)
+        return $this->checkApiKeyWebService->setApiKey($this->getApiKey())
                                            ->apiKeyIsCorrect()
         ;
     }
@@ -211,8 +209,6 @@ class Config extends AbstractHelper
      */
     public function hasApiKey(): bool
     {
-        $apiKey = $this->getApiKey();
-
-        return isset($apiKey);
+        return null !== $this->getApiKey();
     }
 }
