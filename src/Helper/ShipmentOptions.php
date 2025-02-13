@@ -52,7 +52,7 @@ class ShipmentOptions
     private $options;
 
     /**
-     * @var Data
+     * @var Config
      */
     private $configService;
 
