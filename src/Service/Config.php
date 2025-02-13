@@ -185,19 +185,6 @@ class Config extends AbstractHelper
     // TODO everything below here must be refactored out
 
     /**
-     * Get the version number of the installed module
-     *
-     * @return string
-     */
-    public function getVersion(): string
-    {
-        $moduleCode = self::MODULE_NAME;
-        $moduleInfo = $this->moduleList->getOne($moduleCode);
-
-        return (string) $moduleInfo['setup_version'];
-    }
-
-    /**
      * Check if api key is correct
      */
     public function apiKeyIsCorrect(): bool
