@@ -182,7 +182,17 @@ class Config extends AbstractHelper
         return $this->getConfigValue(self::XML_PATH_GENERAL . "default_carrier/$country");
     }
 
-    // TODO everything below here must be refactored out
+    /**
+     * Get the version number of the installed module
+     *
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        $moduleInfo = $this->moduleList->getOne(self::MODULE_NAME);
+
+        return (string) $moduleInfo['setup_version'];
+    }
 
     /**
      * Check if api key is correct

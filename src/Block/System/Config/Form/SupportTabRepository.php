@@ -20,33 +20,18 @@ namespace MyParcelNL\Magento\Block\System\Config\Form;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Framework\Module\ModuleListInterface;
 use MyParcelNL\Magento\Service\Config;
 
 class SupportTabRepository extends \Magento\Backend\Block\Widget
 {
-    /**
-     * @var ModuleListInterface
-     */
-    protected ModuleListInterface $moduleList;
-
-    /**
-     * MyParcelSupportTab constructor
-     *
-     * @param Context             $context
-     * @param ModuleListInterface $moduleList
-     * @param array               $data
-     */
     public function __construct(
-        Context             $context,
-        ModuleListInterface $moduleList,
-        array               $data = []
-    )
-    {
+        Context $context,
+        Config $config,
+        array $data = []
+    ) {
         parent::__construct($context, $data);
-        $this->moduleList = $moduleList;
+        $this->config = $config;
     }
-
     /**
      * Get the url of the stylesheet
      *
@@ -65,9 +50,6 @@ class SupportTabRepository extends \Magento\Backend\Block\Widget
      */
     public function getModuleVersion(): string
     {
-        $moduleCode = Config::MODULE_NAME;
-        $moduleInfo = $this->moduleList->getOne($moduleCode);
-
-        return (string) $moduleInfo['setup_version'];
+        return $this->config->getVersion();
     }
 }

@@ -72,7 +72,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected Track                  $modelTrack;
     protected AreaList               $areaList;
     protected ManagerInterface $messageManager;
-    protected Config           $configService;
+    protected Config           $config;
 
     /**
      * @var array
@@ -100,7 +100,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * @var mixed
      */
-    private $weightService;
+    private $weight;
 
     /**
      * @param ObjectManagerInterface $objectManager
@@ -122,12 +122,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->moduleManager      = $objectManager->get(Manager::class);
         $this->request            = $request;
         $this->trackSender        = $this->objectManager->get(TrackSender::class);
-        $this->configService      = $objectManager->get(Config::class);
-        $this->weightService      = $objectManager->get(Weight::class);
+        $this->config      = $objectManager->get(Config::class);
+        $this->weight      = $objectManager->get(Weight::class);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
-            ['Magento2' => $this->configService->getVersion()]
+            ['Magento2' => $this->config->getVersion()]
         );
 
         $this->setSourceItemWhenInventoryApiEnabled();
@@ -174,7 +174,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $this->options['create_track_if_one_already_exist'] = false;
         }
 
-        $returnInTheBox = $this->configService->getGeneralConfig('print/return_in_the_box');
+        $returnInTheBox = $this->config->getGeneralConfig('print/return_in_the_box');
         if (ReturnInTheBox::NO_OPTIONS === $returnInTheBox || ReturnInTheBox::EQUAL_TO_SHIPMENT === $returnInTheBox) {
             $this->options['return_in_the_box'] = $returnInTheBox;
         }
@@ -353,7 +353,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         try {
             $this->myParcelCollection->addConsignmentByConsignmentIds(
                 $consignmentIds,
-                $this->configService->getApiKey()
+                $this->config->getApiKey()
             );
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());

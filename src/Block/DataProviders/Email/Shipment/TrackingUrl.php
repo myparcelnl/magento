@@ -7,7 +7,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Sdk\Helper\TrackTraceUrl;
 
-// For Magento version < 2.3.2 the TrackingUrl is not exist. Therefore, it must be checked if the class exists and so that the class can be extended.
+// For Magento version < 2.3.2 the TrackingUrl does not exist. Therefore, it must be checked if the class exists and so that the class can be extended.
 if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl')) {
 
     /**
@@ -25,11 +25,11 @@ if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl'
         public function getUrl(Track $track): string
         {
             /**
-             * @var Order
+             * @var Order $order
              */
             $order = (ObjectManager::getInstance())->create(Order::class)->load($track->getOrderId());
 
-            return (new TrackTraceUrl())->create(
+            return (new TrackTraceUrl())::create(
                 $track->getNumber(),
                 $order->getShippingAddress()->getPostcode(),
                 $order->getShippingAddress()->getCountryId()
@@ -58,7 +58,7 @@ if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl'
              */
             $order = (ObjectManager::getInstance())->create(Order::class)->load($track->getOrderId());
 
-            return (new TrackTraceUrl())->create(
+            return (new TrackTraceUrl())::create(
                 $track->getNumber(),
                 $order->getShippingAddress()->getPostcode(),
                 $order->getShippingAddress()->getCountryId()
