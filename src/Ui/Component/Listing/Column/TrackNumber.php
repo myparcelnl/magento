@@ -14,12 +14,8 @@
 
 namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
-use \Magento\Sales\Api\OrderRepositoryInterface;
-use \Magento\Framework\View\Element\UiComponent\ContextInterface;
-use \Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Sales\Model\Order;
-use \Magento\Ui\Component\Listing\Columns\Column;
-use \Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Ui\Component\Listing\Columns\Column;
 
 class TrackNumber extends Column
 {

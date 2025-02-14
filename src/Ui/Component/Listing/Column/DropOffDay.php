@@ -1,6 +1,6 @@
 <?php
 /**
- * Show the status of the track
+ * Show send date column
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -14,17 +14,13 @@
 
 namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
-use \Magento\Sales\Api\OrderRepositoryInterface;
-use \Magento\Framework\View\Element\UiComponent\ContextInterface;
-use \Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Sales\Model\Order;
-use \Magento\Ui\Component\Listing\Columns\Column;
-use \Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Ui\Component\Listing\Columns\Column;
 
-class TrackStatus extends Column
+class DropOffDay extends Column
 {
     /**
-     * Set column MyParcel track status to order grid
+     * Set column MyParcel delivery date to order grid
      *
      * @param array $dataSource
      *
@@ -38,8 +34,8 @@ class TrackStatus extends Column
          */
         if (isset($dataSource['data']['items'])) {
             foreach ($dataSource['data']['items'] as & $item) {
-                if (isset($item['track_status'])) {
-                    $item[$this->getData('name')] = $item['track_status'];
+                if (isset($item['drop_off_day'])) {
+                    $item[$this->getData('name')] = $item['drop_off_day'];
                 }
             }
         }
