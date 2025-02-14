@@ -172,7 +172,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setFulfilment(): self
     {
-        $apiKey          = $this->configService->getApiKey();
+        $apiKey          = $this->config->getApiKey();
         $orderCollection = (new OrderCollection())->setApiKey($apiKey);
         $orderLines      = new Collection();
 
@@ -218,7 +218,7 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setOrderDate($this->getLocalCreatedAtDate())
                 ->setExternalIdentifier($this->order->getIncrementId())
                 ->setDropOffPoint(
-                    $this->configService->getDropOffPoint(
+                    $this->config->getDropOffPoint(
                         CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
                     )
                 );
@@ -279,7 +279,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private function saveOrderNotes(): void
     {
-        $notes = (new OrderNotesCollection())->setApiKey($this->configService->getApiKey());
+        $notes = (new OrderNotesCollection())->setApiKey($this->config->getApiKey());
 
         $this->myParcelCollection->each(function (FulfilmentOrder $order) use ($notes) {
 
@@ -361,7 +361,7 @@ class MagentoOrderCollection extends MagentoCollection
             $totalWeight += $product->getWeight() * $item->getQtyOrdered();
         }
 
-        return $this->configService->convertToGrams($totalWeight);
+        return $this->config->convertToGrams($totalWeight);
     }
 
     /**

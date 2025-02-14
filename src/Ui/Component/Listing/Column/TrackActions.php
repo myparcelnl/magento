@@ -14,27 +14,28 @@ class TrackActions extends Column
 {
     public const NAME = 'track_actions';
 
-    private Config       $configService;
+    private Config       $config;
     private UrlInterface $urlBuilder;
 
     /**
-     * @param ContextInterface $context
+     * @param ContextInterface   $context
+     * @param Config             $config
      * @param UiComponentFactory $uiComponentFactory
-     * @param UrlInterface $urlBuilder
-     * @param array $components
-     * @param array $data
+     * @param UrlInterface       $urlBuilder
+     * @param array              $components
+     * @param array              $data
      */
     public function __construct(
         ContextInterface   $context,
+        Config             $config,
         UiComponentFactory $uiComponentFactory,
         UrlInterface       $urlBuilder,
         array              $components = [],
         array              $data = []
     )
     {
-        $this->urlBuilder    = $urlBuilder;
-        $objectManager       = ObjectManager::getInstance();
-        $this->configService = $objectManager->get(Config::class);
+        $this->urlBuilder = $urlBuilder;
+        $this->config     = $config;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
@@ -52,7 +53,7 @@ class TrackActions extends Column
             return $dataSource;
         }
 
-        $orderManagementActivated = Config::EXPORT_MODE_PPS === $this->configService->getExportMode();
+        $orderManagementActivated = Config::EXPORT_MODE_PPS === $this->config->getExportMode();
 
         foreach ($dataSource['data']['items'] as &$item) {
             if (!array_key_exists(ShippingStatus::NAME, $item)) {
@@ -65,7 +66,7 @@ class TrackActions extends Column
             }
 
             if (!isset($item[ShippingStatus::NAME])) {
-                if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+                if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
                     $item[$this->getData('name')]['action-create_concept'] = [
                         'href'   => $this->urlBuilder->getUrl(
                             'myparcel/order/CreateAndPrintMyParcelTrack',
