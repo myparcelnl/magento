@@ -38,6 +38,7 @@ define(
       hideDeliveryOptionsEvent: 'myparcel_hide_delivery_options',
       renderDeliveryOptionsEvent: 'myparcel_render_delivery_options',
       showDeliveryOptionsEvent: 'myparcel_show_delivery_options',
+      unselectDeliveryOptionsEvent: 'myparcel_unselect_delivery_options',
       updateConfigEvent: 'myparcel_update_config',
       updateDeliveryOptionsEvent: 'myparcel_update_delivery_options',
 
@@ -186,6 +187,12 @@ define(
         checkout.configuration.subscribe(deliveryOptions.updateConfig);
         quote.shippingAddress.subscribe(deliveryOptions.updateAddress);
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
+
+        quote.shippingMethod.subscribe(function (method) {
+          if (!deliveryOptions.isMyParcelShippingMethod(method)) {
+            deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
+          }
+        }, null, 'change');
 
         document.addEventListener(
           deliveryOptions.updatedDeliveryOptionsEvent,
