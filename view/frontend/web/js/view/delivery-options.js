@@ -189,6 +189,7 @@ define(
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
 
         quote.shippingMethod.subscribe(function (method) {
+          if (!method) return; // nothing to check
           if (!deliveryOptions.isMyParcelShippingMethod(method)) {
             deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
           }
