@@ -81,8 +81,8 @@ class OrderAction extends OrdersAction
      * Check if the address is outside the EU
      * @return bool
      */
-    public function isCdCountry()
+    public function isToRowCountry(): bool
     {
-        return $this->consignment->isCdCountry();
+        return $this->consignment->isToRowCountry();
     }
 }

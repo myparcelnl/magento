@@ -83,8 +83,8 @@ class TrackTraceHolder
     /**
      * @var ShipmentOptions
      */
-    private               $shipmentOptionsHelper;
-    private Weight        $weight;
+    private        $shipmentOptionsHelper;
+    private Weight $weight;
 
     /**
      * TrackTraceHolder constructor.
@@ -156,12 +156,14 @@ class TrackTraceHolder
             ->setConsignmentId($magentoTrack->getData('myparcel_consignment_id'))
             ->setCountry($address->getCountryId())
             ->setCompany($address->getCompany())
-            ->setPerson($address->getName());
+            ->setPerson($address->getName())
+        ;
 
         try {
             $this->consignment
                 ->setFullStreet($address->getData('street'))
-                ->setPostalCode(preg_replace('/\s+/', '', $address->getPostcode()));
+                ->setPostalCode(preg_replace('/\s+/', '', $address->getPostcode()))
+            ;
         } catch (Exception $e) {
             $errorHuman
                 = sprintf(
@@ -170,7 +172,8 @@ class TrackTraceHolder
             );
             $this->messageManager->addErrorMessage($errorHuman . ' View log file for more information.');
             $this->objectManager->get('Psr\Log\LoggerInterface')
-                                ->critical($errorHuman . '-' . $e);
+                                ->critical($errorHuman . '-' . $e)
+            ;
 
             $this->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
@@ -214,7 +217,8 @@ class TrackTraceHolder
                     ->getOrder()
                     ->getIncrementId()
             )
-            ->setSaveRecipientAddress(false);
+            ->setSaveRecipientAddress(false)
+        ;
 
         if ($pickupLocationAdapter && $deliveryOptionsAdapter->isPickup()) {
             $this->consignment
@@ -225,7 +229,8 @@ class TrackTraceHolder
                 ->setPickupCountry($pickupLocationAdapter->getCountry())
                 ->setPickupLocationName($pickupLocationAdapter->getLocationName())
                 ->setPickupLocationCode($pickupLocationAdapter->getLocationCode())
-                ->setReturn(false);
+                ->setReturn(false)
+            ;
 
             if ($pickupLocationAdapter->getRetailNetworkId()) {
                 $this->consignment->setRetailNetworkId($pickupLocationAdapter->getRetailNetworkId());
@@ -234,7 +239,8 @@ class TrackTraceHolder
 
         try {
             $this->convertDataForCdCountry($magentoTrack)
-                 ->calculateTotalWeight($magentoTrack, $totalWeight);
+                 ->calculateTotalWeight($magentoTrack, $totalWeight)
+            ;
         } catch (Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
             return $this;
@@ -259,7 +265,8 @@ class TrackTraceHolder
             ->setCarrierCode(Carrier::CODE)
             ->setTitle(Config::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
-            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY);
+            ->setTrackNumber(TrackAndTrace::VALUE_EMPTY)
+        ;
 
         return $this;
     }
@@ -272,9 +279,11 @@ class TrackTraceHolder
     {
         $order = ObjectManager::getInstance()
                               ->create('\Magento\Sales\Model\Order')
-                              ->load($orderId);
+                              ->load($orderId)
+        ;
         $order->setState($status)
-              ->setStatus($status);
+              ->setStatus($status)
+        ;
         $order->save();
     }
 
@@ -288,7 +297,8 @@ class TrackTraceHolder
     public function getCountryOfOrigin(int $product_id): string
     {
         $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')
-                                       ->getById($product_id);
+                                       ->getById($product_id)
+        ;
 
         $productCountryOfManufacture = $product->getCountryOfManufacture();
 
@@ -349,7 +359,8 @@ class TrackTraceHolder
 
         $shipmentItems
             = $magentoTrack->getShipment()
-                           ->getItems();
+                           ->getItems()
+        ;
 
         foreach ($shipmentItems as $shipmentItem) {
             $totalWeight += $shipmentItem['weight'] * $shipmentItem['qty'];
@@ -369,8 +380,8 @@ class TrackTraceHolder
         }
 
         $this->consignment->setPhysicalProperties([
-            'weight' => $totalWeight,
-        ]);
+                                                      'weight' => $totalWeight,
+                                                  ]);
 
         return $this;
     }
@@ -383,15 +394,15 @@ class TrackTraceHolder
      * @throws MissingFieldException
      * @throws Exception
      */
-    private function convertDataForCdCountry(Track $magentoTrack)
+    private function convertDataForCdCountry(Track $magentoTrack): self
     {
-        if (! $this->consignment->isCdCountry()) {
+        if (!$this->consignment->isToRowCountry()) {
             return $this;
         }
 
-        if ($products
-            = $magentoTrack->getShipment()
-                           ->getData('items')) {
+        if ($magentoTrack->getShipment()
+            && ($products = $magentoTrack->getShipment()
+                                         ->getData('items'))) {
             foreach ($products as $product) {
                 $myParcelProduct = (new MyParcelCustomsItem())
                     ->setDescription($product->getName())
@@ -405,7 +416,8 @@ class TrackTraceHolder
                             'classification'
                         )
                     )
-                    ->setCountry($this->getCountryOfOrigin($product['product_id']));
+                    ->setCountry($this->getCountryOfOrigin($product['product_id']))
+                ;
                 $this->consignment->addItem($myParcelProduct);
             }
         }
@@ -424,7 +436,8 @@ class TrackTraceHolder
                         'classification'
                     )
                 )
-                ->setCountry($this->getCountryOfOrigin($item->getProductId()));
+                ->setCountry($this->getCountryOfOrigin($item->getProductId()))
+            ;
 
             $this->consignment->addItem($myParcelProduct);
         }
@@ -518,7 +531,7 @@ class TrackTraceHolder
             $packageType = $this->defaultOptions->getPackageType();
         }
 
-        if (! is_numeric($packageType)) {
+        if (!is_numeric($packageType)) {
             $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType] ?? $this->defaultOptions->getPackageType();
         }
 

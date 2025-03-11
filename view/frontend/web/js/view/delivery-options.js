@@ -141,7 +141,7 @@ define(
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
 
         quote.shippingMethod.subscribe(function (rate) {
-          if (rate.carrier_code !== checkout.carrierCode) {
+          if (rate && rate.carrier_code !== checkout.carrierCode) {
             deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
           }
         }, null, 'change');

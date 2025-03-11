@@ -24,7 +24,6 @@ use MyParcelNL\Sdk\Support\Collection;
 class CarrierConfigurationImport extends Action
 {
     private string $apiKey;
-    private ScopeConfigInterface $config;
     private Pool $pool;
 
     /**
