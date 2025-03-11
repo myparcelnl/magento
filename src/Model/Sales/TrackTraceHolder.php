@@ -24,6 +24,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
@@ -48,43 +49,14 @@ use RuntimeException;
  */
 class TrackTraceHolder
 {
-    /**
-     * @var DefaultOptions
-     */
-    private $defaultOptions;
-
-    /**
-     * @var AbstractConsignment|null
-     */
-    public $consignment;
-
-    /**
-     * @var Order\Shipment\Track
-     */
-    public $mageTrack;
-
-    /**
-     * @var ManagerInterface
-     */
-    protected $messageManager;
-
-    /**
-     * @var string|null
-     */
-    private $carrier;
-
-    private Config $configService;
-
-    /**
-     * @var ObjectManagerInterface
-     */
-    private $objectManager;
-
-    /**
-     * @var ShipmentOptions
-     */
-    private        $shipmentOptionsHelper;
-    private Weight $weight;
+    private DefaultOptions         $defaultOptions;
+    public ?AbstractConsignment    $consignment;
+    public Track                   $mageTrack;
+    protected ManagerInterface     $messageManager;
+    private ?string                $carrier;
+    private Config                 $configService;
+    private ObjectManagerInterface $objectManager;
+    private Weight                 $weight;
 
     /**
      * TrackTraceHolder constructor.
@@ -116,7 +88,12 @@ class TrackTraceHolder
      */
     public function convertDataFromMagentoToApi(Track $magentoTrack, array $options): self
     {
-        $shipment                   = $magentoTrack->getShipment();
+        $shipment = $magentoTrack->getShipment();
+        Logger::warning('Shipment not found', ['track' => $magentoTrack->getData()]);
+        if (null === $shipment) {
+            return $this;
+        }
+
         $address                    = $shipment->getShippingAddress();
         $order                      = $shipment->getOrder();
         $checkoutData               = $order->getData('myparcel_delivery_options') ?? '';
@@ -141,8 +118,8 @@ class TrackTraceHolder
         );
 
         $this->validateApiKey($apiKey);
-        $this->carrier               = $deliveryOptionsAdapter->getCarrier();
-        $this->shipmentOptionsHelper = new ShipmentOptions(
+        $this->carrier   = $deliveryOptionsAdapter->getCarrier();
+        $shipmentOptions = new ShipmentOptions(
             $this->defaultOptions,
             $order,
             $this->objectManager,
@@ -198,20 +175,20 @@ class TrackTraceHolder
             ->setState($state)
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($this->shipmentOptionsHelper->getLabelDescription())
+            ->setLabelDescription($shipmentOptions->getLabelDescription())
             ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId() ?? AbstractConsignment::DELIVERY_TYPE_STANDARD)
             ->setDeliveryDate($deliveryDate)
             ->setPackageType($packageType)
             ->setDropOffPoint($dropOffPoint)
-            ->setOnlyRecipient($this->shipmentOptionsHelper->hasOnlyRecipient())
-            ->setSignature($this->shipmentOptionsHelper->hasSignature())
-            ->setCollect($this->shipmentOptionsHelper->hasCollect())
-            ->setReceiptCode($this->shipmentOptionsHelper->hasReceiptCode())
-            ->setReturn($this->shipmentOptionsHelper->hasReturn())
-            ->setSameDayDelivery($this->shipmentOptionsHelper->hasSameDayDelivery())
-            ->setLargeFormat($this->shipmentOptionsHelper->hasLargeFormat())
-            ->setAgeCheck($this->shipmentOptionsHelper->hasAgeCheck())
-            ->setInsurance($this->shipmentOptionsHelper->getInsurance())
+            ->setOnlyRecipient($shipmentOptions->hasOnlyRecipient())
+            ->setSignature($shipmentOptions->hasSignature())
+            ->setCollect($shipmentOptions->hasCollect())
+            ->setReceiptCode($shipmentOptions->hasReceiptCode())
+            ->setReturn($shipmentOptions->hasReturn())
+            ->setSameDayDelivery($shipmentOptions->hasSameDayDelivery())
+            ->setLargeFormat($shipmentOptions->hasLargeFormat())
+            ->setAgeCheck($shipmentOptions->hasAgeCheck())
+            ->setInsurance($shipmentOptions->getInsurance())
             ->setInvoice(
                 $shipment
                     ->getOrder()
