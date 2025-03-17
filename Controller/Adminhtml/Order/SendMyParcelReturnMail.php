@@ -20,7 +20,7 @@ use MyParcelNL\Magento\Service\Config;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
+class SendMyParcelReturnMail extends \Magento\Backend\App\Action
 {
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 

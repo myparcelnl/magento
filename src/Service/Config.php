@@ -7,7 +7,7 @@ namespace MyParcelNL\Magento\Service;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
-use Magento\Quote\Model\Quote\Address;
+use Magento\Sales\Model\Order\Address;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
@@ -56,7 +56,8 @@ class Config extends AbstractHelper
     /**
      * @var CheckApiKeyWebService
      */
-    private $checkApiKeyWebService;
+    private      $checkApiKeyWebService;
+    private ?int $storeId;
 
     /**
      * @param Context               $context
@@ -64,27 +65,40 @@ class Config extends AbstractHelper
      * @param CheckApiKeyWebService $checkApiKeyWebService
      */
     public function __construct(
-        Context               $context,
-        ModuleListInterface   $moduleList,
-        CheckApiKeyWebService $checkApiKeyWebService
+        Context                                    $context,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        ModuleListInterface                        $moduleList,
+        CheckApiKeyWebService                      $checkApiKeyWebService
     )
     {
         parent::__construct($context);
         $this->moduleList            = $moduleList;
         $this->checkApiKeyWebService = $checkApiKeyWebService;
+
+        try {
+            $this->storeId = (int) $storeManager->getStore()->getId(); // non-admin
+        } catch (\Exception $e) {
+            $this->storeId = null;
+        }
+
+        if (0 !== ($storeIdParam = $context->getRequest()->getParam('store', 0))) {
+            $this->storeId = (int) $storeIdParam; // admin
+        }
+
+        // todo joeri remove logging
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($this->getApiKey(), true) . " ($this->storeId / $storeIdParam\n", FILE_APPEND);
     }
 
     /**
      * Get settings by field
      *
-     * @param       $field
-     * @param null  $storeId
+     * @param string $field
      *
      * @return mixed
      */
-    public function getConfigValue($field, $storeId = null)
+    public function getConfigValue(string $field)
     {
-        return $this->scopeConfig->getValue($field, ScopeInterface::SCOPE_STORE, $storeId);
+        return $this->scopeConfig->getValue($field, ScopeInterface::SCOPE_STORE, $this->storeId);
     }
 
     /**
@@ -97,7 +111,7 @@ class Config extends AbstractHelper
         return '1' === $this->getConfigValue("$path$key");
     }
 
-    public function getFloatConfig($path, $key): float
+    public function getFloatConfig(string $path, string $key): float
     {
         return (float) $this->getConfigValue("$path$key");
     }
@@ -119,7 +133,7 @@ class Config extends AbstractHelper
      * @param $key
      * @return int
      */
-    public function getIntegerConfig($path, $key): int
+    public function getIntegerConfig(string $path, string $key): int
     {
         return (int) $this->getConfigValue("$path$key");
     }
@@ -133,7 +147,7 @@ class Config extends AbstractHelper
      *
      * @return mixed
      */
-    public function getCarrierConfig(string $carrier, string $code = '', $storeId = null)
+    public function getCarrierConfig(string $carrier, string $code = '')
     {
         $path = self::CARRIERS_XML_PATH_MAP[$carrier] ?? null;
 
@@ -141,7 +155,7 @@ class Config extends AbstractHelper
             return null;
         }
 
-        return $this->getConfigValue("$path$code", $storeId);
+        return $this->getConfigValue("$path$code");
     }
 
 
@@ -153,14 +167,14 @@ class Config extends AbstractHelper
      *
      * @return mixed
      */
-    public function getGeneralConfig(string $code = '', int $storeId = null)
+    public function getGeneralConfig(string $code = '')
     {
-        return $this->getConfigValue(self::XML_PATH_GENERAL . $code, $storeId);
+        return $this->getConfigValue(self::XML_PATH_GENERAL . $code);
     }
 
-    public function getMagentoCarrierConfig(string $code = '', int $storeId = null)
+    public function getMagentoCarrierConfig(string $code = '')
     {
-        return $this->getConfigValue(self::XML_PATH_MAGENTO_CARRIER . $code, $storeId);
+        return $this->getConfigValue(self::XML_PATH_MAGENTO_CARRIER . $code);
     }
 
     /**
@@ -172,10 +186,10 @@ class Config extends AbstractHelper
     }
 
     /**
-     * @param Address|null $address
+     * @param Address|Magento\Quote\Model\Quote\Address\Interceptor|null $address
      * @return string the carrier name configured for this address
      */
-    public function getDefaultCarrierName(?Address $address): string
+    public function getDefaultCarrierName($address): string
     {
         return 'postnl';
         // todo make config value that allows carriers per country / region / etc, select it here based on address.

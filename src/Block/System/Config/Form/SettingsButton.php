@@ -69,7 +69,7 @@ class SettingsButton extends Field
         $button = $this->getLayout()
             ->createBlock(Button::class)
             ->setData([
-                'id'    => 'settings-button',
+                'id'    => 'myparcel-account-settings-button',
                 'label' => __('Import'),
             ]);
         return $button->toHtml();

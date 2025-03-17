@@ -9,6 +9,7 @@ use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 
 abstract class AbstractDefaultDropOffPoint extends Field
@@ -28,11 +29,13 @@ abstract class AbstractDefaultDropOffPoint extends Field
     /**
      * @throws \Exception
      */
-    public function __construct(Context $context, array $data = [])
+    public function __construct(Context $context, Config $config, array $data = [])
     {
-        $dropOffPoint = AccountSettings::getInstance()->getDropOffPoint(CarrierFactory::createFromId($this->getCarrierId()));
-        $this->dropOffPoint = $dropOffPoint;
         parent::__construct($context, $data);
+
+        $dropOffPoint = (new AccountSettings($config->getApiKey()))->getDropOffPoint(CarrierFactory::createFromId($this->getCarrierId()));
+
+        $this->dropOffPoint = $dropOffPoint;
     }
 
     /**
@@ -98,20 +101,5 @@ abstract class AbstractDefaultDropOffPoint extends Field
     {
         return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/DropOffPoint/style.css')
             ->getUrl();
-    }
-
-    /**
-     * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function getButtonHtml(): string
-    {
-        $button = $this->getLayout()
-            ->createBlock(Button::class)
-            ->setData([
-                'id' => 'settings-button',
-                'label' => __('Import'),
-            ]);
-        return $button->toHtml();
     }
 }
