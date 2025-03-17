@@ -66,7 +66,7 @@ class CarrierConfigurationImport extends Action
         $this->typeListInterface = $typeListInterface;
         $this->pool              = $pool;
         //$request = $context->getRequest();
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "REQUEST YO\n" . var_export($params, true) . "\n", FILE_APPEND);
+        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "REQUEST YO\n" . var_export($params, true) . "\n", FILE_APPEND);
     }
 
     /**
@@ -76,7 +76,6 @@ class CarrierConfigurationImport extends Action
      */
     public function execute()
     {
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "CarrierConfigurationImport.php\n" . var_export($this->apiKey, true) . "\n", FILE_APPEND);
         $configuration = $this->fetchConfigurations();
         $this->configWriter->save(
             Config::XML_PATH_GENERAL . "account_settings_$this->apiKey",
