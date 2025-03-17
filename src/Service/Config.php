@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service;
 
+use Magento\Backend\Model\Auth\Session;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Sales\Model\Order\Address;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
@@ -61,14 +63,17 @@ class Config extends AbstractHelper
 
     /**
      * @param Context               $context
+     * @param StoreManagerInterface $storeManager
+     * @param Session               $authSession
      * @param ModuleListInterface   $moduleList
      * @param CheckApiKeyWebService $checkApiKeyWebService
      */
     public function __construct(
-        Context                                    $context,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        ModuleListInterface                        $moduleList,
-        CheckApiKeyWebService                      $checkApiKeyWebService
+        Context               $context,
+        StoreManagerInterface $storeManager,
+        Session               $authSession,
+        ModuleListInterface   $moduleList,
+        CheckApiKeyWebService $checkApiKeyWebService
     )
     {
         parent::__construct($context);
@@ -76,17 +81,18 @@ class Config extends AbstractHelper
         $this->checkApiKeyWebService = $checkApiKeyWebService;
 
         try {
+            // contrary to documentation store->getId() does not always return an int, so please cast it here
             $this->storeId = (int) $storeManager->getStore()->getId(); // non-admin
         } catch (\Exception $e) {
             $this->storeId = null;
         }
 
-        if (0 !== ($storeIdParam = $context->getRequest()->getParam('store', 0))) {
-            $this->storeId = (int) $storeIdParam; // admin
+        if ($authSession->isLoggedIn() && 0 !== ($storeIdParam = $context->getRequest()->getParam('store', 0))) {
+            $this->storeId = (int) $storeIdParam; // only for admin ($authSession) can we get store id from request
         }
 
         // todo joeri remove logging
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($this->getApiKey(), true) . " ($this->storeId / $storeIdParam\n", FILE_APPEND);
+        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($this->getApiKey(), true) . " ($this->storeId)\n", FILE_APPEND);
     }
 
     /**
@@ -129,8 +135,8 @@ class Config extends AbstractHelper
     }
 
     /**
-     * @param $path
-     * @param $key
+     * @param string $path
+     * @param string $key
      * @return int
      */
     public function getIntegerConfig(string $path, string $key): int
@@ -143,8 +149,6 @@ class Config extends AbstractHelper
      *
      * @param string $carrier
      * @param string $code
-     * @param null   $storeId
-     *
      * @return mixed
      */
     public function getCarrierConfig(string $carrier, string $code = '')

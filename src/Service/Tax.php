@@ -36,7 +36,7 @@ class Tax
     /**
      * Get shipping tax options from Magento and apply them to the price.
      * Prices display including tax unless specifically set to excluding tax in Magento admin.
-     * Optionally supply boolean to force excluding (false) or including (true) vat
+     * Optionally supply boolean to force excluding (false) or including (true) tax
      *
      * @param float     $price the shipping price you want altered for tax settings
      * @param Quote     $quote
