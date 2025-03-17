@@ -324,7 +324,7 @@ class ShipmentOptions
             return '';
         }
 
-        $deliveryOptions  = $this->order->getData(Config::FIELD_DELIVERY_OPTIONS);
+        $deliveryOptions  = $this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '{}';
         $checkoutDate     = json_decode($deliveryOptions, true)['date'] ?? null;
         $productInfo      = $this->getItemsCollectionByShipmentId($this->order->getId());
         $labelDescription = str_replace(

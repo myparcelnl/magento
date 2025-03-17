@@ -163,7 +163,7 @@ class TrackTraceHolder
             AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
             && 'NL' !== $address->getCountryId()
         ) ? null : Dating::convertDeliveryDate($deliveryOptionsAdapter->getDate());
-        $dropOffPoint = AccountSettings::getInstance()->getDropOffPoint(
+        $dropOffPoint = (new AccountSettings($apiKey))->getDropOffPoint(
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
 

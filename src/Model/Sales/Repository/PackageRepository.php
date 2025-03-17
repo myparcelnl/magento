@@ -126,7 +126,7 @@ class PackageRepository extends Package
     {
         $mailboxOk = $this->getCurrentCountry() === AbstractConsignment::CC_NL;
         if (!$mailboxOk) {
-            $config = AccountSettings::getInstance()->getCarrierOptions()->filter(
+            $config = (new AccountSettings($this->getApiKey()))->getCarrierOptions()->filter(
                 static function ($carrierOptions) {
                     return self::CARRIER_TYPE_CUSTOM === $carrierOptions->getType()
                         && $carrierOptions->getCarrier() instanceof CarrierPostNL;
@@ -148,7 +148,7 @@ class PackageRepository extends Package
      */
     public function fitInDigitalStamp(): bool
     {
-        // TODO temporary weight calculation since PackageRepository will be removed alltogether
+        // TODO temporary weight calculation since PackageRepository will be removed altogether
         $orderWeight               = (new Weight($this))->convertToGrams($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 

@@ -30,7 +30,7 @@ use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
+class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
 {
     const PATH_MODEL_ORDER     = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
@@ -62,7 +62,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      * Dispatch request
      *
      * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function execute()
     {
@@ -79,20 +79,19 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     /**
      * Get selected items and process them
      *
-     * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \MyParcelNL\Sdk\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
+     * @throws LocalizedException
+     * @throws ApiException
+     * @throws MissingFieldException
      * @throws \Exception
      */
-    private function massAction()
+    private function massAction(): void
     {
         if (! $this->configService->apiKeyIsCorrect()) {
             $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
 
-            return $this;
+            return;
         }
 
         if ($this->getRequest()->getParam('selected_ids')) {
@@ -113,7 +112,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
             $this->orderCollection->setFulfilment();
 
-            return $this;
+            return;
         }
 
         $this->orderCollection->setOptionsFromParameters()
@@ -124,7 +123,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         if (! $this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
 
-            return $this;
+            return;
         }
 
         $this->orderCollection->syncMagentoToMyparcel()
@@ -135,15 +134,13 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
 
         if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')
             || $this->orderCollection->myParcelCollection->isEmpty()) {
-            return $this;
+            return;
         }
         $this->orderCollection->addReturnShipments()
             ->setPdfOfLabels()
             ->updateMagentoTrack()
             ->sendTrackEmails()
             ->downloadPdfOfLabels();
-
-        return $this;
     }
 
     /**

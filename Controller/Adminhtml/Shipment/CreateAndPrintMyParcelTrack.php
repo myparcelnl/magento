@@ -22,7 +22,7 @@ use MyParcelNL\Magento\Service\Config;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
+class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
 {
     const PATH_URI_SHIPMENT_INDEX = 'sales/shipment/index';
 

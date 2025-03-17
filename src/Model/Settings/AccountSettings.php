@@ -28,14 +28,15 @@ class AccountSettings extends BaseModel
     private static self $instance;
 
     /**
+     * @var string $apiKey the api key (shop identifier) to get the account settings for
      * @throws ApiException
      * @throws AccountNotActiveException
      * @throws MissingFieldException
      * @throws Exception
      */
-    public function __construct()
+    public function __construct(string $apiKey)
     {
-        $settings = CarrierConfigurationImport::getAccountSettings();
+        $settings = CarrierConfigurationImport::getAccountSettings($apiKey);
 
         if (!$settings) {
             return;
@@ -151,19 +152,5 @@ class AccountSettings extends BaseModel
         $this->carrierConfigurations = (new Collection($carrierConfigurations))->map(function (array $data) {
             return CarrierConfigurationFactory::create($data);
         });
-    }
-
-    /**
-     * Get the one instance of this class that is loaded or can be loaded.
-     *
-     * @return AccountSettings
-     */
-    public static function getInstance(): self
-    {
-        if (!isset(static::$instance)) {
-            static::$instance = new static();
-        }
-
-        return static::$instance;
     }
 }

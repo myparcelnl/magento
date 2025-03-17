@@ -6,13 +6,12 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Config\Model\ResourceModel\Config as resourceConfig;
 use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\Model\Account\CarrierOptions;
@@ -24,7 +23,7 @@ use MyParcelNL\Sdk\Support\Collection;
 class CarrierConfigurationImport extends Action
 {
     private string $apiKey;
-    private Pool $pool;
+    private Pool   $pool;
 
     /**
      * @var mixed
@@ -34,30 +33,40 @@ class CarrierConfigurationImport extends Action
     /**
      * @var mixed
      */
-    private $typeListInterface;
+    private                 $typeListInterface;
+    private WriterInterface $configWriter;
 
     /**
-     * @param  \Magento\Framework\Controller\Result\JsonFactory   $resultFactory
-     * @param  \Magento\Backend\App\Action\Context                $context
-     * @param  \Magento\Framework\Model\ResourceModel\Db\Context  $dbContext
-     * @param  \Magento\Framework\App\Cache\TypeListInterface     $typeListInterface
-     * @param  \Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param  \Magento\Framework\App\Cache\Frontend\Pool         $pool
+     * @param \Magento\Framework\Controller\Result\JsonFactory   $resultFactory
+     * @param \Magento\Backend\App\Action\Context                $context
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context  $dbContext
+     * @param \Magento\Framework\App\Cache\TypeListInterface     $typeListInterface
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
+     * @param \Magento\Framework\App\Cache\Frontend\Pool         $pool
      */
     public function __construct(
-        JsonFactory          $resultFactory,
         Context              $context,
-        DbContext            $dbContext,
-        TypeListInterface    $typeListInterface,
+        WriterInterface      $configWriter,
         ScopeConfigInterface $config,
+        JsonFactory          $resultFactory,
+        TypeListInterface    $typeListInterface,
         Pool                 $pool
-    ) {
+    )
+    {
         parent::__construct($context);
+        $params  = $this->_request->getParams();
+        $scope   = $params['scope'] ?? ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+        $scopeId = $params['scopeId'] ?? 0;
+
+        // Let’s save the carrier configuration settings per api key, so it can be retrieved per api key as well.
+        $this->apiKey = $config->getValue(Config::XML_PATH_GENERAL . 'api/key', $scope, $scopeId);
+
+        $this->configWriter      = $configWriter;
         $this->resultFactory     = $resultFactory;
-        $this->apiKey            = $config->getValue(Config::XML_PATH_GENERAL . 'api/key');
-        $this->context           = $dbContext;
         $this->typeListInterface = $typeListInterface;
         $this->pool              = $pool;
+        //$request = $context->getRequest();
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "REQUEST YO\n" . var_export($params, true) . "\n", FILE_APPEND);
     }
 
     /**
@@ -67,20 +76,23 @@ class CarrierConfigurationImport extends Action
      */
     public function execute()
     {
-        $config        = new ResourceConfig($this->context);
-        $path          = Config::XML_PATH_GENERAL . 'account_settings';
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "CarrierConfigurationImport.php\n" . var_export($this->apiKey, true) . "\n", FILE_APPEND);
         $configuration = $this->fetchConfigurations();
-        $config->saveConfig($path, json_encode($this->createArray($configuration)));
+        $this->configWriter->save(
+            Config::XML_PATH_GENERAL . "account_settings_$this->apiKey",
+            json_encode($this->createArray($configuration))
+        );
 
         // Clear configuration cache right after saving the account settings, so the modal in the carrier specific
         // configuration view will be showing the updated drop-off point.
         $this->clearCache();
 
         return $this->resultFactory->create()
-            ->setData([
-                'success' => true,
-                'time'    => date('Y-m-d H:i:s'),
-            ]);
+                                   ->setData([
+                                                 'success' => true,
+                                                 'time'    => date('Y-m-d H:i:s'),
+                                             ])
+        ;
     }
 
     /**
@@ -95,7 +107,8 @@ class CarrierConfigurationImport extends Action
 
         $account                     = $accountService->getAccount();
         $shop                        = $account->getShops()
-            ->first();
+                                               ->first()
+        ;
         $shopId                      = $shop->getId();
         $carrierConfigurationService = (new CarrierConfigurationWebService())->setApiKey($this->apiKey);
         $optionConfigurationService  = (new CarrierOptionsWebService())->setApiKey($this->apiKey);
@@ -103,24 +116,25 @@ class CarrierConfigurationImport extends Action
         $optionConfiguration         = $optionConfigurationService->getCarrierOptions($shopId);
 
         return new Collection([
-            'shop'                   => $shop,
-            'account'                => $account,
-            'carrier_options'        => $optionConfiguration,
-            'carrier_configurations' => $carrierConfiguration,
-        ]);
+                                  'shop'                   => $shop,
+                                  'account'                => $account,
+                                  'carrier_options'        => $optionConfiguration,
+                                  'carrier_configurations' => $carrierConfiguration,
+                              ]);
     }
 
     /**
      * @return \MyParcelNL\Sdk\Support\Collection|null
      * @throws \Exception
      */
-    public static function getAccountSettings(): ?Collection
+    public static function getAccountSettings(string $apiKey): ?Collection
     {
         $objectManager   = ObjectManager::getInstance();
         $accountSettings = $objectManager->get(ScopeConfigInterface::class)
-            ->getValue(Config::XML_PATH_GENERAL . 'account_settings');
+                                         ->getValue(Config::XML_PATH_GENERAL . "account_settings_$apiKey")
+        ;
 
-        if (! $accountSettings) {
+        if (!$accountSettings) {
             return null;
         }
 
@@ -134,12 +148,13 @@ class CarrierConfigurationImport extends Action
 
         foreach ($cacheFrontendPool as $cacheFrontend) {
             $cacheFrontend->getBackend()
-                ->clean();
+                          ->clean()
+            ;
         }
     }
 
     /**
-     * @param  \MyParcelNL\Sdk\Support\Collection $settings
+     * @param \MyParcelNL\Sdk\Support\Collection $settings
      *
      * @return array
      * @TODO sdk#326 remove this entire function and replace with toArray
