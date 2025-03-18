@@ -124,8 +124,10 @@ class MagentoOrderCollection extends MagentoCollection
         /** @var Order $order */
         /** @var Shipment $shipment */
         foreach ($this->getOrders() as $order) {
-            if ($order->canShip()) {
-                $this->createMagentoShipment($order, $notifyClientsByEmail);
+            file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($order->canShip(), true) . " (canShip)\n", FILE_APPEND);
+            if ($order->canShip() && $this->createMagentoShipment($order, $notifyClientsByEmail)) {
+                $order->setIsInProcess(true);
+                $this->objectManager->get(OrderResource::class)->save($order);
             }
         }
 
@@ -605,14 +607,15 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * @throws AlreadyExistsException
      */
-    public function createMagentoShipment(Order $order, bool $notifyClientByEmail = true): void
+    public function createMagentoShipment(Order $order, bool $notifyClientByEmail = true): bool
     {
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
+        /** @var Shipment $shipment */
         $shipment     = $convertOrder->toShipment($order);
 
         $shipmentAttributes = $shipment->getExtensionAttributes();
 
-        if (method_exists($shipmentAttributes, 'setSourceCode')) {
+        if ($shipmentAttributes && method_exists($shipmentAttributes, 'setSourceCode')) {
             $shipmentAttributes->setSourceCode($this->sourceItem->getSource($order, $order->getAllItems()));
             $shipment->setExtensionAttributes($shipmentAttributes);
         }
@@ -627,25 +630,37 @@ class MagentoOrderCollection extends MagentoCollection
             $shipment->addItem($shipmentItem);
         }
 
-        $shipment->register();
-        $shipment->getOrder()->setIsInProcess(true);
+        $shipment->register(); // here the items are set to shipped in table sales_order_item
 
         try {
             $this->objectManager->get(ShipmentResource::class)->save($shipment);
-            $this->objectManager->get(OrderResource::class)->save($shipment->getOrder());
         } catch (Exception $e) {
-            if (preg_match('/' . MagentoOrderCollection::DEFAULT_ERROR_ORDER_HAS_NO_SOURCE . '/', $e->getMessage())) {
-                $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SOURCE));
+            if (preg_match('/' . self::DEFAULT_ERROR_ORDER_HAS_NO_SOURCE . '/', $e->getMessage())) {
+                $this->messageManager->addErrorMessage(__(self::ERROR_ORDER_HAS_NO_SOURCE));
             } else {
                 $this->messageManager->addErrorMessage(__($e->getMessage()));
             }
 
+            /**
+             * Prevent not being able to ship an order even though no shipment was saved here:
+             * undo the set shipment quantity update that $shipment->register did before the exception
+             */
+            foreach ($shipment->getAllItems() as $item) {
+                $orderItem = $item->getOrderItem();
+                $orderItem->setQtyShipped($orderItem->getQtyShipped() - $item->getQty());
+            }
+            $this->objectManager->get(OrderResource::class)->save($shipment->getOrder());
+
             $this->objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+
+            return false; // well that didn’t work
         }
 
         if ($notifyClientByEmail) {
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
                                 ->notify($shipment);
         }
+
+        return true;
     }
 }
