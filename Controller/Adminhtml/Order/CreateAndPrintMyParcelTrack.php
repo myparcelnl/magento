@@ -87,7 +87,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
     private function massAction(): void
     {
         if (! $this->configService->apiKeyIsCorrect()) {
-            $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
+            $message = 'You have not entered the correct API key. To get your personal API credentials you should contact MyParcel.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
 
