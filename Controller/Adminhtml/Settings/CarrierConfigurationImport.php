@@ -65,8 +65,6 @@ class CarrierConfigurationImport extends Action
         $this->resultFactory     = $resultFactory;
         $this->typeListInterface = $typeListInterface;
         $this->pool              = $pool;
-        //$request = $context->getRequest();
-        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "REQUEST YO\n" . var_export($params, true) . "\n", FILE_APPEND);
     }
 
     /**

@@ -83,9 +83,6 @@ class Config extends AbstractHelper
         if ($authSession->isLoggedIn() && 0 !== ($storeIdParam = $context->getRequest()->getParam('store', 0))) {
             $this->storeId = (int) $storeIdParam; // only for admin ($authSession) can we get store id from request
         }
-
-        // todo joeri remove logging
-        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($this->getApiKey(), true) . " ($this->storeId)\n", FILE_APPEND);
     }
 
     /**
