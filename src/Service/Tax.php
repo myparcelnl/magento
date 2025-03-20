@@ -48,15 +48,6 @@ class Tax
         $shippingTaxRate = $this->getShippingTaxRate($quote);
         $including       = $vat ?? $this->displayIncluding;
 
-//        Debugging
-//        $dump = $this->taxRates + [
-//                'shippingTaxClass' => $this->shippingTaxClass,
-//                'priceIncludesTax' => $this->priceIncludesTax,
-//                'displayIncluding' => $this->displayIncluding,
-//                'price'            => $price,
-//            ];
-//        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', 'SHIPPING TAX RATE (JOERIDEBUG): ' . var_export($dump, true) . "\n", FILE_APPEND);
-
         if ($this->priceIncludesTax === $including) {
             return $price;
         }

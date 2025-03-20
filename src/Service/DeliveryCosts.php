@@ -162,8 +162,6 @@ class DeliveryCosts
             return $b['points'] <=> $a['points'];
         });
 
-        //file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "--conditions--\n" . var_export($conditions, true) . "\n" . "--WEIGHTED--\n" . var_export($return, true) . "\n", FILE_APPEND);
-
         return (float) $return[0]['definition']['price'];
     }
 

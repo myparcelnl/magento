@@ -124,7 +124,6 @@ class MagentoOrderCollection extends MagentoCollection
         /** @var Order $order */
         /** @var Shipment $shipment */
         foreach ($this->getOrders() as $order) {
-            file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($order->canShip(), true) . " (canShip)\n", FILE_APPEND);
             if ($order->canShip() && $this->createMagentoShipment($order, $notifyClientsByEmail)) {
                 $order->setIsInProcess(true);
                 $this->objectManager->get(OrderResource::class)->save($order);
