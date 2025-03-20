@@ -34,29 +34,18 @@ use MyParcelNL\Sdk\Support\Str;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 {
-    /**
-     * @var DeliveryRepository
-     */
-    private $delivery;
-
-    /**
-     * @var array
-     */
-    private $parentMethods;
+    private DeliveryRepository $delivery;
 
     /**
      * SaveOrderBeforeSalesModelQuoteObserver constructor.
      *
      * @param DeliveryRepository $delivery
-     * @param Config             $configService
      */
     public function __construct(
-        DeliveryRepository $delivery,
-        Config $configService
+        DeliveryRepository $delivery
     )
     {
-        $this->delivery      = $delivery;
-        $this->parentMethods = explode(',', $configService->getGeneralConfig('shipping_methods/methods') ?? '');
+        $this->delivery = $delivery;
     }
 
     /**

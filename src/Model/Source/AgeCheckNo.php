@@ -25,14 +25,14 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
  */
 class AgeCheckNo implements OptionSourceInterface
 {
-    static private Config $configService;
+    static private Config $config;
 
     /**
-     * @param Config $configService
+     * @param Config $config
      */
-    public function __construct(Config $configService)
+    public function __construct(Config $config)
     {
-        self::$configService = $configService;
+        self::$config = $config;
     }
 
     /**
@@ -42,8 +42,7 @@ class AgeCheckNo implements OptionSourceInterface
      */
     public function getDefault($option)
     {
-        //throw new \Exception('this is not really a default');
-        $settings = self::$configService->getCarrierConfig(CarrierPostNL::NAME, 'default_options');
+        $settings = self::$config->getCarrierConfig(CarrierPostNL::NAME, 'default_options');
 
         return (bool) $settings[$option . '_active'];
     }

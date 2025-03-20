@@ -25,7 +25,7 @@ class SendMyParcelReturnMail extends \Magento\Backend\App\Action
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
     private MagentoOrderCollection $orderCollection;
-    private Config                 $configService;
+    private Config                 $config;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -36,9 +36,9 @@ class SendMyParcelReturnMail extends \Magento\Backend\App\Action
     {
         parent::__construct($context);
 
-        $this->configService = $context->getObjectManager()->get(Config::class);
+        $this->config                = $context->getObjectManager()->get(Config::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection = new MagentoOrderCollection(
+        $this->orderCollection       = new MagentoOrderCollection(
             $context->getObjectManager(),
             $this->getRequest(),
             null
@@ -68,7 +68,7 @@ class SendMyParcelReturnMail extends \Magento\Backend\App\Action
     {
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
-        if ($this->configService->apiKeyIsCorrect() !== true) {
+        if ($this->config->apiKeyIsCorrect() !== true) {
             $message = 'You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
@@ -98,7 +98,8 @@ class SendMyParcelReturnMail extends \Magento\Backend\App\Action
                 ->syncMagentoToMyparcel()
                 ->setNewMyParcelTracks()
                 ->setLatestData()
-                ->sendReturnLabelMails();
+                ->sendReturnLabelMails()
+            ;
         } catch (\Exception $e) {
             if (count($this->messageManager->getMessages()->getItems()) == 0) {
                 $this->messageManager->addErrorMessage(__('An error has occurred while sending mails with a return label. Please contact MyParcel.'));

@@ -37,7 +37,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
 
 
     private MagentoOrderCollection $orderCollection;
-    private Config                 $configService;
+    private Config                 $config;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -48,7 +48,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
     {
         parent::__construct($context);
 
-        $this->configService = $this->_objectManager->get(Config::class);
+        $this->config                = $this->_objectManager->get(Config::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->orderCollection       = new MagentoOrderCollection(
             $this->_objectManager,
@@ -67,7 +67,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
     {
         try {
             $this->massAction();
-        } catch (ApiException | MissingFieldException $e) {
+        } catch (ApiException|MissingFieldException $e) {
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
             $this->messageManager->addErrorMessage($e->getMessage());
         }
@@ -85,7 +85,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
      */
     private function massAction(): void
     {
-        if (! $this->configService->apiKeyIsCorrect()) {
+        if (!$this->config->apiKeyIsCorrect()) {
             $message = 'You have not entered the correct API key. To get your personal API credentials you should contact MyParcel.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
@@ -108,38 +108,41 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
         $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
-        if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
             $this->orderCollection->setFulfilment();
 
             return;
         }
 
         $this->orderCollection->setOptionsFromParameters()
-            ->setNewMagentoShipment();
+                              ->setNewMagentoShipment()
+        ;
 
         $this->orderCollection->reload();
 
-        if (! $this->orderCollection->hasShipment()) {
+        if (!$this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
 
             return;
         }
 
         $this->orderCollection->syncMagentoToMyparcel()
-            ->setMagentoTrack()
-            ->setNewMyParcelTracks()
-            ->createMyParcelConcepts()
-            ->updateMagentoTrack();
+                              ->setMagentoTrack()
+                              ->setNewMyParcelTracks()
+                              ->createMyParcelConcepts()
+                              ->updateMagentoTrack()
+        ;
 
         if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')
             || $this->orderCollection->myParcelCollection->isEmpty()) {
             return;
         }
         $this->orderCollection->addReturnShipments()
-            ->setPdfOfLabels()
-            ->updateMagentoTrack()
-            ->sendTrackEmails()
-            ->downloadPdfOfLabels();
+                              ->setPdfOfLabels()
+                              ->updateMagentoTrack()
+                              ->sendTrackEmails()
+                              ->downloadPdfOfLabels()
+        ;
     }
 
     /**
@@ -162,7 +165,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
      */
     private function filterCorrectAddress(array $orderIds): array
     {
-        $order         = $this->_objectManager->get(Order::class);
+        $order = $this->_objectManager->get(Order::class);
         // Go through the selected orders and check if the address details are correct
         foreach ($orderIds as $orderId) {
             $order->load($orderId);
@@ -173,14 +176,14 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
             $keyOrderId         = array_search($orderId, $orderIds, true);
 
             // Validate the street and house number. If the address is wrong then get the orderId from the array and delete it.
-            if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
+            if (!ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
                 $errorHuman = 'An error has occurred while validating the order number ' . $order->getIncrementId() . '. Check street.';
                 $this->messageManager->addErrorMessage($errorHuman);
 
                 unset($orderIds[$keyOrderId]);
             }
             // Validate the postcode. If the postcode is wrong then get the orderId from the array and delete it.
-            if (! ValidatePostalCode::validate($postcode, $destinationCountry)) {
+            if (!ValidatePostalCode::validate($postcode, $destinationCountry)) {
                 $errorHuman = 'An error has occurred while validating the order number ' . $order->getIncrementId() . '. Check postcode.';
                 $this->messageManager->addErrorMessage($errorHuman);
 

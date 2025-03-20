@@ -535,7 +535,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId());
                 }
 
-                if ($myParcelTrack->status) {
+                if ($myParcelTrack->getStatus()) {
                     $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
                 }
 
@@ -573,10 +573,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected function updateOrderGrid(): self
     {
         $shipments = $this->getShipmentsCollection();
-
-        if (! $shipments) {
-            return $this;
-        }
 
         foreach ($shipments as $shipment) {
             if (! $shipment || ! method_exists($shipment, 'getOrder')) {

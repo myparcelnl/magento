@@ -25,14 +25,14 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
  */
 class DigitalStampWeightOptions implements OptionSourceInterface
 {
-    static private $configService;
+    static private $config;
 
     /**
-     * @param $configService Config
+     * @param $config Config
      */
-    public function __construct(Config $configService)
+    public function __construct(Config $config)
     {
-        self::$configService = $configService;
+        self::$config = $config;
     }
 
     /**
@@ -42,8 +42,7 @@ class DigitalStampWeightOptions implements OptionSourceInterface
      */
     public function getDefault($option): bool
     {
-        throw new \Exception('again, not really a default');
-        $settings = self::$configService->getCarrierConfig(CarrierPostNL::NAME, 'options');
+        $settings = self::$config->getCarrierConfig(CarrierPostNL::NAME, 'options');
 
         return (bool) $settings[$option . '_active'];
     }

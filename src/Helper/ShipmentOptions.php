@@ -54,7 +54,7 @@ class ShipmentOptions
     /**
      * @var Config
      */
-    private $configService;
+    private $config;
 
     /**
      * @var Order
@@ -82,7 +82,7 @@ class ShipmentOptions
     )
     {
         $this->defaultOptions = $defaultOptions;
-        $this->configService  = $objectManager->get(Config::class);
+        $this->config         = $objectManager->get(Config::class);
         $this->order          = $order;
         $this->objectManager  = $objectManager;
         $this->carrier        = $carrier;
@@ -203,7 +203,7 @@ class ShipmentOptions
                 self::AGE_CHECK
             );
 
-            if (! isset($productAgeCheck) || '' === $productAgeCheck) {
+            if (!isset($productAgeCheck) || '' === $productAgeCheck) {
                 $hasAgeCheck = null;
             } elseif ('1' === $productAgeCheck) {
                 return true;
@@ -251,7 +251,8 @@ class ShipmentOptions
         $sql = $connection
             ->select('entity_type_id')
             ->from($tableName)
-            ->where('attribute_code = ?', 'myparcel_' . $databaseColumn);
+            ->where('attribute_code = ?', 'myparcel_' . $databaseColumn)
+        ;
 
         return $connection->fetchOne($sql);
     }
@@ -275,7 +276,8 @@ class ShipmentOptions
             ->select()
             ->from($tableName, ['value'])
             ->where('attribute_id = ?', $attributeId)
-            ->where('entity_id = ?', $entityId);
+            ->where('entity_id = ?', $entityId)
+        ;
 
         return $connection->fetchOne($sql);
     }
@@ -288,7 +290,7 @@ class ShipmentOptions
      */
     public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
     {
-        if (! isset($options[$key])) {
+        if (!isset($options[$key])) {
             return null;
         }
 
@@ -300,7 +302,7 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        if (! in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
+        if (!in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
             return false;
         }
 
@@ -315,12 +317,12 @@ class ShipmentOptions
      */
     public function getLabelDescription(): string
     {
-        $labelDescription = $this->configService->getGeneralConfig(
+        $labelDescription = $this->config->getGeneralConfig(
             'print/label_description',
             $this->order->getStoreId()
         );
 
-        if (! $labelDescription) {
+        if (!$labelDescription) {
             return '';
         }
 
@@ -377,7 +379,8 @@ class ShipmentOptions
                            ->from(
                                ['main_table' => $connection->getTableName('sales_shipment_item')]
                            )
-                           ->where('main_table.parent_id=?', $shipmentId);
+                           ->where('main_table.parent_id=?', $shipmentId)
+        ;
         return $conn->fetchAll($select);
     }
 
@@ -391,7 +394,7 @@ class ShipmentOptions
      */
     private function optionIsEnabled($optionKey): bool
     {
-        if (! isset($this->options[$optionKey])) {
+        if (!isset($this->options[$optionKey])) {
             return $this->defaultOptions->hasOptionSet($optionKey, $this->carrier);
         }
 

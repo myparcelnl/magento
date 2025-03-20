@@ -15,16 +15,17 @@ use MyParcelNL\Sdk\Model\Fulfilment\OrderNote;
 
 class SalesOrderStatusHistoryObserver implements ObserverInterface
 {
-    private Config        $configService;
+    private Config        $config;
     private ObjectManager $objectManager;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->objectManager = ObjectManager::getInstance();
-        $this->configService = $this->objectManager->get(Config::class);
+        $this->config        = $this->objectManager->get(Config::class);
     }
 
     /**
-     * @param  \Magento\Framework\Event\Observer $observer
+     * @param \Magento\Framework\Event\Observer $observer
      *
      * @return $this
      */
@@ -33,33 +34,35 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
         /** @var \Magento\Sales\Model\Order\Status\History $history */
         $history = $observer->getData()['status_history'] ?? null;
 
-        if (! is_a($history, History::class)
-            || ! $history->getComment()
-            || ! $history->getOrder()
+        if (!is_a($history, History::class)
+            || !$history->getComment()
+            || !$history->getOrder()
         ) {
             return $this;
         }
 
         /** @var Order $magentoOrder */
         $magentoOrder = $this->objectManager->create(Order::class)
-            ->loadByIncrementId($history->getOrder()->getIncrementId());
+                                            ->loadByIncrementId($history->getOrder()->getIncrementId())
+        ;
 
         $uuid = $magentoOrder->getData('myparcel_uuid');
 
-        if (! $uuid) {
+        if (!$uuid) {
             return $this;
         }
 
-        (new OrderNotesCollection())->setApiKey($this->configService->getApiKey())
-            ->push(
-                new OrderNote([
-                        'orderUuid' => $uuid,
-                        'note'      => $history->getComment(),
-                        'author'    => 'webshop',
-                    ]
-                )
-            )
-            ->save();
+        (new OrderNotesCollection())->setApiKey($this->config->getApiKey())
+                                    ->push(
+                                        new OrderNote([
+                                                          'orderUuid' => $uuid,
+                                                          'note'      => $history->getComment(),
+                                                          'author'    => 'webshop',
+                                                      ]
+                                        )
+                                    )
+                                    ->save()
+        ;
 
         return $this;
     }

@@ -17,7 +17,6 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Source\Data;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
@@ -27,17 +26,16 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
  */
 class AgeCheckYes implements OptionSourceInterface
 {
-    static private Config $configService;
+    static private Config $config;
 
     /**
      * Insurance constructor.
      *
      * @param $order Order
-     * @param $helper Data
      */
-    public function __construct(Config $configService)
+    public function __construct(Config $config)
     {
-        self::$configService = $configService;
+        self::$config = $config;
     }
 
     /**
@@ -47,8 +45,7 @@ class AgeCheckYes implements OptionSourceInterface
      */
     public function hasDefault($option): bool
     {
-        throw new \Exception('this is not really a default option');
-        $settings = self::$configService->getCarrierConfig(CarrierPostNL::NAME, 'default_options');
+        $settings = self::$config->getCarrierConfig(CarrierPostNL::NAME, 'default_options');
 
         return (bool) $settings[$option . '_active'];
     }
