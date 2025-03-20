@@ -34,10 +34,9 @@ class DefaultOptions
     private const INSURANCE_PERCENTAGE     = 'insurance_percentage';
     public const  DEFAULT_OPTION_VALUE     = 'default';
 
-    private Config $configService;
+    private Config $config;
     private        $quote;
     private array  $chosenOptions;
-    private Weight $weightService;
 
     /**
      * In Magento both Order and Quote have getData() and getShippingAddress() methods.
@@ -48,10 +47,9 @@ class DefaultOptions
      */
     public function __construct($quote)
     {
-        $objectManager       = ObjectManager::getInstance();
-        $this->configService = $objectManager->get(Config::class);
-        $this->weightService = $objectManager->get(Weight::class);
-        $this->quote         = $quote;
+        $objectManager = ObjectManager::getInstance();
+        $this->config  = $objectManager->get(Config::class);
+        $this->quote   = $quote;
         try {
             $this->chosenOptions = DeliveryOptionsAdapterFactory::create(
                 (array) json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 4, JSON_THROW_ON_ERROR)
@@ -98,7 +96,7 @@ class DefaultOptions
     {
         $price = $this->quote->getGrandTotal();
 
-        $settings  = $this->configService->getCarrierConfig($carrier, 'default_options');
+        $settings  = $this->config->getCarrierConfig($carrier, 'default_options');
         $activeKey = "{$option}_active";
 
         return isset($settings[$activeKey]) &&
@@ -114,7 +112,7 @@ class DefaultOptions
      */
     public function hasDefaultOption(string $carrier, string $option): bool
     {
-        $settings = $this->configService->getCarrierConfig($carrier, 'default_options');
+        $settings = $this->config->getCarrierConfig($carrier, 'default_options');
 
         if ('1' !== ($settings["{$option}_active"] ?? null)) {
             return false;
@@ -160,7 +158,7 @@ class DefaultOptions
     private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
     {
         $total                = $this->quote->getGrandTotal();
-        $settings             = $this->configService->getCarrierConfig($carrierName, 'default_options');
+        $settings             = $this->config->getCarrierConfig($carrierName, 'default_options');
         $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
         if (!isset($settings[$priceKey])
@@ -194,7 +192,7 @@ class DefaultOptions
      */
     public function getDigitalStampDefaultWeight(): string
     {
-        return $this->configService->getConfigValue('myparcelnl_magento_postnl_settings/digital_stamp/default_weight');
+        return $this->config->getConfigValue('myparcelnl_magento_postnl_settings/digital_stamp/default_weight');
     }
 
     /**
@@ -230,6 +228,6 @@ class DefaultOptions
             }
         }
 
-        return $this->configService->getDefaultCarrierName($this->quote->getShippingAddress());
+        return $this->config->getDefaultCarrierName($this->quote->getShippingAddress());
     }
 }

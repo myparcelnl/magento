@@ -52,7 +52,7 @@ class UpdateStatus
     private ObjectManager $objectManager;
     private \Magento\Sales\Model\ResourceModel\Order $orderResource;
     private MagentoOrderCollection $orderCollection;
-    private Config                 $configService;
+    private Config                 $config;
 
     /**
      * UpdateStatus constructor.
@@ -68,7 +68,7 @@ class UpdateStatus
     )
     {
         $this->objectManager   = $objectManager = ObjectManager::getInstance();
-        $this->configService   = $objectManager->get(Config::class);
+        $this->config          = $objectManager->get(Config::class);
         $this->orderCollection = new MagentoOrderCollection($this->objectManager, null, $areaList);
         $this->orderResource   = $orderResource;
     }
@@ -82,7 +82,7 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
             return $this->updateStatusPPS();
         }
         return $this->updateStatusShipments();
@@ -123,7 +123,7 @@ class UpdateStatus
             ->setOrder('increment_id', 'DESC');
 
         $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'increment_id'));
-        $apiOrders       = OrderCollection::query($this->configService->getApiKey());
+        $apiOrders       = OrderCollection::query($this->config->getApiKey());
         $orderIdsDone    = [];
 
         foreach ($apiOrders->getIterator() as $apiOrder) {

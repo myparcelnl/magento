@@ -54,7 +54,7 @@ class TrackTraceHolder
     public Track                   $mageTrack;
     protected ManagerInterface     $messageManager;
     private ?string                $carrier;
-    private Config                 $configService;
+    private Config                 $config;
     private ObjectManagerInterface $objectManager;
     private Weight                 $weight;
 
@@ -69,9 +69,9 @@ class TrackTraceHolder
         Order                  $order
     )
     {
-        $this->objectManager  = $objectManager;
-        $this->configService  = $objectManager->get(Config::class);
-        $this->weight         = $objectManager->get(Weight::class);
+        $this->objectManager = $objectManager;
+        $this->config        = $objectManager->get(Config::class);
+        $this->weight        = $objectManager->get(Weight::class);
         $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
         $this->defaultOptions = new DefaultOptions($order);
     }
@@ -112,7 +112,7 @@ class TrackTraceHolder
         }
 
         $pickupLocationAdapter = $deliveryOptionsAdapter->getPickupLocation();
-        $apiKey                = $this->configService->getGeneralConfig(
+        $apiKey                = $this->config->getGeneralConfig(
             'api/key',
             $order->getStoreId()
         );
@@ -283,7 +283,7 @@ class TrackTraceHolder
             return $productCountryOfManufacture;
         }
 
-        return $this->configService->getGeneralConfig('print/country_of_origin');
+        return $this->config->getGeneralConfig('print/country_of_origin');
     }
 
     /**

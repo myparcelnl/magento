@@ -11,6 +11,7 @@
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
+
 namespace MyParcelNL\Magento\Observer;
 
 use Exception;
@@ -32,12 +33,7 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
 
 class CreateConceptAfterInvoice implements ObserverInterface
 {
-    protected $orderFactory;
-
-    /**
-     * @var ObjectManager
-     */
-    private $objectManager;
+    private ObjectManager $objectManager;
 
     /**
      * @var RequestInterface
@@ -49,22 +45,10 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     private $modelTrack;
 
-    /**
-     * @var MagentoOrderCollection
-     */
-    private $orderCollection;
-
-    private Config $configService;
-
-    /**
-     * @var MagentoShipmentCollection
-     */
-    private $shipmentCollection;
-
-    /**
-     * @var ManagerInterface
-     */
-    protected $messageManager;
+    private MagentoOrderCollection    $orderCollection;
+    private Config                    $config;
+    private MagentoShipmentCollection $shipmentCollection;
+    protected ManagerInterface        $messageManager;
 
     /**
      * NewShipment constructor.
@@ -73,10 +57,10 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     public function __construct(MagentoOrderCollection $orderCollection = null)
     {
-        $objectManager   = ObjectManager::getInstance();
-        //$this->request         = $objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
-        $this->configService   = $objectManager->get(Config::class);
+        $this->objectManager   = $objectManager = ObjectManager::getInstance();
+        $request               = $objectManager->get(RequestInterface::class);
+        $this->config          = $objectManager->get(Config::class);
+        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($objectManager, $request);
         //$this->modelTrack      = $objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
         //$this->orderFactory    = $objectManager->get('\Magento\Sales\Model\Order');
     }
@@ -91,11 +75,12 @@ class CreateConceptAfterInvoice implements ObserverInterface
      */
     public function execute(Observer $observer): self
     {
-        if ($this->configService->getGeneralConfig('print/create_concept_after_invoice')) {
+        if ($this->config->getGeneralConfig('print/create_concept_after_invoice')) {
             $order = $observer
                 ->getEvent()
                 ->getInvoice()
-                ->getOrder();
+                ->getOrder()
+            ;
 
             if (($order instanceof AbstractModel)
                 && in_array(
@@ -126,9 +111,10 @@ class CreateConceptAfterInvoice implements ObserverInterface
 
         $this->orderCollection
             ->setOptionsFromParameters()
-            ->setNewMagentoShipment();
+            ->setNewMagentoShipment()
+        ;
 
-        if (Config::EXPORT_MODE_PPS === $this->configService->getExportMode()) {
+        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
             $this->orderCollection->setFulfilment();
 
             return $this;
@@ -138,7 +124,8 @@ class CreateConceptAfterInvoice implements ObserverInterface
             ->setMagentoTrack()
             ->setNewMyParcelTracks()
             ->createMyParcelConcepts()
-            ->updateMagentoTrack();
+            ->updateMagentoTrack()
+        ;
 
         return $this;
     }

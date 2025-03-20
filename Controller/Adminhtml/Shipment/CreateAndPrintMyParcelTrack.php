@@ -29,8 +29,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
     /**
      * @var MagentoShipmentCollection
      */
-    private        $shipmentCollection;
-    private Config $configService;
+    private MagentoShipmentCollection $shipmentCollection;
+    private Config                    $config;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -41,9 +41,9 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
     {
         parent::__construct($context);
 
-        $this->configService = $context->getObjectManager()->get(Config::class);
+        $this->config                = $context->getObjectManager()->get(Config::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->shipmentCollection = new MagentoShipmentCollection(
+        $this->shipmentCollection    = new MagentoShipmentCollection(
             $context->getObjectManager(),
             $this->getRequest(),
             null
@@ -76,7 +76,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
      */
     private function massAction()
     {
-        if (! $this->configService->apiKeyIsCorrect()) {
+        if (!$this->config->apiKeyIsCorrect()) {
             $message = 'You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
             $this->messageManager->addErrorMessage(__($message));
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
@@ -99,14 +99,16 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
         $this->addShipmentsToCollection($shipmentIds);
 
         $this->shipmentCollection
-            ->setOptionsFromParameters();
+            ->setOptionsFromParameters()
+        ;
 
         $this->shipmentCollection
             ->syncMagentoToMyparcel()
             ->setMagentoTrack()
             ->setNewMyParcelTracks()
             ->createMyParcelConcepts()
-            ->updateMagentoTrack();
+            ->updateMagentoTrack()
+        ;
 
         if ('concept' === $this->shipmentCollection->getOption('request_type')) {
             return $this;
@@ -116,7 +118,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
             ->addReturnShipments()
             ->setPdfOfLabels()
             ->updateMagentoTrack()
-            ->downloadPdfOfLabels();
+            ->downloadPdfOfLabels()
+        ;
 
         return $this;
     }

@@ -9,14 +9,14 @@ use MyParcelNL\Magento\Service\Config;
 
 class LargeFormatOptions implements OptionSourceInterface
 {
-    static private Config $configService;
+    static private Config $config;
 
     /**
-     * @param $configService Config
+     * @param $config Config
      */
-    public function __construct(Config $configService)
+    public function __construct(Config $config)
     {
-        self::$configService = $configService;
+        self::$config = $config;
     }
 
     /**
