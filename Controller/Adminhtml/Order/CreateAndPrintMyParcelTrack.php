@@ -46,7 +46,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
      */
     public function __construct(Context $context)
     {
-        // TODO joeri don’t use deprecated action
         parent::__construct($context);
 
         $this->configService = $this->_objectManager->get(Config::class);
