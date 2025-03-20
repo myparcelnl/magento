@@ -89,8 +89,8 @@ class TrackTraceHolder
     public function convertDataFromMagentoToApi(Track $magentoTrack, array $options): self
     {
         $shipment = $magentoTrack->getShipment();
-        Logger::warning('Shipment not found', ['track' => $magentoTrack->getData()]);
         if (null === $shipment) {
+            Logger::warning('Shipment not found', ['track' => $magentoTrack->getData()]);
             return $this;
         }
 
