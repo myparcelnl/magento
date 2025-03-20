@@ -121,9 +121,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->objectManager      = $objectManager;
         $this->moduleManager      = $objectManager->get(Manager::class);
         $this->request            = $request;
-        $this->trackSender        = $this->objectManager->get(TrackSender::class);
-        $this->config      = $objectManager->get(Config::class);
-        $this->weight      = $objectManager->get(Weight::class);
+        $this->trackSender        = $objectManager->get(TrackSender::class);
+        $this->config             = $objectManager->get(Config::class);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(

@@ -51,15 +51,8 @@ class Config extends AbstractHelper
             CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
         ];
 
-    /**
-     * @var ModuleListInterface
-     */
-    private $moduleList;
-    /**
-     * @var CheckApiKeyWebService
-     */
-    private      $checkApiKeyWebService;
-    private ?int $storeId;
+    private ModuleListInterface   $moduleList;
+    private CheckApiKeyWebService $checkApiKeyWebService;
 
     /**
      * @param Context               $context
