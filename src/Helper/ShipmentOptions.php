@@ -203,7 +203,7 @@ class ShipmentOptions
                 self::AGE_CHECK
             );
 
-            if (! isset($productAgeCheck) || '' === $productAgeCheck) {
+            if (!isset($productAgeCheck) || '' === $productAgeCheck) {
                 $hasAgeCheck = null;
             } elseif ('1' === $productAgeCheck) {
                 return true;
@@ -290,7 +290,7 @@ class ShipmentOptions
      */
     public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
     {
-        if (! isset($options[$key])) {
+        if (!isset($options[$key])) {
             return null;
         }
 
@@ -302,7 +302,7 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        if (! in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
+        if (!in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
             return false;
         }
 
@@ -322,7 +322,7 @@ class ShipmentOptions
             $this->order->getStoreId()
         );
 
-        if (! $labelDescription) {
+        if (!$labelDescription) {
             return '';
         }
 
@@ -394,7 +394,7 @@ class ShipmentOptions
      */
     private function optionIsEnabled($optionKey): bool
     {
-        if (! isset($this->options[$optionKey])) {
+        if (!isset($this->options[$optionKey])) {
             return $this->defaultOptions->hasOptionSet($optionKey, $this->carrier);
         }
 

@@ -21,7 +21,6 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Model\Order\Shipment;
-use MyParcelNL\Magento\Observer\Magento;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
 use MyParcelNL\Magento\Service\Config;
@@ -113,7 +112,7 @@ class NewShipment implements ObserverInterface
                 $useMultiCollo = true;
             }
 
-            if (! $useMultiCollo) {
+            if (!$useMultiCollo) {
                 $this->orderCollection->myParcelCollection->addConsignment($trackTraceHolder->consignment);
             }
 
