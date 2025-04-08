@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
+use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
@@ -30,7 +31,7 @@ use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
+class CreateAndPrintMyParcelTrack extends Action
 {
     public const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
