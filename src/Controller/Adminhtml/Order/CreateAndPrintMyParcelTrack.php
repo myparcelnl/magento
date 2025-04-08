@@ -65,7 +65,6 @@ class CreateAndPrintMyParcelTrack extends Action
      */
     public function execute()
     {
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "EXECUTE (Order/CreateAndPrint)\n", FILE_APPEND);
         try {
             $this->massAction();
         } catch (ApiException|MissingFieldException $e) {
