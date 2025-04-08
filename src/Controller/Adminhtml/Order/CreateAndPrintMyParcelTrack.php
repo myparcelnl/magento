@@ -85,14 +85,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
      */
     private function massAction(): void
     {
-        if (!$this->config->apiKeyIsCorrect()) {
-            $message = 'You have not entered the correct API key. To get your personal API credentials you should contact MyParcel.';
-            $this->messageManager->addErrorMessage(__($message));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
-
-            return;
-        }
-
         if ($this->getRequest()->getParam('selected_ids')) {
             $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
@@ -134,9 +126,11 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
         ;
 
         if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')
-            || $this->orderCollection->myParcelCollection->isEmpty()) {
+            || $this->orderCollection->myParcelCollection->isEmpty()
+        ) {
             return;
         }
+
         $this->orderCollection->addReturnShipments()
                               ->setPdfOfLabels()
                               ->updateMagentoTrack()

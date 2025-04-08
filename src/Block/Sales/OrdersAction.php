@@ -38,16 +38,6 @@ class OrdersAction extends Template
     }
 
     /**
-     * Check if global API Key isset
-     *
-     * @return bool
-     */
-    public function hasApiKey(): bool
-    {
-        return $this->config->hasApiKey();
-    }
-
-    /**
      * Get url to create and print MyParcel track
      *
      * @return string

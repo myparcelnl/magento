@@ -33,7 +33,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
     {
         parent::__construct($context, $data);
 
-        $dropOffPoint = (new AccountSettings($config->getApiKey()))->getDropOffPoint(CarrierFactory::createFromId($this->getCarrierId()));
+        $dropOffPoint = (new AccountSettings($config->getGeneralConfig('api/key')))->getDropOffPoint(CarrierFactory::createFromId($this->getCarrierId()));
 
         $this->dropOffPoint = $dropOffPoint;
     }

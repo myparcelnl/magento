@@ -36,16 +36,6 @@ class ShipmentsAction extends Template
     }
 
     /**
-     * Check if global API Key isset
-     *
-     * @return bool
-     */
-    public function hasApiKey(): bool
-    {
-        return $this->Config->hasApiKey();
-    }
-
-    /**
      * Get url to create and print MyParcel track
      *
      * @return string
