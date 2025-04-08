@@ -124,20 +124,20 @@ class PackageRepository extends Package
      */
     public function fitInMailbox(): bool
     {
-        $mailboxOk = $this->getCurrentCountry() === AbstractConsignment::CC_NL;
-        if (!$mailboxOk) {
-            $config = (new AccountSettings($this->getApiKey()))->getCarrierOptions()->filter(
+        $mailboxAllowedToCountry = $this->getCurrentCountry() === AbstractConsignment::CC_NL;
+        if (!$mailboxAllowedToCountry) {
+            $config = (new AccountSettings($this->getGeneralConfig('api/key')))->getCarrierOptions()->filter(
                 static function ($carrierOptions) {
                     return self::CARRIER_TYPE_CUSTOM === $carrierOptions->getType()
                         && $carrierOptions->getCarrier() instanceof CarrierPostNL;
                 }
             )->first();
             if (null !== $config) {
-                $mailboxOk = true;
+                $mailboxAllowedToCountry = true;
             }
         }
 
-        return $mailboxOk
+        return $mailboxAllowedToCountry
             && $this->isMailboxActive()
             && $this->getWeight() <= $this->getMaxMailboxWeight()
             && $this->getMailboxPercentage() <= 100;

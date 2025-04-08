@@ -53,6 +53,7 @@ class Config extends AbstractHelper
 
     private ModuleListInterface   $moduleList;
     private CheckApiKeyWebService $checkApiKeyWebService;
+    private ?int                  $storeId;
 
     /**
      * @param Context               $context
@@ -88,13 +89,13 @@ class Config extends AbstractHelper
     /**
      * Get settings by field
      *
-     * @param string $field
-     *
+     * @param string   $field
+     * @param int|null $storeId falls back to storeId based on context when null
      * @return mixed
      */
-    public function getConfigValue(string $field)
+    public function getConfigValue(string $field, ?int $storeId = null)
     {
-        return $this->scopeConfig->getValue($field, ScopeInterface::SCOPE_STORE, $this->storeId);
+        return $this->scopeConfig->getValue($field, ScopeInterface::SCOPE_STORES, $storeId ?? $this->storeId);
     }
 
     /**
@@ -157,13 +158,13 @@ class Config extends AbstractHelper
      * Get general settings
      *
      * @param string   $code
-     * @param null|int $storeId
+     * @param null|int $storeId fallback to storeId based on context when null
      *
      * @return mixed
      */
-    public function getGeneralConfig(string $code = '')
+    public function getGeneralConfig(string $code = '', ?int $storeId = null)
     {
-        return $this->getConfigValue(self::XML_PATH_GENERAL . $code);
+        return $this->getConfigValue(self::XML_PATH_GENERAL . $code, $storeId);
     }
 
     public function getMagentoCarrierConfig(string $code = '')
@@ -200,33 +201,5 @@ class Config extends AbstractHelper
         $moduleInfo = $this->moduleList->getOne(self::MODULE_NAME);
 
         return (string) $moduleInfo['setup_version'];
-    }
-
-    /**
-     * Check if api key is correct
-     */
-    public function apiKeyIsCorrect(): bool
-    {
-        return $this->checkApiKeyWebService->setApiKey($this->getApiKey())
-                                           ->apiKeyIsCorrect()
-        ;
-    }
-
-    /**
-     * @return null|string
-     */
-    public function getApiKey(): ?string
-    {
-        return $this->getGeneralConfig('api/key');
-    }
-
-    /**
-     * Check if global API Key isset
-     *
-     * @return bool
-     */
-    public function hasApiKey(): bool
-    {
-        return null !== $this->getApiKey();
     }
 }

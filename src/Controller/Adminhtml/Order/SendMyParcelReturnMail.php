@@ -66,16 +66,6 @@ class SendMyParcelReturnMail extends \Magento\Backend\App\Action
      */
     private function sendReturnMail()
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-        if ($this->config->apiKeyIsCorrect() !== true) {
-            $message = 'You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
-            $this->messageManager->addErrorMessage(__($message));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
-
-            return $this;
-        }
-
         if ($this->getRequest()->getParam('selected_ids')) {
             $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {

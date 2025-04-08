@@ -76,10 +76,10 @@ class MagentoShipmentCollection extends MagentoCollection
     /**
      * Set PDF content and convert status 'Concept' to 'Registered'
      *
-     * @return $this
+     * @return self
      * @throws \Exception
      */
-    public function setPdfOfLabels()
+    public function setPdfOfLabels(): self
     {
         $this->myParcelCollection->setPdfOfLabels($this->options['positions']);
 
@@ -89,12 +89,12 @@ class MagentoShipmentCollection extends MagentoCollection
     /**
      * Download PDF directly
      *
-     * @return $this
+     * @return self
      * @throws \Exception
      */
-    public function downloadPdfOfLabels()
+    public function downloadPdfOfLabels(): self
     {
-        $inlineDownload = $this->options['request_type'] == 'open_new_tab';
+        $inlineDownload = $this->options['request_type'] === 'open_new_tab';
         $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
 
         return $this;

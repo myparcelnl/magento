@@ -122,7 +122,6 @@ class MagentoOrderCollection extends MagentoCollection
     public function setNewMagentoShipment(bool $notifyClientsByEmail = true): MagentoOrderCollection
     {
         /** @var Order $order */
-        /** @var Shipment $shipment */
         foreach ($this->getOrders() as $order) {
             if ($order->canShip() && $this->createMagentoShipment($order, $notifyClientsByEmail)) {
                 $order->setIsInProcess(true);
@@ -144,7 +143,6 @@ class MagentoOrderCollection extends MagentoCollection
     public function setMagentoTrack(): MagentoOrderCollection
     {
         /**
-         * @var Order $order
          * @var Shipment $shipment
          */
         foreach ($this->getShipmentsCollection() as $shipment) {
@@ -173,8 +171,7 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setFulfilment(): self
     {
-        $apiKey          = $this->config->getApiKey();
-        $orderCollection = (new OrderCollection())->setApiKey($apiKey);
+        $orderCollection = new OrderCollection();
         $orderLines      = new Collection();
 
         foreach ($this->getOrders() as $magentoOrder) {
@@ -199,7 +196,7 @@ class MagentoOrderCollection extends MagentoCollection
 
             try {
                 // create new instance from known json
-                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array)$deliveryOptions);
+                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
             } catch (BadMethodCallException $e) {
                 // create new instance from unknown json data
                 $deliveryOptions['packageType']  = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
@@ -212,6 +209,7 @@ class MagentoOrderCollection extends MagentoCollection
             $this->setBillingRecipient();
             $this->setShippingRecipient();
             $order = (new FulfilmentOrder())
+                ->setApiKey($this->config->getGeneralConfig('api/key', $magentoOrder->getStoreId()))
                 ->setStatus($this->order->getStatus())
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
@@ -222,20 +220,24 @@ class MagentoOrderCollection extends MagentoCollection
                     $this->config->getDropOffPoint(
                         CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
                     )
-                );
+                )
+            ;
 
-            if ($deliveryOptionsAdapter->isPickup()) {
-                $pickupData     = $deliveryOptionsAdapter->getPickupLocation();
-                $pickupLocation = new PickupLocation([
-                                                         'cc'                => $pickupData->getCountry(),
-                                                         'city'              => $pickupData->getCity(),
-                                                         'postal_code'       => $pickupData->getPostalCode(),
-                                                         'street'            => $pickupData->getStreet(),
-                                                         'number'            => $pickupData->getNumber(),
-                                                         'location_name'     => $pickupData->getLocationName(),
-                                                         'location_code'     => $pickupData->getLocationCode(),
-                                                         'retail_network_id' => $pickupData->getRetailNetworkId(),
-                                                     ]);
+            if ($deliveryOptionsAdapter->isPickup()
+                && ($pickupData = $deliveryOptionsAdapter->getPickupLocation())
+            ) {
+                $pickupLocation = new PickupLocation(
+                    [
+                        'cc'                => $pickupData->getCountry(),
+                        'city'              => $pickupData->getCity(),
+                        'postal_code'       => $pickupData->getPostalCode(),
+                        'street'            => $pickupData->getStreet(),
+                        'number'            => $pickupData->getNumber(),
+                        'location_name'     => $pickupData->getLocationName(),
+                        'location_code'     => $pickupData->getLocationCode(),
+                        'retail_network_id' => $pickupData->getRetailNetworkId(),
+                    ]
+                );
                 $order->setPickupLocation($pickupLocation);
             }
 
@@ -273,16 +275,11 @@ class MagentoOrderCollection extends MagentoCollection
         return $this;
     }
 
-    /**
-     * @throws AccountNotActiveException
-     * @throws ApiException
-     * @throws MissingFieldException
-     */
     private function saveOrderNotes(): void
     {
-        $notes = (new OrderNotesCollection())->setApiKey($this->config->getApiKey());
+        $this->myParcelCollection->each(function (FulfilmentOrder $order) {
 
-        $this->myParcelCollection->each(function (FulfilmentOrder $order) use ($notes) {
+            $notes = new OrderNotesCollection();
 
             $this->getAllNotesForOrder($order)->each(function (OrderNote $note) use ($notes) {
                 try {
@@ -298,9 +295,9 @@ class MagentoOrderCollection extends MagentoCollection
                     );
                 }
             });
-        });
 
-        $notes->save();
+            $notes->save($order->getApiKey());
+        });
     }
 
     private function getAllNotesForOrder(FulfilmentOrder $fulfilmentOrder): OrderNotesCollection
@@ -308,7 +305,8 @@ class MagentoOrderCollection extends MagentoCollection
         $notes        = new OrderNotesCollection();
         $orderUuid    = $fulfilmentOrder->getUuid();
         $magentoOrder = $this->objectManager->create(Order::class)
-                                            ->loadByIncrementId($fulfilmentOrder->getExternalIdentifier());
+                                            ->loadByIncrementId($fulfilmentOrder->getExternalIdentifier())
+        ;
 
         foreach ($magentoOrder->getStatusHistoryCollection() as $status) {
             if (!$status->getComment()) {
@@ -316,11 +314,13 @@ class MagentoOrderCollection extends MagentoCollection
             }
 
             $notes->push(
-                new OrderNote([
-                                  'orderUuid' => $orderUuid,
-                                  'note'      => $status->getComment(),
-                                  'author'    => 'webshop',
-                              ])
+                new OrderNote(
+                    [
+                        'orderUuid' => $orderUuid,
+                        'note'      => $status->getComment(),
+                        'author'    => 'webshop',
+                    ]
+                )
             );
         }
 
@@ -401,7 +401,8 @@ class MagentoOrderCollection extends MagentoCollection
             ->setPerson($this->getFullCustomerName())
             ->setPhone($this->order->getBillingAddress()->getTelephone())
             ->setPostalCode($this->order->getBillingAddress()->getPostcode())
-            ->setStreet(implode(' ', $this->order->getBillingAddress()->getStreet() ?? []));
+            ->setStreet(implode(' ', $this->order->getBillingAddress()->getStreet() ?? []))
+        ;
 
         return $this;
     }
@@ -438,10 +439,11 @@ class MagentoOrderCollection extends MagentoCollection
             ->setPerson($this->getFullCustomerName())
             ->setPostalCode($this->order->getShippingAddress()->getPostcode())
             ->setStreet($streetParts->getStreet())
-            ->setNumber((string)$streetParts->getNumber())
-            ->setNumberSuffix((string)$streetParts->getNumberSuffix())
-            ->setBoxNumber((string)$streetParts->getBoxNumber())
-            ->setPhone($this->order->getShippingAddress()->getTelephone());
+            ->setNumber((string) $streetParts->getNumber())
+            ->setNumberSuffix((string) $streetParts->getNumberSuffix())
+            ->setBoxNumber((string) $streetParts->getBoxNumber())
+            ->setPhone($this->order->getShippingAddress()->getTelephone())
+        ;
 
         return $this;
     }
@@ -610,7 +612,7 @@ class MagentoOrderCollection extends MagentoCollection
     {
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
         /** @var Shipment $shipment */
-        $shipment     = $convertOrder->toShipment($order);
+        $shipment = $convertOrder->toShipment($order);
 
         $shipmentAttributes = $shipment->getExtensionAttributes();
 
@@ -657,7 +659,8 @@ class MagentoOrderCollection extends MagentoCollection
 
         if ($notifyClientByEmail) {
             $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
-                                ->notify($shipment);
+                                ->notify($shipment)
+            ;
         }
 
         return true;

@@ -123,7 +123,7 @@ class UpdateStatus
             ->setOrder('increment_id', 'DESC');
 
         $orderIdsToCheck = array_unique(array_column($magentoOrders->getData(), 'increment_id'));
-        $apiOrders       = OrderCollection::query($this->config->getApiKey());
+        $apiOrders       = OrderCollection::query($this->config->getGeneralConfig('api/key'));
         $orderIdsDone    = [];
 
         foreach ($apiOrders->getIterator() as $apiOrder) {

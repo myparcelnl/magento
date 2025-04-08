@@ -35,7 +35,6 @@ use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\Exception\ApiException;
@@ -71,8 +70,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected ObjectManagerInterface $objectManager;
     protected Track                  $modelTrack;
     protected AreaList               $areaList;
-    protected ManagerInterface $messageManager;
-    protected Config           $config;
+    protected ManagerInterface       $messageManager;
+    protected Config                 $config;
 
     /**
      * @var array
@@ -231,7 +230,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
          * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
          */
         // Temporarily fix to translate in cronjob
-        if (! empty($this->areaList)) {
+        if (!empty($this->areaList)) {
             $areaObject = $this->areaList->getArea(Area::AREA_ADMINHTML);
             $areaObject->load(Area::PART_TRANSLATE);
         }
@@ -301,7 +300,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             ->setTitle(Config::MYPARCEL_TRACK_TITLE)
             ->setQty($shipment->getTotalQty())
             ->setTrackNumber(TrackAndTrace::VALUE_EMPTY)
-            ->save();
+            ->save()
+        ;
 
         return $track;
     }
@@ -318,7 +318,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         /* @var Collection $collection */
         $collection = $this->objectManager->create(self::PATH_ORDER_TRACK_COLLECTION);
         $collection
-            ->addAttributeToFilter('parent_id', $shipment->getId());
+            ->addAttributeToFilter('parent_id', $shipment->getId())
+        ;
 
         return $collection;
     }
@@ -347,15 +348,17 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function syncMagentoToMyparcel(): self
     {
-        $consignmentIds = $this->getMyparcelConsignmentIdsForShipments();
-
-        try {
-            $this->myParcelCollection->addConsignmentByConsignmentIds(
-                $consignmentIds,
-                $this->config->getApiKey()
-            );
-        } catch (Exception $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
+        $consignmentIdsByApiKey = $this->getMyparcelConsignmentIdsByApiKey();
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($consignmentIdsByApiKey, true) . " <- 453287r98k2r\n", FILE_APPEND);
+        foreach ($consignmentIdsByApiKey as $apiKey => $consignmentIds) {
+            try {
+                $this->myParcelCollection->addConsignmentByConsignmentIds(
+                    $consignmentIds,
+                    $apiKey
+                );
+            } catch (Exception $e) {
+                $this->messageManager->addErrorMessage($e->getMessage());
+            }
         }
 
         return $this;
@@ -369,7 +372,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function createMyParcelConcepts(): self
     {
-        if (! count($this->myParcelCollection)) {
+        if (!count($this->myParcelCollection)) {
             $this->messageManager->addWarningMessage(__('myparcelnl_magento_error_no_shipments_to_process'));
             return $this;
         }
@@ -381,7 +384,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             return $this;
         }
 
-        $this->myParcelCollection->setLatestData();
+        //$this->myParcelCollection->setLatestData(); // todo find out what this is for and make it work with multiple api keys
 
         return $this;
     }
@@ -503,7 +506,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
                     return $returnConsignment;
                 }
-            );
+            )
+        ;
     }
 
     /**
@@ -523,13 +527,13 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     $magentoTrack->getData('myparcel_consignment_id')
                 );
 
-                if (! $myParcelTrack) {
+                if (!$myParcelTrack) {
                     if ($consignments->isEmpty()) {
                         continue;
                     }
                     $myParcelTrack = $consignments->pop();
 
-                    if (! $myParcelTrack->getConsignmentId()) {
+                    if (!$myParcelTrack->getConsignmentId()) {
                         continue;
                     }
                     $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId());
@@ -575,7 +579,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $shipments = $this->getShipmentsCollection();
 
         foreach ($shipments as $shipment) {
-            if (! $shipment || ! method_exists($shipment, 'getOrder')) {
+            if (!$shipment || !method_exists($shipment, 'getOrder')) {
                 continue;
             }
 
@@ -610,25 +614,28 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                            ->from(
                                ['main_table' => $connection->getTableName('sales_shipment_track')]
                            )
-                           ->where('main_table.order_id=?', $orderId);
+                           ->where('main_table.order_id=?', $orderId)
+        ;
         return $conn->fetchAll($select);
     }
 
     /**
      * @return array
      */
-    protected function getMyparcelConsignmentIdsForShipments(): array
+    protected function getMyparcelConsignmentIdsByApiKey(): array
     {
         $shipments = $this->getShipmentsCollection();
 
         $consignmentIds = [];
 
+        /** @var $shipment \Magento\Sales\Model\Order\Shipment */
         foreach ($shipments as $shipment) {
             $trackCollection = $shipment->getAllTracks();
+            $apiKey          = $this->config->getGeneralConfig('api/key', (int) $shipment->getOrder()->getStoreId());
             foreach ($trackCollection as $magentoTrack) {
                 $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
                 if ($consignmentId) {
-                    $consignmentIds[] = $consignmentId;
+                    $consignmentIds[$apiKey][] = $consignmentId;
                 }
             }
         }
@@ -647,8 +654,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $package = $consignment->getPackageType();
 
         return ($consignment::CC_NL === $country || $consignment::CC_BE === $country)
-            && CarrierPostNL::ID === $carrier
-            && $consignment::PACKAGE_TYPE_PACKAGE === $package;
+               && CarrierPostNL::ID === $carrier
+               && $consignment::PACKAGE_TYPE_PACKAGE === $package;
     }
 
     /**
@@ -660,7 +667,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     private function setSourceItemWhenInventoryApiEnabled(): void
     {
-        if (! $this->moduleManager->isEnabled('Magento_InventoryApi')) {
+        if (!$this->moduleManager->isEnabled('Magento_InventoryApi')) {
             return;
         }
         $this->sourceItem = $this->objectManager->get(SourceItem::class);
