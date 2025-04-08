@@ -161,7 +161,7 @@ class DefaultOptions
         $settings             = $this->config->getCarrierConfig($carrierName, 'default_options');
         $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
-        if (!isset($settings[$priceKey])
+        if (! isset($settings[$priceKey])
             || (int) $settings[$priceKey] === 0
             || $totalAfterPercentage < (int) $settings[self::INSURANCE_FROM_PRICE]) {
             return 0;
@@ -188,11 +188,11 @@ class DefaultOptions
     /**
      * Get default of digital stamp weight
      *
-     * @return string
+     * @return int
      */
-    public function getDigitalStampDefaultWeight(): string
+    public function getDigitalStampDefaultWeight(): int
     {
-        return $this->config->getConfigValue('myparcelnl_magento_postnl_settings/digital_stamp/default_weight');
+        return (int) $this->config->getConfigValue('myparcelnl_magento_postnl_settings/digital_stamp/default_weight');
     }
 
     /**

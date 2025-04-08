@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * The class to provide functions for new_shipment.phtml
  *
@@ -119,7 +122,7 @@ class NewShipment extends AbstractItems
     /**
      * Get package type
      */
-    public function getPackageType()
+    public function getPackageType(): int
     {
         return $this->defaultOptions->getPackageType();
     }
@@ -135,9 +138,13 @@ class NewShipment extends AbstractItems
     /**
      * @return string
      */
-    public function getCountry()
+    public function getCountry(): string
     {
-        return $this->order->getShippingAddress()->getCountryId();
+        if (($address = $this->order->getShippingAddress())) {
+            return $address->getCountryId();
+        }
+
+        return '';
     }
 
     public function getDeliveryType(): int
@@ -173,7 +180,7 @@ class NewShipment extends AbstractItems
                 AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
                 AbstractConsignment::SHIPMENT_OPTION_SIGNATURE,
                 AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE,
-            ], true);
+            ],              true);
         }
 
         // For UPS shipment options are available for all countries in the EU

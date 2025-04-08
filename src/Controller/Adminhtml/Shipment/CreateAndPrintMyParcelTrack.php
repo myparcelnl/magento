@@ -8,7 +8,9 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
+use MyParcelNL\Sdk\Exception\ApiException;
+use MyParcelNL\Sdk\Exception\MissingFieldException;
 
 /**
  * Action to create and print MyParcel Track
@@ -30,7 +32,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
      * @var MagentoShipmentCollection
      */
     private MagentoShipmentCollection $shipmentCollection;
-    private Config                    $config;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -41,7 +42,6 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
     {
         parent::__construct($context);
 
-        $this->config                = $context->getObjectManager()->get(Config::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->shipmentCollection    = new MagentoShipmentCollection(
             $context->getObjectManager(),
@@ -55,11 +55,12 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
      *
      * @return ResultInterface|ResponseInterface
      * @throws LocalizedException
-     * @throws \MyParcelNL\Sdk\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
+     * @throws ApiException
+     * @throws MissingFieldException
      */
     public function execute()
     {
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log',"EXECUTE (Shipment/CreateAndPrint)\n", FILE_APPEND);
         $this->massAction();
 
         return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_SHIPMENT_INDEX);
@@ -68,13 +69,13 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
     /**
      * Get selected items and process them
      *
-     * @return $this
+     * @return void
      * @throws LocalizedException
-     * @throws \MyParcelNL\Sdk\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
+     * @throws ApiException
+     * @throws MissingFieldException
      * @throws \Exception
      */
-    private function massAction()
+    private function massAction(): void
     {
         if ($this->getRequest()->getParam('selected_ids')) {
             $shipmentIds = explode(',', $this->getRequest()->getParam('selected_ids'));
@@ -102,8 +103,8 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
             ->updateMagentoTrack()
         ;
 
-        if ('concept' === $this->shipmentCollection->getOption('request_type')) {
-            return $this;
+        if (TrackAndTrace::VALUE_CONCEPT === $this->shipmentCollection->getOption('request_type')) {
+            return;
         }
 
         $this->shipmentCollection
@@ -112,14 +113,12 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
             ->updateMagentoTrack()
             ->downloadPdfOfLabels()
         ;
-
-        return $this;
     }
 
     /**
      * @param int[] $shipmentIds
      */
-    private function addShipmentsToCollection($shipmentIds)
+    private function addShipmentsToCollection($shipmentIds): void
     {
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $collection

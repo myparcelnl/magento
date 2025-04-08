@@ -3,27 +3,13 @@
 namespace MyParcelNL\Magento\Block\Sales;
 
 use Exception;
+use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPS;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 class NewShipmentForm
 {
-    public const ALLOWED_CARRIER_CLASSES = [
-        CarrierPostNL::class,
-        CarrierDHLForYou::class,
-        CarrierDHLEuroplus::class,
-        CarrierDHLParcelConnect::class,
-        CarrierUPS::class,
-        CarrierDPD::class,
-    ];
-
     public const PACKAGE_TYPE_HUMAN_MAP = [
         AbstractConsignment::PACKAGE_TYPE_PACKAGE       => 'Package',
         AbstractConsignment::PACKAGE_TYPE_MAILBOX       => 'Mailbox',
@@ -70,7 +56,7 @@ class NewShipmentForm
     {
         $returnArray = [];
 
-        foreach (self::ALLOWED_CARRIER_CLASSES as $carrier) {
+        foreach (Carrier::ALLOWED_CARRIER_CLASSES as $carrier) {
             $returnArray[] = ConsignmentFactory::createFromCarrier(CarrierFactory::create($carrier));
         }
 

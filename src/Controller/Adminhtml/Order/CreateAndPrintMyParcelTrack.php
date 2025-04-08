@@ -32,8 +32,7 @@ use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
  */
 class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
 {
-    const PATH_MODEL_ORDER     = 'Magento\Sales\Model\Order';
-    const PATH_URI_ORDER_INDEX = 'sales/order/index';
+    public const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
 
     private MagentoOrderCollection $orderCollection;
@@ -65,6 +64,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
      */
     public function execute()
     {
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "EXECUTE (Order/CreateAndPrint)\n", FILE_APPEND);
         try {
             $this->massAction();
         } catch (ApiException|MissingFieldException $e) {
@@ -112,7 +112,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
 
         $this->orderCollection->reload();
 
-        if (!$this->orderCollection->hasShipment()) {
+        if (! $this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
 
             return;
@@ -170,14 +170,14 @@ class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
             $keyOrderId         = array_search($orderId, $orderIds, true);
 
             // Validate the street and house number. If the address is wrong then get the orderId from the array and delete it.
-            if (!ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
+            if (! ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
                 $errorHuman = 'An error has occurred while validating the order number ' . $order->getIncrementId() . '. Check street.';
                 $this->messageManager->addErrorMessage($errorHuman);
 
                 unset($orderIds[$keyOrderId]);
             }
             // Validate the postcode. If the postcode is wrong then get the orderId from the array and delete it.
-            if (!ValidatePostalCode::validate($postcode, $destinationCountry)) {
+            if (! ValidatePostalCode::validate($postcode, $destinationCountry)) {
                 $errorHuman = 'An error has occurred while validating the order number ' . $order->getIncrementId() . '. Check postcode.';
                 $this->messageManager->addErrorMessage($errorHuman);
 

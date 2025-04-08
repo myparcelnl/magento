@@ -230,7 +230,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
          * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
          */
         // Temporarily fix to translate in cronjob
-        if (!empty($this->areaList)) {
+        if (! empty($this->areaList)) {
             $areaObject = $this->areaList->getArea(Area::AREA_ADMINHTML);
             $areaObject->load(Area::PART_TRANSLATE);
         }
@@ -366,13 +366,11 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
     /**
      * @return self
-     * @throws ApiException
-     * @throws MissingFieldException
      * @throws Exception
      */
     public function createMyParcelConcepts(): self
     {
-        if (!count($this->myParcelCollection)) {
+        if (! count($this->myParcelCollection)) {
             $this->messageManager->addWarningMessage(__('myparcelnl_magento_error_no_shipments_to_process'));
             return $this;
         }
@@ -527,13 +525,13 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     $magentoTrack->getData('myparcel_consignment_id')
                 );
 
-                if (!$myParcelTrack) {
+                if (! $myParcelTrack) {
                     if ($consignments->isEmpty()) {
                         continue;
                     }
                     $myParcelTrack = $consignments->pop();
 
-                    if (!$myParcelTrack->getConsignmentId()) {
+                    if (! $myParcelTrack->getConsignmentId()) {
                         continue;
                     }
                     $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId());
@@ -579,7 +577,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $shipments = $this->getShipmentsCollection();
 
         foreach ($shipments as $shipment) {
-            if (!$shipment || !method_exists($shipment, 'getOrder')) {
+            if (! $shipment || ! method_exists($shipment, 'getOrder')) {
                 continue;
             }
 
@@ -667,7 +665,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     private function setSourceItemWhenInventoryApiEnabled(): void
     {
-        if (!$this->moduleManager->isEnabled('Magento_InventoryApi')) {
+        if (! $this->moduleManager->isEnabled('Magento_InventoryApi')) {
             return;
         }
         $this->sourceItem = $this->objectManager->get(SourceItem::class);

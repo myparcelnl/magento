@@ -29,9 +29,6 @@
                 <create_concept_after_invoice>0</create_concept_after_invoice>
                 <return_in_the_box>0</return_in_the_box>
             </print>
-            <shipping_methods>
-                <methods>tablerate</methods>
-            </shipping_methods>
             <delivery_titles>
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
                 <standard_delivery_title>Standaardlevering</standard_delivery_title>

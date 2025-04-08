@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * Show MyParcel options in config support tab
  *
@@ -26,12 +29,14 @@ class SupportTabRepository extends \Magento\Backend\Block\Widget
 {
     public function __construct(
         Context $context,
-        Config $config,
-        array $data = []
-    ) {
+        Config  $config,
+        array   $data = []
+    )
+    {
         parent::__construct($context, $data);
         $this->config = $config;
     }
+
     /**
      * Get the url of the stylesheet
      *
