@@ -2,6 +2,7 @@
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Shipment;
 
+use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
@@ -24,7 +25,7 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class CreateAndPrintMyParcelTrack extends \Magento\Backend\App\Action
+class CreateAndPrintMyParcelTrack extends Action
 {
     const PATH_URI_SHIPMENT_INDEX = 'sales/shipment/index';
 
