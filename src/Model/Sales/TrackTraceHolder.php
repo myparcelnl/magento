@@ -41,6 +41,7 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
 use RuntimeException;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 
 /**
  * Class TrackTraceHolder
@@ -159,10 +160,8 @@ class TrackTraceHolder
             $options['package_type'] = $deliveryOptions['packageType'];
         }
         $packageType  = $this->getPackageType($options, $magentoTrack, $address);
-        $deliveryDate = (
-            AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
-            && 'NL' !== $address->getCountryId()
-        ) ? null : Dating::convertDeliveryDate($deliveryOptionsAdapter->getDate());
+        $deliveryDate = (AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
+            && 'NL' !== $address->getCountryId()) ? null : Dating::convertDeliveryDate($deliveryOptionsAdapter->getDate());
         $dropOffPoint = (new AccountSettings($apiKey))->getDropOffPoint(
             CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
         );
@@ -267,14 +266,14 @@ class TrackTraceHolder
     /**
      * Get country of origin from product settings or, if they are not found, from the MyParcel settings.
      *
-     * @param int $product_id
+     * @param int $productId
      *
      * @return string
      */
-    public function getCountryOfOrigin(int $product_id): string
+    public function getCountryOfOrigin(int $productId): string
     {
-        $product = $this->objectManager->get('Magento\Catalog\Api\ProductRepositoryInterface')
-                                       ->getById($product_id)
+        $product = $this->objectManager->get(ProductRepositoryInterface::class)
+                                       ->getById($productId)
         ;
 
         $productCountryOfManufacture = $product->getCountryOfManufacture();

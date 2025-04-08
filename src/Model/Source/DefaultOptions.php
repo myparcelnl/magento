@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * All functions to handle insurance
  * If you want to add improvements, please create a fork in our GitHub:
@@ -18,11 +21,9 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
-use function MyParcelNL\Magento\Model\Source\sort;
 
 class DefaultOptions
 {

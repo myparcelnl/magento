@@ -160,8 +160,8 @@ class DeliveryCosts
         }
 
         // sort by points, highest first, then return the price from the first result
-        usort($return, static function ($a, $b) {
-            return $b['points'] <=> $a['points'];
+        usort($return, static function ($one, $two) {
+            return $two['points'] <=> $one['points'];
         });
 
         return (float) $return[0]['definition']['price'];

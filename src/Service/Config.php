@@ -52,7 +52,6 @@ class Config extends AbstractHelper
         ];
 
     private ModuleListInterface   $moduleList;
-    private CheckApiKeyWebService $checkApiKeyWebService;
     private ?int                  $storeId;
 
     /**
@@ -60,19 +59,16 @@ class Config extends AbstractHelper
      * @param StoreManagerInterface $storeManager
      * @param Session               $authSession
      * @param ModuleListInterface   $moduleList
-     * @param CheckApiKeyWebService $checkApiKeyWebService
      */
     public function __construct(
         Context               $context,
         StoreManagerInterface $storeManager,
         Session               $authSession,
         ModuleListInterface   $moduleList,
-        CheckApiKeyWebService $checkApiKeyWebService
     )
     {
         parent::__construct($context);
         $this->moduleList            = $moduleList;
-        $this->checkApiKeyWebService = $checkApiKeyWebService;
 
         try {
             // contrary to documentation store->getId() does not always return an int, so please cast it here
