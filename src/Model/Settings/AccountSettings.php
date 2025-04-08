@@ -25,7 +25,6 @@ class AccountSettings extends BaseModel
     protected Account $account;
     protected Collection $carrierOptions;
     protected Collection $carrierConfigurations;
-    private static self $instance;
 
     /**
      * @var string $apiKey the api key (shop identifier) to get the account settings for

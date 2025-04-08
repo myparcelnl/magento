@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Model\Quote;
 
 use Magento\Framework\Exception\LocalizedException;
@@ -100,7 +102,7 @@ class Checkout
      * @return array
      * @throws NoSuchEntityException|LocalizedException
      */
-    private function getGeneralData()
+    private function getGeneralData(): array
     {
         return [
             'allowRetry'                 => true,
@@ -170,9 +172,6 @@ class Checkout
                 continue;
             }
 
-//            $canHaveDigitalStamp  = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
-//            $canHaveMailbox       = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
-//            $canHavePackageSmall  = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
             $canHaveSameDay       = $consignment->canHaveExtraOption(AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY);
             $canHaveMonday        = $consignment->canHaveExtraOption(AbstractConsignment::EXTRA_OPTION_DELIVERY_MONDAY);
             $canHaveMorning       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
@@ -248,9 +247,6 @@ class Checkout
                 'pricePackageTypeDigitalStamp' => $basePrice,
                 'pricePackageTypePackageSmall' => $basePrice,
                 // if you want separate package type prices, get them with this: $this->deliveryCosts->getBasePrice($this->quote, $carrierName, $packageType, $this->country);
-                // 'pricePackageTypeMailbox'      => $mailboxFee,
-                // 'pricePackageTypeDigitalStamp' => $canHaveDigitalStamp ? $this->config->getFloatConfig($carrierPath, 'digital_stamp/fee') : 0,
-                // 'pricePackageTypePackageSmall' => $canHavePackageSmall ? $this->config->getFloatConfig($carrierPath, 'package_small/fee') : 0,
             ];
         }
 
@@ -423,7 +419,7 @@ class Checkout
     /**
      * @return self
      */
-    public function hideDeliveryOptionsForProduct()
+    public function hideDeliveryOptionsForProduct(): self
     {
         $products = $this->quote->getAllItems();
         $this->package->productWithoutDeliveryOptions($products);

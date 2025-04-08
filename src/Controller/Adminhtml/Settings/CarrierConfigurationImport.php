@@ -28,11 +28,6 @@ class CarrierConfigurationImport extends Action
     /**
      * @var mixed
      */
-    private $context;
-
-    /**
-     * @var mixed
-     */
     private                 $typeListInterface;
     private WriterInterface $configWriter;
 

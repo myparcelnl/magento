@@ -24,7 +24,6 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
@@ -50,15 +49,11 @@ class NewShipment extends AbstractItems
     private NewShipmentForm $form;
 
     /**
-     * @var \MyParcelNL\Magento\Model\Sales\MagentoOrderCollection
-     */
-    private MagentoOrderCollection $orderCollection;
-
-    /**
      * @param Context                     $context
      * @param StockRegistryInterface      $stockRegistry
      * @param StockConfigurationInterface $stockConfiguration
      * @param Registry                    $registry
+     * @param ObjectManagerInterface      $objectManager
      */
     public function __construct(
         Context                     $context,
@@ -74,9 +69,6 @@ class NewShipment extends AbstractItems
         $this->form          = new NewShipmentForm();
 
         $this->defaultOptions = new DefaultOptions($this->order);
-
-        $request               = $objectManager->get('Magento\Framework\App\RequestInterface');
-        $this->orderCollection = new MagentoOrderCollection($objectManager, $request);
 
         parent::__construct($context, $stockRegistry, $stockConfiguration, $registry);
     }
@@ -98,6 +90,7 @@ class NewShipment extends AbstractItems
      * @param string $carrier
      *
      * @return int
+     * @throws Exception
      */
     public function getDefaultInsurance(string $carrier): int
     {
