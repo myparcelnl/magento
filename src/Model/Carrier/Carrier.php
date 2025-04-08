@@ -34,7 +34,13 @@ use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
+use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
+use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
+use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
+use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
+use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Model\Carrier\CarrierUPS;
 use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
@@ -46,6 +52,15 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
     protected $_name;
     protected $_title;
+
+    public const ALLOWED_CARRIER_CLASSES = [
+        CarrierPostNL::class,
+        CarrierDHLForYou::class,
+        CarrierDHLEuroplus::class,
+        CarrierDHLParcelConnect::class,
+        CarrierUPS::class,
+        CarrierDPD::class,
+    ];
 
     /**
      * Carrier constructor.
@@ -92,7 +107,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
     public function collectRates(RateRequest $request)
     {
-        if (!$this->getConfigFlag('active')) {
+        if (! $this->getConfigFlag('active')) {
             return false;
         }
 
@@ -120,7 +135,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     {
         $amount = $this->getMethodAmount($quote);
 
-        //todo joeri where is this specific structure / array coming from? Not method->toArray unfortunately
         return [
             'amount'         => $amount,
             'available'      => true,
@@ -130,7 +144,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'error_message'  => '',
             'method_code'    => $this->_name,
             'method_title'   => $this->getMethodTitle($quote),
-            //todo JOERI where is excl / incl vat ever used? Some custom checkout maybe?
             'price_excl_tax' => $this->tax->excludingVat($amount, $quote),
             'price_incl_tax' => $this->tax->includingVat($amount, $quote),
         ];
@@ -143,7 +156,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
         $shipmentFees    = [
             "{$deliveryOptions->getDeliveryType()}/fee" => true,
-            //"{$deliveryOptions->getPackageType()}/fee"  => true,
             'delivery/only_recipient_fee'               => $shipmentOptions->hasOnlyRecipient(),
             'delivery/signature_fee'                    => $shipmentOptions->hasSignature(),
             'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
@@ -152,7 +164,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $amount = $this->deliveryCosts->getBasePrice($quote);
 
         foreach ($shipmentFees as $key => $value) {
-            if (!$value) {
+            if (! $value) {
                 continue;
             }
             $amount += (float) $this->config->getConfigValue("$configPath$key");

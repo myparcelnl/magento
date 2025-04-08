@@ -63,11 +63,11 @@ class CustomsDeclarationFromOrder
         foreach ($this->order->getItems() as $item) {
             $product = $item->getProduct();
 
-            if (!$product) {
+            if (! $product) {
                 continue;
             }
 
-            $amount      = (float)$item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
+            $amount      = (float) $item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
             $totalWeight += $this->weightService->convertToGrams($product->getWeight() * $amount);
             $description = Str::limit($product->getName(), AbstractConsignment::CUSTOMS_DECLARATION_DESCRIPTION_MAX_LENGTH);
 
@@ -80,7 +80,8 @@ class CustomsDeclarationFromOrder
                                         'currency' => $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO,
                                     ])
                 ->setCountry($this->getCountryOfOrigin($product))
-                ->setClassification($this->getHsCode($product));
+                ->setClassification($this->getHsCode($product))
+            ;
 
             $customsDeclaration->addCustomsItem($customsItem);
         }
@@ -88,7 +89,8 @@ class CustomsDeclarationFromOrder
         $customsDeclaration
             ->setContents(AbstractConsignment::PACKAGE_CONTENTS_COMMERCIAL_GOODS)
             ->setInvoice($this->order->getIncrementId())
-            ->setWeight($totalWeight);
+            ->setWeight($totalWeight)
+        ;
 
         return $customsDeclaration;
     }
@@ -103,7 +105,8 @@ class CustomsDeclarationFromOrder
         $productCountryOfOrigin = $this->objectManager
             ->get(ProductRepositoryInterface::class)
             ->getById($product->getId())
-            ->getCountryOfManufacture();
+            ->getCountryOfManufacture()
+        ;
 
         return $productCountryOfOrigin ?? AbstractConsignment::CC_NL;
     }

@@ -25,15 +25,15 @@ class OrdersAction extends Template
 
     /**
      * @param Context $context
-     * @param array $data
+     * @param array   $data
      */
     public function __construct(
         Context $context,
         array   $data = []
     )
     {
-        $objectManager = ObjectManager::getInstance();
-        $this->config  = $objectManager->get(Config::class);
+        $this->config = $this->Config = (ObjectManager::getInstance())->get(Config::class);
+
         parent::__construct($context, $data);
     }
 

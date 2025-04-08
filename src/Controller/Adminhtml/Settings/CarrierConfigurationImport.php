@@ -85,10 +85,12 @@ class CarrierConfigurationImport extends Action
         $this->clearCache();
 
         return $this->resultFactory->create()
-                                   ->setData([
-                                                 'success' => true,
-                                                 'time'    => date('Y-m-d H:i:s'),
-                                             ])
+                                   ->setData(
+                                       [
+                                           'success' => true,
+                                           'time'    => date('Y-m-d H:i:s'),
+                                       ]
+                                   )
         ;
     }
 
@@ -112,12 +114,14 @@ class CarrierConfigurationImport extends Action
         $carrierConfiguration        = $carrierConfigurationService->getCarrierConfigurations($shopId, true);
         $optionConfiguration         = $optionConfigurationService->getCarrierOptions($shopId);
 
-        return new Collection([
-                                  'shop'                   => $shop,
-                                  'account'                => $account,
-                                  'carrier_options'        => $optionConfiguration,
-                                  'carrier_configurations' => $carrierConfiguration,
-                              ]);
+        return new Collection(
+            [
+                'shop'                   => $shop,
+                'account'                => $account,
+                'carrier_options'        => $optionConfiguration,
+                'carrier_configurations' => $carrierConfiguration,
+            ]
+        );
     }
 
     /**
@@ -131,7 +135,7 @@ class CarrierConfigurationImport extends Action
                                          ->getValue(Config::XML_PATH_GENERAL . "account_settings_$apiKey")
         ;
 
-        if (!$accountSettings) {
+        if (! $accountSettings) {
             return null;
         }
 

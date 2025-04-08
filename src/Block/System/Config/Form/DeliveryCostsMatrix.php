@@ -7,6 +7,8 @@ namespace MyParcelNL\Magento\Block\System\Config\Form;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
+use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCostsMatrix extends Field
@@ -21,8 +23,8 @@ class DeliveryCostsMatrix extends Field
     public function getCarriers(): array
     {
         $carriers = [];
-        foreach (NewShipmentForm::ALLOWED_CARRIER_CLASSES as $carrierClass) { // TODO move constant from NewShipmentForm
-            $carrier = new $carrierClass();
+        foreach (Carrier::ALLOWED_CARRIER_CLASSES as $carrierClass) {
+            $carrier                       = new $carrierClass();
             $carriers[$carrier->getName()] = $carrier->getHuman();
         }
         return $carriers;
@@ -30,7 +32,13 @@ class DeliveryCostsMatrix extends Field
 
     public function getPackageTypes(): array
     {
-        return NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP; // TODO move constant from NewShipmentForm
+        return [
+            AbstractConsignment::PACKAGE_TYPE_PACKAGE       => __('Package'),
+            AbstractConsignment::PACKAGE_TYPE_MAILBOX       => __('Mailbox'),
+            AbstractConsignment::PACKAGE_TYPE_LETTER        => __('Letter'),
+            AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => __('Digital stamp'),
+            AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL => __('Small package'),
+        ];
     }
 
     public function getCountryCodes(): array
@@ -46,7 +54,7 @@ class DeliveryCostsMatrix extends Field
     /**
      * Retrieve element HTML markup, called from Magento
      *
-     * @param  \Magento\Framework\Data\Form\Element\AbstractElement $element
+     * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      *
      * @return string
      */

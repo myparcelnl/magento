@@ -21,17 +21,19 @@ use MyParcelNL\Magento\Service\Config;
 
 class ShipmentsAction extends Template
 {
-    private Config $Config;
+    private Config $config;
 
     /**
-     * @param  Context $context
-     * @param  array   $data
+     * @param Context $context
+     * @param array   $data
      */
     public function __construct(
         Context $context,
         array   $data = []
-    ) {
-        $this->Config  = (ObjectManager::getInstance())->get(Config::class);
+    )
+    {
+        $this->config = (ObjectManager::getInstance())->get(Config::class);
+
         parent::__construct($context, $data);
     }
 
@@ -72,7 +74,7 @@ class ShipmentsAction extends Template
      */
     public function getPrintSettings(): string
     {
-        $settings = $this->Config->getGeneralConfig('print');
+        $settings = $this->config->getGeneralConfig('print');
 
         return json_encode($settings);
     }
