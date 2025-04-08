@@ -75,7 +75,7 @@ abstract class AbstractDefaultDropOffPoint extends Field
      */
     public function getDropOffPointDetails(): ?array
     {
-        if (!$this->dropOffPoint) {
+        if (! $this->dropOffPoint) {
             return null;
         }
 

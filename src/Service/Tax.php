@@ -54,18 +54,18 @@ class Tax
 
         $taxAmount = $this->taxCalculation->calcTaxAmount($price, $shippingTaxRate, $this->priceIncludesTax, false);
 
-        if ($this->priceIncludesTax && !$including) {
+        if ($this->priceIncludesTax && ! $including) {
             return $price - $taxAmount;
         }
 
-        // !$pricesIncludeTax && $including
+        // ! $pricesIncludeTax && $including
         return $price + $taxAmount;
     }
 
     private function getShippingTaxRate(Quote $quote)
     {
         // if the quote has changed, we need to recalculate the tax rates
-        if (!isset($this->quote) || $this->quote->getId() !== $quote->getId()) {
+        if (! isset($this->quote) || $this->quote->getId() !== $quote->getId()) {
             $this->quote = $quote;
             // getTaxRates(...) ultimately returns an array of available rates holding (int) ‘tax class id’ => (float) ‘rate as percentage’
             $this->taxRates = $this->taxCalculation->getTaxRates($quote->getBillingAddress()->toArray(), $quote->getShippingAddress()->toArray(), $quote->getCustomerTaxClassId());

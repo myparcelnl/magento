@@ -78,7 +78,7 @@ class SendMyParcelReturnMail extends \Magento\Backend\App\Action
 
         $this->addOrdersToCollection($orderIds);
 
-        if (!$this->orderCollection->hasShipment()) {
+        if (! $this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
             return $this;
         }

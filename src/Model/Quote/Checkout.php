@@ -198,10 +198,10 @@ class Checkout
 
             $allowPickup           = $this->config->getBoolConfig($carrierPath, 'pickup/active');
             $allowStandardDelivery = $this->config->getBoolConfig($carrierPath, 'delivery/active');
-            $allowMorningDelivery  = !$isAgeCheckActive && $canHaveMorning && $this->config->getBoolConfig($carrierPath, 'morning/active');
-            $allowEveningDelivery  = !$isAgeCheckActive && $canHaveEvening && $this->config->getBoolConfig($carrierPath, 'evening/active');
+            $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveMorning && $this->config->getBoolConfig($carrierPath, 'morning/active');
+            $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveEvening && $this->config->getBoolConfig($carrierPath, 'evening/active');
             $allowExpressDelivery  = $canHaveExpress && $this->config->getBoolConfig($carrierPath, 'express/active');
-            $allowDeliveryOptions  = !$this->package->deliveryOptionsDisabled
+            $allowDeliveryOptions  = ! $this->package->deliveryOptionsDisabled
                                      && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             if ($allowDeliveryOptions && $packageType === AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME) {
@@ -441,6 +441,6 @@ class Checkout
         $pickupEnabled = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME === $this->getPackageType()
                          && $this->config->getBoolConfig($carrier, 'pickup/active');
 
-        return !$this->package->deliveryOptionsDisabled && $pickupEnabled;
+        return ! $this->package->deliveryOptionsDisabled && $pickupEnabled;
     }
 }
