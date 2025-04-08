@@ -38,7 +38,7 @@ class AccountSettings extends BaseModel
     {
         $settings = CarrierConfigurationImport::getAccountSettings($apiKey);
 
-        if (!$settings) {
+        if (! $settings) {
             return;
         }
 
@@ -121,7 +121,7 @@ class AccountSettings extends BaseModel
     {
         $carrierConfiguration = $this->getCarrierConfigurationByCarrier($carrier);
 
-        if (!$carrierConfiguration) {
+        if (! $carrierConfiguration) {
             return null;
         }
 

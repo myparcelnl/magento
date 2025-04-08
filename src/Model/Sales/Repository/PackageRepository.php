@@ -125,7 +125,7 @@ class PackageRepository extends Package
     public function fitInMailbox(): bool
     {
         $mailboxAllowedToCountry = $this->getCurrentCountry() === AbstractConsignment::CC_NL;
-        if (!$mailboxAllowedToCountry) {
+        if (! $mailboxAllowedToCountry) {
             $config = (new AccountSettings($this->getGeneralConfig('api/key')))->getCarrierOptions()->filter(
                 static function ($carrierOptions) {
                     return self::CARRIER_TYPE_CUSTOM === $carrierOptions->getType()

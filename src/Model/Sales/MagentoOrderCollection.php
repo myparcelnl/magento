@@ -249,7 +249,7 @@ class MagentoOrderCollection extends MagentoCollection
 
             $order->setOrderLines($orderLines);
 
-            if (!in_array($this->shippingRecipient->getCc(), AbstractConsignment::EURO_COUNTRIES, true)) {
+            if (! in_array($this->shippingRecipient->getCc(), AbstractConsignment::EURO_COUNTRIES, true)) {
                 $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order);
                 $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
                 $order->setCustomsDeclaration($customsDeclaration);
@@ -309,7 +309,7 @@ class MagentoOrderCollection extends MagentoCollection
         ;
 
         foreach ($magentoOrder->getStatusHistoryCollection() as $status) {
-            if (!$status->getComment()) {
+            if (! $status->getComment()) {
                 continue;
             }
 
@@ -355,7 +355,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->order->getItems() as $item) {
             $product = $item->getProduct();
 
-            if (!$product) {
+            if (! $product) {
                 continue;
             }
 
@@ -622,7 +622,7 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         foreach ($order->getAllItems() as $orderItem) {
-            if (!$orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
+            if (! $orderItem->getQtyToShip() || $orderItem->getIsVirtual()) {
                 continue;
             }
 

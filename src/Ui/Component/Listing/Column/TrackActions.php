@@ -49,7 +49,7 @@ class TrackActions extends Column
      */
     public function prepareDataSource(array $dataSource)
     {
-        if (!isset($dataSource['data']['items'])) {
+        if (! isset($dataSource['data']['items'])) {
             return $dataSource;
         }
 
@@ -65,7 +65,7 @@ class TrackActions extends Column
                 continue;
             }
 
-            if (!isset($item[ShippingStatus::NAME])) {
+            if (! isset($item[ShippingStatus::NAME])) {
                 if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
                     $item[$this->getData('name')]['action-create_concept'] = [
                         'href'   => $this->urlBuilder->getUrl(
@@ -76,7 +76,7 @@ class TrackActions extends Column
                             ]
                         ),
                         'label'  => __('Export to MyParcel'),
-                        'hidden' => !$orderManagementActivated,
+                        'hidden' => ! $orderManagementActivated,
                     ];
                 } else {
                     $item[$this->getData('name')]['action-download_package_label']       = [
@@ -173,7 +173,7 @@ class TrackActions extends Column
                         ]
                     ),
                     'label'  => __('Already exported'),
-                    'hidden' => !$orderManagementActivated,
+                    'hidden' => ! $orderManagementActivated,
                 ];
                 $item[$this->getData('name')]['action-download_package_label']    = [
                     'href'   => $this->urlBuilder->getUrl(

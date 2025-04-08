@@ -130,8 +130,8 @@ class UpdateStatus
             $incrementId = $apiOrder->getExternalIdentifier();
             $shipment    = $apiOrder->getOrderShipments()[0]['shipment'] ?? null;
 
-            if (!$incrementId
-                || !$shipment
+            if (! $incrementId
+                || ! $shipment
                 || isset($orderIdsDone[$incrementId])
                 || !array_contains($orderIdsToCheck, $incrementId)) {
                 continue;
@@ -140,14 +140,14 @@ class UpdateStatus
             $orderIdsDone[$incrementId] = $incrementId;
             $barcode                    = $shipment['external_identifier'] ?? TrackAndTrace::VALUE_PRINTED;
 
-            if (!$this->apiShipmentIsShipped($shipment)) {
+            if (! $this->apiShipmentIsShipped($shipment)) {
                 continue;
             }
 
             $magentoOrder = $this->objectManager->create('Magento\Sales\Model\Order')
                                                 ->loadByIncrementId($incrementId);
 
-            if (!$magentoOrder->canShip()) {
+            if (! $magentoOrder->canShip()) {
                 $orderIdsDone[$incrementId] = self::ORDER_ID_NOT_TO_PROCESS;
 
                 Logger::notice('Order is shipped from backoffice but Magento will not create a shipment.');
@@ -155,7 +155,7 @@ class UpdateStatus
             }
         }
 
-        if (!$orderIdsDone) {
+        if (! $orderIdsDone) {
             Logger::notice('PPS: no orders updated');
 
             return $this;
@@ -170,13 +170,13 @@ class UpdateStatus
         $arrayWithIdsArray = $magentoOrders->getData();
 
         foreach ($arrayWithIdsArray as $arrayWithIds) {
-            if (!in_array($arrayWithIds['increment_id'], $orderIncrementIds)) {
+            if (! in_array($arrayWithIds['increment_id'], $orderIncrementIds)) {
                 continue;
             }
             $orderEntityIds[] = $arrayWithIds['entity_id'];
         }
 
-        if (!$orderEntityIds) {
+        if (! $orderEntityIds) {
             return $this;
         }
 
@@ -236,7 +236,7 @@ class UpdateStatus
         $status = $shipment['status'] ?? null;
 
         return $status >= ShipmentStatus::PRINTED_MINIMUM
-            && (!in_array($status, [ShipmentStatus::CREDITED, ShipmentStatus::CANCELLED], true));
+            && (! in_array($status, [ShipmentStatus::CREDITED, ShipmentStatus::CANCELLED], true));
     }
 
     /**

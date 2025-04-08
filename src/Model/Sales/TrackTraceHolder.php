@@ -373,7 +373,7 @@ class TrackTraceHolder
      */
     private function convertDataForCdCountry(Track $magentoTrack): self
     {
-        if (!$this->consignment->isToRowCountry()) {
+        if (! $this->consignment->isToRowCountry()) {
             return $this;
         }
 
@@ -508,7 +508,7 @@ class TrackTraceHolder
             $packageType = $this->defaultOptions->getPackageType();
         }
 
-        if (!is_numeric($packageType)) {
+        if (! is_numeric($packageType)) {
             $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType] ?? $this->defaultOptions->getPackageType();
         }
 

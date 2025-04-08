@@ -35,13 +35,13 @@ trait NeedsQuoteProps
     protected function getQuoteFromRateRequest(RateRequest $request): ?Quote
     {
         $items = $request->getAllItems();
-        if (!$items) {
+        if (! $items) {
             return null;
         }
 
         /** @var \Magento\Quote\Model\Quote\Item $firstItem */
         $firstItem = reset($items);
-        if (!$firstItem) {
+        if (! $firstItem) {
             return null;
         }
 

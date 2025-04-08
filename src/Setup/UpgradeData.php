@@ -809,7 +809,7 @@ class UpgradeData implements UpgradeDataInterface
                     $saturdayCutoffTime = $getConfigValue("$carrierPath/general/saturday_cutoff_time", $scope, $scopeId);
                     $dropOffDaysString = $getConfigValue("$carrierPath/general/dropoff_days", $scope, $scopeId);
 
-                    if (!$dropOffDaysString) {
+                    if (! $dropOffDaysString) {
                         $dropOffDays = [];
                     } else {
                         $dropOffDays = array_map('intval', explode(',', $dropOffDaysString));

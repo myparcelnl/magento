@@ -112,7 +112,7 @@ class NewShipment implements ObserverInterface
                 $useMultiCollo = true;
             }
 
-            if (!$useMultiCollo) {
+            if (! $useMultiCollo) {
                 $this->orderCollection->myParcelCollection->addConsignment($trackTraceHolder->consignment);
             }
 

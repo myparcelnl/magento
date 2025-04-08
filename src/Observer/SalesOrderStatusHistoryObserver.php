@@ -34,9 +34,9 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
         /** @var \Magento\Sales\Model\Order\Status\History $history */
         $history = $observer->getData()['status_history'] ?? null;
 
-        if (!is_a($history, History::class)
-            || !$history->getComment()
-            || !$history->getOrder()
+        if (! is_a($history, History::class)
+            || ! $history->getComment()
+            || ! $history->getOrder()
         ) {
             return $this;
         }
@@ -48,7 +48,7 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
 
         $uuid = $magentoOrder->getData('myparcel_uuid');
 
-        if (!$uuid) {
+        if (! $uuid) {
             return $this;
         }
 
