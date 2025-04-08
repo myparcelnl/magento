@@ -78,12 +78,14 @@ class DeliveryCosts
         $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
                        + $this->weight->getQuoteWeightInGrams($quote);
 
-        return $this->calculate([
-                                    'carrier_name' => $carrierName,
-                                    'package_type' => $packageType,
-                                    'country'      => $countryCode,
-                                    'weight'       => $weight,
-                                ]);
+        return $this->calculate(
+            [
+                'carrier_name' => $carrierName,
+                'package_type' => $packageType,
+                'country'      => $countryCode,
+                'weight'       => $weight,
+            ]
+        );
     }
 
     /**
@@ -95,7 +97,7 @@ class DeliveryCosts
      */
     private function calculate(array $conditions): float
     {
-        if (!isset($conditions['carrier_name'], $conditions['package_type'], $conditions['country'], $conditions['weight'])) {
+        if (! isset($conditions['carrier_name'], $conditions['package_type'], $conditions['country'], $conditions['weight'])) {
             throw new \InvalidArgumentException('Missing required conditions');
         }
 
@@ -108,7 +110,7 @@ class DeliveryCosts
         $return = [];
 
         foreach ($matrix as $definition) {
-            if (!isset($definition['conditions']) || !is_array(($definedConditions = $definition['conditions']))) {
+            if (! isset($definition['conditions']) || ! is_array(($definedConditions = $definition['conditions']))) {
                 continue;
             }
 
@@ -119,7 +121,7 @@ class DeliveryCosts
                     continue;
                 }
                 // consider unspecified conditions as valid
-                if (!isset($definedConditions[$condition])) {
+                if (! isset($definedConditions[$condition])) {
                     $totalPoints += self::CONDITIONS['unspecified'];
                     continue;
                 }
@@ -178,7 +180,7 @@ class DeliveryCosts
             case CountryCodes::ZONE_EU:
                 return in_array($needle, CountryCodes::EU_COUNTRIES);
             case CountryCodes::ZONE_ROW:
-                return !in_array($needle, CountryCodes::EU_COUNTRIES);
+                return ! in_array($needle, CountryCodes::EU_COUNTRIES);
             default:
                 return $needle === $haystackDefinition;
         }

@@ -44,7 +44,7 @@ class DigitalStampWeightOptions implements OptionSourceInterface
     {
         $settings = self::$config->getCarrierConfig(CarrierPostNL::NAME, 'options');
 
-        return (bool) $settings[$option . '_active'];
+        return (bool) $settings["{$option}_active"];
     }
 
     /**

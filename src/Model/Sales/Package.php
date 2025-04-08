@@ -20,7 +20,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use MyParcelNL\Magento\Service\Config;
 
-class Package extends Config implements PackageInterface //used to extend MyParcelNL\Magento\Helper\Data;
+class Package extends Config implements PackageInterface
 {
     /**
      * @var int
@@ -66,11 +66,6 @@ class Package extends Config implements PackageInterface //used to extend MyParc
      * @var float
      */
     private $mailboxPercentage = 0.0;
-
-    /**
-     * @var bool
-     */
-    private $allProductsFit = true;
 
     /**
      * @var string
@@ -241,14 +236,12 @@ class Package extends Config implements PackageInterface //used to extend MyParc
 
     /**
      * @return int
+     * @throws \Exception
+     * @deprecated for 5.0.0
      */
     public function getPackageType(): int
     {
-        if (! isset($this->packageType)) {
-            throw new \RuntimeException('Use setPackageType() before you can getPackageType()');
-        }
         throw new \Exception('Please remove Package.php and PackageRepository.php and use a service');
-        return $this->packageType;
     }
 
     /**
