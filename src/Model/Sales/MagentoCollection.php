@@ -349,7 +349,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     public function syncMagentoToMyparcel(): self
     {
         $consignmentIdsByApiKey = $this->getMyparcelConsignmentIdsByApiKey();
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($consignmentIdsByApiKey, true) . " <- 453287r98k2r\n", FILE_APPEND);
+
         foreach ($consignmentIdsByApiKey as $apiKey => $consignmentIds) {
             try {
                 $this->myParcelCollection->addConsignmentByConsignmentIds(
