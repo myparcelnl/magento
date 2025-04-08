@@ -61,7 +61,6 @@ class CreateAndPrintMyParcelTrack extends Action
      */
     public function execute()
     {
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log',"EXECUTE (Shipment/CreateAndPrint)\n", FILE_APPEND);
         $this->massAction();
 
         return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_SHIPMENT_INDEX);
