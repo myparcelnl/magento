@@ -133,7 +133,7 @@ class UpdateStatus
             if (! $incrementId
                 || ! $shipment
                 || isset($orderIdsDone[$incrementId])
-                || !array_contains($orderIdsToCheck, $incrementId)) {
+                || ! array_contains($orderIdsToCheck, $incrementId)) {
                 continue;
             }
 

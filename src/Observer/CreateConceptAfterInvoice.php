@@ -34,20 +34,9 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
 class CreateConceptAfterInvoice implements ObserverInterface
 {
     private ObjectManager $objectManager;
-
-    /**
-     * @var RequestInterface
-     */
-    private $request;
-
-    /**
-     * @var Track
-     */
-    private $modelTrack;
-
     private MagentoOrderCollection    $orderCollection;
     private Config                    $config;
-    private MagentoShipmentCollection $shipmentCollection;
+
     protected ManagerInterface        $messageManager;
 
     /**
@@ -61,8 +50,6 @@ class CreateConceptAfterInvoice implements ObserverInterface
         $request               = $objectManager->get(RequestInterface::class);
         $this->config          = $objectManager->get(Config::class);
         $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($objectManager, $request);
-        //$this->modelTrack      = $objectManager->create('Magento\Sales\Model\Order\Shipment\Track');
-        //$this->orderFactory    = $objectManager->get('\Magento\Sales\Model\Order');
     }
 
     /**

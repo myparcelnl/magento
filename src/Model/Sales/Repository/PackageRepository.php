@@ -148,7 +148,6 @@ class PackageRepository extends Package
      */
     public function fitInDigitalStamp(): bool
     {
-        // TODO temporary weight calculation since PackageRepository will be removed altogether
         $orderWeight               = (new Weight($this))->convertToGrams($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 

@@ -56,7 +56,7 @@ class TrackActions extends Column
         $orderManagementActivated = Config::EXPORT_MODE_PPS === $this->config->getExportMode();
 
         foreach ($dataSource['data']['items'] as &$item) {
-            if (!array_key_exists(ShippingStatus::NAME, $item)) {
+            if (! array_key_exists(ShippingStatus::NAME, $item)) {
                 throw new LocalizedException(
                     __(
                         'Note that the installation of the extension was not successful. Some columns have not been added to the database. The installation should be reversed. Use the following command to reinstall the module: DELETE FROM `setup_module` WHERE `setup_module`.`module` = \'MyParcelNL_Magento\''

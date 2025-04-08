@@ -21,7 +21,7 @@ namespace MyParcelNL\Magento\Model\Sales\Repository;
 use MyParcelNL\Magento\Model\Sales\DeliveryInterface;
 use MyParcelNL\Magento\Service\Config;
 
-class DeliveryRepository extends Config implements DeliveryInterface // used to extend MyParcelNL\Magento\Helper\Data;
+class DeliveryRepository extends Config implements DeliveryInterface
 {
     /**
      * @var int
@@ -31,18 +31,17 @@ class DeliveryRepository extends Config implements DeliveryInterface // used to 
     /**
      * @return int
      */
-    public function getDeliveryDateTime()
+    public function getDeliveryDateTime(): int
     {
         return $this->deliveryDateTime;
     }
 
     /**
      * @param int $deliveryDateTime
-     * @return int
      */
-    public function setDeliveryDateTime($deliveryDateTime)
+    public function setDeliveryDateTime($deliveryDateTime): void
     {
-        $this->deliveryDateTime = $deliveryDateTime;
+        $this->deliveryDateTime = (int) $deliveryDateTime;
     }
 
     /**
@@ -53,7 +52,7 @@ class DeliveryRepository extends Config implements DeliveryInterface // used to 
      */
     public function getDropOffDayFromDeliveryOptions(array $deliveryOptions): ?string
     {
-        if (key_exists('date', $deliveryOptions)) {
+        if (array_key_exists('date', $deliveryOptions)) {
             if (! $deliveryOptions['date']) {
                 return date('Y-m-d', strtotime("+1 day"));
             }
