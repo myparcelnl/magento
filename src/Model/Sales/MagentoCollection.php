@@ -356,7 +356,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     $consignmentIds,
                     $apiKey
                 );
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 $this->messageManager->addErrorMessage($e->getMessage());
             }
         }
@@ -377,7 +377,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         try {
             $this->myParcelCollection->createConcepts();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
             return $this;
         }
@@ -465,7 +465,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         while ($i < $quantity) {
             try {
                 $this->myParcelCollection->addConsignment($consignment);
-            } catch (Exception $e) {
+            } catch (Throwable $e) {
                 return;
             }
 

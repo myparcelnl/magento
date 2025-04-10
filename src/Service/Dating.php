@@ -24,7 +24,7 @@ class Dating
 
         try {
             $deliveryDate = strtotime((new DateTimeImmutable($date))->format('Y-m-d'));
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             return null;
         }
 

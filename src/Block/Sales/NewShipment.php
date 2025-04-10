@@ -145,7 +145,7 @@ class NewShipment extends AbstractItems
         try {
             $deliveryTypeName = json_decode($this->order->getData(Config::FIELD_DELIVERY_OPTIONS), true)['deliveryType'];
             $deliveryType     = AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP[$deliveryTypeName];
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $deliveryType = AbstractConsignment::DEFAULT_DELIVERY_TYPE;
         }
 
