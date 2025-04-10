@@ -189,7 +189,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
         try {
             $carrierHuman = CarrierFactory::createFromName($carrierName)->getHuman();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $carrierHuman = $carrierName;
         }
 
@@ -199,7 +199,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
         foreach ($shipmentOptions->toArray() as $key => $value) {
             if ($value) {
-                echo ', ', trim(__("{$key}_title"));
+                echo ', ', __("{$key}_title");
             }
         }
 

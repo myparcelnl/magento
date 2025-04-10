@@ -142,7 +142,7 @@ class TrackTraceHolder
                 ->setFullStreet($address->getData('street'))
                 ->setPostalCode(preg_replace('/\s+/', '', $address->getPostcode()))
             ;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $errorHuman
                 = sprintf(
                 'An error has occurred while validating order number %s. Check address.',
@@ -217,7 +217,7 @@ class TrackTraceHolder
             $this->convertDataForCdCountry($magentoTrack)
                  ->calculateTotalWeight($magentoTrack, $totalWeight)
             ;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
             return $this;
         }

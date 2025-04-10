@@ -262,13 +262,13 @@ class MagentoOrderCollection extends MagentoCollection
         try {
             $this->myParcelCollection = $orderCollection->save();
             $this->setMagentoOrdersAsExported();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
         try {
             $this->saveOrderNotes();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         }
 
@@ -285,7 +285,7 @@ class MagentoOrderCollection extends MagentoCollection
                 try {
                     $note->validate();
                     $notes->push($note);
-                } catch (Exception $e) {
+                } catch (Throwable $e) {
                     $this->messageManager->addWarningMessage(
                         sprintf(
                             'Note `%s` not exported. %s',
@@ -635,7 +635,7 @@ class MagentoOrderCollection extends MagentoCollection
 
         try {
             $this->objectManager->get(ShipmentResource::class)->save($shipment);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             if (preg_match('/' . self::DEFAULT_ERROR_ORDER_HAS_NO_SOURCE . '/', $e->getMessage())) {
                 $this->messageManager->addErrorMessage(__(self::ERROR_ORDER_HAS_NO_SOURCE));
             } else {

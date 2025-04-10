@@ -24,6 +24,7 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use Throwable;
 
 class DefaultOptions
 {
@@ -55,7 +56,7 @@ class DefaultOptions
             $this->chosenOptions = DeliveryOptionsAdapterFactory::create(
                 (array) json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 4, JSON_THROW_ON_ERROR)
             )->toArray();
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->chosenOptions = [];
         }
     }
