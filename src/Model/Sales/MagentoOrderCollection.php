@@ -17,6 +17,7 @@ use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Service\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Cron\UpdateStatus;
@@ -41,6 +42,7 @@ use MyParcelNL\Sdk\Model\PickupLocation;
 use MyParcelNL\Sdk\Model\Recipient;
 use MyParcelNL\Sdk\Support\Collection;
 use MyParcelNL\Sdk\Support\Str;
+use Throwable;
 
 /**
  * Class MagentoOrderCollection
@@ -49,25 +51,11 @@ use MyParcelNL\Sdk\Support\Str;
  */
 class MagentoOrderCollection extends MagentoCollection
 {
-    /**
-     * @var OrderResource\Collection
-     */
-    private $orders = null;
-
-    /**
-     * @var Order
-     */
-    private $order;
-
-    /**
-     * @var Recipient
-     */
-    private $billingRecipient;
-
-    /**
-     * @var Recipient
-     */
-    private $shippingRecipient;
+    private ?OrderResource\Collection $orders = null;
+    private Order $order;
+    private Recipient $billingRecipient;
+    private Recipient $shippingRecipient;
+    private Ordercollection $fulfilmentCollection;
 
     /**
      * Get all Magento orders
@@ -208,19 +196,21 @@ class MagentoOrderCollection extends MagentoCollection
 
             $this->setBillingRecipient();
             $this->setShippingRecipient();
+
+            $apiKey = $this->config->getGeneralConfig('api/key', (int) $magentoOrder->getStoreId());
+            $dropOffPoint = (new AccountSettings($apiKey))->getDropOffPoint(
+                CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
+            );
+
             $order = (new FulfilmentOrder())
-                ->setApiKey($this->config->getGeneralConfig('api/key', $magentoOrder->getStoreId()))
+                ->setApiKey($apiKey)
                 ->setStatus($this->order->getStatus())
                 ->setDeliveryOptions($deliveryOptionsAdapter)
                 ->setInvoiceAddress($this->getBillingRecipient())
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->getLocalCreatedAtDate())
                 ->setExternalIdentifier($this->order->getIncrementId())
-                ->setDropOffPoint(
-                    $this->config->getDropOffPoint(
-                        CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
-                    )
-                )
+                ->setDropOffPoint($dropOffPoint)
             ;
 
             if ($deliveryOptionsAdapter->isPickup()
@@ -260,7 +250,7 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         try {
-            $this->myParcelCollection = $orderCollection->save();
+            $this->fulfilmentCollection = $orderCollection->save();
             $this->setMagentoOrdersAsExported();
         } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
@@ -332,7 +322,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $magentoOrder) {
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
 
-            $fulfilmentOrder = $this->myParcelCollection->first(function (FulfilmentOrder $order) use ($magentoOrder) {
+            $fulfilmentOrder = $this->fulfilmentCollection->first(function (FulfilmentOrder $order) use ($magentoOrder) {
                 return $order->getExternalIdentifier() === $magentoOrder->getIncrementId();
             });
 
@@ -362,7 +352,7 @@ class MagentoOrderCollection extends MagentoCollection
             $totalWeight += $product->getWeight() * $item->getQtyOrdered();
         }
 
-        return $this->config->convertToGrams($totalWeight);
+        return $this->weight->convertToGrams($totalWeight);
     }
 
     /**
