@@ -54,8 +54,7 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
 
         $apiKey = $this->config->getGeneralConfig('api/key', $magentoOrder->getStoreId());
 
-        (new OrderNotesCollection())->setApiKey($apiKey)
-                                    ->push(
+        (new OrderNotesCollection())->push(
                                         new OrderNote(
                                             [
                                                 'orderUuid' => $uuid,
@@ -64,7 +63,7 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
                                             ]
                                         )
                                     )
-                                    ->save()
+                                    ->save($apiKey)
         ;
 
         return $this;

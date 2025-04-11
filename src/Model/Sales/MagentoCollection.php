@@ -35,6 +35,7 @@ use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\Exception\ApiException;
@@ -43,6 +44,7 @@ use MyParcelNL\Sdk\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Model\Consignment\BaseConsignment;
+use Throwable;
 
 /**
  * Class MagentoOrderCollection
@@ -72,11 +74,9 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected AreaList               $areaList;
     protected ManagerInterface       $messageManager;
     protected Config                 $config;
+    protected Weight                 $weight;
 
-    /**
-     * @var array
-     */
-    protected $options
+    protected array $options
         = [
             'create_track_if_one_already_exist' => true,
             'request_type'                      => 'download',
@@ -96,10 +96,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             'return_in_the_box'                 => false,
             'same_day_delivery'                 => false,
         ];
-    /**
-     * @var mixed
-     */
-    private $weight;
 
     /**
      * @param ObjectManagerInterface $objectManager
@@ -122,6 +118,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->request            = $request;
         $this->trackSender        = $objectManager->get(TrackSender::class);
         $this->config             = $objectManager->get(Config::class);
+        $this->weight             = $objectManager->get(Weight::class);
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
@@ -382,7 +379,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             return $this;
         }
 
-        //$this->myParcelCollection->setLatestData(); // todo find out what this is for and make it work with multiple api keys
+        $this->myParcelCollection->setLatestData();
 
         return $this;
     }
