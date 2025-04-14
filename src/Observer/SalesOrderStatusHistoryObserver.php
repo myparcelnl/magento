@@ -52,7 +52,7 @@ class SalesOrderStatusHistoryObserver implements ObserverInterface
             return $this;
         }
 
-        $apiKey = $this->config->getGeneralConfig('api/key', $magentoOrder->getStoreId());
+        $apiKey = $this->config->getGeneralConfig('api/key', (int) $magentoOrder->getStoreId());
 
         (new OrderNotesCollection())->push(
                                         new OrderNote(
