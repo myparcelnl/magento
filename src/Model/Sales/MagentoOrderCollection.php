@@ -43,6 +43,8 @@ use MyParcelNL\Sdk\Model\Recipient;
 use MyParcelNL\Sdk\Support\Collection;
 use MyParcelNL\Sdk\Support\Str;
 use Throwable;
+use Psr\Log\LoggerInterface;
+use Magento\Shipping\Model\ShipmentNotifier;
 
 /**
  * Class MagentoOrderCollection
@@ -51,7 +53,10 @@ use Throwable;
  */
 class MagentoOrderCollection extends MagentoCollection
 {
-    private ?OrderResource\Collection $orders = null;
+    /**
+     * @var null|OrderResource\Collection|Order[]
+     */
+    private $orders = null;
     private Order $order;
     private Recipient $billingRecipient;
     private Recipient $shippingRecipient;
@@ -60,7 +65,7 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Get all Magento orders
      *
-     * @return OrderResource\Collection
+     * @return OrderResource\Collection|Order[]
      */
     public function getOrders()
     {
@@ -113,7 +118,6 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $order) {
             if ($order->canShip() && $this->createMagentoShipment($order, $notifyClientsByEmail)) {
                 $order->setIsInProcess(true);
-                $this->objectManager->get(OrderResource::class)->save($order);
             }
         }
 
@@ -267,7 +271,7 @@ class MagentoOrderCollection extends MagentoCollection
 
     private function saveOrderNotes(): void
     {
-        $this->myParcelCollection->each(function (FulfilmentOrder $order) {
+        $this->fulfilmentCollection->each(function (FulfilmentOrder $order) {
 
             $notes = new OrderNotesCollection();
 
@@ -383,15 +387,21 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setBillingRecipient(): self
     {
+        $billingAddress = $this->order->getBillingAddress();
+
+        if (! $billingAddress) {
+            return $this;
+        }
+
         $this->billingRecipient = (new Recipient())
-            ->setCc($this->order->getBillingAddress()->getCountryId())
-            ->setCity($this->order->getBillingAddress()->getCity())
-            ->setCompany($this->order->getBillingAddress()->getCompany())
-            ->setEmail($this->order->getBillingAddress()->getEmail())
+            ->setCc($billingAddress->getCountryId())
+            ->setCity($billingAddress->getCity())
+            ->setCompany($billingAddress->getCompany())
+            ->setEmail($billingAddress->getEmail())
             ->setPerson($this->getFullCustomerName())
-            ->setPhone($this->order->getBillingAddress()->getTelephone())
-            ->setPostalCode($this->order->getBillingAddress()->getPostcode())
-            ->setStreet(implode(' ', $this->order->getBillingAddress()->getStreet() ?? []))
+            ->setPhone($billingAddress->getTelephone())
+            ->setPostalCode($billingAddress->getPostcode())
+            ->setStreet(implode(' ', $billingAddress->getStreet() ?? []))
         ;
 
         return $this;
@@ -411,28 +421,33 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setShippingRecipient(): self
     {
+        $shippingAddress = $this->order->getShippingAddress();
+
+        if (! $shippingAddress) {
+            return $this;
+        }
+
         $carrier = ConsignmentFactory::createByCarrierName(CarrierPostNL::NAME);
         $street  = implode(
             ' ',
-            $this->order->getShippingAddress()
-                        ->getStreet() ?? []
+            $shippingAddress->getStreet() ?? []
         );
 
-        $country     = $this->order->getShippingAddress()->getCountryId();
+        $country     = $shippingAddress->getCountryId();
         $streetParts = SplitStreet::splitStreet($street, $carrier->getLocalCountryCode(), $country);
 
         $this->shippingRecipient = (new Recipient())
             ->setCc($country)
-            ->setCity($this->order->getShippingAddress()->getCity())
-            ->setCompany($this->order->getShippingAddress()->getCompany())
-            ->setEmail($this->order->getShippingAddress()->getEmail())
+            ->setCity($shippingAddress->getCity())
+            ->setCompany($shippingAddress->getCompany())
+            ->setEmail($shippingAddress->getEmail())
             ->setPerson($this->getFullCustomerName())
-            ->setPostalCode($this->order->getShippingAddress()->getPostcode())
+            ->setPostalCode($shippingAddress->getPostcode())
             ->setStreet($streetParts->getStreet())
             ->setNumber((string) $streetParts->getNumber())
             ->setNumberSuffix((string) $streetParts->getNumberSuffix())
             ->setBoxNumber((string) $streetParts->getBoxNumber())
-            ->setPhone($this->order->getShippingAddress()->getTelephone())
+            ->setPhone($shippingAddress->getTelephone())
         ;
 
         return $this;
@@ -451,11 +466,17 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function getFullCustomerName(): string
     {
-        $firstName  = $this->order->getBillingAddress()->getFirstname();
-        $middleName = $this->order->getBillingAddress()->getMiddlename();
-        $lastName   = $this->order->getBillingAddress()->getLastname();
+        $billingAddress = $this->order->getBillingAddress();
 
-        return $firstName . ' ' . $middleName . ' ' . $lastName;
+        if (! $billingAddress) {
+            return '';
+        }
+
+        $firstName  = $billingAddress->getFirstname();
+        $middleName = $billingAddress->getMiddlename();
+        $lastName   = $billingAddress->getLastname();
+
+        return "$firstName $middleName $lastName";
     }
 
     /**
@@ -565,8 +586,10 @@ class MagentoOrderCollection extends MagentoCollection
      */
     private function save(): void
     {
+        $resourceManager = $this->objectManager->get(OrderResource::class);
+
         foreach ($this->getOrders() as $order) {
-            $order->save();
+            $resourceManager->save($order);
         }
     }
 
@@ -582,7 +605,7 @@ class MagentoOrderCollection extends MagentoCollection
         /**
          * @var Shipment $shipment
          */
-        if ($this->trackSender->isEnabled() == false) {
+        if (! $this->trackSender->isEnabled()) {
             return $this;
         }
 
@@ -642,13 +665,13 @@ class MagentoOrderCollection extends MagentoCollection
             }
             $this->objectManager->get(OrderResource::class)->save($shipment->getOrder());
 
-            $this->objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+            $this->objectManager->get(LoggerInterface::class)->critical($e);
 
             return false; // well that didn’t work
         }
 
         if ($notifyClientByEmail) {
-            $this->objectManager->create('Magento\Shipping\Model\ShipmentNotifier')
+            $this->objectManager->create(ShipmentNotifier::class)
                                 ->notify($shipment)
             ;
         }
