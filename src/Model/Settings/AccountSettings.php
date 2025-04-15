@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Settings;
 
 use Exception;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Controller\Adminhtml\Settings\CarrierConfigurationImport;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\Exception\ApiException;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
@@ -21,27 +24,27 @@ use MyParcelNL\Sdk\Support\Collection;
 
 class AccountSettings extends BaseModel
 {
-    protected Shop $shop;
-    protected Account $account;
+    protected Shop       $shop;
+    protected Account    $account;
     protected Collection $carrierOptions;
     protected Collection $carrierConfigurations;
 
     /**
-     * @var string $apiKey the api key (shop identifier) to get the account settings for
-     * @throws ApiException
-     * @throws AccountNotActiveException
-     * @throws MissingFieldException
      * @throws Exception
+     * @var string $apiKey the api key (shop identifier) to get the account settings for
      */
     public function __construct(string $apiKey)
     {
-        $settings = CarrierConfigurationImport::getAccountSettings($apiKey);
+        $objectManager = ObjectManager::getInstance();
+        $settings      = $objectManager->get(ScopeConfigInterface::class)
+                                       ->getValue(Config::XML_PATH_GENERAL . "account_settings_$apiKey")
+        ;
 
         if (! $settings) {
             return;
         }
 
-        $this->fillProperties($settings);
+        $this->fillProperties(new Collection(json_decode($settings, true)));
     }
 
     /**
@@ -67,7 +70,8 @@ class AccountSettings extends BaseModel
                     return $carrier->getId() === $carrierConfiguration->getCarrier()->getId();
                 }
             )
-            ->first();
+            ->first()
+        ;
     }
 
     /**
@@ -102,7 +106,8 @@ class AccountSettings extends BaseModel
                     return $carrier->getId() === $carrierOptions->getCarrier()->getId();
                 }
             )
-            ->first();
+            ->first()
+        ;
     }
 
     /**

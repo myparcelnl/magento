@@ -119,24 +119,6 @@ class CarrierConfigurationImport extends Action
         );
     }
 
-    /**
-     * @return \MyParcelNL\Sdk\Support\Collection|null
-     * @throws \Exception
-     */
-    public static function getAccountSettings(string $apiKey): ?Collection
-    {
-        $objectManager   = ObjectManager::getInstance();
-        $accountSettings = $objectManager->get(ScopeConfigInterface::class)
-                                         ->getValue(Config::XML_PATH_GENERAL . "account_settings_$apiKey")
-        ;
-
-        if (! $accountSettings) {
-            return null;
-        }
-
-        return new Collection(json_decode($accountSettings, true));
-    }
-
     private function clearCache(): void
     {
         $cacheFrontendPool = $this->pool;
