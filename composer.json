@@ -33,7 +33,8 @@
       "registration.php"
     ],
     "psr-4": {
-      "MyParcelNL\\Magento\\": "src/"
+      "MyParcelNL\\Magento\\": "src/",
+      "MyParcelNL\\Magento\\Controller\\": "Controller/"
     }
   },
   "scripts": {
