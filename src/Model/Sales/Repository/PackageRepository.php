@@ -24,6 +24,10 @@ use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
+/**
+ * Class PackageRepository
+ * @deprecated split this into small(er) classes according to functionality
+ */
 class PackageRepository extends Package
 {
     public const DEFAULT_MAXIMUM_MAILBOX_WEIGHT = 2000;
