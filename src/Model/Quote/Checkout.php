@@ -39,6 +39,7 @@ class Checkout
     /**
      * Checkout constructor.
      *
+     * @param Tax                   $tax
      * @param Config                $config
      * @param DeliveryCosts         $deliveryCosts
      * @param PackageRepository     $package

@@ -14,4 +14,7 @@
     <event name="sales_order_status_history_save_after">
         <observer name="mypa_sales_order_status_history_save_after" instance="MyParcelNL\Magento\Observer\SalesOrderStatusHistoryObserver"/>
     </event>
+    <event name="sales_quote_address_collect_totals_before">
+        <observer name="mypa_is_free_shipping_available" instance="MyParcelNL\Magento\Observer\IsFreeShippingAvailable"/>
+    </event>
 </config>
