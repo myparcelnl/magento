@@ -22,7 +22,7 @@
   "type": "magento2-module",
   "require": {
     "php": "^7.4 || ^8.0",
-    "myparcelnl/sdk": "^v8.1.1",
+    "myparcelnl/sdk": "^v9.0.0",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1"
   },
   "require-dev": {
