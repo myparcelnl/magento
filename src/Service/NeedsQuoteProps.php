@@ -90,7 +90,7 @@ trait NeedsQuoteProps
      * @see IsFreeShippingAvailable.
      * @return bool
      */
-    public function isFreeShippingAvailable(): bool
+    public function isFreeShippingAvailable(): ?bool
     {
         return ObjectManager::getInstance()->get(Session::class)->getMyParcelFreeShippingIsAvailable();
     }
