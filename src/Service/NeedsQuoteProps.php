@@ -88,7 +88,7 @@ trait NeedsQuoteProps
      * Returns the session variable that indicates whether free shipping is available, since often the quote is not
      * usable to determine this, we use an observer that receives the quote and sets this session variable.
      * @see IsFreeShippingAvailable.
-     * @return bool
+     * @return bool|null null should be considered as false
      */
     public function isFreeShippingAvailable(): ?bool
     {

@@ -41,7 +41,7 @@ class IsFreeShippingAvailable implements ObserverInterface
         /**
          * If one shipping method is available, the availability of free shipping cannot be determined.
          * Either (1) it is not available, or (2) a shipping method has already been selected.
-         * Case 1, when the session variable is not yet set it will evaluate to false.
+         * Case 1, when the session variable is not yet set it will correctly evaluate to false.
          * Case 2, leave the session variable alone, as it is already correctly set in a previous step.
          */
         if (1 >= count($shippingMethods)) {
