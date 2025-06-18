@@ -17,8 +17,7 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPS;
-use MyParcelNL\Sdk\Services\Web\CheckApiKeyWebService;
+use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
 
 class Config extends AbstractHelper
 {
@@ -47,7 +46,7 @@ class Config extends AbstractHelper
             CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
             CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
             CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
-            CarrierUPS::NAME              => self::XML_PATH_UPS_SETTINGS,
+            CarrierUPSStandard::NAME      => self::XML_PATH_UPS_SETTINGS,
             CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
         ];
 
