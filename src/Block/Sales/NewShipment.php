@@ -28,7 +28,7 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPS;
+use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 class NewShipment extends AbstractItems
@@ -177,7 +177,7 @@ class NewShipment extends AbstractItems
         }
 
         // For UPS shipment options are available for all countries in the EU
-        if (CarrierUPS::NAME === $consignment->getCarrierName()) {
+        if (CarrierUPSStandard::NAME === $consignment->getCarrierName()) {
             return true;
         }
 
