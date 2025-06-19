@@ -15,7 +15,6 @@ use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManagem
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Observer\IsFreeShippingAvailable;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
