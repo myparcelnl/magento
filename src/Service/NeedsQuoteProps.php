@@ -6,6 +6,12 @@ namespace MyParcelNL\Magento\Service;
 
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\StateException;
+use Magento\Quote\Api\Data\EstimateAddressInterface;
+use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
+use Magento\Quote\Api\Data\ShippingMethodInterface;
+use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManagementApi;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use MyParcelNL\Magento\Facade\Logger;
@@ -85,13 +91,66 @@ trait NeedsQuoteProps
     }
 
     /**
-     * Returns the session variable that indicates whether free shipping is available, since often the quote is not
-     * usable to determine this, we use an observer that receives the quote and sets this session variable.
-     * @see IsFreeShippingAvailable.
-     * @return bool|null null should be considered as false
+     * Returns the session variable that indicates whether free shipping is available. This variable is set when
+     * the config is retrieved during checkout, because that is the only time we have the correct address + the quote.
+     * @see MyParcelNL\Magento\Model\Quote\Checkout
+     * @return bool|null null should be considered false
      */
     public function isFreeShippingAvailable(): ?bool
     {
         return ObjectManager::getInstance()->get(Session::class)->getMyParcelFreeShippingIsAvailable();
+    }
+
+    public function setFreeShippingAvailability(Quote $quote, array $forAddress): void
+    {
+        if (!isset($forAddress['countryId'])) {
+            return;
+        }
+
+        $freeShippingIsAvailable = false;
+        /* var EstimateAddress $address */
+        $address = ObjectManager::getInstance()->get(EstimateAddressInterfaceFactory::class)->create();
+        $address->setCountryId($forAddress['countryId']);
+        $address->setRegion($forAddress['region'] ?? '');
+        $address->setPostcode($forAddress['postcode'] ?? '');
+        $methods = $this->estimateShippingMethods($quote, $address);
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($this->country, true) . " <- country in NeedsQuoteProps\n", FILE_APPEND);
+        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export(count($methods), true) . " methods\n", FILE_APPEND);
+
+        foreach ($methods as $method) {
+            /** @var ShippingMethodInterface $method */
+            if ('freeshipping' === $method->getCarrierCode()) {
+                $freeShippingIsAvailable = true;
+                break;
+            }
+        }
+
+        ObjectManager::getInstance()->get(Session::class)->setMyParcelFreeShippingIsAvailable($freeShippingIsAvailable);
+    }
+
+    /**
+     * @param Quote                    $quote
+     * @param EstimateAddressInterface $address
+     * @return array indexed array of ShippingMethodInterface objects
+     */
+    protected function estimateShippingMethods(Quote $quote, EstimateAddressInterface $address): array
+    {
+        $quoteId = $quote->getId();
+        $methods = [];
+        $manager = ObjectManager::getInstance()->get(ShippingMethodManagementApi::class);
+
+        try {
+            $shippingMethods = $manager->estimateByAddress($quoteId, $address);
+
+            foreach ($shippingMethods as $method) {
+                $methods[] = $method;
+            }
+        } catch (StateException $exception) {
+            Logger::error('Shipping address is missing.', ['quote_id' => $quoteId, 'exception' => $exception]);
+        } catch (NoSuchEntityException $exception) {
+            Logger::error('Quote does not exist.', ['quote_id' => $quoteId, 'exception' => $exception]);
+        }
+
+        return $methods;
     }
 }

@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Quote;
 
+use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
+use Magento\Quote\Api\Data\ShippingMethodInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
@@ -62,7 +65,8 @@ class Checkout
     }
 
     /**
-     * Get settings for MyParcel delivery options
+     * Get settings for MyParcel delivery options.
+     * Warning: as a side effect this method will set the free shipping availability in the session, when an address is provided.
      *
      * @param array $forAddress associative array holding the latest address from the client
      *
@@ -76,6 +80,8 @@ class Checkout
 
         if (isset($forAddress['countryId'])) {
             $this->country = $forAddress['countryId'];
+
+            $this->setFreeShippingAvailability($this->quote, $forAddress);
         }
 
         $data = [
