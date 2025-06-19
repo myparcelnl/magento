@@ -21,7 +21,6 @@ use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
 /**
  * Use this trait when you need to get the quote in several scenarios and have easy access to its properties.
- * The isFreeShippingAvailable session variable is set using an observer: @see IsFreeShippingAvailable
  *
  * @property AbstractDeliveryOptionsAdapter $deliveryOptions
  */
@@ -113,8 +112,6 @@ trait NeedsQuoteProps
         $address->setRegion($forAddress['region'] ?? '');
         $address->setPostcode($forAddress['postcode'] ?? '');
         $methods = $this->estimateShippingMethods($quote, $address);
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export($this->country, true) . " <- country in NeedsQuoteProps\n", FILE_APPEND);
-        file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', var_export(count($methods), true) . " methods\n", FILE_APPEND);
 
         foreach ($methods as $method) {
             /** @var ShippingMethodInterface $method */
