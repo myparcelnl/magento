@@ -15,6 +15,7 @@ use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManagem
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
@@ -115,7 +116,7 @@ trait NeedsQuoteProps
 
         foreach ($methods as $method) {
             /** @var ShippingMethodInterface $method */
-            if ('freeshipping' === $method->getCarrierCode()) {
+            if (Checkout::MAGENTO_CARRIER_CODE_FREE_SHIPPING === $method->getCarrierCode()) {
                 $freeShippingIsAvailable = true;
                 break;
             }

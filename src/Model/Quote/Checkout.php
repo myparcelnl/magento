@@ -24,6 +24,8 @@ class Checkout
 {
     use NeedsQuoteProps;
 
+    public const MAGENTO_CARRIER_CODE_FREE_SHIPPING = 'freeshipping';
+
     private Tax                   $tax;
     private Config                $config;
     private DeliveryCosts         $deliveryCosts;
