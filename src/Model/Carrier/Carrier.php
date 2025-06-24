@@ -21,7 +21,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Carrier;
 
-use Exception;
 use InvalidArgumentException;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\DataObject;

@@ -24,6 +24,8 @@ class Checkout
 {
     use NeedsQuoteProps;
 
+    public const MAGENTO_CARRIER_CODE_FREE_SHIPPING = 'freeshipping';
+
     private Tax                   $tax;
     private Config                $config;
     private DeliveryCosts         $deliveryCosts;
@@ -39,6 +41,7 @@ class Checkout
     /**
      * Checkout constructor.
      *
+     * @param Tax                   $tax
      * @param Config                $config
      * @param DeliveryCosts         $deliveryCosts
      * @param PackageRepository     $package
@@ -61,7 +64,8 @@ class Checkout
     }
 
     /**
-     * Get settings for MyParcel delivery options
+     * Get settings for MyParcel delivery options.
+     * Warning: as a side effect this method will set the free shipping availability in the session, when an address is provided.
      *
      * @param array $forAddress associative array holding the latest address from the client
      *
@@ -75,6 +79,8 @@ class Checkout
 
         if (isset($forAddress['countryId'])) {
             $this->country = $forAddress['countryId'];
+
+            $this->setFreeShippingAvailability($this->quote, $forAddress);
         }
 
         $data = [

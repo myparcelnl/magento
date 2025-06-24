@@ -6,20 +6,23 @@ namespace MyParcelNL\Magento\Service;
 
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Exception\StateException;
+use Magento\Quote\Api\Data\EstimateAddressInterface;
+use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Api\Data\ShippingMethodInterface;
-use Magento\Quote\Api\ShippingMethodManagementInterface;
+use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManagementApi;
+use Magento\Quote\Model\EstimateAddress;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
 /**
  * Use this trait when you need to get the quote in several scenarios and have easy access to its properties.
- * During ‘raterequest’ the shipping methods are not always available, therefore we remember the availability of the
- * free shipping method in a session variable.
  *
  * @property AbstractDeliveryOptionsAdapter $deliveryOptions
  */
@@ -28,7 +31,7 @@ trait NeedsQuoteProps
     protected AbstractDeliveryOptionsAdapter $deliveryOptions;
 
     /**
-     * Use this method during raterequest, because getting it from there session will cause infinite loop for
+     * Use this method during raterequest, because getting it from session will cause infinite loop for
      * quotes with trigger_recollect = 1, see Quote::_afterLoad()
      * https://magento.stackexchange.com/questions/340048/how-to-properly-get-current-quote-in-carrier-collect-rates-function
      */
@@ -62,12 +65,6 @@ trait NeedsQuoteProps
             return null;
         }
 
-        /**
-         * The available shipping methods can be found in the quote from the session, so force re-checking
-         * of the availability of free shipping now, by unsetting the session variable.
-         */
-        $session->unsMyParcelFreeShippingIsAvailable();
-
         return $quote;
     }
 
@@ -94,65 +91,64 @@ trait NeedsQuoteProps
     }
 
     /**
-     * @param Quote $quote
-     * @return array indexed array of ShippingMethodInterface objects
-     * @throws LocalizedException
+     * Returns the session variable that indicates whether free shipping is available. This variable is set when
+     * the config is retrieved during checkout, because that is the only time we have the correct address + the quote.
+     * @see MyParcelNL\Magento\Model\Quote\Checkout
+     * @return bool|null null should be considered false
      */
-    protected function getShippingMethodsFromQuote(Quote $quote): array
+    public function isFreeShippingAvailable(): ?bool
     {
-        $quoteId = $quote->getId();
-
-        try {
-            $shippingMethodManagement = ObjectManager::getInstance()->get(ShippingMethodManagementInterface::class);
-            $shippingMethods          = $shippingMethodManagement->getList($quoteId);
-
-            $methods = [];
-            foreach ($shippingMethods as $method) {
-                /** @var ShippingMethodInterface $method */
-                $methods[] = $method;
-            }
-        } catch (\Exception $exception) {
-            throw new LocalizedException(__($exception->getMessage()));
-        }
-
-        return $methods;
+        return ObjectManager::getInstance()->get(Session::class)->getMyParcelFreeShippingIsAvailable();
     }
 
-    /**
-     * If free shipping is available for this quote, will return true.
-     *
-     * @param Quote $quote
-     * @return bool
-     */
-    public function isFreeShippingAvailable(Quote $quote): bool
+    public function setFreeShippingAvailability(Quote $quote, array $forAddress): void
     {
-        $session = ObjectManager::getInstance()->get(Session::class);
-
-        // NULL when not set, boolean value when set
-        $freeShippingIsAvailable = $session->getMyParcelFreeShippingIsAvailable();
-
-        if (null !== $freeShippingIsAvailable) {
-            return $freeShippingIsAvailable;
+        if (!isset($forAddress['countryId'])) {
+            return;
         }
 
         $freeShippingIsAvailable = false;
+        /** @var EstimateAddress $address */
+        $address = ObjectManager::getInstance()->get(EstimateAddressInterfaceFactory::class)->create();
+        $address->setCountryId($forAddress['countryId']);
+        $address->setRegion($forAddress['region'] ?? '');
+        $address->setPostcode($forAddress['postcode'] ?? '');
+        $methods = $this->estimateShippingMethods($quote, $address);
 
-        try {
-            $shippingMethods = $this->getShippingMethodsFromQuote($quote);
-
-            foreach ($shippingMethods as $method) {
-                /** @var ShippingMethodInterface $method */
-                if ('freeshipping' === $method->getCarrierCode()) {
-                    $freeShippingIsAvailable = true;
-                    break;
-                }
+        foreach ($methods as $method) {
+            /** @var ShippingMethodInterface $method */
+            if (Checkout::MAGENTO_CARRIER_CODE_FREE_SHIPPING === $method->getCarrierCode()) {
+                $freeShippingIsAvailable = true;
+                break;
             }
-        } catch (LocalizedException $e) {
-            Logger::critical($e->getMessage());
         }
 
-        $session->setMyParcelFreeShippingIsAvailable($freeShippingIsAvailable);
+        ObjectManager::getInstance()->get(Session::class)->setMyParcelFreeShippingIsAvailable($freeShippingIsAvailable);
+    }
 
-        return $freeShippingIsAvailable;
+    /**
+     * @param Quote                    $quote
+     * @param EstimateAddressInterface $address
+     * @return array indexed array of ShippingMethodInterface objects
+     */
+    protected function estimateShippingMethods(Quote $quote, EstimateAddressInterface $address): array
+    {
+        $quoteId = $quote->getId();
+        $methods = [];
+        $manager = ObjectManager::getInstance()->get(ShippingMethodManagementApi::class);
+
+        try {
+            $shippingMethods = $manager->estimateByAddress($quoteId, $address);
+
+            foreach ($shippingMethods as $method) {
+                $methods[] = $method;
+            }
+        } catch (StateException $exception) {
+            Logger::error('Shipping address is missing.', ['quote_id' => $quoteId, 'exception' => $exception]);
+        } catch (NoSuchEntityException $exception) {
+            Logger::error('Quote does not exist.', ['quote_id' => $quoteId, 'exception' => $exception]);
+        }
+
+        return $methods;
     }
 }
