@@ -64,7 +64,7 @@ class Config extends AbstractHelper
         Context               $context,
         StoreManagerInterface $storeManager,
         Session               $authSession,
-        ModuleListInterface   $moduleList,
+        ModuleListInterface   $moduleList
     )
     {
         parent::__construct($context);

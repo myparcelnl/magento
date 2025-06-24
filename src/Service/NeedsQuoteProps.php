@@ -12,6 +12,7 @@ use Magento\Quote\Api\Data\EstimateAddressInterface;
 use Magento\Quote\Api\Data\EstimateAddressInterfaceFactory;
 use Magento\Quote\Api\Data\ShippingMethodInterface;
 use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManagementApi;
+use Magento\Quote\Model\EstimateAddress;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use MyParcelNL\Magento\Facade\Logger;
@@ -107,7 +108,7 @@ trait NeedsQuoteProps
         }
 
         $freeShippingIsAvailable = false;
-        /* var EstimateAddress $address */
+        /** @var EstimateAddress $address */
         $address = ObjectManager::getInstance()->get(EstimateAddressInterfaceFactory::class)->create();
         $address->setCountryId($forAddress['countryId']);
         $address->setRegion($forAddress['region'] ?? '');
