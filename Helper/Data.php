@@ -298,9 +298,9 @@ class Data extends AbstractHelper
      */
     public function convertToGrams(?float $weight): int
     {
-        $weightType = $this->getGeneralConfig('print/weight_indication');
+        $weightType = $this->getGeneralConfig('general/locale/weight_unit');
 
-        if ('kilo' === $weightType) {
+        if (!$weightType || $weightType === 'kgs' || $weightType === 'kg') {
             return (int) ($weight * 1000);
         }
 

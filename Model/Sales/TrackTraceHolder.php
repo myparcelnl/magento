@@ -333,10 +333,6 @@ class TrackTraceHolder
      */
     private function calculateTotalWeight(Track $magentoTrack, int $totalWeight = 0): self
     {
-        if ($this->consignment->getPackageType() !== AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
-            return $this;
-        }
-
         if ($totalWeight > 0) {
             $this->consignment->setPhysicalProperties(["weight" => $totalWeight]);
 
