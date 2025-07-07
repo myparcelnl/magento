@@ -144,9 +144,6 @@ class TrackTraceHolder
             ?? DefaultOptions::getDefaultCarrier()
                              ->getName();
 
-        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
-            : (int) $this->defaultOptions->getDigitalStampDefaultWeight();
-
         try {
             // create new instance from known json
             $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
@@ -249,6 +246,14 @@ class TrackTraceHolder
             }
         }
 
+        // Only use weight from settings for digital stamps
+        if ($this->consignment->getPackageType() === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
+            $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
+                : (int) $this->defaultOptions->getDigitalStampDefaultWeight();
+        } else {
+            $totalWeight = 0; // Let calculateTotalWeight calculate the weight
+        }
+
         try {
             $this->convertDataForCdCountry($magentoTrack)
                  ->calculateTotalWeight($magentoTrack, $totalWeight);
@@ -339,11 +344,14 @@ class TrackTraceHolder
             return $this;
         }
 
-        $weightFromSettings = (int) $this->defaultOptions->getDigitalStampDefaultWeight();
-        if ($weightFromSettings) {
-            $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
+        // Alleen voor digitale postzegels een gewicht uit settings gebruiken
+        if ($this->consignment->getPackageType() === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
+            $weightFromSettings = (int) $this->defaultOptions->getDigitalStampDefaultWeight();
+            if ($weightFromSettings) {
+                $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
 
-            return $this;
+                return $this;
+            }
         }
 
         $shipmentItems
