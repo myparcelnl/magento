@@ -344,7 +344,7 @@ class TrackTraceHolder
             return $this;
         }
 
-        // Alleen voor digitale postzegels een gewicht uit settings gebruiken
+        // Only use weight from settings for digital stamps
         if ($this->consignment->getPackageType() === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
             $weightFromSettings = (int) $this->defaultOptions->getDigitalStampDefaultWeight();
             if ($weightFromSettings) {
