@@ -246,12 +246,11 @@ class TrackTraceHolder
             }
         }
 
-        // Only use weight from settings for digital stamps
-        if ($this->consignment->getPackageType() === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
-            $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
-                : (int) $this->defaultOptions->getDigitalStampDefaultWeight();
-        } else {
-            $totalWeight = 0; // Let calculateTotalWeight calculate the weight
+        $totalWeight = 0; // Default: let calculateTotalWeight calculate the weight
+
+        // Only use predefined weight for digital stamps
+        if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
+            $totalWeight = (int) ($options['digital_stamp_weight'] ?? $this->defaultOptions->getDigitalStampDefaultWeight());
         }
 
         try {
@@ -342,16 +341,6 @@ class TrackTraceHolder
             $this->consignment->setPhysicalProperties(["weight" => $totalWeight]);
 
             return $this;
-        }
-
-        // Only use weight from settings for digital stamps
-        if ($this->consignment->getPackageType() === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
-            $weightFromSettings = (int) $this->defaultOptions->getDigitalStampDefaultWeight();
-            if ($weightFromSettings) {
-                $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
-
-                return $this;
-            }
         }
 
         $shipmentItems
