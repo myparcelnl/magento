@@ -353,17 +353,6 @@ class TrackTraceHolder
 
         $totalWeight = $this->dataHelper->convertToGrams($totalWeight);
 
-        if (0 === $totalWeight) {
-            throw new RuntimeException(
-                sprintf(
-                    'Order %s can not be exported as digital stamp, no weights have been entered.',
-                    $magentoTrack->getShipment()
-                                 ->getOrder()
-                                 ->getIncrementId()
-                )
-            );
-        }
-
         $this->consignment->setPhysicalProperties([
             'weight' => $totalWeight,
         ]);
