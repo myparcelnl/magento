@@ -101,9 +101,6 @@ class TrackTraceHolder
         $deliveryOptions            = json_decode($checkoutData, true) ?? [];
         $deliveryOptions['carrier'] = $this->defaultOptions->getCarrierName();
 
-        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
-            : (int) $this->defaultOptions->getDigitalStampDefaultWeight();
-
         try {
             // create new instance from known json
             $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
@@ -142,7 +139,7 @@ class TrackTraceHolder
                 ->setFullStreet($address->getData('street'))
                 ->setPostalCode(preg_replace('/\s+/', '', $address->getPostcode()))
             ;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $errorHuman
                 = sprintf(
                 'An error has occurred while validating order number %s. Check address.',
@@ -211,11 +208,17 @@ class TrackTraceHolder
             }
         }
 
+        $weight = 0;
+        if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
+            // NOTE: digital stamp weight is always managed in grams regardless of weight settings, can still be 0 after this
+            $weight = (int) ($options['digital_stamp_weight'] ?? $this->defaultOptions->getDigitalStampDefaultWeight());
+        }
+
         try {
             $this->convertDataForCdCountry($magentoTrack)
-                 ->calculateTotalWeight($magentoTrack, $totalWeight)
+                 ->calculateTotalWeight($magentoTrack, $weight, $packageType)
             ;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
             return $this;
         }
@@ -306,27 +309,17 @@ class TrackTraceHolder
 
     /**
      * @param Order\Shipment\Track $magentoTrack
-     * @param int                  $totalWeight
+     * @param int                  $presetWeightInGrams supply a weight in grams to use instead of calculating
      *
-     * @return TrackTraceHolder
+     * @return void
      * @throws LocalizedException
      * @throws Exception
      */
-    private function calculateTotalWeight(Track $magentoTrack, int $totalWeight = 0): self
+    private function calculateTotalWeight(Track $magentoTrack, int $presetWeightInGrams, int $packageType): self
     {
-        if ($this->consignment->getPackageType() !== AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
-            return $this;
-        }
-
-        if ($totalWeight > 0) {
-            $this->consignment->setPhysicalProperties(["weight" => $totalWeight]);
-
-            return $this;
-        }
-
-        $weightFromSettings = (int) $this->defaultOptions->getDigitalStampDefaultWeight();
-        if ($weightFromSettings) {
-            $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
+        if ($presetWeightInGrams > 0) {
+            $weight = $presetWeightInGrams + $this->weight->getEmptyPackageWeightInGrams($packageType);
+            $this->consignment->setPhysicalProperties(['weight' => $weight]);
 
             return $this;
         }
@@ -336,26 +329,15 @@ class TrackTraceHolder
                            ->getItems()
         ;
 
+        $weight = 0;
         foreach ($shipmentItems as $shipmentItem) {
-            $totalWeight += $shipmentItem['weight'] * $shipmentItem['qty'];
+            $weight += (float) $shipmentItem['weight'] * (float) $shipmentItem['qty'];
         }
 
-        $totalWeight = $this->weight->convertToGrams($totalWeight);
-
-        if (0 === $totalWeight) {
-            throw new RuntimeException(
-                sprintf(
-                    'Order %s can not be exported as digital stamp, no weights have been entered.',
-                    $magentoTrack->getShipment()
-                                 ->getOrder()
-                                 ->getIncrementId()
-                )
-            );
-        }
-
-        $this->consignment->setPhysicalProperties([
-                                                      'weight' => $totalWeight,
-                                                  ]);
+        $this->consignment->setPhysicalProperties(
+            [
+                'weight' => $this->weight->convertToGrams($weight) + $this->weight->getEmptyPackageWeightInGrams($packageType),
+            ]);
 
         return $this;
     }
