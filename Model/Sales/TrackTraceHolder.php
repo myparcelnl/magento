@@ -144,9 +144,6 @@ class TrackTraceHolder
             ?? DefaultOptions::getDefaultCarrier()
                              ->getName();
 
-        $totalWeight = $options['digital_stamp_weight'] !== null ? (int) $options['digital_stamp_weight']
-            : (int) $this->defaultOptions->getDigitalStampDefaultWeight();
-
         try {
             // create new instance from known json
             $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
@@ -249,6 +246,13 @@ class TrackTraceHolder
             }
         }
 
+        $totalWeight = 0; // Default: let calculateTotalWeight calculate the weight
+
+        // Only use predefined weight for digital stamps
+        if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
+            $totalWeight = (int) ($options['digital_stamp_weight'] ?? $this->defaultOptions->getDigitalStampDefaultWeight());
+        }
+
         try {
             $this->convertDataForCdCountry($magentoTrack)
                  ->calculateTotalWeight($magentoTrack, $totalWeight);
@@ -333,19 +337,8 @@ class TrackTraceHolder
      */
     private function calculateTotalWeight(Track $magentoTrack, int $totalWeight = 0): self
     {
-        if ($this->consignment->getPackageType() !== AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
-            return $this;
-        }
-
         if ($totalWeight > 0) {
             $this->consignment->setPhysicalProperties(["weight" => $totalWeight]);
-
-            return $this;
-        }
-
-        $weightFromSettings = (int) $this->defaultOptions->getDigitalStampDefaultWeight();
-        if ($weightFromSettings) {
-            $this->consignment->setPhysicalProperties(["weight" => $weightFromSettings]);
 
             return $this;
         }
@@ -359,17 +352,6 @@ class TrackTraceHolder
         }
 
         $totalWeight = $this->dataHelper->convertToGrams($totalWeight);
-
-        if (0 === $totalWeight) {
-            throw new RuntimeException(
-                sprintf(
-                    'Order %s can not be exported as digital stamp, no weights have been entered.',
-                    $magentoTrack->getShipment()
-                                 ->getOrder()
-                                 ->getIncrementId()
-                )
-            );
-        }
 
         $this->consignment->setPhysicalProperties([
             'weight' => $totalWeight,
