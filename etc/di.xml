@@ -72,7 +72,7 @@
 
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\UPSStandard\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
-            <argument name="carrierName" xsi:type="string">ups_standard</argument>
+            <argument name="carrierName" xsi:type="string">upsstandard</argument>
             <argument name="type" xsi:type="string">local</argument>
         </arguments>
     </virtualType>
