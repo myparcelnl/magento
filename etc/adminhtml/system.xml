@@ -1169,7 +1169,7 @@
             </group>
         </section>
         <section id="myparcelnl_magento_ups_settings" translate="label" type="text" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>UPS settings</label>
+            <label>UPS Standard settings</label>
             <tab>myparcelnl_magento</tab>
             <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
             <group id="delivery" translate="label comment" type="text" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -1364,7 +1364,7 @@
                 <field id="insurance_local_amount" translate="label comment" type="select" sortOrder="232"
                        showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Insure orders up to</label>
-                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\UPS\Local</source_model>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\UPSStandard\Local</source_model>
                 </field>
                 <field id="insurance_percentage" translate="label comment" type="text" sortOrder="236" showInDefault="1"
                        showInWebsite="1" showInStore="1">
@@ -1373,24 +1373,6 @@
                     <tooltip>Use percentage of total order amount for insurance. After the calculation, the next
                         available price scale is selected.
                     </tooltip>
-                </field>
-            </group>
-            <group id="express" translate="label comment" type="text" sortOrder="370" showInDefault="1"
-                   showInWebsite="1" showInStore="1">
-                <label>Express delivery</label>
-                <field id="active" translate="label comment" type="select" sortOrder="375" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Express delivery active</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <tooltip>UPS guarantees delivery within one day with this option active.</tooltip>
-                </field>
-                <field id="fee" translate="label comment" type="text" sortOrder="380" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Express delivery fee</label>
-                    <tooltip>This will be added to the regular shipping price</tooltip>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
                 </field>
             </group>
         </section>
