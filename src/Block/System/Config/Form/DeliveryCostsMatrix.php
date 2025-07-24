@@ -62,4 +62,9 @@ class DeliveryCostsMatrix extends Field
     {
         return $this->_toHtml();
     }
+
+    public function getCssUrl(): string
+    {
+        return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/delivery_costs_matrix/style.css')->getUrl();
+    }
 }
