@@ -94,4 +94,9 @@ class DeliveryCostsMatrix extends Field
             'New rule' => __('New rule'),
         ];
     }
+
+    public function getCssUrl(): string
+    {
+        return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/delivery_costs_matrix/style.css')->getUrl();
+    }
 }
