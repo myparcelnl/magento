@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [4.19.0](https://github.com/myparcelnl/magento/compare/v4.18.1...v4.19.0) (2025-07-24)
+
+
+### :sparkles: New Features
+
+* **checkout:** unselect delivery options when other method is chosen ([#883](https://github.com/myparcelnl/magento/issues/883)) ([ad6d9f9](https://github.com/myparcelnl/magento/commit/ad6d9f9ac16fe36e59a3ab691c290779ed59e0ef))
+* show error message when received from api ([#879](https://github.com/myparcelnl/magento/issues/879)) ([25cbd56](https://github.com/myparcelnl/magento/commit/25cbd569045958b03e839d427c094bc177b8d7c1))
+
+
+### :bug: Bug Fixes
+
+* ensure product weight is correctly exported to backoffice ([#889](https://github.com/myparcelnl/magento/issues/889)) ([ddb404c](https://github.com/myparcelnl/magento/commit/ddb404c46e028fea50cfa6fe3599c7052d2e4c21))
+* remove weight from large format option ([#877](https://github.com/myparcelnl/magento/issues/877)) ([d914038](https://github.com/myparcelnl/magento/commit/d91403852ea709dfe03ff173f951289ba59d795f))
+
 ## [4.18.1](https://github.com/myparcelnl/magento/compare/v4.18.0...v4.18.1) (2024-12-20)
 
 
