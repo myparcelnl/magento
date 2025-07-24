@@ -369,7 +369,7 @@ class Checkout
 
         $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrier];
         $products            = $this->quote->getAllItems();
-        $country             = $country ?? $this->country ?? $this->quote->getShippingAddress()->getCountryId();
+        $country             = $country ?? $this->country ?? $this->quote->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
         $canHaveMailbox      = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
         $canHavePackageSmall = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
