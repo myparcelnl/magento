@@ -60,11 +60,25 @@ class DeliveryCostsMatrix extends Field
      */
     protected function _getElementHtml(AbstractElement $element): string
     {
-        return $this->_toHtml();
+        // combine the default HTML with the custom HTML for scoping
+        $defaultHtml = parent::_getElementHtml($element);
+
+        $customHtml = $this->_toHtml();
+
+        return $defaultHtml . $customHtml;
     }
 
     public function getCssUrl(): string
     {
         return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/delivery_costs_matrix/style.css')->getUrl();
+    }
+
+    public function getTranslations() {
+        return [
+            'myparcelnl_delivery_costs_matrix_title' => __('Delivery costs matrix'),
+            'myparcelnl_delivery_costs_matrix_description' => __('Define the delivery costs for each carrier, package type, and country.'),
+            'myparcelnl_delivery_costs_matrix_save_button' => __('Save Delivery Costs'),
+            'myparcelnl_delivery_costs_matrix_cancel_button' => __('Cancel'),
+        ];
     }
 }

@@ -3,7 +3,7 @@ define(
         'use strict';
 
         return function DeliveryCostsMatrix(options) {
-            let model = {
+            const model = {
                 initialize: function (options) {
                     this.options = options;
                     this.matrixElement = document.getElementById('delivery-costs-matrix');
@@ -27,6 +27,11 @@ define(
                     // Track open/closed state of each rule
                     this.openRules = {};
                     this.render();
+                    const scopingInput = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs_ui_inherit');
+                    //initialize scoping
+                    this.updateScoping(scopingInput.checked);
+                    scopingInput.addEventListener('change', () => this.updateScoping(scopingInput.checked));
+
                     return this;
                 },
 
@@ -146,7 +151,7 @@ define(
                 },
 
                 addCondition: function (ruleIndex) {
-                     if (!this.ruleData[ruleIndex].conditions) {
+                    if (!this.ruleData[ruleIndex].conditions) {
                         this.ruleData[ruleIndex].conditions = [];
                     }
                     this.ruleData[ruleIndex].conditions.push({ type: '', value: '' });
@@ -276,7 +281,28 @@ define(
                         });
                     }
                 },
+                updateScoping: function(scopingChecked) {
+                    if (scopingChecked) {
+                        this.matrixElement.querySelectorAll('input, select, a, button').forEach(el => {
+                            if (el.tagName === 'A' || el.tagName === 'BUTTON') {
+                                el.style.display = 'none';
+                            } else {
+                                el.disabled = true;
+                            }
+                        })
+                        return;
+                    }
 
+                    this.matrixElement.querySelectorAll('input, select, a, button').forEach(el => {
+                        if (el.tagName === 'A' || el.tagName === 'BUTTON') {
+                            el.style.display = '';
+                        } else {
+                            el.disabled = false;
+                        }
+                    });
+                    console.log('Scoping is disabled');
+
+                },
                 save: function() {
                     this.hiddenInputElement.value = JSON.stringify(this.ruleData, null, 2);
                 }

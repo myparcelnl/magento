@@ -2,6 +2,10 @@
     .value {
         width: 100%;
         padding: 0;
+
+        #myparcelnl_magento_general_matrix_delivery_costs_ui {
+            display: none;
+        }
     }
 
     .label {

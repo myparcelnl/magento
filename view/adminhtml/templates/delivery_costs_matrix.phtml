@@ -20,7 +20,8 @@ declare(strict_types=1);
             "field": "myparcelnl_magento_general_matrix_delivery_costs",
             "plusIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/plus-solid.svg') ?>",
             "chevronDownIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-down-solid.svg') ?>",
-            "chevronUpIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-up-solid.svg') ?>"
+            "chevronUpIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-up-solid.svg') ?>",
+            "getTranslations": "<?= str_replace('"', '\"', json_encode($block->getTranslations())) ?>"
         }
     }
 }
