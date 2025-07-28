@@ -326,3 +326,28 @@ signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
 only_recipient_title,Alleen huisadres
 saturday_delivery,Zaterdag levering
+Delivery costs,Bezorgkosten
+Rule name,Regel naam
+Select a condition...,Selecteer een voorwaarde...
+Carrier name,Vervoerder naam
+Country,Land
+Package type,Pakket type
+Maximum weight,Maximum gewicht
+Country part of,Land onderdeel van
+No rules defined. Click Add rule to create a new rule.,Geen regels gedefinieerd. Klik op Regel toevoegen om een nieuwe regel te maken.
+Add rule,Regel toevoegen
+Rule name,Regel naam
+Price,Prijs
+Toggle conditions,Voorwaarden in/uitklappen
+Remove rule,Regel verwijderen
+Add condition,Voorwaarde toevoegen
+New rule,Nieuwe regel
+Condition,Voorwaarde
+Value,Waarde
+Remove condition,Voorwaarde verwijderen
+Select a condition,Selecteer een voorwaarde
+Carrier name,Vervoerder naam
+Country,Land
+Package type,Pakket type
+Maximum weight,Maximum gewicht
+Country part of,Land onderdeel van

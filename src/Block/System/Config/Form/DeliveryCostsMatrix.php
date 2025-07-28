@@ -73,12 +73,24 @@ class DeliveryCostsMatrix extends Field
         return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/delivery_costs_matrix/style.css')->getUrl();
     }
 
-    public function getTranslations() {
+    public function getTranslations(): array {
         return [
-            'myparcelnl_delivery_costs_matrix_title' => __('Delivery costs matrix'),
-            'myparcelnl_delivery_costs_matrix_description' => __('Define the delivery costs for each carrier, package type, and country.'),
-            'myparcelnl_delivery_costs_matrix_save_button' => __('Save Delivery Costs'),
-            'myparcelnl_delivery_costs_matrix_cancel_button' => __('Cancel'),
+            'Rule name' => __('Rule name'),
+            'Price' => __('Price'),
+            'No rules defined. Click Add rule to create a new rule.' => __('No rules defined. Click Add rule to create a new rule.'),
+            'Add Rule' => __('Add Rule'),
+            'Condition' => __('Condition'),
+            'Value' => __('Value'),
+            'Toggle conditions' => __('Toggle conditions'),
+            'Remove rule' => __('Remove rule'),
+            'Add condition' => __('Add condition'),
+            'Remove condition' => __('Remove condition'),
+            'Select a condition' => __('Select a condition'),
+            'Carrier name' => __('Carrier name'),
+            'Country' => __('Country'),
+            'Package type' => __('Package type'),
+            'Maximum weight' => __('Maximum weight'),
+            'Country part of' => __('Country part of'),
         ];
     }
 }

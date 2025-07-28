@@ -15,22 +15,28 @@ define(
                             rule.conditions = Object.entries(rule.conditions).map(([type, value]) => ({ type, value }));
                         }
                     });
-                    this.ruleCounter = this.ruleData.length;
+
+                    this.translations = JSON.parse(this.options.getTranslations);
+
                     this.conditionOptionsList = [
-                        {value: '', text: 'Select a condition...'},
-                        {value: 'carrier_name', text: 'Carrier name'},
-                        {value: 'country', text: 'Country'},
-                        {value: 'package_type', text: 'Package type'},
-                        {value: 'maximum_weight', text: 'Maximum weight'},
-                        {value: 'country_part_of', text: 'Country part of'},
+                        {value: '', text: this.translations['Select a condition']},
+                        {value: 'carrier_name', text: this.translations['Carrier name']},
+                        {value: 'country', text: this.translations['Country']},
+                        {value: 'package_type', text: this.translations['Package type']},
+                        {value: 'maximum_weight', text: this.translations['Maximum weight']},
+                        {value: 'country_part_of', text: this.translations['Country part of']},
                     ];
+
                     // Track open/closed state of each rule
                     this.openRules = {};
                     this.render();
-                    const scopingInput = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs_ui_inherit');
+
                     //initialize scoping
-                    this.updateScoping(scopingInput.checked);
-                    scopingInput.addEventListener('change', () => this.updateScoping(scopingInput.checked));
+                    const scopingInput = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs_ui_inherit');
+                    if (scopingInput !== null) {
+                        this.updateScoping(scopingInput.checked);
+                        scopingInput.addEventListener('change', () => this.updateScoping(scopingInput.checked));
+                    }
 
                     return this;
                 },
@@ -39,7 +45,7 @@ define(
                     this.matrixElement.innerHTML = '';
                     if (this.ruleData.length === 0) {
                         const emptyMessage = document.createElement('p');
-                        emptyMessage.textContent = 'No rules defined. Click "Add Rule" to create a new rule.';
+                        emptyMessage.textContent = this.translations['No rules defined. Click Add rule to create a new rule.'];
                         this.matrixElement.appendChild(emptyMessage);
                     }
                     this.ruleData.forEach((rule, index) => {
@@ -49,7 +55,7 @@ define(
                     let addButton = document.createElement('button');
                     addButton.type = 'button';
                     addButton.className = 'add-rule-button';
-                    addButton.textContent = 'Add Rule';
+                    addButton.textContent = this.translations['Add Rule'];
                     addButton.addEventListener('click', () => this.addRule());
                     this.matrixElement.appendChild(addButton);
                 },
@@ -65,18 +71,18 @@ define(
                     header.className = 'rule-header';
                     header.innerHTML = `
                         <div class="form-field">
-                            <label for="rule-name-${ruleId}">Rule name</label>
+                            <label for="rule-name-${ruleId}">${this.translations["Rule name"]}</label>
                             <input id="rule-name-${ruleId}" class="rule-name" type="text" value="${rule.name || ''}">
                         </div>
                         <div class="form-field">
-                            <label for="price-${ruleId}">Price</label>
+                            <label for="price-${ruleId}">${this.translations["Price"]}</label>
                             <input id="price-${ruleId}" class="price" type="number" value="${rule.price || ''}">
                         </div>
                         <a class="display-rule-button">
-                            <img class="display-rule-button-icon" src="${options.chevronDownIcon}" alt="Toggle conditions">
+                            <img class="display-rule-button-icon" src="${options.chevronDownIcon}" alt="${this.translations['Toggle conditions']}">
                         </a>
                         <a class="remove-rule-button">
-                            <img src="${options.plusIcon}" alt="Remove rule" title="Remove rule">
+                            <img src="${options.plusIcon}" alt="${this.translations['Remove rule']}" title="${this.translations['Remove rule']}">
                         </a>
                     `;
 
@@ -105,7 +111,7 @@ define(
                     const addConditionButton = document.createElement('a');
                     if (conditionCount < 5) {
                         addConditionButton.className = 'add-condition-button';
-                        addConditionButton.innerHTML = `<img src="${options.plusIcon}" alt="Add condition" title="Add condition">`;
+                        addConditionButton.innerHTML = `<img src="${options.plusIcon}" alt="${this.translations['Add condition']}" title="${this.translations['Add condition']}">`;
                         conditionsContainer.appendChild(addConditionButton);
                     }
 
@@ -138,14 +144,12 @@ define(
                         conditions: []
                     };
                     this.ruleData.push(newRule);
-                    this.ruleCounter = this.ruleData.length;
                     this.render();
                     this.save();
                 },
 
                 removeRule: function (ruleIndex) {
                     this.ruleData.splice(ruleIndex, 1);
-                    this.ruleCounter = this.ruleData.length;
                     this.render();
                     this.save();
                 },
@@ -173,14 +177,14 @@ define(
                     conditionOptionFormField.className = 'form-field';
 
                     const conditionOptionLabel = document.createElement('label');
-                    conditionOptionLabel.textContent = 'Condition ' + (conditionIndex + 1);
+                    conditionOptionLabel.textContent = this.translations['Condition'] + ' ' + (conditionIndex + 1);
                     conditionOptionFormField.appendChild(conditionOptionLabel);
 
                     const conditionValueFormField = document.createElement('div');
                     conditionValueFormField.className = 'form-field';
 
                     const conditionValueLabel = document.createElement('label');
-                    conditionValueLabel.textContent = 'Value';
+                    conditionValueLabel.textContent = this.translations['Value'];
                     conditionValueFormField.appendChild(conditionValueLabel);
 
                     const conditionOptions = document.createElement('select');
@@ -207,7 +211,7 @@ define(
 
                     const removeButton = document.createElement('a');
                     removeButton.className = 'remove-condition-button';
-                    removeButton.innerHTML = `<img src="${options.plusIcon}" alt="Remove condition" title="Remove condition">`;
+                    removeButton.innerHTML = `<img src="${options.plusIcon}" alt="${this.translations['Remove condition']}" title="${this.translations['Remove condition']}">`;
 
                     conditionOptions.addEventListener('change', (e) => {
                         this.updateCondition(ruleIndex, conditionIndex, 'type', e.target.value);

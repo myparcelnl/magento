@@ -14,7 +14,14 @@
 }
 
 #row_myparcelnl_magento_general_matrix_delivery_costs {
-    display: none;
+    .label {
+        display: none;
+    }
+
+    .value {
+        /* Comment out for checking text area value */
+        display: none;
+    }
 }
 
 #delivery-costs-matrix {
