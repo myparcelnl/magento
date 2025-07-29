@@ -91,6 +91,7 @@ class DeliveryCostsMatrix extends Field
             'Package type' => __('Package type'),
             'Maximum weight' => __('Maximum weight'),
             'Country part of' => __('Country part of'),
+            'New rule' => __('New rule'),
         ];
     }
 }

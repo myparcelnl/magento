@@ -4,11 +4,17 @@ define(
 
         return function DeliveryCostsMatrix(options) {
             const model = {
+                // Set up initial properties
                 initialize: function (options) {
                     this.options = options;
                     this.matrixElement = document.getElementById('delivery-costs-matrix');
                     this.hiddenInputElement = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs');
-                    this.ruleData = this.hiddenInputElement.value ? JSON.parse(this.hiddenInputElement.value) : [];
+
+                    // Get existing rule data from hidden input and sort it by name
+                    this.ruleData = this.hiddenInputElement.value
+                        ? JSON.parse(this.hiddenInputElement.value).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                        : [];
+
                     // map ruleData conditions to array if they are not already
                     this.ruleData.forEach(rule => {
                         if (rule.conditions && !Array.isArray(rule.conditions)) {
@@ -16,8 +22,8 @@ define(
                         }
                     });
 
+                    // Initialize translations and condition options
                     this.translations = JSON.parse(this.options.getTranslations);
-
                     this.conditionOptionsList = [
                         {value: '', text: this.translations['Select a condition']},
                         {value: 'carrier_name', text: this.translations['Carrier name']},
@@ -41,17 +47,21 @@ define(
                     return this;
                 },
 
+                // Create the matrix UI
                 render: function() {
                     this.matrixElement.innerHTML = '';
+                    // If there are no rules, show an empty message
                     if (this.ruleData.length === 0) {
                         const emptyMessage = document.createElement('p');
                         emptyMessage.textContent = this.translations['No rules defined. Click Add rule to create a new rule.'];
                         this.matrixElement.appendChild(emptyMessage);
                     }
+                    // Render each existing rule
                     this.ruleData.forEach((rule, index) => {
                         const ruleElement = this.createRuleElement(index, rule);
                         this.matrixElement.appendChild(ruleElement);
                     });
+
                     let addButton = document.createElement('button');
                     addButton.type = 'button';
                     addButton.className = 'add-rule-button';
@@ -60,6 +70,7 @@ define(
                     this.matrixElement.appendChild(addButton);
                 },
 
+                // Create a rule element with its conditions
                 createRuleElement: function (ruleIndex, rule) {
                     const ruleId = 'rule-' + ruleIndex;
                     const container = document.createElement('div');
@@ -88,6 +99,7 @@ define(
 
                     container.appendChild(header);
 
+                    // Create a container for conditions
                     const conditionsContainer = document.createElement('div');
                     conditionsContainer.className = 'conditions-container';
 
@@ -100,6 +112,7 @@ define(
 
                     container.appendChild(conditionsContainer);
 
+                    // Create condition rows
                     if (rule.conditions && Array.isArray(rule.conditions)) {
                         rule.conditions.forEach((condition, conditionIndex) => {
                             const conditionRow = this.createConditionRow(ruleIndex, conditionIndex, condition);
@@ -107,6 +120,7 @@ define(
                         });
                     }
 
+                    // Add a button to add new conditions, if there are less than 5 conditions
                     const conditionCount = conditionsContainer.querySelectorAll('.condition-row').length
                     const addConditionButton = document.createElement('a');
                     if (conditionCount < 5) {
@@ -115,6 +129,7 @@ define(
                         conditionsContainer.appendChild(addConditionButton);
                     }
 
+                    // Add event listeners for rule header inputs and buttons
                     header.querySelector(`#rule-name-${ruleId}`).addEventListener('change', (e) => this.updateRuleField(ruleIndex, 'name', e.target.value));
                     header.querySelector(`#price-${ruleId}`).addEventListener('change', (e) => this.updateRuleField(ruleIndex, 'price', e.target.value));
                     header.querySelector('.remove-rule-button').addEventListener('click', () => this.removeRule(ruleIndex));
@@ -126,20 +141,23 @@ define(
                         header.querySelector('.display-rule-button-icon').src = !isOpen ? options.chevronUpIcon : options.chevronDownIcon;
                         this.openRules[ruleIndex] = !isOpen;
                     });
+
                     // Set correct chevron icon on render
                     header.querySelector('.display-rule-button-icon').src = (this.openRules[ruleIndex]) ? options.chevronUpIcon : options.chevronDownIcon;
 
                     return container;
                 },
 
+                // Update rule field values
                 updateRuleField: function(ruleIndex, field, value) {
                     this.ruleData[ruleIndex][field] = value;
                     this.save();
                 },
 
+                // Add a new rule to the ruleData and re-render the matrix
                 addRule: function () {
                     const newRule = {
-                        name: 'New Rule',
+                        name: this.translations["New rule"],
                         price: 0,
                         conditions: []
                     };
@@ -148,12 +166,14 @@ define(
                     this.save();
                 },
 
+                // Remove a rule from the ruleData and re-render the matrix
                 removeRule: function (ruleIndex) {
                     this.ruleData.splice(ruleIndex, 1);
                     this.render();
                     this.save();
                 },
 
+                // Add a new condition to a specific rule and re-render the matrix
                 addCondition: function (ruleIndex) {
                     if (!this.ruleData[ruleIndex].conditions) {
                         this.ruleData[ruleIndex].conditions = [];
@@ -163,11 +183,14 @@ define(
                     this.save();
                 },
 
+                // Remove a condition from a specific rule and re-render the matrix
                 removeCondition: function(ruleIndex, conditionIndex) {
                     this.ruleData[ruleIndex].conditions.splice(conditionIndex, 1);
                     this.render();
                     this.save();
                 },
+
+                // Create a condition row with its options, values and event listeners
                 createConditionRow: function (ruleIndex, conditionIndex, condition) {
                     const conditionRow = document.createElement('div');
                     conditionRow.className = 'condition-row';
@@ -188,15 +211,21 @@ define(
                     conditionValueFormField.appendChild(conditionValueLabel);
 
                     const conditionOptions = document.createElement('select');
+
+                    // Fill the condition with the available options
                     this.conditionOptionsList.forEach(opt => {
                         const option = document.createElement('option');
                         option.value = opt.value;
                         option.textContent = opt.text;
                         conditionOptions.appendChild(option);
                     });
+
+                    // Set the selected condition type
                     conditionOptions.value = condition.type;
 
+                    // Create the input for the condition value based on the type
                     let conditionValues;
+                    // If the condition type is 'maximum_weight', use an input, otherwise use a select with the available values
                     if (condition.type === 'maximum_weight') {
                         conditionValues = document.createElement('input');
                         conditionValues.type = 'number';
@@ -213,11 +242,16 @@ define(
                     removeButton.className = 'remove-condition-button';
                     removeButton.innerHTML = `<img src="${options.plusIcon}" alt="${this.translations['Remove condition']}" title="${this.translations['Remove condition']}">`;
 
+                    // Add event listeners for condition options and remove button
                     conditionOptions.addEventListener('change', (e) => {
                         this.updateCondition(ruleIndex, conditionIndex, 'type', e.target.value);
                         this.updateCondition(ruleIndex, conditionIndex, 'value', ''); // Reset value
+
+                        // Create the new value input based on the selected type
                         const newType = e.target.value;
                         let newValueInput;
+
+                        // If the new type is 'maximum_weight', create an input, otherwise create a select with the available values
                         if (newType === 'maximum_weight') {
                             newValueInput = document.createElement('input');
                             newValueInput.type = 'number';
@@ -229,8 +263,11 @@ define(
                             newValueInput.value = '';
                             newValueInput.addEventListener('change', (ev) => this.updateCondition(ruleIndex, conditionIndex, 'value', ev.target.value));
                         }
+
+                        // Replace the old value input with the new one
                         conditionValueFormField.replaceChild(newValueInput, conditionValueFormField.childNodes[1]);
                     });
+
                     removeButton.addEventListener('click', () => this.removeCondition(ruleIndex, conditionIndex));
 
                     conditionOptionFormField.appendChild(conditionOptions);
@@ -243,13 +280,17 @@ define(
                     return conditionRow;
                 },
 
+                // Update a specific condition's field value
                 updateCondition: function(ruleIndex, conditionIndex, field, value) {
                     this.ruleData[ruleIndex].conditions[conditionIndex][field] = value;
                     this.save();
                 },
 
+                // Set the available values for a condition based on its type
                 setConditionValue: function (conditionValue, valueSelect) {
+                    // Clear existing options
                     valueSelect.innerHTML = '';
+
                     if (conditionValue === 'country') {
                         JSON.parse(options.countryCodes).forEach(countryCode => {
                             const option = document.createElement('option');
@@ -258,6 +299,7 @@ define(
                             valueSelect.appendChild(option);
                         });
                     }
+
                     if (conditionValue === 'package_type') {
                         const packageTypes = JSON.parse(options.packageTypes);
                         Object.entries(packageTypes).forEach(([value, text]) => {
@@ -267,6 +309,7 @@ define(
                             valueSelect.appendChild(option);
                         });
                     }
+
                     if (conditionValue ==='carrier_name') {
                         const carriers = JSON.parse(options.carriers);
                         Object.entries(carriers).forEach(([value, text]) => {
@@ -276,6 +319,7 @@ define(
                             valueSelect.appendChild(option);
                         });
                     }
+
                     if (conditionValue === 'country_part_of') {
                         JSON.parse(options.countryParts).forEach(countryCode => {
                             const option = document.createElement('option');
@@ -285,7 +329,10 @@ define(
                         });
                     }
                 },
+
+                // Update the scoping of the matrix, enabling/disabling inputs and hiding links/buttons
                 updateScoping: function(scopingChecked) {
+                    // If scoping is checked, disable all inputs and hide links/buttons
                     if (scopingChecked) {
                         this.matrixElement.querySelectorAll('input, select, a, button').forEach(el => {
                             if (el.tagName === 'A' || el.tagName === 'BUTTON') {
@@ -297,6 +344,7 @@ define(
                         return;
                     }
 
+                    // If scoping is unchecked, enable all inputs and show links/buttons
                     this.matrixElement.querySelectorAll('input, select, a, button').forEach(el => {
                         if (el.tagName === 'A' || el.tagName === 'BUTTON') {
                             el.style.display = '';
@@ -304,9 +352,9 @@ define(
                             el.disabled = false;
                         }
                     });
-                    console.log('Scoping is disabled');
-
                 },
+
+                // Save the current rule data to the hidden input element
                 save: function() {
                     this.hiddenInputElement.value = JSON.stringify(this.ruleData, null, 2);
                 }
