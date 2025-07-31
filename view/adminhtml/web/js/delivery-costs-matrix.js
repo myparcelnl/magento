@@ -15,10 +15,13 @@ define(
                         ? JSON.parse(this.hiddenInputElement.value).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
                         : [];
 
-                    // map ruleData conditions to array if they are not already
+                    // Convert conditions from object format to array format for UI display
                     this.ruleData.forEach(rule => {
-                        if (rule.conditions && !Array.isArray(rule.conditions)) {
+                        if (rule.conditions && typeof rule.conditions === 'object' && !Array.isArray(rule.conditions)) {
+                            // Convert from { "country": "NL", "carrier_name": "ups" } to [{ type: "country", value: "NL" }, { type: "carrier_name", value: "ups" }]
                             rule.conditions = Object.entries(rule.conditions).map(([type, value]) => ({ type, value }));
+                        } else if (!rule.conditions) {
+                            rule.conditions = [];
                         }
                     });
 
@@ -356,7 +359,23 @@ define(
 
                 // Save the current rule data to the hidden input element
                 save: function() {
-                    this.hiddenInputElement.value = JSON.stringify(this.ruleData, null, 2);
+                    // Convert conditions back to object format for saving
+                    const dataToSave = this.ruleData.map(rule => {
+                        const ruleCopy = { ...rule };
+                        if (ruleCopy.conditions && Array.isArray(ruleCopy.conditions)) {
+                            // Convert from [{ type: "country", value: "NL" }, { type: "carrier_name", value: "ups" }] to { "country": "NL", "carrier_name": "ups" }
+                            const conditionsObject = {};
+                            ruleCopy.conditions.forEach(condition => {
+                                if (condition.type && condition.value !== undefined && condition.value !== '') {
+                                    conditionsObject[condition.type] = condition.value;
+                                }
+                            });
+                            ruleCopy.conditions = conditionsObject;
+                        }
+                        return ruleCopy;
+                    });
+                    
+                    this.hiddenInputElement.value = JSON.stringify(dataToSave, null, 2);
                 }
             };
 
