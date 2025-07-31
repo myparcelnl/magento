@@ -22,6 +22,10 @@
         /* Comment out for checking text area value */
         display: none;
     }
+
+    .use-default {
+        display: none;
+    }
 }
 
 #delivery-costs-matrix {

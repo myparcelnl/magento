@@ -335,6 +335,11 @@ define(
 
                 // Update the scoping of the matrix, enabling/disabling inputs and hiding links/buttons
                 updateScoping: function(scopingChecked) {
+                    const hiddenScopeElement = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs_inherit');
+                    const hiddenTextarea = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs')
+                    hiddenScopeElement.checked = scopingChecked;
+                    hiddenTextarea.disabled = scopingChecked;
+
                     // If scoping is checked, disable all inputs and hide links/buttons
                     if (scopingChecked) {
                         this.matrixElement.querySelectorAll('input, select, a, button').forEach(el => {
@@ -374,7 +379,7 @@ define(
                         }
                         return ruleCopy;
                     });
-                    
+
                     this.hiddenInputElement.value = JSON.stringify(dataToSave, null, 2);
                 }
             };
