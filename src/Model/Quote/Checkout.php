@@ -18,6 +18,7 @@ use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Services\CountryCodes;
 use Throwable;
 
 class Checkout
@@ -32,11 +33,6 @@ class Checkout
     private PackageRepository     $package;
     private Quote                 $quote;
     private StoreManagerInterface $currency;
-
-    /**
-     * @var string
-     */
-    private string $country;
 
     /**
      * Checkout constructor.
@@ -75,19 +71,22 @@ class Checkout
     public function getDeliveryOptions(array $forAddress = []): array
     {
         $this->hideDeliveryOptionsForProduct();
-        $packageType = $this->getPackageType();
 
-        if (isset($forAddress['countryId'])) {
-            $this->country = $forAddress['countryId'];
+        if (isset($forAddress['countryId']) && in_array($forAddress['countryId'], CountryCodes::ALL, true)) {
+            $country = $forAddress['countryId'];
 
             $this->setFreeShippingAvailability($this->quote, $forAddress);
+        } else {
+            $country = $this->quote->getShippingAddress()->getCountryId() ?? $this->config->getConfigValue('general/country/default') ?? AbstractConsignment::CC_NL;
         }
+
+        $packageType = $this->getPackageType($country);
 
         $data = [
             'carrierCode' => Carrier::CODE,
             'config'      => array_merge(
                 $this->getGeneralData(),
-                $this->getDeliveryData($packageType),
+                $this->getDeliveryData($packageType, $country),
                 ['packageType' => $packageType]
             ),
             'strings'     => $this->getDeliveryOptionsStrings(),
@@ -127,15 +126,16 @@ class Checkout
     /**
      * Get general data
      *
+     * @param string $country
      * @return string
      */
-    private function getPackageType(): string
+    private function getPackageType(string $country): string
     {
         $packageType    = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
         $activeCarriers = $this->getActiveCarriers();
 
         foreach ($activeCarriers as $carrier) {
-            $tentativePackageType = $this->checkPackageType($carrier);
+            $tentativePackageType = $this->checkPackageType($carrier, $country);
 
             switch ($tentativePackageType) {
                 case AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME:
@@ -157,7 +157,7 @@ class Checkout
      * @param string $packageType
      * @return array
      */
-    private function getDeliveryData(string $packageType): array
+    private function getDeliveryData(string $packageType, string $country): array
     {
         $myParcelConfig = [];
         $activeCarriers = $this->getActiveCarriers();
@@ -168,7 +168,7 @@ class Checkout
 
         foreach ($activeCarriers as $carrierName) {
             $carrierPath = $carrierPaths[$carrierName];
-            $basePrice   = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $this->country);
+            $basePrice   = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country);
 
             try {
                 $consignment = ConsignmentFactory::createByCarrierName($carrierName);
@@ -224,7 +224,7 @@ class Checkout
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->config->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
-                'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath),
+                'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath, $country),
                 'allowMondayDelivery'   => $canHaveMonday && $this->config->getBoolConfig($carrierPath, 'delivery/monday_active'),
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->config->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
                 'allowExpressDelivery'  => $allowExpressDelivery,
@@ -252,7 +252,7 @@ class Checkout
                 'pricePackageTypeMailbox'      => $basePrice,
                 'pricePackageTypeDigitalStamp' => $basePrice,
                 'pricePackageTypePackageSmall' => $basePrice,
-                // if you want separate package type prices, get them with this: $this->deliveryCosts->getBasePrice($this->quote, $carrierName, $packageType, $this->country);
+                // if you want separate package type prices, get them with this: $this->deliveryCosts->getBasePrice($this->quote, $carrierName, $packageType, $country);
             ];
         }
 
@@ -352,12 +352,12 @@ class Checkout
     }
 
     /**
-     * @param string      $carrier
-     * @param string|null $country
+     * @param string $carrier
+     * @param string $country
      *
      * @return string
      */
-    public function checkPackageType(string $carrier, ?string $country = null): string
+    public function checkPackageType(string $carrier, string $country): string
     {
         try {
             $consignment = ConsignmentFactory::createByCarrierName($carrier);
@@ -369,7 +369,6 @@ class Checkout
 
         $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrier];
         $products            = $this->quote->getAllItems();
-        $country             = $country ?? $this->country ?? $this->quote->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
         $canHaveMailbox      = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
         $canHavePackageSmall = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME);
@@ -435,12 +434,12 @@ class Checkout
 
     /**
      * @param string $carrier
-     *
+     * @param string $country
      * @return bool
      */
-    private function isPickupAllowed(string $carrier): bool
+    private function isPickupAllowed(string $carrier, string $country): bool
     {
-        $pickupEnabled = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME === $this->getPackageType()
+        $pickupEnabled = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME === $this->getPackageType($country)
                          && $this->config->getBoolConfig($carrier, 'pickup/active');
 
         return ! $this->package->deliveryOptionsDisabled && $pickupEnabled;
