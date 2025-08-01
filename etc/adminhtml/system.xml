@@ -29,15 +29,12 @@
                     <frontend_model>MyParcelNL\Magento\Block\System\Config\Form\SettingsButton</frontend_model>
                 </field>
             </group>
-            <group id="delivery_costs_matrix" translate="label comment" type="text" sortOrder="124" showInDefault="1" showInWebsite="1" showInStore="1">
-                <frontend_model>\MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix</frontend_model>
-            </group>
             <group id="matrix" translate="label comment" type="text" sortOrder="125" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery costs</label>
-                <field id="delivery_costs" translate="label comment" type="textarea" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Delivery costs json object</label>
-                    <tooltip>If you leave this empty or invalid, this shipping method will act as Flat rate using the Shipping cost defined under Sales->Delivery Methods->MyParcel</tooltip>
+                <field id="delivery_costs_ui" translate="label comment" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <frontend_model>\MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix</frontend_model>
                 </field>
+                <field id="delivery_costs" translate="label comment" type="textarea" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1"></field>
             </group>
             <group id="date_settings" translate="label comment" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Date settings</label>

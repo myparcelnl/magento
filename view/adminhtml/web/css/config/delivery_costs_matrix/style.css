@@ -1,0 +1,296 @@
+#row_myparcelnl_magento_general_matrix_delivery_costs_ui {
+    .value {
+        width: 100%;
+        padding: 0;
+
+        #myparcelnl_magento_general_matrix_delivery_costs_ui {
+            display: none;
+        }
+    }
+
+    .label {
+        display: none;
+    }
+}
+
+#row_myparcelnl_magento_general_matrix_delivery_costs {
+    .label {
+        display: none;
+    }
+
+    .value {
+        /* Comment out for checking text area value */
+        display: none;
+    }
+
+    .use-default {
+        display: none;
+    }
+}
+
+#delivery-costs-matrix {
+    position: relative;
+    margin: 20px 0;
+
+    .form-field {
+        margin-right: 15px;
+
+        label {
+            color: #303030;
+            font-size: 14px;
+            font-weight: 600;
+            margin-right: 15px;
+            display: inline-block;
+        }
+    }
+
+    .rule-header {
+        display: flex;
+        align-items: center;
+        margin: 10px 0;
+
+        .rule-name {
+            width: 300px;
+        }
+
+        .price {
+            width: 80px;
+        }
+
+        .display-rule-button {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            position: relative;
+
+            &:hover {
+                cursor: pointer;
+            }
+
+            &::before {
+                content: "Show/hide rule conditions";
+                position: absolute;
+                bottom: 125%;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #444;
+                color: #fff;
+                padding: 6px 10px;
+                border-radius: 4px;
+                white-space: nowrap;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+                z-index: 10;
+            }
+
+            &::after {
+                content: "";
+                position: absolute;
+                bottom: 65%;
+                left: 50%;
+                transform: translateX(-50%);
+                border-width: 6px;
+                border-style: solid;
+                border-color: #444 transparent transparent transparent;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+                z-index: 10;
+            }
+
+            &:hover::before,
+            &:hover::after {
+                opacity: 1;
+            }
+        }
+
+
+        .remove-rule-button {
+            width: 20px;
+            height: 20px;
+            position: relative;
+
+            &:hover {
+                cursor: pointer;
+            }
+
+            &::before {
+                content: "Delete rule";
+                position: absolute;
+                bottom: 125%;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #444;
+                color: #fff;
+                padding: 6px 10px;
+                border-radius: 4px;
+                white-space: nowrap;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+                z-index: 10;
+            }
+
+            &::after {
+                content: "";
+                position: absolute;
+                bottom: 65%;
+                left: 50%;
+                transform: translateX(-50%);
+                border-width: 6px;
+                border-style: solid;
+                border-color: #444 transparent transparent transparent;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+                z-index: 10;
+            }
+
+            &:hover::before,
+            &:hover::after {
+                opacity: 1;
+            }
+
+            img {
+                transform: rotate(45deg);
+            }
+        }
+    }
+
+    .conditions-container {
+        margin: 20px 0;
+
+        .condition-row {
+            display: flex;
+            align-items: center;
+            margin: 10px 0 10px 25px;
+
+            select, input {
+                width: 250px;
+            }
+
+            .remove-condition-button {
+                width: 20px;
+                height: 20px;
+                position: relative;
+
+                &:hover {
+                    cursor: pointer;
+                }
+
+                &::before {
+                    content: "Delete condition";
+                    position: absolute;
+                    bottom: 125%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: #444;
+                    color: #fff;
+                    padding: 6px 10px;
+                    border-radius: 4px;
+                    white-space: nowrap;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.2s ease-in-out;
+                    z-index: 10;
+                }
+
+                &::after {
+                    content: "";
+                    position: absolute;
+                    bottom: 65%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    border-width: 6px;
+                    border-style: solid;
+                    border-color: #444 transparent transparent transparent;
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.2s ease-in-out;
+                    z-index: 10;
+                }
+
+                &:hover::before,
+                &:hover::after {
+                    opacity: 1;
+                }
+
+                img {
+                    transform: rotate(45deg);
+                }
+            }
+        }
+
+        .add-condition-button {
+            display: flex;
+            width: 20px;
+            height: 20px;
+            margin-left: 55px;
+            position: relative;
+
+            &:hover {
+                cursor: pointer;
+            }
+
+            &::before {
+                content: "Add condition";
+                position: absolute;
+                bottom: 125%;
+                left: 50%;
+                transform: translateX(-50%);
+                background-color: #444;
+                color: #fff;
+                padding: 6px 10px;
+                border-radius: 4px;
+                white-space: nowrap;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+                z-index: 10;
+            }
+
+            &::after {
+                content: "";
+                position: absolute;
+                bottom: 65%;
+                left: 50%;
+                transform: translateX(-50%);
+                border-width: 6px;
+                border-style: solid;
+                border-color: #444 transparent transparent transparent;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease-in-out;
+                z-index: 10;
+            }
+
+            &:hover::before,
+            &:hover::after {
+                opacity: 1;
+            }
+        }
+    }
+
+    .add-rule-button {
+        margin-top: 10px;
+    }
+}
+
+.add-rule-button {
+
+
+    &:hover {
+        cursor: pointer;
+    }
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance:textfield;
+}

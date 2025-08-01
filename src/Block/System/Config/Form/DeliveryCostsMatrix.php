@@ -60,6 +60,38 @@ class DeliveryCostsMatrix extends Field
      */
     protected function _getElementHtml(AbstractElement $element): string
     {
-        return $this->_toHtml();
+        // combine the default HTML with the custom HTML for scoping
+        $defaultHtml = parent::_getElementHtml($element);
+
+        $customHtml = $this->_toHtml();
+
+        return $defaultHtml . $customHtml;
+    }
+
+    public function getCssUrl(): string
+    {
+        return $this->_assetRepo->createAsset('MyParcelNL_Magento::css/config/delivery_costs_matrix/style.css')->getUrl();
+    }
+
+    public function getTranslations(): array {
+        return [
+            'Rule name' => __('Rule name'),
+            'Price' => __('Price'),
+            'No rules defined. Click Add rule to create a new rule.' => __('No rules defined. Click Add rule to create a new rule.'),
+            'Add Rule' => __('Add Rule'),
+            'Condition' => __('Condition'),
+            'Value' => __('Value'),
+            'Toggle conditions' => __('Toggle conditions'),
+            'Remove rule' => __('Remove rule'),
+            'Add condition' => __('Add condition'),
+            'Remove condition' => __('Remove condition'),
+            'Select a condition' => __('Select a condition'),
+            'Carrier name' => __('Carrier name'),
+            'Country' => __('Country'),
+            'Package type' => __('Package type'),
+            'Maximum weight' => __('Maximum weight'),
+            'Country part of' => __('Country part of'),
+            'New rule' => __('New rule'),
+        ];
     }
 }
