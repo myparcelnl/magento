@@ -63,11 +63,6 @@ class Checkout
      * Get settings for MyParcel delivery options.
      * Warning: as a side effect this method will set the free shipping availability in the session, when an address is provided.
      *
-     * This method takes into account the first fake request posted by Magento, which is always for US and postcode
-     * as NULL, and no other fields present, regardless of default country set in the Magento settings...
-     * While filling out the checkout form, the request will be sent with other fields (like city) present.
-     * However, postcode will remain NULL while not filled, so we cannot use that field to distinguish.
-     *
      * @param array $forAddress associative array holding the latest address from the client
      *
      * @return array
@@ -77,9 +72,11 @@ class Checkout
     {
         $this->hideDeliveryOptionsForProduct();
 
-        if (isset($forAddress['countryId'])
-            && !('US' === ($country = $forAddress['countryId']) && !isset($forAddress['city'])) // fake first request
-            && in_array($country, CountryCodes::ALL, true) // only countries we understand
+        $country = $forAddress['countryId'] ?? null;
+
+        if ($country
+            && ! $this->isFakeRequest($forAddress)
+            && in_array($country, CountryCodes::ALL, true)
         ) {
             $this->setFreeShippingAvailability($this->quote, $forAddress);
         } else {
@@ -449,5 +446,18 @@ class Checkout
                          && $this->config->getBoolConfig($carrier, 'pickup/active');
 
         return ! $this->package->deliveryOptionsDisabled && $pickupEnabled;
+    }
+
+    /**
+     * In the checkout Magento sends a first (fake) request where the standard country is ALWAYS US (regardless
+     * of other settings). We can detect this because only the country and postcode (with value NULL) are posted,
+     * while during the checkout process (when the user is typing) the other fields (eg city) will be posted as well.
+     *
+     * @param array $forAddress
+     * @return bool
+     */
+    private function isFakeRequest(array $forAddress): bool
+    {
+        return 'US' === ($forAddress['countryId'] ?? null) && ! array_key_exists('city', $forAddress);
     }
 }
