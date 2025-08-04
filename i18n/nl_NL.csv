@@ -25,38 +25,7 @@ status_38,Inactief - Zending afgehaald op afhaallocatie
 status_39,Inactief - Retourzending afgeleverd
 status_40,Inactief - Retourzending op afhaallocactie
 status_99,Inactief - Onbekende status
-myparcelnl_magento_postnl_settings/delivery_title, postnl bezorging
-myparcelnl_magento_postnl_settings/pickup_title, postnl ophaallocatie
-myparcelnl_magento_postnl_settings/delivery/signature_title, postnl bezorging met handtekening
-myparcelnl_magento_postnl_settings/pickup, PostNL ophaallocatie
-myparcelnl_magento_postnl_settings/delivery, PostNL bezorging
-myparcelnl_magento_postnl_settings/delivery/signature, PostNL bezorging met handtekening voor ontvangst
-myparcelnl_magento_postnl_settings/delivery/only_recipient, PostNL bezorging met alleen huisadres
-myparcelnl_magento_postnl_settings/delivery/only_recipient/signature, PostNL bezorging met alleen huisadres en handtekening
-myparcelnl_magento_postnl_settings/morning, PostNL ochtend levering
-myparcelnl_magento_postnl_settings/morning/only_recipient, PostNL ochtend levering met alleen huisadres
-myparcelnl_magento_postnl_settings/morning/only_recipient/signature, PostNL ochtend levering met alleen huisadres en handtekening
-myparcelnl_magento_postnl_settings/evening, PostNL avond levering
-myparcelnl_magento_postnl_settings/evening/only_recipient, PostNL avond levering met alleen huisadres
-myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL avond levering met alleen huisadres en handtekening
-myparcelnl_magento_postnl_settings/mailbox, PostNL brievenbuspakje
-myparcelnl_magento_postnl_settings/digital_stamp, PostNL digitale postzegel
-myparcelnl_magento_dhlforyou_settings/delivery, DHL For You bezorging
-myparcelnl_magento_dhlforyou_settings/delivery/signature, DHL For You bezorging met handtekening
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient, DHL For You bezorging met alleen ontvanger
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, DHL For You bezorging met alleen ontvanger en handtekening
-myparcelnl_magento_dhlforyou_settings/pickup, DHL For You afhaallocatie
-myparcelnl_magento_dhlforyou_settings/mailbox, DHL For You brievenbuspakje
-myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus bezorging
-myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorging
-myparcelnl_magento_dhlparcelconnect_settings/pickup, DHL Parcel Connect afhaallocatie
-myparcelnl_magento_ups_settings/delivery, UPS bezorging
-myparcelnl_magento_dpd_settings/delivery_title,  DPD bezorging
-myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
-myparcelnl_magento_dpd_settings/delivery, DPD bezorging
-myparcelnl_magento_dpd_settings/pickup, DPD ophaallocatie
-myparcelnl_magento_dpd_settings/mailbox, DPD brievenbuspakje
-myparcelnl_magento_error_no_shipments_to_process, Geen MyParcel zendingen om te verwerken.
+myparcelnl_magento_error_no_shipments_to_process,Geen MyParcel zendingen om te verwerken.
 package_small,Klein pakket
 Packet,Klein pakket
 Packet title,Klein pakket titel
