@@ -92,6 +92,7 @@ class DeliveryCostsMatrix extends Field
             'Maximum weight' => __('Maximum weight'),
             'Country part of' => __('Country part of'),
             'New rule' => __('New rule'),
+            'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
         ];
     }
 }

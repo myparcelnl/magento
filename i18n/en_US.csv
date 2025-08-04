@@ -87,7 +87,6 @@ Maximum weight,Maximum weight
 Country part of,Country part of
 No rules defined. Click Add rule to create a new rule.,No rules defined. Click Add rule to create a new rule.
 Add rule,Add rule
-Rule name,Rule name
 Price,Price
 Toggle conditions,Toggle conditions
 Remove rule,Remove rule
@@ -97,9 +96,5 @@ Condition,Condition
 Value,Value
 Remove condition,Remove condition
 Select a condition,Select a condition
-Carrier name,Carrier name
-Country,Country
-Package type,Package type
-Maximum weight,Maximum weight
-Country part of,Country part of
 New rule,New rule
+Show or hide JSON textarea,Show or hide JSON textarea

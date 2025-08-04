@@ -1,6 +1,12 @@
 #row_myparcelnl_magento_general_matrix_delivery_costs_ui {
+    .label {
+        @media screen and (max-width: 1510px) {
+            display: none;
+
+        }
+    }
+
     .value {
-        width: 100%;
         padding: 0;
 
         #myparcelnl_magento_general_matrix_delivery_costs_ui {
@@ -9,18 +15,17 @@
     }
 
     .label {
-        display: none;
+        label {
+            display: none;
+        }
     }
 }
 
 #row_myparcelnl_magento_general_matrix_delivery_costs {
     .label {
-        display: none;
-    }
-
-    .value {
-        /* Comment out for checking text area value */
-        display: none;
+        label {
+            display: none;
+        }
     }
 
     .use-default {
@@ -34,20 +39,23 @@
 
     .form-field {
         margin-right: 15px;
+        position: relative;
 
         label {
             color: #303030;
             font-size: 14px;
             font-weight: 600;
             margin-right: 15px;
-            display: inline-block;
+            position: absolute;
+            top: -20px;
+            left: 0;
         }
     }
 
     .rule-header {
         display: flex;
         align-items: center;
-        margin: 10px 0;
+        margin: 30px 0;
 
         .rule-name {
             width: 300px;
@@ -164,7 +172,7 @@
         .condition-row {
             display: flex;
             align-items: center;
-            margin: 10px 0 10px 25px;
+            margin: 30px 0 30px 25px;
 
             select, input {
                 width: 250px;
@@ -275,13 +283,17 @@
     .add-rule-button {
         margin-top: 10px;
     }
-}
 
-.add-rule-button {
+    .show-textarea-container {
+        margin: 20px 0 -35px 0;
 
+        label {
+            padding-right: 10px;
 
-    &:hover {
-        cursor: pointer;
+            &:hover {
+                cursor: pointer;
+            }
+        }
     }
 }
 
