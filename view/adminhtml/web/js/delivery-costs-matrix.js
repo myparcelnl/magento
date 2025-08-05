@@ -10,20 +10,6 @@ define(
                     this.matrixElement = document.getElementById('delivery-costs-matrix');
                     this.hiddenInputElement = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs');
 
-                    // Get existing rule data from hidden input and sort it by name
-                    this.ruleData = this.hiddenInputElement.value
-                        ? JSON.parse(this.hiddenInputElement.value).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-                        : [];
-
-                    // Convert conditions from object format to array format for UI display
-                    this.ruleData.forEach(rule => {
-                        if (rule.conditions && !Array.isArray(rule.conditions)) {
-                            rule.conditions = Object.entries(rule.conditions).map(([type, value]) => ({ type, value }));
-                        } else if (!rule.conditions) {
-                            rule.conditions = [];
-                        }
-                    });
-
                     // Initialize translations and condition options
                     this.translations = JSON.parse(this.options.getTranslations);
                     this.conditionOptionsList = [
@@ -34,6 +20,31 @@ define(
                         {value: 'maximum_weight', text: this.translations['Maximum weight']},
                         {value: 'country_part_of', text: this.translations['Country part of']},
                     ];
+
+                    // This is the first place where the JSON is being parsed, if the JSON is invalid,
+                    // this will be shown to the user and the matrix will not be rendered
+                    try {
+                        // Get existing rule data from hidden input and sort it by name
+                        this.ruleData = this.hiddenInputElement.value
+                            ? JSON.parse(this.hiddenInputElement.value).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                            : [];
+                    } catch (e) {
+                        const errorMessage = document.createElement('p');
+                        errorMessage.className = 'error-message';
+                        errorMessage.textContent = this.translations['Invalid JSON in textarea'] + ' ' + e;
+                        this.matrixElement.appendChild(errorMessage);
+                        return;
+                    }
+
+
+                    // Convert conditions from object format to array format for UI display
+                    this.ruleData.forEach(rule => {
+                        if (rule.conditions && !Array.isArray(rule.conditions)) {
+                            rule.conditions = Object.entries(rule.conditions).map(([type, value]) => ({ type, value }));
+                        } else if (!rule.conditions) {
+                            rule.conditions = [];
+                        }
+                    });
 
                     // Track open/closed state of each rule
                     this.openRules = {};

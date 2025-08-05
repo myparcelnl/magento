@@ -93,6 +93,7 @@ class DeliveryCostsMatrix extends Field
             'Country part of' => __('Country part of'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
+            'Invalid JSON in textarea' => __('Invalid JSON in textarea'),
         ];
     }
 }

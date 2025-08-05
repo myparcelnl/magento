@@ -346,3 +346,4 @@ Value,Waarde
 Remove condition,Voorwaarde verwijderen
 Select a condition,Selecteer een voorwaarde
 Show or hide JSON textarea,Toon of verberg JSON tekstvak
+Invalid JSON in textarea,Ongeldige JSON in tekstvak

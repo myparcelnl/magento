@@ -2,7 +2,6 @@
     .label {
         @media screen and (max-width: 1510px) {
             display: none;
-
         }
     }
 
@@ -23,6 +22,10 @@
 
 #row_myparcelnl_magento_general_matrix_delivery_costs {
     .label {
+        @media screen and (max-width: 1510px) {
+            display: none;
+        }
+
         label {
             display: none;
         }
