@@ -10,21 +10,6 @@ define(
                     this.matrixElement = document.getElementById('delivery-costs-matrix');
                     this.hiddenInputElement = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs');
 
-                    // Get existing rule data from hidden input and sort it by name
-                    this.ruleData = this.hiddenInputElement.value
-                        ? JSON.parse(this.hiddenInputElement.value).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-                        : [];
-
-                    // Convert conditions from object format to array format for UI display
-                    this.ruleData.forEach(rule => {
-                        if (rule.conditions && typeof rule.conditions === 'object' && !Array.isArray(rule.conditions)) {
-                            // Convert from { "country": "NL", "carrier_name": "ups" } to [{ type: "country", value: "NL" }, { type: "carrier_name", value: "ups" }]
-                            rule.conditions = Object.entries(rule.conditions).map(([type, value]) => ({ type, value }));
-                        } else if (!rule.conditions) {
-                            rule.conditions = [];
-                        }
-                    });
-
                     // Initialize translations and condition options
                     this.translations = JSON.parse(this.options.getTranslations);
                     this.conditionOptionsList = [
@@ -35,6 +20,31 @@ define(
                         {value: 'maximum_weight', text: this.translations['Maximum weight']},
                         {value: 'country_part_of', text: this.translations['Country part of']},
                     ];
+
+                    // This is the first place where the JSON is being parsed, if the JSON is invalid,
+                    // this will be shown to the user and the matrix will not be rendered
+                    try {
+                        // Get existing rule data from hidden input and sort it by name
+                        this.ruleData = this.hiddenInputElement.value
+                            ? JSON.parse(this.hiddenInputElement.value).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+                            : [];
+                    } catch (e) {
+                        const errorMessage = document.createElement('p');
+                        errorMessage.className = 'error-message';
+                        errorMessage.textContent = this.translations['Invalid JSON in textarea'] + ' ' + e;
+                        this.matrixElement.appendChild(errorMessage);
+                        return;
+                    }
+
+
+                    // Convert conditions from object format to array format for UI display
+                    this.ruleData.forEach(rule => {
+                        if (rule.conditions && !Array.isArray(rule.conditions)) {
+                            rule.conditions = Object.entries(rule.conditions).map(([type, value]) => ({ type, value }));
+                        } else if (!rule.conditions) {
+                            rule.conditions = [];
+                        }
+                    });
 
                     // Track open/closed state of each rule
                     this.openRules = {};
@@ -65,12 +75,36 @@ define(
                         this.matrixElement.appendChild(ruleElement);
                     });
 
-                    let addButton = document.createElement('button');
+                    const addButton = document.createElement('button');
                     addButton.type = 'button';
                     addButton.className = 'add-rule-button';
                     addButton.textContent = this.translations['Add Rule'];
                     addButton.addEventListener('click', () => this.addRule());
                     this.matrixElement.appendChild(addButton);
+
+                    const showTextareaContainer = document.createElement('div');
+                    showTextareaContainer.className = 'show-textarea-container';
+                    const showTextareaLabel = document.createElement('label');
+                    showTextareaLabel.textContent = this.translations['Show or hide JSON textarea'];
+                    const showTextareaInput = document.createElement('input');
+                    showTextareaInput.id = 'show-textarea-input';
+                    showTextareaInput.type = 'checkbox';
+                    showTextareaLabel.htmlFor = 'show-textarea-input';
+
+                    const jsonTextarea = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs');
+
+                    // Hide the textarea by default
+                    jsonTextarea.style.display = 'none';
+
+                    showTextareaInput.addEventListener('change', (e) => {
+                        jsonTextarea.style.display = e.target.checked ? 'block' : 'none';
+                    });
+
+                    showTextareaContainer.appendChild(showTextareaLabel);
+                    showTextareaContainer.appendChild(showTextareaInput);
+
+
+                    this.matrixElement.appendChild(showTextareaContainer);
                 },
 
                 // Create a rule element with its conditions
@@ -123,14 +157,10 @@ define(
                         });
                     }
 
-                    // Add a button to add new conditions, if there are less than 5 conditions
-                    const conditionCount = conditionsContainer.querySelectorAll('.condition-row').length
                     const addConditionButton = document.createElement('a');
-                    if (conditionCount < 5) {
-                        addConditionButton.className = 'add-condition-button';
-                        addConditionButton.innerHTML = `<img src="${options.plusIcon}" alt="${this.translations['Add condition']}" title="${this.translations['Add condition']}">`;
-                        conditionsContainer.appendChild(addConditionButton);
-                    }
+                    addConditionButton.className = 'add-condition-button';
+                    addConditionButton.innerHTML = `<img src="${options.plusIcon}" alt="${this.translations['Add condition']}" title="${this.translations['Add condition']}">`;
+                    conditionsContainer.appendChild(addConditionButton);
 
                     // Add event listeners for rule header inputs and buttons
                     header.querySelector(`#rule-name-${ruleId}`).addEventListener('change', (e) => this.updateRuleField(ruleIndex, 'name', e.target.value));
@@ -364,23 +394,7 @@ define(
 
                 // Save the current rule data to the hidden input element
                 save: function() {
-                    // Convert conditions back to object format for saving
-                    const dataToSave = this.ruleData.map(rule => {
-                        const ruleCopy = { ...rule };
-                        if (ruleCopy.conditions && Array.isArray(ruleCopy.conditions)) {
-                            // Convert from [{ type: "country", value: "NL" }, { type: "carrier_name", value: "ups" }] to { "country": "NL", "carrier_name": "ups" }
-                            const conditionsObject = {};
-                            ruleCopy.conditions.forEach(condition => {
-                                if (condition.type && condition.value !== undefined && condition.value !== '') {
-                                    conditionsObject[condition.type] = condition.value;
-                                }
-                            });
-                            ruleCopy.conditions = conditionsObject;
-                        }
-                        return ruleCopy;
-                    });
-
-                    this.hiddenInputElement.value = JSON.stringify(dataToSave, null, 2);
+                    this.hiddenInputElement.value = JSON.stringify(this.ruleData, null, 2);
                 }
             };
 

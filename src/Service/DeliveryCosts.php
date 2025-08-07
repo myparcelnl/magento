@@ -120,32 +120,8 @@ class DeliveryCosts
                 if ('unspecified' === $condition) {
                     continue;
                 }
-                // consider unspecified conditions as valid
-                if (! isset($definedConditions[$condition])) {
-                    $totalPoints += self::CONDITIONS['unspecified'];
-                    continue;
-                }
-                switch ($condition) {
-                    case 'maximum_weight':
-                        if ((float) $conditions['weight'] <= (float) $definedConditions[$condition]) {
-                            $totalPoints += $points;
-                            continue 2;
-                        }
-                        break;
-                    case 'country_part_of':
-                        if (self::isCountryPartOf($conditions['country'], $definedConditions[$condition])) {
-                            $totalPoints += $points;
-                            continue 2;
-                        }
-                        break;
-                    default:
-                        if ($conditions[$condition] === $definedConditions[$condition]) {
-                            $totalPoints += $points;
-                            continue 2;
-                        }
-                }
-                // when condition is not met, don’t count it
-                continue 2;
+
+                $totalPoints += $this->scoreCondition($condition, $conditions, $definedConditions);
             }
 
             $return[] = [
@@ -165,6 +141,56 @@ class DeliveryCosts
         });
 
         return (float) $return[0]['definition']['price'];
+    }
+
+    /**
+     * Scores a specific condition against the defined conditions in the matrix, using the actual conditions from the quote.
+     *
+     * @param string $condition the name of the condition from self::CONDITIONS
+     * @param array  $conditions actual conditions from the quote
+     * @param array  $definedConditions from the matrix, each condition is an associative array with 'type' and 'value' keys
+     * @return int 0 when not met, or the points for the condition when met, or 1 when unspecified.
+     */
+    private function scoreCondition(string $condition, array $conditions, array $definedConditions): int
+    {
+        $conditionIsChecked = false;
+
+        foreach ($definedConditions as $definedCondition) {
+            $type = $definedCondition['type'] ?? '';
+
+            if ($type !== $condition) {
+                continue;
+            }
+
+            $conditionIsChecked = true;
+            $value              = $definedCondition['value'] ?? '';
+
+            switch ($condition) {
+                case 'maximum_weight':
+                    if ((float) $conditions['weight'] <= (float) $value) {
+                        return self::CONDITIONS[$condition];
+                    }
+                    break;
+                case 'country_part_of':
+                    if (self::isCountryPartOf($conditions['country'], $value)) {
+                        return self::CONDITIONS[$condition];
+                    }
+                    break;
+                default:
+                    if ($conditions[$condition] === $value) {
+                        return self::CONDITIONS[$condition];
+                    }
+            }
+
+        }
+
+        // consider unspecified conditions as valid
+        if (! $conditionIsChecked) {
+            return self::CONDITIONS['unspecified'];
+        }
+
+        // condition was checked, but not met
+        return 0;
     }
 
     /**
