@@ -236,3 +236,25 @@ signature_title, Signature à réception
 receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
 saturday_delivery, Livraison le samedi
+Delivery costs,Frais de livraison
+Rule name,Nom de la règle
+Select a condition...,Sélectionnez une condition...
+Carrier name,Nom du transporteur,
+Country,Pays
+Package type,Type de colis,
+Maximum weight,Poids maximum,
+Country part of,Partie du pays,
+No rules defined. Click Add rule to create a new rule.,Aucune règle définie. Cliquez sur Ajouter une règle pour en créer une nouvelle.
+Add rule,Ajouter une règle,
+Price,Prix
+Toggle conditions,Basculer les conditions,
+Remove rule,Retirer la règle,
+Add condition,Ajouter une condition
+New rule,Nouvelle règle,
+Condition,Condition
+Value,Valeur
+Remove condition,Retirer la condition
+Select a condition,Sélectionnez une condition
+Carrier name,Nom du transporteur
+Show or hide JSON textarea,Afficher ou Masquer la zone de texte JSON
+Invalid JSON in textarea,JSON invalide dans la zone de texte
