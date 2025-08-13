@@ -17,7 +17,7 @@ define(
                         {value: 'carrier_name', text: this.translations['Carrier name']},
                         {value: 'country', text: this.translations['Country']},
                         {value: 'package_type', text: this.translations['Package type']},
-                        {value: 'maximum_weight', text: this.translations['Maximum weight']},
+                        {value: 'maximum_weight (in grams)', text: this.translations['Maximum weight (in grams)']},
                         {value: 'country_part_of', text: this.translations['Country part of']},
                     ];
 

@@ -36,6 +36,14 @@
     }
 }
 
+#row_myparcelnl_magento_general_matrix_use_free_shipping {
+    .label {
+        @media screen and (max-width: 1510px) {
+            display: none;
+        }
+    }
+}
+
 #delivery-costs-matrix {
     position: relative;
     margin: 20px 0;

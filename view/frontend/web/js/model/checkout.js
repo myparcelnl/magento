@@ -157,6 +157,11 @@ function(
       if (row && Model.hasDeliveryOptions) {
         row.style.display = 'none';
       }
+
+      if (Model.configuration().useFreeShipping) {
+        const free = document.getElementById('label_method_freeshipping_freeshipping');
+        free && (free.parentElement.style.display = 'none');
+      }
     },
 
     rowElement: function() {

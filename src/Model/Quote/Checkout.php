@@ -86,14 +86,15 @@ class Checkout
         $packageType = $this->getPackageType($country);
 
         $data = [
-            'carrierCode' => Carrier::CODE,
-            'config'      => array_merge(
+            'carrierCode'     => Carrier::CODE,
+            'useFreeShipping' => '1' === $this->config->getGeneralConfig('matrix/use_free_shipping'),
+            'config'          => array_merge(
                 $this->getGeneralData(),
                 $this->getDeliveryData($packageType, $country),
                 ['packageType' => $packageType]
             ),
-            'strings'     => $this->getDeliveryOptionsStrings(),
-            'forAddress'  => $forAddress,
+            'strings'         => $this->getDeliveryOptionsStrings(),
+            'forAddress'      => $forAddress,
         ];
 
         return [

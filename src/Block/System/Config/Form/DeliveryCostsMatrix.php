@@ -89,7 +89,7 @@ class DeliveryCostsMatrix extends Field
             'Carrier name' => __('Carrier name'),
             'Country' => __('Country'),
             'Package type' => __('Package type'),
-            'Maximum weight' => __('Maximum weight'),
+            'Maximum weight (in grams)' => __('Maximum weight (in grams)'),
             'Country part of' => __('Country part of'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),

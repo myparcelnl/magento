@@ -237,12 +237,14 @@ receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
 saturday_delivery, Livraison le samedi
 Delivery costs,Frais de livraison
+Use Free Shipping,Utiliser la livraison gratuite
+Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Si les frais de livraison MyParcel sont de 0 lorsque la Livraison gratuite est disponible.
 Rule name,Nom de la règle
 Select a condition...,Sélectionnez une condition...
 Carrier name,Nom du transporteur,
 Country,Pays
 Package type,Type de colis,
-Maximum weight,Poids maximum,
+Maximum weight (in grams),Poids maximum en grammes,
 Country part of,Partie du pays,
 No rules defined. Click Add rule to create a new rule.,Aucune règle définie. Cliquez sur Ajouter une règle pour en créer une nouvelle.
 Add rule,Ajouter une règle,

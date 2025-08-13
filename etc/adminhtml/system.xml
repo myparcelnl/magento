@@ -35,6 +35,11 @@
                     <frontend_model>\MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix</frontend_model>
                 </field>
                 <field id="delivery_costs" translate="label comment" type="textarea" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1"></field>
+                <field id="use_free_shipping" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Use Free Shipping</label>
+                    <tooltip>Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
             <group id="date_settings" translate="label comment" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Date settings</label>
