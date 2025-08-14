@@ -67,7 +67,9 @@ class DeliveryCosts
      */
     public function getBasePrice(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
     {
-        if ($this->isFreeShippingAvailable()) {
+        if ($this->config->getGeneralConfig('matrix/use_free_shipping')
+            && $this->isFreeShippingAvailable()
+        ) {
             return 0.0;
         }
         $defaultOptions = new DefaultOptions($quote);
