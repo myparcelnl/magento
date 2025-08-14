@@ -327,12 +327,14 @@ receipt_code_title,Ontvangstcode
 only_recipient_title,Alleen huisadres
 saturday_delivery,Zaterdag levering
 Delivery costs,Bezorgkosten
+Use Free Shipping,Gebruik gratis verzending
+Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.
 Rule name,Regel naam
 Select a condition...,Selecteer een voorwaarde...
 Carrier name,Vervoerder naam
 Country,Land
 Package type,Pakket type
-Maximum weight,Maximum gewicht
+Maximum weight (in grams),Maximum gewicht (in gram)
 Country part of,Land onderdeel van
 No rules defined. Click Add rule to create a new rule.,Geen regels gedefinieerd. Klik op Regel toevoegen om een nieuwe regel te maken.
 Add rule,Regel toevoegen
