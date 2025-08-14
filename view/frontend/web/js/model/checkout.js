@@ -162,6 +162,11 @@ function(
         const free = document.getElementById('label_method_freeshipping_freeshipping');
         free && free.parentElement && free.parentElement.setAttribute('hidden', 'hidden');
       }
+
+      if (Model.configuration().useFreeShipping) {
+        const free = document.getElementById('label_method_freeshipping_freeshipping');
+        free && (free.parentElement.style.display = 'none');
+      }
     },
 
     rowElement: function() {
