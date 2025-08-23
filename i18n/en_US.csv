@@ -25,32 +25,6 @@ status_38,Inactive - Delivered - Package picked up
 status_39,Inactive - Return shipment delivered
 status_40,Inactive - Return shipment pickup location
 status_99,Inactive - Unknown
-myparcelnl_magento_postnl_settings/pickup, PostNL pickup location
-myparcelnl_magento_postnl_settings/delivery, PostNL delivery
-myparcelnl_magento_postnl_settings/delivery/signature, PostNL delivery with signature
-myparcelnl_magento_postnl_settings/delivery/only_recipient, PostNL delivery with only recipient
-myparcelnl_magento_postnl_settings/delivery/only_recipient/signature, PostNL delivery with only recipient and signature
-myparcelnl_magento_postnl_settings/morning, PostNL morning delivery
-myparcelnl_magento_postnl_settings/morning/only_recipient, PostNL morning delivery with only recipient
-myparcelnl_magento_postnl_settings/morning/only_recipient/signature, PostNL morning delivery with only recipient and signature
-myparcelnl_magento_postnl_settings/evening, PostNL evening delivery
-myparcelnl_magento_postnl_settings/evening/only_recipient, PostNL evening delivery with only recipient
-myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL evening delivery with only recipient and signature
-myparcelnl_magento_postnl_settings/mailbox, PostNL mailbox
-myparcelnl_magento_postnl_settings/digital_stamp, PostNL digital stamp
-myparcelnl_magento_dhlforyou_settings/delivery, DHL For You delivery
-myparcelnl_magento_dhlforyou_settings/delivery/signature, DHL For You delivery with signature
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient, DHL For You delivery with only recipient
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, DHL For You delivery with only recipient and signature
-myparcelnl_magento_dhlforyou_settings/pickup, DHL For You pickup location
-myparcelnl_magento_dhlforyou_settings/mailbox, DHL For You mailbox
-myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus delivery
-myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect delivery
-myparcelnl_magento_dhlparcelconnect_settings/pickup, DHL Parcel Connect pickup
-myparcelnl_magento_ups_settings/delivery, UPS delivery
-myparcelnl_magento_dpd_settings/delivery, DPD delivery
-myparcelnl_magento_dpd_settings/pickup, DPD pickup location
-myparcelnl_magento_dpd_settings/mailbox, DPD mailbox
 myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
 no_account_settings, No account settings found. Press the import button in general configuration to fetch account settings.
 manage_drop_off_point, Manage your default drop-off point in the
