@@ -124,7 +124,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
         $method->setCarrier($this->_code);
         $method->setCarrierTitle($this->_title);
-        $method->setMethod($this->_name);
+        $method->setMethod($this->_code);
         $method->setMethodTitle($this->getMethodTitle($quote));
         $method->setPrice((string) $this->getMethodAmount($quote));
 
@@ -217,7 +217,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
      */
     public function getAllowedMethods(): array
     {
-        return [$this->_name];
+        return [$this->_code => $this->_name];
     }
 
     public function isTrackingAvailable(): bool
