@@ -51,6 +51,13 @@ myparcelnl_magento_ups_settings/delivery, UPS delivery
 myparcelnl_magento_dpd_settings/delivery, DPD delivery
 myparcelnl_magento_dpd_settings/pickup, DPD pickup location
 myparcelnl_magento_dpd_settings/mailbox, DPD mailbox
+myparcelnl_magento_gls_settings/delivery, GLS delivery
+myparcelnl_magento_gls_settings/delivery/signature, GLS delivery with signature
+myparcelnl_magento_gls_settings/delivery/only_recipient, GLS delivery with only recipient
+myparcelnl_magento_gls_settings/delivery/only_recipient/signature, GLS delivery with only recipient and signature
+myparcelnl_magento_gls_settings/delivery/saturday, GLS Saturday delivery
+myparcelnl_magento_gls_settings/pickup, GLS pickup location
+myparcelnl_magento_gls_settings/mailbox, GLS mailbox
 myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
 no_account_settings, No account settings found. Press the import button in general configuration to fetch account settings.
 manage_drop_off_point, Manage your default drop-off point in the

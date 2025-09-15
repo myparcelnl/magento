@@ -1378,6 +1378,134 @@
                 </field>
             </group>
         </section>
+        <section id="myparcelnl_magento_gls_settings" translate="label" type="text" sortOrder="200" showInDefault="1"
+                 showInWebsite="1" showInStore="1">
+            <label>GLS settings</label>
+            <tab>myparcelnl_magento</tab>
+            <resource>MyParcelNL_Magento::myparcelnl_magento</resource>
+            <group id="delivery" translate="label comment" type="text" sortOrder="201" showInDefault="1"
+                   showInWebsite="1" showInStore="1">
+                <label>Delivery settings</label>
+                <field id="active" translate="label comment" type="select" sortOrder="305" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Delivery enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="delivery_fee" translate="label comment" type="text" sortOrder="305" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Delivery fee</label>
+                    <validate>validate-number</validate>
+                    <comment>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</comment>
+                    <tooltip>This will be added to or subtracted from the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="signature_active" translate="label comment" type="select" sortOrder="310"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Signature on receipt</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="signature_fee" translate="label comment" type="text" sortOrder="311"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Signature on receipt fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <validate>validate-number</validate>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="signature_active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_active" translate="label comment" type="select" sortOrder="315"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Only recipient</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="only_recipient_fee" translate="label comment" type="text" sortOrder="316"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Only recipient fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <validate>validate-number</validate>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="only_recipient_active">1</field>
+                    </depends>
+                </field>
+                <field id="saturday_active" translate="label comment" type="select" sortOrder="320"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Saturday delivery</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="saturday_fee" translate="label comment" type="text" sortOrder="321"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Saturday delivery fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <validate>validate-number</validate>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="saturday_active">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="pickup" translate="label comment" type="text" sortOrder="400" showInDefault="1"
+                   showInWebsite="1" showInStore="1">
+                <label>Pickup at GLS location</label>
+                <field id="active" translate="label comment" type="select" sortOrder="405" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Pickup active</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="fee" translate="label comment" type="text" sortOrder="410" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pickup fee</label>
+                    <tooltip>Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="default_options" translate="label comment" type="text" sortOrder="300" showInDefault="1"
+                   showInWebsite="1" showInStore="1">
+                <label>Default shipping options</label>
+                <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
+                <field id="insurance_from_price" translate="label comment" type="text" sortOrder="231" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Insure orders from (€)</label>
+                    <validate>validate-number validate-zero-or-greater</validate>
+                    <tooltip>The minimum amount from when insurance is active.</tooltip>
+                </field>
+                <field id="insurance_local_amount" translate="label comment" type="select" sortOrder="232"
+                       showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (Local)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\Local</source_model>
+                </field>
+                <field id="insurance_eu_amount" translate="label comment" type="select" sortOrder="234" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (EU)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\EU</source_model>
+                </field>
+                <field id="insurance_row_amount" translate="label comment" type="select" sortOrder="235" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Insure orders up to (ROW)</label>
+                    <source_model>MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\ROW</source_model>
+                </field>
+                <field id="insurance_percentage" translate="label comment" type="text" sortOrder="236" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Insure orders for percentage</label>
+                    <validate>validate-number validate-number-range number-range-0-100</validate>
+                    <tooltip>Use percentage of total order amount for insurance. After the calculation, the next
+                        available price scale is selected.
+                    </tooltip>
+                </field>
+            </group>
+        </section>
         <section id="sales_email">
             <group id="track" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>MyParcel Track</label>
