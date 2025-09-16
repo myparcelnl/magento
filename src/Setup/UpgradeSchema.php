@@ -156,7 +156,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
             $tableQuote = $setup->getTable('quote');
             if ($setup->getConnection()->isTableExists($tableQuote)) {
-                if ($setup->getConnection()->tableColumnExists($tableQuote, 'delivery_options') === true) {
+                if (
+                    true === $setup->getConnection()->tableColumnExists($tableQuote, 'delivery_options')
+                    && false === $setup->getConnection()->tableColumnExists($tableQuote, 'myparcel_delivery_options')
+                ) {
                     $setup->getConnection()->changeColumn(
                         $tableQuote,
                         'delivery_options',
@@ -170,7 +173,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 }
             }
             if ($setup->getConnection()->isTableExists($tableSalesOrder)) {
-                if ($setup->getConnection()->tableColumnExists($tableSalesOrder, 'delivery_options') === true) {
+                if (
+                    true === $setup->getConnection()->tableColumnExists($tableSalesOrder, 'delivery_options')
+                    && false === $setup->getConnection()->tableColumnExists($tableSalesOrder, 'myparcel_delivery_options')
+                ) {
                     $setup->getConnection()->changeColumn(
                         $tableSalesOrder,
                         'delivery_options',
