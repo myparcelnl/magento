@@ -51,13 +51,6 @@ myparcelnl_magento_ups_settings/delivery, UPS delivery
 myparcelnl_magento_dpd_settings/delivery, DPD delivery
 myparcelnl_magento_dpd_settings/pickup, DPD pickup location
 myparcelnl_magento_dpd_settings/mailbox, DPD mailbox
-myparcelnl_magento_gls_settings/delivery, GLS delivery
-myparcelnl_magento_gls_settings/delivery/signature, GLS delivery with signature
-myparcelnl_magento_gls_settings/delivery/only_recipient, GLS delivery with only recipient
-myparcelnl_magento_gls_settings/delivery/only_recipient/signature, GLS delivery with only recipient and signature
-myparcelnl_magento_gls_settings/delivery/saturday, GLS Saturday delivery
-myparcelnl_magento_gls_settings/pickup, GLS pickup location
-myparcelnl_magento_gls_settings/mailbox, GLS mailbox
 myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
 no_account_settings, No account settings found. Press the import button in general configuration to fetch account settings.
 manage_drop_off_point, Manage your default drop-off point in the
@@ -67,6 +60,7 @@ show_total_price, Show total price
 show_surcharge_price, Show surcharge
 Automate 'Large format',Automate 'Larger than 100 x 70 x 58 cm'
 Large package,Larger than 100 x 70 x 58 cm
+
 delivery_title, Delivery Options
 standard_title, Standard Delivery
 morning_title, Morning Delivery
@@ -79,30 +73,8 @@ map_title, Map
 mailbox_title, Mailbox
 digital_stamp_title, Digital Stamp
 packet_title, Packet
-package_title, Package
 signature_title, Signature
 receipt_code_title, Receiving code
 only_recipient_title, Only Recipient
 saturday_delivery, Saturday Delivery
-Delivery costs,Delivery costs
-Rule name,Rule name
-Select a condition...,Select a condition...
-Carrier name,Carrier name
-Country,Country
-Package type,Package type
-Maximum weight,Maximum weight
-Country part of,Country part of
-No rules defined. Click Add rule to create a new rule.,No rules defined. Click Add rule to create a new rule.
-Add rule,Add rule
-Price,Price
-Toggle conditions,Toggle conditions
-Remove rule,Remove rule
-Add condition,Add condition
-New rule,New rule
-Condition,Condition
-Value,Value
-Remove condition,Remove condition
-Select a condition,Select a condition
-New rule,New rule
-Show or hide JSON textarea,Show or hide JSON textarea
-Invalid JSON in textarea,Invalid JSON in textarea
+
