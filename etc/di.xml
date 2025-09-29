@@ -135,4 +135,33 @@
             <argument name="type" xsi:type="string">ROW</argument>
         </arguments>
     </virtualType>
+
+    <!-- Get the insurance rates for GLS -->
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">gls</argument>
+            <argument name="type" xsi:type="string">local</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">gls</argument>
+            <argument name="type" xsi:type="string">BE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">gls</argument>
+            <argument name="type" xsi:type="string">EU</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">gls</argument>
+            <argument name="type" xsi:type="string">ROW</argument>
+        </arguments>
+    </virtualType>
 </config>
