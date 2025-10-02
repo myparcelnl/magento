@@ -1,6 +1,6 @@
 {
   "name": "myparcelnl/magento",
-  "version": "5.0.0-beta3",
+  "version": "5.0.0-beta4",
   "description": "A Magento 2 module that creates MyParcel labels",
   "keywords": [
     "myparcel",
