@@ -22,9 +22,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Carrier;
 
 use InvalidArgumentException;
-use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\DataObject;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
