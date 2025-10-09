@@ -25,6 +25,9 @@
             <matrix>
                 <use_free_shipping>1</use_free_shipping>
             </matrix>
+            <shipping_methods>
+                <show_details_in_summary>1</show_details_in_summary>
+            </shipping_methods>
             <print>
                 <paper_type>A4</paper_type>
                 <label_description>%order_nr%</label_description>
