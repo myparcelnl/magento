@@ -311,7 +311,7 @@ class Checkout
     {
         return [
             'deliveryTitle'           => $this->config->getGeneralConfig('delivery_titles/delivery_title') ?: __('delivery_title'),
-            'deliveryStandardTitle'   => $this->config->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_delivery'),
+            'deliveryStandardTitle'   => $this->config->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_title'),
             'deliveryMorningTitle'    => $this->config->getGeneralConfig('delivery_titles/morning_title') ?: __('morning_title'),
             'deliveryEveningTitle'    => $this->config->getGeneralConfig('delivery_titles/evening_title') ?: __('evening_title'),
             'deliveryPickupTitle'     => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
