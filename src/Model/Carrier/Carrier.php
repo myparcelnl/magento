@@ -144,7 +144,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'carrier_code'   => $this->_code,
             'carrier_title'  => $this->_title,
             'error_message'  => '',
-            'method_code'    => $this->_name,
+            'method_code'    => $this->_code,
             'method_title'   => $this->getMethodTitle($quote),
             'price_excl_tax' => $this->tax->excludingVat($amount, $quote),
             'price_incl_tax' => $this->tax->includingVat($amount, $quote),
@@ -188,7 +188,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
 
         try {
             $carrierHuman = CarrierFactory::createFromName($carrierName)->getHuman();
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $carrierHuman = $carrierName;
         }
 
