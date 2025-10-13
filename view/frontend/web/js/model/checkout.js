@@ -132,7 +132,6 @@ function(
      */
     onInitializeSuccess: function(response) {
       Model.onReFetchDeliveryOptionsConfig(response);
-      Model.hideShippingMethods();
     },
 
       /**
@@ -154,13 +153,13 @@ function(
     hideShippingMethods: function() {
       const row = Model.rowElement();
 
-      if (row && Model.hasDeliveryOptions) {
-        row.style.display = 'none';
+      if (row && Model.hasDeliveryOptions()) {
+        row.setAttribute('hidden', 'hidden');
       }
 
       if (Model.configuration().useFreeShipping) {
         const free = document.getElementById('label_method_freeshipping_freeshipping');
-        free && (free.parentElement.style.display = 'none');
+        free && (free.setAttribute('hidden', 'hidden'));
       }
     },
 
@@ -256,12 +255,15 @@ function(
   return Model;
 
   function updateAllowedShippingMethods() {
-    /**
-     * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
-     *  be left out.
-     */
     const row = Model.rowElement();
-    if (!row) setTimeout(updateAllowedShippingMethods, 151);
+
+    if (!row // if the row is not found, and the wrapping container neither, try again later
+        && !document.getElementById('checkout-shipping-method-load')
+    ) {
+      setTimeout(updateAllowedShippingMethods, 151);
+      return;
+    }
+
     Model.allowedShippingMethods([Model.carrierCode]);
   }
 
@@ -275,7 +277,6 @@ function(
       }
     });
     Model.hasDeliveryOptions(isAllowed);
-    Model.hideShippingMethods();
   }
 
   /**
@@ -302,7 +303,13 @@ function(
     };
 
     request().onload = function() {
-      const response = JSON.parse(this.response);
+      let response;
+
+      try {
+        response = JSON.parse(this.response);
+      } catch (e) {
+        response = {message: this.response};
+      }
 
       if (this.status >= STATUS_SUCCESS && this.status < STATUS_ERROR) {
         handlers.doHandler('onSuccess', response);

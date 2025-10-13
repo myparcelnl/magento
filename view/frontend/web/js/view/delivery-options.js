@@ -6,8 +6,6 @@ define(
     'Magento_Checkout/js/action/select-shipping-method',
     'Magento_Checkout/js/model/quote',
     'MyParcelNL_Magento/js/model/checkout',
-    'MyParcelNL_Magento/js/polyfill/array_prototype_find',
-    'MyParcelNL_Magento/js/vendor/object-path',
     'myparcelDeliveryOptions',
     'leaflet',
     'jquery'
@@ -19,10 +17,8 @@ define(
     selectShippingMethodAction,
     quote,
     checkout,
-    array_prototype_find,
-    objectPath,
-    myparcel,
-    leaflet,
+    myparcel, // for rendering the delivery options
+    leaflet, // required by the delivery options module
     $
   ) {
     'use strict';
@@ -61,6 +57,7 @@ define(
        */
       initialize: function() {
         window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
+        checkout.hideShippingMethods();
         deliveryOptions.setToRenderWhenVisible();
         deliveryOptions.addListeners();
 
@@ -115,8 +112,6 @@ define(
       render: function() {
         const deliveryOptionsDiv = document.getElementById('myparcel-delivery-options'),
             shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
-        checkout.hideShippingMethods();
-        deliveryOptions.rendered(false);
 
         if (deliveryOptionsDiv) {
           deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
@@ -139,12 +134,6 @@ define(
         checkout.configuration.subscribe(deliveryOptions.updateConfig);
         quote.shippingAddress.subscribe(deliveryOptions.updateAddress);
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
-
-        quote.shippingMethod.subscribe(function (rate) {
-          if (rate && rate.carrier_code !== checkout.carrierCode) {
-            deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
-          }
-        }, null, 'change');
 
         document.addEventListener(
           deliveryOptions.updatedDeliveryOptionsEvent,
@@ -254,6 +243,26 @@ define(
               return;
             }
             selectShippingMethodAction(response[0]);
+            // quote.shippingMethod({
+            //   carrier_code: 'myparcel',
+            //   method_code: 'myparcel',
+            //   carrier_title: 'Your Carrier Title',
+            //   method_title: 'Your Method Title',
+            //   available: true
+            // });
+            //shippingRateRegistry.set(quote.shippingAddress().getCacheKey(), response[0]);
+            const row = checkout.rowElement();
+            console.warn('joeridepoeri',response[0],row);
+            row.click();
+            const address = quote.shippingAddress();
+            shippingRateRegistry.set(address.getKey(), null);
+            shippingRateRegistry.set(address.getCacheKey(), null);
+            quote.shippingAddress(address);
+          },
+          onError: function(response) {
+            $('body').trigger('processStop');
+            //deliveryOptions.destroy(); // ?? TODO what to do when there is an error?
+            console.error(response.message ?? 'error yo');
           },
         });
       },
@@ -285,14 +294,13 @@ define(
             available = newShippingMethod.available || false,
             carrierCode = newShippingMethod.carrier_code || '',
             myparcelCarrierCode = checkout.carrierCode;
-        checkout.hideShippingMethods();
 
         if (!checkout.hasDeliveryOptions() || !available) {
           return;
         }
 
         if (carrierCode !== myparcelCarrierCode) {
-            deliveryOptions.triggerEvent(deliveryOptions.disableDeliveryOptionsEvent);
+            deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
             deliveryOptions.isUsingMyParcelMethod = false;
             return;
         }
