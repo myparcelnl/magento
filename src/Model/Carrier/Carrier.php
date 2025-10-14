@@ -182,8 +182,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
         $carrierName     = $deliveryOptions->getCarrier();
 
-        if (null === $carrierName) {
-            return $this->_title;
+        if (null === $carrierName || '0' === $this->config->getGeneralConfig('shipping_methods/show_details_in_summary')) {
+            return $this->config->getMagentoCarrierConfig('name');
         }
 
         try {

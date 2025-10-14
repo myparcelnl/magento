@@ -115,6 +115,11 @@
             </group>
             <group id="shipping_methods" translate="label" type="text" sortOrder="219" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery methods</label>
+                <field id="show_details_in_summary" translate="label comment" type="select" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Show details in summary</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>Where the shipping method is displayed, show the currently known details (yes) or the method title (no).</tooltip>
+                </field>
                 <field id="pickup_locations_view" translate="label comment" type="select" sortOrder="221" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Preferred pickup locations view</label>
                     <source_model>MyParcelNL\Magento\Model\Source\PickupLocationsView</source_model>
