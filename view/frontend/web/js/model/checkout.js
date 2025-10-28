@@ -159,7 +159,7 @@ function(
 
       if (Model.configuration().useFreeShipping) {
         const free = document.getElementById('label_method_freeshipping_freeshipping');
-        free && (free.setAttribute('hidden', 'hidden'));
+        free && free.parentElement && free.parentElement.setAttribute('hidden', 'hidden');
       }
     },
 
