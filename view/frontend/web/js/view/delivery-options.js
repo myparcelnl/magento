@@ -242,18 +242,10 @@ define(
             if (!response.length) {
               return;
             }
-            selectShippingMethodAction(response[0]);
-            // quote.shippingMethod({
-            //   carrier_code: 'myparcel',
-            //   method_code: 'myparcel',
-            //   carrier_title: 'Your Carrier Title',
-            //   method_title: 'Your Method Title',
-            //   available: true
-            // });
-            //shippingRateRegistry.set(quote.shippingAddress().getCacheKey(), response[0]);
+            // select MyParcel shipping method
             const row = checkout.rowElement();
-            console.warn('joeridepoeri',response[0],row);
-            row.click();
+            row && row.click();
+            // force update to get correct shipping method in summary when not logged in
             const address = quote.shippingAddress();
             shippingRateRegistry.set(address.getKey(), null);
             shippingRateRegistry.set(address.getCacheKey(), null);
@@ -261,8 +253,7 @@ define(
           },
           onError: function(response) {
             $('body').trigger('processStop');
-            //deliveryOptions.destroy(); // ?? TODO what to do when there is an error?
-            console.error(response.message ?? 'error yo');
+            console.error(response.message ?? 'An error occurred in the MyParcel plugin.');
           },
         });
       },
