@@ -255,11 +255,8 @@ function(
   return Model;
 
   function updateAllowedShippingMethods() {
-    const row = Model.rowElement();
-
-    if (!row // if the row is not found, and the wrapping container neither, try again later
-        && !document.getElementById('checkout-shipping-method-load')
-    ) {
+    // if the shipping methods are not yet loaded in the DOM, try again shortly
+    if (!document.getElementById('checkout-shipping-method-load')) {
       setTimeout(updateAllowedShippingMethods, 151);
       return;
     }
