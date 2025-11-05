@@ -2,7 +2,6 @@ define(
   [
     'underscore',
     'ko',
-    'Magento_Checkout/js/model/shipping-rate-registry',
     'Magento_Checkout/js/action/select-shipping-method',
     'Magento_Checkout/js/model/quote',
     'MyParcelNL_Magento/js/model/checkout',
@@ -13,7 +12,6 @@ define(
   function(
     _,
     ko,
-    shippingRateRegistry,
     selectShippingMethodAction,
     quote,
     checkout,
@@ -41,6 +39,8 @@ define(
 
       disableDelivery: 'myparcel-delivery-options__delivery--deliver',
       disablePickup: 'myparcel-delivery-options__delivery--pickup',
+
+      localStorageShippingMethod: 'myparcel-shipping-method',
 
       isUsingMyParcelMethod: true,
       deliveryOptionsAreVisible: false,
@@ -132,7 +132,7 @@ define(
        */
       addListeners: function() {
         checkout.configuration.subscribe(deliveryOptions.updateConfig);
-        quote.shippingAddress.subscribe(deliveryOptions.updateAddress);
+        quote.shippingAddress.subscribe(_.debounce(deliveryOptions.updateAddress));
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
 
         document.addEventListener(
@@ -180,7 +180,7 @@ define(
 
         window.MyParcelConfig.address = newAddress;
 
-        deliveryOptions.triggerEvent(deliveryOptions.showDeliveryOptionsEvent);
+        //deliveryOptions.triggerEvent(deliveryOptions.showDeliveryOptionsEvent); // TODO JOERI
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
       },
 
@@ -245,15 +245,18 @@ define(
             // select MyParcel shipping method
             const row = checkout.rowElement();
             row && row.click();
-            // force update to get correct shipping method in summary when not logged in
-            const address = quote.shippingAddress();
-            shippingRateRegistry.set(address.getKey(), null);
-            shippingRateRegistry.set(address.getCacheKey(), null);
-            quote.shippingAddress(address);
+            const shippingMethod = response[0];
+            selectShippingMethodAction(shippingMethod);
+            /**
+             * For some reason the update to the shipping method does not carry over to the quote.
+             * So we remember the shipping method ourselves to retrieve in the summary:
+             * Magento_Checkout/js/view/summary/shipping -> MyParcelNL_Magento/js/view/shipping-summary
+             */
+            localStorage.setItem(deliveryOptions.localStorageShippingMethod, JSON.stringify(shippingMethod));
           },
           onError: function(response) {
             $('body').trigger('processStop');
-            console.error(response.message ?? 'An error occurred in the MyParcel plugin.');
+            console.error(response.message || 'An error occurred in the MyParcel plugin.');
           },
         });
       },
