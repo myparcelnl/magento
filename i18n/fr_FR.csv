@@ -209,6 +209,7 @@ signature_title, Signature à réception
 receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
 saturday_delivery, Livraison le samedi
+printerless_return, Retour sans imprimante
 Delivery costs,Frais de livraison
 Use Free Shipping,Utiliser la livraison gratuite
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Si les frais de livraison MyParcel sont de 0 lorsque la Livraison gratuite est disponible.

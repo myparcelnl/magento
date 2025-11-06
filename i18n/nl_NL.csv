@@ -297,6 +297,7 @@ signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
 only_recipient_title,Alleen huisadres
 saturday_delivery,Zaterdag levering
+printerless_return,Retour zonder printer
 Delivery costs,Bezorgkosten
 Use Free Shipping,Gebruik gratis verzending
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.

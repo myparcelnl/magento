@@ -51,6 +51,7 @@ signature_title, Signature
 receipt_code_title, Receiving code
 only_recipient_title, Only Recipient
 saturday_delivery, Saturday Delivery
+printerless_return,Printerless return
 Delivery costs,Delivery costs
 Rule name,Rule name
 Select a condition...,Select a condition...
