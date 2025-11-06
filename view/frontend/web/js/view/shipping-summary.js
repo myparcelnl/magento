@@ -1,4 +1,4 @@
-define(['MyParcelNL_Magento/js/view/delivery-options'], function (deliveryOptions) {
+define(['MyParcelNL_Magento/js/view/delivery-options'], function(deliveryOptions) {
   'use strict';
 
   /**
@@ -13,7 +13,7 @@ define(['MyParcelNL_Magento/js/view/delivery-options'], function (deliveryOption
      *
      * @returns {*}
      */
-    getShippingMethodTitle: function () {
+    getShippingMethodTitle: function() {
       if (deliveryOptions.isUsingMyParcelMethod) {
         try {
           const shippingMethod = JSON.parse(localStorage.getItem(deliveryOptions.localStorageKey));
@@ -37,7 +37,7 @@ define(['MyParcelNL_Magento/js/view/delivery-options'], function (deliveryOption
    *
    * @returns {*}
    */
-  return function (targetModule) {
+  return function(targetModule) {
     return targetModule.extend(mixin);
   };
 });
