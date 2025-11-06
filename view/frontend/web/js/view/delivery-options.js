@@ -9,7 +9,7 @@ define(
     'leaflet',
     'jquery'
   ],
-  function(
+  function (
     _,
     ko,
     selectShippingMethodAction,
@@ -40,7 +40,7 @@ define(
       disableDelivery: 'myparcel-delivery-options__delivery--deliver',
       disablePickup: 'myparcel-delivery-options__delivery--pickup',
 
-      localStorageShippingMethod: 'myparcel-shipping-method',
+      localStorageKey: 'myparcel-shipping-method',
 
       isUsingMyParcelMethod: true,
       deliveryOptionsAreVisible: false,
@@ -55,26 +55,26 @@ define(
       /**
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
        */
-      initialize: function() {
+      initialize: function () {
         window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
         checkout.hideShippingMethods();
         deliveryOptions.setToRenderWhenVisible();
         deliveryOptions.addListeners();
 
-        deliveryOptions.rendered.subscribe(function(bool) {
+        deliveryOptions.rendered.subscribe(function (bool) {
           if (bool) {
             deliveryOptions.updateAddress();
           }
         });
       },
 
-      setToRenderWhenVisible: function() {
+      setToRenderWhenVisible: function () {
         const shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
         /**
          * Sometimes the shipping method div doesn't exist yet. Retry in 151ms if it happens.
          */
         if (!shippingMethodDiv) {
-          setTimeout(function() {
+          setTimeout(function () {
             deliveryOptions.setToRenderWhenVisible();
           }, 151);
           return;
@@ -104,14 +104,14 @@ define(
         observer.observe(shippingMethodDiv);
       },
 
-      destroy: function() {
+      destroy: function () {
         document.querySelector(deliveryOptions.hiddenDataInput).value = '';
         deliveryOptions.triggerEvent(deliveryOptions.hideDeliveryOptionsEvent);
       },
 
-      render: function() {
+      render: function () {
         const deliveryOptionsDiv = document.getElementById('myparcel-delivery-options'),
-            shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
+          shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
 
         if (deliveryOptionsDiv) {
           deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
@@ -119,7 +119,7 @@ define(
           const newDeliveryOptionsDiv = document.createElement('div');
           newDeliveryOptionsDiv.setAttribute('id', 'myparcel-delivery-options');
           shippingMethodDiv.insertAdjacentElement('afterbegin', newDeliveryOptionsDiv);
-          requestAnimationFrame(function() { // wait for the element to actually be added to the DOM
+          requestAnimationFrame(function () { // wait for the element to actually be added to the DOM
             deliveryOptions.triggerEvent(deliveryOptions.renderDeliveryOptionsEvent)
           });
         }
@@ -130,7 +130,7 @@ define(
       /**
        * Add event listeners to shipping methods and address as well as the delivery options module.
        */
-      addListeners: function() {
+      addListeners: function () {
         checkout.configuration.subscribe(deliveryOptions.updateConfig);
         quote.shippingAddress.subscribe(_.debounce(deliveryOptions.updateAddress));
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
@@ -148,9 +148,9 @@ define(
        *
        * @returns {integer|null} - The house number, if found. Otherwise null.
        */
-      getHouseNumber: function(address) {
+      getHouseNumber: function (address) {
         const result = deliveryOptions.splitStreetRegex.exec(address),
-            numberIndex = 2;
+          numberIndex = 2;
         return result ? parseInt(result[numberIndex]) : null;
       },
 
@@ -159,8 +159,8 @@ define(
        *
        * @param {string} identifier - Name of the event.
        */
-      triggerEvent: function(identifier) {
-        document.body.dispatchEvent(new Event(identifier, { bubbles: true, cancelable: false }));
+      triggerEvent: function (identifier) {
+        document.body.dispatchEvent(new Event(identifier, {bubbles: true, cancelable: false}));
       },
 
       /**
@@ -168,7 +168,7 @@ define(
        *
        * @param {Object?} address - Quote.shippingAddress from Magento.
        */
-      updateAddress: function(address) {
+      updateAddress: function (address) {
         if (!deliveryOptions.isUsingMyParcelMethod) {
           return;
         }
@@ -180,7 +180,6 @@ define(
 
         window.MyParcelConfig.address = newAddress;
 
-        //deliveryOptions.triggerEvent(deliveryOptions.showDeliveryOptionsEvent); // TODO JOERI
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
       },
 
@@ -190,7 +189,7 @@ define(
        * @returns {Object}
        * @param {Object} address - Quote.shippingAddress from Magento.
        */
-      getAddress: function(address) {
+      getAddress: function (address) {
         return {
           number: address.street ? deliveryOptions.getHouseNumber(address.street.join(' ')) : '',
           cc: address.countryId || '',
@@ -206,16 +205,17 @@ define(
        *
        * @param {CustomEvent} event - The event that was sent.
        */
-      onUpdatedDeliveryOptions: function(event) {
+      onUpdatedDeliveryOptions: function (event) {
         const element = document.querySelector('.checkout-shipping-method'),
-            displayStyle = window.getComputedStyle(element, null).display;
+          displayStyle = window.getComputedStyle(element, null).display,
+          detail = event.detail;
 
         if ('none' === displayStyle) {
           return;
         }
 
-        deliveryOptions.deliveryOptions = event.detail;
-        document.querySelector(deliveryOptions.hiddenDataInput).value = JSON.stringify(event.detail);
+        deliveryOptions.deliveryOptions = detail;
+        document.querySelector(deliveryOptions.hiddenDataInput).value = JSON.stringify(detail);
 
         /**
          * If the delivery options were emptied, don't request a new shipping method.
@@ -224,20 +224,19 @@ define(
           return;
         }
 
-        deliveryOptions.setShippingMethod(event.detail);
-        deliveryOptions.disabledDeliveryPickupRadio();
+        deliveryOptions.setShippingMethod(detail);
       },
 
       /**
        * @param options
        */
-      setShippingMethod: function(options) {
+      setShippingMethod: function (options) {
         $('body').trigger('processStart');
         if (options) {
           options.packageType = checkout.bestPackageType;
         }
         checkout.convertDeliveryOptionsToShippingMethod(options, {
-          onSuccess: function(response) {
+          onSuccess: function (response) {
             $('body').trigger('processStop');
             if (!response.length) {
               return;
@@ -248,13 +247,13 @@ define(
             const shippingMethod = response[0];
             selectShippingMethodAction(shippingMethod);
             /**
-             * For some reason the update to the shipping method does not carry over to the quote.
-             * So we remember the shipping method ourselves to retrieve in the summary:
+             * The shipping method title on the quote is not updated on the fly by Magento2, unlike the totals.
+             * So we remember the shipping method ourselves for retrieval in the summary:
              * Magento_Checkout/js/view/summary/shipping -> MyParcelNL_Magento/js/view/shipping-summary
              */
-            localStorage.setItem(deliveryOptions.localStorageShippingMethod, JSON.stringify(shippingMethod));
+            localStorage.setItem(deliveryOptions.localStorageKey, JSON.stringify(shippingMethod));
           },
-          onError: function(response) {
+          onError: function (response) {
             $('body').trigger('processStop');
             console.error(response.message || 'An error occurred in the MyParcel plugin.');
           },
@@ -262,61 +261,31 @@ define(
       },
 
       /**
-       * Note: If you only have one option, so either "delivery" or "pickup", the option will appear disabled.
-       * Until there's a built in solution, there's the following workaround.
-       */
-      disabledDeliveryPickupRadio: function() {
-        const pickup = document.getElementById(deliveryOptions.disablePickup),
-            delivery = document.getElementById(deliveryOptions.disableDelivery);
-
-        if (delivery) {
-          delivery.disabled = false;
-        }
-
-        if (pickup) {
-          pickup.disabled = false;
-        }
-      },
-
-      /**
        * Change the shipping method and disable the delivery options if needed.
        *
        * @param {Object} selectedShippingMethod - The shipping method that was selected.
        */
-      onShippingMethodUpdate: function(selectedShippingMethod) {
+      onShippingMethodUpdate: function (selectedShippingMethod) {
         const newShippingMethod = selectedShippingMethod || {},
-            available = newShippingMethod.available || false,
-            carrierCode = newShippingMethod.carrier_code || '',
-            myparcelCarrierCode = checkout.carrierCode;
+          available = newShippingMethod.available || false,
+          carrierCode = newShippingMethod.carrier_code || '',
+          myparcelCarrierCode = checkout.carrierCode;
 
         if (!checkout.hasDeliveryOptions() || !available) {
           return;
         }
 
         if (carrierCode !== myparcelCarrierCode) {
-            deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
-            deliveryOptions.isUsingMyParcelMethod = false;
-            return;
+          deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
+          deliveryOptions.isUsingMyParcelMethod = false;
+          return;
         }
 
         deliveryOptions.shippingMethod = newShippingMethod;
         deliveryOptions.isUsingMyParcelMethod = true;
       },
 
-      /**
-       * For use when magic decimals appear...
-       *
-       * @param {number} number
-       * @param {number} decimals
-       * @returns {number}
-       *
-       * @see https://stackoverflow.com/a/10474209
-       */
-      roundNumber: function(number, decimals) {
-        return parseFloat(Number(String(number)).toFixed(decimals));
-      },
-
-      updateConfig: function() {
+      updateConfig: function () {
         if (!window.MyParcelConfig.hasOwnProperty('address')) {
           window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
         }

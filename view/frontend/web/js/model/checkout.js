@@ -134,13 +134,13 @@ function(
       Model.onReFetchDeliveryOptionsConfig(response);
     },
 
-      /**
-       * Search the rates for the given carrier code.
-       *
-       * @param {string} carrierCode - Carrier code to search for.
-       *
-       * @returns {Object} - The found rate, if any.
-       */
+    /**
+     * Search the rates for the given carrier code.
+     *
+     * @param {string} carrierCode - Carrier code to search for.
+     *
+     * @returns {Object} - The found rate, if any.
+     */
     findOriginalRateByCarrierCode: function(carrierCode) {
       return Model.rates().find(function(rate) {
         return rate.carrier_code === carrierCode;
