@@ -25,36 +25,6 @@ status_38,Inactif - Envoi retiré au point de collecte
 status_39,Inactif - Envoi retour livré
 status_40,Inactif - Envoi retour au point de collecte
 status_99,Inactif - Statut inconnu
-myparcelnl_magento_postnl_settings/delivery_title, Livraison PostNL
-myparcelnl_magento_postnl_settings/pickup_title, Collecte PostNL
-myparcelnl_magento_postnl_settings/delivery/signature_title, Livraison avec signature PostNL
-myparcelnl_magento_dpd_settings/delivery_title, Livraison DPD
-myparcelnl_magento_dpd_settings/pickup_title, Collecte DPD
-myparcelnl_magento_postnl_settings/pickup, Collecte PostNL
-myparcelnl_magento_postnl_settings/delivery, Livraison PostNL
-myparcelnl_magento_postnl_settings/delivery/signature, Livraison avec signature PostNL
-myparcelnl_magento_postnl_settings/delivery/only_recipient, Livraison uniquement au destinataire PostNL
-myparcelnl_magento_postnl_settings/delivery/only_recipient/signature, Livraison uniquement au destinataire avec signature PostNL
-myparcelnl_magento_postnl_settings/morning, Livraison le matin PostNL
-myparcelnl_magento_postnl_settings/morning/only_recipient, Livraison le matin uniquement au destinataire PostNL
-myparcelnl_magento_postnl_settings/morning/only_recipient/signature, Livraison le matin uniquement au destinataire avec signature PostNL
-myparcelnl_magento_postnl_settings/evening, Livraison le soir PostNL
-myparcelnl_magento_postnl_settings/evening/only_recipient, Livraison le soir uniquement au destinataire PostNL
-myparcelnl_magento_postnl_settings/evening/only_recipient/signature, Livraison le soir uniquement au destinataire avec signature PostNL
-myparcelnl_magento_postnl_settings/mailbox, Boîte aux lettres PostNL
-myparcelnl_magento_postnl_settings/digital_stamp, Timbre numérique PostNL
-myparcelnl_magento_dhlforyou_settings/delivery, Livraison DHL For You
-myparcelnl_magento_dhlforyou_settings/delivery/signature, Livraison avec signature DHL For You
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient, Livraison uniquement au destinataire DHL For You
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, Livraison uniquement au destinataire avec signature DHL For You
-myparcelnl_magento_dhlforyou_settings/pickup, Collecte DHL For You
-myparcelnl_magento_dhlforyou_settings/mailbox, Boîte aux lettres DHL For You
-myparcelnl_magento_dhleuroplus_settings/delivery, Livraison DHL Europlus
-myparcelnl_magento_dhlparcelconnect_settings/delivery, Livraison DHL Parcel Connect
-myparcelnl_magento_dhlparcelconnect_settings/pickup, Collecte DHL Parcel Connect
-myparcelnl_magento_ups_settings/delivery, Livraison UPS
-myparcelnl_magento_dpd_settings/delivery, Livraison DPD
-myparcelnl_magento_dpd_settings/mailbox, Boîte aux lettres DPD
 myparcelnl_magento_error_no_shipments_to_process, Non-pas d' envois MyParcel à traiter.
 package_small,Petit paquet
 Packet,Petit paquet
@@ -239,6 +209,7 @@ signature_title, Signature à réception
 receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
 saturday_delivery, Livraison le samedi
+printerless_return, Retour sans imprimante
 Delivery costs,Frais de livraison
 Use Free Shipping,Utiliser la livraison gratuite
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Si les frais de livraison MyParcel sont de 0 lorsque la Livraison gratuite est disponible.
