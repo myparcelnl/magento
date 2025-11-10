@@ -2,12 +2,9 @@ define(
   [
     'underscore',
     'ko',
-    'Magento_Checkout/js/model/shipping-rate-registry',
     'Magento_Checkout/js/action/select-shipping-method',
     'Magento_Checkout/js/model/quote',
     'MyParcelNL_Magento/js/model/checkout',
-    'MyParcelNL_Magento/js/polyfill/array_prototype_find',
-    'MyParcelNL_Magento/js/vendor/object-path',
     'myparcelDeliveryOptions',
     'leaflet',
     'jquery'
@@ -15,14 +12,11 @@ define(
   function(
     _,
     ko,
-    shippingRateRegistry,
     selectShippingMethodAction,
     quote,
     checkout,
-    array_prototype_find,
-    objectPath,
-    myparcel,
-    leaflet,
+    myparcel, // for rendering the delivery options
+    leaflet, // required by the delivery options module
     $
   ) {
     'use strict';
@@ -46,6 +40,8 @@ define(
       disableDelivery: 'myparcel-delivery-options__delivery--deliver',
       disablePickup: 'myparcel-delivery-options__delivery--pickup',
 
+      localStorageKey: 'myparcel-shipping-method',
+
       isUsingMyParcelMethod: true,
       deliveryOptionsAreVisible: false,
 
@@ -61,6 +57,7 @@ define(
        */
       initialize: function() {
         window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
+        checkout.hideShippingMethods();
         deliveryOptions.setToRenderWhenVisible();
         deliveryOptions.addListeners();
 
@@ -114,9 +111,7 @@ define(
 
       render: function() {
         const deliveryOptionsDiv = document.getElementById('myparcel-delivery-options'),
-            shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
-        checkout.hideShippingMethods();
-        deliveryOptions.rendered(false);
+          shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
 
         if (deliveryOptionsDiv) {
           deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
@@ -137,14 +132,8 @@ define(
        */
       addListeners: function() {
         checkout.configuration.subscribe(deliveryOptions.updateConfig);
-        quote.shippingAddress.subscribe(deliveryOptions.updateAddress);
+        quote.shippingAddress.subscribe(_.debounce(deliveryOptions.updateAddress));
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
-
-        quote.shippingMethod.subscribe(function (rate) {
-          if (rate && rate.carrier_code !== checkout.carrierCode) {
-            deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
-          }
-        }, null, 'change');
 
         document.addEventListener(
           deliveryOptions.updatedDeliveryOptionsEvent,
@@ -161,7 +150,7 @@ define(
        */
       getHouseNumber: function(address) {
         const result = deliveryOptions.splitStreetRegex.exec(address),
-            numberIndex = 2;
+          numberIndex = 2;
         return result ? parseInt(result[numberIndex]) : null;
       },
 
@@ -171,7 +160,7 @@ define(
        * @param {string} identifier - Name of the event.
        */
       triggerEvent: function(identifier) {
-        document.body.dispatchEvent(new Event(identifier, { bubbles: true, cancelable: false }));
+        document.body.dispatchEvent(new Event(identifier, {bubbles: true, cancelable: false}));
       },
 
       /**
@@ -191,7 +180,6 @@ define(
 
         window.MyParcelConfig.address = newAddress;
 
-        deliveryOptions.triggerEvent(deliveryOptions.showDeliveryOptionsEvent);
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
       },
 
@@ -219,14 +207,15 @@ define(
        */
       onUpdatedDeliveryOptions: function(event) {
         const element = document.querySelector('.checkout-shipping-method'),
-            displayStyle = window.getComputedStyle(element, null).display;
+          displayStyle = window.getComputedStyle(element, null).display,
+          detail = event.detail;
 
         if ('none' === displayStyle) {
           return;
         }
 
-        deliveryOptions.deliveryOptions = event.detail;
-        document.querySelector(deliveryOptions.hiddenDataInput).value = JSON.stringify(event.detail);
+        deliveryOptions.deliveryOptions = detail;
+        document.querySelector(deliveryOptions.hiddenDataInput).value = JSON.stringify(detail);
 
         /**
          * If the delivery options were emptied, don't request a new shipping method.
@@ -235,8 +224,7 @@ define(
           return;
         }
 
-        deliveryOptions.setShippingMethod(event.detail);
-        deliveryOptions.disabledDeliveryPickupRadio();
+        deliveryOptions.setShippingMethod(detail);
       },
 
       /**
@@ -253,26 +241,23 @@ define(
             if (!response.length) {
               return;
             }
-            selectShippingMethodAction(response[0]);
+            // select MyParcel shipping method
+            const row = checkout.rowElement();
+            row && row.click();
+            const shippingMethod = response[0];
+            selectShippingMethodAction(shippingMethod);
+            /**
+             * The shipping method title on the quote is not updated on the fly by Magento2, unlike the totals.
+             * So we remember the shipping method ourselves for retrieval in the summary:
+             * Magento_Checkout/js/view/summary/shipping -> MyParcelNL_Magento/js/view/shipping-summary
+             */
+            localStorage.setItem(deliveryOptions.localStorageKey, JSON.stringify(shippingMethod));
+          },
+          onError: function(response) {
+            $('body').trigger('processStop');
+            console.error(response.message || 'An error occurred in the MyParcel plugin.');
           },
         });
-      },
-
-      /**
-       * Note: If you only have one option, so either "delivery" or "pickup", the option will appear disabled.
-       * Until there's a built in solution, there's the following workaround.
-       */
-      disabledDeliveryPickupRadio: function() {
-        const pickup = document.getElementById(deliveryOptions.disablePickup),
-            delivery = document.getElementById(deliveryOptions.disableDelivery);
-
-        if (delivery) {
-          delivery.disabled = false;
-        }
-
-        if (pickup) {
-          pickup.disabled = false;
-        }
       },
 
       /**
@@ -282,36 +267,22 @@ define(
        */
       onShippingMethodUpdate: function(selectedShippingMethod) {
         const newShippingMethod = selectedShippingMethod || {},
-            available = newShippingMethod.available || false,
-            carrierCode = newShippingMethod.carrier_code || '',
-            myparcelCarrierCode = checkout.carrierCode;
-        checkout.hideShippingMethods();
+          available = newShippingMethod.available || false,
+          carrierCode = newShippingMethod.carrier_code || '',
+          myparcelCarrierCode = checkout.carrierCode;
 
         if (!checkout.hasDeliveryOptions() || !available) {
           return;
         }
 
         if (carrierCode !== myparcelCarrierCode) {
-            deliveryOptions.triggerEvent(deliveryOptions.disableDeliveryOptionsEvent);
-            deliveryOptions.isUsingMyParcelMethod = false;
-            return;
+          deliveryOptions.triggerEvent(deliveryOptions.unselectDeliveryOptionsEvent);
+          deliveryOptions.isUsingMyParcelMethod = false;
+          return;
         }
 
         deliveryOptions.shippingMethod = newShippingMethod;
         deliveryOptions.isUsingMyParcelMethod = true;
-      },
-
-      /**
-       * For use when magic decimals appear...
-       *
-       * @param {number} number
-       * @param {number} decimals
-       * @returns {number}
-       *
-       * @see https://stackoverflow.com/a/10474209
-       */
-      roundNumber: function(number, decimals) {
-        return parseFloat(Number(String(number)).toFixed(decimals));
       },
 
       updateConfig: function() {

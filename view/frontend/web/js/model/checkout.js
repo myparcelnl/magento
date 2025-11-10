@@ -132,16 +132,15 @@ function(
      */
     onInitializeSuccess: function(response) {
       Model.onReFetchDeliveryOptionsConfig(response);
-      Model.hideShippingMethods();
     },
 
-      /**
-       * Search the rates for the given carrier code.
-       *
-       * @param {string} carrierCode - Carrier code to search for.
-       *
-       * @returns {Object} - The found rate, if any.
-       */
+    /**
+     * Search the rates for the given carrier code.
+     *
+     * @param {string} carrierCode - Carrier code to search for.
+     *
+     * @returns {Object} - The found rate, if any.
+     */
     findOriginalRateByCarrierCode: function(carrierCode) {
       return Model.rates().find(function(rate) {
         return rate.carrier_code === carrierCode;
@@ -154,13 +153,13 @@ function(
     hideShippingMethods: function() {
       const row = Model.rowElement();
 
-      if (row && Model.hasDeliveryOptions) {
-        row.style.display = 'none';
+      if (row && Model.hasDeliveryOptions()) {
+        row.setAttribute('hidden', 'hidden');
       }
 
       if (Model.configuration().useFreeShipping) {
         const free = document.getElementById('label_method_freeshipping_freeshipping');
-        free && (free.parentElement.style.display = 'none');
+        free && free.parentElement && free.parentElement.setAttribute('hidden', 'hidden');
       }
     },
 
@@ -256,12 +255,12 @@ function(
   return Model;
 
   function updateAllowedShippingMethods() {
-    /**
-     * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
-     *  be left out.
-     */
-    const row = Model.rowElement();
-    if (!row) setTimeout(updateAllowedShippingMethods, 151);
+    // if the shipping methods are not yet loaded in the DOM, try again shortly
+    if (!document.getElementById('checkout-shipping-method-load')) {
+      setTimeout(updateAllowedShippingMethods, 151);
+      return;
+    }
+
     Model.allowedShippingMethods([Model.carrierCode]);
   }
 
@@ -275,7 +274,6 @@ function(
       }
     });
     Model.hasDeliveryOptions(isAllowed);
-    Model.hideShippingMethods();
   }
 
   /**
@@ -302,7 +300,13 @@ function(
     };
 
     request().onload = function() {
-      const response = JSON.parse(this.response);
+      let response;
+
+      try {
+        response = JSON.parse(this.response);
+      } catch (e) {
+        response = {message: this.response};
+      }
 
       if (this.status >= STATUS_SUCCESS && this.status < STATUS_ERROR) {
         handlers.doHandler('onSuccess', response);
