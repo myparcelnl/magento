@@ -9,6 +9,7 @@ var config = {
   config: {
     mixins: {
       'Magento_Checkout/js/view/shipping': {'MyParcelNL_Magento/js/view/shipping': true},
+      'Magento_Checkout/js/view/summary/shipping': {'MyParcelNL_Magento/js/view/shipping-summary': true},
     },
   },
   map: {
