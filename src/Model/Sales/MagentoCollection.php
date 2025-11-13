@@ -404,7 +404,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
             foreach ($magentoTracks as $magentoTrack) {
                 if ($magentoTrack->getData('myparcel_consignment_id')
-                    || Carrier::CODE !== $magentoTrack->getCarrierCode()) {
+                    || Carrier::CODE !== $magentoTrack->getCarrierCode()
+                ) {
                     continue;
                 }
 

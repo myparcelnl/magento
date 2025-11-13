@@ -351,11 +351,11 @@
             <group id="default_options" translate="label comment" type="text" sortOrder="270" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Default shipping options</label>
                 <comment>Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.</comment>
-                <field id="signature_active" translate="label" type="select" sortOrder="203" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="signature_active" translate="label" type="select" sortOrder="201" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Signature on receipt'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="signature_from_price" translate="label comment" type="text" sortOrder="204" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="signature_from_price" translate="label comment" type="text" sortOrder="202" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From price</label>
                     <validate>validate-number validate-zero-or-greater</validate>
                     <tooltip>'Signature on receipt' operates above a certain order total amount</tooltip>

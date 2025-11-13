@@ -110,10 +110,7 @@ class TrackTraceHolder
         }
 
         $pickupLocationAdapter = $deliveryOptionsAdapter->getPickupLocation();
-        $apiKey                = $this->config->getGeneralConfig(
-            'api/key',
-            $order->getStoreId()
-        );
+        $apiKey                = $this->config->getGeneralConfig('api/key', $order->getStoreId());
 
         $this->validateApiKey($apiKey);
         $this->carrier   = $deliveryOptionsAdapter->getCarrier();
@@ -174,10 +171,11 @@ class TrackTraceHolder
             ->setDeliveryDate($deliveryDate)
             ->setPackageType($packageType)
             ->setDropOffPoint($dropOffPoint)
+            // until capabilities: set receipt code first because it blocks other options
+            ->setReceiptCode($shipmentOptions->hasReceiptCode())
             ->setOnlyRecipient($shipmentOptions->hasOnlyRecipient())
             ->setSignature($shipmentOptions->hasSignature())
             ->setCollect($shipmentOptions->hasCollect())
-            ->setReceiptCode($shipmentOptions->hasReceiptCode())
             ->setReturn($shipmentOptions->hasReturn())
             ->setSameDayDelivery($shipmentOptions->hasSameDayDelivery())
             ->setLargeFormat($shipmentOptions->hasLargeFormat())
