@@ -405,11 +405,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 try {
                     $consignment->validate();
                 } catch (\Exception $e) {
-                    if (isset($shipment['increment_id'])) {
-                        $this->messageManager->addErrorMessage("{$shipment['increment_id']}: {$e->getMessage()}");
-                    } else {
-                        $this->messageManager->addErrorMessage($e->getMessage());
-                    }
+                    $this->messageManager->addErrorMessage("{$shipment->getOrder()->getIncrementId()}: {$e->getMessage()}");
                     continue;
                 }
 
