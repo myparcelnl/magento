@@ -417,6 +417,17 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
                 $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
 
+                try {
+                    $consignment->validate();
+                } catch (\Exception $e) {
+                    if (isset($shipment['increment_id'])) {
+                        $this->messageManager->addErrorMessage("{$shipment['increment_id']}: {$e->getMessage()}");
+                    } else {
+                        $this->messageManager->addErrorMessage($e->getMessage());
+                    }
+                    continue;
+                }
+
                 $multiColloConsignments[$parentId] = [
                     'consignment' => $consignment,
                     'colli'       => 1,
