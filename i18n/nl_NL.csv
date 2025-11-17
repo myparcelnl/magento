@@ -105,6 +105,7 @@ Collect package,Pakket laten ophalen
 Home address only,Alleen huisadres
 Home address only fee,Alleen huisadres kosten
 Digital stamp settings,Digitalepostzegel instellingen
+"Fill in weight in grams, regardless of ‘weight type’ settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Vul het gewicht in gram in, ongeacht de ‘eenheid voor gewicht’ instellingen. Dit gewicht wordt opgeteld bij het ordergewicht. Uitzondering: digitalepostzegel zal de staffel exact gebruiken wanneer gespecificeerd."
 Automate digital stamp,Automatiseer digitalepostzegel
 Default weight,Standaard gewicht
 Digital stamp fee,Digitalepostzegel kosten

@@ -317,27 +317,21 @@ class TrackTraceHolder
      */
     private function calculateTotalWeight(Track $magentoTrack, int $presetWeightInGrams, int $packageType): self
     {
-        if ($presetWeightInGrams > 0) {
-            $weight = $presetWeightInGrams + $this->weight->getEmptyPackageWeightInGrams($packageType);
-            $this->consignment->setPhysicalProperties(['weight' => $weight]);
+        if (0 < $presetWeightInGrams) {
+            $this->consignment->setPhysicalProperties(['weight' => $presetWeightInGrams]);
 
             return $this;
         }
 
-        $shipmentItems
-            = $magentoTrack->getShipment()
-                           ->getItems()
-        ;
+        $shipmentItems = $magentoTrack->getShipment()->getItems();
 
         $weight = 0;
         foreach ($shipmentItems as $shipmentItem) {
             $weight += (float) $shipmentItem['weight'] * (float) $shipmentItem['qty'];
         }
+        $weight = $this->weight->convertToGrams($weight) + $this->weight->getEmptyPackageWeightInGrams($packageType);
 
-        $this->consignment->setPhysicalProperties(
-            [
-                'weight' => $this->weight->convertToGrams($weight) + $this->weight->getEmptyPackageWeightInGrams($packageType),
-            ]);
+        $this->consignment->setPhysicalProperties(['weight' => $weight]);
 
         return $this;
     }

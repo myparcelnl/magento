@@ -100,6 +100,7 @@
             </group>
             <group id="empty_package_weight" translate="label" type="text" sortOrder="211" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Empty package weight</label>
+                <comment>Fill in weight in grams, regardless of ‘weight type’ settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.</comment>
                 <field id="digital_stamp" translate="label comment" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Digital stamp</label>
                 </field>

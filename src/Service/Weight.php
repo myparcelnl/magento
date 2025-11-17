@@ -39,7 +39,7 @@ class Weight
     /**
      * Returns configured empty weight in grams, defaults to 0 when not found or not set
      *
-     * @param string $packageType
+     * @param int $packageType
      * @return int
      */
     public function getEmptyPackageWeightInGrams(int $packageType): int
