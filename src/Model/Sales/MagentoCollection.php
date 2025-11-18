@@ -200,21 +200,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * Add MyParcel consignment to collection
-     *
-     * @param $consignment BaseConsignment
-     *
-     * @return self
-     * @throws Exception
-     */
-    public function addConsignment(BaseConsignment $consignment)
-    {
-        $this->myParcelCollection->addConsignment($consignment);
-
-        return $this;
-    }
-
-    /**
      * Update sales_order table
      *
      * @param $orderId
@@ -416,6 +401,13 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 }
 
                 $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
+
+                try {
+                    $consignment->validate();
+                } catch (\Exception $e) {
+                    $this->messageManager->addErrorMessage("{$shipment->getOrder()->getIncrementId()}: {$e->getMessage()}");
+                    continue;
+                }
 
                 $multiColloConsignments[$parentId] = [
                     'consignment' => $consignment,
