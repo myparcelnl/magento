@@ -113,6 +113,9 @@ class Checkout
      */
     private function getGeneralData(): array
     {
+        $activeCarriers = $this->getActiveCarriers();
+        $carrierPath = !empty($activeCarriers) ? Config::CARRIERS_XML_PATH_MAP[$activeCarriers[0]] : Config::XML_PATH_POSTNL_SETTINGS;
+
         return [
             'allowRetry'                 => true,
             'platform'                   => Config::PLATFORM,
@@ -124,6 +127,7 @@ class Checkout
             'pickupLocationsDefaultView' => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
             'showPriceSurcharge'         => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
             'basePrice'                  => $this->deliveryCosts->getBasePriceForClient($this->quote),
+            'excludeParcelLockers'       => $this->isExcludeParcelLockersActive($carrierPath),
         ];
     }
 
@@ -408,6 +412,18 @@ class Checkout
         $products = $this->quote->getAllItems();
 
         return $this->package->getAgeCheck($products, $carrierPath);
+    }
+
+    /**
+     * @param string $carrierPath
+     *
+     * @return bool
+     */
+    private function isExcludeParcelLockersActive(string $carrierPath): bool
+    {
+        $products = $this->quote->getAllItems();
+
+        return $this->package->getExcludeParcelLockers($products, $carrierPath);
     }
 
     /**

@@ -256,6 +256,40 @@ class PackageRepository extends Package
     }
 
     /**
+     * Check if parcel lockers should be excluded based on product settings or 18+ classification
+     *
+     * @param array  $products
+     * @param string $carrierPath
+     *
+     * @return bool
+     */
+    public function getExcludeParcelLockers(array $products, string $carrierPath): bool
+    {
+        try {
+            // Check if general setting is enabled
+            $generalExclude = (bool) $this->getGeneralConfig('shipping_methods/exclude_parcel_lockers');
+            if ($generalExclude) {
+                return true;
+            }
+
+            // Check if any product has exclude_parcel_lockers enabled
+            foreach ($products as $product) {
+                $productExclude = (bool) $this->getAttributesProductsOptions($product, 'exclude_parcel_lockers');
+                if ($productExclude) {
+                    return true;
+                }
+            }
+
+            // Check if any product has 18+ classification (age_check)
+            // When a product has 18+ classification, automatically exclude parcel lockers
+            return $this->getAgeCheck($products, $carrierPath);
+        } catch (\Throwable $e) {
+            // If anything goes wrong, default to false (don't exclude)
+            return false;
+        }
+    }
+
+    /**
      * Init all digital stamp settings
      *
      * @param  string $carrierPath
