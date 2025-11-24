@@ -168,13 +168,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                         <label
                             class="admin__field-label"
                             for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
-                            <span><?= $form->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?>
-                                <?php
-                                if (($explanation = $form->getShipmentOptionsExplanationMap()[$shipmentOption] ?? '')) {
-                                    echo '<div class="tooltip"><span class="help"><span></span></span><div
-                                        class="tooltip-content">', htmlentities($explanation), '</div></div>';
-                                } ?>
-                            </span>
+                            <span><?= $form->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?></span>
                         </label>
                     </div>
 

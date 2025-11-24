@@ -18,7 +18,6 @@ use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
-use MyParcelNL\Magento\Service\Normalizer\ConsignmentNormalizer;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
@@ -619,7 +618,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @throws AlreadyExistsException
+     * @throws AlreadyExistsException|LocalizedException
      */
     public function createMagentoShipment(Order $order, bool $notifyClientByEmail = true): bool
     {

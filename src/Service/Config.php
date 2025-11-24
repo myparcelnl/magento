@@ -17,6 +17,7 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
 use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
 use MyParcelNL\Sdk\Model\Carrier\CarrierGLS;
 
@@ -33,6 +34,7 @@ class Config extends AbstractHelper
     public const XML_PATH_UPS_SETTINGS              = 'myparcelnl_magento_ups_settings/';
     public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
     public const XML_PATH_GLS_SETTINGS              = 'myparcelnl_magento_gls_settings/';
+    public const XML_PATH_TRUNKRS_SETTINGS          = 'myparcelnl_magento_trunkrs_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
     public const FIELD_DROP_OFF_DAY                 = 'drop_off_day';
     public const FIELD_MYPARCEL_CARRIER             = 'myparcel_carrier';
@@ -51,6 +53,7 @@ class Config extends AbstractHelper
             CarrierUPSStandard::NAME      => self::XML_PATH_UPS_SETTINGS,
             CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
             CarrierGLS::NAME              => self::XML_PATH_GLS_SETTINGS,
+            CarrierTrunkrs::NAME          => self::XML_PATH_TRUNKRS_SETTINGS,
         ];
 
     private ModuleListInterface   $moduleList;

@@ -48,10 +48,9 @@ digital_stamp_title, Digital Stamp
 packet_title, Packet
 package_title, Package
 signature_title, Signature
-receipt_code_title, Receiving code
+receipt_code_title, Receipt code
 only_recipient_title, Only Recipient
 saturday_delivery, Saturday Delivery
-printerless_return,Printerless return
 Delivery costs,Delivery costs
 Rule name,Rule name
 Select a condition...,Select a condition...

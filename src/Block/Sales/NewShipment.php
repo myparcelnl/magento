@@ -173,7 +173,7 @@ class NewShipment extends AbstractItems
                 AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
                 AbstractConsignment::SHIPMENT_OPTION_SIGNATURE,
                 AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE,
-            ],              true);
+            ],true);
         }
 
         // For UPS shipment options are available for all countries in the EU

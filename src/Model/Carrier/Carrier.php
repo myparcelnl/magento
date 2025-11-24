@@ -42,6 +42,7 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
 use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
 use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
 use Psr\Log\LoggerInterface;
 
@@ -62,6 +63,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         CarrierDHLParcelConnect::class,
         CarrierUPSStandard::class,
         CarrierDPD::class,
+        CarrierTrunkrs::class,
     ];
 
     /**
