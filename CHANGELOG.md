@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. See
 
 ## 5.0.0 (2025-11-24)
 
-[!] This is a major release which introduces breaking changes.
+:warning: This is a major release which introduces breaking changes.
 
 ### :sparkles: New Features
 
