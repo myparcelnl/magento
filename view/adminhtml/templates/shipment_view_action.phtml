@@ -7,7 +7,7 @@ declare(strict_types=1);
    {
        ".page-footer": {
            "myparcelnl_massaction": {
-                "has_api_key": "<?= $block->hasApiKey() ?>",
+                "has_api_key": "true",
                 "entity_id": <?= $block->getEntityId()?>,
                 "url": "<?= $block->getShipmentAjaxUrl() ?>",
                 "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail() ?>",
@@ -19,7 +19,7 @@ declare(strict_types=1);
                     "action_options": {
                         "request_type": true,
                         "package_type": true,
-                        "print_position": <?= $block->isCdCountry() === true ? 'false' : 'true' ?>,
+                        "print_position": <?= $block->isToRowCountry() === true ? 'false' : 'true' ?>,
                         "label_amount": true
                     }
                 <?php else: ?>

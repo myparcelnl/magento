@@ -40,8 +40,6 @@
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="save-in-quote" type="MyParcelNL\Magento\Model\Checkout\ShippingInformationManagementPlugin" sortOrder="10"/>
     </type>
-    <!-- Get all Rates -->
-    <preference for="Magento\Shipping\Model\Rate\Result" type="MyParcelNL\Magento\Model\Rate\Result"/>
 
     <!-- Get the insurance rates for Postnl -->
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\Postnl\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
@@ -72,9 +70,9 @@
         </arguments>
     </virtualType>
 
-    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\UPS\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\UPSStandard\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
-            <argument name="carrierName" xsi:type="string">ups</argument>
+            <argument name="carrierName" xsi:type="string">upsstandard</argument>
             <argument name="type" xsi:type="string">local</argument>
         </arguments>
     </virtualType>
@@ -134,6 +132,35 @@
     <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\DHLParcelConnect\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
         <arguments>
             <argument name="carrierName" xsi:type="string">dhlparcelconnect</argument>
+            <argument name="type" xsi:type="string">ROW</argument>
+        </arguments>
+    </virtualType>
+
+    <!-- Get the insurance rates for GLS -->
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\Local" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">gls</argument>
+            <argument name="type" xsi:type="string">local</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\Belgium" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">gls</argument>
+            <argument name="type" xsi:type="string">BE</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\EU" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">gls</argument>
+            <argument name="type" xsi:type="string">EU</argument>
+        </arguments>
+    </virtualType>
+
+    <virtualType name="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities\GLS\ROW" type="MyParcelNL\Magento\Model\Source\CarrierInsurancePossibilities">
+        <arguments>
+            <argument name="carrierName" xsi:type="string">gls</argument>
             <argument name="type" xsi:type="string">ROW</argument>
         </arguments>
     </virtualType>

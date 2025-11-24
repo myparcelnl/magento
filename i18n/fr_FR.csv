@@ -25,36 +25,6 @@ status_38,Inactif - Envoi retiré au point de collecte
 status_39,Inactif - Envoi retour livré
 status_40,Inactif - Envoi retour au point de collecte
 status_99,Inactif - Statut inconnu
-myparcelnl_magento_postnl_settings/delivery_title, Livraison PostNL
-myparcelnl_magento_postnl_settings/pickup_title, Collecte PostNL
-myparcelnl_magento_postnl_settings/delivery/signature_title, Livraison avec signature PostNL
-myparcelnl_magento_dpd_settings/delivery_title, Livraison DPD
-myparcelnl_magento_dpd_settings/pickup_title, Collecte DPD
-myparcelnl_magento_postnl_settings/pickup, Collecte PostNL
-myparcelnl_magento_postnl_settings/delivery, Livraison PostNL
-myparcelnl_magento_postnl_settings/delivery/signature, Livraison avec signature PostNL
-myparcelnl_magento_postnl_settings/delivery/only_recipient, Livraison uniquement au destinataire PostNL
-myparcelnl_magento_postnl_settings/delivery/only_recipient/signature, Livraison uniquement au destinataire avec signature PostNL
-myparcelnl_magento_postnl_settings/morning, Livraison le matin PostNL
-myparcelnl_magento_postnl_settings/morning/only_recipient, Livraison le matin uniquement au destinataire PostNL
-myparcelnl_magento_postnl_settings/morning/only_recipient/signature, Livraison le matin uniquement au destinataire avec signature PostNL
-myparcelnl_magento_postnl_settings/evening, Livraison le soir PostNL
-myparcelnl_magento_postnl_settings/evening/only_recipient, Livraison le soir uniquement au destinataire PostNL
-myparcelnl_magento_postnl_settings/evening/only_recipient/signature, Livraison le soir uniquement au destinataire avec signature PostNL
-myparcelnl_magento_postnl_settings/mailbox, Boîte aux lettres PostNL
-myparcelnl_magento_postnl_settings/digital_stamp, Timbre numérique PostNL
-myparcelnl_magento_dhlforyou_settings/delivery, Livraison DHL For You
-myparcelnl_magento_dhlforyou_settings/delivery/signature, Livraison avec signature DHL For You
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient, Livraison uniquement au destinataire DHL For You
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, Livraison uniquement au destinataire avec signature DHL For You
-myparcelnl_magento_dhlforyou_settings/pickup, Collecte DHL For You
-myparcelnl_magento_dhlforyou_settings/mailbox, Boîte aux lettres DHL For You
-myparcelnl_magento_dhleuroplus_settings/delivery, Livraison DHL Europlus
-myparcelnl_magento_dhlparcelconnect_settings/delivery, Livraison DHL Parcel Connect
-myparcelnl_magento_dhlparcelconnect_settings/pickup, Collecte DHL Parcel Connect
-myparcelnl_magento_ups_settings/delivery, Livraison UPS
-myparcelnl_magento_dpd_settings/delivery, Livraison DPD
-myparcelnl_magento_dpd_settings/mailbox, Boîte aux lettres DPD
 myparcelnl_magento_error_no_shipments_to_process, Non-pas d' envois MyParcel à traiter.
 package_small,Petit paquet
 Packet,Petit paquet
@@ -87,9 +57,9 @@ Track action,Action de suivi
 MyParcel options,Options MyParcel
 Package,Colis
 Signature on receipt,Signature pour réception
+Collect package,Faire récupérer le colis
 Receipt code,Code de réception
 Receipt code fee,Frais de code de réception
-Collect package,Faire récupérer le colis
 Home address only,Livraison à domicile uniquement
 Hide sender title,Titre de masquer l'expéditeur
 Insured up to:,Assuré jusqu'à :
@@ -171,8 +141,6 @@ Hide sender,Masquer l'expéditeur
 This will be added to the regular shipping price, Ceci sera ajouté aux frais d'expédition standards
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Si les deux éléments sont sélectionnés, ce prix sera ajouté aux frais d'expédition standards. Laissez vide pour ignorer cette option.
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Pour utiliser cette fonction de manière optimale, spécifiez d'abord le poids ou le volume de vos produits. Les envois plus lourds que le poids spécifié ici ne seront pas considérés comme des envois pour Boîte aux lettres."
-"Insurance is mandatory and will be set. Other shipment options will be removed.","L’assurance est obligatoire et sera activée. Les autres options d'envoi seront supprimées."
-"The package will be collected at the location for this webshop. Please make sure you completely filled in the address including the company name in the MyParcel Backoffice. You can do so under ‘Shop settings’ -> ‘Company details’ under the tab ‘Return address’. Verify that you selected the shop corresponding to the API key you are using in your Magento installation.","Le colis sera collecté à l’adresse de ce webshop. Assurez-vous que l’adresse est complète, y compris le nom de l’entreprise, dans le backoffice de MyParcel. Vous pouvez le faire sous ‘Shop settings’ -> ‘Company details’ dans l’onglet ‘Adresse de retour’. Vérifiez que vous avez sélectionné la boutique correspondant à la clé API que vous utilisez dans votre installation Magento."
 This will be added to the regular shipping price,Ceci sera ajouté aux frais d'expédition standards
 Pickup at PostNL location,Collecte dans un point postnl
 Pickup active,Collecte active
@@ -181,10 +149,14 @@ Pickup fee,Collecte - prix
 Drop off day,Jours de dépôt
 Select the days that you send the orders.,Sélectionnez les jours lors desquels vous envoyez les commandes.
 Show a delivery day in the checkout.,Afficher le jour de livraison au moment du checkout.
-You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,Vous n'avez pas introduit une clé API correcte. Rendez-vous dans les paramètres généraux du backoffice de MyParcel pour générer la clé API.
+You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,Vous n'avez pas introduit une clé API correcte. Rendez-vous dans les paramètres généraux du backoffice de MyParcel pour générer la clé API.
 Address details are not entered,Les données relatives à l'adresse ne sont pas complétées
 The times will be visible when nothing is filled in,Les temps ne seront pas visibles si aucune donnée n'est complétée
 "Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Introduisez ici un montant positif ou négatif. Si vous souhaitez par exemple proposer une réduction pour cette fonction ou décompter des frais supplémentaires pour cette option de livraison."
+Show details in summary,Afficher les détails dans le résumé
+"Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Lorsque le mode d'expédition est affiché, montrez les détails actuellement connus (oui) ou le titre du mode (non)."
+"Fill in weight in grams, regardless of ‘weight type’ settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Indiquez le poids en grammes, indépendamment des paramètres de poids. Ce poids sera ajouté au poids de la commande. Exception : le timbre numérique utilisera exactement la classe de poids lorsqu'elle est spécifiée."
+
 Discount,Rabais
 Most sustainable,Le plus durable
 Free,Gratuit
@@ -213,7 +185,9 @@ Saturday,Samedi
 Sunday,Dimanche
 Automate 'Large format',Automatiser "Plus grand que 100 x 70 x 58 cm"
 Large package,Plus grand que 100 x 70 x 58 cm
-Delivery fee,Frais de livraison
+Mailbox,Colis boîte aux lettres
+Digital stamp,Timbre numérique
+Small package,Colis petit format
 
 {field} is required.,{field} est requis.
 Address not found.,Adresse introuvable.
@@ -230,8 +204,34 @@ list_title, Liste
 map_title, Carte
 mailbox_title, Colis boîte aux lettres
 digital_stamp_title, Timbre digital
-packet_title, Colis
+packet_title,Petit colis
+package_title,Colis
 signature_title, Signature à réception
 receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
 saturday_delivery, Livraison le samedi
+printerless_return, Retour sans imprimante
+Delivery costs,Frais de livraison
+Use Free Shipping,Utiliser la livraison gratuite
+Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Si les frais de livraison MyParcel sont de 0 lorsque la Livraison gratuite est disponible.
+Rule name,Nom de la règle
+Select a condition...,Sélectionnez une condition...
+Carrier name,Nom du transporteur,
+Country,Pays
+Package type,Type de colis,
+Maximum weight (in grams),Poids maximum en grammes,
+Country part of,Partie du pays,
+No rules defined. Click Add rule to create a new rule.,Aucune règle définie. Cliquez sur Ajouter une règle pour en créer une nouvelle.
+Add rule,Ajouter une règle,
+Price,Prix
+Toggle conditions,Basculer les conditions,
+Remove rule,Retirer la règle,
+Add condition,Ajouter une condition
+New rule,Nouvelle règle,
+Condition,Condition
+Value,Valeur
+Remove condition,Retirer la condition
+Select a condition,Sélectionnez une condition
+Carrier name,Nom du transporteur
+Show or hide JSON textarea,Afficher ou Masquer la zone de texte JSON
+Invalid JSON in textarea,JSON invalide dans la zone de texte

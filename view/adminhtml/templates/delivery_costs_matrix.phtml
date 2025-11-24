@@ -1,0 +1,28 @@
+<?php
+
+declare(strict_types=1);
+
+/* @var \MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix $block */
+?>
+
+<div id="delivery-costs-matrix"></div>
+
+
+<link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css" />
+<script type="text/x-magento-init">
+{
+    ".page-footer": {
+        "MyParcelNL_Magento/js/delivery-costs-matrix": {
+            "carriers": "<?= str_replace('"', '\"', json_encode($block->getCarriers())) ?>",
+            "packageTypes": "<?= str_replace('"', '\"', json_encode($block->getPackageTypes())) ?>",
+            "countryCodes": "<?= str_replace('"', '\"', json_encode($block->getCountryCodes())) ?>",
+            "countryParts": "<?= str_replace('"', '\"', json_encode($block->getCountryParts())) ?>",
+            "field": "myparcelnl_magento_general_matrix_delivery_costs",
+            "plusIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/plus-solid.svg') ?>",
+            "chevronDownIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-down-solid.svg') ?>",
+            "chevronUpIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-up-solid.svg') ?>",
+            "getTranslations": "<?= str_replace('"', '\"', json_encode($block->getTranslations())) ?>"
+        }
+    }
+}
+</script>

@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
+use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
-use MyParcelNL\Sdk\src\Exception\ApiException;
-use MyParcelNL\Sdk\src\Exception\MissingFieldException;
-use MyParcelNL\Sdk\src\Helper\ValidatePostalCode;
-use MyParcelNL\Sdk\src\Helper\ValidateStreet;
-use MyParcelNL\Sdk\src\Model\Consignment\AbstractConsignment;
-use Magento\Sales\Model\Order;
+use MyParcelNL\Sdk\Exception\ApiException;
+use MyParcelNL\Sdk\Exception\MissingFieldException;
+use MyParcelNL\Sdk\Helper\ValidatePostalCode;
+use MyParcelNL\Sdk\Helper\ValidateStreet;
+use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /**
  * Action to create and print MyParcel Track
@@ -31,20 +31,13 @@ use Magento\Sales\Model\Order;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
+class CreateAndPrintMyParcelTrack extends Action
 {
-    const PATH_MODEL_ORDER     = 'Magento\Sales\Model\Order';
-    const PATH_URI_ORDER_INDEX = 'sales/order/index';
+    public const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
-    /**
-     * @var \Magento\Backend\App\Action\Context
-     */
-    private $context;
 
-    /**
-     * @var MagentoOrderCollection
-     */
-    private $orderCollection;
+    private MagentoOrderCollection $orderCollection;
+    private Config                 $config;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -53,12 +46,12 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     public function __construct(Context $context)
     {
-        $this->context = $context;
-        parent::__construct($this->context);
+        parent::__construct($context);
 
-        $this->resultRedirectFactory = $this->context->getResultRedirectFactory();
+        $this->config                = $this->_objectManager->get(Config::class);
+        $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->orderCollection       = new MagentoOrderCollection(
-            $context->getObjectManager(),
+            $this->_objectManager,
             $this->getRequest(),
             null
         );
@@ -68,13 +61,13 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      * Dispatch request
      *
      * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function execute()
     {
         try {
             $this->massAction();
-        } catch (ApiException | MissingFieldException $e) {
+        } catch (ApiException|MissingFieldException $e) {
             $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
             $this->messageManager->addErrorMessage($e->getMessage());
         }
@@ -85,22 +78,13 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
     /**
      * Get selected items and process them
      *
-     * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws LocalizedException
+     * @throws ApiException
+     * @throws MissingFieldException
      * @throws \Exception
      */
-    private function massAction()
+    private function massAction(): void
     {
-        if (! $this->orderCollection->apiKeyIsCorrect()) {
-            $message = 'You not have entered the correct API key. To get your personal API credentials you should contact MyParcel.';
-            $this->messageManager->addErrorMessage(__($message));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
-
-            return $this;
-        }
-
         if ($this->getRequest()->getParam('selected_ids')) {
             $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
@@ -116,40 +100,43 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         $orderIds = $this->filterCorrectAddress($orderIds);
         $this->addOrdersToCollection($orderIds);
 
-        if (TrackTraceHolder::EXPORT_MODE_PPS === $this->orderCollection->getExportMode()) {
+        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
             $this->orderCollection->setFulfilment();
 
-            return $this;
+            return;
         }
 
         $this->orderCollection->setOptionsFromParameters()
-            ->setNewMagentoShipment();
+                              ->setNewMagentoShipment()
+        ;
 
         $this->orderCollection->reload();
 
         if (! $this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
 
-            return $this;
+            return;
         }
 
         $this->orderCollection->syncMagentoToMyparcel()
-            ->setMagentoTrack()
-            ->setNewMyParcelTracks()
-            ->createMyParcelConcepts()
-            ->updateMagentoTrack();
+                              ->setMagentoTrack()
+                              ->setNewMyParcelTracks()
+                              ->createMyParcelConcepts()
+                              ->updateMagentoTrack()
+        ;
 
         if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')
-            || $this->orderCollection->myParcelCollection->isEmpty()) {
-            return $this;
+            || $this->orderCollection->myParcelCollection->isEmpty()
+        ) {
+            return;
         }
-        $this->orderCollection->addReturnShipments()
-            ->setPdfOfLabels()
-            ->updateMagentoTrack()
-            ->sendTrackEmails()
-            ->downloadPdfOfLabels();
 
-        return $this;
+        $this->orderCollection->addReturnShipments()
+                              ->setPdfOfLabels()
+                              ->updateMagentoTrack()
+                              ->sendTrackEmails()
+                              ->downloadPdfOfLabels()
+        ;
     }
 
     /**
@@ -160,7 +147,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
-        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
     }
@@ -172,8 +159,7 @@ class CreateAndPrintMyParcelTrack extends \Magento\Framework\App\Action\Action
      */
     private function filterCorrectAddress(array $orderIds): array
     {
-        $objectManager = ObjectManager::getInstance();
-        $order         = $objectManager->get(Order::class);
+        $order = $this->_objectManager->get(Order::class);
         // Go through the selected orders and check if the address details are correct
         foreach ($orderIds as $orderId) {
             $order->load($orderId);

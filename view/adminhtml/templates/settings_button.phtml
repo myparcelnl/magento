@@ -8,20 +8,38 @@ use Magento\Framework\Exception\LocalizedException;
 
 ?>
 <script>
-require([
-  'jquery',
-  'prototype',
-], function(jQuery) {
-
-  jQuery('#settings-button').click(function() {
-    const params = {};
-    new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
-      parameters: params,
-      loaderArea: false,
-      asynchronous: true,
+    require([], function () {
+        const input = document.getElementById('myparcelnl_magento_general_api_key'),
+            button = document.getElementById('myparcel-account-settings-button');
+        if (input.hasAttribute('disabled') && input.getAttribute('disabled') === 'disabled') {
+            button.setAttribute('disabled', 'disabled');
+        } else {
+            button.removeAttribute('disabled');
+        }
+        button.addEventListener('click', function () {
+            const path = window.location.pathname.split('/');
+            let params = {};
+            if (path.indexOf('website') !== -1) {
+                path.splice(0, path.indexOf('website'));
+                params = {
+                    scope: 'website',
+                    scopeId: parseInt(path[1])
+                };
+            }
+            if (path.indexOf('store') !== -1) {
+                path.splice(0, path.indexOf('store'));
+                params = {
+                    scope: 'store',
+                    scopeId: parseInt(path[1])
+                };
+            }
+            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
+                parameters: params,
+                loaderArea: true,
+                asynchronous: true,
+            });
+        });
     });
-  });
-});
 </script>
 
 <?php

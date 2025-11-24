@@ -44,7 +44,7 @@ function(
 ) {
   'use strict';
 
-  var Model = {
+  const Model = {
     configuration: ko.observable(null),
 
     /**
@@ -71,24 +71,29 @@ function(
      * Best package type.
      */
     bestPackageType: null,
+    carrierCode: 'myparcel', // default, may be overridden by carrierCode in configuration
 
     /**
      * Initialize by requesting the MyParcel settings configuration from Magento.
      */
     initialize: function() {
       Model.compute = ko.computed(function() {
-        var configuration = Model.configuration();
-        var rates = Model.rates();
+        const configuration = Model.configuration();
+        const rates = Model.rates();
 
         if (!configuration || !rates.length) {
           return false;
         }
 
+        // necessary vor updateAllowedShippingMethods()
+        if (configuration.carrierCode) Model.carrierCode = configuration.carrierCode;
+
+        // the object with information that we need
         return {configuration: configuration, rates: rates};
       });
 
-      Model.compute.subscribe(function(a) {
-        if (!a) {
+      Model.compute.subscribe(function(objectWithInformation) {
+        if (!objectWithInformation) {
           return;
         }
 
@@ -102,7 +107,7 @@ function(
       doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onInitializeSuccess});
 
       function reloadConfig() {
-        var shippingAddress = quote.shippingAddress();
+        const shippingAddress = quote.shippingAddress();
 
         if (shippingAddress.countryId !== Model.countryId()) {
           doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onReFetchDeliveryOptionsConfig});
@@ -115,7 +120,7 @@ function(
     },
 
     onReFetchDeliveryOptionsConfig: function(response) {
-      var configuration = response[0].data;
+      const configuration = response[0].data;
       Model.bestPackageType = configuration.config.packageType;
       Model.setDeliveryOptionsConfig(configuration);
     },
@@ -127,34 +132,18 @@ function(
      */
     onInitializeSuccess: function(response) {
       Model.onReFetchDeliveryOptionsConfig(response);
-      Model.hideShippingMethods();
     },
 
     /**
-     * Search the rates for the given method code.
+     * Search the rates for the given carrier code.
      *
-     * @param {string} methodCode - Method code to search for.
+     * @param {string} carrierCode - Carrier code to search for.
      *
      * @returns {Object} - The found rate, if any.
      */
-    findRateByMethodCode: function(methodCode) {
-      return Model.rates().find(function(rate) {
-        return rate.method_code === methodCode;
-      });
-    },
-
-      /**
-       * Search the rates for the given carrier code.
-       *
-       * @param {string} carrierCode - Carrier code to search for.
-       *
-       * @returns {Object} - The found rate, if any.
-       */
     findOriginalRateByCarrierCode: function(carrierCode) {
       return Model.rates().find(function(rate) {
-          if (-1 === rate.method_code.indexOf('myparcel')) {
-              return rate.carrier_code === carrierCode;
-          }
+        return rate.carrier_code === carrierCode;
       });
     },
 
@@ -162,32 +151,27 @@ function(
      * Hide the shipping methods the delivery options should replace.
      */
     hideShippingMethods: function() {
-      var rowsToHide = [];
+      const row = Model.rowElement();
 
-      Model.rates().forEach(function(rate) {
-        const hasDeliveryOptions = Model.hasDeliveryOptions();
-        const myParcelMethods = hasDeliveryOptions ? Model.configuration().methods || [] : [];
-        const cell = document.getElementById('label_method_' + rate.method_code + '_' + rate.carrier_code) || null;
+      if (row && Model.hasDeliveryOptions()) {
+        row.setAttribute('hidden', 'hidden');
+      }
 
-        if (!rate.available || !cell) {
-          return;
-        }
+      if (Model.configuration().useFreeShipping) {
+        const free = document.getElementById('label_method_freeshipping_freeshipping');
+        free && free.parentElement && free.parentElement.setAttribute('hidden', 'hidden');
+      }
+    },
 
-        const row = cell.parentElement;
+    rowElement: function() {
+      const rate = Model.findOriginalRateByCarrierCode(Model.carrierCode) || {},
+          cell = document.getElementById(`label_method_${rate.method_code}_${rate.carrier_code}`);
 
-        /**
-         * Hide MyParcel-specific methods, and the parent methods delivery options are bound to
-         */
-        if (rate.method_code.indexOf('myparcel') !== -1) {
-          rowsToHide.push(row);
-        } else if (myParcelMethods.includes(rate.carrier_code)) {
-          rowsToHide.push(row);
-        }
-      });
+      if (!cell) {
+        return null;
+      }
 
-      rowsToHide.forEach(function(row) {
-        row.style.display = 'none';
-      });
+      return cell.parentElement; // or cell.closest('tr');? who knows how this is structured in different checkouts?
     },
 
     /**
@@ -211,11 +195,11 @@ function(
      * @returns {XMLHttpRequest}
      */
     calculatePackageType: function(carrier) {
-      var list = document.querySelector('[name="country_id"]');
       function isVisible(el) {
         return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
       }
-      var countryId = (list && isVisible(list)) ? list.options[list.selectedIndex].value : Model.countryId();
+      const list = document.querySelector('[name="country_id"]'),
+          countryId = (list && isVisible(list)) ? list.options[list.selectedIndex].value : Model.countryId();
       return sendRequest(
         'rest/V1/package_type',
         'GET',
@@ -271,18 +255,17 @@ function(
   return Model;
 
   function updateAllowedShippingMethods() {
-    /**
-     * Filter the allowed shipping methods by checking if they are actually present in the checkout. If not they will
-     *  be left out.
-     */
-    Model.allowedShippingMethods(Model.configuration().methods.filter(function(carrierCode) {
-      return !!Model.findOriginalRateByCarrierCode(carrierCode);
-    }));
+    // if the shipping methods are not yet loaded in the DOM, try again shortly
+    if (!document.getElementById('checkout-shipping-method-load')) {
+      setTimeout(updateAllowedShippingMethods, 151);
+      return;
+    }
+
+    Model.allowedShippingMethods([Model.carrierCode]);
   }
 
   function updateHasDeliveryOptions() {
     let isAllowed = false;
-    const shippingCountry = quote.shippingAddress().countryId;
 
     Model.allowedShippingMethods().forEach(function(carrierCode) {
       const rate = Model.findOriginalRateByCarrierCode(carrierCode);
@@ -290,9 +273,7 @@ function(
         isAllowed = true;
       }
     });
-
     Model.hasDeliveryOptions(isAllowed);
-    Model.hideShippingMethods();
   }
 
   /**
@@ -319,7 +300,13 @@ function(
     };
 
     request().onload = function() {
-      var response = JSON.parse(this.response);
+      let response;
+
+      try {
+        response = JSON.parse(this.response);
+      } catch (e) {
+        response = {message: this.response};
+      }
 
       if (this.status >= STATUS_SUCCESS && this.status < STATUS_ERROR) {
         handlers.doHandler('onSuccess', response);
@@ -341,15 +328,15 @@ function(
    * @returns {XMLHttpRequest}
    */
   function sendRequest(endpoint, method, options) {
-    var url = mageUrl.build(endpoint);
-    var request = new XMLHttpRequest();
-    var query = [];
+    let url = mageUrl.build(endpoint);
+    const query = [],
+        request = new XMLHttpRequest();
 
     method = method || 'GET';
     options = options || {};
 
     if (method === 'GET') {
-      for (var key in options) {
+      for (const key in options) {
         query.push(key + '=' + encodeURIComponent(options[key]));
       }
     }

@@ -4,106 +4,95 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Settings;
 
-use Magento\Config\Model\ResourceModel\Config;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\ObjectManager;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magento\Framework\Message\ManagerInterface;
-use Magento\Framework\Message\MessageInterface;
-use Magento\Framework\Model\ResourceModel\Db\Context as DbContext;
-use MyParcelNL\Magento\Helper\Data;
-use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration;
-use MyParcelNL\Sdk\src\Model\Account\CarrierOptions;
-use MyParcelNL\Sdk\src\Support\Collection;
-use MyParcelNL\Sdk\src\Services\Web\AccountWebService;
-use MyParcelNL\Sdk\src\Services\Web\CarrierConfigurationWebService;
-use MyParcelNL\Sdk\src\Services\Web\CarrierOptionsWebService;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Sdk\Model\Account\CarrierConfiguration;
+use MyParcelNL\Sdk\Model\Account\CarrierOptions;
+use MyParcelNL\Sdk\Services\Web\AccountWebService;
+use MyParcelNL\Sdk\Services\Web\CarrierConfigurationWebService;
+use MyParcelNL\Sdk\Services\Web\CarrierOptionsWebService;
+use MyParcelNL\Sdk\Support\Collection;
 
 class CarrierConfigurationImport extends Action
 {
-    /**
-     * @var string
-     */
-    private $apiKey;
-
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    private $config;
+    private string $apiKey;
+    private Pool   $pool;
 
     /**
      * @var mixed
      */
-    private $context;
+    private                 $typeListInterface;
+    private WriterInterface $configWriter;
 
     /**
-     * @var mixed
-     */
-    private $typeListInterface;
-
-    /**
-     * @var Pool
-     */
-    private $pool;
-
-    /**
-     * @param  \Magento\Framework\Controller\Result\JsonFactory   $resultFactory
-     * @param  \Magento\Backend\App\Action\Context                $context
-     * @param  \Magento\Framework\Model\ResourceModel\Db\Context  $dbContext
-     * @param  \Magento\Framework\App\Cache\TypeListInterface     $typeListInterface
-     * @param  \Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param  \Magento\Framework\App\Cache\Frontend\Pool         $pool
+     * @param \Magento\Framework\Controller\Result\JsonFactory   $resultFactory
+     * @param \Magento\Backend\App\Action\Context                $context
+     * @param \Magento\Framework\Model\ResourceModel\Db\Context  $dbContext
+     * @param \Magento\Framework\App\Cache\TypeListInterface     $typeListInterface
+     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
+     * @param \Magento\Framework\App\Cache\Frontend\Pool         $pool
      */
     public function __construct(
-        JsonFactory          $resultFactory,
         Context              $context,
-        DbContext            $dbContext,
-        TypeListInterface    $typeListInterface,
+        WriterInterface      $configWriter,
         ScopeConfigInterface $config,
+        JsonFactory          $resultFactory,
+        TypeListInterface    $typeListInterface,
         Pool                 $pool
-    ) {
+    )
+    {
         parent::__construct($context);
+        $params  = $this->_request->getParams();
+        $scope   = $params['scope'] ?? ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
+        $scopeId = $params['scopeId'] ?? 0;
+
+        // Let’s save the carrier configuration settings per api key, so it can be retrieved per api key as well.
+        $this->apiKey = $config->getValue(Config::XML_PATH_GENERAL . 'api/key', $scope, $scopeId);
+
+        $this->configWriter      = $configWriter;
         $this->resultFactory     = $resultFactory;
-        $this->config            = $config;
-        $this->apiKey            = $this->config->getValue(Data::XML_PATH_GENERAL . 'api/key');
-        $this->context           = $dbContext;
         $this->typeListInterface = $typeListInterface;
         $this->pool              = $pool;
     }
 
     /**
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @throws \MyParcelNL\Sdk\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
      */
     public function execute()
     {
-        $config        = new Config($this->context);
-        $path          = Data::XML_PATH_GENERAL . 'account_settings';
         $configuration = $this->fetchConfigurations();
-        $config->saveConfig($path, json_encode($this->createArray($configuration)));
+        $this->configWriter->save(
+            Config::XML_PATH_GENERAL . "account_settings_$this->apiKey",
+            json_encode($this->createArray($configuration))
+        );
 
         // Clear configuration cache right after saving the account settings, so the modal in the carrier specific
         // configuration view will be showing the updated drop-off point.
         $this->clearCache();
 
         return $this->resultFactory->create()
-            ->setData([
-                'success' => true,
-                'time'    => date('Y-m-d H:i:s'),
-            ]);
+                                   ->setData(
+                                       [
+                                           'success' => true,
+                                           'time'    => date('Y-m-d H:i:s'),
+                                       ]
+                                   )
+        ;
     }
 
     /**
-     * @return \MyParcelNL\Sdk\src\Support\Collection
-     * @throws \MyParcelNL\Sdk\src\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\src\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\src\Exception\MissingFieldException
+     * @return \MyParcelNL\Sdk\Support\Collection
+     * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
+     * @throws \MyParcelNL\Sdk\Exception\ApiException
+     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
      */
     public function fetchConfigurations(): Collection
     {
@@ -111,36 +100,22 @@ class CarrierConfigurationImport extends Action
 
         $account                     = $accountService->getAccount();
         $shop                        = $account->getShops()
-            ->first();
+                                               ->first()
+        ;
         $shopId                      = $shop->getId();
         $carrierConfigurationService = (new CarrierConfigurationWebService())->setApiKey($this->apiKey);
         $optionConfigurationService  = (new CarrierOptionsWebService())->setApiKey($this->apiKey);
         $carrierConfiguration        = $carrierConfigurationService->getCarrierConfigurations($shopId, true);
         $optionConfiguration         = $optionConfigurationService->getCarrierOptions($shopId);
 
-        return new Collection([
-            'shop'                   => $shop,
-            'account'                => $account,
-            'carrier_options'        => $optionConfiguration,
-            'carrier_configurations' => $carrierConfiguration,
-        ]);
-    }
-
-    /**
-     * @return \MyParcelNL\Sdk\src\Support\Collection|null
-     * @throws \Exception
-     */
-    public static function getAccountSettings(): ?Collection
-    {
-        $objectManager   = ObjectManager::getInstance();
-        $accountSettings = $objectManager->get(ScopeConfigInterface::class)
-            ->getValue(Data::XML_PATH_GENERAL . 'account_settings');
-
-        if (! $accountSettings) {
-            return null;
-        }
-
-        return new Collection(json_decode($accountSettings, true));
+        return new Collection(
+            [
+                'shop'                   => $shop,
+                'account'                => $account,
+                'carrier_options'        => $optionConfiguration,
+                'carrier_configurations' => $carrierConfiguration,
+            ]
+        );
     }
 
     private function clearCache(): void
@@ -150,25 +125,26 @@ class CarrierConfigurationImport extends Action
 
         foreach ($cacheFrontendPool as $cacheFrontend) {
             $cacheFrontend->getBackend()
-                ->clean();
+                          ->clean()
+            ;
         }
     }
 
     /**
-     * @param  \MyParcelNL\Sdk\src\Support\Collection $settings
+     * @param \MyParcelNL\Sdk\Support\Collection $settings
      *
      * @return array
      * @TODO sdk#326 remove this entire function and replace with toArray
      */
     private function createArray(Collection $settings): array
     {
-        /** @var \MyParcelNL\Sdk\src\Model\Account\Shop $shop */
+        /** @var \MyParcelNL\Sdk\Model\Account\Shop $shop */
         $shop = $settings->get('shop');
-        /** @var \MyParcelNL\Sdk\src\Model\Account\Account $account */
+        /** @var \MyParcelNL\Sdk\Model\Account\Account $account */
         $account = $settings->get('account');
-        /** @var \MyParcelNL\Sdk\src\Model\Account\CarrierOptions[]|Collection $carrierOptions */
+        /** @var \MyParcelNL\Sdk\Model\Account\CarrierOptions[]|Collection $carrierOptions */
         $carrierOptions = $settings->get('carrier_options');
-        /** @var \MyParcelNL\Sdk\src\Model\Account\CarrierConfiguration[]|Collection $carrierConfigurations */
+        /** @var \MyParcelNL\Sdk\Model\Account\CarrierConfiguration[]|Collection $carrierConfigurations */
         $carrierConfigurations = $settings->get('carrier_configurations');
 
         return [

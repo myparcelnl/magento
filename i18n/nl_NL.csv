@@ -25,38 +25,7 @@ status_38,Inactief - Zending afgehaald op afhaallocatie
 status_39,Inactief - Retourzending afgeleverd
 status_40,Inactief - Retourzending op afhaallocactie
 status_99,Inactief - Onbekende status
-myparcelnl_magento_postnl_settings/delivery_title, postnl bezorging
-myparcelnl_magento_postnl_settings/pickup_title, postnl ophaallocatie
-myparcelnl_magento_postnl_settings/delivery/signature_title, postnl bezorging met handtekening
-myparcelnl_magento_postnl_settings/pickup, PostNL ophaallocatie
-myparcelnl_magento_postnl_settings/delivery, PostNL bezorging
-myparcelnl_magento_postnl_settings/delivery/signature, PostNL bezorging met handtekening voor ontvangst
-myparcelnl_magento_postnl_settings/delivery/only_recipient, PostNL bezorging met alleen huisadres
-myparcelnl_magento_postnl_settings/delivery/only_recipient/signature, PostNL bezorging met alleen huisadres en handtekening
-myparcelnl_magento_postnl_settings/morning, PostNL ochtend levering
-myparcelnl_magento_postnl_settings/morning/only_recipient, PostNL ochtend levering met alleen huisadres
-myparcelnl_magento_postnl_settings/morning/only_recipient/signature, PostNL ochtend levering met alleen huisadres en handtekening
-myparcelnl_magento_postnl_settings/evening, PostNL avond levering
-myparcelnl_magento_postnl_settings/evening/only_recipient, PostNL avond levering met alleen huisadres
-myparcelnl_magento_postnl_settings/evening/only_recipient/signature, PostNL avond levering met alleen huisadres en handtekening
-myparcelnl_magento_postnl_settings/mailbox, PostNL brievenbuspakje
-myparcelnl_magento_postnl_settings/digital_stamp, PostNL digitale postzegel
-myparcelnl_magento_dhlforyou_settings/delivery, DHL For You bezorging
-myparcelnl_magento_dhlforyou_settings/delivery/signature, DHL For You bezorging met handtekening
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient, DHL For You bezorging met alleen ontvanger
-myparcelnl_magento_dhlforyou_settings/delivery/only_recipient/signature, DHL For You bezorging met alleen ontvanger en handtekening
-myparcelnl_magento_dhlforyou_settings/pickup, DHL For You afhaallocatie
-myparcelnl_magento_dhlforyou_settings/mailbox, DHL For You brievenbuspakje
-myparcelnl_magento_dhleuroplus_settings/delivery, DHL Europlus bezorging
-myparcelnl_magento_dhlparcelconnect_settings/delivery, DHL Parcel Connect bezorging
-myparcelnl_magento_dhlparcelconnect_settings/pickup, DHL Parcel Connect afhaallocatie
-myparcelnl_magento_ups_settings/delivery, UPS bezorging
-myparcelnl_magento_dpd_settings/delivery_title,  DPD bezorging
-myparcelnl_magento_dpd_settings/pickup_title, DPD ophaallocatie
-myparcelnl_magento_dpd_settings/delivery, DPD bezorging
-myparcelnl_magento_dpd_settings/pickup, DPD ophaallocatie
-myparcelnl_magento_dpd_settings/mailbox, DPD brievenbuspakje
-myparcelnl_magento_error_no_shipments_to_process, Geen MyParcel zendingen om te verwerken.
+myparcelnl_magento_error_no_shipments_to_process,Geen MyParcel zendingen om te verwerken.
 package_small,Klein pakket
 Packet,Klein pakket
 Packet title,Klein pakket titel
@@ -136,6 +105,7 @@ Collect package,Pakket laten ophalen
 Home address only,Alleen huisadres
 Home address only fee,Alleen huisadres kosten
 Digital stamp settings,Digitalepostzegel instellingen
+"Fill in weight in grams, regardless of ‘weight type’ settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Vul het gewicht in gram in, ongeacht de ‘eenheid voor gewicht’ instellingen. Dit gewicht wordt opgeteld bij het ordergewicht. Uitzondering: digitalepostzegel zal de staffel exact gebruiken wanneer gespecificeerd."
 Automate digital stamp,Automatiseer digitalepostzegel
 Default weight,Standaard gewicht
 Digital stamp fee,Digitalepostzegel kosten
@@ -237,8 +207,6 @@ Hide sender,Verberg afzender
 This will be added to the regular shipping price, Dit zal bij de normale verzendkosten worden opgeteld
 If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,Als beide geselecteerd zijn zal deze prijs bij de normale verzendkosten worden opgeteld. Laat leeg om dit niet te gebruiken.
 "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Om deze functie optimaal te gebruiken, stel je eerst het gewicht of volume in van jouw producten. Ongeacht deze instelling, zendingen zwaarder dan het hier opgegeven gewicht zullen niet als brievenbuspakket worden verzonden."
-"Insurance is mandatory and will be set. Other shipment options will be removed.","Verzekering is verplicht en zal worden ingesteld. Andere verzendopties worden verwijderd."
-"The package will be collected at the location for this webshop. Please make sure you completely filled in the address including the company name in the MyParcel Backoffice. You can do so under ‘Shop settings’ -> ‘Company details’ under the tab ‘Return address’. Verify that you selected the shop corresponding to the API key you are using in your Magento installation.","Het pakket zal worden opgehaald bij de locatie voor deze webshop. Zorg ervoor dat je het adres volledig hebt ingevuld, inclusief de bedrijfsnaam, in de MyParcel Backoffice. Dit kan onder ‘Shopinstellingen’ -> ‘Bedrijfsgegevens’ onder het tabblad ‘Retouradres’. Controleer of je de winkel hebt geselecteerd die overeenkomt met de API-sleutel die je gebruikt in jouw Magento-installatie."
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Pickup at PostNL location,Ophalen bij een PostNL locatie
 Pickup active,Ophalen actief
@@ -257,7 +225,7 @@ Pickup map button text,Kaart ophalen knop tekst
 Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
 Show a delivery day in the checkout.,Laat een bezorgdag zien in de checkout.
-You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,U hebt niet de juiste API-sleutel ingevoerd. Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
+You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,U hebt niet de juiste API-sleutel ingevoerd. Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
 Address details are not entered,Adresgegevens zijn niet ingevuld
 The times will be visible when nothing is filled in,De tijden zullen zichtbaar zijn wanneer niets is ingevuld
 "Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Voer een bedrag in dat positief of negatief is. Wilt u bijvoorbeeld een korting geven voor het gebruik van deze functie of wilt u extra in rekening brengen voor deze leveringsoptie."
@@ -290,13 +258,13 @@ Sunday,Zondag
 Enable create label concept, when invoice is printed., Maak concept labels aan, wanneer je een factuur afdrukt.
 Mailbox,Brievenbuspakje
 Digital stamp,Digitale postzegel
+Small package,Klein pakket
 Print return label directly,Print het retour label direct
 I use the following weight type,Ik gebruik de volgende eenheid voor gewicht
 This is the type of weight that I use with my products.,Dit is de eenheid die je gebruikt voor het gewicht van je producten.
 Default,Standaard
 No,Nee
 Yes,Ja
-Delivery fee,Bezorgkosten
 
 {field} is required.,{field} is verplicht.
 Address not found.,Dit adres is niet gevonden.
@@ -310,20 +278,47 @@ Options equal to shipment,Opties overnemen van heenzending
 Export to MyParcel, Exporteer naar MyParcel
 Already exported, Reeds geëxporteerd
 "Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.","Na het activeren van deze instelling wordt er bij het exporteren van elke zending automatisch een retour zending aangemaakt. Als je het label print wordt ook meteen het retour label geprint."
+Show details in summary, Toon details in overzicht
+"Where the shipping method is displayed, show the currently known details (yes) or the method title (no).", "Waar de verzendmethode wordt getoond, toon de momenteel bekende details (ja) of de methodetitel (nee)."
 
-delivery_title, Bezorgopties
-standard_title, Standaard bezorging
-morning_title, Maandag levering
-evening_title, Avond levering
-pickup_title, Afhaal locaties
-same_day_title, Zelfde dag levering
-hide_sender_title, Afzender verbergen
-list_title, Lijst
-map_title, Kaart
-mailbox_title, Brievenbuspakje
-digital_stamp_title, Digitale postzegel
-packet_title, Pakket
-signature_title, Handtekening voor ontvangst
-only_recipient_title, Alleen huisadres
-receipt_code_title, Ontvangstcode
-saturday_delivery, Zaterdag levering
+delivery_title,Bezorgopties
+standard_title,Standaard bezorging
+morning_title,Ochtend levering
+evening_title,Avond levering
+pickup_title,Afhaal locaties
+same_day_title,Zelfde dag levering
+hide_sender_title,Afzender verbergen
+list_title,Lijst
+map_title,Kaart
+mailbox_title,Brievenbuspakje
+digital_stamp_title,Digitale postzegel
+packet_title,Klein pakket
+package_title,Pakket
+signature_title,Handtekening voor ontvangst
+receipt_code_title,Ontvangstcode
+only_recipient_title,Alleen huisadres
+saturday_delivery,Zaterdag levering
+printerless_return,Retour zonder printer
+Delivery costs,Bezorgkosten
+Use Free Shipping,Gebruik gratis verzending
+Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.
+Rule name,Regel naam
+Select a condition...,Selecteer een voorwaarde...
+Carrier name,Vervoerder naam
+Country,Land
+Package type,Pakket type
+Maximum weight (in grams),Maximum gewicht (in gram)
+Country part of,Land onderdeel van
+No rules defined. Click Add rule to create a new rule.,Geen regels gedefinieerd. Klik op Regel toevoegen om een nieuwe regel te maken.
+Add rule,Regel toevoegen
+Price,Prijs
+Toggle conditions,Voorwaarden in/uitklappen
+Remove rule,Regel verwijderen
+Add condition,Voorwaarde toevoegen
+New rule,Nieuwe regel
+Condition,Voorwaarde
+Value,Waarde
+Remove condition,Voorwaarde verwijderen
+Select a condition,Selecteer een voorwaarde
+Show or hide JSON textarea,Toon of verberg JSON tekstvak
+Invalid JSON in textarea,Ongeldige JSON in tekstvak

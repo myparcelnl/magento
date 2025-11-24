@@ -3,18 +3,18 @@
    {
        ".page-footer": {
            "myparcelnl_massaction": {
-                "has_api_key": "<?= $block->hasApiKey(); ?>",
-                "url": "<?= $block->getOrderAjaxUrl(); ?>",
-                "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail(); ?>",
-                "settings": <?= $block->getPrintSettings(); ?>,
+                "has_api_key": "true",
+                "url": "<?= $block->getOrderAjaxUrl() ?>",
+                "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail() ?>",
+                "settings": <?= $block->getPrintSettings() ?>,
                 "button_present": true,
                 "button_send_return_mail_present": true,
-                "number_of_positions" : <?= $block->getNumberOfPrintPositions(); ?>,
+                "number_of_positions" : <?= $block->getNumberOfPrintPositions() ?>,
                 <?php if ($block->canShip()): ?>
                     "action_options": {
                         "request_type": true,
                         "package_type": true,
-                        "print_position": <?= $block->isCdCountry() == true ? 'false' : 'true'; ?>,
+                        "print_position": <?= $block->isToRowCountry() ? 'false' : 'true' ?>,
                         "label_amount": false
                     }
                 <?php else: ?>

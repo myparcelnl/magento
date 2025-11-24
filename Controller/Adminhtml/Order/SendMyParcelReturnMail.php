@@ -1,11 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
-use Magento\Framework\App\ResponseInterface;
+use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\Config;
 
 /**
  * Action to send mails with a return label
@@ -19,15 +23,12 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
+class SendMyParcelReturnMail extends Action
 {
-    const PATH_MODEL_ORDER = 'Magento\Sales\Model\Order';
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
-    /**
-     * @var MagentoOrderCollection
-     */
-    private $orderCollection;
+    private MagentoOrderCollection $orderCollection;
+    private Config                 $config;
 
     /**
      * CreateAndPrintMyParcelTrack constructor.
@@ -38,8 +39,9 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
     {
         parent::__construct($context);
 
+        $this->config                = $context->getObjectManager()->get(Config::class);
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection = new MagentoOrderCollection(
+        $this->orderCollection       = new MagentoOrderCollection(
             $context->getObjectManager(),
             $this->getRequest(),
             null
@@ -67,16 +69,6 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
      */
     private function sendReturnMail()
     {
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-        if ($this->orderCollection->apiKeyIsCorrect() !== true) {
-            $message = 'You not have entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.';
-            $this->messageManager->addErrorMessage(__($message));
-            $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($message);
-
-            return $this;
-        }
-
         if ($this->getRequest()->getParam('selected_ids')) {
             $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
         } else {
@@ -89,7 +81,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
 
         $this->addOrdersToCollection($orderIds);
 
-        if (!$this->orderCollection->hasShipment()) {
+        if (! $this->orderCollection->hasShipment()) {
             $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
             return $this;
         }
@@ -99,7 +91,8 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
                 ->syncMagentoToMyparcel()
                 ->setNewMyParcelTracks()
                 ->setLatestData()
-                ->sendReturnLabelMails();
+                ->sendReturnLabelMails()
+            ;
         } catch (\Exception $e) {
             if (count($this->messageManager->getMessages()->getItems()) == 0) {
                 $this->messageManager->addErrorMessage(__('An error has occurred while sending mails with a return label. Please contact MyParcel.'));
@@ -123,7 +116,7 @@ class SendMyParcelReturnMail extends \Magento\Framework\App\Action\Action
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
          */
-        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER);
+        $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
     }
