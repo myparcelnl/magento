@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## 5.0.0 (2025-11-24)
+
+[!] This is a major release which introduces breaking changes.
+
+### :sparkles: New Features
+
+* v5 introduces the MyParcel Delivery Method and associated delivery costs settings
+
 ## [4.19.0](https://github.com/myparcelnl/magento/compare/v4.18.1...v4.19.0) (2025-07-24)
 
 
