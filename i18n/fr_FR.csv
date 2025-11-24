@@ -57,6 +57,9 @@ Track action,Action de suivi
 MyParcel options,Options MyParcel
 Package,Colis
 Signature on receipt,Signature pour réception
+Printerless return, Retour sans imprimante
+Frozen, Congelé
+Fresh food, Produits frais
 Collect package,Faire récupérer le colis
 Receipt code,Code de réception
 Receipt code fee,Frais de code de réception
@@ -210,7 +213,6 @@ signature_title, Signature à réception
 receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
 saturday_delivery, Livraison le samedi
-printerless_return, Retour sans imprimante
 Delivery costs,Frais de livraison
 Use Free Shipping,Utiliser la livraison gratuite
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Si les frais de livraison MyParcel sont de 0 lorsque la Livraison gratuite est disponible.

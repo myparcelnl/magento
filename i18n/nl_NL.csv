@@ -214,6 +214,9 @@ Standard delivery Title,Standaard bezorg titel
 Signature on receipt title,Handtekening voor ontvangst titel
 Home address only title,Alleen huisadres titel
 Hide sender title,Afzender verbergen titel
+Printerless return,Retour zonder printer
+Frozen,Bevroren
+Fresh food,Verse producten
 Morning title,Ochtendlevering titel
 Evening title,Avondlevering titel
 Mailbox title,Brievenbuspakje titel
@@ -298,7 +301,6 @@ signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
 only_recipient_title,Alleen huisadres
 saturday_delivery,Zaterdag levering
-printerless_return,Retour zonder printer
 Delivery costs,Bezorgkosten
 Use Free Shipping,Gebruik gratis verzending
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.

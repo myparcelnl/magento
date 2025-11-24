@@ -23,28 +23,21 @@ class NewShipmentForm
      */
     private array $shipmentOptionsHumanMap;
 
-    /**
-     * @var array
-     */
-    private array $shipmentOptionsExplanation;
-
-
     public function __construct()
     {
         $this->shipmentOptionsHumanMap = [
-            AbstractConsignment::SHIPMENT_OPTION_SIGNATURE         => __('Signature on receipt'),
-            AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE      => __('Receiving code'),
-            AbstractConsignment::SHIPMENT_OPTION_COLLECT           => __('Collect package'),
-            AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT    => __('Home address only'),
-            AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK         => __('Age check 18+'),
-            AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER       => __('Hide sender'),
-            AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT      => __('Large package'),
-            AbstractConsignment::SHIPMENT_OPTION_RETURN            => __('Return if no answer'),
-            AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY => __('Same day delivery'),
-        ];
-
-        $this->shipmentOptionsExplanation = [
-            AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE => __('Insurance is mandatory and will be set. Other shipment options will be removed.'),
+            AbstractConsignment::SHIPMENT_OPTION_SIGNATURE          => __('Signature on receipt'),
+            AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE       => __('Receipt code'),
+            AbstractConsignment::SHIPMENT_OPTION_COLLECT            => __('Collect package'),
+            AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT     => __('Home address only'),
+            AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK          => __('Age check 18+'),
+            AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER        => __('Hide sender'),
+            AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT       => __('Large package'),
+            AbstractConsignment::SHIPMENT_OPTION_RETURN             => __('Return if no answer'),
+            AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY  => __('Same day delivery'),
+            AbstractConsignment::SHIPMENT_OPTION_PRINTERLESS_RETURN => __('Printerless return'),
+            AbstractConsignment::SHIPMENT_OPTION_FRESH_FOOD         => __('Fresh food'),
+            AbstractConsignment::SHIPMENT_OPTION_FROZEN             => __('Frozen'),
         ];
     }
 
@@ -69,13 +62,5 @@ class NewShipmentForm
     public function getShipmentOptionsHumanMap(): array
     {
         return $this->shipmentOptionsHumanMap;
-    }
-
-    /**
-     * @return array
-     */
-    public function getShipmentOptionsExplanationMap(): array
-    {
-        return $this->shipmentOptionsExplanation;
     }
 }
