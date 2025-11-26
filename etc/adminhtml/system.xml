@@ -133,6 +133,11 @@
                     The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.
                   </tooltip>
                 </field>
+                <field id="exclude_parcel_lockers" translate="label comment" type="select" sortOrder="223" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Exclude parcel lockers</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <tooltip>When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.</tooltip>
+                </field>
             </group>
             <group id="delivery_titles" translate="label" type="text" sortOrder="220" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Delivery settings</label>

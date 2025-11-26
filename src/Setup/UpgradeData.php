@@ -1053,6 +1053,24 @@ class UpgradeData implements UpgradeDataInterface
             }
         }
 
+        if (version_compare($context->getVersion(), '5.0.1', '<')) {
+            $setup->startSetup();
+
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_exclude_parcel_lockers',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'When enabled, parcel lockers will be excluded from pickup locations for this product. Only physical pickup points will be shown.',
+                        'label'   => 'Exclude parcel lockers',
+                        'input'   => 'boolean',
+                        'default' => 0,
+                    ]
+                )
+            );
+
+            $setup->endSetup();
+        }
+
         $setup->endSetup();
     }
 }
