@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.1.0](https://github.com/myparcelnl/magento/compare/v5.0.0...v5.1.0) (2025-12-02)
+
+
+### :sparkles: New Features
+
+* add exclude parcel lockers ([#920](https://github.com/myparcelnl/magento/issues/920)) ([8bf4609](https://github.com/myparcelnl/magento/commit/8bf4609a300ef1a1884af993e141235dabb42d2f))
+* add trunkrs ([#913](https://github.com/myparcelnl/magento/issues/913)) ([515773f](https://github.com/myparcelnl/magento/commit/515773f217bd6599c886558d6f73fbffe1b7001f))
+
 ## 5.0.0 (2025-11-24)
 
 :warning: This is a major release which introduces breaking changes.
