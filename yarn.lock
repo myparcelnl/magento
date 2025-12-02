@@ -76,9 +76,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@myparcel-dev/semantic-release-config@npm:^6.0.0":
-  version: 6.0.7
-  resolution: "@myparcel-dev/semantic-release-config@npm:6.0.7"
+"@myparcel-dev/semantic-release-config@npm:^6.0.10":
+  version: 6.0.10
+  resolution: "@myparcel-dev/semantic-release-config@npm:6.0.10"
   dependencies:
     "@iwavesmedia/semantic-release-composer": "npm:^1.0.0"
     "@semantic-release/changelog": "npm:^6.0.1"
@@ -90,7 +90,7 @@ __metadata:
     "@semantic-release/release-notes-generator": "npm:^10.0.0"
     conventional-changelog-conventionalcommits: "npm:^4.0.0 || ^5.0.0"
     semantic-release: "npm:^21.0.0"
-  checksum: b4d48b6fcc8dc0d3e80a01a5dc2c6cde40ca767ac3d80e10ee2f968b8f10fab72a3845ad7eaae3280c779bb4127c6f285bac9fe2caf3e335e52558c8be0c62cb
+  checksum: 6229ebd6073cce372630ea3ecd4e23f143f1d19fcb2ec1c0e0fd6bf8ce48aed05dde72124dd18aa8981fa9f0cbbe3486bc0683b15a69e413b9fe9c629062d485
   languageName: node
   linkType: hard
 
@@ -99,7 +99,7 @@ __metadata:
   resolution: "@myparcel/magento@workspace:."
   dependencies:
     "@myparcel-dev/eslint-config": "npm:^1.4.0"
-    "@myparcel-dev/semantic-release-config": "npm:^6.0.0"
+    "@myparcel-dev/semantic-release-config": "npm:^6.0.10"
     "@types/knockout": "npm:^3.4.72"
   languageName: unknown
   linkType: soft
