@@ -117,17 +117,15 @@ class Checkout
         $carrierPath = !empty($activeCarriers) ? Config::CARRIERS_XML_PATH_MAP[$activeCarriers[0]] : Config::XML_PATH_POSTNL_SETTINGS;
 
         return [
-            'allowRetry'                 => true,
-            'platform'                   => Config::PLATFORM,
-            'carriers'                   => $this->getActiveCarriers(),
-            'currency'                   => $this->currency->getStore()->getCurrentCurrency()->getCode(),
-            'allowShowDeliveryDate'      => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'date_settings/allow_show_delivery_date'),
-            'deliveryDaysWindow'         => $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window'),
-            'dropOffDelay'               => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
-            'pickupLocationsDefaultView' => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
-            'showPriceSurcharge'         => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
-            'basePrice'                  => $this->deliveryCosts->getBasePriceForClient($this->quote),
-            'excludeParcelLockers'       => $this->isExcludeParcelLockersActive($carrierPath),
+            'platform'                          => Config::PLATFORM,
+            'currency'                          => $this->currency->getStore()->getCurrentCurrency()->getCode(),
+            'showDeliveryDate'                  => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'date_settings/allow_show_delivery_date'),
+            'deliveryDaysWindow'                => $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window'),
+            'dropOffDelay'                      => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
+            'pickupLocationsDefaultView'        => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
+            'allowPickupLocationsViewSelection' => true,
+            'showPriceSurcharge'                => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
+            'excludeParcelLockers'              => $this->isExcludeParcelLockersActive($carrierPath),
         ];
     }
 
@@ -239,23 +237,16 @@ class Checkout
 
                 'dropOffDays' => $this->getDropOffDays($carrierPath),
 
-                'priceSignature'                       => $signatureFee,
-                'priceCollect'                         => $collectFee,
-                'priceReceiptCode'                     => $receiptCodeFee,
-                'priceOnlyRecipient'                   => $onlyRecipientFee,
-                'priceStandardDelivery'                => $addBasePrice,
-                'priceMondayDelivery'                  => $mondayFee,
-                'priceMorningDelivery'                 => $morningFee,
-                'priceEveningDelivery'                 => $eveningFee,
-                'priceSameDayDelivery'                 => $sameDayFee,
-                'priceExpressdelivery'                 => $allowExpressDelivery ? $this->config->getFloatConfig($carrierPath, 'express/fee') : 0,
-                'priceSameDayDeliveryAndOnlyRecipient' => $sameDayFee + $onlyRecipientFee,
-
-                'priceMorningSignature'          => ($morningFee + $signatureFee),
-                'priceEveningSignature'          => ($eveningFee + $signatureFee),
-                'priceSignatureAndOnlyRecipient' => ($basePrice + $signatureFee + $onlyRecipientFee),
-
-                'pricePickup'                  => max(0, $canHavePickup ? $this->config->getFloatConfig($carrierPath, 'pickup/fee') + $basePrice : 0),
+                'priceSignature'        => $signatureFee,
+                'priceCollect'          => $collectFee,
+                'priceReceiptCode'      => $receiptCodeFee,
+                'priceOnlyRecipient'    => $onlyRecipientFee,
+                'priceStandardDelivery' => $addBasePrice,
+                'priceMondayDelivery'   => $mondayFee,
+                'priceMorningDelivery'  => $morningFee,
+                'priceEveningDelivery'  => $eveningFee,
+                'priceSameDayDelivery'  => $sameDayFee,
+                'pricePickup'           => max(0, $canHavePickup ? $this->config->getFloatConfig($carrierPath, 'pickup/fee') + $basePrice : 0),
                 // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
                 'pricePackageTypeMailbox'      => $basePrice,
                 'pricePackageTypeDigitalStamp' => $basePrice,
