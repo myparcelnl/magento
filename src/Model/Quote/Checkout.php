@@ -161,6 +161,7 @@ class Checkout
      * Get delivery data
      *
      * @param string $packageType
+     * @param string $country
      * @return array
      */
     private function getDeliveryData(string $packageType, string $country): array
