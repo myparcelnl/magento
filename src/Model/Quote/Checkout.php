@@ -360,22 +360,22 @@ class Checkout
     }
 
     /**
-     * @param string $carrier
+     * @param string $carrierName
      * @param string $country
      *
      * @return string
      */
-    public function checkPackageType(string $carrier, string $country): string
+    public function checkPackageType(string $carrierName, string $country): string
     {
         try {
-            $consignment = ConsignmentFactory::createByCarrierName($carrier);
+            $consignment = ConsignmentFactory::createByCarrierName($carrierName);
         } catch (Throwable $e) {
-            Logger::critical(sprintf('checkPackageType: Could not create default consignment for %s', $carrier));
+            Logger::critical(sprintf('checkPackageType: Could not create default consignment for %s', $carrierName));
 
             return AbstractConsignment::DEFAULT_PACKAGE_TYPE_NAME;
         }
 
-        $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrier];
+        $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrierName];
         $products            = $this->quote->getAllItems();
         $canHaveDigitalStamp = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME);
         $canHaveMailbox      = $consignment->canHavePackageType(AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME);
@@ -399,7 +399,7 @@ class Checkout
         $this->package->setDigitalStampActive($canHaveDigitalStamp && $this->config->getBoolConfig($carrierPath, 'digital_stamp/active'));
         $this->package->setPackageSmallActive($canHavePackageSmall && $this->config->getBoolConfig($carrierPath, 'package_small/active'));
 
-        return $this->package->selectPackageType($products, $carrierPath);
+        return $this->package->selectPackageType($products, $carrierName);
     }
 
     /**

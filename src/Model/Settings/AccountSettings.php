@@ -26,7 +26,6 @@ class AccountSettings extends BaseModel
     protected Collection $carrierConfigurations;
 
     /**
-     * @throws Exception
      * @var string $apiKey the api key (shop identifier) to get the account settings for
      */
     public function __construct(string $apiKey)
