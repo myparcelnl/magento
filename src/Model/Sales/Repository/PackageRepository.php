@@ -130,14 +130,9 @@ class PackageRepository extends Package
     {
         $mailboxAllowedToCountry = $this->getCurrentCountry() === AbstractConsignment::CC_NL;
         if (! $mailboxAllowedToCountry) {
-            $config = (new AccountSettings($this->getGeneralConfig('api/key')))->getCarrierOptions()->filter(
-                static function ($carrierOptions) {
-                    return self::CARRIER_TYPE_CUSTOM === $carrierOptions->getType()
-                        && $carrierOptions->getCarrier() instanceof CarrierPostNL;
-                }
-            )->first();
-            if (null !== $config) {
-                $mailboxAllowedToCountry = true;
+            $account = (new AccountSettings($this->getGeneralConfig('api/key')))->getAccount();
+            if ($account) {
+                $mailboxAllowedToCountry = $account->getGeneralSettings()->hasPostnlMailboxInternational();
             }
         }
 
