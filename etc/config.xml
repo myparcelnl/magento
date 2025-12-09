@@ -27,6 +27,7 @@
             </matrix>
             <shipping_methods>
                 <show_details_in_summary>1</show_details_in_summary>
+                <pickup_locations_view_change_allowed>1</pickup_locations_view_change_allowed>
             </shipping_methods>
             <print>
                 <paper_type>A4</paper_type>

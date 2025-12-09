@@ -52,6 +52,7 @@ Create Concept,Concept maken
 "Enable create label concept, when invoice is printed.","Maak een conceptzending aan, wanneer er voor een bestelling is betaald."
 Delivery methods,Verzendmethodes
 Preferred pickup locations view,Weergave van voorkeur voor ophaallocaties
+Switching the view is allowed,Schakelen tussen de weergaven is toegestaan
 "When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Wanneer ophaallocaties zijn ingeschakeld, kan de gebruiker kiezen tussen kaart- of lijstweergave. Deze instelling bepaalt welke optie als eerste wordt geselecteerd bij het openen van de ophaallocaties."
 Show list first,Toon lijst eerst
 Show map first,Toon kaart eerst
