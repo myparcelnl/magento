@@ -164,6 +164,7 @@ class CarrierConfigurationImport extends Action
                     'enabled'  => $carrierOptions->isEnabled(),
                     'label'    => $carrierOptions->getLabel(),
                     'optional' => $carrierOptions->isOptional(),
+                    'type'     => $carrierOptions->getType(),
                 ];
             }, $carrierOptions->all()),
             'carrier_configurations' => array_map(static function (CarrierConfiguration $carrierConfiguration) {
