@@ -26,6 +26,7 @@
         <policy id="img-src">
             <values>
                 <value id="myparcel-assets" type="host">assets.myparcel.nl</value>
+                <value id="openstreetmap" type="host">*.openstreetmap.fr</value>
             </values>
         </policy>
     </policies>
