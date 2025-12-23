@@ -204,14 +204,10 @@ class DefaultOptions
      */
     public function getPackageType(): int
     {
-        if ($this->chosenOptions) {
-            $keyIsPresent = array_key_exists('packageType', $this->chosenOptions);
+        if (isset($this->chosenOptions['packageType'])) {
+            $packageType = $this->chosenOptions['packageType'];
 
-            if ($keyIsPresent) {
-                $packageType = $this->chosenOptions['packageType'];
-
-                return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
-            }
+            return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
         }
 
         return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
@@ -222,14 +218,6 @@ class DefaultOptions
      */
     public function getCarrierName(): string
     {
-        if ($this->chosenOptions) {
-            $keyIsPresent = array_key_exists('carrier', $this->chosenOptions);
-
-            if ($keyIsPresent) {
-                return $this->chosenOptions['carrier'];
-            }
-        }
-
-        return $this->config->getDefaultCarrierName($this->quote->getShippingAddress());
+        return $this->chosenOptions['carrier'] ?? $this->config->getDefaultCarrierName($this->quote->getShippingAddress());
     }
 }
