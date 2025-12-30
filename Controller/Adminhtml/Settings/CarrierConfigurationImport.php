@@ -114,7 +114,6 @@ class CarrierConfigurationImport extends Action
                 'account'                => $account,
                 'carrier_options'        => $optionConfiguration,
                 'carrier_configurations' => $carrierConfiguration,
-                'general_settings'       => $account->getGeneralSettings()->toArray(),
             ]
         );
     }
@@ -154,7 +153,6 @@ class CarrierConfigurationImport extends Action
                 'name' => $shop->getName(),
             ],
             'account'                => $account->toArray(),
-            'general_settings'       => $settings->get('general_settings'),
             'carrier_options'        => array_map(static function (CarrierOptions $carrierOptions) {
                 $carrier = $carrierOptions->getCarrier();
                 return [
