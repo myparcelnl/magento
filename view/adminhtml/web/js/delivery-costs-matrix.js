@@ -164,7 +164,7 @@ define(
 
                     // Add event listeners for rule header inputs and buttons
                     header.querySelector(`#rule-name-${ruleId}`).addEventListener('change', (e) => this.updateRuleField(ruleIndex, 'name', e.target.value));
-                    header.querySelector(`#price-${ruleId}`).addEventListener('change', (e) => this.updateRuleField(ruleIndex, 'price', e.target.value));
+                    header.querySelector(`#price-${ruleId}`).addEventListener('change', (e) => this.updateRuleField(ruleIndex, 'price', parseFloat(e.target.value)));
                     header.querySelector('.remove-rule-button').addEventListener('click', () => this.removeRule(ruleIndex));
                     addConditionButton.addEventListener('click', () => this.addCondition(ruleIndex));
                     header.querySelector('.display-rule-button').addEventListener('click', () => {
@@ -315,6 +315,7 @@ define(
 
                 // Update a specific condition's field value
                 updateCondition: function(ruleIndex, conditionIndex, field, value) {
+                    if (false === isNaN(value)) value = Number(value);
                     this.ruleData[ruleIndex].conditions[conditionIndex][field] = value;
                     this.save();
                 },
