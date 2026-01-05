@@ -163,6 +163,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'delivery/only_recipient_fee'               => $shipmentOptions->hasOnlyRecipient(),
             'delivery/signature_fee'                    => $shipmentOptions->hasSignature(),
             'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
+            'delivery/priority_delivery_fee'            => $shipmentOptions->isPriorityDelivery(),
         ];
 
         $amount = $this->deliveryCosts->getBasePrice($quote);

@@ -20,10 +20,11 @@ class ShipmentOptions
     public const  SIGNATURE         = AbstractConsignment::SHIPMENT_OPTION_SIGNATURE;
     public const  COLLECT           = AbstractConsignment::SHIPMENT_OPTION_COLLECT;
     public const  RECEIPT_CODE      = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
-    public const RETURN             = AbstractConsignment::SHIPMENT_OPTION_RETURN;
+    public const  RETURN            = AbstractConsignment::SHIPMENT_OPTION_RETURN;
     public const  AGE_CHECK         = AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK;
     public const  LARGE_FORMAT      = AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT;
     private const HIDE_SENDER       = AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER;
+    public const  PRIORITY_DELIVERY = AbstractConsignment::SHIPMENT_OPTION_PRIORITY_DELIVERY;
     private const LABEL_DESCRIPTION = 'label_description';
     private const ORDER_NUMBER      = '%order_nr%';
     private const DELIVERY_DATE     = '%delivery_date%';
@@ -185,6 +186,16 @@ class ShipmentOptions
         $hideSenderFromOptions = self::getValueOfOptionWhenSet(self::HIDE_SENDER, $this->options);
 
         return $hideSenderFromOptions ?? $this->optionIsEnabled(self::HIDE_SENDER);
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasPriorityDelivery(): bool
+    {
+        $priorityDeliveryFromOptions = self::getValueOfOptionWhenSet(self::PRIORITY_DELIVERY, $this->options);
+
+        return $priorityDeliveryFromOptions ?? $this->optionIsEnabled(self::PRIORITY_DELIVERY);
     }
 
     /**
@@ -418,6 +429,7 @@ class ShipmentOptions
             self::LABEL_DESCRIPTION => $this->getLabelDescription(),
             self::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
             self::HIDE_SENDER       => $this->hasHideSender(),
+            self::PRIORITY_DELIVERY => $this->hasPriorityDelivery(),
         ];
     }
 }

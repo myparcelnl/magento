@@ -139,11 +139,12 @@ class Config extends AbstractHelper
     /**
      * Get setting for carrier
      *
-     * @param string $carrier
-     * @param string $code
+     * @param string   $carrier
+     * @param string   $code
+     * @param int|null $storeId
      * @return mixed
      */
-    public function getCarrierConfig(string $carrier, string $code = '')
+    public function getCarrierConfig(string $carrier, string $code = '', ?int $storeId = null)
     {
         $path = self::CARRIERS_XML_PATH_MAP[$carrier] ?? null;
 
@@ -151,7 +152,7 @@ class Config extends AbstractHelper
             return null;
         }
 
-        return $this->getConfigValue("$path$code");
+        return $this->getConfigValue("$path$code", $storeId);
     }
 
 

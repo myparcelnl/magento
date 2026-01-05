@@ -38,6 +38,7 @@ class NewShipmentForm
             AbstractConsignment::SHIPMENT_OPTION_PRINTERLESS_RETURN => __('Printerless return'),
             AbstractConsignment::SHIPMENT_OPTION_FRESH_FOOD         => __('Fresh food'),
             AbstractConsignment::SHIPMENT_OPTION_FROZEN             => __('Frozen'),
+            AbstractConsignment::SHIPMENT_OPTION_PRIORITY_DELIVERY  => __('Priority delivery'),
         ];
     }
 

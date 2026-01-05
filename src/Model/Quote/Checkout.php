@@ -114,7 +114,7 @@ class Checkout
     private function getGeneralData(): array
     {
         $activeCarriers = $this->getActiveCarriers();
-        $carrierPath = !empty($activeCarriers) ? Config::CARRIERS_XML_PATH_MAP[$activeCarriers[0]] : Config::XML_PATH_POSTNL_SETTINGS;
+        $carrierPath    = ! empty($activeCarriers) ? Config::CARRIERS_XML_PATH_MAP[$activeCarriers[0]] : Config::XML_PATH_POSTNL_SETTINGS;
 
         return [
             'platform'                          => Config::PLATFORM,
@@ -179,34 +179,36 @@ class Checkout
 
             try {
                 $consignment = ConsignmentFactory::createByCarrierName($carrierName);
-                $consignment->setPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE);
+                $consignment->setPackageType(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE);
             } catch (Throwable $ex) {
                 Logger::info(sprintf('getDeliveryData: Could not create default consignment for %s', $carrierName));
                 continue;
             }
 
-            $canHaveSameDay       = $consignment->canHaveExtraOption(AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY);
-            $canHaveMonday        = $consignment->canHaveExtraOption(AbstractConsignment::EXTRA_OPTION_DELIVERY_MONDAY);
-            $canHaveMorning       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
-            $canHaveEvening       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EVENING_NAME);
-            $canHaveExpress       = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EXPRESS_NAME);
-            $canHavePickup        = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
-            $canHaveSignature     = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_SIGNATURE);
-            $canHaveCollect       = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_COLLECT);
-            $canHaveReceiptCode   = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE);
-            $canHaveOnlyRecipient = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT);
-            $canHaveAgeCheck      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
+            $canHaveSameDay          = $consignment->canHaveExtraOption(AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY);
+            $canHaveMonday           = $consignment->canHaveExtraOption(AbstractConsignment::EXTRA_OPTION_DELIVERY_MONDAY);
+            $canHaveMorning          = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_MORNING_NAME);
+            $canHaveEvening          = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EVENING_NAME);
+            $canHaveExpress          = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_EXPRESS_NAME);
+            $canHavePickup           = $consignment->canHaveDeliveryType(AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME);
+            $canHaveSignature        = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_SIGNATURE);
+            $canHaveCollect          = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_COLLECT);
+            $canHaveReceiptCode      = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE);
+            $canHavePriorityDelivery = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_PRIORITY_DELIVERY);
+            $canHaveOnlyRecipient    = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT);
+            $canHaveAgeCheck         = $consignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK);
 
-            $addBasePrice     = ($showTotalPrice) ? $basePrice : 0;
-            $mondayFee        = $canHaveMonday ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice : 0;
-            $morningFee       = $canHaveMorning ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'morning/fee'), $quote) + $addBasePrice : 0;
-            $eveningFee       = $canHaveEvening ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'evening/fee'), $quote) + $addBasePrice : 0;
-            $sameDayFee       = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
-            $signatureFee     = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
-            $collectFee       = $canHaveCollect ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $quote) : 0;
-            $receiptCodeFee   = $canHaveReceiptCode ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee'), $quote) : 0;
-            $onlyRecipientFee = $canHaveOnlyRecipient ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $quote) : 0;
-            $isAgeCheckActive = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
+            $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
+            $mondayFee           = $canHaveMonday ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice : 0;
+            $morningFee          = $canHaveMorning ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'morning/fee'), $quote) + $addBasePrice : 0;
+            $eveningFee          = $canHaveEvening ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'evening/fee'), $quote) + $addBasePrice : 0;
+            $sameDayFee          = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
+            $signatureFee        = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
+            $collectFee          = $canHaveCollect ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $quote) : 0;
+            $receiptCodeFee      = $canHaveReceiptCode ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee'), $quote) : 0;
+            $priorityDeliveryFee = $canHavePriorityDelivery ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/priority_delivery_fee'), $quote) : 0;
+            $onlyRecipientFee    = $canHaveOnlyRecipient ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $quote) : 0;
+            $isAgeCheckActive    = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $allowPickup           = $this->config->getBoolConfig($carrierPath, 'pickup/active');
             $allowStandardDelivery = $this->config->getBoolConfig($carrierPath, 'delivery/active');
@@ -229,6 +231,7 @@ class Checkout
                 'allowCollect'          => $canHaveCollect && $this->config->getBoolConfig($carrierPath, 'delivery/collect_active'),
                 'allowReceiptCode'      => $canHaveReceiptCode && $this->config->getBoolConfig($carrierPath, 'delivery/receipt_code_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->config->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
+                'allowPriorityDelivery' => $canHavePriorityDelivery && $this->config->getBoolConfig($carrierPath, 'delivery/priority_delivery_active'),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath, $country),
@@ -242,6 +245,7 @@ class Checkout
                 'priceCollect'          => $collectFee,
                 'priceReceiptCode'      => $receiptCodeFee,
                 'priceOnlyRecipient'    => $onlyRecipientFee,
+                'pricePriorityDelivery' => $priorityDeliveryFee,
                 'priceStandardDelivery' => $addBasePrice,
                 'priceMondayDelivery'   => $mondayFee,
                 'priceMorningDelivery'  => $morningFee,

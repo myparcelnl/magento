@@ -269,6 +269,21 @@
                         <field id="only_recipient_active">1</field>
                     </depends>
                 </field>
+                <field id="priority_delivery_active" translate="label comment" type="select" sortOrder="330" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Priority delivery</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="priority_delivery_fee" translate="label comment" type="text" sortOrder="335" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Priority delivery fee</label>
+                    <tooltip>This will be added to the regular shipping price</tooltip>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="priority_delivery_active">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="drop_off_days" translate="label comment" type="text" sortOrder="250" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Drop-off days</label>
@@ -420,10 +435,15 @@
                         <field id="large_format_active">price</field>
                     </depends>
                 </field>
-                <field id="age_check_active" translate="label" type="select" sortOrder="230" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="age_check_active" translate="label" type="select" sortOrder="222" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Automate 'Age check 18+'</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <tooltip>The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.</tooltip>
+                </field>
+                <field id="priority_delivery_active" translate="label comment" type="select" sortOrder="223" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Automate Priority delivery (mailbox)</label>
+                    <tooltip>Automatically enable priority delivery for mailbox packages during export</tooltip>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="insurance_from_price" translate="label comment" type="text" sortOrder="231" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Insure orders from (€)</label>
