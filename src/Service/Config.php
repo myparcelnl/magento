@@ -184,9 +184,10 @@ class Config extends AbstractHelper
 
     /**
      * @param Address|Magento\Quote\Model\Quote\Address\Interceptor|null $address
+     * @param int|null                                                   $storeId // for scoping
      * @return string the carrier name configured for this address
      */
-    public function getDefaultCarrierName($address): string
+    public function getDefaultCarrierName($address, $storeId): string
     {
         return 'postnl';
         // todo make config value that allows carriers per country / region / etc, select it here based on address.

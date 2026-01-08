@@ -114,7 +114,6 @@ class TrackTraceHolder
 
         $this->validateApiKey($apiKey);
         $this->carrier   = $deliveryOptionsAdapter->getCarrier();
-
         $shipmentOptions = new ShipmentOptions(
             $this->defaultOptions,
             $order,
@@ -408,7 +407,7 @@ class TrackTraceHolder
             return false;
         }
 
-        $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet(ShipmentOptions::AGE_CHECK, $options);
+        $ageCheckFromOptions  = $options[ShipmentOptions::AGE_CHECK] ?? null;
         $ageCheckOfProduct    = ShipmentOptions::getAgeCheckFromProduct($magentoTrack);
         $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, ShipmentOptions::AGE_CHECK);
 

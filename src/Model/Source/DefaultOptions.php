@@ -98,7 +98,7 @@ class DefaultOptions
     {
         $price = $this->quote->getGrandTotal();
 
-        $settings  = $this->config->getCarrierConfig($carrier, 'default_options');
+        $settings  = $this->config->getCarrierConfig($carrier, 'default_options', (int) $this->quote->getStoreId());
         $activeKey = "{$option}_active";
 
         return isset($settings[$activeKey]) &&
@@ -114,7 +114,7 @@ class DefaultOptions
      */
     public function hasDefaultOption(string $carrier, string $option): bool
     {
-        $settings = $this->config->getCarrierConfig($carrier, 'default_options');
+        $settings = $this->config->getCarrierConfig($carrier, 'default_options', (int) $this->quote->getStoreId());
 
         if ('1' !== ($settings["{$option}_active"] ?? null)) {
             return false;
@@ -194,7 +194,7 @@ class DefaultOptions
      */
     public function getDigitalStampDefaultWeight(): int
     {
-        return (int) $this->config->getConfigValue('myparcelnl_magento_postnl_settings/digital_stamp/default_weight');
+        return (int) $this->config->getConfigValue('myparcelnl_magento_postnl_settings/digital_stamp/default_weight', (int) $this->quote->getStoreId());
     }
 
     /**
@@ -218,6 +218,6 @@ class DefaultOptions
      */
     public function getCarrierName(): string
     {
-        return $this->chosenOptions['carrier'] ?? $this->config->getDefaultCarrierName($this->quote->getShippingAddress());
+        return $this->chosenOptions['carrier'] ?? $this->config->getDefaultCarrierName($this->quote->getShippingAddress(), (int) $this->quote->getStoreId());
     }
 }
