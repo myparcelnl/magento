@@ -190,12 +190,6 @@ class ShipmentOptions
         }
 
         return $this->optionIsEnabled(self::PRIORITY_DELIVERY);
-
-        return $this->options[self::PRIORITY_DELIVERY] ?? (bool) $this->config->getCarrierConfig(
-            CarrierPostNL::NAME,
-            'default_options/priority_delivery_active',
-            (int) $this->order->getStoreId(),
-        );
     }
 
     /**
