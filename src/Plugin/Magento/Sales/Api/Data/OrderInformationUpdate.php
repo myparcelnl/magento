@@ -74,9 +74,16 @@ class OrderInformationUpdate
         $orders = $searchResult->getItems();
 
         foreach ($orders as &$order) {
-            $json = json_decode($order->getData(self::DELIVERY_OPTIONS), true);
+            /** @var object $data Data from checkout */
+            $data = json_decode($order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? null, true);
+
+            if (!is_array($data)) {
+                continue;
+            }
+
+            $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
             $extensionAttributes = $order->getExtensionAttributes() ?: $this->extensionFactory->create();
-            $extensionAttributes->setMyParcelDeliveryOptions($json);
+            $extensionAttributes->setMyParcelDeliveryOptions($deliveryOptions->toArray());
             $order->setExtensionAttributes($extensionAttributes);
         }
 

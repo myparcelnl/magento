@@ -36,7 +36,7 @@
     <type name="Magento\Sales\Api\Data\OrderExtension" data-remark="deprecated">
         <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Api_Data_OrderExtension" sortOrder="11" type="MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data\OrderExtension"/>
     </type>
-    <!-- Add field myparcel_delivery_options to order rest endpoint (deprecated) -->
+    <!-- Add field myparcel_delivery_options to order rest endpoint -->
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
         <plugin name="orderInformationUpdate" type="MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data\OrderInformationUpdate" />
     </type>
