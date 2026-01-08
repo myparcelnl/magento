@@ -52,6 +52,7 @@ class OrderExtension
         if (strpos($this->request->getPathInfo(), "/rest/V1/orders") === false) {
             return null;
         }
+        // TODO JOERI if this is set to off (make a setting) do not return, because it is deprecated and heavy and ugly
 
         $resource    = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection  = $resource->getConnection();
