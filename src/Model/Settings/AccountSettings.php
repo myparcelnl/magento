@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Model\Settings;
 use Exception;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Factory\Account\CarrierConfigurationFactory;
 use MyParcelNL\Sdk\Model\Account\Account;
@@ -26,7 +27,6 @@ class AccountSettings extends BaseModel
     protected Collection $carrierConfigurations;
 
     /**
-     * @throws Exception
      * @var string $apiKey the api key (shop identifier) to get the account settings for
      */
     public function __construct(string $apiKey)
@@ -37,6 +37,8 @@ class AccountSettings extends BaseModel
         ;
 
         if (! $settings) {
+            $redacted = substr($apiKey, 0, 4) . str_repeat('*', strlen($apiKey) - 8) . substr($apiKey, -4);
+            Logger::alert((sprintf('No account settings found for api key: %s. Shops -> Configurations -> MyParcel -> General -> Import MyParcel Backoffice settings.', $redacted)));
             return;
         }
 
@@ -48,7 +50,7 @@ class AccountSettings extends BaseModel
      */
     public function getAccount(): ?Account
     {
-        return $this->account;
+        return $this->account ?? null;
     }
 
     /**

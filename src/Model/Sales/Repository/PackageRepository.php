@@ -42,11 +42,11 @@ class PackageRepository extends Package
 
     /**
      * @param array  $products
-     * @param string $carrierPath
+     * @param string $carrierName
      *
      * @return string
      */
-    public function selectPackageType(array $products, string $carrierPath): string
+    public function selectPackageType(array $products, string $carrierName): string
     {
         $this->setMailboxPercentage(0);
         $weight       = 0;
@@ -94,7 +94,7 @@ class PackageRepository extends Package
             return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME;
         }
 
-        if ($this->fitInMailbox()) {
+        if ($this->fitInMailbox($carrierName)) {
             return AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME;
         }
 
@@ -122,22 +122,18 @@ class PackageRepository extends Package
     /**
      * Returns true when mailbox is active, the order fits in the mailbox and one of the following is true:
      * - it is a domestic shipment
-     * - there is a PostNL carrier with contract (they can deliver mailbox packages internationally)
+     * - the account has postnl mailbox international enabled and the carrier is postnl
      *
+     * @param string $carrierName
      * @return bool
      */
-    public function fitInMailbox(): bool
+    public function fitInMailbox(string $carrierName): bool
     {
-        $mailboxAllowedToCountry = $this->getCurrentCountry() === AbstractConsignment::CC_NL;
-        if (! $mailboxAllowedToCountry) {
-            $config = (new AccountSettings($this->getGeneralConfig('api/key')))->getCarrierOptions()->filter(
-                static function ($carrierOptions) {
-                    return self::CARRIER_TYPE_CUSTOM === $carrierOptions->getType()
-                        && $carrierOptions->getCarrier() instanceof CarrierPostNL;
-                }
-            )->first();
-            if (null !== $config) {
-                $mailboxAllowedToCountry = true;
+        $mailboxAllowedToCountry = AbstractConsignment::CC_NL === $this->getCurrentCountry();
+        if (! $mailboxAllowedToCountry && CarrierPostNL::NAME === $carrierName) {
+            $account = (new AccountSettings($this->getGeneralConfig('api/key')))->getAccount();
+            if ($account) {
+                $mailboxAllowedToCountry = $account->getGeneralSettings()->hasPostnlMailboxInternational();
             }
         }
 
