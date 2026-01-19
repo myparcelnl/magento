@@ -150,7 +150,6 @@ class TrackTraceHolder
             $this->setOrderStatus($magentoTrack->getOrderId(), Order::STATE_NEW);
         }
 
-
         $packageType  = $this->getPackageType($magentoTrack, $address, $options, $deliveryOptions);
         $deliveryDate = (AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
             && 'NL' !== $address->getCountryId()) ? null : Dating::convertDeliveryDate($deliveryOptionsAdapter->getDate());
@@ -180,6 +179,7 @@ class TrackTraceHolder
             ->setSameDayDelivery($shipmentOptions->hasSameDayDelivery())
             ->setLargeFormat($shipmentOptions->hasLargeFormat())
             ->setAgeCheck($shipmentOptions->hasAgeCheck())
+            ->setPriorityDelivery($shipmentOptions->hasPriorityDelivery())
             ->setInsurance($shipmentOptions->getInsurance())
             ->setInvoice(
                 $shipment
@@ -407,7 +407,7 @@ class TrackTraceHolder
             return false;
         }
 
-        $ageCheckFromOptions  = ShipmentOptions::getValueOfOptionWhenSet(ShipmentOptions::AGE_CHECK, $options);
+        $ageCheckFromOptions  = $options[ShipmentOptions::AGE_CHECK] ?? null;
         $ageCheckOfProduct    = ShipmentOptions::getAgeCheckFromProduct($magentoTrack);
         $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, ShipmentOptions::AGE_CHECK);
 

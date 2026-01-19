@@ -35,6 +35,7 @@
                 <country_of_origin>NL</country_of_origin>
                 <create_concept_after_invoice>0</create_concept_after_invoice>
                 <return_in_the_box>0</return_in_the_box>
+                <priority_delivery_active>0</priority_delivery_active>
             </print>
             <delivery_titles>
                 <delivery_title>Thuis of op het werk bezorgd</delivery_title>
@@ -321,6 +322,8 @@
                 <fresh_food_fee>0</fresh_food_fee>
                 <frozen_active>1</frozen_active>
                 <frozen_fee>0</frozen_fee>
+                <priority_delivery_active>0</priority_delivery_active>
+                <priority_delivery_fee>0</priority_delivery_fee>
             </delivery>
         </myparcelnl_magento_trunkrs_settings>
 

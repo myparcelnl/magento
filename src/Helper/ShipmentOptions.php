@@ -20,10 +20,11 @@ class ShipmentOptions
     public const  SIGNATURE         = AbstractConsignment::SHIPMENT_OPTION_SIGNATURE;
     public const  COLLECT           = AbstractConsignment::SHIPMENT_OPTION_COLLECT;
     public const  RECEIPT_CODE      = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
-    public const RETURN             = AbstractConsignment::SHIPMENT_OPTION_RETURN;
+    public const  RETURN            = AbstractConsignment::SHIPMENT_OPTION_RETURN;
     public const  AGE_CHECK         = AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK;
     public const  LARGE_FORMAT      = AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT;
     private const HIDE_SENDER       = AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER;
+    public const  PRIORITY_DELIVERY = AbstractConsignment::SHIPMENT_OPTION_PRIORITY_DELIVERY;
     private const LABEL_DESCRIPTION = 'label_description';
     private const ORDER_NUMBER      = '%order_nr%';
     private const DELIVERY_DATE     = '%delivery_date%';
@@ -107,16 +108,12 @@ class ShipmentOptions
             return false;
         }
 
-        $signatureFromOptions = self::getValueOfOptionWhenSet(self::SIGNATURE, $this->options);
-
-        return $signatureFromOptions ?? $this->optionIsEnabled(self::SIGNATURE);
+        return $this->optionIsEnabled(self::SIGNATURE);
     }
 
     public function hasCollect(): bool
     {
-        $collectFromOptions = self::getValueOfOptionWhenSet(self::COLLECT, $this->options);
-
-        return $collectFromOptions ?? $this->optionIsEnabled(self::COLLECT);
+        return $this->optionIsEnabled(self::COLLECT);
     }
 
     public function hasReceiptCode(): bool
@@ -131,7 +128,7 @@ class ShipmentOptions
             return false;
         }
 
-        return self::getValueOfOptionWhenSet(self::RECEIPT_CODE, $this->options) ?? $this->optionIsEnabled(self::RECEIPT_CODE);
+        return $this->optionIsEnabled(self::RECEIPT_CODE);
     }
 
     /**
@@ -139,9 +136,7 @@ class ShipmentOptions
      */
     public function hasOnlyRecipient(): bool
     {
-        $onlyRecipientFromOptions = self::getValueOfOptionWhenSet(self::ONLY_RECIPIENT, $this->options);
-
-        return $onlyRecipientFromOptions ?? $this->optionIsEnabled(self::ONLY_RECIPIENT);
+        return $this->optionIsEnabled(self::ONLY_RECIPIENT);
     }
 
     /**
@@ -149,9 +144,7 @@ class ShipmentOptions
      */
     public function hasSameDayDelivery(): bool
     {
-        $sameDayFromOptions = self::getValueOfOptionWhenSet(self::SAME_DAY_DELIVERY, $this->options);
-
-        return $sameDayFromOptions ?? $this->optionIsEnabled(self::SAME_DAY_DELIVERY);
+        return $this->optionIsEnabled(self::SAME_DAY_DELIVERY);
     }
 
     /**
@@ -159,9 +152,7 @@ class ShipmentOptions
      */
     public function hasReturn(): bool
     {
-        $returnFromOptions = self::getValueOfOptionWhenSet(self::RETURN, $this->options);
-
-        return $returnFromOptions ?? $this->optionIsEnabled(self::RETURN);
+        return $this->optionIsEnabled(self::RETURN);
     }
 
     /**
@@ -173,7 +164,7 @@ class ShipmentOptions
             return false;
         }
 
-        $ageCheckFromOptions  = self::getValueOfOptionWhenSet(self::AGE_CHECK, $this->options);
+        $ageCheckFromOptions  = $this->options[self::AGE_CHECK] ?? null;
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
         $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, self::AGE_CHECK);
 
@@ -182,9 +173,23 @@ class ShipmentOptions
 
     public function hasHideSender(): bool
     {
-        $hideSenderFromOptions = self::getValueOfOptionWhenSet(self::HIDE_SENDER, $this->options);
+        return $this->optionIsEnabled(self::HIDE_SENDER);
+    }
 
-        return $hideSenderFromOptions ?? $this->optionIsEnabled(self::HIDE_SENDER);
+    /**
+     * @return bool
+     */
+    public function hasPriorityDelivery(): bool
+    {
+        if (AbstractConsignment::CC_NL !== $this->cc) {
+            return false;
+        }
+
+        if (CarrierPostNL::NAME !== $this->carrier) {
+            return false;
+        }
+
+        return $this->optionIsEnabled(self::PRIORITY_DELIVERY);
     }
 
     /**
@@ -283,21 +288,6 @@ class ShipmentOptions
     }
 
     /**
-     * @param string $key
-     * @param array  $options
-     *
-     * @return bool|null boolean value of the option named $key, or null when not set in $options
-     */
-    public static function getValueOfOptionWhenSet(string $key, array $options): ?bool
-    {
-        if (! isset($options[$key])) {
-            return null;
-        }
-
-        return (bool) $options[$key];
-    }
-
-    /**
      * @return bool
      */
     public function hasLargeFormat(): bool
@@ -306,10 +296,7 @@ class ShipmentOptions
             return false;
         }
 
-        $largeFormatFromOptions  = self::getValueOfOptionWhenSet(self::LARGE_FORMAT, $this->options);
-        $largeFormatFromSettings = $this->defaultOptions->hasOptionSet(self::LARGE_FORMAT, $this->carrier);
-
-        return $largeFormatFromOptions ?? $largeFormatFromSettings;
+        return $this->optionIsEnabled(self::LARGE_FORMAT);
     }
 
     /**
@@ -319,7 +306,7 @@ class ShipmentOptions
     {
         $labelDescription = $this->config->getGeneralConfig(
             'print/label_description',
-            $this->order->getStoreId()
+            (int) $this->order->getStoreId()
         );
 
         if (! $labelDescription) {
@@ -394,11 +381,8 @@ class ShipmentOptions
      */
     private function optionIsEnabled($optionKey): bool
     {
-        if (! isset($this->options[$optionKey])) {
-            return $this->defaultOptions->hasOptionSet($optionKey, $this->carrier);
-        }
-
-        return (bool) $this->options[$optionKey];
+        return (bool) ($this->options[$optionKey] ??
+                       $this->defaultOptions->hasOptionSet($optionKey, $this->carrier));
     }
 
     /**
@@ -418,6 +402,7 @@ class ShipmentOptions
             self::LABEL_DESCRIPTION => $this->getLabelDescription(),
             self::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
             self::HIDE_SENDER       => $this->hasHideSender(),
+            self::PRIORITY_DELIVERY => $this->hasPriorityDelivery(),
         ];
     }
 }

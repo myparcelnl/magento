@@ -70,6 +70,8 @@ Automate 'Insurance € 100',Automatiseer 'Verzekerd tot €100'
 Automate 'Insurance € 250',Automatiseer 'Verzekerd tot €250'
 Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
 Automate 'Insure shipments to Belgium',Automatiseer 'Verzeker zendingen naar België'
+Automate Priority delivery (mailbox),Automatiseer Prio levering (brievenbus)
+Automatically enable priority delivery for mailbox packages during export,Automatisch prioriteitslevering inschakelen voor brievenbuspakketten tijdens export
 Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Let op: Maandagbezorging is alleen mogelijk als het pakket op zaterdag voor 15.00 uur is afgeleverd op de daarvoor bestemde PostNL locaties.
 'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 "The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.","De leeftijdscontrole is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ dient te tonen door middel van een identiteitsbewijs. Bij deze verzendoptie zijn alleen handtekening op ontvangstbewijs en thuisadres inbegrepen. De leeftijd van 18+ is verder uitgesloten van de bezorgopties 's morgens en' s avonds."
@@ -218,6 +220,7 @@ Hide sender title,Afzender verbergen titel
 Printerless return,Retour zonder printer
 Frozen,Bevroren
 Fresh food,Verse producten
+Priority delivery,Prio levering
 Morning title,Ochtendlevering titel
 Evening title,Avondlevering titel
 Mailbox title,Brievenbuspakje titel
@@ -300,6 +303,7 @@ packet_title,Klein pakket
 package_title,Pakket
 signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
+priority_delivery_title,Prio levering
 only_recipient_title,Alleen huisadres
 saturday_delivery,Zaterdag levering
 Delivery costs,Bezorgkosten

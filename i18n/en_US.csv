@@ -50,6 +50,7 @@ package_title, Package
 signature_title, Signature
 receipt_code_title, Receipt code
 only_recipient_title, Only Recipient
+priority_delivery_title, Priority delivery
 saturday_delivery, Saturday Delivery
 Delivery costs,Delivery costs
 Rule name,Rule name
