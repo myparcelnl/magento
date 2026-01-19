@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.2.0](https://github.com/myparcelnl/magento/compare/v5.1.0...v5.2.0) (2026-01-19)
+
+
+### :bug: Bug Fixes
+
+* cleanup myparcelconfig options ([#922](https://github.com/myparcelnl/magento/issues/922)) ([6cfbddb](https://github.com/myparcelnl/magento/commit/6cfbddb09ab765b6735dcdea4b5bbcd24898ce4e))
+* remember the type in carrier options ([#921](https://github.com/myparcelnl/magento/issues/921)) ([a9668ed](https://github.com/myparcelnl/magento/commit/a9668eda27454c056d6cdd747f6775642cc8bac1))
+* save correct data types in matrix ([#924](https://github.com/myparcelnl/magento/issues/924)) ([9a5ce3e](https://github.com/myparcelnl/magento/commit/9a5ce3e22eee84cfdb60fa643406c0d29af4b916))
+* use account general settings to check for mailbox international ([#923](https://github.com/myparcelnl/magento/issues/923)) ([59fe7cb](https://github.com/myparcelnl/magento/commit/59fe7cb5138001de366623ca886f2788f562d559))
+
+
+### :sparkles: New Features
+
+* postnl mailbox priority ([#926](https://github.com/myparcelnl/magento/issues/926)) ([1cf1170](https://github.com/myparcelnl/magento/commit/1cf1170083531ce5b62c7a56e45a98dba338d2ad))
+
 ## [5.1.0](https://github.com/myparcelnl/magento/compare/v5.0.0...v5.1.0) (2025-12-02)
 
 
