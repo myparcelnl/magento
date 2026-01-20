@@ -6,7 +6,9 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="MyParcelNL_Magento::myparcelnl_magento" title="MyParcel NL Settings" translate="label" sortOrder="100" />
+                            <resource id="MyParcelNL_Magento::myparcelnl_magento" title="MyParcel NL Settings" translate="label" sortOrder="100">
+                                <resource id="MyParcelNL_Magento::myparcelnl_magento_settings" title="MyParcel Dynamic Settings" translate="label" sortOrder="10" />
+                            </resource>
                         </resource>
                     </resource>
                 </resource>

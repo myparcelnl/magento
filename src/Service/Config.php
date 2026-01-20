@@ -73,7 +73,7 @@ class Config extends AbstractHelper
     )
     {
         parent::__construct($context);
-        $this->moduleList            = $moduleList;
+        $this->moduleList = $moduleList;
 
         try {
             // contrary to documentation store->getId() does not always return an int, so please cast it here

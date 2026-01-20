@@ -32,7 +32,7 @@ class TrackIdentity extends Container implements IdentityInterface
     {
         return $this->scopeConfig->isSetFlag(
             self::XML_PATH_EMAIL_ENABLED,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORES,
             $this->getStore()->getStoreId()
         );
     }
