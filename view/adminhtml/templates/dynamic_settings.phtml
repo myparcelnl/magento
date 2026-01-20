@@ -116,6 +116,13 @@ $isDefaultScope = $block->isDefaultScope();
                                                     <?php if (isset($field['frontend_model'])): ?>
                                                         <!-- Custom frontend model -->
                                                         <?= $block->renderFrontendModel($field['frontend_model'], $field) ?>
+                                                        <?php if ('delivery_costs_ui' === $field['id']): ?>
+                                                            <!-- hidden default field -->
+                                                            <input type="hidden"
+                                                                   id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
+                                                                   name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
+                                                                   value="<?= $escaper->escapeHtmlAttr((string)$fieldValue) ?>"/>
+                                                        <?php endif; ?>
                                                     <?php elseif ($field['type'] === 'select'): ?>
                                                         <!-- Select field -->
                                                         <select id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
