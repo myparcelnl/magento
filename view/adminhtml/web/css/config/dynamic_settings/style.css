@@ -1,0 +1,137 @@
+/**
+ * Override weird Magento shenanigans
+ */
+.admin__scope-old .form-inline .with-tooltip:not(.choice) {
+    padding-top: 0;
+}
+
+/**
+ * After the dynamic settings we have a section with a 'trigger observer' field, its purpose is to trick Magento
+ * into actually saving something and thereby triggering our observer. We don't want to show this section though.
+ */
+.myparcel-dynamic-settings ~ .section-config {
+    display: none;
+}
+
+/**
+ * Styles for MyParcel Dynamic Settings Page
+ */
+.myparcel-dynamic-settings {
+    padding: 20px;
+}
+
+.myparcel-dynamic-settings .scope-label {
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 4px;
+}
+
+.myparcel-tabs {
+    margin-bottom: 20px;
+}
+
+.myparcel-tabs-nav {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.myparcel-tab-item {
+    margin: 0;
+}
+
+.myparcel-tab-item a {
+    display: block;
+    padding: 10px 20px;
+    margin: 1px;
+    text-decoration: none;
+    color: #333;
+    border: 1px solid transparent;
+    background: #f5f5f5;
+}
+
+.myparcel-tab-item.active a {
+    background: #fff;
+    border-color: #ccc;
+}
+
+.myparcel-tab-item a:hover {
+    background: #e8e8e8;
+}
+
+.myparcel-tab-panel {
+    display: none;
+}
+
+.myparcel-tab-panel.active {
+    display: block;
+}
+
+.myparcel-group.admin__fieldset {
+    margin: 0;
+    padding: 0 0 35px 0;
+}
+
+.myparcel-group .admin__legend {
+    border-top: 1px solid #ccc;
+    padding: 15px 15px 15px 0;
+    margin: 0;
+    float: none;
+}
+
+#delivery-costs-matrix,
+.myparcel-tabs .admin__control-time,
+.myparcel-tabs .admin__field-control select,
+.myparcel-tabs .admin__field-control input:not([type="checkbox"]) {
+    width: calc(99% - 145px);
+    max-width: 500px;
+}
+
+.myparcel-tabs .admin__field-option {
+    margin-bottom: 10px;
+    position: absolute;
+    margin-left: calc(74% + 45px);
+}
+
+@media (min-width: 1200px) {
+    .myparcel-tabs .admin__field-option {
+        margin-left: 600px;
+    }
+}
+
+.myparcel-tabs .use-default-label {
+    display: inline;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+.myparcel-tabs .hidden-by-dependency {
+    display: none !important;
+}
+
+.myparcel-tabs .admin__control-time {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.myparcel-tabs .admin__control-time select {
+    width: auto;
+}
+
+.myparcel-tabs .page-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #ccc;
+}
+
+.myparcel-tabs .tooltip {
+    margin-left: 0;
+}
+
+#myparcelnl_magento_dynamic_settings_trigger_observer-link {
+    display: none;
+}
