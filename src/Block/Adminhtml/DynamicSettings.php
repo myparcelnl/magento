@@ -106,8 +106,6 @@ class DynamicSettings extends Template
     }
 
     /**
-     * Get all websites for the scope switcher.
-     *
      * @return array
      */
     public function getWebsites(): array
@@ -116,8 +114,6 @@ class DynamicSettings extends Template
     }
 
     /**
-     * Get all stores for the scope switcher.
-     *
      * @return array
      */
     public function getStores(): array
@@ -158,9 +154,6 @@ class DynamicSettings extends Template
         $path    = $field['path'];
         $scope   = $this->getCurrentScope();
         $scopeId = $this->getCurrentScopeId();
-        if (false !== strpos($path, 'myparcelnl_magento_general/matrix')) {
-            file_put_contents('/Applications/MAMP/htdocs/magento246/var/log/joeri.log', "Checking own value for $path at scope $scope with id " . ($scopeId ?? 'null') . ': ' . var_export($this->dynamicSettingsConfig->hasOwnValue($path, $scope, $scopeId), true) . PHP_EOL, FILE_APPEND);
-        }
 
         return $this->dynamicSettingsConfig->hasOwnValue($path, $scope, $scopeId);
     }
@@ -214,7 +207,7 @@ class DynamicSettings extends Template
                 $block->setData('field', $field);
                 return $block->toHtml();
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return "<div class='message message-error'>{$this->_escaper->escapeHtml($e->getMessage())}</div>";
         }
 
