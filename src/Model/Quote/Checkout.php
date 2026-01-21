@@ -115,12 +115,13 @@ class Checkout
     {
         $activeCarriers = $this->getActiveCarriers();
         $carrierPath    = ! empty($activeCarriers) ? Config::CARRIERS_XML_PATH_MAP[$activeCarriers[0]] : Config::XML_PATH_POSTNL_SETTINGS;
+        $deliveryDaysWindow = $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window');
 
         return [
             'platform'                          => Config::PLATFORM,
             'currency'                          => $this->currency->getStore()->getCurrentCurrency()->getCode(),
-            'showDeliveryDate'                  => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'date_settings/allow_show_delivery_date'),
-            'deliveryDaysWindow'                => $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window'),
+            'showDeliveryDate'                  => $deliveryDaysWindow > 0,
+            'deliveryDaysWindow'                => $deliveryDaysWindow,
             'dropOffDelay'                      => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
             'pickupLocationsDefaultView'        => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
             'allowPickupLocationsViewSelection' => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view_change_allowed'),

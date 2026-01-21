@@ -18,7 +18,6 @@
 
         <myparcelnl_magento_general>
             <date_settings>
-                <allow_show_delivery_date>1</allow_show_delivery_date>
                 <deliverydays_window>7</deliverydays_window>
                 <dropoff_delay>0</dropoff_delay>
             </date_settings>
