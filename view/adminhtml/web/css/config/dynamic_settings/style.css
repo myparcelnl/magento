@@ -70,34 +70,31 @@
     display: block;
 }
 
-.myparcel-group.admin__fieldset {
+.myparcel-group.config {
     margin: 0;
     padding: 0 0 35px 0;
 }
 
-.myparcel-group .admin__legend {
+.myparcel-group h2 {
     border-top: 1px solid #ccc;
     padding: 15px 15px 15px 0;
     margin: 0;
     float: none;
 }
 
-#delivery-costs-matrix,
-.myparcel-tabs .admin__control-time,
-.myparcel-tabs .admin__field-control select,
-.myparcel-tabs .admin__field-control input:not([type="checkbox"]) {
+.accordion .myparcel-tabs .config .value {
     width: calc(99% - 145px);
-    max-width: 500px;
+    max-width: 580px;
 }
 
-.myparcel-tabs .admin__field-option {
-    margin-bottom: 10px;
+.accordion .form-inline .myparcel-tabs .config .use-default {
+    padding: 0;
     position: absolute;
-    margin-left: calc(74% + 45px);
+    margin-left: calc(99% - 125px);
 }
 
 @media (min-width: 1200px) {
-    .myparcel-tabs .admin__field-option {
+    .accordion .form-inline .myparcel-tabs .config .use-default {
         margin-left: 600px;
     }
 }
