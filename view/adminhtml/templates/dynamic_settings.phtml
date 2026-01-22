@@ -3,6 +3,7 @@
  * Dynamic settings template
  * 
  * @var \MyParcelNL\Magento\Block\Adminhtml\DynamicSettings $block
+ * @var \Magento\Framework\Escaper $escaper
  */
 
 $sections = $block->getSections();
@@ -56,15 +57,11 @@ $isDefaultScope = $block->isDefaultScope();
                                     <?= $block->renderFrontendModel($group['frontend_model']) ?>
                                 </div>
                             <?php else: ?>
-                                <fieldset class="myparcel-group admin__fieldset" data-group="<?= $escaper->escapeHtmlAttr($group['id']) ?>">
-                                    <legend class="admin__legend">
-                                        <span class="admin__legend-title">
-                                            <?= $escaper->escapeHtml(__($group['label'] ?? '')) ?>
-                                        </span>
-                                    </legend>
+                                <fieldset class="myparcel-group admin__fieldset config" data-group="<?= $escaper->escapeHtmlAttr($group['id']) ?>">
+                                    <h2><?= $escaper->escapeHtml(__($group['label'] ?? '')) ?></h2>
                                     
                                     <?php if (!empty($group['comment'])): ?>
-                                        <div class="admin__field-note">
+                                        <div class="note">
                                             <?= $escaper->escapeHtml(__($group['comment'])) ?>
                                         </div>
                                     <?php endif; ?>
@@ -98,7 +95,7 @@ $isDefaultScope = $block->isDefaultScope();
 
                                                 <?php if (!$isDefaultScope && 'button' !== $field['type']): ?>
                                                     <!-- Use Default checkbox -->
-                                                    <div class="admin__field-option use-default">
+                                                    <div class="use-default">
                                                         <input type="checkbox"
                                                                id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_inherit"
                                                                name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[inherit]"
@@ -111,13 +108,13 @@ $isDefaultScope = $block->isDefaultScope();
                                                         </label>
                                                     </div>
                                                 <?php endif; ?>
-                                                <div class="admin__field-control value <?php if (!empty($field['tooltip'])) { echo ' with-tooltip'; } ?>">
+                                                <div class="admin__field-control value<?php if (!empty($field['tooltip'])) { echo ' with-tooltip'; } ?>">
 
                                                     <?php if (isset($field['frontend_model'])): ?>
                                                         <!-- Custom frontend model -->
                                                         <?= $block->renderFrontendModel($field['frontend_model'], $field) ?>
                                                         <?php if ('delivery_costs_ui' === $field['id']): ?>
-                                                            <!-- hidden default field -->
+                                                            <!-- hidden default field for scoping -->
                                                             <input type="hidden"
                                                                    id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
                                                                    name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
@@ -323,8 +320,6 @@ require(['jquery', 'domReady!'], function($) {
         const $form = $(this);
         const isValid = true;
 
-        console.warn($form);
-        
         // Add any custom validation here
         
         if (!isValid) {
