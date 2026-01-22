@@ -4,9 +4,21 @@ For the manual and more information, please refer to our [Magento Manual] on the
 
 ## Important notice about third-party checkouts
 
+We support the default Magento checkout and the Hyvä checkout.
+
+To install our Hyvä compatibility module via composer:
+
+`composer require hyva-themes/magento2-hyva-checkout-myparcelnl`
+
+Enable module
+
+`bin/magento setup:upgrade`
+
+This ensures that our plugin (version 5 or higher) works seamlessly with the Hyvä checkout, there are no additional settings or requirements.
+
 > :warning: Third-Party Checkouts Compatibility.
 
-Our plugin may not be fully compatible with “third-party” checkout solutions provided by plugins, other than those native to Magento itself. Features such as Delivery Options or other functionalities might not work as expected.
+Other third party checkouts are not officially supported. Features such as Delivery Options or other functionalities might not work as expected.
 
 We recommend testing the plugin’s functionality in your specific setup before fully implementing it.
 
