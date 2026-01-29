@@ -411,8 +411,17 @@
                             "sort_order": 226,
                             "showInDefault": true,
                             "showInWebsite": true,
-                            "showInStore": true,
-                            "tooltip": "The times will be visible when nothing is filled in"
+                            "showInStore": true
+                        },
+                        {
+                            "id": "priority_delivery_title",
+                            "path": "myparcelnl_magento_general/delivery_titles/priority_delivery_title",
+                            "type": "text",
+                            "label": "Priority delivery title",
+                            "sort_order": 226,
+                            "showInDefault": true,
+                            "showInWebsite": true,
+                            "showInStore": true
                         },
                         {
                             "id": "morning_title",
@@ -1221,6 +1230,45 @@
                             "depends": [
                                 {
                                     "field": "myparcelnl_magento_postnl_settings/mailbox/active",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "priority_delivery_active",
+                            "path": "myparcelnl_magento_postnl_settings/mailbox/priority_delivery_active",
+                            "type": "select",
+                            "label": "Priority delivery",
+                            "sort_order": 370,
+                            "showInDefault": true,
+                            "showInWebsite": true,
+                            "showInStore": true,
+                            "tooltip": "",
+                            "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno",
+                            "depends": [
+                                {
+                                    "field": "myparcelnl_magento_postnl_settings/mailbox/active",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        {
+                            "id": "priority_delivery_fee",
+                            "path": "myparcelnl_magento_postnl_settings/mailbox/priority_delivery_fee",
+                            "type": "text",
+                            "label": "Priority delivery fee",
+                            "sort_order": 380,
+                            "showInDefault": true,
+                            "showInWebsite": true,
+                            "showInStore": true,
+                            "tooltip": "This will be added to the regular shipping price",
+                            "depends": [
+                                {
+                                    "field": "myparcelnl_magento_postnl_settings/mailbox/active",
+                                    "value": "1"
+                                },
+                                {
+                                    "field": "myparcelnl_magento_postnl_settings/mailbox/priority_delivery_active",
                                     "value": "1"
                                 }
                             ]
