@@ -2,7 +2,7 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
-        <css src="https://cdn.jsdelivr.net/npm/@myparcel/delivery-options@6/dist/style.css"
+        <css src="https://cdn.jsdelivr.net/npm/@myparcel-dev/delivery-options@6/dist/style.css"
              src_type="url"
              rel="stylesheet"
              type="text/css" />
