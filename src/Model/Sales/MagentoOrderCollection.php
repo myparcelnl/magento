@@ -369,7 +369,7 @@ class MagentoOrderCollection extends MagentoCollection
         $datetime    = DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
         $timezone    = $scopeConfig->getValue(
             'general/locale/timezone',
-            ScopeInterface::SCOPE_STORE,
+            ScopeInterface::SCOPE_STORES,
             $this->order->getStoreId()
         );
 

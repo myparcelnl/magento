@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Backend\Model\Auth\Session;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
@@ -73,7 +74,7 @@ class Config extends AbstractHelper
     )
     {
         parent::__construct($context);
-        $this->moduleList            = $moduleList;
+        $this->moduleList = $moduleList;
 
         try {
             // contrary to documentation store->getId() does not always return an int, so please cast it here
@@ -97,6 +98,23 @@ class Config extends AbstractHelper
     public function getConfigValue(string $field, ?int $storeId = null)
     {
         return $this->scopeConfig->getValue($field, ScopeInterface::SCOPE_STORES, $storeId ?? $this->storeId);
+    }
+
+    /**
+     * Get the current config value for a field path, for specific scope.
+     *
+     * @param string   $path
+     * @param string   $scopeName
+     * @param int|null $scopeId
+     * @return mixed
+     */
+    public function getScopedConfig(string $path, string $scopeName = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, ?int $scopeId = null)
+    {
+        if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $scopeName) {
+            return $this->scopeConfig->getValue($path);
+        }
+
+        return $this->scopeConfig->getValue($path, $scopeName, $scopeId);
     }
 
     /**

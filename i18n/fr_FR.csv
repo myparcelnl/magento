@@ -34,6 +34,7 @@ show_total_price,Afficher le prix total
 show_surcharge_price,Afficher le prix supplémentaire
 Version and support,Version et support
 General settings,Paramètres généraux
+Settings,Paramètres
 API settings,Paramètres API
 Go to the general settings in the back office of MyParcel to generate the API Key.,Rendez-vous dans les paramètres généraux du backoffice MyParcel pour générer la clé API.
 The API Key,Introduisez ici votre clé API

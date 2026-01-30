@@ -54,7 +54,7 @@ class DeliveryCostsMatrix extends Field
     /**
      * Retrieve element HTML markup, called from Magento
      *
-     * @param AbstractElement $element mandatory parameter we do not need here
+     * @param AbstractElement $element
      *
      * @return string
      */
