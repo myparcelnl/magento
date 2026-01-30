@@ -43,16 +43,8 @@
             </group>
             <group id="date_settings" translate="label comment" type="text" sortOrder="150" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Date settings</label>
-                <field id="allow_show_delivery_date" translate="label comment" type="select" sortOrder="275" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Show delivery date</label>
-                    <tooltip>Show a delivery date in the checkout.</tooltip>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
                 <field id="deliverydays_window" translate="label comment" type="select" sortOrder="276" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Number of days</label>
-                    <depends>
-                        <field id="allow_show_delivery_date">1</field>
-                    </depends>
                     <source_model>MyParcelNL\Magento\Model\Source\NumberOfDays</source_model>
                     <tooltip>Amount of days in the future customers can choose from in the checkout.</tooltip>
                 </field>

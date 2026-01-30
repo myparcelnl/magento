@@ -595,26 +595,6 @@ class UpgradeData implements UpgradeDataInterface
                 ]
             );
 
-            // set new allow_show_delivery_date based on current deliverydays_window
-            $selectDeliveryDaysWindow = $connection->select()->from($table,
-                ['config_id', 'path', 'value']
-            )->where(
-                '`path` = "myparcelnl_magento_postnl_settings/general/deliverydays_window"'
-            );
-            $allowShowDeliveryDatePath = 'myparcelnl_magento_postnl_settings/general/allow_show_delivery_date';
-
-            $connection->delete($table, ['path = ?' => $allowShowDeliveryDatePath]);
-
-            $deliveryDaysWindows = $connection->fetchAll($selectDeliveryDaysWindow);
-
-            foreach ($deliveryDaysWindows as $deliveryDaysWindowOption) {
-                $allowValue = '1';
-                if ('hide' === $deliveryDaysWindowOption['value']) {
-                    $allowValue = '0';
-                }
-                $bind  = ['path' => $allowShowDeliveryDatePath, 'value' => $allowValue];
-                $connection->insert($table, $bind);
-            }
             $insuranceBelgium = 'myparcelnl_magento_postnl_settings/default_options/insurance_belgium_active';
             $connection->delete($table, ['path = ?' => $insuranceBelgium]);
             $connection->insert($table, ['path' => $insuranceBelgium, 'value' => 1]);
@@ -731,7 +711,7 @@ class UpgradeData implements UpgradeDataInterface
             /**
              * - migrate cutoff_time -> drop off days
              * - migrate monday delivery + saturday cutoff_time -> drop off days
-             * - migrate allowShowDeliveryDate from carrier -> general
+             * - migrate deliveryDaysWindow/dropOffDelay from carrier -> general
              * - migrate monday delivery from general -> delivery
              */
             $scopes = [];
@@ -763,7 +743,6 @@ class UpgradeData implements UpgradeDataInterface
                 return $row[0]['value'] ?? null;
             };
 
-            $allowShowDeliveryDate = false;
             $dropOffDelay = PHP_INT_MAX;
             $deliveryDaysWindow = 0;
 
@@ -783,13 +762,11 @@ class UpgradeData implements UpgradeDataInterface
                      * update the carrier specific date settings to a single setting for later
                      */
                     $carrierPath = trim($carrierPath, '/');
-                    $value = (int) $getConfigValue("$carrierPath/general/allow_show_delivery_date", $scope, $scopeId);
-                    if ($value) {
-                        $allowShowDeliveryDate = (bool) $value;
-                        $value = (int) $getConfigValue("$carrierPath/general/deliverydays_window", $scope, $scopeId);
-                        if ($value > $deliveryDaysWindow) {
-                            $deliveryDaysWindow = $value;
-                        }
+                    $value = (int) $getConfigValue("$carrierPath/general/deliverydays_window", $scope, $scopeId);
+                    if ($value > $deliveryDaysWindow) {
+                        $deliveryDaysWindow = $value;
+                    }
+                    if ($value > 0) {
                         $value = (int) $getConfigValue("$carrierPath/general/dropoff_delay", $scope, $scopeId);
                         if ($value < $dropOffDelay && $value >= 0) {
                             $dropOffDelay = $value;
@@ -844,7 +821,6 @@ class UpgradeData implements UpgradeDataInterface
                  * migrate the carrier specific date settings to general settings
                  */
                 $updates = [
-                    'myparcelnl_magento_general/date_settings/allow_show_delivery_date' => $allowShowDeliveryDate ? '1' : '0',
                     'myparcelnl_magento_general/date_settings/deliverydays_window' => $deliveryDaysWindow,
                     'myparcelnl_magento_general/date_settings/dropoff_delay' => $dropOffDelay,
                 ];
