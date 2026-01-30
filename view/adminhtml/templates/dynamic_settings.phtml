@@ -1,34 +1,35 @@
 <?php
 /**
  * Dynamic settings template
- * 
+ *
  * @var \MyParcelNL\Magento\Block\Adminhtml\DynamicSettings $block
- * @var \Magento\Framework\Escaper $escaper
+ * @var \Magento\Framework\Escaper                          $escaper
  */
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
+
 $sections = $block->getSections();
-$currentScope = $block->getCurrentScope();
-$currentScopeId = $block->getCurrentScopeId();
-$isDefaultScope = $block->isDefaultScope();
+[$currentScopeName, $currentScopeId] = $block->getCurrentScope();
+$isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName;
 ?>
 
-<link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css" />
+<link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css"/>
 
 <div class="myparcel-dynamic-settings">
     <!-- Settings Form -->
-    <form id="myparcel-settings-form" 
+    <form id="myparcel-settings-form"
           action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>"
           method="post"
           data-form="myparcel-settings">
         <?= $block->getBlockHtml('formkey') ?>
-        <input type="hidden" name="scope" value="<?= $escaper->escapeHtmlAttr($currentScope) ?>"/>
-        <input type="hidden" name="scope_id" value="<?= $escaper->escapeHtmlAttr((string)$currentScopeId) ?>"/>
-        
+        <input type="hidden" name="scope" value="<?= $escaper->escapeHtmlAttr($currentScopeName) ?>"/>
+        <input type="hidden" name="scope_id" value="<?= $escaper->escapeHtmlAttr((string) $currentScopeId) ?>"/>
+
         <!-- Tabs Navigation -->
         <div class="myparcel-tabs" data-role="tabs">
             <ul class="myparcel-tabs-nav" role="tablist">
                 <?php foreach ($sections as $index => $section): ?>
-                    <li class="myparcel-tab-item <?= $index === 0 ? 'active' : '' ?>" 
+                    <li class="myparcel-tab-item <?= $index === 0 ? 'active' : '' ?>"
                         role="presentation">
                         <a href="#section-<?= $escaper->escapeHtmlAttr($section['id']) ?>"
                            role="tab"
@@ -39,7 +40,7 @@ $isDefaultScope = $block->isDefaultScope();
                     </li>
                 <?php endforeach; ?>
             </ul>
-            
+
             <!-- Tab Content Panels -->
             <div class="myparcel-tabs-content">
                 <?php foreach ($sections as $sectionIndex => $section): ?>
@@ -47,53 +48,55 @@ $isDefaultScope = $block->isDefaultScope();
                          class="myparcel-tab-panel <?= $sectionIndex === 0 ? 'active' : '' ?>"
                          role="tabpanel"
                          aria-hidden="<?= $sectionIndex === 0 ? 'false' : 'true' ?>">
-                        
+
                         <?php foreach ($section['groups'] ?? [] as $group): ?>
-                            <?php 
+                            <?php
                             // Check if group has a frontend_model (like SupportTab)
-                            if (isset($group['frontend_model']) && empty($group['fields'])): 
-                            ?>
+                            if (isset($group['frontend_model']) && empty($group['fields'])):
+                                ?>
                                 <div class="myparcel-group">
                                     <?= $block->renderFrontendModel($group['frontend_model']) ?>
                                 </div>
                             <?php else: ?>
-                                <fieldset class="myparcel-group admin__fieldset config" data-group="<?= $escaper->escapeHtmlAttr($group['id']) ?>">
+                                <fieldset class="myparcel-group admin__fieldset config"
+                                          data-group="<?= $escaper->escapeHtmlAttr($group['id']) ?>">
                                     <h2><?= $escaper->escapeHtml(__($group['label'] ?? '')) ?></h2>
-                                    
-                                    <?php if (!empty($group['comment'])): ?>
+
+                                    <?php if (! empty($group['comment'])): ?>
                                         <div class="note">
                                             <?= $escaper->escapeHtml(__($group['comment'])) ?>
                                         </div>
                                     <?php endif; ?>
-                                    
+
                                     <div class="admin__fieldset-wrapper-content">
                                         <?php foreach ($group['fields'] ?? [] as $field): ?>
-                                            <?php 
-                                            if (!$block->isFieldVisibleInCurrentScope($field)) {
+                                            <?php
+                                            if (! $block->isFieldVisibleInCurrentScope($field)) {
                                                 continue;
                                             }
-                                            $fieldHtmlId = $block->getFieldHtmlId($field);
-                                            $fieldName = $block->getFieldName($field);
-                                            $fieldValue = $block->getFieldValue($field);
-                                            $hasOwnValue = $block->hasOwnValue($field);
-                                            $hasDependencies = !empty($field['depends']);
+                                            $fieldHtmlId     = $block->getFieldHtmlId($field);
+                                            $fieldName       = $block->getFieldName($field);
+                                            $fieldValue      = $block->getFieldValue($field);
+                                            $hasOwnValue     = $block->hasOwnValue($field);
+                                            $hasDependencies = ! empty($field['depends']);
                                             $dependenciesMet = $block->areDependenciesMet($field);
                                             ?>
-                                            
-                                            <div class="admin__field field field-<?= $escaper->escapeHtmlAttr($field['id']) ?> <?= $hasDependencies && !$dependenciesMet ? 'hidden-by-dependency' : '' ?>"
+
+                                            <div class="admin__field field field-<?= $escaper->escapeHtmlAttr($field['id']) ?> <?= $hasDependencies && ! $dependenciesMet ? 'hidden-by-dependency' : '' ?>"
                                                  id="row_<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
                                                  data-field-id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
-                                                 <?php if ($hasDependencies): ?>
-                                                 data-dependencies='<?= $block->getDependenciesJson($field) ?>'
-                                                 <?php endif; ?>>
+                                                    <?php if ($hasDependencies): ?>
+                                                        data-dependencies='<?= $block->getDependenciesJson($field) ?>'
+                                                    <?php endif; ?>>
 
-                                                <?php if (!empty($field['label'])): ?>
-                                                <label class="admin__field-label" for="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>">
-                                                    <span><?= $escaper->escapeHtml(__($field['label'] ?? '')) ?></span>
-                                                </label>
+                                                <?php if (! empty($field['label'])): ?>
+                                                    <label class="admin__field-label"
+                                                           for="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>">
+                                                        <span><?= $escaper->escapeHtml(__($field['label'] ?? '')) ?></span>
+                                                    </label>
                                                 <?php endif; ?>
 
-                                                <?php if (!$isDefaultScope && 'button' !== $field['type']): ?>
+                                                <?php if (! $isDefaultScope && 'button' !== $field['type']): ?>
                                                     <!-- Use Default checkbox -->
                                                     <div class="use-default">
                                                         <input type="checkbox"
@@ -102,13 +105,16 @@ $isDefaultScope = $block->isDefaultScope();
                                                                value="1"
                                                                class="use-default-checkbox"
                                                                data-field="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
-                                                                <?= !$hasOwnValue ? 'checked="checked"' : '' ?>/>
-                                                        <label for="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_inherit" class="admin__field-label use-default-label">
+                                                                <?= ! $hasOwnValue ? 'checked="checked"' : '' ?>/>
+                                                        <label for="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_inherit"
+                                                               class="admin__field-label use-default-label">
                                                             <?= $escaper->escapeHtml(__('Use Default')) ?>
                                                         </label>
                                                     </div>
                                                 <?php endif; ?>
-                                                <div class="admin__field-control value<?php if (!empty($field['tooltip'])) { echo ' with-tooltip'; } ?>">
+                                                <div class="admin__field-control value<?php if (! empty($field['tooltip'])) {
+                                                    echo ' with-tooltip';
+                                                } ?>">
 
                                                     <?php if (isset($field['frontend_model'])): ?>
                                                         <!-- Custom frontend model -->
@@ -118,27 +124,28 @@ $isDefaultScope = $block->isDefaultScope();
                                                             <input type="hidden"
                                                                    id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
                                                                    name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
-                                                                   value="<?= $escaper->escapeHtmlAttr((string)$fieldValue) ?>"/>
+                                                                   value="<?= $escaper->escapeHtmlAttr((string) $fieldValue) ?>"/>
                                                         <?php endif; ?>
                                                     <?php elseif ($field['type'] === 'select'): ?>
                                                         <!-- Select field -->
                                                         <select id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
                                                                 name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
                                                                 class="admin__control-select <?= $escaper->escapeHtmlAttr($field['frontend_class'] ?? '') ?>"
-                                                                <?= (!$isDefaultScope && !$hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                                <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
                                                             <?php foreach ($block->getFieldOptions($field) as $option): ?>
                                                                 <?php if (isset($option['value']) && is_array($option['value'])): ?>
-                                                                    <optgroup label="<?= $escaper->escapeHtmlAttr($option['label']) ?>">
+                                                                    <optgroup
+                                                                            label="<?= $escaper->escapeHtmlAttr($option['label']) ?>">
                                                                         <?php foreach ($option['value'] as $subOption): ?>
-                                                                            <option value="<?= $escaper->escapeHtmlAttr((string)$subOption['value']) ?>"
-                                                                                    <?= (string)$fieldValue === (string)$subOption['value'] ? 'selected="selected"' : '' ?>>
+                                                                            <option value="<?= $escaper->escapeHtmlAttr((string) $subOption['value']) ?>"
+                                                                                    <?= (string) $fieldValue === (string) $subOption['value'] ? 'selected="selected"' : '' ?>>
                                                                                 <?= $escaper->escapeHtml($subOption['label']) ?>
                                                                             </option>
                                                                         <?php endforeach; ?>
                                                                     </optgroup>
                                                                 <?php else: ?>
-                                                                    <option value="<?= $escaper->escapeHtmlAttr((string)($option['value'] ?? '')) ?>"
-                                                                            <?= (string)$fieldValue === (string)($option['value'] ?? '') ? 'selected="selected"' : '' ?>>
+                                                                    <option value="<?= $escaper->escapeHtmlAttr((string) ($option['value'] ?? '')) ?>"
+                                                                            <?= (string) $fieldValue === (string) ($option['value'] ?? '') ? 'selected="selected"' : '' ?>>
                                                                         <?= $escaper->escapeHtml($option['label'] ?? '') ?>
                                                                     </option>
                                                                 <?php endif; ?>
@@ -150,13 +157,13 @@ $isDefaultScope = $block->isDefaultScope();
                                                                 name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value][]"
                                                                 class="admin__control-multiselect <?= $escaper->escapeHtmlAttr($field['frontend_class'] ?? '') ?>"
                                                                 multiple="multiple"
-                                                                <?= (!$isDefaultScope && !$hasOwnValue) ? 'disabled="disabled"' : '' ?>>
-                                                            <?php 
-                                                            $selectedValues = is_string($fieldValue) ? explode(',', $fieldValue) : (array)$fieldValue;
+                                                                <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                            <?php
+                                                            $selectedValues = is_string($fieldValue) ? explode(',', $fieldValue) : (array) $fieldValue;
                                                             ?>
                                                             <?php foreach ($block->getFieldOptions($field) as $option): ?>
-                                                                <option value="<?= $escaper->escapeHtmlAttr((string)($option['value'] ?? '')) ?>"
-                                                                        <?= in_array((string)($option['value'] ?? ''), $selectedValues) ? 'selected="selected"' : '' ?>>
+                                                                <option value="<?= $escaper->escapeHtmlAttr((string) ($option['value'] ?? '')) ?>"
+                                                                        <?= in_array((string) ($option['value'] ?? ''), $selectedValues) ? 'selected="selected"' : '' ?>>
                                                                     <?= $escaper->escapeHtml($option['label'] ?? '') ?>
                                                                 </option>
                                                             <?php endforeach; ?>
@@ -167,16 +174,16 @@ $isDefaultScope = $block->isDefaultScope();
                                                                   name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
                                                                   class="admin__control-textarea"
                                                                   rows="5"
-                                                                  <?= (!$isDefaultScope && !$hasOwnValue) ? 'disabled="disabled"' : '' ?>><?= $escaper->escapeHtml((string)$fieldValue) ?></textarea>
+                                                                  <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>><?= $escaper->escapeHtml((string) $fieldValue) ?></textarea>
                                                     <?php elseif ($field['type'] === 'time'): ?>
                                                         <!-- Time field -->
-                                                        <?php 
-                                                        $timeValue = $fieldValue ? explode(',', (string)$fieldValue) : ['00', '00', '00'];
+                                                        <?php
+                                                        $timeValue = $fieldValue ? explode(',', (string) $fieldValue) : ['00', '00', '00'];
                                                         ?>
                                                         <div class="admin__control-time">
                                                             <select name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value][0]"
                                                                     class="admin__control-select"
-                                                                    <?= (!$isDefaultScope && !$hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                                    <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
                                                                 <?php for ($h = 0; $h < 24; $h++): ?>
                                                                     <option value="<?= sprintf('%02d', $h) ?>" <?= ($timeValue[0] ?? '00') == sprintf('%02d', $h) ? 'selected' : '' ?>>
                                                                         <?= sprintf('%02d', $h) ?>
@@ -186,7 +193,7 @@ $isDefaultScope = $block->isDefaultScope();
                                                             <span>:</span>
                                                             <select name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value][1]"
                                                                     class="admin__control-select"
-                                                                    <?= (!$isDefaultScope && !$hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                                    <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
                                                                 <?php for ($m = 0; $m < 60; $m++): ?>
                                                                     <option value="<?= sprintf('%02d', $m) ?>" <?= ($timeValue[1] ?? '00') == sprintf('%02d', $m) ? 'selected' : '' ?>>
                                                                         <?= sprintf('%02d', $m) ?>
@@ -196,7 +203,7 @@ $isDefaultScope = $block->isDefaultScope();
                                                             <span>:</span>
                                                             <select name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value][2]"
                                                                     class="admin__control-select"
-                                                                    <?= (!$isDefaultScope && !$hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                                    <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
                                                                 <?php for ($s = 0; $s < 60; $s++): ?>
                                                                     <option value="<?= sprintf('%02d', $s) ?>" <?= ($timeValue[2] ?? '00') == sprintf('%02d', $s) ? 'selected' : '' ?>>
                                                                         <?= sprintf('%02d', $s) ?>
@@ -214,21 +221,21 @@ $isDefaultScope = $block->isDefaultScope();
                                                         <input type="text"
                                                                id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
                                                                name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
-                                                               value="<?= $escaper->escapeHtmlAttr((string)$fieldValue) ?>"
+                                                               value="<?= $escaper->escapeHtmlAttr((string) $fieldValue) ?>"
                                                                class="admin__control-text <?= $escaper->escapeHtmlAttr($field['validate'] ?? '') ?>"
-                                                               <?= (!$isDefaultScope && !$hasOwnValue) ? 'disabled="disabled"' : '' ?>/>
+                                                                <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>/>
                                                     <?php endif; ?>
-                                                    
-                                                    <?php if (!empty($field['tooltip'])): ?>
+
+                                                    <?php if (! empty($field['tooltip'])): ?>
                                                         <div class="tooltip">
                                                             <span class="help"><span></span></span>
                                                             <div class="tooltip-content">
-                                                                    <?= $escaper->escapeHtml(__($field['tooltip'])) ?>
-                                                                </div>
+                                                                <?= $escaper->escapeHtml(__($field['tooltip'])) ?>
+                                                            </div>
                                                         </div>
                                                     <?php endif; ?>
-                                                    
-                                                    <?php if (!empty($field['comment'])): ?>
+
+                                                    <?php if (! empty($field['comment'])): ?>
                                                         <div class="admin__field-note">
                                                             <?= $escaper->escapeHtml(__($field['comment'])) ?>
                                                         </div>
@@ -248,83 +255,83 @@ $isDefaultScope = $block->isDefaultScope();
 </div>
 
 <script>
-require(['jquery', 'domReady!'], function($) {
+  require(['jquery', 'domReady!'], function($) {
     'use strict';
-    
+
     // Tab switching
     $('.myparcel-tab-item a').on('click', function(e) {
-        e.preventDefault();
-        const tabId = $(this).attr('href');
-        
-        // Update tab nav
-        $('.myparcel-tab-item').removeClass('active');
-        $(this).parent().addClass('active');
-        // Remember active tab
-        localStorage.setItem('myparcel-active-tab', tabId);
-        
-        // Update tab panels
-        $('.myparcel-tab-panel').removeClass('active').attr('aria-hidden', 'true');
-        $(tabId).addClass('active').attr('aria-hidden', 'false');
+      e.preventDefault();
+      const tabId = $(this).attr('href');
+
+      // Update tab nav
+      $('.myparcel-tab-item').removeClass('active');
+      $(this).parent().addClass('active');
+      // Remember active tab
+      localStorage.setItem('myparcel-active-tab', tabId);
+
+      // Update tab panels
+      $('.myparcel-tab-panel').removeClass('active').attr('aria-hidden', 'true');
+      $(tabId).addClass('active').attr('aria-hidden', 'false');
     });
 
     // Switch to last active tab
     const activeTab = document.querySelector('.myparcel-tabs-nav').querySelector(`[href="${localStorage.getItem('myparcel-active-tab')}"]`);
     activeTab && activeTab.dispatchEvent(new Event('click'));
-    
+
     // Use Default checkbox handling
     $('.use-default-checkbox').on('change', function() {
-        const fieldId = $(this).data('field');
-        const isChecked = $(this).is(':checked');
-        const $row = $('#row_' + fieldId);
-        const $inputs = $row.find('input:not(.use-default-checkbox), select, textarea');
-        
-        $inputs.prop('disabled', isChecked);
+      const fieldId = $(this).data('field');
+      const isChecked = $(this).is(':checked');
+      const $row = $('#row_' + fieldId);
+      const $inputs = $row.find('input:not(.use-default-checkbox), select, textarea');
+
+      $inputs.prop('disabled', isChecked);
     });
-    
+
     // Dependency handling
     function checkDependencies() {
-        $('[data-dependencies]').each(function() {
-            const $field = $(this);
-            const dependencies = $field.data('dependencies');
-            let allMet = true;
-            
-            if (dependencies && dependencies.length > 0) {
-                $.each(dependencies, function(index, dep) {
-                    const $depField = $('#' + dep.field);
-                    const depValue = $depField.val();
-                    
-                    if (String(depValue) !== String(dep.value)) {
-                        allMet = false;
-                        return false; // break
-                    }
-                });
+      $('[data-dependencies]').each(function() {
+        const $field = $(this);
+        const dependencies = $field.data('dependencies');
+        let allMet = true;
+
+        if (dependencies && dependencies.length > 0) {
+          $.each(dependencies, function(index, dep) {
+            const $depField = $('#' + dep.field);
+            const depValue = $depField.val();
+
+            if (String(depValue) !== String(dep.value)) {
+              allMet = false;
+              return false; // break
             }
-            
-            if (allMet) {
-                $field.removeClass('hidden-by-dependency');
-            } else {
-                $field.addClass('hidden-by-dependency');
-            }
-        });
+          });
+        }
+
+        if (allMet) {
+          $field.removeClass('hidden-by-dependency');
+        } else {
+          $field.addClass('hidden-by-dependency');
+        }
+      });
     }
-    
+
     // Initial check and bind to field changes
     checkDependencies();
-    
+
     $('select, input').on('change', function() {
-        checkDependencies();
+      checkDependencies();
     });
-    
+
     // Form validation
     $('#myparcel-settings-form').on('submit', function(e) {
-        const $form = $(this);
-        const isValid = true;
+      const $form = $(this);
+      const isValid = true;
 
-        // Add any custom validation here
-        
-        if (!isValid) {
-            e.preventDefault();
-        }
+      // Add any custom validation here
+
+      if (!isValid) {
+        e.preventDefault();
+      }
     });
-});
+  });
 </script>

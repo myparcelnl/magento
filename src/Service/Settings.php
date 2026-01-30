@@ -12,30 +12,27 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
 
 /**
- * Service to read and filter dynamic settings configuration.
+ * Service to read dynamic settings configuration.
  *
  * This class reads settings from a JSON configuration file and provides methods
  * to filter which settings are available for the current user/context.
- * In the future, this can be extended to fetch settings from an API.
+ * TODO this functionality must be integrated into the capabilities system (INT-1289)
  */
-class DynamicSettingsConfig
+class Settings
 {
     private ModuleDirReader      $moduleDirReader;
     private Json                 $json;
-    private ScopeConfigInterface $scopeConfig;
     private ?array               $settingsCache = null;
     private CollectionFactory    $scopeCollectionFactory;
 
     public function __construct(
         ModuleDirReader      $moduleDirReader,
         Json                 $json,
-        ScopeConfigInterface $scopeConfig,
         CollectionFactory    $scopeCollectionFactory
     )
     {
         $this->moduleDirReader        = $moduleDirReader;
         $this->json                   = $json;
-        $this->scopeConfig            = $scopeConfig;
         $this->scopeCollectionFactory = $scopeCollectionFactory;
     }
 
@@ -54,51 +51,6 @@ class DynamicSettingsConfig
     }
 
     /**
-     * Get filtered settings based on availability.
-     * This method can be extended to filter based on API response or other criteria.
-     *
-     * @param array|null $availablePaths Optional array of paths that should be shown.
-     *                                   If null, all settings are returned.
-     * @return array
-     */
-    public function getFilteredSettings(?array $availablePaths = null): array
-    {
-        $settings = $this->getSettings();
-
-        if ($availablePaths === null) {
-            return $settings;
-        }
-
-        $filteredSections = [];
-
-        foreach ($settings['sections'] ?? [] as $section) {
-            $filteredGroups = [];
-
-            foreach ($section['groups'] ?? [] as $group) {
-                $filteredFields = [];
-
-                foreach ($group['fields'] ?? [] as $field) {
-                    if (in_array($field['path'], $availablePaths, true)) {
-                        $filteredFields[] = $field;
-                    }
-                }
-
-                if (! empty($filteredFields) || isset($group['frontend_model'])) {
-                    $group['fields']  = $filteredFields;
-                    $filteredGroups[] = $group;
-                }
-            }
-
-            if (! empty($filteredGroups)) {
-                $section['groups']  = $filteredGroups;
-                $filteredSections[] = $section;
-            }
-        }
-
-        return ['sections' => $filteredSections];
-    }
-
-    /**
      * Get all sections.
      *
      * @return array
@@ -106,22 +58,6 @@ class DynamicSettingsConfig
     public function getSections(): array
     {
         return $this->getSettings()['sections'] ?? [];
-    }
-
-    /**
-     * Get a specific section by ID.
-     *
-     * @param string $sectionId
-     * @return array|null
-     */
-    public function getSection(string $sectionId): ?array
-    {
-        foreach ($this->getSections() as $section) {
-            if ($section['id'] === $sectionId) {
-                return $section;
-            }
-        }
-        return null;
     }
 
     /**
@@ -148,12 +84,12 @@ class DynamicSettingsConfig
      * Check if a field should be visible for the given scope.
      *
      * @param array  $field
-     * @param string $scope 'default', 'websites', or 'stores'
+     * @param string $scopeName 'default', 'websites', or 'stores'
      * @return bool
      */
-    public function isFieldVisibleInScope(array $field, string $scope): bool
+    public function isFieldVisibleInScope(array $field, string $scopeName): bool
     {
-        switch ($scope) {
+        switch ($scopeName) {
             case ScopeConfigInterface::SCOPE_TYPE_DEFAULT:
                 return $field['showInDefault'] ?? false;
             case ScopeInterface::SCOPE_WEBSITES:
@@ -166,38 +102,21 @@ class DynamicSettingsConfig
     }
 
     /**
-     * Get the current config value for a field path.
-     *
      * @param string   $path
-     * @param string   $scope
-     * @param int|null $scopeId
-     * @return mixed
-     */
-    public function getConfigValue(string $path, string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, ?int $scopeId = null)
-    {
-        if ($scope === ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
-            return $this->scopeConfig->getValue($path);
-        }
-
-        return $this->scopeConfig->getValue($path, $scope, $scopeId);
-    }
-
-    /**
-     * @param string   $path
-     * @param string   $scope
+     * @param string   $scopeName
      * @param int|null $scopeId
      * @return bool whether a specific value exists for the given scope (ie it is overriding)
      */
-    public function hasOwnValue(string $path, string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, ?int $scopeId = null): bool
+    public function hasOwnValue(string $path, string $scopeName = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, ?int $scopeId = null): bool
     {
-        if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $scope) {
+        if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $scopeName) {
             return true; // Default scope always "owns" its values
         }
 
         // Check if there's a specific value in the database for this scope
         $collection = $this->scopeCollectionFactory->create()
                                                    ->addFieldToFilter('path', $path)
-                                                   ->addFieldToFilter('scope', $scope)
+                                                   ->addFieldToFilter('scope', $scopeName)
                                                    ->addFieldToFilter('scope_id', $scopeId)
         ;
 
