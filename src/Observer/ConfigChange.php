@@ -50,7 +50,6 @@ class ConfigChange implements ObserverInterface
 
         try {
             foreach ($configData as $path => $postedParams) {
-                // Input sanitation: only process valid paths
                 if (! in_array($path, $validPaths, true)) {
                     continue;
                 }
@@ -64,12 +63,10 @@ class ConfigChange implements ObserverInterface
                     continue;
                 }
 
-                // Handle array values (like time fields)
                 if (is_array($value)) {
                     $value = implode(',', $value);
                 }
 
-                // Save the value
                 if ($scope === ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
                     $this->configWriter->save($path, $value);
                 } else {
@@ -77,7 +74,6 @@ class ConfigChange implements ObserverInterface
                 }
             }
 
-            // Clear config cache
             $this->clearConfigCache();
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(__('Error saving configuration: %1', $e->getMessage()));
