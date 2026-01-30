@@ -88,8 +88,6 @@ class DynamicSettings extends Template
             } else {
                 $this->currentScope = [ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0];
             }
-
-            return $this->currentScope;
         }
 
         return $this->currentScope;
