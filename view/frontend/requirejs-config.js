@@ -18,7 +18,7 @@ var config = {
     },
   },
   paths: {
-    myparcelDeliveryOptions: 'https://cdn.jsdelivr.net/npm/@myparcel/delivery-options@6/dist/myparcel',
+    myparcelDeliveryOptions: 'https://cdn.jsdelivr.net/npm/@myparcel-dev/delivery-options@6/dist/myparcel',
     leaflet: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.5.1/leaflet',
   },
 };
