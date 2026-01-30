@@ -9,6 +9,7 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Settings;
@@ -27,17 +28,19 @@ class DynamicSettings extends Template
     private ?array $currentScope = null;
 
     public function __construct(
+        ObjectManagerInterface $objectManager,
         Context                $context,
         Config                 $config,
+        Json                   $json,
         Settings               $settings,
-        ObjectManagerInterface $objectManager,
         array                  $data = []
     )
     {
         parent::__construct($context, $data);
-        $this->settings      = $settings;
         $this->objectManager = $objectManager;
         $this->config        = $config;
+        $this->json          = $json;
+        $this->settings      = $settings;
     }
 
     /**
@@ -192,6 +195,7 @@ class DynamicSettings extends Template
             $block = $this->getLayout()->createBlock($frontendModel);
             if ($block) {
                 $block->setData('field', $field);
+
                 return $block->toHtml();
             }
         } catch (\Throwable $e) {
@@ -282,6 +286,6 @@ class DynamicSettings extends Template
             ];
         }
 
-        return json_encode($dependencies);
+        return $this->json->serialize($dependencies);
     }
 }
