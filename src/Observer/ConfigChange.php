@@ -11,7 +11,7 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Magento\Service\DynamicSettingsConfig;
+use MyParcelNL\Magento\Service\Settings;
 
 
 class ConfigChange implements ObserverInterface
@@ -19,17 +19,17 @@ class ConfigChange implements ObserverInterface
     private RequestInterface      $request;
     private WriterInterface       $configWriter;
     private TypeListInterface     $cacheTypeList;
-    private Pool                  $cacheFrontendPool;
-    private DynamicSettingsConfig $dynamicSettingsConfig;
-    private ManagerInterface      $messageManager;
+    private Pool             $cacheFrontendPool;
+    private Settings         $dynamicSettingsConfig;
+    private ManagerInterface $messageManager;
 
     public function __construct(
-        RequestInterface      $request,
-        WriterInterface       $configWriter,
-        TypeListInterface     $cacheTypeList,
-        Pool                  $cacheFrontendPool,
-        DynamicSettingsConfig $dynamicSettingsConfig,
-        ManagerInterface      $messageManager
+        RequestInterface  $request,
+        WriterInterface   $configWriter,
+        TypeListInterface $cacheTypeList,
+        Pool              $cacheFrontendPool,
+        Settings          $dynamicSettingsConfig,
+        ManagerInterface  $messageManager
     )
     {
         $this->request               = $request;

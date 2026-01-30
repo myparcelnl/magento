@@ -10,7 +10,8 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Magento\Service\DynamicSettingsConfig;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Settings;
 
 /**
  * Block for rendering dynamic settings form.
@@ -19,22 +20,24 @@ class DynamicSettings extends Template
 {
     protected $_template = 'MyParcelNL_Magento::dynamic_settings.phtml';
 
-    private DynamicSettingsConfig  $dynamicSettingsConfig;
+    private Settings               $dynamicSettingsConfig;
     private ObjectManagerInterface $objectManager;
+    private Config                 $config;
 
-    private ?string $currentScope   = null;
-    private ?int    $currentScopeId = null;
+    private ?array $currentScope = null;
 
     public function __construct(
         Context                $context,
-        DynamicSettingsConfig  $dynamicSettingsConfig,
+        Config                 $config,
+        Settings               $dynamicSettingsConfig,
         ObjectManagerInterface $objectManager,
         array                  $data = []
     )
     {
         parent::__construct($context, $data);
-        $this->dynamicSettingsConfig  = $dynamicSettingsConfig;
-        $this->objectManager          = $objectManager;
+        $this->dynamicSettingsConfig = $dynamicSettingsConfig;
+        $this->objectManager         = $objectManager;
+        $this->config = $config;
     }
 
     /**
@@ -59,50 +62,37 @@ class DynamicSettings extends Template
     }
 
     /**
-     * Get the current scope type.
+     * Get the current scope type name.
      *
      * @return string 'default', 'websites', or 'stores'
      */
-    public function getCurrentScope(): string
+    public function getCurrentScopeName(): string
     {
-        if ($this->currentScope === null) {
-            $this->determineScope();
-        }
-        return $this->currentScope;
-    }
-
-    /**
-     * Get the current scope ID.
-     *
-     * @return int
-     */
-    public function getCurrentScopeId(): int
-    {
-        if ($this->currentScopeId === null) {
-            $this->determineScope();
-        }
-        return $this->currentScopeId;
+        return $this->getCurrentScope()[0];
     }
 
     /**
      * Determine the current scope from request parameters.
      *
-     * @return void
+     * @return array indexed array holding 'name' (at index 0) and 'id' (at index 1) of the current scope
      */
-    private function determineScope(): void
+    public function getCurrentScope(): array
     {
-        $request = $this->getRequest();
+        if (! isset($this->currentScope)) {
+            $request = $this->getRequest();
 
-        if ($storeId = $request->getParam('store')) {
-            $this->currentScope   = ScopeInterface::SCOPE_STORES;
-            $this->currentScopeId = (int) $storeId;
-        } elseif ($websiteId = $request->getParam('website')) {
-            $this->currentScope   = ScopeInterface::SCOPE_WEBSITES;
-            $this->currentScopeId = (int) $websiteId;
-        } else {
-            $this->currentScope   = ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
-            $this->currentScopeId = 0;
+            if (($storeId = $request->getParam('store'))) {
+                $this->currentScope = [ScopeInterface::SCOPE_STORES, (int) $storeId];
+            } elseif (($websiteId = $request->getParam('website'))) {
+                $this->currentScope = [ScopeInterface::SCOPE_WEBSITES, (int) $websiteId];
+            } else {
+                $this->currentScope = [ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0];
+            }
+
+            return $this->currentScope;
         }
+
+        return $this->currentScope;
     }
 
     /**
@@ -129,7 +119,7 @@ class DynamicSettings extends Template
      */
     public function isFieldVisibleInCurrentScope(array $field): bool
     {
-        return $this->dynamicSettingsConfig->isFieldVisibleInScope($field, $this->getCurrentScope());
+        return $this->dynamicSettingsConfig->isFieldVisibleInScope($field, $this->getCurrentScopeName());
     }
 
     /**
@@ -151,11 +141,10 @@ class DynamicSettings extends Template
      */
     public function hasOwnValue(array $field): bool
     {
-        $path    = $field['path'];
-        $scope   = $this->getCurrentScope();
-        $scopeId = $this->getCurrentScopeId();
+        $path = $field['path'];
+        [$scopeName, $scopeId] = $this->getCurrentScope();
 
-        return $this->dynamicSettingsConfig->hasOwnValue($path, $scope, $scopeId);
+        return $this->dynamicSettingsConfig->hasOwnValue($path, $scopeName, $scopeId);
     }
 
     /**
@@ -270,10 +259,9 @@ class DynamicSettings extends Template
      */
     private function getConfigValueByPath(string $path)
     {
-        $scope   = $this->getCurrentScope();
-        $scopeId = $this->getCurrentScopeId();
+        [$scopeName, $scopeId] = $this->getCurrentScope();
 
-        return $this->dynamicSettingsConfig->getConfigValue($path, $scope, $scopeId);
+        return $this->config->getScopedConfig($path, $scopeName, $scopeId);
     }
 
     /**
@@ -297,15 +285,5 @@ class DynamicSettings extends Template
         }
 
         return json_encode($dependencies);
-    }
-
-    /**
-     * Check if we're at default scope.
-     *
-     * @return bool
-     */
-    public function isDefaultScope(): bool
-    {
-        return $this->getCurrentScope() === ScopeConfigInterface::SCOPE_TYPE_DEFAULT;
     }
 }
