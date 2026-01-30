@@ -20,7 +20,7 @@ class DynamicSettings extends Template
 {
     protected $_template = 'MyParcelNL_Magento::dynamic_settings.phtml';
 
-    private Settings               $dynamicSettingsConfig;
+    private Settings               $settings;
     private ObjectManagerInterface $objectManager;
     private Config                 $config;
 
@@ -29,15 +29,15 @@ class DynamicSettings extends Template
     public function __construct(
         Context                $context,
         Config                 $config,
-        Settings               $dynamicSettingsConfig,
+        Settings               $settings,
         ObjectManagerInterface $objectManager,
         array                  $data = []
     )
     {
         parent::__construct($context, $data);
-        $this->dynamicSettingsConfig = $dynamicSettingsConfig;
-        $this->objectManager         = $objectManager;
-        $this->config = $config;
+        $this->settings      = $settings;
+        $this->objectManager = $objectManager;
+        $this->config        = $config;
     }
 
     /**
@@ -58,7 +58,7 @@ class DynamicSettings extends Template
      */
     public function getSections(): array
     {
-        return $this->dynamicSettingsConfig->getSections();
+        return $this->settings->getSections();
     }
 
     /**
@@ -119,7 +119,7 @@ class DynamicSettings extends Template
      */
     public function isFieldVisibleInCurrentScope(array $field): bool
     {
-        return $this->dynamicSettingsConfig->isFieldVisibleInScope($field, $this->getCurrentScopeName());
+        return $this->settings->isFieldVisibleInScope($field, $this->getCurrentScopeName());
     }
 
     /**
@@ -144,7 +144,7 @@ class DynamicSettings extends Template
         $path = $field['path'];
         [$scopeName, $scopeId] = $this->getCurrentScope();
 
-        return $this->dynamicSettingsConfig->hasOwnValue($path, $scopeName, $scopeId);
+        return $this->settings->hasOwnValue($path, $scopeName, $scopeId);
     }
 
     /**
