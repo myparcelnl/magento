@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.2.2](https://github.com/myparcelnl/magento/compare/v5.2.1...v5.2.2) (2026-02-05)
+
+
+### :bug: Bug Fixes
+
+* add priority delivery title ([#935](https://github.com/myparcelnl/magento/issues/935)) ([66f12cf](https://github.com/myparcelnl/magento/commit/66f12cf73ac7901719c185aff98f583b27d23391))
+* use newest delivery options ([#934](https://github.com/myparcelnl/magento/issues/934)) ([90fd89c](https://github.com/myparcelnl/magento/commit/90fd89c467db085c7a1b5bc596e43438c3f0c117))
+
 ## [5.2.1](https://github.com/myparcelnl/magento/compare/v5.2.0...v5.2.1) (2026-01-30)
 
 ## [5.2.0](https://github.com/myparcelnl/magento/compare/v5.1.0...v5.2.0) (2026-01-19)
