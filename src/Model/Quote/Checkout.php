@@ -206,7 +206,7 @@ class Checkout
             $signatureFee        = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
             $collectFee          = $canHaveCollect ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $quote) : 0;
             $receiptCodeFee      = $canHaveReceiptCode ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/receipt_code_fee'), $quote) : 0;
-            $priorityDeliveryFee = $canHavePriorityDelivery ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/priority_delivery_fee'), $quote) : 0;
+            $priorityDeliveryFee = $canHavePriorityDelivery ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'mailbox/priority_delivery_fee'), $quote) : 0;
             $onlyRecipientFee    = $canHaveOnlyRecipient ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $quote) : 0;
             $isAgeCheckActive    = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
@@ -231,7 +231,7 @@ class Checkout
                 'allowCollect'          => $canHaveCollect && $this->config->getBoolConfig($carrierPath, 'delivery/collect_active'),
                 'allowReceiptCode'      => $canHaveReceiptCode && $this->config->getBoolConfig($carrierPath, 'delivery/receipt_code_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->config->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
-                'allowPriorityDelivery' => $canHavePriorityDelivery && $this->config->getBoolConfig($carrierPath, 'delivery/priority_delivery_active'),
+                'allowPriorityDelivery' => $canHavePriorityDelivery && $this->config->getBoolConfig($carrierPath, 'mailbox/priority_delivery_active'),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath, $country),
@@ -324,6 +324,7 @@ class Checkout
             'packageTypeDigitalStamp' => $this->config->getGeneralConfig('delivery_titles/digital_stamp_title') ?: __('digital_stamp_title'),
             'packageTypePackageSmall' => $this->config->getGeneralConfig('delivery_titles/package_small_title') ?: __('packet_title'),
             'signatureTitle'          => $this->config->getGeneralConfig('delivery_titles/signature_title') ?: __('signature_title'),
+            'priorityDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/priority_delivery_title') ?: __('priority_delivery_title'),
             'onlyRecipientTitle'      => $this->config->getGeneralConfig('delivery_titles/only_recipient_title') ?: __('only_recipient_title'),
             'saturdayDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/saturday_title') ?: __('saturday_delivery_title'),
 

@@ -87,6 +87,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             'collect'                           => null,
             'receipt_code'                      => null,
             'only_recipient'                    => null,
+            'priority_delivery'                 => null,
             'return'                            => null,
             'large_format'                      => null,
             'age_check'                         => null,
