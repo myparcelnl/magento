@@ -161,7 +161,7 @@ class DefaultOptions
     {
         $total                = $this->quote->getGrandTotal();
         $settings             = $this->config->getCarrierConfig($carrierName, 'default_options');
-        $totalAfterPercentage = $total * (($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
+        $totalAfterPercentage = $total * ((int) ($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
         if (! isset($settings[$priceKey])
             || (int) $settings[$priceKey] === 0

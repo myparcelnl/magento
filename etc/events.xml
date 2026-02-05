@@ -14,4 +14,8 @@
     <event name="sales_order_status_history_save_after">
         <observer name="mypa_sales_order_status_history_save_after" instance="MyParcelNL\Magento\Observer\SalesOrderStatusHistoryObserver"/>
     </event>
+    <!-- allow the dynamic settings to specify the (legacy) path to save the values in -->
+    <event name="admin_system_config_changed_section_myparcelnl_magento_dynamic_settings">
+        <observer name="mypa_admin_system_config_changed_section_myparcelnl_magento_dynamic_settings" instance="MyParcelNL\Magento\Observer\ConfigChange"/>
+    </event>
 </config>
