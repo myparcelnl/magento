@@ -20,6 +20,9 @@
     <!-- API package type -->
     <preference for="MyParcelNL\Magento\Api\PackageTypeInterface"
                 type="MyParcelNL\Magento\Model\Checkout\PackageType" />
+    <!-- API proxy -->
+    <preference for="MyParcelNL\Magento\Api\ProxyInterface"
+                type="MyParcelNL\Magento\Model\Api\Proxy" />
     <!-- Add print label button in order view -->
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
         <plugin name="mypa-massaction-button" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>
