@@ -20,6 +20,9 @@
     <!-- API package type -->
     <preference for="MyParcelNL\Magento\Api\PackageTypeInterface"
                 type="MyParcelNL\Magento\Model\Checkout\PackageType" />
+    <!-- API proxy -->
+    <preference for="MyParcelNL\Magento\Api\ProxyInterface"
+                type="MyParcelNL\Magento\Model\Api\Proxy" />
     <!-- API order delivery options -->
     <preference for="MyParcelNL\Magento\Api\OrderDeliveryOptionsInterface"
                 type="MyParcelNL\Magento\Model\Rest\OrderDeliveryOptions" />
