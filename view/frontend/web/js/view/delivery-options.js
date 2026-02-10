@@ -4,6 +4,7 @@ define(
     'ko',
     'Magento_Checkout/js/action/select-shipping-method',
     'Magento_Checkout/js/model/quote',
+    'Magento_Customer/js/customer-data',
     'MyParcelNL_Magento/js/model/checkout',
     'myparcelDeliveryOptions',
     'leaflet',
@@ -14,6 +15,7 @@ define(
     ko,
     selectShippingMethodAction,
     quote,
+    customerData,
     checkout,
     myparcel, // for rendering the delivery options
     leaflet, // required by the delivery options module
@@ -56,7 +58,7 @@ define(
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
        */
       initialize: function() {
-        window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
+        window.MyParcelConfig.address = deliveryOptions.getAddress();
         checkout.hideShippingMethods();
         deliveryOptions.setToRenderWhenVisible();
         deliveryOptions.addListeners();
@@ -135,6 +137,15 @@ define(
         quote.shippingAddress.subscribe(_.debounce(deliveryOptions.updateAddress));
         quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
 
+        /**
+         * Make sure the delivery options are updated when the address is changed in the form, not only in the quote.
+         */
+        customerData.get('checkout-data').subscribe(function(newData) {
+          _.debounce(function() {
+            deliveryOptions.updateAddress(newData.shippingAddressFromData);
+          }, 500)();
+        });
+
         document.addEventListener(
           deliveryOptions.updatedDeliveryOptionsEvent,
           deliveryOptions.onUpdatedDeliveryOptions
@@ -166,15 +177,21 @@ define(
       /**
        * Get address data and put it in the global MyParcelConfig.
        *
-       * @param {Object?} address - Quote.shippingAddress from Magento.
+       * @param {Object?} address - Quote.shippingAddress from Magento or checkout-data shipping address from Magento or undefined
        */
       updateAddress: function(address) {
         if (!deliveryOptions.isUsingMyParcelMethod) {
           return;
         }
 
-        const newAddress = deliveryOptions.getAddress(address || quote.shippingAddress());
+        const newAddress = deliveryOptions.getAddress(address);
         if (_.isEqual(newAddress, window.MyParcelConfig.address)) {
+          return;
+        }
+        /**
+         * While filling in, the number can be null, but the delivery options strip that from the address, so that is the same.
+         */
+        if (null === newAddress.number && ! window.MyParcelConfig.address.number) {
           return;
         }
 
@@ -184,18 +201,21 @@ define(
       },
 
       /**
-       * Get the address entered by the user depending on if they are logged in or not.
+       * Get the address entered by the user.
        *
-       * @returns {Object}
-       * @param {Object} address - Quote.shippingAddress from Magento.
+       * @returns {Object} formatted address object with street, number, postal code, city and country code.
+       * @param {Object?} address - Quote.shippingAddress or checkout-data shipping address from Magento or undefined
        */
       getAddress: function(address) {
+        address = address || customerData.get('checkout-data')().shippingAddressFromData || quote.shippingAddress() || {};
+        const street = address.street ? [address.street[0], address.street[1]].join(' ').trim() : '';
         return {
-          number: address.street ? deliveryOptions.getHouseNumber(address.street.join(' ')) : '',
-          cc: address.countryId || '',
+          number: deliveryOptions.getHouseNumber(street),
+          /* quote uses countryId, checkoutData uses country_id */
+          cc: address.countryId || address.country_id || '',
           postalCode: address.postcode || '',
           city: address.city || '',
-          street: address.street ? [address.street[0], address.street[1]].join(' ').trim() : ''
+          street: street
         };
       },
 
