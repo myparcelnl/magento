@@ -89,17 +89,6 @@
           "showInStore": true,
           "fields": [
             {
-              "id": "allow_show_delivery_date",
-              "path": "myparcelnl_magento_general/date_settings/allow_show_delivery_date",
-              "type": "select",
-              "label": "Show delivery date",
-              "showInDefault": true,
-              "showInWebsite": true,
-              "showInStore": true,
-              "tooltip": "Show a delivery date in the checkout.",
-              "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
-            },
-            {
               "id": "deliverydays_window",
               "path": "myparcelnl_magento_general/date_settings/deliverydays_window",
               "type": "select",
@@ -108,13 +97,7 @@
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "Amount of days in the future customers can choose from in the checkout.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\NumberOfDays",
-              "depends": [
-                {
-                  "field": "myparcelnl_magento_general/date_settings/allow_show_delivery_date",
-                  "value": "1"
-                }
-              ]
+              "source_model": "MyParcelNL\\Magento\\Model\\Source\\NumberOfDays"
             },
             {
               "id": "dropoff_delay",
