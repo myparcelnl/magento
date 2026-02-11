@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.3.0](https://github.com/myparcelnl/magento/compare/v5.2.2...v5.3.0) (2026-02-11)
+
+
+### :sparkles: New Features
+
+* dynamic settings ([#930](https://github.com/myparcelnl/magento/issues/930)) ([57759ea](https://github.com/myparcelnl/magento/commit/57759ea4464d74587018c02356a3f277bd2e8c74))
+* remove show delivery date setting and derive from deliverydays_window ([#931](https://github.com/myparcelnl/magento/issues/931)) ([d143003](https://github.com/myparcelnl/magento/commit/d1430034cba7e123daa205c3bc6cfb9d9a66b882))
+
 ## [5.2.2](https://github.com/myparcelnl/magento/compare/v5.2.1...v5.2.2) (2026-02-05)
 
 
