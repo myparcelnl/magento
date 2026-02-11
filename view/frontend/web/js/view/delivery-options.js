@@ -188,12 +188,6 @@ define(
         if (_.isEqual(newAddress, window.MyParcelConfig.address)) {
           return;
         }
-        /**
-         * While filling in, the number can be null, but the delivery options strip that from the address, so that is the same.
-         */
-        if (null === newAddress.number && ! window.MyParcelConfig.address.number) {
-          return;
-        }
 
         window.MyParcelConfig.address = newAddress;
 
@@ -203,20 +197,28 @@ define(
       /**
        * Get the address entered by the user.
        *
-       * @returns {Object} formatted address object with street, number, postal code, city and country code.
+       * @returns {Object} normalized address object with street, number, postal code, city and country code.
        * @param {Object?} address - Quote.shippingAddress or checkout-data shipping address from Magento or undefined
        */
       getAddress: function(address) {
         address = address || customerData.get('checkout-data')().shippingAddressFromData || quote.shippingAddress() || {};
-        const street = address.street ? [address.street[0], address.street[1]].join(' ').trim() : '';
-        return {
-          number: deliveryOptions.getHouseNumber(street),
-          /* quote uses countryId, checkoutData uses country_id */
-          cc: address.countryId || address.country_id || '',
-          postalCode: address.postcode || '',
-          city: address.city || '',
-          street: street
-        };
+        const street = address.street ? [address.street[0], address.street[1]].join(' ').trim() : '',
+          houseNumber = deliveryOptions.getHouseNumber(street),
+          normalizedAddress = {
+            /* checkoutData uses country_id, quote uses countryId */
+            cc: address.country_id || address.countryId || '',
+            postalCode: address.postcode || '',
+            city: address.city || '',
+            street: street
+          };
+        /**
+         * only add the housenumber if it is not null, for the delivery-options will strip it otherwise
+         * which will result in _.isEqual returning false wrongly.
+         */
+        if (houseNumber) {
+          normalizedAddress.number = houseNumber;
+        }
+        return normalizedAddress;
       },
 
       /**
