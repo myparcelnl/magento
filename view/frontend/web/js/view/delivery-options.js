@@ -35,7 +35,6 @@ define(
       unselectDeliveryOptionsEvent: 'myparcel_unselect_delivery_options',
       updateConfigEvent: 'myparcel_update_config',
       updateDeliveryOptionsEvent: 'myparcel_update_delivery_options',
-
       updatedDeliveryOptionsEvent: 'myparcel_updated_delivery_options',
       updatedAddressEvent: 'myparcel_updated_address',
 
@@ -46,6 +45,8 @@ define(
 
       isUsingMyParcelMethod: true,
       deliveryOptionsAreVisible: false,
+
+      throttleTimeout: 390, // throttle / debounce timeout in ms.
 
       /**
        * The selector of the field we use to get the delivery options data into the order.
@@ -134,8 +135,8 @@ define(
        */
       addListeners: function() {
         checkout.configuration.subscribe(deliveryOptions.updateConfig);
-        quote.shippingAddress.subscribe(_.debounce(deliveryOptions.updateAddress));
-        quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
+        quote.shippingAddress.subscribe(_.debounce(deliveryOptions.updateAddress, deliveryOptions.throttleTimeout));
+        quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate, deliveryOptions.throttleTimeout));
 
         /**
          * Make sure the delivery options are updated when the address is changed in the form, not only in the quote.
@@ -143,7 +144,7 @@ define(
         customerData.get('checkout-data').subscribe(function(newData) {
           _.debounce(function() {
             deliveryOptions.updateAddress(newData.shippingAddressFromData);
-          }, 500)();
+          }, deliveryOptions.throttleTimeout)();
         });
 
         document.addEventListener(
