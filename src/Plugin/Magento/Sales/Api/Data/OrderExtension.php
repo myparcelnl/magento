@@ -7,6 +7,7 @@ declare(strict_types=1);
  * User: richardperdaan
  * Date: 2019-03-05
  * Time: 16:23
+ * @deprecated
  */
 
 namespace MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data;
@@ -52,6 +53,7 @@ class OrderExtension
         if (strpos($this->request->getPathInfo(), "/rest/V1/orders") === false) {
             return null;
         }
+        // TODO JOERI if this is set to off (make a setting) do not return, because it is deprecated and might be heavy
 
         $resource    = $this->objectManager->get('Magento\Framework\App\ResourceConnection');
         $connection  = $resource->getConnection();

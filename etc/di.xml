@@ -32,9 +32,13 @@
     <type name="Magento\Sales\Model\Order\Email\Container\ShipmentIdentity">
         <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Model_Order_Email_Container_ShipmentIdentity" sortOrder="10" type="MyParcelNL\Magento\Plugin\Magento\Sales\Model\Order\Email\Container\ShipmentIdentity"/>
     </type>
-    <!-- Add field delivery_options to order rest endpoint -->
-    <type name="Magento\Sales\Api\Data\OrderExtension">
+    <!-- Add field delivery_options to order rest endpoint (deprecated) -->
+    <type name="Magento\Sales\Api\Data\OrderExtension" data-remark="deprecated">
         <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Api_Data_OrderExtension" sortOrder="11" type="MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data\OrderExtension"/>
+    </type>
+    <!-- Add field myparcel_delivery_options to order rest endpoint -->
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="orderInformationUpdate" type="MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data\OrderInformationUpdate" />
     </type>
     <!-- Save address information in checkout -->
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
