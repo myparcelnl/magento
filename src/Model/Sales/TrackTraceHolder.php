@@ -105,7 +105,7 @@ class TrackTraceHolder
         $deliveryOptions['carrier'] = $this->defaultOptions->getCarrierName();
 
         $apiKey = $this->config->getGeneralConfig('api/key', $order->getStoreId());
-        if (null === $apiKey) {
+        if (empty($apiKey)) {
             throw new LocalizedException(
                 __('API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.')
             );

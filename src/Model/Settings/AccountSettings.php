@@ -39,7 +39,7 @@ class AccountSettings extends BaseModel
         $jsonSerializer = $objectManager->get(Json::class);
 
         if (! $settings) {
-            $redacted = substr($apiKey, 0, 4) . str_repeat('*', strlen($apiKey) - 8) . substr($apiKey, -4);
+            $redacted = substr($apiKey, 0, 4) . str_repeat('*', max(0, strlen($apiKey) - 8)) . substr($apiKey, -4);
             Logger::alert((sprintf('No account settings found for api key: %s. Shops -> Configurations -> MyParcel -> General -> Import MyParcel Backoffice settings.', $redacted)));
             return;
         }
