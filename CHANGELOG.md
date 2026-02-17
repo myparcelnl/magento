@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.4.0](https://github.com/myparcelnl/magento/compare/v5.3.0...v5.4.0) (2026-02-17)
+
+
+### :sparkles: New Features
+
+* throw intelligible error for missing api key ([#938](https://github.com/myparcelnl/magento/issues/938)) ([af0c47a](https://github.com/myparcelnl/magento/commit/af0c47a8b74d7fdae51adbe13be57dcc09fe7bd7))
+
+
+### :bug: Bug Fixes
+
+* update delivery options with address street and number ([#937](https://github.com/myparcelnl/magento/issues/937)) ([0fbd18b](https://github.com/myparcelnl/magento/commit/0fbd18b0a505a37af92d406742e2a06f4a26bfd5))
+
 ## [5.3.0](https://github.com/myparcelnl/magento/compare/v5.2.2...v5.3.0) (2026-02-11)
 
 
