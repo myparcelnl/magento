@@ -402,11 +402,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     continue;
                 }
 
-                $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
-
                 try {
+                    $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
                     $consignment->validate();
-                } catch (\Exception $e) {
+                } catch (\Throwable $e) {
                     $this->messageManager->addErrorMessage("{$shipment->getOrder()->getIncrementId()}: {$e->getMessage()}");
                     continue;
                 }

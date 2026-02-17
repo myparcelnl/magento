@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Model\Settings;
 use Exception;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\Serialize\Serializer\Json;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Factory\Account\CarrierConfigurationFactory;
@@ -35,14 +36,15 @@ class AccountSettings extends BaseModel
         $settings      = $objectManager->get(ScopeConfigInterface::class)
                                        ->getValue(Config::XML_PATH_GENERAL . "account_settings_$apiKey")
         ;
+        $jsonSerializer = $objectManager->get(Json::class);
 
         if (! $settings) {
-            $redacted = substr($apiKey, 0, 4) . str_repeat('*', strlen($apiKey) - 8) . substr($apiKey, -4);
+            $redacted = substr($apiKey, 0, 4) . str_repeat('*', max(0, strlen($apiKey) - 8)) . substr($apiKey, -4);
             Logger::alert((sprintf('No account settings found for api key: %s. Shops -> Configurations -> MyParcel -> General -> Import MyParcel Backoffice settings.', $redacted)));
             return;
         }
 
-        $this->fillProperties(new Collection(json_decode($settings, true)));
+        $this->fillProperties(new Collection($jsonSerializer->unserialize($settings)));
     }
 
     /**

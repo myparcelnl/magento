@@ -20,6 +20,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
@@ -58,6 +59,7 @@ class TrackTraceHolder
     private Config                 $config;
     private ObjectManagerInterface $objectManager;
     private Weight                 $weight;
+    private JsonSerializer         $jsonSerializer;
 
     /**
      * TrackTraceHolder constructor.
@@ -70,9 +72,10 @@ class TrackTraceHolder
         Order                  $order
     )
     {
-        $this->objectManager = $objectManager;
-        $this->config        = $objectManager->get(Config::class);
-        $this->weight        = $objectManager->get(Weight::class);
+        $this->objectManager  = $objectManager;
+        $this->config         = $objectManager->get(Config::class);
+        $this->weight         = $objectManager->get(Weight::class);
+        $this->jsonSerializer = $objectManager->get(JsonSerializer::class);
         $this->messageManager = $this->objectManager->create('Magento\Framework\Message\ManagerInterface');
         $this->defaultOptions = new DefaultOptions($order);
     }
@@ -98,8 +101,15 @@ class TrackTraceHolder
         $address                    = $shipment->getShippingAddress();
         $order                      = $shipment->getOrder();
         $checkoutData               = $order->getData('myparcel_delivery_options') ?? '';
-        $deliveryOptions            = json_decode($checkoutData, true) ?? [];
+        $deliveryOptions            = $this->jsonSerializer->unserialize($checkoutData) ?? [];
         $deliveryOptions['carrier'] = $this->defaultOptions->getCarrierName();
+
+        $apiKey = $this->config->getGeneralConfig('api/key', $order->getStoreId());
+        if (empty($apiKey)) {
+            throw new LocalizedException(
+                __('API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.')
+            );
+        }
 
         try {
             // create new instance from known json
@@ -110,11 +120,8 @@ class TrackTraceHolder
         }
 
         $pickupLocationAdapter = $deliveryOptionsAdapter->getPickupLocation();
-        $apiKey                = $this->config->getGeneralConfig('api/key', $order->getStoreId());
-
-        $this->validateApiKey($apiKey);
-        $this->carrier   = $deliveryOptionsAdapter->getCarrier();
-        $shipmentOptions = new ShipmentOptions(
+        $this->carrier         = $deliveryOptionsAdapter->getCarrier();
+        $shipmentOptions       = new ShipmentOptions(
             $this->defaultOptions,
             $order,
             $this->objectManager,
@@ -231,7 +238,7 @@ class TrackTraceHolder
      *
      * @return self
      */
-    public function createTrackTraceFromShipment(Shipment $shipment)
+    public function createTrackTraceFromShipment(Shipment $shipment): self
     {
         $this->mageTrack = $this->objectManager->create(Track::class);
         $this->mageTrack
@@ -285,33 +292,11 @@ class TrackTraceHolder
     }
 
     /**
-     * Override to check if key isset
-     *
-     * @param null|string $apiKey
-     *
-     * @return self
-     * @throws LocalizedException
-     */
-    public function validateApiKey(?string $apiKey): self
-    {
-        if (null === $apiKey) {
-            throw new LocalizedException(
-                __(
-                    'API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.'
-                )
-            );
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param Order\Shipment\Track $magentoTrack
-     * @param int                  $presetWeightInGrams supply a weight in grams to use instead of calculating
-     *
+     * @param Track $magentoTrack
+     * @param int   $presetWeightInGrams supply a weight in grams to use instead of calculating
+     * @param int   $packageType
      * @return void
      * @throws LocalizedException
-     * @throws Exception
      */
     private function calculateTotalWeight(Track $magentoTrack, int $presetWeightInGrams, int $packageType): self
     {
