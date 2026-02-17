@@ -4,6 +4,7 @@ define(
     'ko',
     'Magento_Checkout/js/action/select-shipping-method',
     'Magento_Checkout/js/model/quote',
+    'Magento_Customer/js/customer-data',
     'MyParcelNL_Magento/js/model/checkout',
     'myparcelDeliveryOptions',
     'leaflet',
@@ -14,6 +15,7 @@ define(
     ko,
     selectShippingMethodAction,
     quote,
+    customerData,
     checkout,
     myparcel, // for rendering the delivery options
     leaflet, // required by the delivery options module
@@ -33,7 +35,6 @@ define(
       unselectDeliveryOptionsEvent: 'myparcel_unselect_delivery_options',
       updateConfigEvent: 'myparcel_update_config',
       updateDeliveryOptionsEvent: 'myparcel_update_delivery_options',
-
       updatedDeliveryOptionsEvent: 'myparcel_updated_delivery_options',
       updatedAddressEvent: 'myparcel_updated_address',
 
@@ -44,6 +45,8 @@ define(
 
       isUsingMyParcelMethod: true,
       deliveryOptionsAreVisible: false,
+
+      throttleTimeout: 390, // throttle / debounce timeout in ms.
 
       /**
        * The selector of the field we use to get the delivery options data into the order.
@@ -56,7 +59,7 @@ define(
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
        */
       initialize: function() {
-        window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
+        window.MyParcelConfig.address = deliveryOptions.getAddress();
         checkout.hideShippingMethods();
         deliveryOptions.setToRenderWhenVisible();
         deliveryOptions.addListeners();
@@ -132,8 +135,17 @@ define(
        */
       addListeners: function() {
         checkout.configuration.subscribe(deliveryOptions.updateConfig);
-        quote.shippingAddress.subscribe(_.debounce(deliveryOptions.updateAddress));
-        quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate));
+        quote.shippingAddress.subscribe(_.debounce(deliveryOptions.updateAddress, deliveryOptions.throttleTimeout));
+        quote.shippingMethod.subscribe(_.debounce(deliveryOptions.onShippingMethodUpdate, deliveryOptions.throttleTimeout));
+
+        /**
+         * Make sure the delivery options are updated when the address is changed in the form, not only in the quote.
+         */
+        customerData.get('checkout-data').subscribe(function(newData) {
+          _.debounce(function() {
+            deliveryOptions.updateAddress(newData.shippingAddressFromData);
+          }, deliveryOptions.throttleTimeout)();
+        });
 
         document.addEventListener(
           deliveryOptions.updatedDeliveryOptionsEvent,
@@ -166,14 +178,14 @@ define(
       /**
        * Get address data and put it in the global MyParcelConfig.
        *
-       * @param {Object?} address - Quote.shippingAddress from Magento.
+       * @param {Object?} address - Quote.shippingAddress from Magento or checkout-data shipping address from Magento or undefined
        */
       updateAddress: function(address) {
         if (!deliveryOptions.isUsingMyParcelMethod) {
           return;
         }
 
-        const newAddress = deliveryOptions.getAddress(address || quote.shippingAddress());
+        const newAddress = deliveryOptions.getAddress(address);
         if (_.isEqual(newAddress, window.MyParcelConfig.address)) {
           return;
         }
@@ -184,19 +196,30 @@ define(
       },
 
       /**
-       * Get the address entered by the user depending on if they are logged in or not.
+       * Get the address entered by the user.
        *
-       * @returns {Object}
-       * @param {Object} address - Quote.shippingAddress from Magento.
+       * @returns {Object} normalized address object with street, number, postal code, city and country code.
+       * @param {Object?} address - Quote.shippingAddress or checkout-data shipping address from Magento or undefined
        */
       getAddress: function(address) {
-        return {
-          number: address.street ? deliveryOptions.getHouseNumber(address.street.join(' ')) : '',
-          cc: address.countryId || '',
-          postalCode: address.postcode || '',
-          city: address.city || '',
-          street: address.street ? [address.street[0], address.street[1]].join(' ').trim() : ''
-        };
+        address = address || customerData.get('checkout-data')().shippingAddressFromData || quote.shippingAddress() || {};
+        const street = address.street ? [address.street[0], address.street[1]].join(' ').trim() : '',
+          houseNumber = deliveryOptions.getHouseNumber(street),
+          normalizedAddress = {
+            /* checkoutData uses country_id, quote uses countryId */
+            cc: address.country_id || address.countryId || '',
+            postalCode: address.postcode || '',
+            city: address.city || '',
+            street: street
+          };
+        /**
+         * only add the housenumber if it is not null, for the delivery-options will strip it otherwise
+         * which will result in _.isEqual returning false wrongly.
+         */
+        if (houseNumber) {
+          normalizedAddress.number = houseNumber;
+        }
+        return normalizedAddress;
       },
 
       /**
