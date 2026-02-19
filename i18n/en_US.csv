@@ -27,7 +27,6 @@ status_40,Inactive - Return shipment pickup location
 status_99,Inactive - Unknown
 myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
 no_account_settings, No account settings found. Press the import button in general configuration to fetch account settings.
-manage_drop_off_point, Manage your default drop-off point in the
 location_page, location manager
 package_small, Small package
 show_total_price, Show total price

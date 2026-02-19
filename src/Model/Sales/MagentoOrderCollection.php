@@ -201,9 +201,6 @@ class MagentoOrderCollection extends MagentoCollection
             $this->setShippingRecipient();
 
             $apiKey = $this->config->getGeneralConfig('api/key', (int) $magentoOrder->getStoreId());
-            $dropOffPoint = (new AccountSettings($apiKey))->getDropOffPoint(
-                CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
-            );
 
             $order = (new FulfilmentOrder())
                 ->setApiKey($apiKey)
@@ -213,7 +210,6 @@ class MagentoOrderCollection extends MagentoCollection
                 ->setRecipient($this->getShippingRecipient())
                 ->setOrderDate($this->getLocalCreatedAtDate())
                 ->setExternalIdentifier($this->order->getIncrementId())
-                ->setDropOffPoint($dropOffPoint)
             ;
 
             if ($deliveryOptionsAdapter->isPickup()

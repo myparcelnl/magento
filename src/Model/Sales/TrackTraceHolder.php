@@ -160,9 +160,6 @@ class TrackTraceHolder
         $packageType  = $this->getPackageType($magentoTrack, $address, $options, $deliveryOptions);
         $deliveryDate = (AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
             && 'NL' !== $address->getCountryId()) ? null : Dating::convertDeliveryDate($deliveryOptionsAdapter->getDate());
-        $dropOffPoint = (new AccountSettings($apiKey))->getDropOffPoint(
-            CarrierFactory::createFromName($deliveryOptionsAdapter->getCarrier())
-        );
 
         $regionCode = $address->getRegionCode();
         $state      = $regionCode && strlen($regionCode) === 2 ? $regionCode : null;
@@ -176,7 +173,6 @@ class TrackTraceHolder
             ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId() ?? AbstractConsignment::DELIVERY_TYPE_STANDARD)
             ->setDeliveryDate($deliveryDate)
             ->setPackageType($packageType)
-            ->setDropOffPoint($dropOffPoint)
             // until capabilities: set receipt code first because it blocks other options
             ->setReceiptCode($shipmentOptions->hasReceiptCode())
             ->setOnlyRecipient($shipmentOptions->hasOnlyRecipient())
