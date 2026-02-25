@@ -3,7 +3,7 @@
 ## Parent Requirement
 
 - **Business Requirement:** [BR-000001 - Delivery Options Retrieval Endpoint](../business-requirements/BR-000001-delivery-options-retrieval-endpoint.md)
-- **Related User Stories:** —
+- **Related User Stories:** [US-000004 - Explore and Build Against the API Contract from an OpenAPI Schema](../user-stories/US-000004-explore-api-contract-from-openapi-schema.md)
 
 ## Description
 

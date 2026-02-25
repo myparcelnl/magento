@@ -3,7 +3,7 @@
 ## Parent Requirement
 
 - **Business Requirement:** [BR-000001 - Delivery Options Retrieval Endpoint](../business-requirements/BR-000001-delivery-options-retrieval-endpoint.md)
-- **Related User Stories:** —
+- **Related User Stories:** [US-000002 - Pin My Integration to a Specific API Version](../user-stories/US-000002-pin-integration-to-api-version.md)
 
 ## Description
 
