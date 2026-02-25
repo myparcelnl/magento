@@ -10,9 +10,10 @@ use MyParcelNL\Magento\Model\Rest\Transformer\DeliveryTypeTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\PackageTypeTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\PickupLocationTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\ShipmentOptionsTransformer;
+use MyParcelNL\Magento\Model\Rest\AbstractVersionedRequest;
 use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 
-class OrderDeliveryOptionsV1Request
+class OrderDeliveryOptionsV1Request extends AbstractVersionedRequest
 {
     private CarrierTransformer $carrierTransformer;
     private PackageTypeTransformer $packageTypeTransformer;
