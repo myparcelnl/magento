@@ -25,4 +25,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route url="/V1/myparcel/delivery-options" method="GET">
+        <service class="MyParcelNL\Magento\Api\OrderDeliveryOptionsInterface" method="getByOrderId"/>
+        <resources>
+            <resource ref="MyParcelNL_Magento::delivery_options_read"/>
+        </resources>
+    </route>
 </routes>

@@ -3,7 +3,7 @@
 ## Parent Requirement
 
 - **Business Requirement:** [BR-000001 - Delivery Options Retrieval Endpoint](../business-requirements/BR-000001-delivery-options-retrieval-endpoint.md)
-- **Related User Stories:** —
+- **Related User Stories:** [US-000003 - Diagnose Integration Failures from Error Responses](../user-stories/US-000003-diagnose-integration-failures-from-errors.md)
 
 ## Description
 

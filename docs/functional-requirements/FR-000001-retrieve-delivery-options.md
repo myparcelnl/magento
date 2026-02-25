@@ -3,7 +3,7 @@
 ## Parent Requirement
 
 - **Business Requirement:** [BR-000001 - Delivery Options Retrieval Endpoint](../business-requirements/BR-000001-delivery-options-retrieval-endpoint.md)
-- **Related User Stories:** —
+- **Related User Stories:** [US-000001 - Retrieve Delivery Options for an Order](../user-stories/US-000001-retrieve-delivery-options-for-order.md)
 
 ## Description
 
