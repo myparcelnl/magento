@@ -41,7 +41,8 @@ The endpoint URL is `GET /V1/myparcel/delivery-options` with `orderId` as a quer
 - [ ] Pickup location includes structured address object when delivery type is pickup
 - [ ] Orders without delivery options return HTTP 200 with all fields as `null`
 - [ ] Response fields use camelCase naming per API Design Reference 0014
-- [ ] The endpoint is accessible anonymously (matches existing MyParcel endpoint access pattern)
+- [ ] The endpoint requires authentication (Bearer token via `Magento\Webapi\Model\Authorization\TokenUserContext`)
+- [ ] The response body is a JSON object, not a JSON-encoded string (no double encoding)
 
 ## Priority
 
