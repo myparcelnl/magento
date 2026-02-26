@@ -20,6 +20,9 @@
     <!-- API package type -->
     <preference for="MyParcelNL\Magento\Api\PackageTypeInterface"
                 type="MyParcelNL\Magento\Model\Checkout\PackageType" />
+    <!-- API order delivery options -->
+    <preference for="MyParcelNL\Magento\Api\OrderDeliveryOptionsInterface"
+                type="MyParcelNL\Magento\Model\Rest\OrderDeliveryOptions" />
     <!-- Add print label button in order view -->
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
         <plugin name="mypa-massaction-button" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>
@@ -39,6 +42,24 @@
     <!-- Save address information in checkout -->
     <type name="Magento\Checkout\Model\ShippingInformationManagement">
         <plugin name="save-in-quote" type="MyParcelNL\Magento\Model\Checkout\ShippingInformationManagementPlugin" sortOrder="10"/>
+    </type>
+    <!-- Intercept exceptions on MyParcel endpoints and format as RFC 9457 Problem Details -->
+    <type name="Magento\Framework\Webapi\Rest\Response">
+        <plugin name="myparcel-problem-details-error"
+                type="MyParcelNL\Magento\Plugin\Magento\Framework\Webapi\Rest\Response\ProblemDetailsError"
+                sortOrder="5"/>
+    </type>
+    <!-- Set versioned Content-Type header on MyParcel REST responses -->
+    <type name="Magento\Framework\Webapi\Rest\Response">
+        <plugin name="myparcel-version-content-type"
+                type="MyParcelNL\Magento\Plugin\Magento\Framework\Webapi\Rest\Response\VersionContentType"
+                sortOrder="10"/>
+    </type>
+    <!-- Prevent double JSON encoding for MyParcel REST endpoints -->
+    <type name="Magento\Framework\Webapi\Rest\Response\Renderer\Json">
+        <plugin name="myparcel-json-passthrough"
+                type="MyParcelNL\Magento\Plugin\Magento\Framework\Webapi\Rest\Response\Renderer\Json"
+                sortOrder="10"/>
     </type>
 
     <!-- Get the insurance rates for Postnl -->
