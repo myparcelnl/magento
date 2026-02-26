@@ -12,7 +12,9 @@ abstract class AbstractEndpoint
 {
     private const VERSION_PATTERN = '/version=v?(\d+)/i';
     private const DEFAULT_VERSION = 1;
-    private const SIGNAL_HEADER   = 'X-MyParcel-Api-Version';
+
+    public const SIGNAL_HEADER       = 'X-MyParcel-Api-Version';
+    public const SIGNAL_ERROR_HEADER = 'X-MyParcel-Error';
 
     private Request  $request;
     private Response $response;
@@ -58,6 +60,14 @@ abstract class AbstractEndpoint
         $this->response->setHeader(self::SIGNAL_HEADER, (string) $version);
 
         return $handlers[$version];
+    }
+
+    protected function errorResponse(ProblemDetails $problem): string
+    {
+        $this->response->setHttpResponseCode($problem->getStatus());
+        $this->response->setHeader(self::SIGNAL_ERROR_HEADER, '1');
+
+        return json_encode($problem);
     }
 
     private function extractVersionFromHeader(string $headerName): ?int
