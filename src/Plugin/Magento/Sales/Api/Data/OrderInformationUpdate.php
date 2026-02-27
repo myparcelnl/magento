@@ -65,7 +65,7 @@ class OrderInformationUpdate
     private function addDeliveryOptionsToOrder(OrderInterface $order): void
     {
         /** @var object $data Data from checkout */
-        $data = $this->jsonSerializer->unserialize($order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? null, true);
+        $data = $this->jsonSerializer->unserialize($order->getData(Config::FIELD_DELIVERY_OPTIONS));
 
         if (!is_array($data)) {
             return;
@@ -88,7 +88,7 @@ class OrderInformationUpdate
      */
     public function afterGet(OrderRepositoryInterface $subject, OrderInterface $order)
     {
-        $this->addDeliveryOptionsToOrder($order, true);
+        $this->addDeliveryOptionsToOrder($order);
 
         return $order;
     }
@@ -106,7 +106,7 @@ class OrderInformationUpdate
         $orders = $searchResult->getItems();
 
         foreach ($orders as &$order) {
-            $this->addDeliveryOptionsToOrder($order, false);
+            $this->addDeliveryOptionsToOrder($order);
         }
 
         return $searchResult;
