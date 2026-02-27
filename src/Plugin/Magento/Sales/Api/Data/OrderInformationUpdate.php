@@ -13,6 +13,24 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
 
+/**
+ * Plugin for Magento Sales OrderRepository to add MyParcel delivery options as extension attributes.
+ *
+ * This plugin ensures that MyParcel delivery options, stored as serialized data in the order's custom field,
+ * are exposed as extension attributes on Order and OrderSearchResult objects returned by the API.
+ *
+ * Intended use:
+ * - Allows external systems and API consumers to access MyParcel delivery options via the order extension attributes.
+ * - Uses the old serialized format for backward compatibility, for modern API responses use the rest delivery-options endpoint which provides the new format.
+ *
+ * How it works:
+ * - After an order is loaded via OrderRepository::get(), the plugin unserializes the MyParcel delivery options
+ *   from the order data, creates a DeliveryOptionsAdapter, and attaches the serialized options to the order's
+ *   extension attributes.
+ * - After a list of orders is loaded via OrderRepository::getList(), the plugin performs the same process for
+ *   each order in the result, attaching the delivery options as an array to the extension attributes.
+ * - This makes the delivery options available in API responses and for further processing in Magento.
+ */
 class OrderInformationUpdate
 {
 
@@ -23,8 +41,8 @@ class OrderInformationUpdate
      *
      * @var OrderExtensionFactory
      */
-    protected            OrderExtensionFactory                                $extensionFactory;
-    protected Json $jsonSerializer;
+    protected OrderExtensionFactory $extensionFactory;
+    protected Json                  $jsonSerializer;
 
     /**
      * OrderRepositoryPlugin constructor
@@ -39,6 +57,28 @@ class OrderInformationUpdate
     }
 
     /**
+     * Attach MyParcel delivery options as extension attributes to the order, if available.
+     *
+     * @param OrderInterface $order
+     * @return void
+     */
+    private function addDeliveryOptionsToOrder(OrderInterface $order): void
+    {
+        /** @var object $data Data from checkout */
+        $data = $this->jsonSerializer->unserialize($order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? null, true);
+
+        if (!is_array($data)) {
+            return;
+        }
+
+        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
+        $extensionAttributes = $order->getExtensionAttributes() ?: $this->extensionFactory->create();
+        // the encode string is backwards compatible, use the rest delivery-options endpoint for the new format
+        $extensionAttributes->setDeliveryOptions($this->jsonSerializer->serialize($deliveryOptions->toArray()));
+        $order->setExtensionAttributes($extensionAttributes);
+    }
+
+    /**
      * Add "delivery_type" extension attribute to order data object to make it accessible in API data
      *
      * @param OrderRepositoryInterface $subject
@@ -48,18 +88,7 @@ class OrderInformationUpdate
      */
     public function afterGet(OrderRepositoryInterface $subject, OrderInterface $order)
     {
-        /** @var object $data Data from checkout */
-        $data = $this->jsonSerializer->unserialize($order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? null, true);
-
-        if (!is_array($data)) {
-            return $order;
-        }
-
-        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
-        $extensionAttributes = $order->getExtensionAttributes() ?: $this->extensionFactory->create();
-        // the encode string is backwards compatible, use the rest delivery-options endpoint for the new format
-        $extensionAttributes->setDeliveryOptions($this->jsonSerializer->serialize($deliveryOptions->toArray()));
-        $order->setExtensionAttributes($extensionAttributes);
+        $this->addDeliveryOptionsToOrder($order, true);
 
         return $order;
     }
@@ -77,17 +106,7 @@ class OrderInformationUpdate
         $orders = $searchResult->getItems();
 
         foreach ($orders as &$order) {
-            /** @var object $data Data from checkout */
-            $data = $this->jsonSerializer->unserialize($order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? null, true);
-
-            if (!is_array($data)) {
-                continue;
-            }
-
-            $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
-            $extensionAttributes = $order->getExtensionAttributes() ?: $this->extensionFactory->create();
-            $extensionAttributes->setMyParcelDeliveryOptions($deliveryOptions->toArray());
-            $order->setExtensionAttributes($extensionAttributes);
+            $this->addDeliveryOptionsToOrder($order, false);
         }
 
         return $searchResult;
