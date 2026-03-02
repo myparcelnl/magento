@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.5.0](https://github.com/myparcelnl/magento/compare/v5.4.0...v5.5.0) (2026-03-02)
+
+
+### :sparkles: New Features
+
+* remove drop off point ([#939](https://github.com/myparcelnl/magento/issues/939)) ([07b766c](https://github.com/myparcelnl/magento/commit/07b766c595bb5491b3cbb4cc79d62df1e322eaa5))
+
+
+### :zap: Performance Improvements
+
+* improve adding delivery options to order rest endpoint ([#927](https://github.com/myparcelnl/magento/issues/927)) ([8e90958](https://github.com/myparcelnl/magento/commit/8e90958744f598ad0f0340473480e753bf8673a0))
+
 ## [5.4.0](https://github.com/myparcelnl/magento/compare/v5.3.0...v5.4.0) (2026-02-17)
 
 
