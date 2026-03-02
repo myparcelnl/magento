@@ -19,9 +19,11 @@ The system must support API version negotiation via HTTP headers for all MyParce
 
 **Unsupported version handling:** Return HTTP 406 (Not Acceptable) with a detail message listing supported versions.
 
-**Response headers:** The response must include the version used in both `Content-Type` and `Accept` headers (e.g., `Content-Type: application/json; version=1`).
+**Response headers:** The response must include the version used in both `Content-Type` and `Accept` headers (e.g., `Content-Type: application/json; version=1`). The version in the response `Content-Type` is determined by the `AbstractVersionedResource` class that formats the response, not echoed from the request. This ensures the response always truthfully declares its own format version.
 
-**Reusable abstractions:** The version detection, validation, and response header logic must be encapsulated in abstract base classes (`AbstractEndpoint`, `AbstractVersionedRequest`) that can be extended by any future MyParcel REST endpoint.
+**Incompatible header versions:** When both `Content-Type` and `Accept` headers contain version parameters but the `Content-Type` version is not listed in the `Accept` header's version list, the server must return HTTP 409 (Conflict) with a detail message (per ADR-0011 section 5.2).
+
+**Reusable abstractions:** The version detection, validation, and response header logic must be encapsulated in abstract base classes (`AbstractEndpoint`, `AbstractVersionedRequest`, `AbstractVersionedResource`) that can be extended by any future MyParcel REST endpoint.
 
 ## User Impact
 
@@ -37,9 +39,32 @@ The system must support API version negotiation via HTTP headers for all MyParce
 - [ ] Version extraction regex `/version=v?(\d+)/i` correctly handles: `version=1`, `version=v1`, `version=V1`, `VERSION=1`
 - [ ] Requesting an unsupported version returns HTTP 406 with detail: `"API version {v} is not supported. Supported versions: {list}"`
 - [ ] Success responses include `Content-Type: application/json; version=1` header
+- [ ] Requesting with incompatible versions in `Content-Type` and `Accept` headers returns HTTP 409 with detail message (per ADR-0011 section 5.2)
 - [ ] `AbstractEndpoint` base class is reusable — a new endpoint can extend it and add its own version handlers
 - [ ] `AbstractVersionedRequest` base class is reusable — a new version handler can extend it with its own `transform()` method
+- [ ] `AbstractVersionedResource` base class is reusable — a new response version can extend it with its own `format()` method
 - [ ] Only version 1 is supported initially
+- [ ] V1 response body structure matches the `DeliveryOptions` schema from the PDK OpenAPI spec (`openapi-delivery-options-v1.yaml`)
+- [ ] Response top-level keys are: `carrier`, `packageType`, `deliveryType`, `shipmentOptions`, `date`, `pickupLocation`
+- [ ] Carrier, packageType, and deliveryType values use SCREAMING_SNAKE_CASE enum values from the Order Service API
+- [ ] Boolean shipment options produce `{}` (empty object) when enabled; the key is omitted when disabled (ADR-0013)
+- [ ] Insurance produces `{ "amount": <integer-micro>, "currency": "EUR" }` following ADR-0014 micro-currency format
+- [ ] Label description produces `{ "text": "<string>" }` as `customLabelText`
+- [ ] Unit tests validate each transformer's output against the PDK spec schema
+
+## V1 Response Contract
+
+Version 1 responses **MUST** conform to the PDK's OpenAPI spec (`openapi-delivery-options-v1.yaml`). This Magento module is an implementation of that same contract — the PDK spec is the **single source of truth** for the response shape.
+
+The Magento-local OpenAPI spec (`docs/openapi/delivery-options.yaml`) mirrors the PDK spec for documentation and testing purposes. When the PDK spec evolves, this module's spec and transformers must be updated to match.
+
+Key contract rules:
+
+- **Enum values** — carrier, packageType, and deliveryType use SCREAMING_SNAKE_CASE constants from the Order Service (e.g., `POSTNL`, `PACKAGE`, `STANDARD_DELIVERY`)
+- **Boolean shipment options** — represented as empty objects `{}` when enabled, omitted when disabled (ADR-0013 empty-object standard)
+- **Insurance** — `{ "amount": <integer-micro>, "currency": "EUR" }` where amount is in micro-currency units (1 EUR = 1,000,000 micros) per ADR-0014
+- **Label description** — `{ "text": "<string>" }` as the `customLabelText` key
+- **Null fields** — when no delivery options are stored, all top-level keys are `null`
 
 ## Priority
 
@@ -51,11 +76,16 @@ The system must support API version negotiation via HTTP headers for all MyParce
 
 ### Referenced Technical Requirements
 
-— (No TRs created yet)
+- [TR-000001 - HTTP Version Header Parsing](../technical-requirements/TR-000001-http-version-header-parsing.md) — regex pattern, header precedence, default version, and error handling specifications
+- [TR-000002 - Reusable Versioning Infrastructure](../technical-requirements/TR-000002-reusable-versioning-infrastructure.md) — abstract class contracts and extensibility criteria for `AbstractEndpoint`, `AbstractVersionedRequest`, and `AbstractVersionedResource`
+- [TR-000003 - V1 Response Schema Conformance](../technical-requirements/TR-000003-v1-response-schema-conformance.md) — PDK spec conformance for field formats, enum values, and data transformations
 
 ### Referenced Architectural Decisions
 
 - **ADR-0011** — API Versioning via Headers: defines the versioning strategy, header precedence, and regex pattern that this FR implements
+- **ADR-0013** — Various API Design Rules: empty-object standard for boolean shipment options (`{}` = enabled, key omitted = disabled), Order Service enum names
+- **ADR-0014** — API Design Standards: micro-currency format for monetary values, camelCase field naming, SCREAMING_SNAKE_CASE enum values
+- **PDK OpenAPI spec** (`openapi-delivery-options-v1.yaml`) — canonical V1 response contract; this module's response shape must match
 
 ### Notes
 
@@ -67,6 +97,7 @@ Magento's REST framework has its own content-type negotiation. The version detec
 
 - Magento `\Magento\Framework\Webapi\Rest\Request` for header access
 - Magento `\Magento\Framework\Webapi\Rest\Response` for response header control
+- PDK delivery options OpenAPI spec v1 (`openapi-delivery-options-v1.yaml`) — canonical response contract that defines the V1 response shape
 
 ### Downstream (depends on this FR)
 

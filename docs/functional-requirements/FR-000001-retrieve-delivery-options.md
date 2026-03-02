@@ -54,7 +54,7 @@ The endpoint URL is `GET /V1/myparcel/delivery-options` with `orderId` as a quer
 
 ### Referenced Technical Requirements
 
-— (No TRs created yet)
+- [TR-000003 - V1 Response Schema Conformance](../technical-requirements/TR-000003-v1-response-schema-conformance.md) — PDK spec conformance for field formats, enum values, and data transformations
 
 ### Referenced Architectural Decisions
 
