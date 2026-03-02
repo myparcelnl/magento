@@ -44,7 +44,7 @@ The system must support API version negotiation via HTTP headers for all MyParce
 - [ ] `AbstractVersionedRequest` base class is reusable — a new version handler can extend it with its own `transform()` method
 - [ ] `AbstractVersionedResource` base class is reusable — a new response version can extend it with its own `format()` method
 - [ ] Only version 1 is supported initially
-- [ ] V1 response body structure matches the `DeliveryOptions` schema from the PDK OpenAPI spec (`openapi-delivery-options-v1.yaml`)
+- [ ] V1 response body structure matches the `DeliveryOptions` schema from the [PDK OpenAPI spec (`openapi-delivery-options-v1.yaml`)](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml)
 - [ ] Response top-level keys are: `carrier`, `packageType`, `deliveryType`, `shipmentOptions`, `date`, `pickupLocation`
 - [ ] Carrier, packageType, and deliveryType values use SCREAMING_SNAKE_CASE enum values from the Order Service API
 - [ ] Boolean shipment options produce `{}` (empty object) when enabled; the key is omitted when disabled (ADR-0013)
@@ -54,7 +54,7 @@ The system must support API version negotiation via HTTP headers for all MyParce
 
 ## V1 Response Contract
 
-Version 1 responses **MUST** conform to the PDK's OpenAPI spec (`openapi-delivery-options-v1.yaml`). This Magento module is an implementation of that same contract — the PDK spec is the **single source of truth** for the response shape.
+Version 1 responses **MUST** conform to the [PDK's OpenAPI spec (`openapi-delivery-options-v1.yaml`)](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml). This Magento module is an implementation of that same contract — the PDK spec is the **single source of truth** for the response shape.
 
 The Magento-local OpenAPI spec (`docs/openapi/delivery-options.yaml`) mirrors the PDK spec for documentation and testing purposes. When the PDK spec evolves, this module's spec and transformers must be updated to match.
 
@@ -85,7 +85,7 @@ Key contract rules:
 - **ADR-0011** — API Versioning via Headers: defines the versioning strategy, header precedence, and regex pattern that this FR implements
 - **ADR-0013** — Various API Design Rules: empty-object standard for boolean shipment options (`{}` = enabled, key omitted = disabled), Order Service enum names
 - **ADR-0014** — API Design Standards: micro-currency format for monetary values, camelCase field naming, SCREAMING_SNAKE_CASE enum values
-- **PDK OpenAPI spec** (`openapi-delivery-options-v1.yaml`) — canonical V1 response contract; this module's response shape must match
+- [**PDK OpenAPI spec** (`openapi-delivery-options-v1.yaml`)](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml) — canonical V1 response contract; this module's response shape must match
 
 ### Notes
 
@@ -97,7 +97,7 @@ Magento's REST framework has its own content-type negotiation. The version detec
 
 - Magento `\Magento\Framework\Webapi\Rest\Request` for header access
 - Magento `\Magento\Framework\Webapi\Rest\Response` for response header control
-- PDK delivery options OpenAPI spec v1 (`openapi-delivery-options-v1.yaml`) — canonical response contract that defines the V1 response shape
+- [PDK delivery options OpenAPI spec v1 (`openapi-delivery-options-v1.yaml`)](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml) — canonical response contract that defines the V1 response shape
 
 ### Downstream (depends on this FR)
 

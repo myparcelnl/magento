@@ -177,7 +177,7 @@ components:
       description: |
         Delivery options selected at checkout for an order.
 
-        This schema mirrors the PDK's `openapi-delivery-options-v1.yaml` spec,
+        This schema mirrors the PDK's [`openapi-delivery-options-v1.yaml`](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml) spec,
         which is the single source of truth for the V1 response contract.
       properties:
         carrier:
