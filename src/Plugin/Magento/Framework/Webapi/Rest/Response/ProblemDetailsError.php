@@ -8,15 +8,17 @@ use Magento\Framework\Webapi\Exception as WebapiException;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;
 use MyParcelNL\Magento\Model\Rest\ProblemDetails;
+use MyParcelNL\Magento\Model\Rest\VersionContext;
 
 class ProblemDetailsError
 {
-    /** @var Request */
-    private $request;
+    private Request $request;
+    private VersionContext $versionContext;
 
-    public function __construct(Request $request)
+    public function __construct(Request $request, VersionContext $versionContext)
     {
-        $this->request = $request;
+        $this->request        = $request;
+        $this->versionContext = $versionContext;
     }
 
     /**
@@ -47,6 +49,8 @@ class ProblemDetailsError
             ProblemDetails::titleForStatus($httpCode),
             $detail
         );
+
+        $this->versionContext->setError(true);
 
         $subject->setBody(json_encode($problem));
         $subject->setHttpResponseCode($httpCode);

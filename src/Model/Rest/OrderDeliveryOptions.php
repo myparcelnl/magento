@@ -12,6 +12,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use MyParcelNL\Magento\Api\OrderDeliveryOptionsInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Rest\Request\OrderDeliveryOptionsV1Request;
+use MyParcelNL\Magento\Model\Rest\Resource\OrderDeliveryOptionsV1Resource;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
@@ -23,10 +24,11 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
     public function __construct(
         Request $request,
         Response $response,
+        VersionContext $versionContext,
         OrderRepositoryInterface $orderRepository,
         OrderDeliveryOptionsV1Request $v1Request
     ) {
-        parent::__construct($request, $response);
+        parent::__construct($request, $response, $versionContext);
         $this->orderRepository = $orderRepository;
         $this->v1Request       = $v1Request;
     }
@@ -57,7 +59,7 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
             $data = $deliveryOptionsJson ? json_decode($deliveryOptionsJson, true) : null;
 
             if (empty($data) || !is_array($data)) {
-                return json_encode([
+                $resource = new OrderDeliveryOptionsV1Resource([
                     'carrier'         => null,
                     'packageType'     => null,
                     'deliveryType'    => null,
@@ -65,11 +67,14 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
                     'date'            => null,
                     'pickupLocation'  => null,
                 ]);
+            } else {
+                $adapter  = DeliveryOptionsAdapterFactory::create($data);
+                $resource = new OrderDeliveryOptionsV1Resource($handler->transform($adapter));
             }
 
-            $adapter = DeliveryOptionsAdapterFactory::create($data);
+            $this->setNegotiatedVersion($resource::getVersion());
 
-            return json_encode($handler->transform($adapter));
+            return json_encode($resource->format());
         } catch (WebapiException $e) {
             return $this->errorResponse(new ProblemDetails(
                 null,
