@@ -1322,26 +1322,6 @@
               ]
             }
           ]
-        },
-        {
-          "id": "drop_off",
-          "label": "Drop-off point",
-          "comment": null,
-          "showInDefault": true,
-          "showInWebsite": true,
-          "showInStore": true,
-          "fields": [
-            {
-              "id": "default_drop_off_point",
-              "path": "myparcelnl_magento_postnl_settings/drop_off/default_drop_off_point",
-              "type": "button",
-              "label": "Default drop-off point",
-              "showInDefault": true,
-              "showInWebsite": true,
-              "showInStore": true,
-              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\DefaultDropOffPointPostNL"
-            }
-          ]
         }
       ]
     },

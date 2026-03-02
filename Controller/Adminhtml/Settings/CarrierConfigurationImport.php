@@ -105,7 +105,6 @@ class CarrierConfigurationImport extends Action
         $shopId                      = $shop->getId();
         $carrierConfigurationService = (new CarrierConfigurationWebService())->setApiKey($this->apiKey);
         $optionConfigurationService  = (new CarrierOptionsWebService())->setApiKey($this->apiKey);
-        $carrierConfiguration        = $carrierConfigurationService->getCarrierConfigurations($shopId, true);
         $optionConfiguration         = $optionConfigurationService->getCarrierOptions($shopId);
 
         return new Collection(
@@ -113,7 +112,6 @@ class CarrierConfigurationImport extends Action
                 'shop'                   => $shop,
                 'account'                => $account,
                 'carrier_options'        => $optionConfiguration,
-                'carrier_configurations' => $carrierConfiguration,
             ]
         );
     }
@@ -144,16 +142,14 @@ class CarrierConfigurationImport extends Action
         $account = $settings->get('account');
         /** @var \MyParcelNL\Sdk\Model\Account\CarrierOptions[]|Collection $carrierOptions */
         $carrierOptions = $settings->get('carrier_options');
-        /** @var \MyParcelNL\Sdk\Model\Account\CarrierConfiguration[]|Collection $carrierConfigurations */
-        $carrierConfigurations = $settings->get('carrier_configurations');
 
         return [
-            'shop'                   => [
+            'shop'            => [
                 'id'   => $shop->getId(),
                 'name' => $shop->getName(),
             ],
-            'account'                => $account->toArray(),
-            'carrier_options'        => array_map(static function (CarrierOptions $carrierOptions) {
+            'account'         => $account->toArray(),
+            'carrier_options' => array_map(static function (CarrierOptions $carrierOptions) {
                 $carrier = $carrierOptions->getCarrier();
                 return [
                     'carrier'  => [
@@ -167,28 +163,6 @@ class CarrierConfigurationImport extends Action
                     'type'     => $carrierOptions->getType(),
                 ];
             }, $carrierOptions->all()),
-            'carrier_configurations' => array_map(static function (CarrierConfiguration $carrierConfiguration) {
-                $defaultDropOffPoint = $carrierConfiguration->getDefaultDropOffPoint();
-                $carrier             = $carrierConfiguration->getCarrier();
-                return [
-                    'carrier_id'                        => $carrier->getId(),
-                    'default_drop_off_point'            => $defaultDropOffPoint ? [
-                        'box_number'        => $defaultDropOffPoint->getBoxNumber(),
-                        'cc'                => $defaultDropOffPoint->getCc(),
-                        'city'              => $defaultDropOffPoint->getCity(),
-                        'location_code'     => $defaultDropOffPoint->getLocationCode(),
-                        'location_name'     => $defaultDropOffPoint->getLocationName(),
-                        'number'            => $defaultDropOffPoint->getNumber(),
-                        'number_suffix'     => $defaultDropOffPoint->getNumberSuffix(),
-                        'postal_code'       => $defaultDropOffPoint->getPostalCode(),
-                        'region'            => $defaultDropOffPoint->getRegion(),
-                        'retail_network_id' => $defaultDropOffPoint->getRetailNetworkId(),
-                        'state'             => $defaultDropOffPoint->getState(),
-                        'street'            => $defaultDropOffPoint->getStreet(),
-                    ] : null,
-                    'default_drop_off_point_identifier' => $carrierConfiguration->getDefaultDropOffPointIdentifier(),
-                ];
-            }, $carrierConfigurations->all()),
         ];
     }
 }

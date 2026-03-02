@@ -17,7 +17,6 @@ use MyParcelNL\Sdk\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\Model\Account\Shop;
 use MyParcelNL\Sdk\Model\BaseModel;
 use MyParcelNL\Sdk\Model\Carrier\AbstractCarrier;
-use MyParcelNL\Sdk\Model\Consignment\DropOffPoint;
 use MyParcelNL\Sdk\Support\Collection;
 
 class AccountSettings extends BaseModel
@@ -25,7 +24,6 @@ class AccountSettings extends BaseModel
     protected Shop       $shop;
     protected Account    $account;
     protected Collection $carrierOptions;
-    protected Collection $carrierConfigurations;
 
     /**
      * @var string $apiKey the api key (shop identifier) to get the account settings for
@@ -53,33 +51,6 @@ class AccountSettings extends BaseModel
     public function getAccount(): ?Account
     {
         return $this->account ?? null;
-    }
-
-    /**
-     * @param AbstractCarrier $carrier
-     *
-     * @return null|CarrierConfiguration
-     */
-    public function getCarrierConfigurationByCarrier(AbstractCarrier $carrier): ?CarrierConfiguration
-    {
-        $carrierConfigurations = $this->getCarrierConfigurations();
-
-        return $carrierConfigurations
-            ->filter(
-                static function (CarrierConfiguration $carrierConfiguration) use ($carrier) {
-                    return $carrier->getId() === $carrierConfiguration->getCarrier()->getId();
-                }
-            )
-            ->first()
-        ;
-    }
-
-    /**
-     * @return CarrierConfiguration[]|Collection
-     */
-    public function getCarrierConfigurations(): Collection
-    {
-        return $this->carrierConfigurations ?? new Collection();
     }
 
     /** c
@@ -119,26 +90,6 @@ class AccountSettings extends BaseModel
     }
 
     /**
-     * @throws Exception
-     */
-    public function getDropOffPoint(AbstractCarrier $carrier): ?DropOffPoint
-    {
-        $carrierConfiguration = $this->getCarrierConfigurationByCarrier($carrier);
-
-        if (! $carrierConfiguration) {
-            return null;
-        }
-
-        $dropOffPoint = $carrierConfiguration->getDefaultDropOffPoint();
-
-        if ($dropOffPoint && null === $dropOffPoint->getNumberSuffix()) {
-            $dropOffPoint->setNumberSuffix('');
-        }
-
-        return $dropOffPoint;
-    }
-
-    /**
      * @param Collection $settings
      *
      * @return void
@@ -148,13 +99,9 @@ class AccountSettings extends BaseModel
         $shop                        = $settings->get('shop');
         $account                     = $settings->get('account');
         $carrierOptions              = $settings->get('carrier_options');
-        $carrierConfigurations       = $settings->get('carrier_configurations');
         $this->shop                  = new Shop($shop);
         $account['shops']            = [$shop];
         $this->account               = new Account($account);
         $this->carrierOptions        = (new Collection($carrierOptions))->mapInto(CarrierOptions::class);
-        $this->carrierConfigurations = (new Collection($carrierConfigurations))->map(function (array $data) {
-            return CarrierConfigurationFactory::create($data);
-        });
     }
 }
