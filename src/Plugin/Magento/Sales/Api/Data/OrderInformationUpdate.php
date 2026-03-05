@@ -64,8 +64,13 @@ class OrderInformationUpdate
      */
     private function addDeliveryOptionsToOrder(OrderInterface $order): void
     {
-        /** @var object $data Data from checkout */
-        $data = $this->jsonSerializer->unserialize($order->getData(Config::FIELD_DELIVERY_OPTIONS));
+        try {
+            /** @var object $data Data from checkout */
+            $data = $this->jsonSerializer->unserialize($order->getData(Config::FIELD_DELIVERY_OPTIONS));
+        } catch (\InvalidArgumentException $e) {
+            // Continue without delivery options.
+            return;
+        }
 
         if (!is_array($data)) {
             return;
