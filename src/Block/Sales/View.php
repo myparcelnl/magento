@@ -42,7 +42,7 @@ class View extends AbstractOrder
         $order = $this->getOrder();
 
         /** @var object $data Data from checkout */
-        $data = json_decode($order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? null, true);
+        $data = json_decode($order->getData(Config::FIELD_DELIVERY_OPTIONS) ?: '', true);
 
         if (!is_array($data)) {
             return '';
