@@ -20,13 +20,20 @@
     }
   ],
   "type": "magento2-module",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://repo.magento.com/"
+    }
+  ],
   "require": {
     "php": "^7.4 || ^8.0",
     "myparcelnl/sdk": "^v11@beta",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1"
   },
   "require-dev": {
-    "phpunit/phpunit": "^4.8"
+    "pestphp/pest": "^1.0",
+    "mockery/mockery": "^1.6"
   },
   "autoload": {
     "files": [
@@ -37,7 +44,18 @@
       "MyParcelNL\\Magento\\Controller\\": "Controller/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "MyParcelNL\\Magento\\Tests\\": "tests/"
+    }
+  },
   "scripts": {
     "pre-package-uninstall": "MyParcelNL\\Magento\\Setup\\Uninstall::uninstall"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "magento/composer-dependency-version-audit-plugin": true
+    }
   }
 }

@@ -11,3 +11,6 @@ node_modules
 !.yarn/versions
 
 .claude/implement-config.json
+.phpunit.cache
+vendor/
+composer.lock
