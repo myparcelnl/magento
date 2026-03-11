@@ -9,6 +9,7 @@ use Magento\Sales\Api\Data\OrderExtensionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
@@ -64,19 +65,23 @@ class OrderInformationUpdate
      */
     private function addDeliveryOptionsToOrder(OrderInterface $order): void
     {
+        $deliveryOptionsString = $order->getData(Config::FIELD_DELIVERY_OPTIONS);
+
+        if (!$deliveryOptionsString) {
+            // No delivery options data found for this order, legitimate: another shipping method was used.
+            return;
+        }
+
         try {
             /** @var object $data Data from checkout */
-            $data = $this->jsonSerializer->unserialize($order->getData(Config::FIELD_DELIVERY_OPTIONS));
-        } catch (\InvalidArgumentException $e) {
-            // Continue without delivery options.
+            $data = $this->jsonSerializer->unserialize($deliveryOptionsString);
+            $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
+        } catch (\Exception $e) {
+            Logger::warning("Invalid delivery options data for order ID {$order->getEntityId()}.");
+
             return;
         }
 
-        if (!is_array($data)) {
-            return;
-        }
-
-        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
         $extensionAttributes = $order->getExtensionAttributes() ?: $this->extensionFactory->create();
         // the encode string is backwards compatible, use the rest delivery-options endpoint for the new format
         $extensionAttributes->setDeliveryOptions($this->jsonSerializer->serialize($deliveryOptions->toArray()));
