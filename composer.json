@@ -46,7 +46,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "MyParcelNL\\Magento\\Tests\\": "tests/"
+      "MyParcelNL\\Magento\\Tests\\": "Tests/"
     }
   },
   "scripts": {
