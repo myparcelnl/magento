@@ -12,10 +12,8 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\Services\Web\AccountWebService;
-use MyParcelNL\Sdk\Services\Web\CarrierConfigurationWebService;
 use MyParcelNL\Sdk\Services\Web\CarrierOptionsWebService;
 use MyParcelNL\Sdk\Support\Collection;
 
@@ -103,7 +101,6 @@ class CarrierConfigurationImport extends Action
                                                ->first()
         ;
         $shopId                      = $shop->getId();
-        $carrierConfigurationService = (new CarrierConfigurationWebService())->setApiKey($this->apiKey);
         $optionConfigurationService  = (new CarrierOptionsWebService())->setApiKey($this->apiKey);
         $optionConfiguration         = $optionConfigurationService->getCarrierOptions($shopId);
 
