@@ -12,8 +12,11 @@
   "main": "index.js",
   "devDependencies": {
     "@myparcel-dev/eslint-config": "^1.4.0",
-    "@myparcel-dev/semantic-release-config": "^6.0.10",
-    "@types/knockout": "^3.4.72"
+    "@myparcel-dev/semantic-release-config": "^6.0.12",
+    "@types/knockout": "^3.4.77"
+  },
+  "resolutions": {
+    "tar": "^7.5.11"
   },
   "packageManager": "yarn@4.0.1"
 }
