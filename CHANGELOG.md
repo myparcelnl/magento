@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.5.2](https://github.com/myparcelnl/magento/compare/v5.5.1...v5.5.2) (2026-03-30)
+
+
+### :bug: Bug Fixes
+
+* **security:** fix tar vulnerability ([#945](https://github.com/myparcelnl/magento/issues/945)) ([f60044f](https://github.com/myparcelnl/magento/commit/f60044f7b4f2397182ddb81ba50359827dbca7b8))
+
 ## [5.5.1](https://github.com/myparcelnl/magento/compare/v5.5.0...v5.5.1) (2026-03-13)
 
 
