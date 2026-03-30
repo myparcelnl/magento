@@ -25,4 +25,17 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <!-- MyParcel API Proxy -->
+    <route url="/V1/myparcel/proxy/:path" method="GET">
+        <service class="MyParcelNL\Magento\Api\ProxyInterface" method="forward"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/myparcel/proxy/:path" method="POST">
+        <service class="MyParcelNL\Magento\Api\ProxyInterface" method="forward"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>
