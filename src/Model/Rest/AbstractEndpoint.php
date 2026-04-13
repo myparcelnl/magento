@@ -11,7 +11,6 @@ use Magento\Framework\Webapi\Rest\Response;
 abstract class AbstractEndpoint
 {
     private const VERSION_PATTERN = '/version=v?(\d+)/i';
-    private const DEFAULT_VERSION = 1;
 
     private Request $request;
     private Response $response;
@@ -32,8 +31,13 @@ abstract class AbstractEndpoint
     abstract protected function getVersionHandlers(): array;
 
     /**
-     * Detect version from Content-Type -> Accept -> default 1.
-     * Validate against getVersionHandlers().
+     * Negotiate the request version per ADR 0011.
+     *
+     * - Section 4.1: when no `version` parameter is provided in the Content-Type request header,
+     *   the lowest supported major version is assumed.
+     * - Section 4.2: when Content-Type carries a version, it is the negotiated version.
+     * - Section 5.2: incompatible Content-Type / Accept versions trigger 409.
+     * - Section 5.1: unsupported versions trigger 406.
      *
      * @throws WebapiException 406 if version is unsupported, 409 if Content-Type and Accept conflict
      */
@@ -61,9 +65,7 @@ abstract class AbstractEndpoint
             );
         }
 
-        $version = $contentTypeVersion
-            ?? $acceptVersions[0]
-            ?? self::DEFAULT_VERSION;
+        $version = $contentTypeVersion ?? min($supportedVersions);
 
         if (!isset($handlers[$version])) {
             throw new WebapiException(
