@@ -18,17 +18,12 @@ class PickupLocationTransformer
             'locationCode'    => $pickupLocation->getLocationCode(),
             'locationName'    => $pickupLocation->getLocationName(),
             'retailNetworkId' => $pickupLocation->getRetailNetworkId(),
-            'type'            => null,
             'address'         => (object) [
-                'street'       => $pickupLocation->getStreet(),
-                'number'       => $pickupLocation->getNumber(),
-                'numberSuffix' => null,
-                'postalCode'   => $pickupLocation->getPostalCode(),
-                'boxNumber'    => null,
-                'city'         => $pickupLocation->getCity(),
-                'cc'           => $pickupLocation->getCountry(),
-                'state'        => null,
-                'region'       => null,
+                'street'     => $pickupLocation->getStreet(),
+                'number'     => $pickupLocation->getNumber(),
+                'postalCode' => $pickupLocation->getPostalCode(),
+                'city'       => $pickupLocation->getCity(),
+                'cc'         => $pickupLocation->getCountry(),
             ],
         ];
     }
