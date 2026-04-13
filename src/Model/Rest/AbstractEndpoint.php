@@ -33,9 +33,10 @@ abstract class AbstractEndpoint
     /**
      * Negotiate the request version per ADR 0011.
      *
-     * - Section 4.1: when no `version` parameter is provided in the Content-Type request header,
-     *   the lowest supported major version is assumed.
-     * - Section 4.2: when Content-Type carries a version, it is the negotiated version.
+     * - Section 4.2: when Content-Type carries a version, it is the negotiated version;
+     *   otherwise the first version listed in Accept is used.
+     * - Section 4.1: if neither header provides a version, the lowest supported major
+     *   version is assumed.
      * - Section 5.2: incompatible Content-Type / Accept versions trigger 409.
      * - Section 5.1: unsupported versions trigger 406.
      *
@@ -65,7 +66,9 @@ abstract class AbstractEndpoint
             );
         }
 
-        $version = $contentTypeVersion ?? min($supportedVersions);
+        $version = $contentTypeVersion
+            ?? ($acceptVersions[0] ?? null)
+            ?? min($supportedVersions);
 
         if (!isset($handlers[$version])) {
             throw new WebapiException(
