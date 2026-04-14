@@ -33,16 +33,21 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
         $this->v1Request       = $v1Request;
     }
 
-    protected function getVersionHandlers(): array
+    protected function getRequestHandlers(): array
     {
         return [1 => $this->v1Request];
+    }
+
+    protected function getResourceHandlers(): array
+    {
+        return [1 => OrderDeliveryOptionsV1Resource::class];
     }
 
     public function getByOrderId(int $orderId): string
     {
         try {
             /** @var OrderDeliveryOptionsV1Request $handler */
-            $handler = $this->resolveVersion();
+            $handler = $this->negotiate();
 
             if ($orderId <= 0) {
                 return $this->errorResponse(new ProblemDetails(
@@ -59,7 +64,7 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
             $data = $deliveryOptionsJson ? json_decode($deliveryOptionsJson, true) : null;
 
             if (empty($data) || !is_array($data)) {
-                $resource = new OrderDeliveryOptionsV1Resource([
+                $resource = $this->createResource([
                     'carrier'         => null,
                     'packageType'     => null,
                     'deliveryType'    => null,
@@ -69,10 +74,8 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
                 ]);
             } else {
                 $adapter  = DeliveryOptionsAdapterFactory::create($data);
-                $resource = new OrderDeliveryOptionsV1Resource($handler->transform($adapter));
+                $resource = $this->createResource($handler->transform($adapter));
             }
-
-            $this->setNegotiatedVersion($resource::getVersion());
 
             return json_encode($resource->format());
         } catch (WebapiException $e) {

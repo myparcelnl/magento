@@ -6,28 +6,50 @@ namespace MyParcelNL\Magento\Model\Rest;
 
 class VersionContext
 {
-    private ?int $negotiatedVersion = null;
-    private array $supportedVersions = [];
+    private ?int $negotiatedRequestVersion = null;
+    private ?int $negotiatedResponseVersion = null;
+    private array $supportedRequestVersions = [];
+    private array $supportedResponseVersions = [];
     private bool $isError = false;
 
-    public function setNegotiatedVersion(int $version): void
+    public function setNegotiatedRequestVersion(int $version): void
     {
-        $this->negotiatedVersion = $version;
+        $this->negotiatedRequestVersion = $version;
     }
 
-    public function getNegotiatedVersion(): ?int
+    public function getNegotiatedRequestVersion(): ?int
     {
-        return $this->negotiatedVersion;
+        return $this->negotiatedRequestVersion;
     }
 
-    public function setSupportedVersions(array $versions): void
+    public function setNegotiatedResponseVersion(int $version): void
     {
-        $this->supportedVersions = $versions;
+        $this->negotiatedResponseVersion = $version;
     }
 
-    public function getSupportedVersions(): array
+    public function getNegotiatedResponseVersion(): ?int
     {
-        return $this->supportedVersions;
+        return $this->negotiatedResponseVersion;
+    }
+
+    public function setSupportedRequestVersions(array $versions): void
+    {
+        $this->supportedRequestVersions = $versions;
+    }
+
+    public function getSupportedRequestVersions(): array
+    {
+        return $this->supportedRequestVersions;
+    }
+
+    public function setSupportedResponseVersions(array $versions): void
+    {
+        $this->supportedResponseVersions = $versions;
+    }
+
+    public function getSupportedResponseVersions(): array
+    {
+        return $this->supportedResponseVersions;
     }
 
     public function setError(bool $isError): void
@@ -42,6 +64,8 @@ class VersionContext
 
     public function isActive(): bool
     {
-        return $this->negotiatedVersion !== null || $this->isError;
+        return $this->negotiatedRequestVersion !== null
+            || $this->negotiatedResponseVersion !== null
+            || $this->isError;
     }
 }

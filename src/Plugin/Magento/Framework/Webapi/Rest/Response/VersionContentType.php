@@ -36,14 +36,14 @@ class VersionContentType
             return $result;
         }
 
-        $supportedVersions = $this->versionContext->getSupportedVersions();
+        $supportedVersions = $this->versionContext->getSupportedResponseVersions();
         $mediaType         = $this->versionContext->isError()
             ? self::ERROR_MEDIA_TYPE
             : self::SUCCESS_MEDIA_TYPE;
 
-        // If a pre-negotiation error (406/409) is raised in resolveVersion(), no version has been
-        // negotiated; fall back to the lowest supported major version per ADR 4.1.
-        $negotiatedVersion = $this->versionContext->getNegotiatedVersion()
+        // If a pre-negotiation error (406/409) is raised in negotiate(), no response version has been
+        // negotiated; fall back to the lowest supported response version per ADR §4.1.
+        $negotiatedVersion = $this->versionContext->getNegotiatedResponseVersion()
             ?? (empty($supportedVersions) ? null : min($supportedVersions));
 
         if ($negotiatedVersion !== null) {
