@@ -35,7 +35,14 @@ php -dmemory_limit=-1 bin/magento setup:upgrade
 ```
 
 ### Testing
-No test framework is currently set up. Existing unit tests are in `Test/Unit/`.
+```bash
+vendor/bin/pest            # run all tests
+vendor/bin/pest --filter=WeightTest  # run a specific test
+```
+- **Framework:** Pest v1 (on PHPUnit) with Mockery for mocking
+- **Config:** `phpunit.xml.dist`, bootstrap in `Tests/bootstrap.php`
+- **Tests live in:** `Tests/Unit/` (new location; legacy `Test/Unit/` was removed)
+- **CI:** GitHub Actions runs Pest across PHP 7.4–8.3 on push/PR to main/develop (`.github/workflows/test.yml`)
 
 ## Architecture
 
@@ -62,9 +69,33 @@ Magento Order → Adapter → SDK Consignment → MyParcel API
 ### Extension Points
 
 - **Observers** (`etc/events.xml`): `sales_order_shipment_save_before` (create concept), `sales_order_invoice_pay` (auto-concept), `sales_model_service_quote_submit_before` (save delivery options)
-- **Plugins** (`src/Plugin/`): Order view buttons, shipment email delay until barcode exists, delivery options in REST API responses
-- **REST API** (`etc/webapi.xml`): `/V1/delivery_options/get`, `/V1/delivery_options/config`, `/V1/shipping_methods`, `/V1/package_type`
+- **Plugins** (`src/Plugin/`): Order view buttons, shipment email delay until barcode exists, delivery options in REST API responses, custom JSON renderer for versioned responses
+- **REST API** (`etc/webapi.xml`):
+  - For checkout: `/V1/delivery_options/get`, `/V1/delivery_options/config`, `/V1/shipping_methods`, `/V1/package_type` (anonymous)
+  - Admin info: `/V1/myparcel/delivery-options` (ACL-protected, versioned — see REST API Framework below)
 - **Virtual types** in `etc/di.xml`: Carrier-specific insurance configurations — follow this pattern when adding carrier features
+
+### REST API Framework (`src/Model/Rest/`)
+
+New versioned REST endpoints follow a structured pattern:
+
+- **AbstractEndpoint**: Base class handling version negotiation via `Content-Type` and `Accept` headers (per ADR-0011). Subclasses define `getRequestHandlers()` and `getResourceHandlers()` keyed by version number.
+- **VersionContext**: Shared state for negotiated request/response versions, used by response plugins to set correct `Content-Type`.
+- **Request handlers** (`Request/`): Parse and transform SDK data into a version-specific array (e.g., `OrderDeliveryOptionsV1Request`).
+- **Resource handlers** (`Resource/`): Format the response array, filtering null values (e.g., `OrderDeliveryOptionsV1Resource`).
+- **Transformers** (`Transformer/`): Convert individual SDK fields (carrier, date, delivery type, package type, pickup location, shipment options). Named by convention: `{Field}Transformer`.
+- **ProblemDetails**: RFC 9457 error responses (`application/problem+json`).
+- **Response plugins** (`src/Plugin/Webapi/Rest/Response/`): `VersionContentType` sets versioned content type headers; `ProblemDetailsError` renders errors as RFC 9457.
+
+To add a new versioned endpoint: create an interface in `Api/`, an endpoint class extending `AbstractEndpoint`, request/resource classes per version, and register in `etc/webapi.xml` + `etc/di.xml`.
+
+### Documentation (`docs/`)
+
+- **ADRs** (`docs/architectural-decisions/`): Architectural Decision Records for significant design choices
+- **FRs** (`docs/functional-requirements/`): Functional requirement specifications
+- **TRs** (`docs/technical-requirements/`): Technical requirement specifications
+- **OpenAPI** (`docs/openapi/`): API specification files
+- **Templates** (`docs/templates/`): Document templates for BRs, FRs, TRs, ADRs, and user stories
 
 ### Configuration
 
@@ -88,12 +119,12 @@ Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_da
 
 1. Add admin settings and defaults in `etc/dynamic_settings.json`
 2. Add virtual types for insurance in `etc/di.xml`
-3Update carrier detection in relevant services
+3. Update carrier detection in relevant services
 
 ## Dependencies
 
 - PHP 7.4+ or 8.0+
-- MyParcel SDK v10.4+
+- MyParcel SDK v11 (beta)
 - Magento Framework 101.0.8+ or 102.0.1+
 - Yarn 4.0.1 (frontend)
 
