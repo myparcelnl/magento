@@ -9,14 +9,8 @@ use Magento\Framework\Webapi\Rest\Response\Renderer\Json as JsonRenderer;
 
 class Json
 {
-    /**
-     * @var Request
-     */
-    private $request;
+    private Request $request;
 
-    /**
-     * @param Request $request
-     */
     public function __construct(Request $request)
     {
         $this->request = $request;

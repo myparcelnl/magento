@@ -300,7 +300,7 @@ it('Content-Type drives request while Accept drives response', function () {
     $v1       = makeRequestHandler();
     $v2       = makeRequestHandler();
     $ctx      = new VersionContext();
-    // Content-Type=v1, Accept lists v1 and v2 — first Accept version is v1
+    // Content-Type=v1, Accept lists v2 and v1 — first Accept version is v2
     $endpoint = makeEndpoint(
         [
             'Content-Type' => 'application/json; version=1',

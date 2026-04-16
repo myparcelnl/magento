@@ -15,6 +15,7 @@ class DateTransformer
         try {
             $timezone = new \DateTimeZone('Europe/Amsterdam');
             $dateTime = new \DateTimeImmutable($date, $timezone);
+            // Not redundant: the constructor ignores $timezone when the input has an embedded offset.
             $dateTime = $dateTime->setTimezone($timezone);
 
             return $dateTime->format('c');

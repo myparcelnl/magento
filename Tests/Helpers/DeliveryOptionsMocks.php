@@ -58,7 +58,7 @@ function mockFullAdapter(array $shipmentOverrides = []): AbstractDeliveryOptions
     $mock->shouldReceive('getCarrier')->andReturn('postnl');
     $mock->shouldReceive('getPackageType')->andReturn('package');
     $mock->shouldReceive('getDeliveryType')->andReturn('standard');
-    $mock->shouldReceive('getDate')->andReturn('2025-03-15');
+    $mock->shouldReceive('getDate')->andReturn(date('Y-m-d', strtotime('+7 days')));
     $mock->shouldReceive('getShipmentOptions')->andReturn(mockShipmentOptions(array_merge([
         'hasSignature'       => true,
         'hasOnlyRecipient'   => true,
