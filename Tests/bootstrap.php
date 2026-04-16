@@ -7,6 +7,12 @@ $moduleAutoloader = __DIR__ . '/../vendor/autoload.php';
 // Local Magento: root has everything (module vendor/ should not exist)
 $magentoAutoloader = __DIR__ . '/../../../../../vendor/autoload.php';
 
+// Only one autoloader may be loaded: the module vendor ships PHPUnit 10 (via
+// Pest v2) while the Magento root vendor ships PHPUnit 9. Loading both causes
+// class conflicts (e.g. TestSuite::empty() missing). Prefer the module vendor
+// when it exists (CI and local dev with composer install); fall back to the
+// Magento root for running tests from the Magento installation without a
+// module-level vendor directory.
 if (file_exists($moduleAutoloader)) {
     require $moduleAutoloader;
 } elseif (file_exists($magentoAutoloader)) {

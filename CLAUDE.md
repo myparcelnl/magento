@@ -42,7 +42,7 @@ vendor/bin/pest --filter=WeightTest  # run a specific test
 - **Framework:** Pest v1 (on PHPUnit) with Mockery for mocking
 - **Config:** `phpunit.xml.dist`, bootstrap in `Tests/bootstrap.php`
 - **Tests live in:** `Tests/Unit/` (new location; legacy `Test/Unit/` was removed)
-- **CI:** GitHub Actions runs Pest across PHP 7.4–8.3 on push/PR to main/develop (`.github/workflows/test.yml`)
+- **CI:** GitHub Actions runs Pest across PHP 8.1–8.4 on push/PR to main/develop (`.github/workflows/test.yml`). PHP 7.4 and 8.0 are not tested (no compatible `magento/framework` resolves on those versions).
 
 ## Architecture
 
@@ -94,7 +94,7 @@ To add a new versioned endpoint: create an interface in `Api/`, an endpoint clas
 - **ADRs** (`docs/architectural-decisions/`): Architectural Decision Records for significant design choices
 - **FRs** (`docs/functional-requirements/`): Functional requirement specifications
 - **TRs** (`docs/technical-requirements/`): Technical requirement specifications
-- **OpenAPI** — the canonical API spec is at `https://api.myparcel.nl/openapi.min.json`
+- **OpenAPI** — Core API spec: `https://api.myparcel.nl/openapi.min.json`; Order API spec (enums, ShipmentOptions): `https://order.api.myparcel.nl/openapi.json`
 - **Templates** (`docs/templates/`): Document templates for BRs, FRs, TRs, ADRs, and user stories
 
 ### Configuration
@@ -123,7 +123,7 @@ Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_da
 
 ## Dependencies
 
-- PHP 7.4+ or 8.0+
+- PHP 7.4+ or 8.0+ (CI tests run on 8.1–8.4 only; 7.4 and 8.0 are compatible but untested)
 - MyParcel SDK v11 (beta)
 - Magento Framework 101.0.8+ or 102.0.1+
 - Yarn 4.0.1 (frontend)
