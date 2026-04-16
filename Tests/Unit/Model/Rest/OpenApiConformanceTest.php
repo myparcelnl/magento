@@ -242,7 +242,9 @@ it('local spec deliveryType enum matches SDK DeliveryType enum', function () {
 it('local spec shipmentOptions fields match the transformer output fields', function () {
     $specFields = specPropertyNames('ShipmentOptions');
 
-    // The transformer's possible output fields: resolved via OrderApiShipmentOptions::attributeMap()
+    // Intentionally duplicated from ShipmentOptionsTransformer::BOOLEAN_GETTER_TO_ORDER_API_KEY.
+    // This creates a three-way cross-check (test ↔ transformer ↔ spec) rather than a two-way
+    // sync. Reading from the constant would make this a tautology — keep the list explicit.
     $attributeMap  = OrderApiShipmentOptions::attributeMap();
     $booleanFields = [
         'requires_age_verification', 'requires_signature', 'recipient_only_delivery',
