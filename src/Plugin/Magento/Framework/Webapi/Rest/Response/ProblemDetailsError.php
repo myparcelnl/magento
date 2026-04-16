@@ -9,9 +9,12 @@ use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;
 use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 use MyParcelNL\Magento\Model\Rest\VersionContext;
+use MyParcelNL\Magento\Plugin\Magento\Framework\Webapi\Rest\MyParcelEndpointAware;
 
 class ProblemDetailsError
 {
+    use MyParcelEndpointAware;
+
     private Request $request;
     private VersionContext $versionContext;
 
@@ -43,24 +46,15 @@ class ProblemDetailsError
             ? $exception->getMessage()
             : 'An unexpected error occurred';
 
-        $problem = new ProblemDetails(
-            null,
-            $httpCode,
-            ProblemDetails::titleForStatus($httpCode),
-            $detail
-        );
+        $problem = ProblemDetails::fromStatus($httpCode, $detail);
 
         $this->versionContext->setError(true);
 
-        $subject->setBody(json_encode($problem, JSON_THROW_ON_ERROR));
+        $subject->setBody($problem->toJsonString());
         $subject->setHttpResponseCode($httpCode);
         $subject->setHeader('Content-Type', ProblemDetails::CONTENT_TYPE, true);
 
         return $subject;
     }
 
-    private function isMyParcelEndpoint(): bool
-    {
-        return str_contains($this->request->getPathInfo() ?? '', 'myparcel/');
-    }
 }

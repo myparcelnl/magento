@@ -50,10 +50,8 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
             $handler = $this->negotiate();
 
             if ($orderId <= 0) {
-                return $this->errorResponse(new ProblemDetails(
-                    null,
+                return $this->errorResponse(ProblemDetails::fromStatus(
                     400,
-                    'Invalid Request',
                     'Request validation failed: orderId'
                 ));
             }
@@ -79,26 +77,20 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
 
             return json_encode($resource->format());
         } catch (WebapiException $e) {
-            return $this->errorResponse(new ProblemDetails(
-                null,
+            return $this->errorResponse(ProblemDetails::fromStatus(
                 $e->getHttpCode(),
-                ProblemDetails::titleForStatus($e->getHttpCode()),
                 $e->getMessage()
             ));
         } catch (NoSuchEntityException $e) {
-            return $this->errorResponse(new ProblemDetails(
-                null,
+            return $this->errorResponse(ProblemDetails::fromStatus(
                 404,
-                'Order Not Found',
                 sprintf('Order with id %d was not found', $orderId)
             ));
         } catch (\Throwable $e) {
             Logger::error($e->getMessage());
 
-            return $this->errorResponse(new ProblemDetails(
-                null,
+            return $this->errorResponse(ProblemDetails::fromStatus(
                 500,
-                'Internal Server Error',
                 'An unexpected error occurred'
             ));
         }

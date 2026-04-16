@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Rest\Transformer;
 
 use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\PackageType as OrderApiPackageType;
-use MyParcelNL\Sdk\Support\Str;
 
-class PackageTypeTransformer
+class PackageTypeTransformer extends AbstractEnumTransformer
 {
     /**
      * Magento package-type aliases that do not normalise to an Order API
@@ -18,23 +17,13 @@ class PackageTypeTransformer
         'package_small' => OrderApiPackageType::SMALL_PACKAGE,
     ];
 
-    public function transform(?string $packageType): ?string
+    protected function getAllowableValues(): array
     {
-        if ($packageType === null) {
-            return null;
-        }
+        return OrderApiPackageType::getAllowableEnumValues();
+    }
 
-        $allowed = OrderApiPackageType::getAllowableEnumValues();
-
-        if (in_array($packageType, $allowed, true)) {
-            return $packageType;
-        }
-
-        $converted = Str::upper(Str::snake($packageType));
-        if (in_array($converted, $allowed, true)) {
-            return $converted;
-        }
-
-        return self::LEGACY_NAME_MAP[$packageType] ?? null;
+    protected function resolveFallback(string $original, string $converted, array $allowed): ?string
+    {
+        return self::LEGACY_NAME_MAP[$original] ?? null;
     }
 }

@@ -127,7 +127,7 @@ abstract class AbstractEndpoint
         $this->response->setHttpResponseCode($problem->getStatus());
         $this->versionContext->setError(true);
 
-        return json_encode($problem, JSON_THROW_ON_ERROR);
+        return $problem->toJsonString();
     }
 
     private function extractVersionFromHeader(string $headerName): ?int

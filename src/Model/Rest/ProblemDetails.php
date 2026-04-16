@@ -41,6 +41,16 @@ class ProblemDetails implements \JsonSerializable
         return self::TITLE_MAP[$status] ?? 'Error';
     }
 
+    public static function fromStatus(int $status, string $detail, ?string $type = null): self
+    {
+        return new self($type, $status, self::titleForStatus($status), $detail);
+    }
+
+    public function toJsonString(): string
+    {
+        return json_encode($this, JSON_THROW_ON_ERROR);
+    }
+
     public function jsonSerialize(): array
     {
         return [

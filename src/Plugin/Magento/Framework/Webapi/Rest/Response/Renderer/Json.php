@@ -6,9 +6,12 @@ namespace MyParcelNL\Magento\Plugin\Magento\Framework\Webapi\Rest\Response\Rende
 
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response\Renderer\Json as JsonRenderer;
+use MyParcelNL\Magento\Plugin\Magento\Framework\Webapi\Rest\MyParcelEndpointAware;
 
 class Json
 {
+    use MyParcelEndpointAware;
+
     private Request $request;
 
     public function __construct(Request $request)
@@ -34,11 +37,4 @@ class Json
         return $result;
     }
 
-    /**
-     * @return bool
-     */
-    private function isMyParcelEndpoint(): bool
-    {
-        return str_contains($this->request->getPathInfo() ?? '', 'myparcel/');
-    }
 }
