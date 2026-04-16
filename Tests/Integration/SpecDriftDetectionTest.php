@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+use cebe\openapi\Reader;
+use cebe\openapi\spec\OpenApi;
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -55,30 +58,27 @@ function getRemotePropertyNames(string $schemaName): array
     return [];
 }
 
-function loadLocalSchema(): stdClass
+function loadLocalSpec(): OpenApi
 {
-    static $schema;
+    static $spec;
 
-    if ($schema !== null) {
-        return $schema;
+    if ($spec !== null) {
+        return $spec;
     }
 
-    $path   = __DIR__ . '/../../docs/openapi/delivery-options.schema.json';
-    $schema = json_decode(file_get_contents($path), false, 512, JSON_THROW_ON_ERROR);
+    $spec = Reader::readFromYamlFile(__DIR__ . '/../../docs/openapi/delivery-options.yaml');
 
-    return $schema;
+    return $spec;
 }
 
 function localEnumValues(string $property): array
 {
-    $enum = loadLocalSchema()->properties->$property->enum;
-
-    return array_filter($enum, fn ($v) => $v !== null);
+    return loadLocalSpec()->components->schemas['DeliveryOptions']->properties[$property]->enum;
 }
 
 function localPropertyNames(string $definition): array
 {
-    return array_keys((array) loadLocalSchema()->definitions->$definition->properties);
+    return array_keys(loadLocalSpec()->components->schemas[$definition]->properties);
 }
 
 // ---------------------------------------------------------------------------
@@ -93,11 +93,12 @@ it('local carrier enum matches the remote Order API spec', function () {
     $extraLocally    = array_diff($localValues, $remoteValues);
 
     expect($missingLocally)->toBeEmpty(
-        'Remote Order API has carriers missing from local schema: ' . implode(', ', $missingLocally)
-    );
-    expect($extraLocally)->toBeEmpty(
-        'Local schema has carriers not in remote Order API: ' . implode(', ', $extraLocally)
-    );
+        'Remote Order API has carriers missing from local spec: ' . implode(', ', $missingLocally)
+    )
+                           ->and($extraLocally)->toBeEmpty(
+            'Local spec has carriers not in remote Order API: ' . implode(', ', $extraLocally)
+        )
+    ;
 });
 
 it('local packageType enum matches the remote Order API spec', function () {
@@ -108,11 +109,12 @@ it('local packageType enum matches the remote Order API spec', function () {
     $extraLocally   = array_diff($localValues, $remoteValues);
 
     expect($missingLocally)->toBeEmpty(
-        'Remote Order API has package types missing from local schema: ' . implode(', ', $missingLocally)
-    );
-    expect($extraLocally)->toBeEmpty(
-        'Local schema has package types not in remote Order API: ' . implode(', ', $extraLocally)
-    );
+        'Remote Order API has package types missing from local spec: ' . implode(', ', $missingLocally)
+    )
+                           ->and($extraLocally)->toBeEmpty(
+            'Local spec has package types not in remote Order API: ' . implode(', ', $extraLocally)
+        )
+    ;
 });
 
 it('local deliveryType enum matches the remote Order API spec', function () {
@@ -123,11 +125,12 @@ it('local deliveryType enum matches the remote Order API spec', function () {
     $extraLocally   = array_diff($localValues, $remoteValues);
 
     expect($missingLocally)->toBeEmpty(
-        'Remote Order API has delivery types missing from local schema: ' . implode(', ', $missingLocally)
-    );
-    expect($extraLocally)->toBeEmpty(
-        'Local schema has delivery types not in remote Order API: ' . implode(', ', $extraLocally)
-    );
+        'Remote Order API has delivery types missing from local spec: ' . implode(', ', $missingLocally)
+    )
+                           ->and($extraLocally)->toBeEmpty(
+            'Local spec has delivery types not in remote Order API: ' . implode(', ', $extraLocally)
+        )
+    ;
 });
 
 it('local shipmentOptions fields all exist in the remote Order API spec', function () {
@@ -140,6 +143,6 @@ it('local shipmentOptions fields all exist in the remote Order API spec', functi
     $extraLocally = array_diff($localFields, $remoteFields);
 
     expect($extraLocally)->toBeEmpty(
-        'Local schema has ShipmentOptions fields not in remote Order API: ' . implode(', ', $extraLocally)
+        'Local spec has ShipmentOptions fields not in remote Order API: ' . implode(', ', $extraLocally)
     );
 });

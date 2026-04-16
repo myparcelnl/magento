@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
-use JsonSchema\Validator;
+use cebe\openapi\Reader;
+use cebe\openapi\spec\OpenApi;
+use League\OpenAPIValidation\PSR7\OperationAddress;
+use League\OpenAPIValidation\PSR7\ValidatorBuilder;
 use MyParcelNL\Magento\Model\Rest\Request\OrderDeliveryOptionsV1Request;
 use MyParcelNL\Magento\Model\Rest\Transformer\CarrierTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\DateTransformer;
@@ -14,50 +17,72 @@ use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\Carrier as OrderApiCarrier;
 use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\DeliveryType as OrderApiDeliveryType;
 use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\PackageType as OrderApiPackageType;
 use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\ShipmentOptions as OrderApiShipmentOptions;
+use Nyholm\Psr7\Response;
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-function loadSchema(): stdClass
+function specPath(): string
 {
-    static $schema;
+    return __DIR__ . '/../../../../docs/openapi/delivery-options.yaml';
+}
 
-    if ($schema !== null) {
-        return $schema;
+function loadSpec(): OpenApi
+{
+    static $spec;
+
+    if ($spec !== null) {
+        return $spec;
     }
 
-    $path = __DIR__ . '/../../../../docs/openapi/delivery-options.schema.json';
-    $schema = json_decode(file_get_contents($path), false, 512, JSON_THROW_ON_ERROR);
+    $spec = Reader::readFromYamlFile(specPath());
 
-    return $schema;
+    return $spec;
 }
 
-function schemaEnumValues(string $property): array
+function specEnumValues(string $property): array
 {
-    $enum = loadSchema()->properties->$property->enum;
-
-    return array_filter($enum, fn ($v) => $v !== null);
+    return loadSpec()->components->schemas['DeliveryOptions']->properties[$property]->enum;
 }
 
-function schemaPropertyNames(string $definition): array
+function specPropertyNames(string $schemaName): array
 {
-    return array_keys((array) loadSchema()->definitions->$definition->properties);
+    return array_keys(loadSpec()->components->schemas[$schemaName]->properties);
 }
 
-function validateAgainstSchema($data): array
+function validateAgainstSpec(array $data): array
 {
-    $validator = new Validator();
-    $validator->validate($data, loadSchema());
+    static $validator;
 
-    if ($validator->isValid()) {
-        return [];
+    if ($validator === null) {
+        $validator = (new ValidatorBuilder())
+            ->fromYamlFile(specPath())
+            ->getResponseValidator();
     }
 
-    return array_map(
-        fn ($error) => sprintf('[%s] %s', $error['property'], $error['message']),
-        $validator->getErrors()
+    $operation = new OperationAddress('/V1/myparcel/delivery-options', 'get');
+    $response  = new Response(
+        200,
+        ['Content-Type' => 'application/json'],
+        json_encode($data, JSON_THROW_ON_ERROR),
     );
+
+    try {
+        $validator->validate($operation, $response);
+
+        return [];
+    } catch (\League\OpenAPIValidation\PSR7\Exception\ValidationFailed $e) {
+        $messages = [$e->getMessage()];
+        $prev     = $e->getPrevious();
+
+        while ($prev !== null) {
+            $messages[] = $prev->getMessage();
+            $prev       = $prev->getPrevious();
+        }
+
+        return $messages;
+    }
 }
 
 function buildRequestHandler(): OrderDeliveryOptionsV1Request
@@ -72,29 +97,24 @@ function buildRequestHandler(): OrderDeliveryOptionsV1Request
     );
 }
 
-function transformToObject(array $response): stdClass
-{
-    return json_decode(json_encode($response), false, 512, JSON_THROW_ON_ERROR);
-}
-
 // ---------------------------------------------------------------------------
 // Schema validation — full pipeline
 // ---------------------------------------------------------------------------
 
 it('full response validates against the DeliveryOptions schema', function () {
     $handler  = buildRequestHandler();
-    $response = transformToObject($handler->transform(mockFullAdapter()));
+    $response = $handler->transform(mockFullAdapter());
 
-    $errors = validateAgainstSchema($response);
+    $errors = validateAgainstSpec($response);
 
     expect($errors)->toBeEmpty(implode("\n", $errors));
 });
 
 it('minimal (all-null) response validates against the DeliveryOptions schema', function () {
     $handler  = buildRequestHandler();
-    $response = transformToObject($handler->transform(mockMinimalAdapter()));
+    $response = $handler->transform(mockMinimalAdapter());
 
-    $errors = validateAgainstSchema($response);
+    $errors = validateAgainstSpec($response);
 
     expect($errors)->toBeEmpty(implode("\n", $errors));
 });
@@ -112,8 +132,8 @@ it('response with only shipmentOptions validates against the schema', function (
     ]));
     $adapter->shouldReceive('getPickupLocation')->andReturn(null);
 
-    $response = transformToObject(buildRequestHandler()->transform($adapter));
-    $errors   = validateAgainstSchema($response);
+    $response = buildRequestHandler()->transform($adapter);
+    $errors   = validateAgainstSpec($response);
 
     expect($errors)->toBeEmpty(implode("\n", $errors));
 });
@@ -127,14 +147,14 @@ it('response with only pickupLocation validates against the schema', function ()
     $adapter->shouldReceive('getShipmentOptions')->andReturn(null);
     $adapter->shouldReceive('getPickupLocation')->andReturn(mockPickupLocation());
 
-    $response = transformToObject(buildRequestHandler()->transform($adapter));
-    $errors   = validateAgainstSchema($response);
+    $response = buildRequestHandler()->transform($adapter);
+    $errors   = validateAgainstSpec($response);
 
     expect($errors)->toBeEmpty(implode("\n", $errors));
 });
 
 it('response with all boolean shipment options enabled validates', function () {
-    $response = transformToObject(buildRequestHandler()->transform(mockFullAdapter([
+    $response = buildRequestHandler()->transform(mockFullAdapter([
         'hasAgeCheck'        => true,
         'hasSignature'       => true,
         'hasOnlyRecipient'   => true,
@@ -147,68 +167,71 @@ it('response with all boolean shipment options enabled validates', function () {
         'hasCollect'         => true,
         'getInsurance'       => 100,
         'getLabelDescription' => 'Test label',
-    ])));
+    ]));
 
-    $errors = validateAgainstSchema($response);
+    $errors = validateAgainstSpec($response);
 
     expect($errors)->toBeEmpty(implode("\n", $errors));
 });
 
 // ---------------------------------------------------------------------------
-// Bidirectional enum conformance — local schema vs SDK
+// Bidirectional enum conformance — local spec vs SDK
 // ---------------------------------------------------------------------------
 
-it('local schema carrier enum matches SDK Carrier enum', function () {
-    $sdkValues    = OrderApiCarrier::getAllowableEnumValues();
-    $schemaValues = schemaEnumValues('carrier');
+it('local spec carrier enum matches SDK Carrier enum', function () {
+    $sdkValues  = OrderApiCarrier::getAllowableEnumValues();
+    $specValues = specEnumValues('carrier');
 
-    $missingFromSchema = array_diff($sdkValues, $schemaValues);
-    $extraInSchema     = array_diff($schemaValues, $sdkValues);
+    $missingFromSpec = array_diff($sdkValues, $specValues);
+    $extraInSpec     = array_diff($specValues, $sdkValues);
 
-    expect($missingFromSchema)->toBeEmpty(
-        'SDK carriers missing from local schema: ' . implode(', ', $missingFromSchema)
-    );
-    expect($extraInSchema)->toBeEmpty(
-        'Local schema has carriers not in SDK: ' . implode(', ', $extraInSchema)
-    );
+    expect($missingFromSpec)->toBeEmpty(
+        'SDK carriers missing from local spec: ' . implode(', ', $missingFromSpec)
+    )
+                            ->and($extraInSpec)->toBeEmpty(
+            'Local spec has carriers not in SDK: ' . implode(', ', $extraInSpec)
+        )
+    ;
 });
 
-it('local schema packageType enum matches SDK PackageType enum', function () {
-    $sdkValues    = OrderApiPackageType::getAllowableEnumValues();
-    $schemaValues = schemaEnumValues('packageType');
+it('local spec packageType enum matches SDK PackageType enum', function () {
+    $sdkValues  = OrderApiPackageType::getAllowableEnumValues();
+    $specValues = specEnumValues('packageType');
 
-    $missingFromSchema = array_diff($sdkValues, $schemaValues);
-    $extraInSchema     = array_diff($schemaValues, $sdkValues);
+    $missingFromSpec = array_diff($sdkValues, $specValues);
+    $extraInSpec     = array_diff($specValues, $sdkValues);
 
-    expect($missingFromSchema)->toBeEmpty(
-        'SDK package types missing from local schema: ' . implode(', ', $missingFromSchema)
-    );
-    expect($extraInSchema)->toBeEmpty(
-        'Local schema has package types not in SDK: ' . implode(', ', $extraInSchema)
-    );
+    expect($missingFromSpec)->toBeEmpty(
+        'SDK package types missing from local spec: ' . implode(', ', $missingFromSpec)
+    )
+                            ->and($extraInSpec)->toBeEmpty(
+            'Local spec has package types not in SDK: ' . implode(', ', $extraInSpec)
+        )
+    ;
 });
 
-it('local schema deliveryType enum matches SDK DeliveryType enum', function () {
-    $sdkValues    = OrderApiDeliveryType::getAllowableEnumValues();
-    $schemaValues = schemaEnumValues('deliveryType');
+it('local spec deliveryType enum matches SDK DeliveryType enum', function () {
+    $sdkValues  = OrderApiDeliveryType::getAllowableEnumValues();
+    $specValues = specEnumValues('deliveryType');
 
-    $missingFromSchema = array_diff($sdkValues, $schemaValues);
-    $extraInSchema     = array_diff($schemaValues, $sdkValues);
+    $missingFromSpec = array_diff($sdkValues, $specValues);
+    $extraInSpec     = array_diff($specValues, $sdkValues);
 
-    expect($missingFromSchema)->toBeEmpty(
-        'SDK delivery types missing from local schema: ' . implode(', ', $missingFromSchema)
-    );
-    expect($extraInSchema)->toBeEmpty(
-        'Local schema has delivery types not in SDK: ' . implode(', ', $extraInSchema)
-    );
+    expect($missingFromSpec)->toBeEmpty(
+        'SDK delivery types missing from local spec: ' . implode(', ', $missingFromSpec)
+    )
+                            ->and($extraInSpec)->toBeEmpty(
+            'Local spec has delivery types not in SDK: ' . implode(', ', $extraInSpec)
+        )
+    ;
 });
 
 // ---------------------------------------------------------------------------
-// ShipmentOptions field conformance — local schema vs transformer
+// ShipmentOptions field conformance — local spec vs transformer
 // ---------------------------------------------------------------------------
 
-it('local schema shipmentOptions fields match the transformer output fields', function () {
-    $schemaFields = schemaPropertyNames('ShipmentOptions');
+it('local spec shipmentOptions fields match the transformer output fields', function () {
+    $specFields = specPropertyNames('ShipmentOptions');
 
     // The transformer's possible output fields: resolved via OrderApiShipmentOptions::attributeMap()
     $attributeMap  = OrderApiShipmentOptions::attributeMap();
@@ -222,13 +245,14 @@ it('local schema shipmentOptions fields match the transformer output fields', fu
     $transformerFields[] = $attributeMap['insurance'];
     $transformerFields[] = $attributeMap['custom_label_text'];
 
-    $missingFromSchema      = array_diff($transformerFields, $schemaFields);
-    $extraInSchema          = array_diff($schemaFields, $transformerFields);
+    $missingFromSpec = array_diff($transformerFields, $specFields);
+    $extraInSpec     = array_diff($specFields, $transformerFields);
 
-    expect($missingFromSchema)->toBeEmpty(
-        'Transformer produces fields missing from local schema: ' . implode(', ', $missingFromSchema)
-    );
-    expect($extraInSchema)->toBeEmpty(
-        'Local schema has ShipmentOptions fields the transformer cannot produce: ' . implode(', ', $extraInSchema)
-    );
+    expect($missingFromSpec)->toBeEmpty(
+        'Transformer produces fields missing from local spec: ' . implode(', ', $missingFromSpec)
+    )
+                            ->and($extraInSpec)->toBeEmpty(
+            'Local spec has ShipmentOptions fields the transformer cannot produce: ' . implode(', ', $extraInSpec)
+        )
+    ;
 });
