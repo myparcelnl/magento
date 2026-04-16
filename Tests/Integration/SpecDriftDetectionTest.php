@@ -30,13 +30,28 @@ function getRemoteOrderApiSpec(): array
 
 function getRemoteEnum(string $schemaName): array
 {
-    return getRemoteOrderApiSpec()['components']['schemas'][$schemaName]['enum'] ?? [];
+    $schemas = getRemoteOrderApiSpec()['components']['schemas'] ?? [];
+
+    if (! isset($schemas[$schemaName])) {
+        test()->fail("Remote schema '{$schemaName}' not found at components.schemas — the remote spec may have restructured.");
+    }
+
+    if (! isset($schemas[$schemaName]['enum'])) {
+        test()->fail("Remote schema '{$schemaName}' exists but has no 'enum' key — it may have been wrapped in allOf or otherwise restructured.");
+    }
+
+    return $schemas[$schemaName]['enum'];
 }
 
 function getRemotePropertyNames(string $schemaName): array
 {
     $schemas = getRemoteOrderApiSpec()['components']['schemas'] ?? [];
-    $schema  = $schemas[$schemaName] ?? [];
+
+    if (! isset($schemas[$schemaName])) {
+        test()->fail("Remote schema '{$schemaName}' not found at components.schemas — the remote spec may have restructured.");
+    }
+
+    $schema = $schemas[$schemaName];
 
     if (isset($schema['properties'])) {
         return array_keys($schema['properties']);
