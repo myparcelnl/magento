@@ -185,39 +185,46 @@ components:
           nullable: true
           description: Carrier identifier.
           enum:
-            - POSTNL
+            - BOL
             - BPOST
+            - BRT
+            - CHEAP_CARGO
+            - DHL_EUROPLUS
             - DHL_FOR_YOU
             - DHL_PARCEL_CONNECT
-            - DHL_EUROPLUS
-            - UPS_STANDARD
-            - UPS_EXPRESS_SAVER
-            - BOL
-            - CHEAP_CARGO
             - DPD
             - GLS
-            - BRT
+            - INPOST
+            - POSTNL
+            - POSTE_ITALIANE
             - TRUNKRS
+            - UPS_EXPRESS_SAVER
+            - UPS_STANDARD
         packageType:
           type: string
           nullable: true
           description: Package type for the shipment.
           enum:
-            - PACKAGE
-            - MAILBOX
-            - UNFRANKED
             - DIGITAL_STAMP
+            - ENVELOPE
+            - MAILBOX
+            - PACKAGE
+            - PALLET
             - SMALL_PACKAGE
+            - UNFRANKED
         deliveryType:
           type: string
           nullable: true
           description: Delivery method selected by the customer.
           enum:
-            - STANDARD_DELIVERY
-            - MORNING_DELIVERY
+            - EARLY_MORNING_DELIVERY
             - EVENING_DELIVERY
-            - PICKUP_DELIVERY
             - EXPRESS_DELIVERY
+            - MORNING_DELIVERY
+            - PICKUP_DELIVERY
+            - PICKUP_EXPRESS_DELIVERY
+            - SAME_DAY_DELIVERY
+            - STANDARD_DELIVERY
         date:
           type: string
           format: date-time

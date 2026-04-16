@@ -3,35 +3,13 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Rest\Transformer\PickupLocationTransformer;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractPickupLocationAdapter;
-
-function pickupLocationMock(array $overrides = []): AbstractPickupLocationAdapter
-{
-    $defaults = [
-        'getLocationCode'    => 'LOC-1',
-        'getLocationName'    => 'Test location',
-        'getRetailNetworkId' => 'NET-1',
-        'getStreet'          => 'Main street',
-        'getNumber'          => '42',
-        'getPostalCode'      => '1234AB',
-        'getCity'            => 'Amsterdam',
-        'getCountry'         => 'NL',
-    ];
-
-    $mock = Mockery::mock(AbstractPickupLocationAdapter::class);
-    foreach (array_merge($defaults, $overrides) as $method => $value) {
-        $mock->shouldReceive($method)->andReturn($value);
-    }
-
-    return $mock;
-}
 
 it('returns null for null input', function () {
     expect((new PickupLocationTransformer())->transform(null))->toBeNull();
 });
 
 it('maps adapter getters to the output object', function () {
-    $result = (new PickupLocationTransformer())->transform(pickupLocationMock());
+    $result = (new PickupLocationTransformer())->transform(mockPickupLocation());
 
     expect($result)->toBeObject();
     expect($result->locationCode)->toBe('LOC-1');
@@ -46,18 +24,18 @@ it('maps adapter getters to the output object', function () {
     expect($result->address->cc)->toBe('NL');
 });
 
-it('omits fields the adapter cannot supply', function () {
-    $result = (new PickupLocationTransformer())->transform(pickupLocationMock());
+it('includes reserved nullable fields as null', function () {
+    $result = (new PickupLocationTransformer())->transform(mockPickupLocation());
 
-    expect(property_exists($result, 'type'))->toBeFalse();
-    expect(property_exists($result->address, 'numberSuffix'))->toBeFalse();
-    expect(property_exists($result->address, 'boxNumber'))->toBeFalse();
-    expect(property_exists($result->address, 'state'))->toBeFalse();
-    expect(property_exists($result->address, 'region'))->toBeFalse();
+    expect($result->type)->toBeNull();
+    expect($result->address->numberSuffix)->toBeNull();
+    expect($result->address->boxNumber)->toBeNull();
+    expect($result->address->state)->toBeNull();
+    expect($result->address->region)->toBeNull();
 });
 
 it('propagates a null country as cc', function () {
-    $result = (new PickupLocationTransformer())->transform(pickupLocationMock(['getCountry' => null]));
+    $result = (new PickupLocationTransformer())->transform(mockPickupLocation(['getCountry' => null]));
 
     expect($result->address->cc)->toBeNull();
 });

@@ -32,6 +32,7 @@
     "magento/framework": ">=101.0.8 <102 || >=102.0.1"
   },
   "require-dev": {
+    "justinrainbow/json-schema": "^6.0",
     "pestphp/pest": "^2.0",
     "mockery/mockery": "^1.6"
   },

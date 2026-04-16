@@ -1,0 +1,207 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DeliveryOptions",
+  "description": "JSON Schema (draft-07) derived from delivery-options.yaml for use by justinrainbow/json-schema in unit tests. Keep in sync with the OpenAPI spec.",
+  "type": "object",
+  "required": ["carrier", "packageType", "deliveryType", "date", "shipmentOptions", "pickupLocation"],
+  "additionalProperties": false,
+  "properties": {
+    "carrier": {
+      "type": ["string", "null"],
+      "enum": [
+        "BOL",
+        "BPOST",
+        "BRT",
+        "CHEAP_CARGO",
+        "DHL_EUROPLUS",
+        "DHL_FOR_YOU",
+        "DHL_PARCEL_CONNECT",
+        "DPD",
+        "GLS",
+        "INPOST",
+        "POSTNL",
+        "POSTE_ITALIANE",
+        "TRUNKRS",
+        "UPS_EXPRESS_SAVER",
+        "UPS_STANDARD",
+        null
+      ]
+    },
+    "packageType": {
+      "type": ["string", "null"],
+      "enum": [
+        "DIGITAL_STAMP",
+        "ENVELOPE",
+        "MAILBOX",
+        "PACKAGE",
+        "PALLET",
+        "SMALL_PACKAGE",
+        "UNFRANKED",
+        null
+      ]
+    },
+    "deliveryType": {
+      "type": ["string", "null"],
+      "enum": [
+        "EARLY_MORNING_DELIVERY",
+        "EVENING_DELIVERY",
+        "EXPRESS_DELIVERY",
+        "MORNING_DELIVERY",
+        "PICKUP_DELIVERY",
+        "PICKUP_EXPRESS_DELIVERY",
+        "SAME_DAY_DELIVERY",
+        "STANDARD_DELIVERY",
+        null
+      ]
+    },
+    "date": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "shipmentOptions": {
+      "oneOf": [
+        { "$ref": "#/definitions/ShipmentOptions" },
+        { "type": "null" }
+      ]
+    },
+    "pickupLocation": {
+      "oneOf": [
+        { "$ref": "#/definitions/PickupLocation" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "definitions": {
+    "ShipmentOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "requiresAgeVerification": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "requiresSignature": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "recipientOnlyDelivery": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "oversizedPackage": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "printReturnLabelAtDropOff": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "hideSender": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "priorityDelivery": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "requiresReceiptCode": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "sameDayDelivery": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "scheduledCollection": {
+          "type": "object",
+          "maxProperties": 0
+        },
+        "insurance": {
+          "$ref": "#/definitions/Insurance"
+        },
+        "customLabelText": {
+          "$ref": "#/definitions/CustomLabelText"
+        }
+      }
+    },
+    "Insurance": {
+      "type": "object",
+      "required": ["amount", "currency"],
+      "additionalProperties": false,
+      "properties": {
+        "amount": {
+          "type": "integer"
+        },
+        "currency": {
+          "type": "string"
+        }
+      }
+    },
+    "CustomLabelText": {
+      "type": "object",
+      "required": ["text"],
+      "additionalProperties": false,
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      }
+    },
+    "PickupLocation": {
+      "type": "object",
+      "required": ["locationCode", "locationName", "retailNetworkId", "type", "address"],
+      "additionalProperties": false,
+      "properties": {
+        "locationCode": {
+          "type": "string"
+        },
+        "locationName": {
+          "type": "string"
+        },
+        "retailNetworkId": {
+          "type": "string"
+        },
+        "type": {
+          "type": ["string", "null"]
+        },
+        "address": {
+          "$ref": "#/definitions/PickupAddress"
+        }
+      }
+    },
+    "PickupAddress": {
+      "type": "object",
+      "required": ["street", "number", "postalCode", "city", "cc"],
+      "additionalProperties": false,
+      "properties": {
+        "street": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "numberSuffix": {
+          "type": ["string", "null"]
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "boxNumber": {
+          "type": ["string", "null"]
+        },
+        "city": {
+          "type": "string"
+        },
+        "cc": {
+          "type": "string"
+        },
+        "state": {
+          "type": ["string", "null"]
+        },
+        "region": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}
