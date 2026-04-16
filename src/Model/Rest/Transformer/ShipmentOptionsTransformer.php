@@ -54,7 +54,7 @@ class ShipmentOptionsTransformer
             $insuranceField = $this->resolveApiField('insurance', $attributeMap);
             if ($insuranceField !== null) {
                 $result->$insuranceField = (object) [
-                    'amount'   => $insurance * 1000000,
+                    'amount'   => $insurance * 1000000, // Convert whole amount to integer micro format
                     'currency' => 'EUR',
                 ];
             }
