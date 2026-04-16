@@ -7,11 +7,10 @@ $moduleAutoloader = __DIR__ . '/../vendor/autoload.php';
 // Local Magento: root has everything (module vendor/ should not exist)
 $magentoAutoloader = __DIR__ . '/../../../../../vendor/autoload.php';
 
-if (file_exists($magentoAutoloader)) {
-    require $magentoAutoloader;
-}
 if (file_exists($moduleAutoloader)) {
     require $moduleAutoloader;
+} elseif (file_exists($magentoAutoloader)) {
+    require $magentoAutoloader;
 }
 
 // Fallback autoloader: generate empty stubs for Magento classes that are not
