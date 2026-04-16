@@ -16,6 +16,7 @@ function makePlugin(string $pathInfo): StripVersionParameter
 function makeSubject(string $contentType): Request
 {
     $headers = Mockery::mock(\Laminas\Http\Headers::class);
+    $headers->shouldReceive('get')->andReturn(false);
     $headers->shouldReceive('addHeaderLine')->andReturnSelf();
 
     $subject = Mockery::mock(Request::class);
@@ -62,6 +63,7 @@ it('restores original header after proceed', function () {
     $plugin   = makePlugin('/rest/V1/myparcel/delivery-options');
 
     $headers = Mockery::mock(\Laminas\Http\Headers::class);
+    $headers->shouldReceive('get')->andReturn(false);
     $headers->shouldReceive('addHeaderLine')
         ->with('Content-Type', 'application/json')
         ->once()
@@ -83,6 +85,7 @@ it('restores original header even when proceed throws', function () {
     $plugin   = makePlugin('/rest/V1/myparcel/delivery-options');
 
     $headers = Mockery::mock(\Laminas\Http\Headers::class);
+    $headers->shouldReceive('get')->andReturn(false);
     $headers->shouldReceive('addHeaderLine')
         ->with('Content-Type', 'application/json')
         ->once();
