@@ -6,7 +6,7 @@
 
 ## Related ADRs
 
-- [ADR-0011 - API Versioning via Headers](../architectural-decisions/0011-api-versioning-via-headers.md) — defines the versioning strategy, header precedence, regex pattern, and default version behavior that this TR specifies measurable criteria for
+- [ADR-0011 - API Versioning via Headers](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md) — defines the versioning strategy, header precedence, regex pattern, and default version behavior that this TR specifies measurable criteria for
 
 ## Category
 

@@ -6,7 +6,7 @@
 
 ## Related ADRs
 
-- [ADR-0011 - API Versioning via Headers](../architectural-decisions/0011-api-versioning-via-headers.md) — defines the versioning strategy that this infrastructure must implement as reusable abstractions
+- [ADR-0011 - API Versioning via Headers](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md) — defines the versioning strategy that this infrastructure must implement as reusable abstractions
 
 ## Category
 

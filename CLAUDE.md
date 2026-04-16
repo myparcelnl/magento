@@ -94,7 +94,7 @@ To add a new versioned endpoint: create an interface in `Api/`, an endpoint clas
 - **ADRs** (`docs/architectural-decisions/`): Architectural Decision Records for significant design choices
 - **FRs** (`docs/functional-requirements/`): Functional requirement specifications
 - **TRs** (`docs/technical-requirements/`): Technical requirement specifications
-- **OpenAPI** (`docs/openapi/`): API specification files
+- **OpenAPI** — the canonical API spec is at `https://api.myparcel.nl/openapi.min.json`
 - **Templates** (`docs/templates/`): Document templates for BRs, FRs, TRs, ADRs, and user stories
 
 ### Configuration

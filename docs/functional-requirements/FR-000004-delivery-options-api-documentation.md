@@ -72,5 +72,5 @@ The OpenAPI schema can be maintained as a YAML or JSON file in the `docs/` direc
 
 ## Implementation Notes
 
-- **OpenAPI schema:** [`docs/openapi/delivery-options.yaml`](../openapi/delivery-options.yaml) — OpenAPI 3.0.3 single-file schema covering request parameters, success response, error responses, and versioning headers.
+- **OpenAPI schema:** [`https://api.myparcel.nl/openapi.min.json`](https://api.myparcel.nl/openapi.min.json) — canonical OpenAPI spec covering request parameters, success response, error responses, and versioning headers.
 - **Design reference:** [implementation design document](../design/delivery-options-endpoint-design.md) — data mapping tables and response structure that the schema reflects.

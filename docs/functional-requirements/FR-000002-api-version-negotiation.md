@@ -56,7 +56,7 @@ The system must support API version negotiation via HTTP headers for all MyParce
 
 Version 1 responses **MUST** conform to the [PDK's OpenAPI spec (`openapi-delivery-options-v1.yaml`)](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml). This Magento module is an implementation of that same contract — the PDK spec is the **single source of truth** for the response shape.
 
-The Magento-local OpenAPI spec (`docs/openapi/delivery-options.yaml`) mirrors the PDK spec for documentation and testing purposes. When the PDK spec evolves, this module's spec and transformers must be updated to match.
+The canonical OpenAPI spec is published at [`https://api.myparcel.nl/openapi.min.json`](https://api.myparcel.nl/openapi.min.json). When the spec evolves, this module's transformers must be updated to match.
 
 Key contract rules:
 

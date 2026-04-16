@@ -7,8 +7,8 @@
 
 ## Related ADRs
 
-- [ADR-0013 - Various API Design Rules](../architectural-decisions/0013-various-api-design-rules.md) — empty-object boolean standard (`{}` = enabled, key omitted = disabled) and Order Service enum naming
-- [ADR-0014 - API Design Standards](../architectural-decisions/0014-api-design-standards.md) — micro-currency format for monetary values and camelCase field naming
+- [ADR-0013 - Various API Design Rules](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0013-various-api-design-rules.md) — empty-object boolean standard (`{}` = enabled, key omitted = disabled) and Order Service enum naming
+- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md) — micro-currency format for monetary values and camelCase field naming
 
 ## Category
 
@@ -16,7 +16,7 @@ Compatibility
 
 ## Requirement
 
-V1 responses must conform to the `DeliveryOptions` schema defined in the [PDK OpenAPI spec (`openapi-delivery-options-v1.yaml`)](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml). The Magento-local spec (`docs/openapi/delivery-options.yaml`) mirrors this contract and serves as the test oracle.
+V1 responses must conform to the `DeliveryOptions` schema defined in the [canonical OpenAPI spec](https://api.myparcel.nl/openapi.min.json). This spec is the single source of truth for the response shape.
 
 ## Rationale
 
@@ -48,12 +48,12 @@ Unit tests for each transformer validate output format. A full integration test 
 4. **Boolean shipment options:** `ShipmentOptionsTransformer` produces `{}` for enabled boolean options and omits disabled ones from the output
 5. **Insurance micro-currency:** `ShipmentOptionsTransformer` produces `{ "amount": N, "currency": "EUR" }` for insurance with correct micro-currency conversion (e.g., 50 EUR becomes `50000000`)
 6. **Date formatting:** `DateTransformer` produces ISO 8601 format with `Europe/Amsterdam` timezone offset
-7. **Full schema validation:** Complete `OrderDeliveryOptionsV1Request` output validates against the `DeliveryOptions` OpenAPI schema from `docs/openapi/delivery-options.yaml`
+7. **Full schema validation:** Complete `OrderDeliveryOptionsV1Request` output validates against the `DeliveryOptions` OpenAPI schema from `https://api.myparcel.nl/openapi.min.json`
 
 ## Assumptions
 
 - The [PDK OpenAPI spec (`openapi-delivery-options-v1.yaml`)](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml) is the single source of truth for the V1 response shape
-- The Magento-local spec (`docs/openapi/delivery-options.yaml`) is kept in sync with the PDK spec
+- The canonical spec at `https://api.myparcel.nl/openapi.min.json` is the single source of truth
 - All SDK delivery option field names are known and have defined mappings to the spec enum values
 
 ## Constraints
