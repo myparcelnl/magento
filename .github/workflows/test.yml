@@ -27,7 +27,7 @@ jobs:
           coverage: none
 
       - name: Install dependencies
-        run: composer install --no-interaction --prefer-dist --ignore-platform-reqs
+        run: composer install --no-interaction --prefer-dist --ignore-platform-req=ext-*
 
       - name: Run tests
         run: vendor/bin/pest
