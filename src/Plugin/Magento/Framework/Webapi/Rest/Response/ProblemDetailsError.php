@@ -52,7 +52,7 @@ class ProblemDetailsError
 
         $this->versionContext->setError(true);
 
-        $subject->setBody(json_encode($problem) ?: '{"status":500,"title":"Error","detail":"Serialization failed"}');
+        $subject->setBody(json_encode($problem, JSON_THROW_ON_ERROR));
         $subject->setHttpResponseCode($httpCode);
         $subject->setHeader('Content-Type', ProblemDetails::CONTENT_TYPE, true);
 

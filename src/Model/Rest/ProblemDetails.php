@@ -18,17 +18,10 @@ class ProblemDetails implements \JsonSerializable
         500 => 'Internal Server Error',
     ];
 
-    /** @var string|null */
-    private $type;
-
-    /** @var int */
-    private $status;
-
-    /** @var string */
-    private $title;
-
-    /** @var string */
-    private $detail;
+    private ?string $type;
+    private int $status;
+    private string $title;
+    private string $detail;
 
     public function __construct(?string $type, int $status, string $title, string $detail)
     {
