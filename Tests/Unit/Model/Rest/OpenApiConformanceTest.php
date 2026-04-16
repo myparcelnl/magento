@@ -236,6 +236,47 @@ it('local spec deliveryType enum matches SDK DeliveryType enum', function () {
 });
 
 // ---------------------------------------------------------------------------
+// Negative cases — verify the spec actually rejects invalid output
+// ---------------------------------------------------------------------------
+
+it('rejects an unknown carrier enum value', function () {
+    $handler  = buildRequestHandler();
+    $response = $handler->transform(mockFullAdapter());
+
+    $response['carrier'] = 'INVALID_CARRIER';
+
+    $errors = validateAgainstSpec($response);
+
+    expect($errors)->not->toBeEmpty('Schema should reject an unknown carrier enum value');
+});
+
+it('rejects a ProblemDetails response missing a required field', function () {
+    $problem = new ProblemDetails(null, 400, ProblemDetails::titleForStatus(400), 'Test detail');
+    $data    = $problem->jsonSerialize();
+
+    unset($data['status']);
+
+    $errors = validateAgainstSpec($data, 400);
+
+    expect($errors)->not->toBeEmpty('Schema should reject a ProblemDetails response missing the required "status" field');
+});
+
+it('rejects a boolean shipment option that contains properties', function () {
+    $handler  = buildRequestHandler();
+    $response = $handler->transform(mockFullAdapter(['hasSignature' => true]));
+
+    // The transformer returns stdClass for shipmentOptions (empty objects for booleans).
+    // Round-trip through JSON to get a plain array we can manipulate.
+    $response = json_decode(json_encode($response), true);
+
+    $response['shipmentOptions']['requiresSignature'] = ['unexpected' => true];
+
+    $errors = validateAgainstSpec($response);
+
+    expect($errors)->not->toBeEmpty('Schema should reject a boolean option with properties (maxProperties: 0)');
+});
+
+// ---------------------------------------------------------------------------
 // ShipmentOptions field conformance — local spec vs transformer
 // ---------------------------------------------------------------------------
 
