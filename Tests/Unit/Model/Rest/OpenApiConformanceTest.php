@@ -6,6 +6,7 @@ use cebe\openapi\Reader;
 use cebe\openapi\spec\OpenApi;
 use League\OpenAPIValidation\PSR7\OperationAddress;
 use League\OpenAPIValidation\PSR7\ValidatorBuilder;
+use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 use MyParcelNL\Magento\Model\Rest\Request\OrderDeliveryOptionsV1Request;
 use MyParcelNL\Magento\Model\Rest\Transformer\CarrierTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\DateTransformer;
@@ -51,7 +52,7 @@ function specPropertyNames(string $schemaName): array
     return array_keys(loadSpec()->components->schemas[$schemaName]->properties);
 }
 
-function validateAgainstSpec(array $data): array
+function validateAgainstSpec(array $data, int $statusCode = 200): array
 {
     static $validator;
 
@@ -61,10 +62,11 @@ function validateAgainstSpec(array $data): array
             ->getResponseValidator();
     }
 
-    $operation = new OperationAddress('/V1/myparcel/delivery-options', 'get');
-    $response  = new Response(
-        200,
-        ['Content-Type' => 'application/json'],
+    $contentType = $statusCode === 200 ? 'application/json' : 'application/problem+json';
+    $operation   = new OperationAddress('/V1/myparcel/delivery-options', 'get');
+    $response    = new Response(
+        $statusCode,
+        ['Content-Type' => $contentType],
         json_encode($data, JSON_THROW_ON_ERROR),
     );
 
@@ -173,6 +175,13 @@ it('response with all boolean shipment options enabled validates', function () {
 
     expect($errors)->toBeEmpty(implode("\n", $errors));
 });
+
+it('error response validates against the ProblemDetails schema', function (int $statusCode) {
+    $problem = new ProblemDetails(null, $statusCode, ProblemDetails::titleForStatus($statusCode), 'Test detail');
+    $errors  = validateAgainstSpec($problem->jsonSerialize(), $statusCode);
+
+    expect($errors)->toBeEmpty(implode("\n", $errors));
+})->with([400, 404, 406, 409, 500]);
 
 // ---------------------------------------------------------------------------
 // Bidirectional enum conformance — local spec vs SDK
