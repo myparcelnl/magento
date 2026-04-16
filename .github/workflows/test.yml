@@ -27,4 +27,4 @@ jobs:
         run: composer install --no-interaction --prefer-dist --ignore-platform-req=ext-*
 
       - name: Run tests
-        run: vendor/bin/pest --testsuite=Unit
+        run: vendor/bin/pest --testsuite=Unit --test-directory=Tests
