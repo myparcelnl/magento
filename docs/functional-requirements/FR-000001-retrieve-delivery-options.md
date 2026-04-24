@@ -58,8 +58,8 @@ The endpoint URL is `GET /V1/myparcel/delivery-options` with `orderId` as a quer
 
 ### Referenced Architectural Decisions
 
-- **ADR-0013** — Empty object standard: boolean shipment options use `{}` instead of `true`
-- **API Design Reference 0014** — camelCase field naming, response structure conventions
+- [ADR-0013 - Various API Design Rules](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0013-various-api-design-rules.md) — Empty object standard: boolean shipment options use `{}` instead of `true`
+- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md) — camelCase field naming, response structure conventions
 
 ### Notes
 

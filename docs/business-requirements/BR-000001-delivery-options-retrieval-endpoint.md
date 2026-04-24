@@ -64,8 +64,8 @@ Enable external integrations to reliably retrieve delivery options (shipping pre
 
 ## Dependencies
 
-- **ADR-0011:** API Versioning via Headers — defines the versioning strategy using `Accept`/`Content-Type` headers that this endpoint must implement.
-- **API Design Reference 0014:** API Design Reference — defines field naming conventions (camelCase), error response format, and standard response structure that this endpoint must conform to.
+- [ADR-0011 - API Versioning via Headers](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md) — defines the versioning strategy using `Accept`/`Content-Type` headers that this endpoint must implement.
+- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md) — defines field naming conventions (camelCase), error response format, and standard response structure that this endpoint must conform to.
 - **Existing data model:** Delivery options are stored as JSON in the `sales_order.myparcel_delivery_options` column and parsed via `DeliveryOptionsFromOrderAdapter`. The endpoint depends on this existing storage mechanism.
 
 ## Risk Assessment

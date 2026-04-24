@@ -82,9 +82,9 @@ Key contract rules:
 
 ### Referenced Architectural Decisions
 
-- **ADR-0011** — API Versioning via Headers: defines the versioning strategy, header precedence, and regex pattern that this FR implements
-- **ADR-0013** — Various API Design Rules: empty-object standard for boolean shipment options (`{}` = enabled, key omitted = disabled), Order Service enum names
-- **ADR-0014** — API Design Standards: micro-currency format for monetary values, camelCase field naming, SCREAMING_SNAKE_CASE enum values
+- [ADR-0011 - API Versioning via Headers](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md) — defines the versioning strategy, header precedence, and regex pattern that this FR implements
+- [ADR-0013 - Various API Design Rules](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0013-various-api-design-rules.md) — empty-object standard for boolean shipment options (`{}` = enabled, key omitted = disabled), Order Service enum names
+- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md) — micro-currency format for monetary values, camelCase field naming, SCREAMING_SNAKE_CASE enum values
 - [**PDK OpenAPI spec** (`openapi-delivery-options-v1.yaml`)](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml) — canonical V1 response contract; this module's response shape must match
 
 ### Notes
