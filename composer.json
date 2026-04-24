@@ -20,13 +20,22 @@
     }
   ],
   "type": "magento2-module",
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://mirror.mage-os.org/"
+    }
+  ],
   "require": {
     "php": "^7.4 || ^8.0",
-    "myparcelnl/sdk": "^v10.7.2",
+    "myparcelnl/sdk": "^v11@beta",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1"
   },
   "require-dev": {
-    "phpunit/phpunit": "^4.8"
+    "league/openapi-psr7-validator": "^0.22",
+    "nyholm/psr7": "^1.8",
+    "pestphp/pest": "^2.0",
+    "mockery/mockery": "^1.6"
   },
   "autoload": {
     "files": [
@@ -37,7 +46,18 @@
       "MyParcelNL\\Magento\\Controller\\": "Controller/"
     }
   },
+  "autoload-dev": {
+    "psr-4": {
+      "MyParcelNL\\Magento\\Tests\\": "Tests/"
+    }
+  },
   "scripts": {
     "pre-package-uninstall": "MyParcelNL\\Magento\\Setup\\Uninstall::uninstall"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "magento/composer-dependency-version-audit-plugin": true
+    }
   }
 }
