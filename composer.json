@@ -28,7 +28,7 @@
   ],
   "require": {
     "php": "^7.4 || ^8.0",
-    "myparcelnl/sdk": "^v11@beta",
+    "myparcelnl/sdk": "11.0.0-beta.15@beta",
     "magento/framework": ">=101.0.8 <102 || >=102.0.1"
   },
   "require-dev": {

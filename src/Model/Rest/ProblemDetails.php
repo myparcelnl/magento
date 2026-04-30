@@ -12,7 +12,7 @@ class ProblemDetails implements \JsonSerializable
         400 => 'Invalid Request',
         401 => 'Unauthorized',
         403 => 'Forbidden',
-        404 => 'Order Not Found',
+        404 => 'Not Found',
         406 => 'Unsupported API Version',
         409 => 'Incompatible Version Headers',
         500 => 'Internal Server Error',
