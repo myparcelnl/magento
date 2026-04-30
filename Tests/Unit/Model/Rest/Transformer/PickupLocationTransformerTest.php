@@ -24,14 +24,19 @@ it('maps adapter getters to the output object', function () {
     expect($result->address->cc)->toBe('NL');
 });
 
-it('includes reserved nullable fields as null', function () {
+it('exposes the reserved type field as null', function () {
     $result = (new PickupLocationTransformer())->transform(mockPickupLocation());
 
     expect($result->type)->toBeNull();
-    expect($result->address->numberSuffix)->toBeNull();
-    expect($result->address->boxNumber)->toBeNull();
-    expect($result->address->state)->toBeNull();
-    expect($result->address->region)->toBeNull();
+});
+
+it('omits address fields the transformer does not populate', function () {
+    $result = (new PickupLocationTransformer())->transform(mockPickupLocation());
+
+    expect(property_exists($result->address, 'numberSuffix'))->toBeFalse();
+    expect(property_exists($result->address, 'boxNumber'))->toBeFalse();
+    expect(property_exists($result->address, 'state'))->toBeFalse();
+    expect(property_exists($result->address, 'region'))->toBeFalse();
 });
 
 it('propagates a null country as cc', function () {

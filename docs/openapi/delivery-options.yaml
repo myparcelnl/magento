@@ -367,31 +367,15 @@ components:
         number:
           type: string
           description: House number.
-        numberSuffix:
-          type: string
-          nullable: true
-          description: House number suffix. Always `null`.
         postalCode:
           type: string
           description: Postal code.
-        boxNumber:
-          type: string
-          nullable: true
-          description: Box number. Always `null`.
         city:
           type: string
           description: City name.
         cc:
           type: string
           description: ISO 3166-1 alpha-2 country code.
-        state:
-          type: string
-          nullable: true
-          description: State or province. Always `null`.
-        region:
-          type: string
-          nullable: true
-          description: Region. Always `null`.
 
     ProblemDetails:
       type: object
