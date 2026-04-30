@@ -87,7 +87,10 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
                 sprintf('Order with id %d was not found', $orderId)
             ));
         } catch (\Throwable $e) {
-            Logger::error($e->getMessage());
+            Logger::error('Unexpected error in OrderDeliveryOptions::getByOrderId', [
+                'exception' => $e,
+                'orderId'   => $orderId,
+            ]);
 
             return $this->errorResponse(ProblemDetails::fromStatus(
                 500,
