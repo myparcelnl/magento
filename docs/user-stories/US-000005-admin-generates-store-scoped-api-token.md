@@ -64,16 +64,42 @@ So that **I can give MyParcel access per shop, partition my customers' data acro
 **Then** `Authorization: MyParcel <T_s2>` against any granted endpoint returns `401 Unauthorized`,
 **And** the very next call with `T_default` returns orders from all three stores including store 2.
 
-### Scenario 8: Issuing a website-scope token is rejected
+### Scenario 8: Store-tier token carves a single store-view out of a parent website-scope token (3-tier partition)
 
-**Given** the admin scope selector is on a **website** scope (e.g., "Main Website"),
-**When** I open *MyParcel → Settings*,
-**Then** the *API Access* group is not visible.
+**Given** a multi-website install with W1 containing stores 1 and 2 and W2 containing stores 3 and 4,
+**And** a website-scope token `T_W1` already issued at W1, currently authenticating calls for both stores 1 and 2,
+**When** I switch the admin scope selector to "store_b" (store-view 2 ∈ W1) and click *Generate*,
+**Then** a fresh store-tier token `T_s2` is displayed exactly once,
+**And** a `core_config_data` row is written at `(scope='stores', scope_id=2, path='myparcelnl_magento_general/api_token')`.
 
-**Given** I have a valid admin session,
-**When** I POST directly to the Generate controller with `scope=websites&scopeId=1`,
-**Then** the response is `400 Bad Request`,
-**And** no `core_config_data` row is written.
+**Given** that setup,
+**When** the MyParcel backoffice presents `Authorization: MyParcel <T_W1>` to `GET /rest/V1/orders`,
+**Then** the response contains orders only from store 1 — store 2 is owned by the more-specific store-tier row and is invisible to `T_W1`.
+
+**Given** the same setup,
+**When** the MyParcel backoffice presents `Authorization: MyParcel <T_s2>` to the same endpoint,
+**Then** the response contains orders only from store 2.
+
+**Given** the same setup,
+**When** I clear the `(stores, 2)` row,
+**Then** subsequent calls with the (now invalid) `T_s2` return `401`,
+**And** subsequent calls with `T_W1` again include store 2's orders (it has rejoined the website-tier owner).
+
+### Scenario 9: A disabled store-view remains in its store-tier token's view
+
+**Given** Scenarios 2 and 3 have established `T_s2` covering store 2,
+**When** an admin disables store-view 2 in the admin (sets `is_active=0`),
+**Then** subsequent calls with `T_s2` continue to return store-2 orders that already exist,
+**And** no new orders for store 2 can be created (the store is disabled storefront-side),
+**And** re-enabling store 2 has no observable effect on the permitted set (it was already covered).
+
+### Scenario 10: Generating a store-tier token whose hash collides with another scope is rejected at write time
+
+**Given** a default-scope token `T_default` is already issued,
+**When** I attempt to generate a store-tier token whose random bytes happen to produce the same SHA-256 hash as `T_default` (forced via test seam),
+**Then** the response is `409 Conflict` with a clear admin-visible message,
+**And** no `core_config_data` row is written at `(stores, 2)`,
+**And** no plaintext is shown (no token has been minted).
 
 ## Story Points
 
@@ -82,9 +108,10 @@ So that **I can give MyParcel access per shop, partition my customers' data acro
 
 ## Technical Notes
 
-- This story is the multi-store walkthrough that ties together the admin-side generation flow (US-000001) and the caller-side filtering rules (US-000004). Implementation does not introduce new files beyond those listed in TR-000004 §Implementation notes; this story exists to trace the partition + cascade-back semantics end-to-end as testable scenarios.
-- The "config cache flush" step in Scenarios 3 and 7 is performed by `ApiTokenManager::generate()` and `clear()` respectively — see TR-000004 §Constraints "Allow-list deny-by-default" and §Performance Criteria "Per-request overhead — partition lookup".
-- Admin-visible copy in `<comment>` for the *API Access* group at store-view scope must mention that issuing a token at this scope removes the store from the default-scope token's view.
+- This story is the multi-store walkthrough that ties together the admin-side generation flow (US-000001) and the caller-side filtering rules (US-000004). Companion story US-000006 covers website-scope generation. Implementation does not introduce new files beyond those listed in TR-000004 §Implementation notes; this story exists to trace the partition (3-tier, row-coordinate) and cascade-back semantics end-to-end as testable scenarios for the store-view tier specifically.
+- The "config cache flush" step in Scenarios 3 and 7 is performed by `ApiTokenManager::generate()` and `clear()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
+- Admin-visible copy in `<comment>` for the *API Access* group at store-view scope must mention that issuing a token at this scope removes the store from any parent-website token's view AND from the default-scope token's view (the store is now exclusively owned by its store-tier row).
+- Scenario 10's "test seam" for forcing a hash collision should be a swap-in `RandomBytesGenerator` accepted via DI; production wiring uses `random_bytes(32)`.
 
 ## Dependencies
 
@@ -95,9 +122,10 @@ So that **I can give MyParcel access per shop, partition my customers' data acro
 
 ## Definition of Done
 
-- [ ] All eight scenarios above pass on a multi-store local install (stores 1, 2, 3).
-- [ ] Integration test (Pest) for the partition rule: with `T_default` + `T_s2` issued, `getList` calls with each token produce the expected, disjoint result sets.
-- [ ] Integration test for cascade-back: clearing `(stores, 2)` makes store 2 reappear in `T_default`'s result set on the very next request.
+- [ ] All ten scenarios above pass on a multi-website local install (W1 with stores 1 and 2; W2 with stores 3 and 4).
+- [ ] Integration test (Pest) for the partition rule: with `T_default` + `T_W1` + `T_s2` issued, `getList` calls with each token produce the expected, disjoint result sets.
+- [ ] Integration test for store-tier carve-out from website-tier owner: clearing `(stores, 2)` makes store 2 rejoin `T_W1`'s result set on the very next request.
+- [ ] Integration test for hash uniqueness: forcing a collision at write time returns `409` with a clear admin-visible message; no row is written.
 - [ ] Integration test that the URL store-code prefix is decorative for token-authenticated calls.
-- [ ] Admin UI screenshot or click-test confirming the *API Access* group is visible at default + store-view scopes and hidden at website scope.
-- [ ] Documentation updated (this US, FR-000005, TR-000004 cross-references).
+- [ ] Admin UI screenshot or click-test confirming the *API Access* group is visible at default, website, and store-view scopes.
+- [ ] Documentation updated (this US, US-000006, FR-000005, TR-000004 cross-references).

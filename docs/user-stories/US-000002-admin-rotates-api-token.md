@@ -7,14 +7,14 @@
 ## Story
 
 As a **Magento shop admin**,
-I want **to rotate the MyParcel API token at any specific scope (default or store-view) when I think it has been exposed**,
-So that **I can revoke access for the previous token at that scope immediately, without disturbing tokens at other scopes or other authentication mechanisms in my store**.
+I want **to rotate the MyParcel API token at any specific scope coordinate (default, a specific website, or a specific store-view) when I think it has been exposed**,
+So that **I can revoke access for the previous token at that scope coordinate immediately, without disturbing tokens at other scope coordinates or other authentication mechanisms in my store**.
 
 ## Acceptance Criteria
 
 ### Scenario 1: Regenerating at the current scope issues a new token and displays it once
 
-**Given** a token T1 has been generated previously at scope `S` (where `S` is `default` or `(stores, scopeId)`),
+**Given** a token T1 has been generated previously at scope coordinate `S` (where `S` is `(default, 0)`, `(websites, websiteId)`, or `(stores, storeId)`),
 **And** I am viewing the *API Access* group at scope `S`,
 **When** I click *Generate* again,
 **Then** a new token T2 is displayed in full exactly once,
@@ -64,7 +64,8 @@ So that **I can revoke access for the previous token at that scope immediately, 
 
 - Rotation is `ApiTokenManager::generate($scopeType, $scopeId)` called a second time at the same `(scopeType, scopeId)`. Because storage is the same `core_config_data` row, writing the new hash overwrites the old one atomically and the config cache is flushed before the response returns.
 - Per TR-000004 §Specifications "Rotation isolation" criterion: rotation at scope `S` MUST NOT touch any other scope's row.
-- The partition rule (TR-000004 §Specifications "Scope partitioning") is independent of rotation: rotating `T_default` does not change which `scope_id`s are carved out of the default-scope view, because the carve-out is computed from the existence of `(stores, *)` rows, not from token values.
+- The partition rule (TR-000004 §Specifications "Scope partitioning") is independent of rotation: rotating any scope's token does not change ownership at any other tier, because ownership is computed from row *existence* at `(scope, scope_id)` coordinates, not from token values. Rotating overwrites the hash at one coordinate; ownership of every store stays exactly where it was.
+- Adds the hash-uniqueness invariant: a rotation that happens to produce the same hash as another scope's existing row is rejected with `409 Conflict` (extremely unlikely cryptographically; defended for operator-test-seam scenarios).
 
 ## Dependencies
 
@@ -73,7 +74,7 @@ So that **I can revoke access for the previous token at that scope immediately, 
 ## Definition of Done
 
 - [ ] Integration test covers the rotation scenario at default scope: generate → capture T1 → generate → T1 returns 401, T2 returns 200.
-- [ ] Integration test covers the rotation scenario at a store-view scope, plus the cross-scope isolation: rotating one scope's token does not touch any other scope's token.
+- [ ] Integration test covers the rotation scenario at a website scope and at a store-view scope, plus cross-scope isolation: rotating any one scope coordinate's token does not touch any other scope coordinate's token (any of the other 2 tiers).
 - [ ] Native `Bearer` auth and other modules' integrations verified unaffected (regression check).
 - [ ] Multi-store fixture verifies that rotating `T_default` while a `T_s2` exists does NOT change the partition rule's carve-out behaviour for either token.
 - [ ] No additional admin documentation needed beyond the *API Access* group `<comment>` (which covers rotation: "To rotate, click Generate again; the previous token at this scope stops working immediately.").

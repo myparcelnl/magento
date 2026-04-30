@@ -45,6 +45,12 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 **When** the caller sends `GET /rest/V1/orders?searchCriteria[pageSize]=100` with `Authorization: MyParcel <T_default>`,
 **Then** the response is `200 OK` with orders from stores 1 and 3 only — store 2's orders are not returned.
 
+### Scenario 4a-bis: Default-scope token excludes stores covered by a website-scope token (3-tier partition)
+
+**Given** a multi-website install with website W1 containing stores 1 and 2, and website W2 containing stores 3 and 4, and tokens `T_default` and `T_W1` (issued at website W1),
+**When** the caller sends `GET /rest/V1/orders?searchCriteria[pageSize]=100` with `Authorization: MyParcel <T_default>`,
+**Then** the response is `200 OK` with orders from stores 3 and 4 only — both of W1's stores are carved out by the website-tier row, even though no store-tier row exists.
+
 ### Scenario 4b: Store-view-scoped token returns only that store's records, regardless of URL prefix
 
 **Given** a token `T_s2` issued at store-view 2,
@@ -53,6 +59,21 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 **Or** `GET /rest/<store_3_code>/V1/orders` with the same token,
 **Then** every response is `200 OK` containing only orders with `store_id = 2`,
 **And** the URL store-code prefix has no effect on which records are returned (decorative for token-authenticated calls).
+
+### Scenario 4b-bis: Website-scoped token returns its website's stores minus store-tier carve-outs
+
+**Given** the multi-website install from Scenario 4a-bis, with `T_W1` already issued; and additionally a store-tier token `T_s2` issued at store-view 2 (s2 ∈ W1),
+**When** the caller sends `GET /rest/V1/orders` with `Authorization: MyParcel <T_W1>`,
+**Then** the response is `200 OK` with orders ONLY from store 1 — store 2 is owned by the more-specific store-tier row and is invisible to the website-tier token.
+
+**Given** the same setup,
+**When** the caller sends the same request with `Authorization: MyParcel <T_s2>`,
+**Then** the response contains orders only from store 2.
+
+**Given** the same setup,
+**When** the admin revokes `T_s2` (deletes the `(stores, 2)` row),
+**Then** subsequent calls with the (now invalid) `T_s2` return `401`,
+**And** subsequent calls with `T_W1` again include store 2's orders (it has rejoined the website-tier owner).
 
 ### Scenario 4c: Single-record retrieval of an out-of-scope record returns 404 (no existence leak)
 
@@ -111,7 +132,7 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 ## Technical Notes
 
 - Implementation lives in `src/Model/Authorization/ApiTokenUserContext.php` (custom UserContext at `sortOrder=5` in `CompositeUserContext`), `src/Model/Authorization/TokenScopeContext.php` (request-scoped scope state), `src/Service/ScopedResourceRegistry.php` (allow-list), `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` (per-store filter), `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php` (deny-by-default gate), `etc/webapi_rest/di.xml` (registration), and `etc/integration.xml` (auto-provisioned integration for ACL grants).
-- Per TR-000004 §Specifications: storage compares SHA-256 hashes via `hash_equals` (constant-time); the UserContext SELECTs against `core_config_data` directly (NOT via `ScopeConfigInterface`, which would cascade); ACL enforcement combines Magento-native install-wide grants with the module's `ScopedResourceRegistry` allow-list and the per-resource filter plugins.
+- Per TR-000004 §Specifications: storage compares SHA-256 hashes via `hash_equals` (constant-time); the UserContext SELECTs against `core_config_data` directly with `scope IN ('default','websites','stores')` (NOT via `ScopeConfigInterface`, which would cascade); ACL enforcement combines Magento-native install-wide grants with the module's `ScopedResourceRegistry` allow-list and the per-resource filter plugins; per-store membership is row-coordinate based, not hash-value based, so duplicate hashes across rows cannot conflate ownership.
 - Critical files in `vendor/magento/**` that this UserContext and its plugins interact with — see PHPDoc on each class (added when the file is created).
 
 ## Dependencies
@@ -121,10 +142,11 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 
 ## Definition of Done
 
-- [ ] Unit tests for `ApiTokenUserContext::processRequest()` cover: missing header, Bearer, lowercase scheme, mismatched token, empty storage, default-scope match, store-view scope match.
-- [ ] Unit tests for `OrderRepositoryStoreFilter` cover: default-scope context applies `NOT IN`; store-view-scope context applies `=`; null context no-ops; `afterGet` throws `NoSuchEntityException` for out-of-scope orders.
+- [ ] Unit tests for `ApiTokenUserContext::processRequest()` cover: missing header, Bearer, lowercase scheme, mismatched token, empty storage, default-scope match, website-scope match, store-view scope match.
+- [ ] Unit tests for `TokenScopeContext::permittedStoreIds()` cover the three-tier ownership matrix (`stores > websites > default`), disabled-store inclusion, admin-store exclusion, null when no token authenticated this request, and bulk row-set memoization.
+- [ ] Unit tests for `OrderRepositoryStoreFilter` cover: for each scope tier, `beforeGetList` applies `IN(permittedSet)` matching `TokenScopeContext::permittedStoreIds()`; null context no-ops; `afterGet` throws `NoSuchEntityException` for out-of-scope orders.
 - [ ] Unit tests for `MyParcelTokenAclGate` cover: registry hit passes; registry miss returns 401 for token caller; non-token contexts bypass.
-- [ ] Integration tests run all scenarios above against a multi-store local dev store (default + store-views 2 and 3).
+- [ ] Integration tests run all scenarios above against a multi-website local dev store (W1 with stores 1 and 2; W2 with stores 3 and 4).
 - [ ] Native Bearer auth, customer auth, and other modules' UserContexts verified unaffected (regression check via the composite chain).
 - [ ] `ScopedResourceRegistry` coverage test ensures every `etc/integration.xml` grant is registered.
 - [ ] No `vendor/magento/**` file is modified.

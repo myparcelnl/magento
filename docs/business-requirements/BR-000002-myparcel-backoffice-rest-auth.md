@@ -25,8 +25,8 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 
 ### In Scope
 
-- API tokens issued at **default scope** and at **store-view scope** (multi-tenant per store-view). Each scope has at most one active token.
-- **Partition semantics, not cascade:** the default-scope token is restricted to stores that do **not** have their own dedicated token; a store-view-scoped token is restricted to that single store-view. A merchant with two store-views can issue separate tokens for each, isolating their data from the default-scope token's view.
+- API tokens issued at **default scope**, **website scope**, and **store-view scope** (multi-tenant per scope coordinate). Each `(scopeType, scopeId)` coordinate has at most one active token.
+- **Three-tier partition semantics, not cascade:** per store, the most-specific row that *exists* (`stores > websites > default`) owns it; that store's data is visible to exactly the owning token. A merchant running multiple websites with multiple store-views per website can issue any combination of default / per-website / per-store tokens, with finer-grained tokens always overriding coarser ones at the row level — issuing a store-view token "carves" that store out of any parent website token's view, and issuing a website token shadows that website's stores from the default token's view.
 - **Allow-list of scope-aware REST resources.** Token-authenticated calls succeed only against REST resources for which the module has installed a per-store filter plugin. Initial coverage: `Magento_Sales::actions_view` (orders) and `MyParcelNL_Magento::delivery_options_read`. Resources that are granted to the integration but not in the allow-list return `401` for token-authenticated calls (admin and customer auth paths are unaffected).
 - Admin-driven generation, one-time display, rotation, and revocation from the existing MyParcel admin config screen — per scope. Each scope's token is managed independently.
 - REST-side authentication using a custom `Authorization` scheme.
@@ -34,7 +34,6 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 
 ### Out of Scope
 
-- **Website-scope tokens.** Only default and store-view scopes are supported. Issuing a token at website scope is rejected by the admin controller.
 - **Token TTL / expiry on day one.** Rotation is the operator's lever.
 - **Frontend (customer-facing) API access.** This BR covers backoffice→Magento auth only.
 - **Alternative `Authorization` headers** (e.g., `X-MyParcel-Token`). The standardized `Authorization` header is reused.
@@ -42,12 +41,12 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 
 ## Success Criteria
 
-- [ ] Median admin time-to-token (from opening the MyParcel admin config to a working token in the MyParcel backoffice) is under 30 seconds — for the default-scope token and for any store-view-scoped token.
-- [ ] Zero "how do I activate the integration" support tickets in the 90 days following the release that ships this capability.
+- [ ] Median admin time-to-token (from opening the MyParcel admin config to a working token in the MyParcel backoffice) is under 30 seconds — at default, website, or store-view scope.
 - [ ] On a fresh install, a customer can complete connection without running a single CLI command and without opening *System → Extensions → Integrations*.
-- [ ] Rotating any scope's token invalidates that scope's previous token immediately, with no admin CLI step. Rotating one scope's token never invalidates other scopes' tokens.
-- [ ] A store-view-scoped token can read only that store-view's orders and delivery options. The default-scope token can read orders and delivery options from all stores **except** stores that have their own dedicated token. Revoking a store-view's token cascades that store back into the default-scope token's view on the next request (subject to config cache invalidation).
+- [ ] Rotating any scope's token invalidates that scope's previous token immediately, with no admin CLI step. Rotating one scope's token never invalidates tokens at other scope coordinates.
+- [ ] A store-view-scoped token reads only that store-view's data; a website-scoped token reads only that website's stores' data, **minus** any store-view in that website with its own dedicated token; the default-scope token reads data from all stores **minus** stores in any tokened website **minus** stores with their own dedicated token. Revoking a finer-grained token's row releases the affected store(s) back to the next-coarsest tier that still has a token (or to "no token covers this store" if there isn't one).
 - [ ] Token-authenticated calls against any granted REST resource without a corresponding per-store filter plugin return `401`, not unfiltered data.
+- [ ] Generating a token whose hash already exists at another scope coordinate fails with `409 Conflict` and a clear admin-visible message; no token row is written.
 
 ## Stakeholders
 
