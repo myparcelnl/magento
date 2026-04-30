@@ -66,11 +66,6 @@ if (!class_exists(StubResourceV1::class, false)) {
             $this->data = $data;
         }
 
-        public static function getVersion(): int
-        {
-            return 1;
-        }
-
         public function format(): array
         {
             return $this->data;
@@ -86,11 +81,6 @@ if (!class_exists(StubResourceV2::class, false)) {
         public function __construct(array $data)
         {
             $this->data = $data;
-        }
-
-        public static function getVersion(): int
-        {
-            return 2;
         }
 
         public function format(): array
@@ -377,6 +367,5 @@ it('createResource instantiates the correct resource class for the negotiated re
     $resource = $endpoint->exposeCreateResource(['foo' => 'bar']);
 
     expect($resource)->toBeInstanceOf(StubResourceV2::class);
-    expect($resource::getVersion())->toBe(2);
     expect($resource->format())->toBe(['foo' => 'bar']);
 });

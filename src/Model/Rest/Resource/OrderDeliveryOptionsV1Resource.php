@@ -15,11 +15,6 @@ class OrderDeliveryOptionsV1Resource extends AbstractVersionedResource
         $this->data = $data;
     }
 
-    public static function getVersion(): int
-    {
-        return 1;
-    }
-
     public function format(): array
     {
         return $this->data;
