@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 
 info:
   title: MyParcelNL Magento — Delivery Options API
@@ -181,60 +181,25 @@ components:
         which is the single source of truth for the V1 response contract.
       properties:
         carrier:
-          type: string
-          nullable: true
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/Carrier"
+          type: [string, "null"]
           description: Carrier identifier.
-          enum:
-            - BOL
-            - BPOST
-            - BRT
-            - CHEAP_CARGO
-            - DHL_EUROPLUS
-            - DHL_FOR_YOU
-            - DHL_PARCEL_CONNECT
-            - DPD
-            - GLS
-            - INPOST
-            - POSTNL
-            - POSTE_ITALIANE
-            - TRUNKRS
-            - UPS_EXPRESS_SAVER
-            - UPS_STANDARD
         packageType:
-          type: string
-          nullable: true
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/PackageType"
+          type: [string, "null"]
           description: Package type for the shipment.
-          enum:
-            - DIGITAL_STAMP
-            - ENVELOPE
-            - MAILBOX
-            - PACKAGE
-            - PALLET
-            - SMALL_PACKAGE
-            - UNFRANKED
         deliveryType:
-          type: string
-          nullable: true
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/DeliveryType"
+          type: [string, "null"]
           description: Delivery method selected by the customer.
-          enum:
-            - EARLY_MORNING_DELIVERY
-            - EVENING_DELIVERY
-            - EXPRESS_DELIVERY
-            - MORNING_DELIVERY
-            - PICKUP_DELIVERY
-            - PICKUP_EXPRESS_DELIVERY
-            - SAME_DAY_DELIVERY
-            - STANDARD_DELIVERY
         date:
-          type: string
+          type: [string, "null"]
           format: date-time
-          nullable: true
           description: |
             Delivery date in ISO 8601 format with Europe/Amsterdam timezone
             offset (e.g. `2026-02-27T10:00:00+01:00`).
         shipmentOptions:
-          type: object
-          nullable: true
+          type: [object, "null"]
           description: |
             Shipment options for the order. Only enabled options are present.
             Boolean options are represented as empty objects `{}` when enabled
@@ -242,8 +207,7 @@ components:
           allOf:
             - $ref: "#/components/schemas/ShipmentOptions"
         pickupLocation:
-          type: object
-          nullable: true
+          type: [object, "null"]
           description: |
             Pickup location details. Present only when `deliveryType` is
             `PICKUP_DELIVERY`.
@@ -255,51 +219,34 @@ components:
       description: |
         Shipment options. Boolean options follow ADR-0013: an empty object `{}`
         means enabled; the key is omitted when disabled. All properties are
-        optional — omitted means not enabled.
+        optional — omitted means not enabled. Boolean field shapes are sourced
+        from the Order API's `ShipmentOptionsCommon` schema. The `insurance`
+        field diverges intentionally: this API uses an integer-micro amount
+        (Magento convention) instead of the Order API's Money object format.
       properties:
         requiresAgeVerification:
-          type: object
-          maxProperties: 0
-          description: Age verification is required upon delivery.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresAgeVerification"
         requiresSignature:
-          type: object
-          maxProperties: 0
-          description: A signature is required upon delivery.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresSignature"
         recipientOnlyDelivery:
-          type: object
-          maxProperties: 0
-          description: Deliver only to the named recipient.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/recipientOnlyDelivery"
         oversizedPackage:
-          type: object
-          maxProperties: 0
-          description: The package is oversized (large format).
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/oversizedPackage"
         printReturnLabelAtDropOff:
-          type: object
-          maxProperties: 0
-          description: Print a return label at the drop-off point.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/printReturnLabelAtDropOff"
         hideSender:
-          type: object
-          maxProperties: 0
-          description: Hide the sender information on the label.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/hideSender"
         priorityDelivery:
-          type: object
-          maxProperties: 0
-          description: Priority delivery is enabled.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/priorityDelivery"
         requiresReceiptCode:
-          type: object
-          maxProperties: 0
-          description: A receipt code is required upon delivery.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresReceiptCode"
         sameDayDelivery:
-          type: object
-          maxProperties: 0
-          description: Same-day delivery is enabled.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/sameDayDelivery"
         scheduledCollection:
-          type: object
-          maxProperties: 0
-          description: The shipment is a scheduled collection.
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/scheduledCollection"
         insurance:
           type: object
-          description: Insurance details for the shipment.
+          description: Insurance details. Integer-micro amount (1 EUR = 1 000 000 units).
           required:
             - amount
             - currency
@@ -315,15 +262,7 @@ components:
               description: Currency code. Always `EUR`.
               example: EUR
         customLabelText:
-          type: object
-          description: Custom text printed on the shipping label.
-          required:
-            - text
-          properties:
-            text:
-              type: string
-              description: The label text content.
-              example: Fragile — handle with care
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsPackage/properties/customLabelText"
 
     PickupLocation:
       type: object
@@ -345,8 +284,7 @@ components:
           type: string
           description: Carrier retail network identifier.
         type:
-          type: string
-          nullable: true
+          type: [string, "null"]
           description: Reserved for future use. Always `null`.
         address:
           $ref: "#/components/schemas/PickupAddress"
@@ -389,8 +327,7 @@ components:
         - detail
       properties:
         type:
-          type: string
-          nullable: true
+          type: [string, "null"]
           description: |
             A URI reference identifying the problem type. Currently always
             `null`; may be populated in a future API version.
