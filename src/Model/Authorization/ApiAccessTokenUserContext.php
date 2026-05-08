@@ -83,8 +83,8 @@ class ApiAccessTokenUserContext implements UserContextInterface
      */
     private function extractToken(): ?string
     {
-        $header = $this->request->getHeader('Authorization');
-        if (!is_string($header) || $header === '') {
+        $header = $this->readAuthorizationHeader();
+        if ($header === null) {
             return null;
         }
 
@@ -99,6 +99,29 @@ class ApiAccessTokenUserContext implements UserContextInterface
 
         $token = trim($parts[1]);
         return $token === '' ? null : $token;
+    }
+
+    /**
+     * Apache prefixes every env var with REDIRECT_ on each internal redirect.
+     * On installs whose DocumentRoot is the Magento root (not pub/), the
+     * default .htaccess redirects /<path> -> /pub/<path>, after which the
+     * Authorization header lives in $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+     * and Magento's Request::getHeader() can no longer see it.
+     */
+    private function readAuthorizationHeader(): ?string
+    {
+        $header = $this->request->getHeader('Authorization');
+        if (is_string($header) && $header !== '') {
+            return $header;
+        }
+
+        foreach (['HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION'] as $key) {
+            if (!empty($_SERVER[$key]) && is_string($_SERVER[$key])) {
+                return $_SERVER[$key];
+            }
+        }
+
+        return null;
     }
 
     /**

@@ -196,6 +196,38 @@ it('returns null when the integration record has not been provisioned (id missin
     expect($ctx->getUserType())->toBeNull();
 });
 
+it('falls back to $_SERVER[REDIRECT_HTTP_AUTHORIZATION] when the framework Request cannot see the header', function () {
+    // Reproduces the Apache "internal redirect prefixes env vars with REDIRECT_" quirk
+    // that affects Magento installs with DocumentRoot at the project root rather than pub/.
+    $plaintext = 'plaintext-token-redirect';
+
+    $request = Mockery::mock(RequestInterface::class);
+    $request->shouldReceive('getHeader')->with('Authorization')->andReturn(false);
+
+    $previous = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null;
+    $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] = 'MyParcel ' . $plaintext;
+
+    try {
+        $ctx = new ApiAccessTokenUserContext(
+            $request,
+            makeUserContextCollectionFactory([
+                ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', $plaintext)],
+            ]),
+            makeIntegrationService(FAKE_INTEGRATION_ID),
+            makeContext()
+        );
+
+        expect($ctx->getUserType())->toBe(UserContextInterface::USER_TYPE_INTEGRATION);
+        expect($ctx->getUserId())->toBe(FAKE_INTEGRATION_ID);
+    } finally {
+        if ($previous === null) {
+            unset($_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
+        } else {
+            $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] = $previous;
+        }
+    }
+});
+
 it('processes the request only once across repeated getUserId/getUserType calls', function () {
     $plaintext = 'plaintext-cached';
     $request   = Mockery::mock(RequestInterface::class);
