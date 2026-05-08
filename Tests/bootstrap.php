@@ -23,7 +23,21 @@ if (file_exists($moduleAutoloader)) {
 // installed in CI (e.g. classes from magento/module-shipping, magento/module-quote).
 // This lets Mockery create mocks and lets compile-time class references resolve
 // without pulling in the entire Magento dependency tree.
-spl_autoload_register(function (string $class): void {
+//
+// A small map of known string constants is injected into the stub body so that
+// production code that references e.g. ScopeInterface::SCOPE_WEBSITES at class
+// load time still resolves under tests.
+$knownStubConstants = [
+    'Magento\\Framework\\App\\Config\\ScopeConfigInterface' => [
+        'SCOPE_TYPE_DEFAULT' => 'default',
+    ],
+    'Magento\\Store\\Model\\ScopeInterface' => [
+        'SCOPE_WEBSITES' => 'websites',
+        'SCOPE_STORES'   => 'stores',
+    ],
+];
+
+spl_autoload_register(function (string $class) use ($knownStubConstants): void {
     if (strpos($class, 'Magento\\') !== 0) {
         return;
     }
@@ -33,5 +47,10 @@ spl_autoload_register(function (string $class): void {
     $ns          = substr($class, 0, strrpos($class, '\\'));
     $keyword     = $isInterface ? 'interface' : 'class';
 
-    eval("namespace $ns; $keyword $lastPart {}");
+    $body = '';
+    foreach ($knownStubConstants[$class] ?? [] as $name => $value) {
+        $body .= sprintf('const %s = %s;', $name, var_export($value, true));
+    }
+
+    eval("namespace $ns; $keyword $lastPart { $body }");
 });

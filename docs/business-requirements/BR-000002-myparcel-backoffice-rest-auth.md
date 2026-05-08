@@ -25,7 +25,7 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 
 ### In Scope
 
-- API tokens issued at **default scope**, **website scope**, and **store-view scope** (multi-tenant per scope coordinate). Each `(scopeType, scopeId)` coordinate has at most one active token.
+- API access tokens issued at **default scope**, **website scope**, and **store-view scope** (multi-tenant per scope coordinate). Each `(scopeType, scopeId)` coordinate has at most one active token.
 - **Three-tier partition semantics, not cascade:** per store, the most-specific row that *exists* (`stores > websites > default`) owns it; that store's data is visible to exactly the owning token. A merchant running multiple websites with multiple store-views per website can issue any combination of default / per-website / per-store tokens, with finer-grained tokens always overriding coarser ones at the row level — issuing a store-view token "carves" that store out of any parent website token's view, and issuing a website token shadows that website's stores from the default token's view.
 - **Allow-list of scope-aware REST resources.** Token-authenticated calls succeed only against REST resources for which the module has installed a per-store filter plugin. Initial coverage: `Magento_Sales::actions_view` (orders) and `MyParcelNL_Magento::delivery_options_read`. Resources that are granted to the integration but not in the allow-list return `401` for token-authenticated calls (admin and customer auth paths are unaffected).
 - Admin-driven generation, one-time display, rotation, and revocation from the existing MyParcel admin config screen — per scope. Each scope's token is managed independently.
@@ -90,5 +90,5 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 ## Traceability
 
 - **Implements:** —
-- **Decomposed into Functional Requirements:** [FR-000005 — Self-service API token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-token.md)
-- **Technical Requirements:** [TR-000004 — REST API Token Authentication](../technical-requirements/TR-000004-rest-api-token-authentication.md)
+- **Decomposed into Functional Requirements:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
+- **Technical Requirements:** [TR-000004 — REST API Access Token Authentication](../technical-requirements/TR-000004-rest-api-access-token-authentication.md)

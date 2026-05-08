@@ -1,13 +1,13 @@
-# US-000006: Admin Generates Website-Scoped API Token
+# US-000006: Admin Generates Website-Scoped API Access Token
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-token.md)
+- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
 As a **Magento shop admin running a multi-website install**,
-I want **to issue a single MyParcel API token that covers all store-views in one website at once, while still letting me carve out individual store-views with their own dedicated tokens**,
+I want **to issue a single MyParcel API access token that covers all store-views in one website at once, while still letting me carve out individual store-views with their own dedicated tokens**,
 So that **I can hand a website's worth of stores to one MyParcel account without minting a token per store, and still keep the freedom to peel off any single store-view to a separate token later — without affecting my other websites or the default-scope token's view of them**.
 
 ## Acceptance Criteria
@@ -25,7 +25,7 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 **Given** I am viewing the *API Access* group at website 1,
 **When** I click *Generate*,
 **Then** a 64-character lowercase hex token `T_W1` is displayed in full exactly once,
-**And** a `core_config_data` row is created at `(scope='websites', scope_id=1, path='myparcelnl_magento_general/api_token')` containing the SHA-256 hash of `T_W1` (NOT the plaintext),
+**And** a `core_config_data` row is created at `(scope='websites', scope_id=1, path='myparcelnl_magento_general/api_access_token')` containing the SHA-256 hash of `T_W1` (NOT the plaintext),
 **And** after navigating away and returning, the field at website 1 shows a masked placeholder.
 
 ### Scenario 3: The default-scope token's view loses every store-view in W1 (website-tier partition)
@@ -85,7 +85,7 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 **Given** an admin has created website W3 with no store-views attached,
 **When** I switch the admin scope selector to W3 and click *Generate*,
 **Then** a fresh token `T_W3` is displayed exactly once,
-**And** a `core_config_data` row is written at `(scope='websites', scope_id=3, path='myparcelnl_magento_general/api_token')`.
+**And** a `core_config_data` row is written at `(scope='websites', scope_id=3, path='myparcelnl_magento_general/api_access_token')`.
 
 **Given** that setup,
 **When** the MyParcel backoffice presents `Authorization: MyParcel <T_W3>` to `GET /rest/V1/orders`,
@@ -115,7 +115,7 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 
 - This story is the multi-website walkthrough for the website tier specifically. Companion story US-000005 covers the store-view tier; both stories share the row-coordinate ownership and hash-uniqueness invariants from TR-000004.
 - Implementation does not introduce new files beyond those listed in TR-000004 §Implementation notes; this story exists to trace the website-tier partition + 3-way carve-out semantics end-to-end as testable scenarios.
-- The "config cache flush" step in Scenarios 3 and 7 is performed by `ApiTokenManager::generate()` and `clear()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
+- The "config cache flush" step in Scenarios 3 and 7 is performed by `ApiAccessTokenManager::generate()` and `clear()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
 - Admin-visible copy in `<comment>` for the *API Access* group at website scope must mention that issuing a token at this scope removes every store-view in this website from the default-scope token's view, and that any store-view in this website with its own dedicated token is invisible to this website-tier token.
 - Scenario 10's "test seam" for forcing a hash collision should be a swap-in `RandomBytesGenerator` accepted via DI; production wiring uses `random_bytes(32)`.
 - Scenario 9 (empty-website token) is operationally surprising but valid; the admin UI does NOT require the website to have store-views before allowing generation. Documented as Assumption in TR-000004.

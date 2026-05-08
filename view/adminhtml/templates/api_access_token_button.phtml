@@ -1,0 +1,113 @@
+<?php
+
+declare(strict_types=1);
+
+/* @var \MyParcelNL\Magento\Block\System\Config\Form\ApiAccessTokenButton $block */
+/* @var \Magento\Framework\Escaper $escaper */
+
+[$scopeName, $scopeId] = $block->getCurrentScope();
+$hasToken = $block->hasTokenAtCurrentScope();
+$fieldHtmlId = $block->getFieldHtmlId();
+?>
+
+<div class="myparcel-api-access-token" data-field-id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>">
+    <div class="myparcel-api-access-token__current"
+         id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_current"
+         <?= $hasToken ? '' : 'style="display:none;"' ?>>
+        <span class="myparcel-api-access-token__masked">••••••••</span>
+    </div>
+
+    <div class="myparcel-api-access-token__plaintext"
+         id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_plaintext"
+         style="display:none;">
+        <input type="text"
+               readonly
+               class="admin__control-text myparcel-api-access-token__plaintext-input"
+               id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_plaintext_input"
+               value=""/>
+        <p class="message message-success myparcel-api-access-token__notice">
+            <?= $escaper->escapeHtml(__('Token generated. Copy it now, it will not be shown again.')) ?>
+        </p>
+    </div>
+
+    <button type="button"
+            class="action-default scalable myparcel-api-access-token__generate"
+            id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_generate">
+        <span><?= $escaper->escapeHtml($hasToken ? __('Regenerate') : __('Generate')) ?></span>
+    </button>
+
+    <div class="message message-error myparcel-api-access-token__error"
+         id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_error"
+         style="display:none;"></div>
+</div>
+
+<script>
+    require([], function () {
+        'use strict';
+
+        const fieldId          = <?= json_encode($fieldHtmlId) ?>;
+        const ajaxUrl          = <?= json_encode($block->getAjaxUrl()) ?>;
+        const scopeName        = <?= json_encode($scopeName) ?>;
+        const scopeId          = <?= json_encode((int) $scopeId) ?>;
+        const regenerateLabel  = <?= json_encode((string) __('Regenerate')) ?>;
+        const unexpectedLabel  = <?= json_encode((string) __('Unexpected response.')) ?>;
+        const failureLabel     = <?= json_encode((string) __('Failed to generate token.')) ?>;
+
+        const generateBtn = document.getElementById(fieldId + '_generate');
+        const current    = document.getElementById(fieldId + '_current');
+        const plaintext  = document.getElementById(fieldId + '_plaintext');
+        const input      = document.getElementById(fieldId + '_plaintext_input');
+        const error      = document.getElementById(fieldId + '_error');
+        const label      = generateBtn.querySelector('span');
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = '';
+        }
+
+        function clearError() {
+            error.textContent = '';
+            error.style.display = 'none';
+        }
+
+        function parseResponse(transport) {
+            if (transport.responseJSON) {
+                return transport.responseJSON;
+            }
+            try {
+                return JSON.parse(transport.responseText);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        generateBtn.addEventListener('click', function () {
+            clearError();
+
+            new Ajax.Request(ajaxUrl, {
+                method: 'post',
+                parameters: {scope: scopeName, scopeId: scopeId},
+                loaderArea: true,
+                asynchronous: true,
+                evalJSON: 'force',
+                onSuccess: function (transport) {
+                    const response = parseResponse(transport);
+                    if (response && response.success && response.token) {
+                        current.style.display = 'none';
+                        input.value = response.token;
+                        plaintext.style.display = '';
+                        label.textContent = regenerateLabel;
+                        input.focus();
+                        input.select();
+                    } else {
+                        showError((response && response.message) ? response.message : unexpectedLabel);
+                    }
+                },
+                onFailure: function (transport) {
+                    const response = parseResponse(transport);
+                    showError((response && response.message) ? response.message : failureLabel);
+                }
+            });
+        });
+    });
+</script>

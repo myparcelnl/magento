@@ -6,11 +6,9 @@ namespace MyParcelNL\Magento\Block\Adminhtml;
 
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Settings;
 
@@ -82,15 +80,7 @@ class DynamicSettings extends Template
     public function getCurrentScope(): array
     {
         if (! isset($this->currentScope)) {
-            $request = $this->getRequest();
-
-            if (($storeId = $request->getParam('store'))) {
-                $this->currentScope = [ScopeInterface::SCOPE_STORES, (int) $storeId];
-            } elseif (($websiteId = $request->getParam('website'))) {
-                $this->currentScope = [ScopeInterface::SCOPE_WEBSITES, (int) $websiteId];
-            } else {
-                $this->currentScope = [ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0];
-            }
+            $this->currentScope = $this->settings->getCurrentScopeFromRequest($this->getRequest());
         }
 
         return $this->currentScope;

@@ -2,7 +2,7 @@
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-token.md)
+- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
@@ -131,7 +131,7 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 
 ## Technical Notes
 
-- Implementation lives in `src/Model/Authorization/ApiTokenUserContext.php` (custom UserContext at `sortOrder=5` in `CompositeUserContext`), `src/Model/Authorization/TokenScopeContext.php` (request-scoped scope state), `src/Service/ScopedResourceRegistry.php` (allow-list), `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` (per-store filter), `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php` (deny-by-default gate), `etc/webapi_rest/di.xml` (registration), and `etc/integration.xml` (auto-provisioned integration for ACL grants).
+- Implementation lives in `src/Model/Authorization/ApiAccessTokenUserContext.php` (custom UserContext at `sortOrder=5` in `CompositeUserContext`), `src/Model/Authorization/TokenScopeContext.php` (request-scoped scope state), `src/Service/ScopedResourceRegistry.php` (allow-list), `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` (per-store filter), `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php` (deny-by-default gate), `etc/webapi_rest/di.xml` (registration), and `etc/integration.xml` (auto-provisioned integration for ACL grants).
 - Per TR-000004 §Specifications: storage compares SHA-256 hashes via `hash_equals` (constant-time); the UserContext SELECTs against `core_config_data` directly with `scope IN ('default','websites','stores')` (NOT via `ScopeConfigInterface`, which would cascade); ACL enforcement combines Magento-native install-wide grants with the module's `ScopedResourceRegistry` allow-list and the per-resource filter plugins; per-store membership is row-coordinate based, not hash-value based, so duplicate hashes across rows cannot conflate ownership.
 - Critical files in `vendor/magento/**` that this UserContext and its plugins interact with — see PHPDoc on each class (added when the file is created).
 
@@ -142,7 +142,7 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 
 ## Definition of Done
 
-- [ ] Unit tests for `ApiTokenUserContext::processRequest()` cover: missing header, Bearer, lowercase scheme, mismatched token, empty storage, default-scope match, website-scope match, store-view scope match.
+- [ ] Unit tests for `ApiAccessTokenUserContext::processRequest()` cover: missing header, Bearer, lowercase scheme, mismatched token, empty storage, default-scope match, website-scope match, store-view scope match.
 - [ ] Unit tests for `TokenScopeContext::permittedStoreIds()` cover the three-tier ownership matrix (`stores > websites > default`), disabled-store inclusion, admin-store exclusion, null when no token authenticated this request, and bulk row-set memoization.
 - [ ] Unit tests for `OrderRepositoryStoreFilter` cover: for each scope tier, `beforeGetList` applies `IN(permittedSet)` matching `TokenScopeContext::permittedStoreIds()`; null context no-ops; `afterGet` throws `NoSuchEntityException` for out-of-scope orders.
 - [ ] Unit tests for `MyParcelTokenAclGate` cover: registry hit passes; registry miss returns 401 for token caller; non-token contexts bypass.

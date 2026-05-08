@@ -1,13 +1,13 @@
-# US-000002: Admin Rotates API Token
+# US-000002: Admin Rotates API Access Token
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-token.md)
+- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
 As a **Magento shop admin**,
-I want **to rotate the MyParcel API token at any specific scope coordinate (default, a specific website, or a specific store-view) when I think it has been exposed**,
+I want **to rotate the MyParcel API access token at any specific scope coordinate (default, a specific website, or a specific store-view) when I think it has been exposed**,
 So that **I can revoke access for the previous token at that scope coordinate immediately, without disturbing tokens at other scope coordinates or other authentication mechanisms in my store**.
 
 ## Acceptance Criteria
@@ -18,7 +18,7 @@ So that **I can revoke access for the previous token at that scope coordinate im
 **And** I am viewing the *API Access* group at scope `S`,
 **When** I click *Generate* again,
 **Then** a new token T2 is displayed in full exactly once,
-**And** the `core_config_data` row at scope `S` and path `myparcelnl_magento_general/api_token` now contains the SHA-256 hash of T2 (and no longer the hash of T1).
+**And** the `core_config_data` row at scope `S` and path `myparcelnl_magento_general/api_access_token` now contains the SHA-256 hash of T2 (and no longer the hash of T1).
 
 ### Scenario 2: Previous token at the rotated scope is rejected immediately
 
@@ -62,7 +62,7 @@ So that **I can revoke access for the previous token at that scope coordinate im
 
 ## Technical Notes
 
-- Rotation is `ApiTokenManager::generate($scopeType, $scopeId)` called a second time at the same `(scopeType, scopeId)`. Because storage is the same `core_config_data` row, writing the new hash overwrites the old one atomically and the config cache is flushed before the response returns.
+- Rotation is `ApiAccessTokenManager::generate($scopeType, $scopeId)` called a second time at the same `(scopeType, scopeId)`. Because storage is the same `core_config_data` row, writing the new hash overwrites the old one atomically and the config cache is flushed before the response returns.
 - Per TR-000004 §Specifications "Rotation isolation" criterion: rotation at scope `S` MUST NOT touch any other scope's row.
 - The partition rule (TR-000004 §Specifications "Scope partitioning") is independent of rotation: rotating any scope's token does not change ownership at any other tier, because ownership is computed from row *existence* at `(scope, scope_id)` coordinates, not from token values. Rotating overwrites the hash at one coordinate; ownership of every store stays exactly where it was.
 - Adds the hash-uniqueness invariant: a rotation that happens to produce the same hash as another scope's existing row is rejected with `409 Conflict` (extremely unlikely cryptographically; defended for operator-test-seam scenarios).

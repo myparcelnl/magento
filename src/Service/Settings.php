@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\RequestInterface;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\Module\Dir;
 use Magento\Framework\Module\Dir\Reader as ModuleDirReader;
@@ -99,6 +100,36 @@ class Settings
             default:
                 return false;
         }
+    }
+
+    /**
+     * Resolve the admin's current scope from request params.
+     *
+     * @return array{0: string, 1: int} [scopeName, scopeId]
+     */
+    public function getCurrentScopeFromRequest(RequestInterface $request): array
+    {
+        if (($storeId = $request->getParam('store'))) {
+            return [ScopeInterface::SCOPE_STORES, (int) $storeId];
+        }
+        if (($websiteId = $request->getParam('website'))) {
+            return [ScopeInterface::SCOPE_WEBSITES, (int) $websiteId];
+        }
+        return [ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0];
+    }
+
+    /**
+     * Partition-aware: true iff a row exists at the exact (scope, scopeId) for this path.
+     * Unlike hasOwnValue() this does NOT short-circuit for default scope.
+     */
+    public function hasRowAtScope(string $path, string $scope, int $scopeId): bool
+    {
+        $collection = $this->scopeCollectionFactory->create()
+            ->addFieldToFilter('path', $path)
+            ->addFieldToFilter('scope', $scope)
+            ->addFieldToFilter('scope_id', $scopeId);
+
+        return $collection->getSize() > 0;
     }
 
     /**

@@ -103,6 +103,15 @@ To add a new versioned endpoint: create an interface in `Api/`, an endpoint clas
 - Config paths: `myparcelnl_magento_general/*`, `myparcelnl_magento_[carrier]_settings/*`
 - DI: `etc/di.xml` (backend), `etc/frontend/di.xml` (checkout)
 
+  When adding a new admin setting:
+  1. Add a JSON entry to `etc/dynamic_settings.json` with `id`, `path`, `type`,                                                                                                                                      
+     `label`, and the three `showIn*` flags.
+  2. For non-trivial UI (buttons, custom widgets), set `frontend_model` to a block
+     class in `src/Block/System/Config/Form/`.
+  3. Persist via `Magento\Framework\App\Config\Storage\WriterInterface::save(...)`.
+  4. Read scoped existence via `Settings::hasOwnValue($path, $scope, $scopeId)`                                       
+     (partition semantics — does NOT cascade).
+
 ### Database
 
 Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_day`, `myparcel_carrier`. Schema in `src/Setup/UpgradeSchema.php`.

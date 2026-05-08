@@ -1,13 +1,13 @@
-# US-000001: Admin Generates API Token in One Click
+# US-000001: Admin Generates API Access Token in One Click
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-token.md)
+- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
 As a **Magento shop admin**,
-I want **to generate a MyParcel API token from a single button in the MyParcel admin config — at default scope, at a website scope, or at a specific store-view scope on a multi-store install**,
+I want **to generate a MyParcel API access token from a single button in the MyParcel admin config — at default scope, at a website scope, or at a specific store-view scope on a multi-store install**,
 So that **I can connect MyParcel to my store without using the CLI or activating an integration, and so I can issue separate tokens at any of the three supported scope tiers when I need to keep data partitioned across websites or store-views**.
 
 ## Acceptance Criteria
@@ -25,13 +25,13 @@ So that **I can connect MyParcel to my store without using the CLI or activating
 **When** I click *Generate*,
 **Then** the page displays a 64-character lowercase hex token in full,
 **And** a notice instructs me to copy it now ("Token generated. Copy it now — it will not be shown again."),
-**And** a `core_config_data` row at path `myparcelnl_magento_general/api_token` exists for that exact `(scope, scopeId)` pair (`('default',0)`, `('websites',<websiteId>)`, or `('stores',<storeId>)`) with a 64-char hex SHA-256 hash value that is NOT equal to the displayed token.
+**And** a `core_config_data` row at path `myparcelnl_magento_general/api_access_token` exists for that exact `(scope, scopeId)` pair (`('default',0)`, `('websites',<websiteId>)`, or `('stores',<storeId>)`) with a 64-char hex SHA-256 hash value that is NOT equal to the displayed token.
 
 ### Scenario 3: Plaintext is not recoverable after page reload
 
 **Given** I have just generated a token at the current scope and the plaintext is visible,
 **When** I navigate away from the configuration page and return,
-**Then** the API token field displays a masked placeholder (`••••••••`) for that scope,
+**Then** the API access token field displays a masked placeholder (`••••••••`) for that scope,
 **And** there is no UI control to re-display the previously-issued plaintext,
 **And** no server-side code path can read or return the plaintext (only the SHA-256 hash exists in storage).
 
@@ -70,16 +70,16 @@ So that **I can connect MyParcel to my store without using the CLI or activating
 
 ## Technical Notes
 
-- Implementation is the *Generate* admin controller (`Controller/Adminhtml/ApiToken/Generate.php`), the `ApiTokenManager` service (`src/Service/ApiTokenManager.php`), the `frontend_model` block (`src/Block/System/Config/Form/ApiTokenField.php`), and the `etc/adminhtml/system.xml` group `api_access` under `myparcelnl_magento_dynamic_settings` with `showInDefault=1, showInWebsite=1, showInStore=1`.
+- Implementation is the *Generate* admin controller (`Controller/Adminhtml/ApiAccessToken/Generate.php`), the `ApiAccessTokenManager` service (`src/Service/ApiAccessTokenManager.php`), the `frontend_model` block (`src/Block/System/Config/Form/ApiAccessTokenField.php`), and the `etc/adminhtml/system.xml` group `api_access` under `myparcelnl_magento_dynamic_settings` with `showInDefault=1, showInWebsite=1, showInStore=1`.
 - The Generate controller resolves the current admin scope from the request and accepts only `scope=default` (with `scopeId=0`), `scope=websites` (with `scopeId>0` referring to a real website), or `scope=stores` (with `scopeId>0` referring to a real, non-admin store). Anything else returns `400`. A pre-INSERT hash-uniqueness check returns `409 Conflict` if the freshly hashed token collides with any other scope coordinate's existing row.
 - See TR-000004 §Specifications for token entropy, hashing primitive, and per-scope storage/partition criteria.
 - The `system.xml` group `<comment>` carries the admin-visible caveats; copy is owned by TR-000004 §Implementation notes (verbatim) and varies per scope (default / website / store-view).
 
 ## Dependencies
 
-- US-000004 (REST caller authentication) shares the storage layer; both rely on `core_config_data` rows at path `myparcelnl_magento_general/api_token` keyed by `(scope, scopeId)`.
-- US-000005 (admin generates store-scoped API token) extends this story with the store-view-tier partition-behaviour walkthrough.
-- US-000006 (admin generates website-scoped API token) extends this story with the website-tier partition-behaviour walkthrough.
+- US-000004 (REST caller authentication) shares the storage layer; both rely on `core_config_data` rows at path `myparcelnl_magento_general/api_access_token` keyed by `(scope, scopeId)`.
+- US-000005 (admin generates store-scoped API access token) extends this story with the store-view-tier partition-behaviour walkthrough.
+- US-000006 (admin generates website-scoped API access token) extends this story with the website-tier partition-behaviour walkthrough.
 
 ## Definition of Done
 
@@ -88,5 +88,5 @@ So that **I can connect MyParcel to my store without using the CLI or activating
 - [ ] Reload masks the field; no server-side read of plaintext exists.
 - [ ] POST to the Generate controller with any scope value outside `default`/`websites`/`stores` returns `400` and does not write any storage row.
 - [ ] POST to the Generate controller whose freshly hashed token collides with an existing row at another scope coordinate returns `409 Conflict` with a clear admin-visible message; no row is written.
-- [ ] Unit tests on `ApiTokenManager::generate()` cover entropy, hash output, scope-aware persistence at all three tiers, hash-uniqueness rejection (409), and idempotency.
+- [ ] Unit tests on `ApiAccessTokenManager::generate()` cover entropy, hash output, scope-aware persistence at all three tiers, hash-uniqueness rejection (409), and idempotency.
 - [ ] Documentation updated (this US, US-000005, US-000006, FR-000005, TR-000004 cross-references).

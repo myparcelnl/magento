@@ -1,13 +1,13 @@
-# US-000005: Admin Generates Store-Scoped API Token
+# US-000005: Admin Generates Store-Scoped API Access Token
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-token.md)
+- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
 As a **Magento shop admin running a multi-store install**,
-I want **to issue a separate MyParcel API token for a specific store-view, so that this store's orders and delivery options become invisible to the default-scope token and remain visible only via the store-view-scoped token**,
+I want **to issue a separate MyParcel API access token for a specific store-view, so that this store's orders and delivery options become invisible to the default-scope token and remain visible only via the store-view-scoped token**,
 So that **I can give MyParcel access per shop, partition my customers' data across MyParcel accounts, and rotate or revoke that store-view's access without affecting any other store**.
 
 ## Acceptance Criteria
@@ -25,7 +25,7 @@ So that **I can give MyParcel access per shop, partition my customers' data acro
 **Given** I am viewing the *API Access* group at store-view 2,
 **When** I click *Generate*,
 **Then** a 64-character lowercase hex token `T_s2` is displayed in full exactly once,
-**And** a `core_config_data` row is created at `(scope='stores', scope_id=2, path='myparcelnl_magento_general/api_token')` containing the SHA-256 hash of `T_s2` (NOT the plaintext),
+**And** a `core_config_data` row is created at `(scope='stores', scope_id=2, path='myparcelnl_magento_general/api_access_token')` containing the SHA-256 hash of `T_s2` (NOT the plaintext),
 **And** after navigating away and returning, the field at store-view 2 shows a masked placeholder.
 
 ### Scenario 3: The default-scope token's view loses store 2 immediately (partition)
@@ -70,7 +70,7 @@ So that **I can give MyParcel access per shop, partition my customers' data acro
 **And** a website-scope token `T_W1` already issued at W1, currently authenticating calls for both stores 1 and 2,
 **When** I switch the admin scope selector to "store_b" (store-view 2 ∈ W1) and click *Generate*,
 **Then** a fresh store-tier token `T_s2` is displayed exactly once,
-**And** a `core_config_data` row is written at `(scope='stores', scope_id=2, path='myparcelnl_magento_general/api_token')`.
+**And** a `core_config_data` row is written at `(scope='stores', scope_id=2, path='myparcelnl_magento_general/api_access_token')`.
 
 **Given** that setup,
 **When** the MyParcel backoffice presents `Authorization: MyParcel <T_W1>` to `GET /rest/V1/orders`,
@@ -109,7 +109,7 @@ So that **I can give MyParcel access per shop, partition my customers' data acro
 ## Technical Notes
 
 - This story is the multi-store walkthrough that ties together the admin-side generation flow (US-000001) and the caller-side filtering rules (US-000004). Companion story US-000006 covers website-scope generation. Implementation does not introduce new files beyond those listed in TR-000004 §Implementation notes; this story exists to trace the partition (3-tier, row-coordinate) and cascade-back semantics end-to-end as testable scenarios for the store-view tier specifically.
-- The "config cache flush" step in Scenarios 3 and 7 is performed by `ApiTokenManager::generate()` and `clear()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
+- The "config cache flush" step in Scenarios 3 and 7 is performed by `ApiAccessTokenManager::generate()` and `clear()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
 - Admin-visible copy in `<comment>` for the *API Access* group at store-view scope must mention that issuing a token at this scope removes the store from any parent-website token's view AND from the default-scope token's view (the store is now exclusively owned by its store-tier row).
 - Scenario 10's "test seam" for forcing a hash collision should be a swap-in `RandomBytesGenerator` accepted via DI; production wiring uses `random_bytes(32)`.
 

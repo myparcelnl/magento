@@ -1,19 +1,19 @@
-# FR-000005: Self-Service API Token for MyParcel REST Integration
+# FR-000005: Self-Service API Access Token for MyParcel REST Integration
 
 ## Parent Requirement
 
 - **Business Requirement:** [BR-000002 — MyParcel backoffice authenticates against customer Magento REST API](../business-requirements/BR-000002-myparcel-backoffice-rest-auth.md)
 - **Related User Stories:**
-    - [US-000001 — Admin generates API token](../user-stories/US-000001-admin-generates-api-token.md)
-    - [US-000002 — Admin rotates API token](../user-stories/US-000002-admin-rotates-api-token.md)
-    - [US-000003 — Admin revokes API token](../user-stories/US-000003-admin-revokes-api-token.md)
+    - [US-000001 — Admin generates API access token](../user-stories/US-000001-admin-generates-api-access-token.md)
+    - [US-000002 — Admin rotates API access token](../user-stories/US-000002-admin-rotates-api-access-token.md)
+    - [US-000003 — Admin revokes API access token](../user-stories/US-000003-admin-revokes-api-access-token.md)
     - [US-000004 — REST caller authenticates with token](../user-stories/US-000004-rest-caller-authenticates-with-token.md)
-    - [US-000005 — Admin generates store-scoped API token](../user-stories/US-000005-admin-generates-store-scoped-api-token.md)
-    - [US-000006 — Admin generates website-scoped API token](../user-stories/US-000006-admin-generates-website-scoped-api-token.md)
+    - [US-000005 — Admin generates store-scoped API access token](../user-stories/US-000005-admin-generates-store-scoped-api-access-token.md)
+    - [US-000006 — Admin generates website-scoped API access token](../user-stories/US-000006-admin-generates-website-scoped-api-access-token.md)
 
 ## Description
 
-The system MUST allow a Magento admin to **generate**, **view (one-time)**, **rotate**, and **revoke** API tokens for the MyParcel backoffice from the existing MyParcel admin config screen, without:
+The system MUST allow a Magento admin to **generate**, **view (one-time)**, **rotate**, and **revoke** API access tokens for the MyParcel backoffice from the existing MyParcel admin config screen, without:
 
 - running any `bin/magento` command,
 - interacting with *System → Extensions → Integrations*,
@@ -80,11 +80,11 @@ Token-authenticated calls succeed only against REST resources for which the modu
 
 ### Referenced Technical Requirements
 
-- [TR-000004 — REST API Token Authentication](../technical-requirements/TR-000004-rest-api-token-authentication.md) — defines the security/compatibility/performance criteria, the verification scenarios, and the cross-cutting design rationale (custom UserContext bypassing the bearer gate; default-scope-only single-tenant model).
+- [TR-000004 — REST API Access Token Authentication](../technical-requirements/TR-000004-rest-api-access-token-authentication.md) — defines the security/compatibility/performance criteria, the verification scenarios, and the cross-cutting design rationale (custom UserContext bypassing the bearer gate; default-scope-only single-tenant model).
 
 ### Referenced Architectural Decisions
 
-This module does not maintain a separate `docs/architectural-decisions/` directory. Cross-cutting design decisions live in TR-000004 §Rationale and §Constraints. Local class-level decisions are documented as PHPDoc / XML comments on the implementation files (`src/Model/Authorization/ApiTokenUserContext.php`, `src/Service/ApiTokenManager.php`, `etc/integration.xml`) — see TR-000004 §Implementation notes for the contract those comments must carry.
+This module does not maintain a separate `docs/architectural-decisions/` directory. Cross-cutting design decisions live in TR-000004 §Rationale and §Constraints. Local class-level decisions are documented as PHPDoc / XML comments on the implementation files (`src/Model/Authorization/ApiAccessTokenUserContext.php`, `src/Service/ApiAccessTokenManager.php`, `etc/integration.xml`) — see TR-000004 §Implementation notes for the contract those comments must carry.
 
 ### Notes
 

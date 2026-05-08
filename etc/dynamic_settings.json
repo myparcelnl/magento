@@ -41,6 +41,26 @@
           ]
         },
         {
+          "id": "api_access",
+          "label": "API Access",
+          "comment": "Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored.",
+          "showInDefault": true,
+          "showInWebsite": true,
+          "showInStore": true,
+          "fields": [
+            {
+              "id": "api_access_token",
+              "path": "myparcelnl_magento_general/api_access_token",
+              "type": "button",
+              "label": "API access token",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\ApiAccessTokenButton"
+            }
+          ]
+        },
+        {
           "id": "matrix",
           "label": "Delivery costs",
           "comment": null,

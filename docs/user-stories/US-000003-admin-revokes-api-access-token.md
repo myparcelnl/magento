@@ -1,13 +1,13 @@
-# US-000003: Admin Revokes API Token
+# US-000003: Admin Revokes API Access Token
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-token.md)
+- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
 As a **Magento shop admin**,
-I want **to remove a MyParcel API token at a specific scope coordinate (default, a specific website, or a specific store-view)**,
+I want **to remove a MyParcel API access token at a specific scope coordinate (default, a specific website, or a specific store-view)**,
 So that **MyParcel can no longer call my Magento REST API at that scope coordinate until I deliberately re-issue a token, while tokens at other scope coordinates keep working**.
 
 ## Acceptance Criteria
@@ -56,14 +56,14 @@ So that **MyParcel can no longer call my Magento REST API at that scope coordina
 
 ### Scenario 5: Revocation does not break other authentication
 
-**Given** any MyParcel API token has been revoked,
+**Given** any MyParcel API access token has been revoked,
 **When** an admin user authenticates with `Authorization: Bearer <admin-token>`,
 **Or** other modules' integrations use their own bearer tokens,
 **Then** those requests continue to succeed unchanged.
 
 ### Scenario 6: Revocation does not remove the auto-provisioned integration
 
-**Given** any MyParcel API token has been revoked,
+**Given** any MyParcel API access token has been revoked,
 **When** the admin opens *System → Extensions → Integrations*,
 **Then** the inactive "MyParcel API" integration entry is still listed (its ACL grants stay intact),
 **And** generating a new token on the *API Access* screen at any supported scope will re-attach to the same integration without requiring another `setup:upgrade`.
@@ -79,7 +79,7 @@ So that **MyParcel can no longer call my Magento REST API at that scope coordina
     - **(a) UI button:** add a *Revoke* button to the *API Access* group alongside *Generate* at the current scope. Pros: matches the self-service spirit; lets the admin express "no token at this scope at all". Cons: extra UI affordance, slight ACL surface increase.
     - **(b) Implicit via Generate:** rely on the rotation flow (US-000002). To "revoke", the admin generates a new token and discards it. The previous token is invalidated immediately. Pros: zero new UI. Cons: a hash always exists in storage at that scope; "no token at all at this scope" is not directly expressible from the UI, which means cascade-back behaviour (Scenario 3) is unreachable through the UI.
     - Decide during implementation. Given the partition + cascade-back semantics, option **(a)** is preferred — only an explicit clear allows a store's data to rejoin its next-coarsest-tier owner.
-- The technical primitive is `ApiTokenManager::clear($scopeType, $scopeId)` which deletes the row at that scope via `WriterInterface::delete($path, $scopeType, $scopeId)` (mapping the three accepted `$scopeType` values — `default`, `websites`, `stores` — to Magento's corresponding scope constants) and flushes the config cache type so the partition rule sees the change immediately.
+- The technical primitive is `ApiAccessTokenManager::clear($scopeType, $scopeId)` which deletes the row at that scope via `WriterInterface::delete($path, $scopeType, $scopeId)` (mapping the three accepted `$scopeType` values — `default`, `websites`, `stores` — to Magento's corresponding scope constants) and flushes the config cache type so the partition rule sees the change immediately.
 - Per TR-000004 §Specifications "Revocation isolation + cascade-back" criterion: clearing the row at scope `S` causes calls with the prior token to return `401`; the released stores rejoin the next-coarsest tier that still has a token (store-tier carve-out → website-tier owner if one exists, else default-tier; website-tier carve-out → default-tier).
 
 ## Dependencies
