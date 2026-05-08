@@ -35,6 +35,12 @@ $knownStubConstants = [
         'SCOPE_WEBSITES' => 'websites',
         'SCOPE_STORES'   => 'stores',
     ],
+    'Magento\\Authorization\\Model\\UserContextInterface' => [
+        'USER_TYPE_INTEGRATION' => 1,
+        'USER_TYPE_ADMIN'       => 2,
+        'USER_TYPE_CUSTOMER'    => 3,
+        'USER_TYPE_GUEST'       => 4,
+    ],
 ];
 
 spl_autoload_register(function (string $class) use ($knownStubConstants): void {

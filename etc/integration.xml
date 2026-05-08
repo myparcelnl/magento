@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Integration:etc/integration.xsd">
+    <integration name="MyParcel API">
+        <email>support@myparcel.nl</email>
+        <resources>
+            <resource name="Magento_Sales::actions_view"/>
+            <resource name="MyParcelNL_Magento::delivery_options_read"/>
+        </resources>
+    </integration>
+</config>

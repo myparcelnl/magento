@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <!-- Register MyParcel custom-scheme UserContext ahead of native tokenUserContext (sortOrder=10) -->
+    <type name="Magento\Authorization\Model\CompositeUserContext">
+        <arguments>
+            <argument name="userContexts" xsi:type="array">
+                <item name="myparcelApiAccessTokenUserContext" xsi:type="array">
+                    <item name="type" xsi:type="object">MyParcelNL\Magento\Model\Authorization\ApiAccessTokenUserContext</item>
+                    <item name="sortOrder" xsi:type="string">5</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Allow-list of ACL resources reachable by token-authenticated callers -->
+    <type name="MyParcelNL\Magento\Service\ScopedResourceRegistry">
+        <arguments>
+            <argument name="resources" xsi:type="array">
+                <item name="sales_actions_view" xsi:type="string">Magento_Sales::actions_view</item>
+                <item name="delivery_options_read" xsi:type="string">MyParcelNL_Magento::delivery_options_read</item>
+            </argument>
+        </arguments>
+    </type>
+
+    <!-- Deny-by-default ACL gate on top of native authorization for token-authenticated callers -->
+    <type name="Magento\Framework\Webapi\Authorization">
+        <plugin name="myparcel-token-acl-gate"
+                type="MyParcelNL\Magento\Plugin\Magento\Webapi\Rest\RequestValidator\MyParcelTokenAclGate"
+                sortOrder="10"/>
+    </type>
+
+    <!-- Per-store filter: restricts orders to the token's permitted store set -->
+    <type name="Magento\Sales\Api\OrderRepositoryInterface">
+        <plugin name="myparcel-order-repository-store-filter"
+                type="MyParcelNL\Magento\Plugin\Magento\Sales\OrderRepositoryStoreFilter"
+                sortOrder="20"/>
+    </type>
+</config>
