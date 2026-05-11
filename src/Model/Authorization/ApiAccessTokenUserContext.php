@@ -5,12 +5,8 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Authorization;
 
 use Magento\Authorization\Model\UserContextInterface;
-use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Integration\Api\IntegrationServiceInterface;
-use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
 class ApiAccessTokenUserContext implements UserContextInterface
 {
@@ -18,7 +14,6 @@ class ApiAccessTokenUserContext implements UserContextInterface
     private const SCHEME          = 'myparcel';
 
     private RequestInterface $request;
-    private CollectionFactory $configDataCollectionFactory;
     private IntegrationServiceInterface $integrationService;
     private TokenScopeContext $tokenScopeContext;
 
@@ -28,14 +23,12 @@ class ApiAccessTokenUserContext implements UserContextInterface
 
     public function __construct(
         RequestInterface $request,
-        CollectionFactory $configDataCollectionFactory,
         IntegrationServiceInterface $integrationService,
         TokenScopeContext $tokenScopeContext
     ) {
-        $this->request                     = $request;
-        $this->configDataCollectionFactory = $configDataCollectionFactory;
-        $this->integrationService          = $integrationService;
-        $this->tokenScopeContext           = $tokenScopeContext;
+        $this->request            = $request;
+        $this->integrationService = $integrationService;
+        $this->tokenScopeContext  = $tokenScopeContext;
     }
 
     public function getUserId()
@@ -62,7 +55,7 @@ class ApiAccessTokenUserContext implements UserContextInterface
             return;
         }
 
-        $matched = $this->findMatchingRow($token);
+        $matched = $this->tokenScopeContext->findByHash($token);
         if ($matched === null) {
             return;
         }
@@ -118,34 +111,6 @@ class ApiAccessTokenUserContext implements UserContextInterface
         foreach (['HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION'] as $key) {
             if (!empty($_SERVER[$key]) && is_string($_SERVER[$key])) {
                 return $_SERVER[$key];
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @return array{scope: string, scopeId: int}|null
-     */
-    private function findMatchingRow(string $plaintext): ?array
-    {
-        $presentedHash = hash('sha256', $plaintext);
-
-        $collection = $this->configDataCollectionFactory->create()
-            ->addFieldToFilter('path', TokenService::CONFIG_PATH)
-            ->addFieldToFilter('scope', ['in' => [
-                ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
-                ScopeInterface::SCOPE_WEBSITES,
-                ScopeInterface::SCOPE_STORES,
-            ]]);
-
-        foreach ($collection->getItems() as $row) {
-            $stored = (string) $row->getData('value');
-            if (hash_equals($stored, $presentedHash)) {
-                return [
-                    'scope'   => (string) $row->getData('scope'),
-                    'scopeId' => (int) $row->getData('scope_id'),
-                ];
             }
         }
 

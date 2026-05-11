@@ -6,12 +6,30 @@ declare(strict_types=1);
 /* @var \Magento\Framework\Escaper $escaper */
 
 [$scopeName, $scopeId] = $block->getCurrentScope();
-$hasToken = $block->hasTokenAtCurrentScope();
-$fieldHtmlId = $block->getFieldHtmlId();
+$hasToken     = $block->hasTokenAtCurrentScope();
+$fieldHtmlId  = $block->getFieldHtmlId();
 $scopeComment = $block->getScopeComment();
+
+$mageInit = [
+    'MyParcelNL_Magento/js/api-access-token' => [
+        'fieldId'         => $fieldHtmlId,
+        'ajaxUrl'         => $block->getAjaxUrl(),
+        'revokeUrl'       => $block->getRevokeAjaxUrl(),
+        'scopeName'       => $scopeName,
+        'scopeId'         => (int) $scopeId,
+        'generateLabel'   => (string) __('Generate'),
+        'regenerateLabel' => (string) __('Regenerate'),
+        'unexpectedLabel' => (string) __('Unexpected response.'),
+        'failureLabel'    => (string) __('Failed to generate token.'),
+        'revokeFailLabel' => (string) __('Failed to revoke token.'),
+        'revokeConfirm'   => (string) __('Revoke the API access token at this scope? Callers using it will be denied immediately.'),
+    ],
+];
 ?>
 
-<div class="myparcel-api-access-token" data-field-id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>">
+<div class="myparcel-api-access-token"
+     data-field-id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
+     data-mage-init="<?= $escaper->escapeHtmlAttr(json_encode($mageInit)) ?>">
     <p class="myparcel-api-access-token__scope-note">
         <?= $escaper->escapeHtml($scopeComment) ?>
     </p>
@@ -69,113 +87,3 @@ $scopeComment = $block->getScopeComment();
          hidden></div>
 </div>
 
-<script>
-    require([], function () {
-        'use strict';
-
-        const fieldId          = <?= json_encode($fieldHtmlId) ?>;
-        const ajaxUrl          = <?= json_encode($block->getAjaxUrl()) ?>;
-        const revokeUrl        = <?= json_encode($block->getRevokeAjaxUrl()) ?>;
-        const scopeName        = <?= json_encode($scopeName) ?>;
-        const scopeId          = <?= json_encode((int) $scopeId) ?>;
-        const generateLabel    = <?= json_encode((string) __('Generate')) ?>;
-        const regenerateLabel  = <?= json_encode((string) __('Regenerate')) ?>;
-        const unexpectedLabel  = <?= json_encode((string) __('Unexpected response.')) ?>;
-        const failureLabel     = <?= json_encode((string) __('Failed to generate token.')) ?>;
-        const revokeFailLabel  = <?= json_encode((string) __('Failed to revoke token.')) ?>;
-        const revokeConfirm    = <?= json_encode((string) __('Revoke the API access token at this scope? Callers using it will be denied immediately.')) ?>;
-
-        const generateBtn = document.getElementById(fieldId + '_generate');
-        const revokeBtn   = document.getElementById(fieldId + '_revoke');
-        const current    = document.getElementById(fieldId + '_current');
-        const plaintext  = document.getElementById(fieldId + '_plaintext');
-        const input      = document.getElementById(fieldId + '_plaintext_input');
-        const revoked    = document.getElementById(fieldId + '_revoked');
-        const error      = document.getElementById(fieldId + '_error');
-        const label      = generateBtn.querySelector('span');
-
-        function showError(message) {
-            error.textContent = message;
-            error.hidden = false;
-        }
-
-        function clearError() {
-            error.textContent = '';
-            error.hidden = true;
-        }
-
-        function parseResponse(transport) {
-            if (transport.responseJSON) {
-                return transport.responseJSON;
-            }
-            try {
-                return JSON.parse(transport.responseText);
-            } catch (e) {
-                return null;
-            }
-        }
-
-        generateBtn.addEventListener('click', function () {
-            clearError();
-
-            new Ajax.Request(ajaxUrl, {
-                method: 'post',
-                parameters: {scope: scopeName, scopeId: scopeId},
-                loaderArea: true,
-                asynchronous: true,
-                evalJSON: 'force',
-                onSuccess: function (transport) {
-                    const response = parseResponse(transport);
-                    if (response && response.success && response.token) {
-                        revoked.hidden = true;
-                        current.hidden = true;
-                        input.value = response.token;
-                        plaintext.hidden = false;
-                        label.textContent = regenerateLabel;
-                        revokeBtn.hidden = false;
-                        input.focus();
-                        input.select();
-                    } else {
-                        showError((response && response.message) ? response.message : unexpectedLabel);
-                    }
-                },
-                onFailure: function (transport) {
-                    const response = parseResponse(transport);
-                    showError((response && response.message) ? response.message : failureLabel);
-                }
-            });
-        });
-
-        revokeBtn.addEventListener('click', function () {
-            clearError();
-
-            if (!window.confirm(revokeConfirm)) {
-                return;
-            }
-
-            new Ajax.Request(revokeUrl, {
-                method: 'post',
-                parameters: {scope: scopeName, scopeId: scopeId},
-                loaderArea: true,
-                asynchronous: true,
-                evalJSON: 'force',
-                onSuccess: function (transport) {
-                    const response = parseResponse(transport);
-                    if (response && response.success) {
-                        current.hidden = true;
-                        plaintext.hidden = true;
-                        revoked.hidden = false;
-                        revokeBtn.hidden = true;
-                        label.textContent = generateLabel;
-                    } else {
-                        showError((response && response.message) ? response.message : unexpectedLabel);
-                    }
-                },
-                onFailure: function (transport) {
-                    const response = parseResponse(transport);
-                    showError((response && response.message) ? response.message : revokeFailLabel);
-                }
-            });
-        });
-    });
-</script>

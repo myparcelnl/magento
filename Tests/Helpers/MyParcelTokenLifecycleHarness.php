@@ -167,7 +167,6 @@ final class MyParcelTokenLifecycleHarness
         $scope = new TokenScopeContext($this->collectionFactory(), $this->storeManager($stores));
         $ctx   = new ApiAccessTokenUserContext(
             $this->request($authHeader),
-            $this->collectionFactory(),
             $this->integrationService(),
             $scope
         );

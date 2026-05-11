@@ -17,8 +17,8 @@ class TokenScopeContext implements ResetAfterRequestInterface
     /** @var array{scope: string, scopeId: int}|null */
     private ?array $owner = null;
 
-    /** @var array<string, true>|null Memoized set of "scope:scopeId" coordinates that have a token row. */
-    private ?array $tokenRowsCoords = null;
+    /** @var array<int, array{scope: string, scopeId: int, value: string}>|null Memoized full token rows. */
+    private ?array $tokenRows = null;
 
     /** @var int[]|null Memoized result of permittedStoreIds(). */
     private ?array $permittedStoreIds = null;
@@ -68,7 +68,7 @@ class TokenScopeContext implements ResetAfterRequestInterface
             return $this->permittedStoreIds;
         }
 
-        $coords      = $this->loadTokenRowsCoords();
+        $coords      = $this->coords();
         $ownerCoord  = $this->owner['scope'] . ':' . $this->owner['scopeId'];
         $permitted   = [];
 
@@ -83,6 +83,26 @@ class TokenScopeContext implements ResetAfterRequestInterface
         }
 
         return $this->permittedStoreIds = $permitted;
+    }
+
+    /**
+     * Finds the token row whose stored SHA-256 matches the presented plaintext (constant-time).
+     * Memoizes the underlying row load so a token-authenticated request hits the DB once
+     * across both findByHash() and permittedStoreIds().
+     *
+     * @return array{scope: string, scopeId: int}|null
+     */
+    public function findByHash(string $plaintext): ?array
+    {
+        $presentedHash = hash('sha256', $plaintext);
+
+        foreach ($this->loadRows() as $row) {
+            if (hash_equals($row['value'], $presentedHash)) {
+                return ['scope' => $row['scope'], 'scopeId' => $row['scopeId']];
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -106,17 +126,17 @@ class TokenScopeContext implements ResetAfterRequestInterface
     public function _resetState(): void
     {
         $this->owner             = null;
-        $this->tokenRowsCoords   = null;
+        $this->tokenRows         = null;
         $this->permittedStoreIds = null;
     }
 
     /**
-     * @return array<string, true>
+     * @return array<int, array{scope: string, scopeId: int, value: string}>
      */
-    private function loadTokenRowsCoords(): array
+    private function loadRows(): array
     {
-        if ($this->tokenRowsCoords !== null) {
-            return $this->tokenRowsCoords;
+        if ($this->tokenRows !== null) {
+            return $this->tokenRows;
         }
 
         $collection = $this->configDataCollectionFactory->create()
@@ -127,14 +147,28 @@ class TokenScopeContext implements ResetAfterRequestInterface
                 ScopeInterface::SCOPE_STORES,
             ]]);
 
-        $coords = [];
+        $rows = [];
         foreach ($collection->getItems() as $row) {
-            $scope   = (string) $row->getData('scope');
-            $scopeId = (int) $row->getData('scope_id');
-            $coords[$scope . ':' . $scopeId] = true;
+            $rows[] = [
+                'scope'   => (string) $row->getData('scope'),
+                'scopeId' => (int) $row->getData('scope_id'),
+                'value'   => (string) $row->getData('value'),
+            ];
         }
 
-        return $this->tokenRowsCoords = $coords;
+        return $this->tokenRows = $rows;
+    }
+
+    /**
+     * @return array<string, true>
+     */
+    private function coords(): array
+    {
+        $coords = [];
+        foreach ($this->loadRows() as $row) {
+            $coords[$row['scope'] . ':' . $row['scopeId']] = true;
+        }
+        return $coords;
     }
 
     /**

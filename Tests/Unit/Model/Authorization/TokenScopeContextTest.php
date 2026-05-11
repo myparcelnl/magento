@@ -186,3 +186,52 @@ it('website-scope owner whose website has zero member stores returns an empty pe
 
     expect($context->permittedStoreIds())->toBe([]);
 });
+
+// ====================================================================
+// findByHash: constant-time match against the stored SHA-256 hash row set.
+// Moved here from ApiAccessTokenUserContext as part of S2 to dedupe the DB query.
+// ====================================================================
+
+it('findByHash returns the (scope, scopeId) of the row whose SHA-256 matches the presented plaintext', function () {
+    $plaintext = 'plaintext-token-find';
+    $context   = new TokenScopeContext(
+        mockCollectionFactory([
+            ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', 'something-else')],
+            ['scope' => ScopeInterface::SCOPE_WEBSITES, 'scope_id' => 1, 'value' => hash('sha256', $plaintext)],
+        ]),
+        mockStoreManager([])
+    );
+
+    expect($context->findByHash($plaintext))
+        ->toBe(['scope' => ScopeInterface::SCOPE_WEBSITES, 'scopeId' => 1]);
+});
+
+it('findByHash returns null when no stored row hashes the presented plaintext', function () {
+    $context = new TokenScopeContext(
+        mockCollectionFactory([
+            ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', 'unrelated')],
+        ]),
+        mockStoreManager([])
+    );
+
+    expect($context->findByHash('not-the-plaintext'))->toBeNull();
+});
+
+it('findByHash and permittedStoreIds share a single row load across the request', function () {
+    $plaintext = 'plaintext-shared-load';
+    $factory   = mockCollectionFactory(
+        [['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', $plaintext)]],
+        $createCalls
+    );
+
+    $context = new TokenScopeContext($factory, mockStoreManager(fourStoreFixture()));
+
+    $matched = $context->findByHash($plaintext);
+    expect($matched)->toBe(['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0]);
+
+    $context->setOwner($matched['scope'], $matched['scopeId']);
+    expect($context->permittedStoreIds())->toBe([1, 2, 3, 4]);
+
+    // Single DB round-trip across both findByHash + permittedStoreIds.
+    expect($createCalls)->toBe(1);
+});

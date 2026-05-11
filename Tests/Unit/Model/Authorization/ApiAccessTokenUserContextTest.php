@@ -11,17 +11,49 @@ use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
 
 const FAKE_INTEGRATION_ID = 7;
 
-function makeContext(): TokenScopeContext
+/**
+ * TokenScopeContext mock for tests where UserContext should NOT reach findByHash
+ * (missing header, Bearer, empty token). Any unexpected interaction surfaces as
+ * an assertion failure rather than silently passing.
+ */
+function makeScopeContextNeverCalled(): TokenScopeContext
 {
-    return Mockery::mock(TokenScopeContext::class)->shouldIgnoreMissing();
+    $ctx = Mockery::mock(TokenScopeContext::class);
+    $ctx->shouldNotReceive('findByHash');
+    $ctx->shouldNotReceive('setOwner');
+    return $ctx;
+}
+
+/**
+ * TokenScopeContext mock for tests where UserContext calls findByHash but it returns null
+ * (token presented but no matching row).
+ */
+function makeScopeContextNoMatch(): TokenScopeContext
+{
+    $ctx = Mockery::mock(TokenScopeContext::class);
+    $ctx->shouldReceive('findByHash')->andReturnNull();
+    $ctx->shouldNotReceive('setOwner');
+    return $ctx;
+}
+
+/**
+ * TokenScopeContext mock for tests where UserContext should match and propagate the owner.
+ *
+ * @param array{scope: string, scopeId: int} $coord
+ */
+function makeScopeContextMatching(string $plaintext, array $coord): TokenScopeContext
+{
+    $ctx = Mockery::mock(TokenScopeContext::class);
+    $ctx->shouldReceive('findByHash')->with($plaintext)->andReturn($coord);
+    $ctx->shouldReceive('setOwner')->once()->with($coord['scope'], $coord['scopeId']);
+    return $ctx;
 }
 
 it('returns null userId/userType when no Authorization header is present', function () {
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization(null),
-        mockCollectionFactory([]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        makeContext()
+        makeScopeContextNeverCalled()
     );
 
     expect($ctx->getUserId())->toBeNull();
@@ -31,9 +63,8 @@ it('returns null userId/userType when no Authorization header is present', funct
 it('returns null userId/userType when scheme is Bearer (so the native chain handles it)', function () {
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization('Bearer some-magento-admin-token'),
-        mockCollectionFactory([]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        makeContext()
+        makeScopeContextNeverCalled()
     );
 
     expect($ctx->getUserId())->toBeNull();
@@ -43,83 +74,60 @@ it('returns null userId/userType when scheme is Bearer (so the native chain hand
 it('returns null when MyParcel scheme is present but the token is empty', function () {
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization('MyParcel '),
-        mockCollectionFactory([]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        makeContext()
+        makeScopeContextNeverCalled()
     );
 
     expect($ctx->getUserId())->toBeNull();
     expect($ctx->getUserType())->toBeNull();
 });
 
-it('returns null when no row hashes the presented token', function () {
+it('returns null when TokenScopeContext::findByHash finds no matching row', function () {
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization('MyParcel deadbeef'),
-        mockCollectionFactory([
-            ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', 'a-different-token')],
-        ]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        makeContext()
+        makeScopeContextNoMatch()
     );
 
     expect($ctx->getUserId())->toBeNull();
     expect($ctx->getUserType())->toBeNull();
 });
 
-it('matches a default-scope row and returns USER_TYPE_INTEGRATION + integration id', function () {
+it('propagates the matched default-scope coordinate and returns USER_TYPE_INTEGRATION', function () {
     $plaintext = 'plaintext-token-1';
-    $context   = Mockery::mock(TokenScopeContext::class);
-    $context->shouldReceive('setOwner')
-        ->once()
-        ->with(ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0);
+    $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization('MyParcel ' . $plaintext),
-        mockCollectionFactory([
-            ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', $plaintext)],
-        ]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        $context
+        makeScopeContextMatching($plaintext, $coord)
     );
 
     expect($ctx->getUserType())->toBe(UserContextInterface::USER_TYPE_INTEGRATION);
     expect($ctx->getUserId())->toBe(FAKE_INTEGRATION_ID);
 });
 
-it('matches a website-scope row and propagates the (websites, id) coordinate', function () {
+it('propagates the matched website-scope coordinate', function () {
     $plaintext = 'plaintext-token-2';
-    $context   = Mockery::mock(TokenScopeContext::class);
-    $context->shouldReceive('setOwner')
-        ->once()
-        ->with(ScopeInterface::SCOPE_WEBSITES, 1);
+    $coord     = ['scope' => ScopeInterface::SCOPE_WEBSITES, 'scopeId' => 1];
 
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization('MyParcel ' . $plaintext),
-        mockCollectionFactory([
-            ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', 'unrelated')],
-            ['scope' => ScopeInterface::SCOPE_WEBSITES, 'scope_id' => 1, 'value' => hash('sha256', $plaintext)],
-        ]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        $context
+        makeScopeContextMatching($plaintext, $coord)
     );
 
     expect($ctx->getUserType())->toBe(UserContextInterface::USER_TYPE_INTEGRATION);
 });
 
-it('matches a store-scope row and propagates the (stores, id) coordinate', function () {
+it('propagates the matched store-scope coordinate', function () {
     $plaintext = 'plaintext-token-3';
-    $context   = Mockery::mock(TokenScopeContext::class);
-    $context->shouldReceive('setOwner')
-        ->once()
-        ->with(ScopeInterface::SCOPE_STORES, 2);
+    $coord     = ['scope' => ScopeInterface::SCOPE_STORES, 'scopeId' => 2];
 
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization('MyParcel ' . $plaintext),
-        mockCollectionFactory([
-            ['scope' => ScopeInterface::SCOPE_STORES, 'scope_id' => 2, 'value' => hash('sha256', $plaintext)],
-        ]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        $context
+        makeScopeContextMatching($plaintext, $coord)
     );
 
     expect($ctx->getUserType())->toBe(UserContextInterface::USER_TYPE_INTEGRATION);
@@ -127,14 +135,12 @@ it('matches a store-scope row and propagates the (stores, id) coordinate', funct
 
 it('accepts every casing of the MyParcel scheme', function (string $scheme) {
     $plaintext = 'plaintext-case-' . $scheme;
+    $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization($scheme . ' ' . $plaintext),
-        mockCollectionFactory([
-            ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', $plaintext)],
-        ]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        makeContext()
+        makeScopeContextMatching($plaintext, $coord)
     );
 
     expect($ctx->getUserType())->toBe(UserContextInterface::USER_TYPE_INTEGRATION);
@@ -142,14 +148,17 @@ it('accepts every casing of the MyParcel scheme', function (string $scheme) {
 
 it('returns null when the integration record has not been provisioned (id missing)', function () {
     $plaintext = 'plaintext-no-integration';
+    $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
+
+    // setOwner is not expected when integration resolution fails — UserContext bails before that.
+    $scopeContext = Mockery::mock(TokenScopeContext::class);
+    $scopeContext->shouldReceive('findByHash')->with($plaintext)->andReturn($coord);
+    $scopeContext->shouldNotReceive('setOwner');
 
     $ctx = new ApiAccessTokenUserContext(
         mockRequestWithAuthorization('MyParcel ' . $plaintext),
-        mockCollectionFactory([
-            ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', $plaintext)],
-        ]),
         mockIntegrationService(null),
-        makeContext()
+        $scopeContext
     );
 
     expect($ctx->getUserId())->toBeNull();
@@ -160,6 +169,7 @@ it('falls back to $_SERVER[REDIRECT_HTTP_AUTHORIZATION] when the framework Reque
     // Reproduces the Apache "internal redirect prefixes env vars with REDIRECT_" quirk
     // that affects Magento installs with DocumentRoot at the project root rather than pub/.
     $plaintext = 'plaintext-token-redirect';
+    $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
     $request = Mockery::mock(RequestInterface::class);
     $request->shouldReceive('getHeader')->with('Authorization')->andReturn(false);
@@ -170,11 +180,8 @@ it('falls back to $_SERVER[REDIRECT_HTTP_AUTHORIZATION] when the framework Reque
     try {
         $ctx = new ApiAccessTokenUserContext(
             $request,
-            mockCollectionFactory([
-                ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', $plaintext)],
-            ]),
             mockIntegrationService(FAKE_INTEGRATION_ID),
-            makeContext()
+            makeScopeContextMatching($plaintext, $coord)
         );
 
         expect($ctx->getUserType())->toBe(UserContextInterface::USER_TYPE_INTEGRATION);
@@ -190,7 +197,9 @@ it('falls back to $_SERVER[REDIRECT_HTTP_AUTHORIZATION] when the framework Reque
 
 it('processes the request only once across repeated getUserId/getUserType calls', function () {
     $plaintext = 'plaintext-cached';
-    $request   = Mockery::mock(RequestInterface::class);
+    $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
+
+    $request = Mockery::mock(RequestInterface::class);
     $request->shouldReceive('getHeader')
         ->with('Authorization')
         ->once()
@@ -198,11 +207,8 @@ it('processes the request only once across repeated getUserId/getUserType calls'
 
     $ctx = new ApiAccessTokenUserContext(
         $request,
-        mockCollectionFactory([
-            ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', $plaintext)],
-        ]),
         mockIntegrationService(FAKE_INTEGRATION_ID),
-        makeContext()
+        makeScopeContextMatching($plaintext, $coord)
     );
 
     $ctx->getUserId();
