@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace MyParcelNL\Magento\Tests\Helpers;
+
 use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigDataCollection;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Cache\TypeListInterface;
@@ -9,13 +11,12 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\DataObject;
 use Magento\Integration\Api\IntegrationServiceInterface;
-use Magento\Integration\Model\Integration;
-use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Authorization\ApiAccessTokenUserContext;
 use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
 use MyParcelNL\Magento\Service\ApiAccessToken\RandomBytesGeneratorInterface;
 use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
+use Mockery;
 
 /**
  * Shared in-memory backing for the writer + collection factory so TokenService writes/deletes
@@ -118,39 +119,22 @@ final class MyParcelTokenLifecycleHarness
 
     public function cacheTypeList(): TypeListInterface
     {
-        $cache = Mockery::mock(TypeListInterface::class);
-        $cache->shouldReceive('cleanType')->withAnyArgs()->andReturnNull();
-        return $cache;
+        return mockCacheTypeList();
     }
 
     public function randomBytes(?string $forced = null): RandomBytesGeneratorInterface
     {
-        $gen = Mockery::mock(RandomBytesGeneratorInterface::class);
-        $gen->shouldReceive('generate')->andReturnUsing(
-            static function (int $length = 32) use ($forced): string {
-                return $forced ?? random_bytes($length);
-            }
-        );
-        return $gen;
+        return mockRandomBytesGenerator($forced);
     }
 
     public function integrationService(): IntegrationServiceInterface
     {
-        $integration = Mockery::mock(Integration::class);
-        $integration->shouldReceive('getId')->andReturn(self::INTEGRATION_ID);
-
-        $svc = Mockery::mock(IntegrationServiceInterface::class);
-        $svc->shouldReceive('findByName')
-            ->with(ApiAccessTokenUserContext::INTEGRATION_NAME)
-            ->andReturn($integration);
-        return $svc;
+        return mockIntegrationService(self::INTEGRATION_ID);
     }
 
     public function request(string $authHeader): RequestInterface
     {
-        $request = Mockery::mock(RequestInterface::class);
-        $request->shouldReceive('getHeader')->with('Authorization')->andReturn($authHeader);
-        return $request;
+        return mockRequestWithAuthorization($authHeader);
     }
 
     /**
@@ -158,16 +142,7 @@ final class MyParcelTokenLifecycleHarness
      */
     public function storeManager(array $stores): StoreManagerInterface
     {
-        $storeMocks = [];
-        foreach ($stores as $s) {
-            $store = Mockery::mock(StoreInterface::class);
-            $store->shouldReceive('getId')->andReturn($s['id']);
-            $store->shouldReceive('getWebsiteId')->andReturn($s['websiteId']);
-            $storeMocks[] = $store;
-        }
-        $mgr = Mockery::mock(StoreManagerInterface::class);
-        $mgr->shouldReceive('getStores')->with(false)->andReturn($storeMocks);
-        return $mgr;
+        return mockStoreManager($stores);
     }
 
     public function service(?string $forcedBytes = null): TokenService
