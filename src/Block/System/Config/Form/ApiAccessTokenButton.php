@@ -68,7 +68,7 @@ class ApiAccessTokenButton extends Template
         switch ($scope) {
             case ScopeInterface::SCOPE_STORES:
                 return (string) __(
-                    'Covers only this store. Issuing this token removes this store from the default-scope token\'s view and from any parent-website token\'s view, it is now exclusively owned by this store-view-scoped token.'
+                    'Covers only this store. Issuing this token removes this store from the default-scope token\'s view and from any parent-website token\'s view: it is now exclusively owned by this store-view-scoped token.'
                 );
             case ScopeInterface::SCOPE_WEBSITES:
                 return (string) __(
