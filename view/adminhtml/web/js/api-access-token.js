@@ -1,4 +1,4 @@
-define(['jquery'], function ($) {
+define([], function () {
     'use strict';
 
     /**
@@ -8,14 +8,14 @@ define(['jquery'], function ($) {
      *              failureLabel, revokeFailLabel, revokeConfirm.
      */
     return function (config, element) {
-        const $el         = $(element);
-        const generateBtn = $el.find('#' + config.fieldId + '_generate')[0];
-        const revokeBtn   = $el.find('#' + config.fieldId + '_revoke')[0];
-        const current     = $el.find('#' + config.fieldId + '_current')[0];
-        const plaintext   = $el.find('#' + config.fieldId + '_plaintext')[0];
-        const input       = $el.find('#' + config.fieldId + '_plaintext_input')[0];
-        const revoked     = $el.find('#' + config.fieldId + '_revoked')[0];
-        const error       = $el.find('#' + config.fieldId + '_error')[0];
+        const fieldId     = config.fieldId;
+        const generateBtn = document.getElementById(`${fieldId}_generate`);
+        const revokeBtn   = document.getElementById(`${fieldId}_revoke`);
+        const current     = document.getElementById(`${fieldId}_current`);
+        const plaintext   = document.getElementById(`${fieldId}_plaintext`);
+        const input       = document.getElementById(`${fieldId}_plaintext_input`);
+        const revoked     = document.getElementById(`${fieldId}_revoked`);
+        const error       = document.getElementById(`${fieldId}_error`);
         const label       = generateBtn.querySelector('span');
 
         function showError(message) {
@@ -29,21 +29,25 @@ define(['jquery'], function ($) {
         }
 
         function post(url, onSuccess, onFailure) {
-            $.ajax({
-                url: url,
-                type: 'POST',
-                dataType: 'json',
-                data: {
+            fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: new URLSearchParams({
                     scope:    config.scopeName,
                     scopeId:  config.scopeId,
                     form_key: window.FORM_KEY
-                }
-            }).done(onSuccess).fail(function (jqXHR) {
-                onFailure(jqXHR.responseJSON || null);
+                }).toString()
+            }).then(function (response) {
+                return response.json().then(function (json) {
+                    return response.ok ? onSuccess(json) : onFailure(json);
+                });
+            }).catch(function () {
+                onFailure(null);
             });
         }
 
-        $(generateBtn).on('click', function () {
+        generateBtn.addEventListener('click', function () {
             clearError();
             post(config.ajaxUrl, function (response) {
                 if (response && response.success && response.token) {
@@ -63,7 +67,7 @@ define(['jquery'], function ($) {
             });
         });
 
-        $(revokeBtn).on('click', function () {
+        revokeBtn.addEventListener('click', function () {
             clearError();
             if (!window.confirm(config.revokeConfirm)) {
                 return;
