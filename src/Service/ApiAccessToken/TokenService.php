@@ -69,6 +69,25 @@ class TokenService
     }
 
     /**
+     * Clears the token row at ($scope, $scopeId). Idempotent — deleting a non-existent row is a no-op.
+     *
+     * @throws InputException when $scope is not one of default, websites, stores.
+     */
+    public function revokeForScope(string $scope, int $scopeId): void
+    {
+        if (! in_array($scope, self::ALLOWED_SCOPES, true)) {
+            throw new InputException(__('Unsupported scope "%1".', $scope));
+        }
+
+        if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $scope) {
+            $scopeId = 0;
+        }
+
+        $this->configWriter->delete(self::CONFIG_PATH, $scope, $scopeId);
+        $this->cacheTypeList->cleanType(self::CONFIG_CACHE_TYPE);
+    }
+
+    /**
      * @throws AlreadyExistsException
      */
     private function assertHashIsUnique(string $hash, string $scope, int $scopeId): void

@@ -18,20 +18,34 @@ $scopeComment = $block->getScopeComment();
 
     <div class="myparcel-api-access-token__current"
          id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_current"
-         <?= $hasToken ? '' : 'style="display:none;"' ?>>
-        <span class="myparcel-api-access-token__masked">••••••••</span>
+         aria-label="<?= $escaper->escapeHtmlAttr(__('A token is currently configured at this scope.')) ?>"
+         <?= $hasToken ? '' : 'hidden' ?>>
+        <span class="myparcel-api-access-token__masked" aria-hidden="true">••••••••</span>
     </div>
 
     <div class="myparcel-api-access-token__plaintext"
          id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_plaintext"
-         style="display:none;">
+         role="status"
+         aria-atomic="true"
+         hidden>
         <input type="text"
                readonly
                class="admin__control-text myparcel-api-access-token__plaintext-input"
                id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_plaintext_input"
+               aria-label="<?= $escaper->escapeHtmlAttr(__('API access token')) ?>"
                value=""/>
         <p class="message message-success myparcel-api-access-token__notice">
             <?= $escaper->escapeHtml(__('Token generated. Copy it now, it will not be shown again.')) ?>
+        </p>
+    </div>
+
+    <div class="myparcel-api-access-token__revoked"
+         id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_revoked"
+         role="status"
+         aria-atomic="true"
+         hidden>
+        <p class="message message-success">
+            <?= $escaper->escapeHtml(__('Token revoked.')) ?>
         </p>
     </div>
 
@@ -41,9 +55,18 @@ $scopeComment = $block->getScopeComment();
         <span><?= $escaper->escapeHtml($hasToken ? __('Regenerate') : __('Generate')) ?></span>
     </button>
 
+    <button type="button"
+            class="action-default scalable myparcel-api-access-token__revoke"
+            id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_revoke"
+            <?= $hasToken ? '' : 'hidden' ?>>
+        <span><?= $escaper->escapeHtml(__('Revoke')) ?></span>
+    </button>
+
     <div class="message message-error myparcel-api-access-token__error"
          id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_error"
-         style="display:none;"></div>
+         role="alert"
+         aria-atomic="true"
+         hidden></div>
 </div>
 
 <script>
@@ -52,27 +75,33 @@ $scopeComment = $block->getScopeComment();
 
         const fieldId          = <?= json_encode($fieldHtmlId) ?>;
         const ajaxUrl          = <?= json_encode($block->getAjaxUrl()) ?>;
+        const revokeUrl        = <?= json_encode($block->getRevokeAjaxUrl()) ?>;
         const scopeName        = <?= json_encode($scopeName) ?>;
         const scopeId          = <?= json_encode((int) $scopeId) ?>;
+        const generateLabel    = <?= json_encode((string) __('Generate')) ?>;
         const regenerateLabel  = <?= json_encode((string) __('Regenerate')) ?>;
         const unexpectedLabel  = <?= json_encode((string) __('Unexpected response.')) ?>;
         const failureLabel     = <?= json_encode((string) __('Failed to generate token.')) ?>;
+        const revokeFailLabel  = <?= json_encode((string) __('Failed to revoke token.')) ?>;
+        const revokeConfirm    = <?= json_encode((string) __('Revoke the API access token at this scope? Callers using it will be denied immediately.')) ?>;
 
         const generateBtn = document.getElementById(fieldId + '_generate');
+        const revokeBtn   = document.getElementById(fieldId + '_revoke');
         const current    = document.getElementById(fieldId + '_current');
         const plaintext  = document.getElementById(fieldId + '_plaintext');
         const input      = document.getElementById(fieldId + '_plaintext_input');
+        const revoked    = document.getElementById(fieldId + '_revoked');
         const error      = document.getElementById(fieldId + '_error');
         const label      = generateBtn.querySelector('span');
 
         function showError(message) {
             error.textContent = message;
-            error.style.display = '';
+            error.hidden = false;
         }
 
         function clearError() {
             error.textContent = '';
-            error.style.display = 'none';
+            error.hidden = true;
         }
 
         function parseResponse(transport) {
@@ -98,10 +127,12 @@ $scopeComment = $block->getScopeComment();
                 onSuccess: function (transport) {
                     const response = parseResponse(transport);
                     if (response && response.success && response.token) {
-                        current.style.display = 'none';
+                        revoked.hidden = true;
+                        current.hidden = true;
                         input.value = response.token;
-                        plaintext.style.display = '';
+                        plaintext.hidden = false;
                         label.textContent = regenerateLabel;
+                        revokeBtn.hidden = false;
                         input.focus();
                         input.select();
                     } else {
@@ -111,6 +142,38 @@ $scopeComment = $block->getScopeComment();
                 onFailure: function (transport) {
                     const response = parseResponse(transport);
                     showError((response && response.message) ? response.message : failureLabel);
+                }
+            });
+        });
+
+        revokeBtn.addEventListener('click', function () {
+            clearError();
+
+            if (!window.confirm(revokeConfirm)) {
+                return;
+            }
+
+            new Ajax.Request(revokeUrl, {
+                method: 'post',
+                parameters: {scope: scopeName, scopeId: scopeId},
+                loaderArea: true,
+                asynchronous: true,
+                evalJSON: 'force',
+                onSuccess: function (transport) {
+                    const response = parseResponse(transport);
+                    if (response && response.success) {
+                        current.hidden = true;
+                        plaintext.hidden = true;
+                        revoked.hidden = false;
+                        revokeBtn.hidden = true;
+                        label.textContent = generateLabel;
+                    } else {
+                        showError((response && response.message) ? response.message : unexpectedLabel);
+                    }
+                },
+                onFailure: function (transport) {
+                    const response = parseResponse(transport);
+                    showError((response && response.message) ? response.message : revokeFailLabel);
                 }
             });
         });
