@@ -227,3 +227,18 @@ it('assertStoreInScope passes for a store inside the permitted set', function ()
 
     expect(fn () => $context->assertStoreInScope(2))->not->toThrow(NoSuchEntityException::class);
 });
+
+// US-000006 Scenario 9: a website containing zero store-views still authenticates,
+// but its permitted set is empty (no store has W3 as its parent).
+it('website-scope owner whose website has zero member stores returns an empty permitted set', function () {
+    $fixtureWithW3 = array_merge(fourStoreFixture(), []); // W3 intentionally has no stores
+    $context = new TokenScopeContext(
+        makeConfigDataCollectionFactory([
+            ['scope' => ScopeInterface::SCOPE_WEBSITES, 'scope_id' => 3],
+        ]),
+        makeStoreManager($fixtureWithW3)
+    );
+    $context->setOwner(ScopeInterface::SCOPE_WEBSITES, 3);
+
+    expect($context->permittedStoreIds())->toBe([]);
+});

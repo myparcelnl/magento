@@ -8,9 +8,14 @@ declare(strict_types=1);
 [$scopeName, $scopeId] = $block->getCurrentScope();
 $hasToken = $block->hasTokenAtCurrentScope();
 $fieldHtmlId = $block->getFieldHtmlId();
+$scopeComment = $block->getScopeComment();
 ?>
 
 <div class="myparcel-api-access-token" data-field-id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>">
+    <p class="myparcel-api-access-token__scope-note">
+        <?= $escaper->escapeHtml($scopeComment) ?>
+    </p>
+
     <div class="myparcel-api-access-token__current"
          id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_current"
          <?= $hasToken ? '' : 'style="display:none;"' ?>>

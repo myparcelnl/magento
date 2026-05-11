@@ -23,6 +23,9 @@
     <!-- API order delivery options -->
     <preference for="MyParcelNL\Magento\Api\OrderDeliveryOptionsInterface"
                 type="MyParcelNL\Magento\Model\Rest\OrderDeliveryOptions" />
+    <!-- API access token random bytes generator (swap-in seam for tests) -->
+    <preference for="MyParcelNL\Magento\Service\ApiAccessToken\RandomBytesGeneratorInterface"
+                type="MyParcelNL\Magento\Service\ApiAccessToken\RandomBytesGenerator" />
     <!-- Add print label button in order view -->
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
         <plugin name="mypa-massaction-button" sortOrder="10" type="MyParcelNL\Magento\Plugin\Block\Adminhtml\Order\View"/>
