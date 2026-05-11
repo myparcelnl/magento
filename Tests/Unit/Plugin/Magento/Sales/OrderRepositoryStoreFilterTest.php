@@ -97,7 +97,7 @@ it('beforeGetList appends a store_id IN(...) filter group preserving existing gr
 
     expect($bag['captured']['field'])->toBe('store_id');
     expect($bag['captured']['conditionType'])->toBe('in');
-    expect($bag['captured']['value'])->toBe('1,3');
+    expect($bag['captured']['value'])->toBe([1, 3]);
 });
 
 it('beforeGetList substitutes -1 when permitted set is empty so no rows match', function () {
@@ -108,7 +108,7 @@ it('beforeGetList substitutes -1 when permitted set is empty so no rows match', 
     $repository = Mockery::mock(OrderRepositoryInterface::class);
     $bag['plugin']->beforeGetList($repository, $criteria);
 
-    expect($bag['captured']['value'])->toBe('-1');
+    expect($bag['captured']['value'])->toBe([-1]);
 });
 
 it('afterGet returns the order unchanged when no token authenticated this request', function () {

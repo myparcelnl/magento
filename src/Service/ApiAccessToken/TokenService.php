@@ -49,13 +49,7 @@ class TokenService
      */
     public function generateForScope(string $scope, int $scopeId): string
     {
-        if (! in_array($scope, self::ALLOWED_SCOPES, true)) {
-            throw new InputException(__('Unsupported scope "%1".', $scope));
-        }
-
-        if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $scope) {
-            $scopeId = 0;
-        }
+        [$scope, $scopeId] = $this->normalizeCoordinate($scope, $scopeId);
 
         $plaintext = bin2hex($this->randomBytes->generate(32));
         $hash      = hash('sha256', $plaintext);
@@ -75,6 +69,18 @@ class TokenService
      */
     public function revokeForScope(string $scope, int $scopeId): void
     {
+        [$scope, $scopeId] = $this->normalizeCoordinate($scope, $scopeId);
+
+        $this->configWriter->delete(self::CONFIG_PATH, $scope, $scopeId);
+        $this->cacheTypeList->cleanType(self::CONFIG_CACHE_TYPE);
+    }
+
+    /**
+     * @return array{0: string, 1: int}
+     * @throws InputException
+     */
+    private function normalizeCoordinate(string $scope, int $scopeId): array
+    {
         if (! in_array($scope, self::ALLOWED_SCOPES, true)) {
             throw new InputException(__('Unsupported scope "%1".', $scope));
         }
@@ -83,8 +89,7 @@ class TokenService
             $scopeId = 0;
         }
 
-        $this->configWriter->delete(self::CONFIG_PATH, $scope, $scopeId);
-        $this->cacheTypeList->cleanType(self::CONFIG_CACHE_TYPE);
+        return [$scope, $scopeId];
     }
 
     /**

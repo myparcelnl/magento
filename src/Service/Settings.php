@@ -133,25 +133,16 @@ class Settings
     }
 
     /**
-     * @param string   $path
-     * @param string   $scopeName
-     * @param int|null $scopeId
-     * @return bool whether a specific value exists for the given scope (ie it is overriding)
+     * Inheritance-aware: default scope always "owns" its value (config.xml fallback),
+     * otherwise true iff an override row exists at the exact (scope, scopeId).
      */
     public function hasOwnValue(string $path, string $scopeName = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, ?int $scopeId = null): bool
     {
         if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $scopeName) {
-            return true; // Default scope always "owns" its values
+            return true;
         }
 
-        // Check if there's a specific value in the database for this scope
-        $collection = $this->scopeCollectionFactory->create()
-                                                   ->addFieldToFilter('path', $path)
-                                                   ->addFieldToFilter('scope', $scopeName)
-                                                   ->addFieldToFilter('scope_id', $scopeId)
-        ;
-
-        return $collection->getSize() > 0;
+        return $this->hasRowAtScope($path, $scopeName, (int) $scopeId);
     }
 
     /**

@@ -5,26 +5,20 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Controller\Adminhtml\ApiAccessToken;
 
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 
-class Generate extends AbstractTokenAction
+class Revoke extends AbstractTokenAction
 {
     public function execute(): ResultInterface
     {
         [$scope, $scopeId] = $this->scopeAndId();
 
         try {
-            $token = $this->tokenService->generateForScope($scope, $scopeId);
-        } catch (AlreadyExistsException $e) {
-            return $this->errorJson(409, $e->getMessage());
+            $this->tokenService->revokeForScope($scope, $scopeId);
         } catch (InputException $e) {
             return $this->errorJson(400, $e->getMessage());
         }
 
-        return $this->jsonFactory->create()->setData([
-            'success' => true,
-            'token'   => $token,
-        ]);
+        return $this->jsonFactory->create()->setData(['success' => true]);
     }
 }

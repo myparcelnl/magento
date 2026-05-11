@@ -42,12 +42,13 @@ class OrderRepositoryStoreFilter
             return [$searchCriteria];
         }
 
+        // Empty permitted set: force store_id IN (-1) so no row matches (store_ids are positive).
         $values = $permitted === [] ? [-1] : $permitted;
 
         $filter = $this->filterBuilder
             ->setField('store_id')
             ->setConditionType('in')
-            ->setValue(implode(',', $values))
+            ->setValue($values)
             ->create();
 
         $group = $this->filterGroupBuilder
