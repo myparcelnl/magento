@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <virtualType name="MyParcelNL\Magento\Router\AdminProxyRouter"
+                 type="MyParcelNL\Magento\Router\ProxyRouter">
+        <arguments>
+            <argument name="actionClass" xsi:type="string">MyParcelNL\Magento\Controller\Adminhtml\Proxy\Forward</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Framework\App\RouterList">
+        <arguments>
+            <argument name="routerList" xsi:type="array">
+                <item name="myparcel_proxy" xsi:type="array">
+                    <item name="class" xsi:type="string">MyParcelNL\Magento\Router\AdminProxyRouter</item>
+                    <item name="disable" xsi:type="boolean">false</item>
+                    <item name="sortOrder" xsi:type="string">10</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
+</config>

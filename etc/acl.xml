@@ -3,6 +3,7 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
+                <resource id="MyParcelNL_Magento::api_proxy" title="MyParcel API Proxy" translate="title" sortOrder="200"/>
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
