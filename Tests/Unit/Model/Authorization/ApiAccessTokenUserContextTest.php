@@ -252,3 +252,18 @@ it('processes the request only once across repeated getUserId/getUserType calls'
     // Mockery's ->once() expectation on getHeader('Authorization') asserts the singleton parse.
     expect(true)->toBeTrue();
 });
+
+/**
+ * Coverage regression: INTEGRATION_NAME is the lookup key UserContext uses against
+ * IntegrationServiceInterface::findByName(). A rename of the <integration name="…"/>
+ * in etc/integration.xml without updating the constant silently breaks every
+ * token-authenticated request — findByName returns an empty Integration, getUserId
+ * returns null, the caller gets a generic 401. Static guard catches the drift.
+ */
+it('INTEGRATION_NAME matches the <integration name="..."> declared in etc/integration.xml', function () {
+    $moduleRoot     = dirname(__DIR__, 4);
+    $integrationXml = simplexml_load_file($moduleRoot . '/etc/integration.xml');
+    expect($integrationXml)->not->toBeFalse();
+
+    expect((string) $integrationXml->integration['name'])->toBe(ApiAccessTokenUserContext::INTEGRATION_NAME);
+});
