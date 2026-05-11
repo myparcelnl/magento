@@ -43,7 +43,7 @@
         {
           "id": "api_access",
           "label": "API Access",
-          "comment": "Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored.",
+          "comment": "Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately.",
           "showInDefault": true,
           "showInWebsite": true,
           "showInStore": true,
