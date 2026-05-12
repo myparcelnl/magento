@@ -8,6 +8,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Magento\Framework\Exception\LocalizedException;
+use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 use MyParcelNL\Magento\Service\Config;
 use Psr\Log\LoggerInterface;
 
@@ -78,7 +79,6 @@ class Client
         if (!in_array($method, self::ALLOWED_METHODS, true)) {
             return $this->reject(
                 405,
-                'Method Not Allowed',
                 'method not allowed',
                 $method,
                 $upstreamPath,
@@ -86,10 +86,10 @@ class Client
             );
         }
         if (!$this->isPathAllowed($upstreamPath)) {
-            return $this->reject(403, 'Forbidden', 'path not allowed', $method, $upstreamPath);
+            return $this->reject(403, 'path not allowed', $method, $upstreamPath);
         }
         if (strlen($requestBody) > self::MAX_BODY_BYTES) {
-            return $this->reject(413, 'Content Too Large', 'request body too large', $method, $upstreamPath);
+            return $this->reject(413, 'request body too large', $method, $upstreamPath);
         }
 
         $apiKey = (string) $this->config->getGeneralConfig('api/key');
@@ -127,12 +127,8 @@ class Client
             ));
             return new Response(
                 502,
-                ['Content-Type' => 'application/problem+json'],
-                (string) json_encode([
-                    'title'  => 'Bad Gateway',
-                    'status' => 502,
-                    'detail' => 'upstream unreachable',
-                ])
+                ['Content-Type' => ProblemDetails::CONTENT_TYPE],
+                ProblemDetails::fromStatus(502, 'upstream unreachable')->toJsonString()
             );
         }
 
@@ -199,7 +195,6 @@ class Client
      */
     private function reject(
         int $status,
-        string $title,
         string $reason,
         string $method,
         string $upstreamPath,
@@ -213,12 +208,8 @@ class Client
         ));
         return new Response(
             $status,
-            ['Content-Type' => 'application/problem+json'] + $extraHeaders,
-            (string) json_encode([
-                'title'  => $title,
-                'status' => $status,
-                'detail' => $reason,
-            ])
+            ['Content-Type' => ProblemDetails::CONTENT_TYPE] + $extraHeaders,
+            ProblemDetails::fromStatus($status, $reason)->toJsonString()
         );
     }
 }

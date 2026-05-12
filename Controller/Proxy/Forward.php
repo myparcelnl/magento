@@ -18,6 +18,7 @@ use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 use MyParcelNL\Magento\Service\Proxy\Forwarder;
 
 class Forward implements
@@ -98,12 +99,8 @@ class Forward implements
     {
         $result = $this->rawFactory->create();
         $result->setHttpResponseCode(403);
-        $result->setHeader('Content-Type', 'application/problem+json', true);
-        $result->setContents((string) json_encode([
-            'title'  => 'Forbidden',
-            'status' => 403,
-            'detail' => 'origin does not match base URL',
-        ]));
+        $result->setHeader('Content-Type', ProblemDetails::CONTENT_TYPE, true);
+        $result->setContents(ProblemDetails::fromStatus(403, 'origin does not match base URL')->toJsonString());
         return $result;
     }
 }
