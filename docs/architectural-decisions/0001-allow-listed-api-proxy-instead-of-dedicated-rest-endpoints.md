@@ -14,11 +14,11 @@
 
 ### Background
 
-The MyParcel checkout delivery-options widget (and, in the near future, the
-admin order page) needs to call a small number of MyParcel REST resources
-from the browser — starting with `shipments/capabilities`. The browser cannot
-talk to `api.myparcel.nl` directly because the MyParcel API key is a
-shop-wide secret and must stay server-side.
+The MyParcel checkout delivery-options widget needs to call a small number
+of MyParcel REST resources from the browser — starting with
+`shipments/capabilities`. The browser cannot talk to `api.myparcel.nl`
+directly because the MyParcel API key is a shop-wide secret and must stay
+server-side.
 
 The module already has a framework for versioned Magento REST endpoints
 (`src/Model/Rest/AbstractEndpoint` + per-version request/resource/transformer
@@ -28,10 +28,10 @@ This ADR records why we chose not to.
 
 ### Problem Statement
 
-How should the Magento module expose upstream MyParcel API calls to its own
-browser-side code (checkout widget, admin order page) without leaking the
-API key and without rebuilding a Magento-flavoured equivalent of every
-upstream resource we touch?
+How should the Magento module expose upstream MyParcel API calls to its
+storefront checkout widget without leaking the API key and without
+rebuilding a Magento-flavoured equivalent of every upstream resource we
+touch?
 
 ### Constraints
 
@@ -39,9 +39,8 @@ upstream resource we touch?
 - The widget is third-party JS loaded into the storefront; it needs CORS-free,
   same-origin endpoints.
 - The set of upstream resources we need is small today (one path) but
-  is expected to grow as the widget and the admin order page mature.
-- We have a limited window: the checkout widget is shipping now, the admin
-  callers come later.
+  is expected to grow as the widget matures.
+- The checkout widget is shipping now.
 
 ---
 
@@ -98,14 +97,14 @@ future additions), add a Magento REST endpoint following the
 
 ---
 
-### Option 2: Single allow-listed proxy with two thin controllers (chosen)
+### Option 2: Single allow-listed storefront proxy (chosen)
 
 **Description:**
-A custom router matches `/myparcel/proxy/<upstream-path>` in both frontend
-and adminhtml areas (`src/Router/ProxyRouter.php`, registered as
-`FrontendProxyRouter` in `etc/frontend/di.xml` and `AdminProxyRouter` in
-`etc/adminhtml/di.xml`). Each area has a thin `Forward` controller that
-delegates to a shared `Forwarder` + `Client` (`src/Service/Proxy/`).
+A custom router (`src/Router/ProxyRouter.php`, registered as the
+`FrontendProxyRouter` virtual type in `etc/frontend/di.xml`) matches
+`/myparcel/proxy/<upstream-path>` on the storefront. A thin `Forward`
+controller (`Controller/Proxy/Forward.php`) delegates to `Forwarder` +
+`Client` (`src/Service/Proxy/`).
 
 The `Client` enforces, in one place:
 - An exact-match allow-list of upstream paths
@@ -123,17 +122,15 @@ The `Client` enforces, in one place:
 - RFC 9457 `application/problem+json` for every rejection, and a warning
   log line for every rejected request.
 
-Authorization differs per area:
-- **Storefront** (`Controller/Proxy/Forward.php`): `CsrfAwareActionInterface`;
-  rejects unless the `Origin` (or `Referer`) header matches the store base
-  URL, scheme/host/port exactly.
-- **Adminhtml** (`Controller/Adminhtml/Proxy/Forward.php`): admin session +
-  ACL resource `MyParcelNL_Magento::api_proxy` + form key for non-GET.
+Authorization on the storefront controller is via
+`CsrfAwareActionInterface`: the proxy rejects unless the `Origin` (or
+`Referer`) header matches the store base URL on scheme, host and port
+exactly.
 
 **Pros:**
 - **Single security choke point:** one `Client` class enforces method, path,
-  header, size and timeout rules for all callers and all upstream calls.
-  Easy to audit, easy to change.
+  header, size and timeout rules for every proxied call. Easy to audit,
+  easy to change.
 - **One-line extensibility:** to expose a new upstream call, add one entry
   to `ALLOWED_PATHS`. No new classes, no new XML.
 - **No upstream-shape coupling:** the proxy doesn't model upstream
@@ -151,9 +148,6 @@ Authorization differs per area:
   check is necessary but not by itself sufficient against an attacker who
   already has a foothold; we accept this because the proxy's allow-list
   limits the blast radius to read-mostly capability lookups.
-- **Two controllers, one policy:** the storefront and admin controllers
-  share `Forwarder` and `Client`, but the authorization wrappers are
-  separate. Easy to drift over time if the next person only updates one.
 
 ---
 
@@ -178,8 +172,7 @@ Rejected on the security ground alone; listed here for completeness.
 
 ## Decision Outcome
 
-**Chosen Option:** Option 2 — Single allow-listed proxy with two thin
-controllers.
+**Chosen Option:** Option 2 — Single allow-listed storefront proxy.
 
 ### Rationale
 
@@ -214,9 +207,8 @@ framework still applies; see driver 5). The two approaches coexist.
 
     Matches `/myparcel/proxy/<upstream-path>` anywhere in the path,
     sets `upstream_path` on the request, dispatches to the configured
-    action class. Registered twice as virtual types: `FrontendProxyRouter`
-    (storefront, action = Controller\Proxy\Forward) and
-    `AdminProxyRouter` (admin, action = Controller\Adminhtml\Proxy\Forward).
+    action class. Registered as the `FrontendProxyRouter` virtual type
+    in `etc/frontend/di.xml` (action = Controller\Proxy\Forward).
 
 **Shared service (`src/Service/Proxy/Client.php`):**
 
@@ -234,14 +226,7 @@ framework still applies; see driver 5). The two approaches coexist.
 
     - Implements CsrfAwareActionInterface; CSRF passes iff Origin/Referer
       matches the store base URL (scheme/host/port exact match).
-    - No admin session.
-
-**Admin controller (`Controller/Adminhtml/Proxy/Forward.php`):**
-
-    - ADMIN_RESOURCE = 'MyParcelNL_Magento::api_proxy'.
-    - `$_publicActions = ['forward']` so the admin URL-key check is skipped
-      (the upstream path lives in the URL tail, not in the action name);
-      admin session + ACL + form key still apply.
+    - No admin session; the proxy is storefront-only.
 
 ---
 
@@ -250,7 +235,7 @@ framework still applies; see driver 5). The two approaches coexist.
 ### Positive Consequences
 
 - **Single security policy:** method/path/header/size/timeout rules are
-  defined once in `Client` and apply to both storefront and admin callers.
+  defined once in `Client` and apply to every proxied call.
 - **Cheap extension:** adding a new upstream resource is one line in
   `ALLOWED_PATHS`.
 - **No upstream-shape coupling in module releases:** if upstream adds a
@@ -273,8 +258,6 @@ framework still applies; see driver 5). The two approaches coexist.
 - **Storefront authorization is coarse:** Origin/Referer is the only check
   on the storefront side. Same-origin code (including XSS) can call the
   proxy; the allow-list is the backstop.
-- **Two controllers, drift risk:** future changes to the storefront and
-  admin wrappers must stay in sync, or area-specific behaviour will diverge.
 
 ---
 
@@ -295,7 +278,7 @@ framework still applies; see driver 5). The two approaches coexist.
   path; every successful request is implicitly auditable upstream by
   request-id.
 - **CSRF:** storefront calls use Origin/Referer matching the store base
-  URL; admin calls use Magento's standard form-key mechanism.
+  URL.
 - **Resource limits:** 32 KB body cap and 5 s timeout bound the cost of a
   hostile or accidental request.
 
@@ -325,11 +308,10 @@ framework still applies; see driver 5). The two approaches coexist.
 ### Potential Evolution Path
 
 - **Phase 1 (now):** storefront checkout widget proxies
-  `shipments/capabilities`; admin controller exists but is not yet wired
-  up by a caller.
-- **Phase 2:** admin order page consumes the proxy for the same or
-  additional capability lookups; allow-list grows by a small number of
-  paths.
+  `shipments/capabilities`. The proxy is storefront-only; the admin order
+  page does not use it.
+- **Phase 2:** the allow-list grows by a small number of paths as the
+  widget exercises additional MyParcel resources.
 - **Phase 3:** a specific call accumulates module-side semantics
   (validation, response reshaping, versioning) and graduates from the
   proxy to a dedicated `AbstractEndpoint`; the proxy continues to serve
