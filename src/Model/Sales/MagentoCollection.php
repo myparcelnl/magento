@@ -127,8 +127,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
             [
-                'MyParcel-Magento2' => $this->config->getVersion(),
                 'Magento2' => $this->productMetadata->getVersion(),
+                'MyParcel-Magento2' => $this->config->getVersion(),
             ]
         );
 
