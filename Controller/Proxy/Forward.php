@@ -23,7 +23,7 @@ use Magento\Framework\Session\Config\ConfigInterface as SessionConfigInterface;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use MyParcelNL\Magento\Service\ApiProxy;
+use MyParcelNL\Magento\Service\ProxyForwarder;
 
 class Forward extends Action implements
     CsrfAwareActionInterface,
@@ -35,23 +35,35 @@ class Forward extends Action implements
     HttpHeadActionInterface,
     HttpOptionsActionInterface
 {
+    private ProxyForwarder $forwarder;
+    private RawFactory $rawFactory;
+    private StoreManagerInterface $storeManager;
+    private SessionConfigInterface $sessionConfig;
+    private CookieManagerInterface $cookieManager;
+
     public function __construct(
         Context $context,
-        private readonly ApiProxy $apiProxy,
-        private readonly RawFactory $rawFactory,
-        private readonly StoreManagerInterface $storeManager,
-        private readonly SessionConfigInterface $sessionConfig,
-        private readonly CookieManagerInterface $cookieManager
+        ProxyForwarder $forwarder,
+        RawFactory $rawFactory,
+        StoreManagerInterface $storeManager,
+        SessionConfigInterface $sessionConfig,
+        CookieManagerInterface $cookieManager
     ) {
         parent::__construct($context);
+        $this->forwarder = $forwarder;
+        $this->rawFactory = $rawFactory;
+        $this->storeManager = $storeManager;
+        $this->sessionConfig = $sessionConfig;
+        $this->cookieManager = $cookieManager;
     }
 
     public function execute(): ResultInterface
     {
-        if (!$this->gatesPass($this->getRequest())) {
+        $request = $this->getRequest();
+        if (!$this->gatesPass($request)) {
             return $this->forbidden();
         }
-        return $this->doForward($this->getRequest());
+        return $this->forwarder->forward($request);
     }
 
     public function validateForCsrf(RequestInterface $request): ?bool
@@ -106,24 +118,6 @@ class Forward extends Action implements
         return $value !== null && $value !== '';
     }
 
-    private function doForward(RequestInterface $request): Raw
-    {
-        $path    = (string) $request->getParam('upstream_path');
-        $body    = (string) $request->getContent();
-        $query   = (string) ($_SERVER['QUERY_STRING'] ?? '');
-        $headers = $this->collectRequestHeaders($request);
-
-        $resp = $this->apiProxy->forward($path, $request->getMethod(), $headers, $body, $query);
-
-        $result = $this->rawFactory->create();
-        $result->setHttpResponseCode($resp->status);
-        foreach ($resp->headers as $name => $value) {
-            $result->setHeader($name, $value, true);
-        }
-        $result->setContents($resp->body);
-        return $result;
-    }
-
     private function forbidden(): Raw
     {
         $result = $this->rawFactory->create();
@@ -131,20 +125,5 @@ class Forward extends Action implements
         $result->setHeader('Content-Type', 'application/json', true);
         $result->setContents('{"error":"forbidden"}');
         return $result;
-    }
-
-    /**
-     * @return array<string,string>
-     */
-    private function collectRequestHeaders(RequestInterface $request): array
-    {
-        $out = [];
-        if (!method_exists($request, 'getHeaders')) {
-            return $out;
-        }
-        foreach ($request->getHeaders() as $header) {
-            $out[$header->getFieldName()] = $header->getFieldValue();
-        }
-        return $out;
     }
 }
