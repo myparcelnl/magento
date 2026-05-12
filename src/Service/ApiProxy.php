@@ -34,10 +34,13 @@ class ApiProxy
         'content-length',
     ];
 
-    public function __construct(
-        private readonly Config $config,
-        private readonly LoggerInterface $logger
-    ) {
+    private Config $config;
+    private LoggerInterface $logger;
+
+    public function __construct(Config $config, LoggerInterface $logger)
+    {
+        $this->config = $config;
+        $this->logger = $logger;
     }
 
     /**
