@@ -13,6 +13,6 @@ trait MyParcelEndpointAware
 {
     private function isMyParcelEndpoint(): bool
     {
-        return str_contains($this->request->getPathInfo() ?? '', 'myparcel/');
+        return strpos($this->request->getPathInfo() ?? '', 'myparcel/') !== false;
     }
 }
