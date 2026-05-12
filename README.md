@@ -2,6 +2,10 @@
 
 For the manual and more information, please refer to our [Magento Manual] on the [MyParcel Developer Portal].
 
+## Magento version
+
+From version 5.6.0, our plugin is compatible with Magento 2.4.4 and higher. This is announced in the composer.json: framework requirement is set to `^103.0.4`.
+
 ## Important notice about third-party checkouts
 
 We support the default Magento checkout and the Hyvä checkout.
