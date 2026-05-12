@@ -14,7 +14,7 @@ use Magento\Framework\App\Action\HttpPatchActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Action\HttpPutActionInterface;
 use Magento\Framework\Controller\ResultInterface;
-use MyParcelNL\Magento\Service\ProxyForwarder;
+use MyParcelNL\Magento\Service\Proxy\Forwarder;
 
 class Forward extends Action implements
     HttpGetActionInterface,
@@ -22,7 +22,6 @@ class Forward extends Action implements
     HttpPutActionInterface,
     HttpDeleteActionInterface,
     HttpPatchActionInterface,
-    HttpHeadActionInterface,
     HttpOptionsActionInterface
 {
     public const ADMIN_RESOURCE = 'MyParcelNL_Magento::api_proxy';
@@ -36,9 +35,9 @@ class Forward extends Action implements
      */
     protected $_publicActions = ['forward'];
 
-    private ProxyForwarder $forwarder;
+    private Forwarder $forwarder;
 
-    public function __construct(Context $context, ProxyForwarder $forwarder)
+    public function __construct(Context $context, Forwarder $forwarder)
     {
         parent::__construct($context);
         $this->forwarder = $forwarder;

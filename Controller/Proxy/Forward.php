@@ -23,7 +23,7 @@ use Magento\Framework\Session\Config\ConfigInterface as SessionConfigInterface;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
-use MyParcelNL\Magento\Service\ProxyForwarder;
+use MyParcelNL\Magento\Service\Proxy\Forwarder;
 
 class Forward extends Action implements
     CsrfAwareActionInterface,
@@ -32,10 +32,9 @@ class Forward extends Action implements
     HttpPutActionInterface,
     HttpDeleteActionInterface,
     HttpPatchActionInterface,
-    HttpHeadActionInterface,
     HttpOptionsActionInterface
 {
-    private ProxyForwarder $forwarder;
+    private Forwarder $forwarder;
     private RawFactory $rawFactory;
     private StoreManagerInterface $storeManager;
     private SessionConfigInterface $sessionConfig;
@@ -43,7 +42,7 @@ class Forward extends Action implements
 
     public function __construct(
         Context $context,
-        ProxyForwarder $forwarder,
+        Forwarder $forwarder,
         RawFactory $rawFactory,
         StoreManagerInterface $storeManager,
         SessionConfigInterface $sessionConfig,
