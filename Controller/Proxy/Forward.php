@@ -8,7 +8,6 @@ use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Action\HttpDeleteActionInterface;
 use Magento\Framework\App\Action\HttpGetActionInterface;
-use Magento\Framework\App\Action\HttpHeadActionInterface;
 use Magento\Framework\App\Action\HttpOptionsActionInterface;
 use Magento\Framework\App\Action\HttpPatchActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
@@ -19,8 +18,6 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\Session\Config\ConfigInterface as SessionConfigInterface;
-use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Service\Proxy\Forwarder;
@@ -37,29 +34,23 @@ class Forward extends Action implements
     private Forwarder $forwarder;
     private RawFactory $rawFactory;
     private StoreManagerInterface $storeManager;
-    private SessionConfigInterface $sessionConfig;
-    private CookieManagerInterface $cookieManager;
 
     public function __construct(
         Context $context,
         Forwarder $forwarder,
         RawFactory $rawFactory,
-        StoreManagerInterface $storeManager,
-        SessionConfigInterface $sessionConfig,
-        CookieManagerInterface $cookieManager
+        StoreManagerInterface $storeManager
     ) {
         parent::__construct($context);
         $this->forwarder = $forwarder;
         $this->rawFactory = $rawFactory;
         $this->storeManager = $storeManager;
-        $this->sessionConfig = $sessionConfig;
-        $this->cookieManager = $cookieManager;
     }
 
     public function execute(): ResultInterface
     {
         $request = $this->getRequest();
-        if (!$this->gatesPass($request)) {
+        if (!$this->originMatchesBaseUrl($request)) {
             return $this->forbidden();
         }
         return $this->forwarder->forward($request);
@@ -67,17 +58,12 @@ class Forward extends Action implements
 
     public function validateForCsrf(RequestInterface $request): ?bool
     {
-        return $this->gatesPass($request);
+        return $this->originMatchesBaseUrl($request);
     }
 
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return new InvalidRequestException($this->forbidden(), [__('Forbidden.')]);
-    }
-
-    private function gatesPass(RequestInterface $request): bool
-    {
-        return $this->originMatchesBaseUrl($request) && $this->hasSessionCookie();
     }
 
     private function originMatchesBaseUrl(RequestInterface $request): bool
@@ -108,13 +94,6 @@ class Forward extends Action implements
         return $schemeA === $schemeB
             && ($pa['host'] ?? '') === ($pb['host'] ?? '')
             && $portA === $portB;
-    }
-
-    private function hasSessionCookie(): bool
-    {
-        $name  = (string) $this->sessionConfig->getName();
-        $value = $this->cookieManager->getCookie($name);
-        return $value !== null && $value !== '';
     }
 
     private function forbidden(): Raw

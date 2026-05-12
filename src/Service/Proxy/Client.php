@@ -15,6 +15,19 @@ class Client
 {
     private const UPSTREAM_BASE = 'https://api.myparcel.nl';
     private const TIMEOUT_SECONDS = 5;
+    private const MAX_BODY_BYTES = 32768;
+    private const ALLOWED_METHODS = ['GET', 'POST', 'HEAD', 'OPTIONS'];
+
+    /**
+     * Upstream path prefixes the storefront delivery-options widget needs.
+     * A request whose path doesn't begin with one of these (followed by end or `/`)
+     * is rejected before any upstream call. Deliberately excludes `shipments`
+     * (the bare path) so the proxy cannot be abused to POST shipments under
+     * our API key. If the widget needs another path, extend this list.
+     */
+    private const ALLOWED_PATH_PREFIXES = [
+        'shipments/capabilities',
+    ];
 
     /** Hop-by-hop and server-managed request headers that must not be forwarded. */
     private const REQUEST_HEADERS_DROP = [
@@ -51,6 +64,7 @@ class Client
 
     /**
      * @param array<string,string> $requestHeaders
+     * @throws LocalizedException
      */
     public function forward(
         string $upstreamPath,
@@ -59,6 +73,18 @@ class Client
         string $requestBody,
         string $queryString
     ): Response {
+        $method = strtoupper($method);
+
+        if (!in_array($method, self::ALLOWED_METHODS, true)) {
+            return $this->reject('method not allowed', $method, $upstreamPath);
+        }
+        if (!$this->isPathAllowed($upstreamPath)) {
+            return $this->reject('path not allowed', $method, $upstreamPath);
+        }
+        if (strlen($requestBody) > self::MAX_BODY_BYTES) {
+            return $this->reject('request body too large', $method, $upstreamPath);
+        }
+
         $apiKey = (string) $this->config->getGeneralConfig('api/key');
         if ($apiKey === '') {
             throw new LocalizedException(__('MyParcel API key is not configured.'));
@@ -69,7 +95,6 @@ class Client
             $url .= '?' . $queryString;
         }
 
-        $method  = strtoupper($method);
         $headers = $this->buildOutgoingHeaders($requestHeaders, $apiKey);
 
         $options = [
@@ -151,5 +176,31 @@ class Client
             $out[$name] = $value;
         }
         return $out;
+    }
+
+    private function isPathAllowed(string $upstreamPath): bool
+    {
+        $normalised = ltrim($upstreamPath, '/');
+        foreach (self::ALLOWED_PATH_PREFIXES as $prefix) {
+            if ($normalised === $prefix || strpos($normalised, $prefix . '/') === 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function reject(string $reason, string $method, string $upstreamPath): Response
+    {
+        $this->logger->warning(sprintf(
+            '[MyParcel proxy] rejected %s %s: %s',
+            $method,
+            $upstreamPath,
+            $reason
+        ));
+        return new Response(
+            403,
+            ['Content-Type' => 'application/json'],
+            '{"error":"forbidden"}'
+        );
     }
 }
