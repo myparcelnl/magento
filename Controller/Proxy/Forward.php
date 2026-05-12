@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Controller\Proxy;
 
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Action\HttpDeleteActionInterface;
 use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\HttpOptionsActionInterface;
@@ -22,7 +20,7 @@ use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Service\Proxy\Forwarder;
 
-class Forward extends Action implements
+class Forward implements
     CsrfAwareActionInterface,
     HttpGetActionInterface,
     HttpPostActionInterface,
@@ -31,17 +29,18 @@ class Forward extends Action implements
     HttpPatchActionInterface,
     HttpOptionsActionInterface
 {
+    private RequestInterface $request;
     private Forwarder $forwarder;
     private RawFactory $rawFactory;
     private StoreManagerInterface $storeManager;
 
     public function __construct(
-        Context $context,
+        RequestInterface $request,
         Forwarder $forwarder,
         RawFactory $rawFactory,
         StoreManagerInterface $storeManager
     ) {
-        parent::__construct($context);
+        $this->request = $request;
         $this->forwarder = $forwarder;
         $this->rawFactory = $rawFactory;
         $this->storeManager = $storeManager;
@@ -49,11 +48,10 @@ class Forward extends Action implements
 
     public function execute(): ResultInterface
     {
-        $request = $this->getRequest();
-        if (!$this->originMatchesBaseUrl($request)) {
+        if (!$this->originMatchesBaseUrl($this->request)) {
             return $this->forbidden();
         }
-        return $this->forwarder->forward($request);
+        return $this->forwarder->forward($this->request);
     }
 
     public function validateForCsrf(RequestInterface $request): ?bool
