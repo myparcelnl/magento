@@ -76,13 +76,20 @@ class Client
         $method = strtoupper($method);
 
         if (!in_array($method, self::ALLOWED_METHODS, true)) {
-            return $this->reject('method not allowed', $method, $upstreamPath);
+            return $this->reject(
+                405,
+                'Method Not Allowed',
+                'method not allowed',
+                $method,
+                $upstreamPath,
+                ['Allow' => implode(', ', self::ALLOWED_METHODS)]
+            );
         }
         if (!$this->isPathAllowed($upstreamPath)) {
-            return $this->reject('path not allowed', $method, $upstreamPath);
+            return $this->reject(403, 'Forbidden', 'path not allowed', $method, $upstreamPath);
         }
         if (strlen($requestBody) > self::MAX_BODY_BYTES) {
-            return $this->reject('request body too large', $method, $upstreamPath);
+            return $this->reject(413, 'Content Too Large', 'request body too large', $method, $upstreamPath);
         }
 
         $apiKey = (string) $this->config->getGeneralConfig('api/key');
@@ -92,7 +99,7 @@ class Client
 
         $url = self::UPSTREAM_BASE . '/' . ltrim($upstreamPath, '/');
         if ($queryString !== '') {
-            $url .= '?' . $queryString;
+            $url .= "?$queryString";
         }
 
         $headers = $this->buildOutgoingHeaders($requestHeaders, $apiKey);
@@ -120,8 +127,12 @@ class Client
             ));
             return new Response(
                 502,
-                ['Content-Type' => 'application/json'],
-                '{"error":"upstream unreachable"}'
+                ['Content-Type' => 'application/problem+json'],
+                (string) json_encode([
+                    'title'  => 'Bad Gateway',
+                    'status' => 502,
+                    'detail' => 'upstream unreachable',
+                ])
             );
         }
 
@@ -182,15 +193,24 @@ class Client
     {
         $normalised = ltrim($upstreamPath, '/');
         foreach (self::ALLOWED_PATH_PREFIXES as $prefix) {
-            if ($normalised === $prefix || strpos($normalised, $prefix . '/') === 0) {
+            if ($normalised === $prefix || strpos($normalised, "$prefix/") === 0) {
                 return true;
             }
         }
         return false;
     }
 
-    private function reject(string $reason, string $method, string $upstreamPath): Response
-    {
+    /**
+     * @param array<string,string> $extraHeaders
+     */
+    private function reject(
+        int $status,
+        string $title,
+        string $reason,
+        string $method,
+        string $upstreamPath,
+        array $extraHeaders = []
+    ): Response {
         $this->logger->warning(sprintf(
             '[MyParcel proxy] rejected %s %s: %s',
             $method,
@@ -198,9 +218,13 @@ class Client
             $reason
         ));
         return new Response(
-            403,
-            ['Content-Type' => 'application/json'],
-            '{"error":"forbidden"}'
+            $status,
+            ['Content-Type' => 'application/problem+json'] + $extraHeaders,
+            (string) json_encode([
+                'title'  => $title,
+                'status' => $status,
+                'detail' => $reason,
+            ])
         );
     }
 }

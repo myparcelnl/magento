@@ -98,8 +98,12 @@ class Forward implements
     {
         $result = $this->rawFactory->create();
         $result->setHttpResponseCode(403);
-        $result->setHeader('Content-Type', 'application/json', true);
-        $result->setContents('{"error":"forbidden"}');
+        $result->setHeader('Content-Type', 'application/problem+json', true);
+        $result->setContents((string) json_encode([
+            'title'  => 'Forbidden',
+            'status' => 403,
+            'detail' => 'origin does not match base URL',
+        ]));
         return $result;
     }
 }
