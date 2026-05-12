@@ -13,10 +13,13 @@ class ProxyRouter implements RouterInterface
 {
     private const PATH_MARKER = '/myparcel/proxy/';
 
-    public function __construct(
-        private readonly ActionFactory $actionFactory,
-        private readonly string $actionClass
-    ) {
+    private ActionFactory $actionFactory;
+    private string $actionClass;
+
+    public function __construct(ActionFactory $actionFactory, string $actionClass)
+    {
+        $this->actionFactory = $actionFactory;
+        $this->actionClass = $actionClass;
     }
 
     public function match(RequestInterface $request): ?ActionInterface
