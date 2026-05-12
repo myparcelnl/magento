@@ -3,6 +3,21 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.5.2](https://github.com/myparcelnl/magento/compare/v5.5.1...v5.5.2) (2026-03-30)
+
+
+### :bug: Bug Fixes
+
+* **security:** fix tar vulnerability ([#945](https://github.com/myparcelnl/magento/issues/945)) ([f60044f](https://github.com/myparcelnl/magento/commit/f60044f7b4f2397182ddb81ba50359827dbca7b8))
+
+## [5.5.1](https://github.com/myparcelnl/magento/compare/v5.5.0...v5.5.1) (2026-03-13)
+
+
+### :bug: Bug Fixes
+
+* prevent deprecated functionality error ([#943](https://github.com/myparcelnl/magento/issues/943)) ([067b9c1](https://github.com/myparcelnl/magento/commit/067b9c118d2417dec1e460d556f79e51bf456531))
+* prevent unserialize errors for orders ([#944](https://github.com/myparcelnl/magento/issues/944)) ([36bdce5](https://github.com/myparcelnl/magento/commit/36bdce5709527065c8c887ce1b444a980770b747))
+
 ## [5.5.0](https://github.com/myparcelnl/magento/compare/v5.4.0...v5.5.0) (2026-03-02)
 
 

@@ -1,0 +1,344 @@
+openapi: 3.1.0
+
+info:
+  title: MyParcelNL Magento — Delivery Options API
+  version: 1.0.0
+  description: |
+    REST API for retrieving delivery options associated with a Magento order.
+
+    **Authentication:** All requests require a Magento REST API bearer token with
+    ACL resource `MyParcelNL_Magento::delivery_options_read`.
+
+    **Versioning:** The API uses content-type version negotiation. Include
+    `version=N` in the `Content-Type` or `Accept` header to select a specific
+    API version. When no version is specified the server defaults to version 1.
+
+    **Error format:** Error responses follow
+    [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
+
+servers:
+  - url: /rest
+    description: Magento REST API base
+
+security:
+  - bearerAuth: []
+
+paths:
+  /V1/myparcel/delivery-options:
+    get:
+      operationId: getDeliveryOptionsByOrderId
+      summary: Retrieve delivery options for an order
+      description: |
+        Returns the delivery options that were selected at checkout for the
+        given order. When no delivery options were saved all fields are `null`.
+      parameters:
+        - name: orderId
+          in: query
+          required: true
+          description: Magento order entity ID.
+          schema:
+            type: integer
+            minimum: 1
+        - name: Content-Type
+          in: header
+          required: false
+          description: |
+            Optional version negotiation header. Use the pattern
+            `application/json; version=N` to request a specific API version.
+            Takes precedence over the `Accept` header.
+          schema:
+            type: string
+          example: "application/json; version=1"
+        - name: Accept
+          in: header
+          required: false
+          description: |
+            Fallback version negotiation header. Same pattern as `Content-Type`;
+            used only when `Content-Type` does not contain a version parameter.
+          schema:
+            type: string
+          example: "application/json; version=1"
+      responses:
+        "200":
+          description: Delivery options for the order.
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: "application/json; version=1; charset=utf-8"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeliveryOptions"
+              example:
+                carrier: POSTNL
+                packageType: PACKAGE
+                deliveryType: STANDARD_DELIVERY
+                date: "2026-02-27T10:00:00+01:00"
+                shipmentOptions:
+                  requiresSignature: {}
+                  insurance:
+                    amount: 5000000000
+                    currency: EUR
+                pickupLocation: null
+        "400":
+          description: The request is invalid (e.g. missing or non-positive `orderId`).
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: "application/problem+json; charset=utf-8"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: null
+                status: 400
+                title: Invalid Request
+                detail: "Request validation failed: orderId"
+        "404":
+          description: No order exists with the given ID.
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: "application/problem+json; charset=utf-8"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: null
+                status: 404
+                title: Order Not Found
+                detail: "Order with id 999 was not found"
+        "406":
+          description: The requested API version is not supported.
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: "application/problem+json; charset=utf-8"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: null
+                status: 406
+                title: Unsupported API Version
+                detail: "API version 99 is not supported. Supported versions: 1."
+        "409":
+          description: Content-Type and Accept header versions are incompatible.
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: "application/problem+json; charset=utf-8"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: null
+                status: 409
+                title: Incompatible Version Headers
+                detail: "Content-Type version 1 is not listed in Accept versions: 2."
+        "500":
+          description: An unexpected server-side error occurred.
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: "application/problem+json; charset=utf-8"
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              example:
+                type: null
+                status: 500
+                title: Internal Server Error
+                detail: An unexpected error occurred
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: |
+        Magento REST API integration or admin token.
+        Required ACL resource: `MyParcelNL_Magento::delivery_options_read`.
+
+  schemas:
+    DeliveryOptions:
+      type: object
+      description: |
+        Delivery options selected at checkout for an order.
+
+        This schema mirrors the PDK's [`openapi-delivery-options-v1.yaml`](https://github.com/myparcelnl/pdk/blob/feat/delivery-options-endpoint/src/App/Endpoint/openapi-delivery-options-v1.yaml) spec,
+        which is the single source of truth for the V1 response contract.
+      properties:
+        carrier:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/Carrier"
+          type: [string, "null"]
+          description: Carrier identifier.
+        packageType:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/PackageType"
+          type: [string, "null"]
+          description: Package type for the shipment.
+        deliveryType:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/DeliveryType"
+          type: [string, "null"]
+          description: Delivery method selected by the customer.
+        date:
+          type: [string, "null"]
+          format: date-time
+          description: |
+            Delivery date in ISO 8601 format with Europe/Amsterdam timezone
+            offset (e.g. `2026-02-27T10:00:00+01:00`).
+        shipmentOptions:
+          type: [object, "null"]
+          description: |
+            Shipment options for the order. Only enabled options are present.
+            Boolean options are represented as empty objects `{}` when enabled
+            and omitted when disabled.
+          allOf:
+            - $ref: "#/components/schemas/ShipmentOptions"
+        pickupLocation:
+          type: [object, "null"]
+          description: |
+            Pickup location details. Present only when `deliveryType` is
+            `PICKUP_DELIVERY`.
+          allOf:
+            - $ref: "#/components/schemas/PickupLocation"
+
+    ShipmentOptions:
+      type: object
+      description: |
+        Shipment options. Boolean options follow ADR-0013: an empty object `{}`
+        means enabled; the key is omitted when disabled. All properties are
+        optional — omitted means not enabled. Boolean field shapes are sourced
+        from the Order API's `ShipmentOptionsCommon` schema. The `insurance`
+        field diverges intentionally: this API uses an integer-micro amount
+        (Magento convention) instead of the Order API's Money object format.
+      properties:
+        requiresAgeVerification:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresAgeVerification"
+        requiresSignature:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresSignature"
+        recipientOnlyDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/recipientOnlyDelivery"
+        oversizedPackage:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/oversizedPackage"
+        printReturnLabelAtDropOff:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/printReturnLabelAtDropOff"
+        hideSender:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/hideSender"
+        priorityDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/priorityDelivery"
+        requiresReceiptCode:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/requiresReceiptCode"
+        sameDayDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/sameDayDelivery"
+        scheduledCollection:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/scheduledCollection"
+        insurance:
+          type: object
+          description: Insurance details. Integer-micro amount (1 EUR = 1 000 000 units).
+          required:
+            - amount
+            - currency
+          properties:
+            amount:
+              type: integer
+              description: |
+                Insurance amount in micro-currency (1 EUR = 1 000 000 units).
+                For example, 5000 EUR = `5000000000`.
+              example: 5000000000
+            currency:
+              type: string
+              description: Currency code. Always `EUR`.
+              example: EUR
+        customLabelText:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsPackage/properties/customLabelText"
+
+    PickupLocation:
+      type: object
+      description: Pickup point selected by the customer.
+      required:
+        - locationCode
+        - locationName
+        - retailNetworkId
+        - type
+        - address
+      properties:
+        locationCode:
+          type: string
+          description: Unique location identifier from the carrier network.
+        locationName:
+          type: string
+          description: Human-readable name of the pickup point.
+        retailNetworkId:
+          type: string
+          description: Carrier retail network identifier.
+        type:
+          type: [string, "null"]
+          description: Reserved for future use. Always `null`.
+        address:
+          $ref: "#/components/schemas/PickupAddress"
+
+    PickupAddress:
+      type: object
+      description: Physical address of the pickup location.
+      required:
+        - street
+        - number
+        - postalCode
+        - city
+        - cc
+      properties:
+        street:
+          type: string
+          description: Street name.
+        number:
+          type: string
+          description: House number.
+        postalCode:
+          type: string
+          description: Postal code.
+        city:
+          type: string
+          description: City name.
+        cc:
+          type: string
+          description: ISO 3166-1 alpha-2 country code.
+
+    ProblemDetails:
+      type: object
+      description: |
+        Error response following
+        [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
+      required:
+        - type
+        - status
+        - title
+        - detail
+      properties:
+        type:
+          type: [string, "null"]
+          description: |
+            A URI reference identifying the problem type. Currently always
+            `null`; may be populated in a future API version.
+        status:
+          type: integer
+          description: The HTTP status code for this occurrence.
+        title:
+          type: string
+          description: A short, human-readable summary of the problem type.
+        detail:
+          type: string
+          description: |
+            A human-readable explanation specific to this occurrence of the
+            problem.
