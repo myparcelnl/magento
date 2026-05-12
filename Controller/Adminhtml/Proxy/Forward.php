@@ -13,11 +13,8 @@ use Magento\Framework\App\Action\HttpOptionsActionInterface;
 use Magento\Framework\App\Action\HttpPatchActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\App\Action\HttpPutActionInterface;
-use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Controller\Result\Raw;
-use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Controller\ResultInterface;
-use MyParcelNL\Magento\Service\ApiProxy;
+use MyParcelNL\Magento\Service\ProxyForwarder;
 
 class Forward extends Action implements
     HttpGetActionInterface,
@@ -39,46 +36,16 @@ class Forward extends Action implements
      */
     protected $_publicActions = ['forward'];
 
-    public function __construct(
-        Context $context,
-        private readonly ApiProxy $apiProxy,
-        private readonly RawFactory $rawFactory
-    ) {
+    private ProxyForwarder $forwarder;
+
+    public function __construct(Context $context, ProxyForwarder $forwarder)
+    {
         parent::__construct($context);
+        $this->forwarder = $forwarder;
     }
 
     public function execute(): ResultInterface
     {
-        $request = $this->getRequest();
-
-        $path    = (string) $request->getParam('upstream_path');
-        $body    = (string) $request->getContent();
-        $query   = (string) ($_SERVER['QUERY_STRING'] ?? '');
-        $headers = $this->collectRequestHeaders($request);
-
-        $resp = $this->apiProxy->forward($path, $request->getMethod(), $headers, $body, $query);
-
-        $result = $this->rawFactory->create();
-        $result->setHttpResponseCode($resp->status);
-        foreach ($resp->headers as $name => $value) {
-            $result->setHeader($name, $value, true);
-        }
-        $result->setContents($resp->body);
-        return $result;
-    }
-
-    /**
-     * @return array<string,string>
-     */
-    private function collectRequestHeaders(RequestInterface $request): array
-    {
-        $out = [];
-        if (!method_exists($request, 'getHeaders')) {
-            return $out;
-        }
-        foreach ($request->getHeaders() as $header) {
-            $out[$header->getFieldName()] = $header->getFieldValue();
-        }
-        return $out;
+        return $this->forwarder->forward($this->getRequest());
     }
 }
