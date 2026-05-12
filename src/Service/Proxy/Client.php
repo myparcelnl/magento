@@ -19,13 +19,13 @@ class Client
     private const ALLOWED_METHODS = ['GET', 'POST', 'HEAD', 'OPTIONS'];
 
     /**
-     * Upstream path prefixes the storefront delivery-options widget needs.
-     * A request whose path doesn't begin with one of these (followed by end or `/`)
-     * is rejected before any upstream call. Deliberately excludes `shipments`
-     * (the bare path) so the proxy cannot be abused to POST shipments under
-     * our API key. If the widget needs another path, extend this list.
+     * Exact upstream paths the proxy is allowed to forward to. Anything that
+     * isn't an exact match (after trimming surrounding slashes) is rejected
+     * before any upstream call. Deliberately excludes `shipments` (the bare
+     * path) so the proxy cannot be abused to POST shipments under our API
+     * key. If the widget needs another path, add an entry here.
      */
-    private const ALLOWED_PATH_PREFIXES = [
+    private const ALLOWED_PATHS = [
         'shipments/capabilities',
     ];
 
@@ -191,13 +191,7 @@ class Client
 
     private function isPathAllowed(string $upstreamPath): bool
     {
-        $normalised = ltrim($upstreamPath, '/');
-        foreach (self::ALLOWED_PATH_PREFIXES as $prefix) {
-            if ($normalised === $prefix || strpos($normalised, "$prefix/") === 0) {
-                return true;
-            }
-        }
-        return false;
+        return in_array(trim($upstreamPath, '/'), self::ALLOWED_PATHS, true);
     }
 
     /**
