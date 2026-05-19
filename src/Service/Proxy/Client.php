@@ -16,14 +16,14 @@ use Psr\Log\LoggerInterface;
  * Single security choke point for the MyParcel storefront API proxy.
  *
  * Enforces, for every proxied call: HTTP method allow-list, upstream
- * registry and API-surface allow-list (both in {@see ProxyConfig};
- * each upstream host points at one surface, so production and
- * acceptance of the same API share a single allow-list — sub-paths are
- * rejected), inbound/outbound header drop-lists, 32 KB body cap, 5 s
- * timeout, no redirects, and server-side injection of the MyParcel API
- * key (inbound `Authorization` is dropped first). All rejections return
- * RFC 9457 `application/problem+json` and emit a warning log. Host and
- * surface registries live in {@see ProxyConfig}.
+ * host registry and per-host path allow-list ({@see ProxyConfig::HOSTS} —
+ * sub-paths are rejected), inbound/outbound header drop-lists, 32 KB
+ * body cap, 5 s timeout, no redirects, and server-side injection of the
+ * MyParcel API key (inbound `Authorization` is dropped first). All
+ * rejections return RFC 9457 `application/problem+json` and emit a
+ * warning log. The acceptance environment flag is orthogonal to the
+ * host: every host carries both a production and an acceptance URL,
+ * and callers pick between them via the `/acceptance` URL segment.
  *
  * Chosen over a dedicated per-resource `AbstractEndpoint` to keep the
  * security policy auditable in one file and to unblock the checkout
@@ -76,7 +76,8 @@ class Client
      * @throws LocalizedException
      */
     public function forward(
-        string $upstreamKey,
+        string $upstreamHost,
+        bool $acceptance,
         string $upstreamPath,
         string $method,
         array $requestHeaders,
@@ -90,19 +91,20 @@ class Client
                 405,
                 'method not allowed',
                 $method,
-                $upstreamKey,
+                $upstreamHost,
+                $acceptance,
                 $upstreamPath,
                 ['Allow' => implode(', ', self::ALLOWED_METHODS)]
             );
         }
-        if (!isset(ProxyConfig::UPSTREAM_HOSTS[$upstreamKey])) {
-            return $this->reject(403, 'upstream not allowed', $method, $upstreamKey, $upstreamPath);
+        if (!isset(ProxyConfig::HOSTS[$upstreamHost])) {
+            return $this->reject(403, 'host not allowed', $method, $upstreamHost, $acceptance, $upstreamPath);
         }
-        if (!$this->isPathAllowed($upstreamKey, $upstreamPath)) {
-            return $this->reject(403, 'path not allowed', $method, $upstreamKey, $upstreamPath);
+        if (!$this->isPathAllowed($upstreamHost, $upstreamPath)) {
+            return $this->reject(403, 'path not allowed', $method, $upstreamHost, $acceptance, $upstreamPath);
         }
         if (strlen($requestBody) > self::MAX_BODY_BYTES) {
-            return $this->reject(413, 'request body too large', $method, $upstreamKey, $upstreamPath);
+            return $this->reject(413, 'request body too large', $method, $upstreamHost, $acceptance, $upstreamPath);
         }
 
         $apiKey = (string) $this->config->getGeneralConfig('api/key');
@@ -110,8 +112,9 @@ class Client
             throw new LocalizedException(__('MyParcel API key is not configured.'));
         }
 
-        $url = ProxyConfig::UPSTREAM_HOSTS[$upstreamKey][ProxyConfig::KEY_URL]
-            . '/' . ltrim($upstreamPath, '/');
+        $host    = ProxyConfig::HOSTS[$upstreamHost];
+        $baseUrl = $acceptance ? $host[ProxyConfig::KEY_ACCEPTANCE_URL] : $host[ProxyConfig::KEY_URL];
+        $url     = $baseUrl . '/' . ltrim($upstreamPath, '/');
         if ($queryString !== '') {
             $url .= "?$queryString";
         }
@@ -134,9 +137,10 @@ class Client
             $response = $this->httpClient->request($method, $url, $options);
         } catch (GuzzleException $e) {
             $this->logger->error(sprintf(
-                '[MyParcel proxy] HTTP error for %s %s/%s: %s',
+                '[MyParcel proxy] HTTP error for %s %s%s/%s: %s',
                 $method,
-                $upstreamKey,
+                $upstreamHost,
+                $acceptance ? '/' . ProxyConfig::ACCEPTANCE_SEGMENT : '',
                 $upstreamPath,
                 $e->getMessage()
             ));
@@ -200,17 +204,10 @@ class Client
         return $out;
     }
 
-    private function isPathAllowed(string $upstreamKey, string $upstreamPath): bool
+    private function isPathAllowed(string $upstreamHost, string $upstreamPath): bool
     {
-        $surface = ProxyConfig::UPSTREAM_HOSTS[$upstreamKey][ProxyConfig::KEY_SURFACE] ?? null;
-        if ($surface === null) {
-            return false;
-        }
-        return in_array(
-            trim($upstreamPath, '/'),
-            ProxyConfig::API_SURFACES[$surface] ?? [],
-            true
-        );
+        $paths = ProxyConfig::HOSTS[$upstreamHost][ProxyConfig::KEY_PATHS] ?? [];
+        return in_array(trim($upstreamPath, '/'), $paths, true);
     }
 
     /**
@@ -220,14 +217,16 @@ class Client
         int $status,
         string $reason,
         string $method,
-        string $upstreamKey,
+        string $upstreamHost,
+        bool $acceptance,
         string $upstreamPath,
         array $extraHeaders = []
     ): Response {
         $this->logger->warning(sprintf(
-            '[MyParcel proxy] rejected %s %s/%s: %s',
+            '[MyParcel proxy] rejected %s %s%s/%s: %s',
             $method,
-            $upstreamKey !== '' ? $upstreamKey : '<none>',
+            $upstreamHost !== '' ? $upstreamHost : '<none>',
+            $acceptance ? '/' . ProxyConfig::ACCEPTANCE_SEGMENT : '',
             $upstreamPath,
             $reason
         ));

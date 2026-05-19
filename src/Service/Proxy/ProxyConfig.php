@@ -6,47 +6,51 @@ namespace MyParcelNL\Magento\Service\Proxy;
 
 /**
  * Static configuration for the storefront API proxy: which upstream
- * hosts the proxy can forward to and which paths each API surface
- * exposes. Pure data — enforcement lives in {@see Client}.
+ * hosts the proxy can forward to and which paths each host exposes.
+ * Pure data — enforcement lives in {@see Client}.
  *
- * To expose a new upstream call, add the path under the right surface
- * in {@see self::API_SURFACES}. To expose an existing API on a new
- * environment, add an entry to {@see self::UPSTREAM_HOSTS} pointing at
- * that surface.
+ * Every host has a production URL and a fixed acceptance counterpart;
+ * callers pick between them with the optional `/acceptance` URL
+ * segment, so `/myparcel/proxy/<host>/<path>` hits production and
+ * `/myparcel/proxy/<host>/acceptance/<path>` hits acceptance.
+ *
+ * To expose a new upstream call, add it under the right host in
+ * {@see self::HOSTS}. To expose a new host, add an entry with both its
+ * production and acceptance URLs.
  */
 final class ProxyConfig
 {
-    /** Key inside an UPSTREAM_HOSTS entry holding the upstream base URL. */
-    public const KEY_URL = 'url';
+    /** Inner-key constants for HOSTS entries. */
+    public const KEY_URL            = 'url';
+    public const KEY_ACCEPTANCE_URL = 'acceptanceUrl';
+    public const KEY_PATHS          = 'paths';
 
-    /** Key inside an UPSTREAM_HOSTS entry naming the API surface it exposes. */
-    public const KEY_SURFACE = 'surface';
+    /** URL segment that switches a host to its acceptance environment. */
+    public const ACCEPTANCE_SEGMENT = 'acceptance';
 
-    /** API surface names — referenced from UPSTREAM_HOSTS and API_SURFACES. */
-    public const SURFACE_CORE = 'core';
-    // public const SURFACE_ORDER = 'order';
-
-    /** Upstream-host keys — the first URL segment after /myparcel/proxy/. */
-    public const HOST_CORE       = 'core';
-    public const HOST_ACCEPTANCE = 'acceptance';
+    /** Host keys — the first URL segment after /myparcel/proxy/. */
+    public const HOST_CORE    = 'core';
+    public const HOST_ADDRESS = 'address';
 
     /**
-     * Logical API surfaces and the paths each one exposes. Deliberately
-     * excludes the bare `shipments` path under core so the proxy cannot
-     * be coerced into creating shipments under our API key.
+     * Upstream hosts and the paths each one exposes. Deliberately omits
+     * the bare `shipments` path under `core` so the proxy cannot be
+     * coerced into creating shipments under our API key.
      */
-    public const API_SURFACES = [
-        self::SURFACE_CORE => [
-            'shipments/capabilities',
+    public const HOSTS = [
+        self::HOST_CORE => [
+            self::KEY_URL            => 'https://api.myparcel.nl',
+            self::KEY_ACCEPTANCE_URL => 'https://api.acceptance.myparcel.nl',
+            self::KEY_PATHS          => [
+                'shipments/capabilities',
+            ],
         ],
-    ];
-
-    /**
-     * Upstream hosts, keyed by URL prefix segment. Multiple hosts may
-     * share a surface (e.g. production + acceptance of the same API).
-     */
-    public const UPSTREAM_HOSTS = [
-        self::HOST_CORE       => [self::KEY_URL => 'https://api.myparcel.nl',            self::KEY_SURFACE => self::SURFACE_CORE],
-        self::HOST_ACCEPTANCE => [self::KEY_URL => 'https://acceptance.api.myparcel.nl', self::KEY_SURFACE => self::SURFACE_CORE],
+        self::HOST_ADDRESS => [
+            self::KEY_URL            => 'https://address.api.myparcel.nl',
+            self::KEY_ACCEPTANCE_URL => 'https://address.api.acceptance.myparcel.nl',
+            self::KEY_PATHS          => [
+                // populate when the widget exercises this host
+            ],
+        ],
     ];
 }

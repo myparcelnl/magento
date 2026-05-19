@@ -37,7 +37,7 @@ function mockRoutedRequest(string $pathInfo): array
     return ['request' => $request, 'params' => &$params];
 }
 
-it('extracts upstream key and path from /myparcel/proxy/<key>/<path>', function () {
+it('extracts host and path from /myparcel/proxy/<host>/<path>', function () {
     $r   = makeProxyRouter();
     $req = mockRoutedRequest('/myparcel/proxy/core/shipments/capabilities');
 
@@ -45,25 +45,61 @@ it('extracts upstream key and path from /myparcel/proxy/<key>/<path>', function 
 
     expect($result)->toBe($r['action']);
     expect($req['params'])->toBe([
-        'upstream_key'  => 'core',
-        'upstream_path' => 'shipments/capabilities',
+        'upstream_host'       => 'core',
+        'upstream_acceptance' => false,
+        'upstream_path'       => 'shipments/capabilities',
     ]);
 });
 
-it('keeps multi-segment paths intact under the key', function () {
+it('keeps multi-segment paths intact under the host', function () {
     $r   = makeProxyRouter();
-    $req = mockRoutedRequest('/myparcel/proxy/order/orders/123/items');
+    $req = mockRoutedRequest('/myparcel/proxy/iam/users/123/sessions');
 
     $result = $r['router']->match($req['request']);
 
     expect($result)->toBe($r['action']);
-    expect($req['params']['upstream_key'])->toBe('order');
-    expect($req['params']['upstream_path'])->toBe('orders/123/items');
+    expect($req['params']['upstream_host'])->toBe('iam');
+    expect($req['params']['upstream_acceptance'])->toBeFalse();
+    expect($req['params']['upstream_path'])->toBe('users/123/sessions');
 });
 
-it('returns null when the upstream key is present without a path', function () {
+it('treats /acceptance/ between host and path as an environment flag', function () {
+    $r   = makeProxyRouter();
+    $req = mockRoutedRequest('/myparcel/proxy/core/acceptance/shipments/capabilities');
+
+    $result = $r['router']->match($req['request']);
+
+    expect($result)->toBe($r['action']);
+    expect($req['params'])->toBe([
+        'upstream_host'       => 'core',
+        'upstream_acceptance' => true,
+        'upstream_path'       => 'shipments/capabilities',
+    ]);
+});
+
+it('honours the acceptance flag on other hosts too', function () {
+    $r   = makeProxyRouter();
+    $req = mockRoutedRequest('/myparcel/proxy/iam/acceptance/sessions');
+
+    $result = $r['router']->match($req['request']);
+
+    expect($result)->toBe($r['action']);
+    expect($req['params']['upstream_host'])->toBe('iam');
+    expect($req['params']['upstream_acceptance'])->toBeTrue();
+    expect($req['params']['upstream_path'])->toBe('sessions');
+});
+
+it('returns null when the host segment is present without a path', function () {
     $r   = makeProxyRouter();
     $req = mockRoutedRequest('/myparcel/proxy/core');
+
+    expect($r['router']->match($req['request']))->toBeNull();
+    expect($req['params'])->toBe([]);
+});
+
+it('returns null when the acceptance segment is present without a path', function () {
+    $r   = makeProxyRouter();
+    $req = mockRoutedRequest('/myparcel/proxy/core/acceptance');
 
     expect($r['router']->match($req['request']))->toBeNull();
     expect($req['params'])->toBe([]);

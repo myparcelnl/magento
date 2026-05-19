@@ -28,14 +28,16 @@ class Forwarder
 
     public function forward(RequestInterface $request): Raw
     {
-        $key     = (string) $request->getParam('upstream_key');
-        $path    = (string) $request->getParam('upstream_path');
-        $body    = (string) $request->getContent();
-        $query   = (string) ($_SERVER['QUERY_STRING'] ?? '');
-        $headers = $this->collectRequestHeaders($request);
+        $host       = (string) $request->getParam('upstream_host');
+        $acceptance = (bool)   $request->getParam('upstream_acceptance');
+        $path       = (string) $request->getParam('upstream_path');
+        $body       = (string) $request->getContent();
+        $query      = (string) ($_SERVER['QUERY_STRING'] ?? '');
+        $headers    = $this->collectRequestHeaders($request);
 
         $resp = $this->client->forward(
-            $key,
+            $host,
+            $acceptance,
             $path,
             $request->getMethod(),
             $headers,
