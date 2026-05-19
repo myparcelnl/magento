@@ -230,3 +230,42 @@ it('passes an empty query string when the request has none', function () {
 
     expect($capturedQuery)->toBe('');
 });
+
+it('passes an empty headers array when the request does not declare getHeaders', function () {
+    $f = makeForwarder();
+
+    // Plain RequestInterface mock — does NOT combine RequestWithHeaders,
+    // so method_exists($request, 'getHeaders') returns false and the
+    // Forwarder must skip its header collection branch.
+    $request = Mockery::mock(RequestInterface::class);
+    $request->shouldReceive('getMethod')->andReturn('GET');
+    $request->shouldReceive('getContent')->andReturn('');
+    $request->shouldReceive('getParam')->andReturnUsing(
+        static function (string $name) {
+            return [
+                'upstream_host'       => 'core',
+                'upstream_acceptance' => false,
+                'upstream_path'       => 'shipments/capabilities',
+            ][$name] ?? null;
+        }
+    );
+    $request->shouldReceive('getServer')->andReturnUsing(
+        static function (string $name, $default = null) {
+            return $default;
+        }
+    );
+
+    $capturedHeaders = null;
+    $f['client']
+        ->shouldReceive('forward')
+        ->withArgs(function ($host, $acceptance, $path, $method, $headers, $body, $query) use (&$capturedHeaders) {
+            $capturedHeaders = $headers;
+            return true;
+        })
+        ->once()
+        ->andReturn(new Response(200, [], ''));
+
+    $f['forwarder']->forward($request);
+
+    expect($capturedHeaders)->toBe([]);
+});

@@ -131,11 +131,11 @@ class Client
         } catch (GuzzleException $e) {
             $this->logger->error(sprintf(
                 '[MyParcel proxy] HTTP error for %s %s%s/%s: %s',
-                $req->method,
-                $req->host,
+                self::sanitizeForLog($req->method),
+                self::sanitizeForLog($req->host),
                 $req->acceptance ? '/' . ProxyConfig::ACCEPTANCE_SEGMENT : '',
-                $req->path,
-                $e->getMessage()
+                self::sanitizeForLog($req->path),
+                self::sanitizeForLog($e->getMessage())
             ));
             return new Response(
                 502,
@@ -208,12 +208,13 @@ class Client
      */
     private function reject(ProxyRequest $req, int $status, string $reason, array $extraHeaders = []): Response
     {
+        $host = $req->host !== '' ? $req->host : '<none>';
         $this->logger->warning(sprintf(
             '[MyParcel proxy] rejected %s %s%s/%s: %s',
-            $req->method,
-            $req->host !== '' ? $req->host : '<none>',
+            self::sanitizeForLog($req->method),
+            self::sanitizeForLog($host),
             $req->acceptance ? '/' . ProxyConfig::ACCEPTANCE_SEGMENT : '',
-            $req->path,
+            self::sanitizeForLog($req->path),
             $reason
         ));
         return new Response(
@@ -221,5 +222,15 @@ class Client
             ['Content-Type' => ProblemDetails::CONTENT_TYPE] + $extraHeaders,
             ProblemDetails::fromStatus($status, $reason)->toJsonString()
         );
+    }
+
+    /**
+     * Strip ASCII control characters from a string before it lands in a log
+     * line. Prevents log injection when the proxy logs caller-supplied path,
+     * host, or method fragments after a rejection.
+     */
+    private static function sanitizeForLog(string $s): string
+    {
+        return preg_replace('/[\x00-\x1F\x7F]/', '?', $s) ?? $s;
     }
 }

@@ -311,3 +311,39 @@ it('returns 502 application/problem+json when Guzzle throws', function () {
     expect(decodeProblem($response->body)['status'])->toBe(502);
     expect(decodeProblem($response->body)['detail'])->toBe('upstream unreachable');
 });
+
+// ---- log sanitation (W3) ---------------------------------------------------
+
+it('strips ASCII control characters from path before logging a rejection', function () {
+    $c = makeProxyClient();
+    $captured = [];
+    $c['logger']->shouldReceive('warning')->andReturnUsing(function ($msg) use (&$captured) {
+        $captured[] = (string) $msg;
+    });
+
+    $c['client']->forward('core', false, "shipments/capabilities\r\nFAKE-LINE", 'GET', [], '', '');
+
+    expect($captured)->not->toBeEmpty();
+    foreach ($captured as $line) {
+        expect(strpos($line, "\r"))->toBeFalse();
+        expect(strpos($line, "\n"))->toBeFalse();
+    }
+});
+
+it('strips ASCII control characters from host and method in rejection logs', function () {
+    $c = makeProxyClient();
+    $captured = [];
+    $c['logger']->shouldReceive('warning')->andReturnUsing(function ($msg) use (&$captured) {
+        $captured[] = (string) $msg;
+    });
+
+    // Unknown host with embedded NUL — triggers the 403 host-not-allowed path.
+    $c['client']->forward("evil\x00host", false, 'x', "GET\x01", [], '', '');
+
+    expect($captured)->not->toBeEmpty();
+    foreach ($captured as $line) {
+        expect(strpos($line, "\x00"))->toBeFalse();
+        expect(strpos($line, "\x01"))->toBeFalse();
+    }
+});
+
