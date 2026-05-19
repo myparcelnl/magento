@@ -16,7 +16,7 @@ use MyParcelNL\Magento\Service\Proxy\ProxyConfig;
  * controller, wired in `etc/frontend/di.xml`).
  *
  * The first segment after `/myparcel/proxy/` is the upstream host (e.g.
- * `core`, `address`, `iam`). If the next segment is the literal
+ * `core`, `address`). If the next segment is the literal
  * `acceptance`, it is consumed as an environment flag; the remainder is
  * the upstream path. The three values are exposed on the request as
  * `upstream_host`, `upstream_acceptance`, and `upstream_path`. No
@@ -48,6 +48,9 @@ class ProxyRouter implements RouterInterface
         if ($remainder === '') {
             return null;
         }
+        if (substr($remainder, -1) !== '/') {
+            $remainder .= '/';
+        }
 
         [$upstreamHost, $rest] = array_pad(explode('/', $remainder, 2), 2, '');
         if ($upstreamHost === '' || $rest === '') {
@@ -60,6 +63,8 @@ class ProxyRouter implements RouterInterface
             $acceptance = true;
             $rest       = substr($rest, strlen($prefix));
         }
+
+        $rest = rtrim($rest, '/');
         if ($rest === '') {
             return null;
         }
