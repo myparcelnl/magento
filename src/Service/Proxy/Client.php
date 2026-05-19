@@ -15,15 +15,15 @@ use Psr\Log\LoggerInterface;
 /**
  * Single security choke point for the MyParcel storefront API proxy.
  *
- * Enforces, for every proxied call: exact-match path allow-list
- * ({@see self::ALLOWED_PATHS} — sub-paths rejected; the bare `shipments`
- * path is deliberately excluded so the proxy cannot be coerced into
- * creating shipments under our key), HTTP method allow-list, inbound/
- * outbound header drop-lists, 32 KB body cap, 5 s timeout, no redirects,
- * and server-side injection of the MyParcel API key (inbound
- * `Authorization` is dropped first). All rejections return RFC 9457
- * `application/problem+json` and emit a warning log; adding a new
- * upstream call is one entry in `ALLOWED_PATHS`.
+ * Enforces, for every proxied call: HTTP method allow-list, upstream
+ * registry and API-surface allow-list (both in {@see ProxyConfig};
+ * each upstream host points at one surface, so production and
+ * acceptance of the same API share a single allow-list — sub-paths are
+ * rejected), inbound/outbound header drop-lists, 32 KB body cap, 5 s
+ * timeout, no redirects, and server-side injection of the MyParcel API
+ * key (inbound `Authorization` is dropped first). All rejections return
+ * RFC 9457 `application/problem+json` and emit a warning log. Host and
+ * surface registries live in {@see ProxyConfig}.
  *
  * Chosen over a dedicated per-resource `AbstractEndpoint` to keep the
  * security policy auditable in one file and to unblock the checkout
@@ -34,21 +34,9 @@ use Psr\Log\LoggerInterface;
  */
 class Client
 {
-    private const UPSTREAM_BASE = 'https://api.myparcel.nl';
     private const TIMEOUT_SECONDS = 5;
     private const MAX_BODY_BYTES = 32768;
     public const ALLOWED_METHODS = ['GET', 'POST', 'HEAD', 'OPTIONS'];
-
-    /**
-     * Exact upstream paths the proxy is allowed to forward to. Anything that
-     * isn't an exact match (after trimming surrounding slashes) is rejected
-     * before any upstream call. Deliberately excludes `shipments` (the bare
-     * path) so the proxy cannot be abused to POST shipments under our API
-     * key. If the widget needs another path, add an entry here.
-     */
-    private const ALLOWED_PATHS = [
-        'shipments/capabilities',
-    ];
 
     /** Hop-by-hop and server-managed request headers that must not be forwarded. */
     private const REQUEST_HEADERS_DROP = [
@@ -88,6 +76,7 @@ class Client
      * @throws LocalizedException
      */
     public function forward(
+        string $upstreamKey,
         string $upstreamPath,
         string $method,
         array $requestHeaders,
@@ -101,15 +90,19 @@ class Client
                 405,
                 'method not allowed',
                 $method,
+                $upstreamKey,
                 $upstreamPath,
                 ['Allow' => implode(', ', self::ALLOWED_METHODS)]
             );
         }
-        if (!$this->isPathAllowed($upstreamPath)) {
-            return $this->reject(403, 'path not allowed', $method, $upstreamPath);
+        if (!isset(ProxyConfig::UPSTREAM_HOSTS[$upstreamKey])) {
+            return $this->reject(403, 'upstream not allowed', $method, $upstreamKey, $upstreamPath);
+        }
+        if (!$this->isPathAllowed($upstreamKey, $upstreamPath)) {
+            return $this->reject(403, 'path not allowed', $method, $upstreamKey, $upstreamPath);
         }
         if (strlen($requestBody) > self::MAX_BODY_BYTES) {
-            return $this->reject(413, 'request body too large', $method, $upstreamPath);
+            return $this->reject(413, 'request body too large', $method, $upstreamKey, $upstreamPath);
         }
 
         $apiKey = (string) $this->config->getGeneralConfig('api/key');
@@ -117,7 +110,8 @@ class Client
             throw new LocalizedException(__('MyParcel API key is not configured.'));
         }
 
-        $url = self::UPSTREAM_BASE . '/' . ltrim($upstreamPath, '/');
+        $url = ProxyConfig::UPSTREAM_HOSTS[$upstreamKey][ProxyConfig::KEY_URL]
+            . '/' . ltrim($upstreamPath, '/');
         if ($queryString !== '') {
             $url .= "?$queryString";
         }
@@ -140,8 +134,9 @@ class Client
             $response = $this->httpClient->request($method, $url, $options);
         } catch (GuzzleException $e) {
             $this->logger->error(sprintf(
-                '[MyParcel proxy] HTTP error for %s %s: %s',
+                '[MyParcel proxy] HTTP error for %s %s/%s: %s',
                 $method,
+                $upstreamKey,
                 $upstreamPath,
                 $e->getMessage()
             ));
@@ -205,9 +200,17 @@ class Client
         return $out;
     }
 
-    private function isPathAllowed(string $upstreamPath): bool
+    private function isPathAllowed(string $upstreamKey, string $upstreamPath): bool
     {
-        return in_array(trim($upstreamPath, '/'), self::ALLOWED_PATHS, true);
+        $surface = ProxyConfig::UPSTREAM_HOSTS[$upstreamKey][ProxyConfig::KEY_SURFACE] ?? null;
+        if ($surface === null) {
+            return false;
+        }
+        return in_array(
+            trim($upstreamPath, '/'),
+            ProxyConfig::API_SURFACES[$surface] ?? [],
+            true
+        );
     }
 
     /**
@@ -217,12 +220,14 @@ class Client
         int $status,
         string $reason,
         string $method,
+        string $upstreamKey,
         string $upstreamPath,
         array $extraHeaders = []
     ): Response {
         $this->logger->warning(sprintf(
-            '[MyParcel proxy] rejected %s %s: %s',
+            '[MyParcel proxy] rejected %s %s/%s: %s',
             $method,
+            $upstreamKey !== '' ? $upstreamKey : '<none>',
             $upstreamPath,
             $reason
         ));

@@ -10,12 +10,14 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\RouterInterface;
 
 /**
- * Routes storefront URLs under `/myparcel/proxy/<upstream-path>` to the
- * configured action (the {@see \MyParcelNL\Magento\Controller\Proxy\Forward}
+ * Routes storefront URLs under `/myparcel/proxy/<upstream-key>/<upstream-path>`
+ * to the configured action (the {@see \MyParcelNL\Magento\Controller\Proxy\Forward}
  * controller, wired in `etc/frontend/di.xml`).
  *
- * Extracts the upstream path from the URL and exposes it on the request
- * as the `upstream_path` param. No security policy lives here — that is
+ * The first segment after `/myparcel/proxy/` is the upstream key (e.g.
+ * `core`, `order`); the remainder is the upstream path. Both are exposed
+ * on the request as `upstream_key` and `upstream_path`. No security
+ * policy lives here — host registry and per-host path allow-list are
  * enforced once, in {@see \MyParcelNL\Magento\Service\Proxy\Client}.
  */
 class ProxyRouter implements RouterInterface
@@ -39,11 +41,17 @@ class ProxyRouter implements RouterInterface
             return null;
         }
 
-        $upstreamPath = ltrim(substr($pathInfo, $pos + strlen(self::PATH_MARKER)), '/');
-        if ($upstreamPath === '') {
+        $remainder = ltrim(substr($pathInfo, $pos + strlen(self::PATH_MARKER)), '/');
+        if ($remainder === '') {
             return null;
         }
 
+        [$upstreamKey, $upstreamPath] = array_pad(explode('/', $remainder, 2), 2, '');
+        if ($upstreamKey === '' || $upstreamPath === '') {
+            return null;
+        }
+
+        $request->setParam('upstream_key', $upstreamKey);
         $request->setParam('upstream_path', $upstreamPath);
         $request->setModuleName('myparcel')
                 ->setControllerName('proxy')
