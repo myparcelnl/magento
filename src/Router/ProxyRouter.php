@@ -39,12 +39,11 @@ class ProxyRouter implements RouterInterface
     public function match(RequestInterface $request): ?ActionInterface
     {
         $pathInfo = (string) $request->getPathInfo();
-        $pos = strpos($pathInfo, self::PATH_MARKER);
-        if ($pos === false) {
+        if (strncmp($pathInfo, self::PATH_MARKER, strlen(self::PATH_MARKER)) !== 0) {
             return null;
         }
 
-        $remainder = ltrim(substr($pathInfo, $pos + strlen(self::PATH_MARKER)), '/');
+        $remainder = ltrim(substr($pathInfo, strlen(self::PATH_MARKER)), '/');
         if ($remainder === '') {
             return null;
         }

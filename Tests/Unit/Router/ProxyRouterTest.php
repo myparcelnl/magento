@@ -118,3 +118,11 @@ it('returns null when the path does not contain the proxy marker', function () {
 
     expect($r['router']->match($req['request']))->toBeNull();
 });
+
+it('returns null when the proxy marker is not at the start of the path', function () {
+    $r   = makeProxyRouter();
+    $req = mockRoutedRequest('/cms/page/myparcel/proxy/core/shipments/capabilities');
+
+    expect($r['router']->match($req['request']))->toBeNull();
+    expect($req['params'])->toBe([]);
+});

@@ -32,7 +32,7 @@ class Forwarder
         $acceptance = (bool)   $request->getParam('upstream_acceptance');
         $path       = (string) $request->getParam('upstream_path');
         $body       = (string) $request->getContent();
-        $query      = (string) ($_SERVER['QUERY_STRING'] ?? '');
+        $query      = (string) $request->getServer('QUERY_STRING', '');
         $headers    = $this->collectRequestHeaders($request);
 
         $resp = $this->client->forward(
