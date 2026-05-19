@@ -84,27 +84,20 @@ class Client
         string $requestBody,
         string $queryString
     ): Response {
-        $method = strtoupper($method);
+        $req = new ProxyRequest(strtoupper($method), $upstreamHost, $acceptance, $upstreamPath);
 
-        if (!in_array($method, self::ALLOWED_METHODS, true)) {
-            return $this->reject(
-                405,
-                'method not allowed',
-                $method,
-                $upstreamHost,
-                $acceptance,
-                $upstreamPath,
-                ['Allow' => implode(', ', self::ALLOWED_METHODS)]
-            );
+        if (!in_array($req->method, self::ALLOWED_METHODS, true)) {
+            return $this->reject($req, 405, 'method not allowed',
+                ['Allow' => implode(', ', self::ALLOWED_METHODS)]);
         }
-        if (!isset(ProxyConfig::HOSTS[$upstreamHost])) {
-            return $this->reject(403, 'host not allowed', $method, $upstreamHost, $acceptance, $upstreamPath);
+        if (!isset(ProxyConfig::HOSTS[$req->host])) {
+            return $this->reject($req, 403, 'host not allowed');
         }
-        if (!$this->isPathAllowed($upstreamHost, $upstreamPath)) {
-            return $this->reject(403, 'path not allowed', $method, $upstreamHost, $acceptance, $upstreamPath);
+        if (!$this->isPathAllowed($req)) {
+            return $this->reject($req, 403, 'path not allowed');
         }
         if (strlen($requestBody) > self::MAX_BODY_BYTES) {
-            return $this->reject(413, 'request body too large', $method, $upstreamHost, $acceptance, $upstreamPath);
+            return $this->reject($req, 413, 'request body too large');
         }
 
         $apiKey = (string) $this->config->getGeneralConfig('api/key');
@@ -112,9 +105,9 @@ class Client
             throw new LocalizedException(__('MyParcel API key is not configured.'));
         }
 
-        $host    = ProxyConfig::HOSTS[$upstreamHost];
-        $baseUrl = $acceptance ? $host[ProxyConfig::KEY_ACCEPTANCE_URL] : $host[ProxyConfig::KEY_URL];
-        $url     = $baseUrl . '/' . ltrim($upstreamPath, '/');
+        $host    = ProxyConfig::HOSTS[$req->host];
+        $baseUrl = $req->acceptance ? $host[ProxyConfig::KEY_ACCEPTANCE_URL] : $host[ProxyConfig::KEY_URL];
+        $url     = $baseUrl . '/' . ltrim($req->path, '/');
         if ($queryString !== '') {
             $url .= "?$queryString";
         }
@@ -129,19 +122,19 @@ class Client
             RequestOptions::CONNECT_TIMEOUT => self::TIMEOUT_SECONDS,
             RequestOptions::DECODE_CONTENT  => true,
         ];
-        if ($requestBody !== '' && $method !== 'GET' && $method !== 'HEAD') {
+        if ($requestBody !== '' && $req->method !== 'GET' && $req->method !== 'HEAD') {
             $options[RequestOptions::BODY] = $requestBody;
         }
 
         try {
-            $response = $this->httpClient->request($method, $url, $options);
+            $response = $this->httpClient->request($req->method, $url, $options);
         } catch (GuzzleException $e) {
             $this->logger->error(sprintf(
                 '[MyParcel proxy] HTTP error for %s %s%s/%s: %s',
-                $method,
-                $upstreamHost,
-                $acceptance ? '/' . ProxyConfig::ACCEPTANCE_SEGMENT : '',
-                $upstreamPath,
+                $req->method,
+                $req->host,
+                $req->acceptance ? '/' . ProxyConfig::ACCEPTANCE_SEGMENT : '',
+                $req->path,
                 $e->getMessage()
             ));
             return new Response(
@@ -204,30 +197,23 @@ class Client
         return $out;
     }
 
-    private function isPathAllowed(string $upstreamHost, string $upstreamPath): bool
+    private function isPathAllowed(ProxyRequest $req): bool
     {
-        $paths = ProxyConfig::HOSTS[$upstreamHost][ProxyConfig::KEY_PATHS] ?? [];
-        return in_array(trim($upstreamPath, '/'), $paths, true);
+        $paths = ProxyConfig::HOSTS[$req->host][ProxyConfig::KEY_PATHS] ?? [];
+        return in_array(trim($req->path, '/'), $paths, true);
     }
 
     /**
      * @param array<string,string> $extraHeaders
      */
-    private function reject(
-        int $status,
-        string $reason,
-        string $method,
-        string $upstreamHost,
-        bool $acceptance,
-        string $upstreamPath,
-        array $extraHeaders = []
-    ): Response {
+    private function reject(ProxyRequest $req, int $status, string $reason, array $extraHeaders = []): Response
+    {
         $this->logger->warning(sprintf(
             '[MyParcel proxy] rejected %s %s%s/%s: %s',
-            $method,
-            $upstreamHost !== '' ? $upstreamHost : '<none>',
-            $acceptance ? '/' . ProxyConfig::ACCEPTANCE_SEGMENT : '',
-            $upstreamPath,
+            $req->method,
+            $req->host !== '' ? $req->host : '<none>',
+            $req->acceptance ? '/' . ProxyConfig::ACCEPTANCE_SEGMENT : '',
+            $req->path,
             $reason
         ));
         return new Response(
