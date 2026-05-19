@@ -180,7 +180,7 @@ it('forwards an allowed GET to the production host with injected Authorization a
     expect($sent->getMethod())->toBe('GET');
 
     // Inbound Authorization stripped, then replaced with server-side bearer.
-    expect($sent->getHeaderLine('Authorization'))->toBe('bearer ' . base64_encode('secret-key'));
+    expect($sent->getHeaderLine('Authorization'))->toBe('Bearer ' . base64_encode('secret-key'));
 
     // Cookie dropped.
     expect($sent->hasHeader('Cookie'))->toBeFalse();

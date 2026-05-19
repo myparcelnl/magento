@@ -135,7 +135,7 @@ it('round-trips a real GET through Forward + CorsHandler + Forwarder + Client', 
     $sent = $stack['history'][0]['request'];
     expect((string) $sent->getUri())->toBe('https://api.myparcel.nl/shipments/capabilities');
     expect($sent->getMethod())->toBe('GET');
-    expect($sent->getHeaderLine('Authorization'))->toBe('bearer ' . base64_encode('integration-key'));
+    expect($sent->getHeaderLine('Authorization'))->toBe('Bearer ' . base64_encode('integration-key'));
 
     // Forward propagates status + upstream body, and CorsHandler tacks on
     // Access-Control-Allow-Origin + Vary: Origin.

@@ -164,7 +164,7 @@ class Client
             }
             $out[(string) $name] = (string) $value;
         }
-        $out['Authorization'] = 'bearer ' . base64_encode($apiKey);
+        $out['Authorization'] = 'Bearer ' . base64_encode($apiKey);
         return $out;
     }
 
