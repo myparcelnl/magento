@@ -8,6 +8,14 @@ use Magento\Framework\Webapi\Authorization;
 use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
 use MyParcelNL\Magento\Service\ScopedResourceRegistry;
 
+/**
+ * Around plugin on Magento\Framework\Webapi\Authorization::isAllowed that enforces
+ * deny-by-default for token-authenticated callers.
+ *
+ * ACL grants from etc/integration.xml only unlock resources also listed in
+ * {@see ScopedResourceRegistry}; native ACL still applies on top — both must pass.
+ * Non-token callers (admin session, native Bearer, guest) bypass the gate.
+ */
 class MyParcelTokenAclGate
 {
     private TokenScopeContext      $tokenScopeContext;

@@ -14,6 +14,14 @@ use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
 
+/**
+ * Plugin restricting order queries to the stores visible to the token-authenticated caller.
+ *
+ * beforeGetList() injects a store_id IN (...) filter (or store_id IN (-1) when the caller
+ * has zero permitted stores, so no row matches). afterGet() throws NoSuchEntityException
+ * when a fetched order falls outside the permitted set. No-op when no token authenticated
+ * the request — admin / Bearer / guest callers pass through untouched.
+ */
 class OrderRepositoryStoreFilter
 {
     private TokenScopeContext  $tokenScopeContext;

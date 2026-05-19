@@ -10,6 +10,10 @@ use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Controller\Adminhtml\ApiAccessToken\Revoke;
 use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
+/**
+ * Skip parent::__construct(Action) and inject getRequest() override to avoid mocking
+ * the Backend Action context chain.
+ */
 final class FakeRevoke extends Revoke
 {
     /** @var RequestInterface|null Shadow the parent declaration under the test stub autoloader. */

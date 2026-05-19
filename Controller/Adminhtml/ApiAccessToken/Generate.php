@@ -8,6 +8,13 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 
+/**
+ * Admin action minting a fresh API access token for the active (scope, scopeId).
+ *
+ * Returns the plaintext exactly once in the JSON response — never re-readable afterwards,
+ * since storage holds only the SHA-256 hash. 409 on hash collision against another scope,
+ * 400 on an invalid scope name.
+ */
 class Generate extends AbstractTokenAction
 {
     public function execute(): ResultInterface

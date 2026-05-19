@@ -11,6 +11,14 @@ use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
+/**
+ * Shared base for the generate / revoke admin actions.
+ *
+ * Holds the JsonFactory + TokenService dependencies, decodes (scope, scopeId) from the
+ * request, and renders a uniform {success: false, message: ...} envelope on error.
+ * Both subclasses are gated by the MyParcelNL_Magento::myparcelnl_magento_api_access_token
+ * ACL resource (see {@see self::ADMIN_RESOURCE}); subclasses implement execute().
+ */
 abstract class AbstractTokenAction extends Action
 {
     public const ADMIN_RESOURCE = 'MyParcelNL_Magento::myparcelnl_magento_api_access_token';

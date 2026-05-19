@@ -8,6 +8,15 @@ use Magento\Authorization\Model\UserContextInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Integration\Api\IntegrationServiceInterface;
 
+/**
+ * UserContextInterface for MyParcel-token-authenticated REST requests.
+ *
+ * Reads the `Authorization: myparcel <token>` header (with a REDIRECT_HTTP_AUTHORIZATION
+ * fallback for installs whose DocumentRoot is the Magento root rather than pub/), matches
+ * the plaintext against stored SHA-256 hashes via {@see TokenScopeContext}, and on success
+ * exposes user type USER_TYPE_INTEGRATION resolved against the "MyParcel API" integration.
+ * Bearer / OAuth / admin-session / guest requests pass through untouched.
+ */
 class ApiAccessTokenUserContext implements UserContextInterface
 {
     public const INTEGRATION_NAME = 'MyParcel API';

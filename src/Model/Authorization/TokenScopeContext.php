@@ -12,6 +12,16 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
+/**
+ * Per-request ownership and visibility for token-authenticated callers.
+ *
+ * Memoizes the authenticated owner (scope, scopeId) plus the row-coordinate partition of
+ * stores it may see: each non-admin store's owner is the most-specific row that exists
+ * (stores > websites > default), and a store belongs to the caller iff its owner matches.
+ * Implements ResetAfterRequestInterface so long-running modes (queue consumers, async API)
+ * do not leak state between requests. Single source of truth for "which stores can this
+ * token see" — consulted by every scope-filtering plugin.
+ */
 class TokenScopeContext implements ResetAfterRequestInterface
 {
     /** @var array{scope: string, scopeId: int}|null */

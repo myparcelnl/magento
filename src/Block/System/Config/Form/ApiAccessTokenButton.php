@@ -10,6 +10,15 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Service\Settings;
 
+/**
+ * Admin config-form block rendering the "Generate / Revoke" buttons for the
+ * myparcelnl_magento_general/api_access_token field.
+ *
+ * Button visibility tracks whether a token already exists at the form's active scope
+ * (default / websites / stores). The block also emits a scope-specific cascade-warning
+ * comment so admins see which sibling tokens a generate-click will shrink. Buttons POST
+ * to the controllers in Controller/Adminhtml/ApiAccessToken.
+ */
 class ApiAccessTokenButton extends Template
 {
     protected $_template = 'MyParcelNL_Magento::api_access_token_button.phtml';

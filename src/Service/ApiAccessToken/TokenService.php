@@ -12,6 +12,14 @@ use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
 use Magento\Store\Model\ScopeInterface;
 
+/**
+ * Generates, rotates, revokes, and looks up MyParcel API access tokens.
+ *
+ * Persists SHA-256 hashes in core_config_data at myparcelnl_magento_general/api_access_token.
+ * Plaintext is returned once at generation and never re-readable. Hash uniqueness is
+ * enforced across the (scope, scopeId) coordinate space — colliding hashes raise
+ * AlreadyExistsException. Allowed scopes: default / websites / stores.
+ */
 class TokenService
 {
     public const CONFIG_PATH = 'myparcelnl_magento_general/api_access_token';
