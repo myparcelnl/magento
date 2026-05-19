@@ -16,9 +16,8 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Controller\ResultInterface;
-use Magento\Framework\UrlInterface;
-use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Rest\ProblemDetails;
+use MyParcelNL\Magento\Service\Proxy\CorsHandler;
 use MyParcelNL\Magento\Service\Proxy\Forwarder;
 
 class Forward implements
@@ -33,66 +32,48 @@ class Forward implements
     private RequestInterface $request;
     private Forwarder $forwarder;
     private RawFactory $rawFactory;
-    private StoreManagerInterface $storeManager;
+    private CorsHandler $cors;
 
     public function __construct(
         RequestInterface $request,
         Forwarder $forwarder,
         RawFactory $rawFactory,
-        StoreManagerInterface $storeManager
+        CorsHandler $cors
     ) {
-        $this->request = $request;
-        $this->forwarder = $forwarder;
+        $this->request    = $request;
+        $this->forwarder  = $forwarder;
         $this->rawFactory = $rawFactory;
-        $this->storeManager = $storeManager;
+        $this->cors       = $cors;
     }
 
     public function execute(): ResultInterface
     {
-        if (!$this->originMatchesBaseUrl($this->request)) {
+        $origin = $this->cors->getRequestOrigin($this->request);
+
+        if ($this->cors->isPreflight($this->request)) {
+            if (!$this->cors->isAllowedOrigin($origin)) {
+                return $this->forbidden();
+            }
+            return $this->cors->buildPreflightResponse($this->request, $origin);
+        }
+
+        if (!$this->cors->isAllowedOrigin($origin)) {
             return $this->forbidden();
         }
-        return $this->forwarder->forward($this->request);
+
+        $response = $this->forwarder->forward($this->request);
+        $this->cors->applyCorsHeaders($response, $origin);
+        return $response;
     }
 
     public function validateForCsrf(RequestInterface $request): ?bool
     {
-        return $this->originMatchesBaseUrl($request);
+        return true;
     }
 
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
-        return new InvalidRequestException($this->forbidden(), [__('Forbidden.')]);
-    }
-
-    private function originMatchesBaseUrl(RequestInterface $request): bool
-    {
-        $origin = (string) ($request->getHeader('Origin') ?: '');
-        if ($origin === '') {
-            $origin = (string) ($request->getHeader('Referer') ?: '');
-        }
-        if ($origin === '') {
-            return false;
-        }
-
-        $expected = (string) $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_WEB, true);
-        return $this->sameSchemeHostPort($origin, $expected);
-    }
-
-    private function sameSchemeHostPort(string $a, string $b): bool
-    {
-        $pa = parse_url($a);
-        $pb = parse_url($b);
-        if (!is_array($pa) || !is_array($pb)) {
-            return false;
-        }
-        $schemeA = $pa['scheme'] ?? '';
-        $schemeB = $pb['scheme'] ?? '';
-        $portA   = $pa['port'] ?? ($schemeA === 'https' ? 443 : 80);
-        $portB   = $pb['port'] ?? ($schemeB === 'https' ? 443 : 80);
-        return $schemeA === $schemeB
-            && ($pa['host'] ?? '') === ($pb['host'] ?? '')
-            && $portA === $portB;
+        return null;
     }
 
     private function forbidden(): Raw
@@ -100,7 +81,7 @@ class Forward implements
         $result = $this->rawFactory->create();
         $result->setHttpResponseCode(403);
         $result->setHeader('Content-Type', ProblemDetails::CONTENT_TYPE, true);
-        $result->setContents(ProblemDetails::fromStatus(403, 'origin does not match base URL')->toJsonString());
+        $result->setContents(ProblemDetails::fromStatus(403, 'origin not allowed')->toJsonString());
         return $result;
     }
 }

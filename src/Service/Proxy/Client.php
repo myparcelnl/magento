@@ -17,7 +17,7 @@ class Client
     private const UPSTREAM_BASE = 'https://api.myparcel.nl';
     private const TIMEOUT_SECONDS = 5;
     private const MAX_BODY_BYTES = 32768;
-    private const ALLOWED_METHODS = ['GET', 'POST', 'HEAD', 'OPTIONS'];
+    public const ALLOWED_METHODS = ['GET', 'POST', 'HEAD', 'OPTIONS'];
 
     /**
      * Exact upstream paths the proxy is allowed to forward to. Anything that
