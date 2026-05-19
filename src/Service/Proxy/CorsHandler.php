@@ -10,6 +10,22 @@ use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\UrlInterface;
 use Magento\Store\Model\StoreManagerInterface;
 
+/**
+ * Owns the storefront CORS lifecycle for the proxy.
+ *
+ * - Detects preflight requests (`OPTIONS` + `Access-Control-Request-Method`).
+ * - Decides whether an `Origin` (or `Referer` fallback) is permitted by
+ *   comparing scheme/host/port exactly against every store's web base URL.
+ * - Builds the 204 preflight response with `Access-Control-Allow-*` and
+ *   `Vary` headers.
+ * - Applies `Access-Control-Allow-Origin` and `Vary: Origin` to forwarded
+ *   responses.
+ *
+ * `Access-Control-Allow-Credentials` is intentionally not emitted — the
+ * {@see Client} already strips inbound `Authorization` and `Cookie`.
+ * This is the real authorization policy for the proxy; the controller's
+ * `validateForCsrf` is permissive.
+ */
 class CorsHandler
 {
     private const PREFLIGHT_MAX_AGE_SECONDS = 600;

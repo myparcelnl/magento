@@ -8,6 +8,13 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Controller\Result\RawFactory;
 
+/**
+ * Translates a Magento `RequestInterface` into the primitives
+ * {@see Client::forward()} consumes (upstream path, method, header map,
+ * body, query string) and wraps the resulting {@see Response} value
+ * object in a Magento `Raw` result. Pure plumbing; all policy lives in
+ * {@see Client}.
+ */
 class Forwarder
 {
     private Client $client;

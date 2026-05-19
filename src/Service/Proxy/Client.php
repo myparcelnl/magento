@@ -12,6 +12,26 @@ use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 use MyParcelNL\Magento\Service\Config;
 use Psr\Log\LoggerInterface;
 
+/**
+ * Single security choke point for the MyParcel storefront API proxy.
+ *
+ * Enforces, for every proxied call: exact-match path allow-list
+ * ({@see self::ALLOWED_PATHS} — sub-paths rejected; the bare `shipments`
+ * path is deliberately excluded so the proxy cannot be coerced into
+ * creating shipments under our key), HTTP method allow-list, inbound/
+ * outbound header drop-lists, 32 KB body cap, 5 s timeout, no redirects,
+ * and server-side injection of the MyParcel API key (inbound
+ * `Authorization` is dropped first). All rejections return RFC 9457
+ * `application/problem+json` and emit a warning log; adding a new
+ * upstream call is one entry in `ALLOWED_PATHS`.
+ *
+ * Chosen over a dedicated per-resource `AbstractEndpoint` to keep the
+ * security policy auditable in one file and to unblock the checkout
+ * widget. If a specific call later needs Magento-side semantics
+ * (response reshaping, per-version negotiation, write traffic, or a
+ * cross-origin headless storefront), promote that call to a dedicated
+ * `AbstractEndpoint`; the two patterns coexist.
+ */
 class Client
 {
     private const UPSTREAM_BASE = 'https://api.myparcel.nl';

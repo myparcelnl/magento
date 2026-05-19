@@ -9,6 +9,15 @@ use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\RouterInterface;
 
+/**
+ * Routes storefront URLs under `/myparcel/proxy/<upstream-path>` to the
+ * configured action (the {@see \MyParcelNL\Magento\Controller\Proxy\Forward}
+ * controller, wired in `etc/frontend/di.xml`).
+ *
+ * Extracts the upstream path from the URL and exposes it on the request
+ * as the `upstream_path` param. No security policy lives here — that is
+ * enforced once, in {@see \MyParcelNL\Magento\Service\Proxy\Client}.
+ */
 class ProxyRouter implements RouterInterface
 {
     private const PATH_MARKER = '/myparcel/proxy/';

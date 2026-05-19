@@ -20,6 +20,17 @@ use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 use MyParcelNL\Magento\Service\Proxy\CorsHandler;
 use MyParcelNL\Magento\Service\Proxy\Forwarder;
 
+/**
+ * Storefront entry point for the MyParcel API proxy.
+ *
+ * Handles the CORS lifecycle via {@see CorsHandler}: answers preflight
+ * requests locally with 204, enforces the Origin allow-list on real
+ * requests, and delegates forwarding to {@see Forwarder}. The proxy is
+ * storefront-only and anonymous — `validateForCsrf` is intentionally
+ * permissive because CORS is the real authorization policy; the
+ * `CsrfAwareActionInterface` is implemented only because Magento requires
+ * it for non-form-key state-changing requests.
+ */
 class Forward implements
     CsrfAwareActionInterface,
     HttpGetActionInterface,

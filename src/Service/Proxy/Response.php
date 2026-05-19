@@ -4,6 +4,12 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\Proxy;
 
+/**
+ * Plain value object for an upstream proxy result (status, header map,
+ * body). Decoupled from Magento types so {@see Client} can return the
+ * same shape for upstream success, upstream failure, and locally-
+ * generated proxy rejections.
+ */
 final class Response
 {
     public int $status;
