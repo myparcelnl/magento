@@ -17,6 +17,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Exception;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
+use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
@@ -64,17 +65,18 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     private const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
 
 
-    public MyParcelCollection        $myParcelCollection;
-    public ?RequestInterface         $request = null;
-    protected Manager                $moduleManager;
-    protected SourceItem             $sourceItem;
-    protected TrackSender            $trackSender;
-    protected ObjectManagerInterface $objectManager;
-    protected Track                  $modelTrack;
-    protected AreaList               $areaList;
-    protected ManagerInterface       $messageManager;
-    protected Config                 $config;
-    protected Weight                 $weight;
+    public MyParcelCollection          $myParcelCollection;
+    public ?RequestInterface           $request = null;
+    protected Manager                  $moduleManager;
+    protected SourceItem               $sourceItem;
+    protected TrackSender              $trackSender;
+    protected ObjectManagerInterface   $objectManager;
+    protected ProductMetadataInterface $productMetadata;
+    protected Track                    $modelTrack;
+    protected AreaList                 $areaList;
+    protected ManagerInterface         $messageManager;
+    protected Config                   $config;
+    protected Weight                   $weight;
 
     protected array $options
         = [
@@ -116,6 +118,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         $this->objectManager      = $objectManager;
         $this->moduleManager      = $objectManager->get(Manager::class);
+        $this->productMetadata    = $objectManager->get(ProductMetadataInterface::class);
         $this->request            = $request;
         $this->trackSender        = $objectManager->get(TrackSender::class);
         $this->config             = $objectManager->get(Config::class);
@@ -123,7 +126,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
         $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
         $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
-            ['Magento2' => $this->config->getVersion()]
+            [
+                'Magento2' => $this->productMetadata->getVersion(),
+                'MyParcel-Magento2' => $this->config->getVersion(),
+            ]
         );
 
         $this->setSourceItemWhenInventoryApiEnabled();
