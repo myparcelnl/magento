@@ -122,10 +122,18 @@ The `Client` enforces, in one place:
 - RFC 9457 `application/problem+json` for every rejection, and a warning
   log line for every rejected request.
 
-Authorization on the storefront controller is via
-`CsrfAwareActionInterface`: the proxy rejects unless the `Origin` (or
-`Referer`) header matches the store base URL on scheme, host and port
-exactly.
+Authorization on the storefront controller is via a CORS lifecycle in
+`Service\Proxy\CorsHandler`: `OPTIONS` preflight requests are answered
+locally with `204 No Content` and a complete set of `Access-Control-Allow-*`
+headers; actual requests are admitted only when the `Origin` (or, as a
+fallback, `Referer`) header matches a store web base URL on scheme, host
+and port exactly. Allowed responses get `Access-Control-Allow-Origin` and
+`Vary: Origin` headers. `Access-Control-Allow-Credentials` is not emitted
+(the proxy already strips inbound `Authorization` and `Cookie`). Magento's
+`CsrfAwareActionInterface` is still implemented because the framework
+requires it for non-form-key state-changing requests, but
+`validateForCsrf` is intentionally permissive — the CORS lifecycle is
+the real policy.
 
 **Pros:**
 - **Single security choke point:** one `Client` class enforces method, path,
@@ -143,11 +151,11 @@ exactly.
 - **Thin abstraction:** callers see (almost) the upstream contract verbatim.
   If upstream changes, callers change. There's no place to add per-resource
   business logic or response reshaping without breaking that simplicity.
-- **Origin/Referer is the only storefront-side check:** any same-origin code
-  (including any XSS in the storefront) can call the proxy. The Origin
-  check is necessary but not by itself sufficient against an attacker who
-  already has a foothold; we accept this because the proxy's allow-list
-  limits the blast radius to read-mostly capability lookups.
+- **Origin allow-list is the only storefront-side check:** any same-origin
+  code (including any XSS in the storefront) can call the proxy. The CORS
+  origin check is necessary but not by itself sufficient against an
+  attacker who already has a foothold; we accept this because the proxy's
+  allow-list limits the blast radius to read-mostly capability lookups.
 
 ---
 
@@ -224,8 +232,17 @@ framework still applies; see driver 5). The two approaches coexist.
 
 **Storefront controller (`Controller/Proxy/Forward.php`):**
 
-    - Implements CsrfAwareActionInterface; CSRF passes iff Origin/Referer
-      matches the store base URL (scheme/host/port exact match).
+    - Implements CsrfAwareActionInterface; validateForCsrf is permissive
+      (the CORS lifecycle is the real policy).
+    - Delegates to `Service\Proxy\CorsHandler` for: preflight detection,
+      origin allow-list (derived from `StoreManagerInterface` web base
+      URLs), preflight response construction, and applying
+      `Access-Control-Allow-Origin` + `Vary: Origin` to forwarded
+      responses.
+    - Origin allow-list is scheme/host/port exact-match against every
+      store's web base URL.
+    - Preflight short-circuit: OPTIONS + `Access-Control-Request-Method`
+      returns 204 locally, never reaches the upstream API.
     - No admin session; the proxy is storefront-only.
 
 ---
@@ -277,8 +294,15 @@ framework still applies; see driver 5). The two approaches coexist.
 - **Auditability:** every rejection is logged with method and upstream
   path; every successful request is implicitly auditable upstream by
   request-id.
-- **CSRF:** storefront calls use Origin/Referer matching the store base
-  URL.
+- **CORS / origin enforcement:** the storefront controller answers
+  preflight requests locally and emits `Access-Control-Allow-Origin`
+  with `Vary: Origin` on forwarded responses. Origin (or, as a fallback,
+  Referer) must match a store web base URL on scheme/host/port exactly,
+  otherwise the request is rejected with 403 `application/problem+json`
+  and no CORS headers are emitted. `Access-Control-Allow-Credentials` is
+  not emitted; the proxy already strips inbound `Authorization` and
+  `Cookie`. The Magento CSRF interface remains implemented but
+  permissive — CORS is the real policy.
 - **Resource limits:** 32 KB body cap and 5 s timeout bound the cost of a
   hostile or accidental request.
 
@@ -296,10 +320,13 @@ framework still applies; see driver 5). The two approaches coexist.
    present the widget with a stable Magento-side contract independent of
    upstream changes, that call belongs behind a versioned `AbstractEndpoint`
    (ADR-0011).
-3. **Storefront on a different domain (Hyva, headless):** the Origin
-   check assumes the storefront and the proxy share an origin. A headless
-   frontend on another domain would need either CORS + a token model or a
-   per-call ACL.
+3. **Storefront on a different domain (Hyva, headless):** the current
+   origin allow-list is derived from `StoreManagerInterface` web base
+   URLs, which assumes the storefront and the proxy share an origin. A
+   headless frontend on another domain would need either an extra
+   admin-configured origin list (small extension of `CorsHandler`) plus
+   `Access-Control-Allow-Credentials` semantics, or a per-call token
+   model.
 4. **Write traffic:** the current allow-list is read-mostly capabilities.
    Adding write operations (anything that mutates state upstream under our
    key) should trigger an explicit review against this ADR, not just an
@@ -322,8 +349,10 @@ framework still applies; see driver 5). The two approaches coexist.
 **Critical metrics:**
 
 - Rate of proxy rejections by reason (`method not allowed`, `path not
-  allowed`, `request body too large`, `origin does not match base URL`) —
-  these come from the `[MyParcel proxy] rejected …` log lines.
+  allowed`, `request body too large`, `origin not allowed`) —
+  these come from the `[MyParcel proxy] rejected …` log lines (the
+  Origin rejection itself is emitted by the controller as a 403
+  `application/problem+json`).
 - Upstream 5xx rate via the `[MyParcel proxy] HTTP error …` log line.
 - p95 latency of `/myparcel/proxy/*` requests.
 
@@ -331,6 +360,7 @@ framework still applies; see driver 5). The two approaches coexist.
 
 - Sustained `path not allowed` rate > baseline -> investigate caller (likely
   a stale or misconfigured widget version).
-- `origin does not match base URL` rate > baseline -> investigate CDN or
-  reverse-proxy configuration stripping `Origin`/`Referer`.
+- `origin not allowed` 403 rate > baseline -> investigate CDN or
+  reverse-proxy configuration stripping `Origin`/`Referer`, or a
+  storefront served from a domain not present in the store base URLs.
 - Upstream 5xx rate > baseline -> page on-call for MyParcel API health.
