@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <!-- Register MyParcel custom-scheme UserContext ahead of native tokenUserContext (sortOrder=10) -->
+    <!--
+        Recognizes "Authorization: MyParcel <token>" requests as authentication. Runs at sortOrder=5,
+        ahead of Magento's native Bearer/token user context (sortOrder=10), so a valid MyParcel token
+        resolves to USER_TYPE_INTEGRATION before native auth gets a turn. Non-token callers (admin
+        session, native Bearer, guest) fall through unchanged.
+    -->
     <type name="Magento\Authorization\Model\CompositeUserContext">
         <arguments>
             <argument name="userContexts" xsi:type="array">
@@ -12,7 +17,14 @@
         </arguments>
     </type>
 
-    <!-- Allow-list of ACL resources reachable by token-authenticated callers -->
+    <!--
+        Gate 2 of 3: deny-by-default allow-list of ACL resources reachable by API-token callers.
+        Admin / native Bearer / guest callers bypass this gate entirely; only token-authenticated
+        callers are filtered against this list. Must stay in sync with etc/integration.xml — the
+        regression test Tests/Unit/Service/ScopedResourceRegistryTest enforces this.
+
+        See docs/design/adding-a-token-accessible-rest-endpoint.md (Access matrix).
+    -->
     <type name="MyParcelNL\Magento\Service\ScopedResourceRegistry">
         <arguments>
             <argument name="resources" xsi:type="array">
@@ -22,14 +34,23 @@
         </arguments>
     </type>
 
-    <!-- Deny-by-default ACL gate on top of native authorization for token-authenticated callers -->
+    <!--
+        Enforces gate 2: only active when a MyParcel token authenticated the request. Any requested
+        ACL resource missing from ScopedResourceRegistry above short-circuits to deny (translated by
+        Magento's auth layer into 401/403) before native ACL runs. No-op for non-token callers.
+    -->
     <type name="Magento\Framework\Webapi\Authorization">
         <plugin name="myparcel-token-acl-gate"
                 type="MyParcelNL\Magento\Plugin\Magento\Webapi\Rest\RequestValidator\MyParcelTokenAclGate"
                 sortOrder="10"/>
     </type>
 
-    <!-- Per-store filter: restricts orders to the token's permitted store set -->
+    <!--
+        Gate 3 (per-store scope) for the orders repository: constrains getList() to the token's
+        permitted store set and turns out-of-scope get() into NoSuchEntityException (404). Any new
+        token-callable endpoint backed by a different repository needs an analogous plugin — see
+        docs/design/adding-a-token-accessible-rest-endpoint.md step 7.
+    -->
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
         <plugin name="myparcel-order-repository-store-filter"
                 type="MyParcelNL\Magento\Plugin\Magento\Sales\OrderRepositoryStoreFilter"

@@ -14,6 +14,22 @@ For any token-authenticated request, **three gates must all pass**:
 
 Steps 1 + 2 are always required; step 3 depends on what the endpoint queries.
 
+## Access matrix (current state)
+
+This is the complete set of access an API access token can have today. Every token call must clear gates 1 + 2; gate 3 applies whenever the endpoint returns store-scoped data.
+
+| ACL resource | Routes that require it | Scopes supported | Filter (gate 3) |
+|---|---|---|---|
+| `MyParcelNL_Magento::delivery_options_read` | `GET /V1/myparcel/delivery-options` | default / website / store | `OrderRepositoryStoreFilter` (the endpoint loads the order via `OrderRepositoryInterface`) |
+| `Magento_Sales::actions_view` | none directly; required because `OrderDeliveryOptions` resolves the order through `OrderRepositoryInterface`, which Magento authorizes against this resource | default / website / store | `OrderRepositoryStoreFilter` |
+
+Sources of truth (must stay in sync; the regression test `Tests/Unit/Service/ScopedResourceRegistryTest.php` enforces alignment between the first two):
+
+- `etc/integration.xml` — gate 1 (integration grant).
+- `etc/webapi_rest/di.xml` `ScopedResourceRegistry` — gate 2 (deny-by-default allow-list).
+- `etc/webapi.xml` — which route requires which resource.
+- `etc/acl.xml` — where the resource sits in the admin tree.
+
 ## Files to touch
 
 ### 1. Service contract — `src/Api/<Name>Interface.php`
@@ -55,6 +71,8 @@ Add an entry to the `$resources` argument of `ScopedResourceRegistry`:
 ```
 
 **This is the line that actually opens the endpoint to tokens.** Skipping it makes `MyParcelTokenAclGate` deny the request even with the integration grant in place.
+
+Also update the **Access matrix** at the top of this document with the new resource → route → scope → filter row.
 
 ### 7. Scope filtering — only if needed
 

@@ -25,6 +25,7 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <!-- Token-callable: requires delivery_options_read in integration.xml AND in ScopedResourceRegistry (etc/webapi_rest/di.xml). -->
     <route url="/V1/myparcel/delivery-options" method="GET">
         <service class="MyParcelNL\Magento\Api\OrderDeliveryOptionsInterface" method="getByOrderId"/>
         <resources>
