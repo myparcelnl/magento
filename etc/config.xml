@@ -48,6 +48,7 @@
                 <pickup_title>Ophalen bij een PostNL locatie</pickup_title>
                 <pickup_list_button_title>Lijst</pickup_list_button_title>
                 <pickup_map_button_title>Kaart</pickup_map_button_title>
+                <compact_back_to_overview_title>Terug naar overzicht</compact_back_to_overview_title>
             </delivery_titles>
         </myparcelnl_magento_general>
 
