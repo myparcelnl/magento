@@ -192,9 +192,9 @@ Mailbox,Colis boîte aux lettres
 Digital stamp,Timbre numérique
 Small package,Colis petit format
 
-{field} is required.,{field} est requis.
-Address not found.,Adresse introuvable.
-Postal code is invalid for the current country.,Le code postal n’est pas valide pour le pays actuel.
+error3212,{field} est requis.
+error3501,Adresse introuvable.
+error3505,Le code postal n’est pas valide pour le pays actuel.
 
 delivery_title, Options de livraison
 standard_title, Livraison standard
@@ -212,7 +212,21 @@ package_title,Colis
 signature_title, Signature à réception
 receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
+priority_delivery_title, Livraison prioritaire (24 heures)
+monday_delivery_title, Livraison le lundi
 saturday_delivery, Livraison le samedi
+saturday_delivery_title, Livraison le samedi
+header_delivery_options,
+load_more, Charger plus
+options_title, Options
+no_delivery_options_available, Aucune option de livraison disponible.
+delivery_moment_not_possible, "{deliveryType} (sélection de date/heure non disponible)"
+error3224, Transporteur invalide.
+error3506, Type de livraison invalide.
+error3516, Pays non pris en charge par le transporteur.
+error3517, Non disponible pour ce pays.
+error3707, Type de colis invalide.
+error3728, Aucune option de livraison trouvée.
 Delivery costs,Frais de livraison
 Use Free Shipping,Utiliser la livraison gratuite
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Si les frais de livraison MyParcel sont de 0 lorsque la Livraison gratuite est disponible.

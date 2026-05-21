@@ -233,14 +233,14 @@ Drop off day,Verzenddagen
 Select the days that you send the orders.,Selecteer de dagen waarop jij de orders verzend.
 Show a delivery day in the checkout.,Laat een bezorgdag zien in de checkout.
 You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,U hebt niet de juiste API-sleutel ingevoerd. Ga naar de algemene instellingen in de backoffice van MyParcel om de API Key te genereren.
-Address details are not entered,Adresgegevens zijn niet ingevuld
+Address details are not entered,Adres niet gevonden
 The times will be visible when nothing is filled in,De tijden zullen zichtbaar zijn wanneer niets is ingevuld
 "Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Voer een bedrag in dat positief of negatief is. Wilt u bijvoorbeeld een korting geven voor het gebruik van deze functie of wilt u extra in rekening brengen voor deze leveringsoptie."
 Discount,Korting
 Most sustainable,Meest duurzaam
 Free,Gratis
 From,Vanaf
-Pick up from,Ophalen vanaf
+Pick up from,Op te halen vanaf
 Pick up at a pick-up point,Ophalen bij een afhaalpunt
 Opening hours,Openingstijden
 Show more opening hours,Toon meer openingstijden
@@ -273,9 +273,9 @@ Default,Standaard
 No,Nee
 Yes,Ja
 
-{field} is required.,{field} is verplicht.
-Address not found.,Dit adres is niet gevonden.
-Postal code is invalid for the current country.,Postcode is niet geldig voor het gekozen land.
+error3212,{field} is verplicht.
+error3501,Dit adres is niet gevonden.
+error3505,Postcode is niet geldig voor het gekozen land.
 
 no_account_settings, Geen accountsettings gevonden. Klik op de importeer knop in het algemene configuratie scherm.
 location_page, locatiewijzer
@@ -287,24 +287,37 @@ Already exported, Reeds geëxporteerd
 Show details in summary, Toon details in overzicht
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).", "Waar de verzendmethode wordt getoond, toon de momenteel bekende details (ja) of de methodetitel (nee)."
 
-delivery_title,Bezorgopties
+delivery_title,Levering thuis of op het werk
+header_delivery_options,
 standard_title,Standaard bezorging
-morning_title,Ochtend levering
-evening_title,Avond levering
-pickup_title,Afhaal locaties
-same_day_title,Zelfde dag levering
-hide_sender_title,Afzender verbergen
+morning_title,Ochtendbezorging
+evening_title,Avondbezorging
+pickup_title,Ophalen bij een afhaallocatie
+same_day_title,Zelfde dag bezorging
+hide_sender_title,Verberg verzender
 list_title,Lijst
 map_title,Kaart
 mailbox_title,Brievenbuspakje
 digital_stamp_title,Digitale postzegel
 packet_title,Klein pakket
 package_title,Pakket
-signature_title,Handtekening voor ontvangst
+signature_title,Handtekening
 receipt_code_title,Ontvangstcode
-priority_delivery_title,Prio levering
-only_recipient_title,Alleen huisadres
-saturday_delivery,Zaterdag levering
+priority_delivery_title,Prioriteitslevering (24 uur)
+only_recipient_title,Alleen ontvanger
+monday_delivery_title,Maandag bezorging
+saturday_delivery,Zaterdag bezorging
+saturday_delivery_title,Zaterdag bezorging
+load_more,Laad meer
+options_title,Opties
+no_delivery_options_available,Geen bezorgopties beschikbaar.
+delivery_moment_not_possible,"{deliveryType} (datum/tijd keuze niet beschikbaar)"
+error3224,Ongeldige vervoerder.
+error3506,Ongeldig bezorgtype.
+error3516,Land wordt niet ondersteund door vervoerder.
+error3517,Niet beschikbaar voor dit land.
+error3707,Ongeldig pakkettype.
+error3728,Geen bezorgopties gevonden.
 Delivery costs,Bezorgkosten
 Use Free Shipping,Gebruik gratis verzending
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.
