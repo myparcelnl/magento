@@ -293,6 +293,17 @@
               "showInStore": true,
               "tooltip": "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.",
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
+            },
+            {
+              "id": "compact_view",
+              "path": "myparcelnl_magento_general/shipping_methods/compact_view",
+              "type": "select",
+              "label": "Compact view",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "When enabled, the delivery options widget is rendered in compact mode.",
+              "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
             }
           ]
         },

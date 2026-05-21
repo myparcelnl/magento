@@ -128,6 +128,7 @@ class Checkout
             'allowPickupLocationsViewSelection' => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view_change_allowed'),
             'showPriceSurcharge'                => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
             'excludeParcelLockers'              => $this->isExcludeParcelLockersActive($carrierPath),
+            'compactView'                       => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/compact_view'),
         ];
     }
 
