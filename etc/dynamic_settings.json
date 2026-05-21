@@ -450,6 +450,25 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true
+            },
+            {
+              "id": "monday_delivery_title",
+              "path": "myparcelnl_magento_general/delivery_titles/monday_delivery_title",
+              "type": "text",
+              "label": "Monday delivery title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "header_delivery_options",
+              "path": "myparcelnl_magento_general/delivery_titles/header_delivery_options",
+              "type": "text",
+              "label": "Delivery options header",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "Leave empty to hide the header above the delivery options."
             }
           ]
         }
