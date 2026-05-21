@@ -32,7 +32,7 @@ class Checkout
     private DeliveryCosts         $deliveryCosts;
     private PackageRepository     $package;
     private Quote                 $quote;
-    private StoreManagerInterface $currency;
+    private StoreManagerInterface $storeManager;
 
     /**
      * Checkout constructor.
@@ -41,21 +41,21 @@ class Checkout
      * @param Config                $config
      * @param DeliveryCosts         $deliveryCosts
      * @param PackageRepository     $package
-     * @param StoreManagerInterface $currency
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         Tax                   $tax,
         Config                $config,
         DeliveryCosts         $deliveryCosts,
         PackageRepository     $package, // TODO DEPRECATE / IMPROVE
-        StoreManagerInterface $currency
+        StoreManagerInterface $storeManager
     )
     {
         $this->tax           = $tax;
         $this->config        = $config;
         $this->deliveryCosts = $deliveryCosts;
         $this->package       = $package;
-        $this->currency      = $currency;
+        $this->storeManager  = $storeManager;
         $this->quote         = $this->getQuoteFromCurrentSession();
     }
 
@@ -119,7 +119,8 @@ class Checkout
 
         return [
             'platform'                          => Config::PLATFORM,
-            'currency'                          => $this->currency->getStore()->getCurrentCurrency()->getCode(),
+            'currency'                          => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+            'proxyCapabilities'                 => $this->storeManager->getStore()->getBaseUrl() . 'myparcel/proxy/core/shipments/capabilities',
             'showDeliveryDate'                  => $deliveryDaysWindow > 0,
             'deliveryDaysWindow'                => $deliveryDaysWindow,
             'dropOffDelay'                      => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
