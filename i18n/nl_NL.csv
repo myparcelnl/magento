@@ -342,3 +342,5 @@ Remove condition,Voorwaarde verwijderen
 Select a condition,Selecteer een voorwaarde
 Show or hide JSON textarea,Toon of verberg JSON tekstvak
 Invalid JSON in textarea,Ongeldige JSON in tekstvak
+Compact view,Compacte weergave
+"When enabled, the delivery options widget is rendered in compact mode.","Wanneer ingeschakeld, wordt de bezorgopties-widget weergegeven in compacte modus."

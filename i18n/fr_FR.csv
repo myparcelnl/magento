@@ -252,3 +252,5 @@ Select a condition,Sélectionnez une condition
 Carrier name,Nom du transporteur
 Show or hide JSON textarea,Afficher ou Masquer la zone de texte JSON
 Invalid JSON in textarea,JSON invalide dans la zone de texte
+Compact view,Vue compacte
+"When enabled, the delivery options widget is rendered in compact mode.","Lorsqu'il est activé, le widget des options de livraison s'affiche en mode compact."
