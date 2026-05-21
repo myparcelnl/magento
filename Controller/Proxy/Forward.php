@@ -13,23 +13,23 @@ use Magento\Framework\App\Action\HttpPutActionInterface;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Controller\Result\Raw;
-use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Controller\ResultInterface;
-use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 use MyParcelNL\Magento\Service\Proxy\CorsHandler;
 use MyParcelNL\Magento\Service\Proxy\Forwarder;
 
 /**
  * Storefront entry point for the MyParcel API proxy.
  *
- * Handles the CORS lifecycle via {@see CorsHandler}: answers preflight
- * requests locally with 204, enforces the Origin allow-list on real
- * requests, and delegates forwarding to {@see Forwarder}. The proxy is
- * storefront-only and anonymous — `validateForCsrf` is intentionally
- * permissive because CORS is the real authorization policy; the
- * `CsrfAwareActionInterface` is implemented only because Magento requires
- * it for non-form-key state-changing requests.
+ * Pure orchestration: delegates CORS lifecycle (preflight, origin allow-list,
+ * 403 problem+json construction) to {@see CorsHandler} and upstream
+ * forwarding to {@see Forwarder}. Keeps an explicit pre-forward origin gate
+ * so disallowed origins never reach the upstream API — `applyCorsHeaders`
+ * also validates internally as defense in depth.
+ *
+ * The proxy is storefront-only and anonymous — `validateForCsrf` is
+ * intentionally permissive because CORS is the real authorization policy;
+ * the `CsrfAwareActionInterface` is implemented only because Magento
+ * requires it for non-form-key state-changing requests.
  */
 class Forward implements
     CsrfAwareActionInterface,
@@ -42,19 +42,16 @@ class Forward implements
 {
     private RequestInterface $request;
     private Forwarder $forwarder;
-    private RawFactory $rawFactory;
     private CorsHandler $cors;
 
     public function __construct(
         RequestInterface $request,
         Forwarder $forwarder,
-        RawFactory $rawFactory,
         CorsHandler $cors
     ) {
-        $this->request    = $request;
-        $this->forwarder  = $forwarder;
-        $this->rawFactory = $rawFactory;
-        $this->cors       = $cors;
+        $this->request   = $request;
+        $this->forwarder = $forwarder;
+        $this->cors      = $cors;
     }
 
     public function execute(): ResultInterface
@@ -62,19 +59,15 @@ class Forward implements
         $origin = $this->cors->getRequestOrigin($this->request);
 
         if ($this->cors->isPreflight($this->request)) {
-            if (!$this->cors->isAllowedOrigin($origin)) {
-                return $this->forbidden();
-            }
             return $this->cors->buildPreflightResponse($this->request, $origin);
         }
 
         if (!$this->cors->isAllowedOrigin($origin)) {
-            return $this->forbidden();
+            return $this->cors->buildForbidden();
         }
 
         $response = $this->forwarder->forward($this->request);
-        $this->cors->applyCorsHeaders($response, $origin);
-        return $response;
+        return $this->cors->applyCorsHeaders($response, $origin);
     }
 
     public function validateForCsrf(RequestInterface $request): ?bool
@@ -85,14 +78,5 @@ class Forward implements
     public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return null;
-    }
-
-    private function forbidden(): Raw
-    {
-        $result = $this->rawFactory->create();
-        $result->setHttpResponseCode(403);
-        $result->setHeader('Content-Type', ProblemDetails::CONTENT_TYPE, true);
-        $result->setContents(ProblemDetails::fromStatus(403, 'origin not allowed')->toJsonString());
-        return $result;
     }
 }

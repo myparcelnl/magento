@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Model\Rest\ProblemDetails;
 use MyParcelNL\Magento\Service\Proxy\Client;
 use MyParcelNL\Magento\Service\Proxy\CorsHandler;
 
@@ -95,7 +96,9 @@ it('applies Access-Control-Allow-Origin and appends Vary: Origin on a forwarded 
         mockRawFactoryReturning($bag['raw'])
     );
 
-    $cors->applyCorsHeaders($bag['raw'], 'https://shop.test');
+    $result = $cors->applyCorsHeaders($bag['raw'], 'https://shop.test');
+
+    expect($result)->toBe($bag['raw']);
 
     $setHeaderCalls = rawCallsTo($bag, 'setHeader');
     expect($setHeaderCalls)->toHaveCount(2);
@@ -107,6 +110,66 @@ it('applies Access-Control-Allow-Origin and appends Vary: Origin on a forwarded 
     expect($setHeaderCalls[1][0])->toBe('Vary');
     expect($setHeaderCalls[1][1])->toBe('Origin');
     expect($setHeaderCalls[1][2])->toBeFalse(); // append, do not clobber upstream Vary
+});
+
+it('applyCorsHeaders returns 403 problem+json when the origin is not allowed', function () {
+    ['cors' => $cors, 'bag' => $bag] = makeCors(['https://shop.test/']);
+
+    $result = $cors->applyCorsHeaders($bag['raw'], 'https://evil.test');
+
+    expect($result)->toBe($bag['raw']);
+
+    expect(rawCallsTo($bag, 'setHttpResponseCode')[0][0])->toBe(403);
+
+    $headers = rawHeadersAsMap($bag);
+    expect($headers['Content-Type'])->toBe(ProblemDetails::CONTENT_TYPE);
+    expect($headers)->not->toHaveKey('Access-Control-Allow-Origin');
+    expect($headers)->not->toHaveKey('Vary');
+
+    $body = json_decode(rawCallsTo($bag, 'setContents')[0][0], true);
+    expect($body['status'])->toBe(403);
+    expect($body['detail'])->toBe('origin not allowed');
+});
+
+it('buildPreflightResponse returns 403 problem+json when the origin is not allowed', function () {
+    ['cors' => $cors, 'bag' => $bag] = makeCors(['https://shop.test/']);
+
+    $result = $cors->buildPreflightResponse(
+        mockProxyRequest('OPTIONS', ['Access-Control-Request-Method' => 'GET']),
+        'https://evil.test'
+    );
+
+    expect($result)->toBe($bag['raw']);
+
+    expect(rawCallsTo($bag, 'setHttpResponseCode')[0][0])->toBe(403);
+
+    $headers = rawHeadersAsMap($bag);
+    expect($headers['Content-Type'])->toBe(ProblemDetails::CONTENT_TYPE);
+    expect($headers)->not->toHaveKey('Access-Control-Allow-Origin');
+    expect($headers)->not->toHaveKey('Access-Control-Allow-Methods');
+    expect($headers)->not->toHaveKey('Access-Control-Allow-Headers');
+    expect($headers)->not->toHaveKey('Access-Control-Max-Age');
+
+    $body = json_decode(rawCallsTo($bag, 'setContents')[0][0], true);
+    expect($body['status'])->toBe(403);
+    expect($body['detail'])->toBe('origin not allowed');
+});
+
+it('buildForbidden returns a 403 problem+json with the documented shape', function () {
+    ['cors' => $cors, 'bag' => $bag] = makeCors(['https://shop.test/']);
+
+    $result = $cors->buildForbidden();
+
+    expect($result)->toBe($bag['raw']);
+    expect(rawCallsTo($bag, 'setHttpResponseCode')[0][0])->toBe(403);
+
+    $headers = rawHeadersAsMap($bag);
+    expect($headers['Content-Type'])->toBe(ProblemDetails::CONTENT_TYPE);
+
+    $body = json_decode(rawCallsTo($bag, 'setContents')[0][0], true);
+    expect($body['status'])->toBe(403);
+    expect($body['title'])->toBe('Forbidden');
+    expect($body['detail'])->toBe('origin not allowed');
 });
 
 it('does not set Access-Control-Allow-Credentials anywhere', function () {

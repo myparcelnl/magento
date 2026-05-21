@@ -53,7 +53,7 @@ function makeForwardStack(
     $forwarder    = new Forwarder($client, $rawFactory);
 
     return [
-        'controller' => new Forward($request, $forwarder, $rawFactory, $cors),
+        'controller' => new Forward($request, $forwarder, $cors),
         'history'    => &$history,
         'bag'        => $bag,
     ];

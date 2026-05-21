@@ -16,89 +16,82 @@ function makeForward(array $headers, string $method = 'GET'): array
 
     $forwarder = Mockery::mock(Forwarder::class);
 
-    $bag = captureRawResult();
-    $factory = mockRawFactoryReturning($bag['raw']);
-
     return [
-        'controller' => new Forward($request, $forwarder, $factory, $cors),
+        'controller' => new Forward($request, $forwarder, $cors),
         'request'    => $request,
         'cors'       => $cors,
         'forwarder'  => $forwarder,
-        'bag'        => $bag,
     ];
 }
 
-it('short-circuits a preflight from an allowed origin without forwarding upstream', function () {
+it('delegates preflight handling to CorsHandler regardless of origin', function () {
     $f = makeForward(['Origin' => 'https://shop.test'], 'OPTIONS');
 
     $preflight = Mockery::mock(Raw::class);
     $f['cors']->shouldReceive('isPreflight')->with($f['request'])->andReturn(true);
-    $f['cors']->shouldReceive('isAllowedOrigin')->with('https://shop.test')->andReturn(true);
     $f['cors']->shouldReceive('buildPreflightResponse')
         ->with($f['request'], 'https://shop.test')
         ->once()
         ->andReturn($preflight);
+    $f['cors']->shouldNotReceive('isAllowedOrigin');
     $f['forwarder']->shouldNotReceive('forward');
 
     expect($f['controller']->execute())->toBe($preflight);
 });
 
-it('returns 403 problem+json for a preflight from a disallowed origin', function () {
+it('returns the preflight response as-is for a disallowed origin (CorsHandler builds the 403)', function () {
     $f = makeForward(['Origin' => 'https://evil.test'], 'OPTIONS');
 
+    $forbidden = Mockery::mock(Raw::class);
     $f['cors']->shouldReceive('isPreflight')->with($f['request'])->andReturn(true);
-    $f['cors']->shouldReceive('isAllowedOrigin')->with('https://evil.test')->andReturn(false);
-    $f['cors']->shouldNotReceive('buildPreflightResponse');
+    $f['cors']->shouldReceive('buildPreflightResponse')
+        ->with($f['request'], 'https://evil.test')
+        ->once()
+        ->andReturn($forbidden);
     $f['forwarder']->shouldNotReceive('forward');
 
-    $result = $f['controller']->execute();
-
-    expect($result)->toBe($f['bag']['raw']);
-    $status = rawCallsTo($f['bag'], 'setHttpResponseCode');
-    expect($status[0][0])->toBe(403);
-
-    $headers = rawHeadersAsMap($f['bag']);
-    expect($headers)->toHaveKey('Content-Type');
-    expect($headers)->not->toHaveKey('Access-Control-Allow-Origin');
+    expect($f['controller']->execute())->toBe($forbidden);
 });
 
-it('forwards and adds CORS headers for an actual request from an allowed origin', function () {
+it('forwards and applies CORS headers for an actual request from an allowed origin', function () {
     $f = makeForward(['Origin' => 'https://shop.test'], 'GET');
 
-    $forwarded = Mockery::mock(Raw::class);
+    $forwarded   = Mockery::mock(Raw::class);
+    $withHeaders = Mockery::mock(Raw::class);
     $f['cors']->shouldReceive('isPreflight')->with($f['request'])->andReturn(false);
     $f['cors']->shouldReceive('isAllowedOrigin')->with('https://shop.test')->andReturn(true);
     $f['forwarder']->shouldReceive('forward')->with($f['request'])->once()->andReturn($forwarded);
-    $f['cors']->shouldReceive('applyCorsHeaders')->with($forwarded, 'https://shop.test')->once();
+    $f['cors']->shouldReceive('applyCorsHeaders')
+        ->with($forwarded, 'https://shop.test')
+        ->once()
+        ->andReturn($withHeaders);
 
-    expect($f['controller']->execute())->toBe($forwarded);
+    expect($f['controller']->execute())->toBe($withHeaders);
 });
 
-it('rejects an actual request from a disallowed origin without forwarding', function () {
+it('rejects an actual request from a disallowed origin via CorsHandler::buildForbidden, without forwarding', function () {
     $f = makeForward(['Origin' => 'https://evil.test'], 'GET');
 
+    $forbidden = Mockery::mock(Raw::class);
     $f['cors']->shouldReceive('isPreflight')->with($f['request'])->andReturn(false);
     $f['cors']->shouldReceive('isAllowedOrigin')->with('https://evil.test')->andReturn(false);
+    $f['cors']->shouldReceive('buildForbidden')->once()->andReturn($forbidden);
     $f['forwarder']->shouldNotReceive('forward');
     $f['cors']->shouldNotReceive('applyCorsHeaders');
 
-    $result = $f['controller']->execute();
-
-    expect($result)->toBe($f['bag']['raw']);
-    expect(rawCallsTo($f['bag'], 'setHttpResponseCode')[0][0])->toBe(403);
+    expect($f['controller']->execute())->toBe($forbidden);
 });
 
-it('rejects an actual request with no Origin and no Referer', function () {
+it('rejects an actual request with no Origin and no Referer without forwarding', function () {
     $f = makeForward([], 'GET');
 
+    $forbidden = Mockery::mock(Raw::class);
     $f['cors']->shouldReceive('isPreflight')->with($f['request'])->andReturn(false);
     $f['cors']->shouldReceive('isAllowedOrigin')->with('')->andReturn(false);
+    $f['cors']->shouldReceive('buildForbidden')->once()->andReturn($forbidden);
     $f['forwarder']->shouldNotReceive('forward');
 
-    $result = $f['controller']->execute();
-
-    expect($result)->toBe($f['bag']['raw']);
-    expect(rawCallsTo($f['bag'], 'setHttpResponseCode')[0][0])->toBe(403);
+    expect($f['controller']->execute())->toBe($forbidden);
 });
 
 it('validateForCsrf is permissive and createCsrfValidationException returns null', function () {
