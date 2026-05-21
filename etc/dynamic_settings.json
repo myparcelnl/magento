@@ -469,6 +469,15 @@
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "Leave empty to hide the header above the delivery options."
+            },
+            {
+              "id": "compact_back_to_overview_title",
+              "path": "myparcelnl_magento_general/delivery_titles/compact_back_to_overview_title",
+              "type": "text",
+              "label": "Compact mode back to overview text",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
             }
           ]
         }

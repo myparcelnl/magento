@@ -312,14 +312,14 @@ class Checkout
     private function getDeliveryOptionsStrings(): array
     {
         return [
-            'deliveryTitle'           => $this->config->getGeneralConfig('delivery_titles/delivery_title') ?: __('delivery_title'),
-            'headerDeliveryOptions'   => $this->config->getGeneralConfig('delivery_titles/header_delivery_options') ?: __('header_delivery_options'),
+            'deliveryTitle'         => $this->config->getGeneralConfig('delivery_titles/delivery_title') ?: __('delivery_title'),
+            'headerDeliveryOptions' => $this->config->getGeneralConfig('delivery_titles/header_delivery_options') ?: __('header_delivery_options'),
 
-            'deliveryStandardTitle'   => $this->config->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_title'),
-            'deliveryMorningTitle'    => $this->config->getGeneralConfig('delivery_titles/morning_title') ?: __('morning_title'),
-            'deliveryEveningTitle'    => $this->config->getGeneralConfig('delivery_titles/evening_title') ?: __('evening_title'),
-            'deliveryPickupTitle'     => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
-            'deliverySameDayTitle'    => $this->config->getGeneralConfig('delivery_titles/same_day_title') ?: __('same_day_title'),
+            'deliveryStandardTitle' => $this->config->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_title'),
+            'deliveryMorningTitle'  => $this->config->getGeneralConfig('delivery_titles/morning_title') ?: __('morning_title'),
+            'deliveryEveningTitle'  => $this->config->getGeneralConfig('delivery_titles/evening_title') ?: __('evening_title'),
+            'deliveryPickupTitle'   => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
+            'deliverySameDayTitle'  => $this->config->getGeneralConfig('delivery_titles/same_day_title') ?: __('same_day_title'),
 
             'priorityDeliveryTitle' => $this->config->getGeneralConfig('delivery_titles/priority_delivery_title') ?: __('priority_delivery_title'),
             'mondayDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/monday_delivery_title') ?: __('monday_delivery_title'),
@@ -333,10 +333,11 @@ class Checkout
             'packageTypeDigitalStamp' => $this->config->getGeneralConfig('delivery_titles/digital_stamp_title') ?: __('digital_stamp_title'),
             'packageTypePackageSmall' => $this->config->getGeneralConfig('delivery_titles/package_small_title') ?: __('packet_title'),
 
-            'pickupTitle'                => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
-            'pickUpFrom'                 => __('Pick up from'),
-            'pickupLocationsListButton'  => $this->config->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
-            'pickupLocationsMapButton'   => $this->config->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
+            'pickupTitle'               => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
+            'pickUpFrom'                => __('Pick up from'),
+            'pickupLocationsListButton' => $this->config->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
+            'pickupLocationsMapButton'  => $this->config->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
+            'compactBackToOverviewText' => $this->config->getGeneralConfig('delivery_titles/compact_back_to_overview_title') ?: __('compact_back_to_overview_title'),
 
             'parcelLocker'      => __('Parcel locker'),
             'openingHours'      => __('Opening hours'),
