@@ -292,6 +292,9 @@ header_delivery_options,
 compact_back_to_overview_title,Terug naar overzicht
 compact_delivery_title,Bezorging
 compact_pickup_title,Ophalen
+pop_up_map_title,Afhaallocatie
+pop_up_map_open_title,Kaart openen
+pop_up_map_confirm_title,Bevestigen
 standard_title,Standaard bezorging
 morning_title,Ochtendbezorging
 evening_title,Avondbezorging
@@ -346,11 +349,16 @@ Show or hide JSON textarea,Toon of verberg JSON tekstvak
 Invalid JSON in textarea,Ongeldige JSON in tekstvak
 Compact view,Compacte weergave
 "When enabled, the delivery options widget is rendered in compact mode.","Wanneer ingeschakeld, wordt de bezorgopties-widget weergegeven in compacte modus."
+Pop-up map,Pop-up kaart
+"When enabled, the pickup location map is displayed in a pop-up.","Wanneer ingeschakeld, wordt de afhaalkaart in een pop-up weergegeven."
 Import MyParcel Backoffice settings,MyParcel Backoffice-instellingen importeren
 Import,Importeren
 Compact mode back to overview text,Compacte modus 'terug naar overzicht' tekst
 Compact mode delivery title,Compacte modus bezorgtitel
 Compact mode pickup title,Compacte modus afhaaltitel
+Pop-up map title,Titel pop-up kaart
+Pop-up map open button text,Tekst knop 'kaart openen' pop-up
+Pop-up map confirm button text,Tekst bevestigingsknop pop-up kaart
 Delivery options header,Bezorgopties koptekst
 Monday delivery title,Titel maandagbezorging
 Receipt code title,Titel ontvangstcode

@@ -28,6 +28,7 @@
                 <show_details_in_summary>1</show_details_in_summary>
                 <pickup_locations_view_change_allowed>1</pickup_locations_view_change_allowed>
                 <compact_view>0</compact_view>
+                <pop_up_map>0</pop_up_map>
             </shipping_methods>
             <print>
                 <paper_type>A4</paper_type>
@@ -49,9 +50,6 @@
                 <pickup_title>Ophalen bij een PostNL locatie</pickup_title>
                 <pickup_list_button_title>Lijst</pickup_list_button_title>
                 <pickup_map_button_title>Kaart</pickup_map_button_title>
-                <compact_back_to_overview_title>Terug naar overzicht</compact_back_to_overview_title>
-                <compact_delivery_title>Bezorging</compact_delivery_title>
-                <compact_pickup_title>Ophalen</compact_pickup_title>
             </delivery_titles>
         </myparcelnl_magento_general>
 
