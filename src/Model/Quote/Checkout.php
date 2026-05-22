@@ -129,6 +129,7 @@ class Checkout
             'showPriceSurcharge'                => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
             'excludeParcelLockers'              => $this->isExcludeParcelLockersActive($carrierPath),
             'compactView'                       => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/compact_view'),
+            'popUpMap'                          => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pop_up_map'),
         ];
     }
 
@@ -338,9 +339,14 @@ class Checkout
             'pickUpFrom'                => __('Pick up from'),
             'pickupLocationsListButton' => $this->config->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
             'pickupLocationsMapButton'  => $this->config->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
+            'list'                      => $this->config->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
+            'map'                       => $this->config->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
             'compactBackToOverview'     => $this->config->getGeneralConfig('delivery_titles/compact_back_to_overview_title') ?: __('compact_back_to_overview_title'),
             'compactDelivery'           => $this->config->getGeneralConfig('delivery_titles/compact_delivery_title') ?: __('compact_delivery_title'),
             'compactPickup'             => $this->config->getGeneralConfig('delivery_titles/compact_pickup_title') ?: __('compact_pickup_title'),
+            'popUpMapTitle'             => $this->config->getGeneralConfig('delivery_titles/pop_up_map_title') ?: __('pop_up_map_title'),
+            'popUpMapOpen'              => $this->config->getGeneralConfig('delivery_titles/pop_up_map_open_title') ?: __('pop_up_map_open_title'),
+            'popUpMapConfirm'           => $this->config->getGeneralConfig('delivery_titles/pop_up_map_confirm_title') ?: __('pop_up_map_confirm_title'),
 
             'parcelLocker'      => __('Parcel locker'),
             'openingHours'      => __('Opening hours'),

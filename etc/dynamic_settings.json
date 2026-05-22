@@ -304,6 +304,17 @@
               "showInStore": true,
               "tooltip": "When enabled, the delivery options widget is rendered in compact mode.",
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
+            },
+            {
+              "id": "pop_up_map",
+              "path": "myparcelnl_magento_general/shipping_methods/pop_up_map",
+              "type": "select",
+              "label": "Pop-up map",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "When enabled, the pickup location map is displayed in a pop-up.",
+              "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
             }
           ]
         },
@@ -504,6 +515,33 @@
               "path": "myparcelnl_magento_general/delivery_titles/compact_pickup_title",
               "type": "text",
               "label": "Compact mode pickup title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "pop_up_map_title",
+              "path": "myparcelnl_magento_general/delivery_titles/pop_up_map_title",
+              "type": "text",
+              "label": "Pop-up map title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "pop_up_map_open_title",
+              "path": "myparcelnl_magento_general/delivery_titles/pop_up_map_open_title",
+              "type": "text",
+              "label": "Pop-up map open button text",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "pop_up_map_confirm_title",
+              "path": "myparcelnl_magento_general/delivery_titles/pop_up_map_confirm_title",
+              "type": "text",
+              "label": "Pop-up map confirm button text",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true
