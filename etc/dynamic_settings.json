@@ -489,6 +489,24 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true
+            },
+            {
+              "id": "compact_delivery_title",
+              "path": "myparcelnl_magento_general/delivery_titles/compact_delivery_title",
+              "type": "text",
+              "label": "Compact mode delivery title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "compact_pickup_title",
+              "path": "myparcelnl_magento_general/delivery_titles/compact_pickup_title",
+              "type": "text",
+              "label": "Compact mode pickup title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
             }
           ]
         }

@@ -338,7 +338,9 @@ class Checkout
             'pickUpFrom'                => __('Pick up from'),
             'pickupLocationsListButton' => $this->config->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
             'pickupLocationsMapButton'  => $this->config->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
-            'compactBackToOverviewText' => $this->config->getGeneralConfig('delivery_titles/compact_back_to_overview_title') ?: __('compact_back_to_overview_title'),
+            'compactBackToOverview'     => $this->config->getGeneralConfig('delivery_titles/compact_back_to_overview_title') ?: __('compact_back_to_overview_title'),
+            'compactDelivery'           => $this->config->getGeneralConfig('delivery_titles/compact_delivery_title') ?: __('compact_delivery_title'),
+            'compactPickup'             => $this->config->getGeneralConfig('delivery_titles/compact_pickup_title') ?: __('compact_pickup_title'),
 
             'parcelLocker'      => __('Parcel locker'),
             'openingHours'      => __('Opening hours'),
