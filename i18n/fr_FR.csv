@@ -256,3 +256,13 @@ Show or hide JSON textarea,Afficher ou Masquer la zone de texte JSON
 Invalid JSON in textarea,JSON invalide dans la zone de texte
 Compact view,Vue compacte
 "When enabled, the delivery options widget is rendered in compact mode.","Lorsqu'il est activé, le widget des options de livraison s'affiche en mode compact."
+Import MyParcel Backoffice settings,Importer les paramètres MyParcel Backoffice
+Import,Importer
+Compact mode back to overview text,Texte « retour à l'aperçu » du mode compact
+Compact mode delivery title,Titre de livraison du mode compact
+Compact mode pickup title,Titre de retrait du mode compact
+Delivery options header,En-tête des options de livraison
+Monday delivery title,Titre de livraison du lundi
+Receipt code title,Titre du code de réception
+Exclude parcel lockers,Exclure les casiers à colis
+Price shown in delivery options,Prix affiché dans les options de livraison
