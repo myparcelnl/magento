@@ -108,7 +108,7 @@ Collect package,Pakket laten ophalen
 Home address only,Alleen huisadres
 Home address only fee,Alleen huisadres kosten
 Digital stamp settings,Digitalepostzegel instellingen
-"Fill in weight in grams, regardless of ‘weight type’ settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Vul het gewicht in gram in, ongeacht de ‘eenheid voor gewicht’ instellingen. Dit gewicht wordt opgeteld bij het ordergewicht. Uitzondering: digitalepostzegel zal de staffel exact gebruiken wanneer gespecificeerd."
+"Fill in weight in grams, regardless of 'weight type' settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Vul het gewicht in gram in, ongeacht de 'eenheid voor gewicht' instellingen. Dit gewicht wordt opgeteld bij het ordergewicht. Uitzondering: digitalepostzegel zal de staffel exact gebruiken wanneer gespecificeerd."
 Automate digital stamp,Automatiseer digitalepostzegel
 Default weight,Standaard gewicht
 Digital stamp fee,Digitalepostzegel kosten
@@ -153,9 +153,9 @@ MyParcel version,MyParcel versie
 "To read the instructions for the Magento extension, click %1 here %2.","Klik %1 hier %2 om de handleiding van de Magento extensie te bekijken."
 When using the extension please note:,Aandachtspunten bij het gebruik van deze extensie:
 To be able to configure the extension you need to possess and use an active account.,U dient een actief account te hebben om de extensie te kunnen configureren.
-During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.,Indien u de oude MyParcel extensie gebruikt kan deze actief blijven in de overgangsfase. Wel dient u PakjeGemak in de oude MyParcel extensie uit te schakelen.
+"During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.","Indien u de oude MyParcel extensie gebruikt kan deze actief blijven in de overgangsfase. Wel dient u PakjeGemak in de oude MyParcel extensie uit te schakelen."
 Magento &amp; 3rd party version compatibility,Magento & derde partijen ondersteuning
-We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.,Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento, of als u de extensie wilt gebruiken samen met een 3rd party extensie die niet ondersteund wordt, kunnen wij niet garanderen dat de extensie feilloos zal functioneren. Voor vragen kunt u contact opnemen met ons.
+"We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.","Indien u de extensie wilt gebruiken op een niet-ondersteunde versie of editie van Magento, of als u de extensie wilt gebruiken samen met een 3rd party extensie die niet ondersteund wordt, kunnen wij niet garanderen dat de extensie feilloos zal functioneren. Voor vragen kunt u contact opnemen met ons."
 As of January 1st 2022 shipments to Belgium will be insured based on default export settings.,Zendingen naar Belgie worden per 1 januari 2022 verzekerd op basis van de default export instellingen.
 Questions and information about your account,Account vragen en informatie
 "For questions related to your account, configuration problems, extension conflicts and bugs, please contact us.","Voor vragen gerelateerd aan uw account, configuratie problemen, extensie conflicten en bugs, neemt u contact ons op."
@@ -198,7 +198,7 @@ Fit in mailbox,Past in brievenbus
 Methods,Verzendmethode
 The extra myparcel options are added to this shipping method,De extra myparcel opties worden bij deze verzendmethode toegevoegd.
 Delivery title,Bezorg titel
-When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.,Wanneer ophaallocaties zijn ingeschakeld, kan de gebruiker kiezen tussen kaart of lijst. Deze instelling bepaalt welke optie als eerste wordt geselecteerd bij het openen van de ophaallocaties.
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Wanneer ophaallocaties zijn ingeschakeld, kan de gebruiker kiezen tussen kaart of lijst. Deze instelling bepaalt welke optie als eerste wordt geselecteerd bij het openen van de ophaallocaties."
 Deliver the package only at address of the intended recipient.,Lever het pakket alleen aan het adres van de beoogde ontvanger.
 This will be added to the regular shipping price,Dit zal bij de normale verzendkosten worden opgeteld
 Not possible if Pickup at PostNL location is not active,Dit zal niet mogelijk zijn zodra ophalen bij een PostNL locatie niet geactiveerd is
@@ -261,7 +261,7 @@ Thursday,Donderdag
 Friday,Vrijdag
 Saturday,Zaterdag
 Sunday,Zondag
-Enable create label concept, when invoice is printed., Maak concept labels aan, wanneer je een factuur afdrukt.
+"Enable create label concept, when invoice is printed.","Maak concept labels aan, wanneer je een factuur afdrukt."
 Mailbox,Brievenbuspakje
 Digital stamp,Digitale postzegel
 Small package,Klein pakket
@@ -273,8 +273,14 @@ No,Nee
 Yes,Ja
 
 error3212,{field} is verplicht.
+error3224,Ongeldige vervoerder.
 error3501,Dit adres is niet gevonden.
 error3505,Postcode is niet geldig voor het gekozen land.
+error3506,Ongeldig bezorgtype.
+error3516,Land wordt niet ondersteund door vervoerder.
+error3517,Niet beschikbaar voor dit land.
+error3707,Ongeldig pakkettype.
+error3728,Geen bezorgopties gevonden.
 
 Without options,Zonder opties
 Options equal to shipment,Opties overnemen van heenzending
@@ -312,12 +318,6 @@ Load more,Laad meer
 Options,Opties
 No delivery options available.,Geen bezorgopties beschikbaar.
 {deliveryType} (date/time selection not available),"{deliveryType} (datum/tijd keuze niet beschikbaar)"
-error3224,Ongeldige vervoerder.
-error3506,Ongeldig bezorgtype.
-error3516,Land wordt niet ondersteund door vervoerder.
-error3517,Niet beschikbaar voor dit land.
-error3707,Ongeldig pakkettype.
-error3728,Geen bezorgopties gevonden.
 Delivery costs,Bezorgkosten
 Use Free Shipping,Gebruik gratis verzending
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.

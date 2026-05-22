@@ -189,7 +189,7 @@
         {
           "id": "empty_package_weight",
           "label": "Empty package weight",
-          "comment": "Fill in weight in grams, regardless of ‘weight type’ settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.",
+          "comment": "Fill in weight in grams, regardless of 'weight type' settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.",
           "showInDefault": true,
           "showInWebsite": true,
           "showInStore": true,
