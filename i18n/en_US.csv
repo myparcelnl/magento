@@ -25,45 +25,6 @@ status_38,Inactive - Delivered - Package picked up
 status_39,Inactive - Return shipment delivered
 status_40,Inactive - Return shipment pickup location
 status_99,Inactive - Unknown
-myparcelnl_magento_error_no_shipments_to_process, No MyParcel shipments to process.
-no_account_settings, No account settings found. Press the import button in general configuration to fetch account settings.
-location_page, location manager
-package_small, Small package
-show_total_price, Show total price
-show_surcharge_price, Show surcharge
-Automate 'Large format',Automate 'Larger than 100 x 70 x 58 cm'
-Large package,Larger than 100 x 70 x 58 cm
-delivery_title, Delivery Options
-standard_title, Standard Delivery
-morning_title, Morning Delivery
-evening_title, Evening Delivery
-pickup_title, Pickup locations
-same_day_title, Same day Delivery
-hide_sender_title, Hide Sender
-list_title, List
-map_title, Map
-mailbox_title, Mailbox
-digital_stamp_title, Digital Stamp
-packet_title, Packet
-package_title, Package
-signature_title, Signature
-receipt_code_title, Receipt code
-only_recipient_title, Only Recipient
-priority_delivery_title, Priority delivery (24 hours)
-monday_delivery_title, Monday delivery
-saturday_delivery, Saturday Delivery
-saturday_delivery_title, Saturday delivery
-header_delivery_options,
-compact_back_to_overview_title, Back to overview
-compact_delivery_title, Delivery
-compact_pickup_title, Pickup
-pop_up_map_title,Pickup location
-pop_up_map_open_title,Open map
-pop_up_map_confirm_title,Confirm
-load_more, Load more
-options_title, Options
-no_delivery_options_available, No delivery options available.
-delivery_moment_not_possible, "{deliveryType} (date/time selection not available)"
 error3212, {field} is required.
 error3224, Invalid carrier.
 error3501, Address not found.
@@ -73,25 +34,3 @@ error3516, Country is not supported by carrier.
 error3517, Not available for this country.
 error3707, Invalid package type.
 error3728, No delivery options found.
-Delivery costs,Delivery costs
-Rule name,Rule name
-Select a condition...,Select a condition...
-Carrier name,Carrier name
-Country,Country
-Package type,Package type
-Maximum weight,Maximum weight
-Country part of,Country part of
-No rules defined. Click Add rule to create a new rule.,No rules defined. Click Add rule to create a new rule.
-Add rule,Add rule
-Price,Price
-Toggle conditions,Toggle conditions
-Remove rule,Remove rule
-Add condition,Add condition
-New rule,New rule
-Condition,Condition
-Value,Value
-Remove condition,Remove condition
-Select a condition,Select a condition
-New rule,New rule
-Show or hide JSON textarea,Show or hide JSON textarea
-Invalid JSON in textarea,Invalid JSON in textarea

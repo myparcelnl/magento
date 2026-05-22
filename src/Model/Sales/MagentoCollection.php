@@ -354,7 +354,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     public function createMyParcelConcepts(): self
     {
         if (! count($this->myParcelCollection)) {
-            $this->messageManager->addWarningMessage(__('myparcelnl_magento_error_no_shipments_to_process'));
+            $this->messageManager->addWarningMessage(__('No MyParcel shipments to process.'));
             return $this;
         }
 

@@ -25,13 +25,12 @@ status_38,Inactief - Zending afgehaald op afhaallocatie
 status_39,Inactief - Retourzending afgeleverd
 status_40,Inactief - Retourzending op afhaallocactie
 status_99,Inactief - Onbekende status
-myparcelnl_magento_error_no_shipments_to_process,Geen MyParcel zendingen om te verwerken.
-package_small,Klein pakket
+No MyParcel shipments to process.,Geen MyParcel zendingen om te verwerken.
 Packet,Klein pakket
 Packet title,Klein pakket titel
 Parcel locker,Pakketautomaat
-show_total_price, Toon totaalprijs
-show_surcharge_price, Toon meerprijs
+Show total price, Toon totaalprijs
+Show surcharge, Toon meerprijs
 Version and support,Versie en support
 Settings,Instellingen
 General settings,Algemene instellingen
@@ -64,8 +63,8 @@ Automate 'Collect package',Automatiseer 'Pakket laten ophalen'
 Automate 'Receipt code',Automatiseer 'Ontvangstcode'
 Automate 'Home address only',Automatiseer 'Alleen huisadres'
 Automate 'Return if no answer',Automatiseer 'Retour bij geen gehoor'
-Automate 'Large format',Automatiseer 'Groter dan 100 x 70 x 58 cm'
-Large package,Groter dan 100 x 70 x 58 cm
+Automate 'Large format',Automatiseer 'groot formaat'
+Large package,Groot formaat
 Automate 'Age check 18+',Automatiseer 'Leeftijdscontrole 18+'
 Automate 'Insurance € 100',Automatiseer 'Verzekerd tot €100'
 Automate 'Insurance € 250',Automatiseer 'Verzekerd tot €250'
@@ -277,8 +276,6 @@ error3212,{field} is verplicht.
 error3501,Dit adres is niet gevonden.
 error3505,Postcode is niet geldig voor het gekozen land.
 
-no_account_settings, Geen accountsettings gevonden. Klik op de importeer knop in het algemene configuratie scherm.
-location_page, locatiewijzer
 Without options,Zonder opties
 Options equal to shipment,Opties overnemen van heenzending
 Export to MyParcel, Exporteer naar MyParcel
@@ -287,37 +284,34 @@ Already exported, Reeds geëxporteerd
 Show details in summary, Toon details in overzicht
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).", "Waar de verzendmethode wordt getoond, toon de momenteel bekende details (ja) of de methodetitel (nee)."
 
-delivery_title,Levering thuis of op het werk
-header_delivery_options,
-compact_back_to_overview_title,Terug naar overzicht
-compact_delivery_title,Bezorging
-compact_pickup_title,Ophalen
-pop_up_map_title,Afhaallocatie
-pop_up_map_open_title,Kaart openen
-pop_up_map_confirm_title,Bevestigen
-standard_title,Standaard bezorging
-morning_title,Ochtendbezorging
-evening_title,Avondbezorging
-pickup_title,Ophalen bij een afhaallocatie
-same_day_title,Zelfde dag bezorging
-hide_sender_title,Afzender verbergen
-list_title,Lijst
-map_title,Kaart
-mailbox_title,Brievenbuspakje
-digital_stamp_title,Digitale postzegel
-packet_title,Klein pakket
-package_title,Pakket
-signature_title,Handtekening voor ontvangst
-receipt_code_title,Ontvangstcode
-priority_delivery_title,Prioriteitslevering
-only_recipient_title,Alleen ontvanger
-monday_delivery_title,Maandag bezorging
-saturday_delivery,Zaterdag bezorging
-saturday_delivery_title,Zaterdag bezorging
-load_more,Laad meer
-options_title,Opties
-no_delivery_options_available,Geen bezorgopties beschikbaar.
-delivery_moment_not_possible,"{deliveryType} (datum/tijd keuze niet beschikbaar)"
+Delivery Options,Levering thuis of op het werk
+Delivery options,
+Back to overview,Terug naar overzicht
+Delivery,Bezorging
+Pickup,Ophalen
+Pickup location,Afhaallocatie
+Open map,Kaart openen
+Confirm,Bevestigen
+Standard Delivery,Standaard bezorging
+Morning Delivery,Ochtendbezorging
+Evening Delivery,Avondbezorging
+Pickup locations,Ophalen bij een afhaallocatie
+Same day Delivery,Zelfde dag bezorging
+Hide Sender,Afzender verbergen
+List,Lijst
+Map,Kaart
+Mailbox,Brievenbuspakje
+Digital Stamp,Digitale postzegel
+Packet,Klein pakket
+Signature,Handtekening voor ontvangst
+Priority delivery,Prioriteitslevering
+Only Recipient,Alleen ontvanger
+Monday delivery,Maandag bezorging
+Saturday delivery,Zaterdag bezorging
+Load more,Laad meer
+Options,Opties
+No delivery options available.,Geen bezorgopties beschikbaar.
+{deliveryType} (date/time selection not available),"{deliveryType} (datum/tijd keuze niet beschikbaar)"
 error3224,Ongeldige vervoerder.
 error3506,Ongeldig bezorgtype.
 error3516,Land wordt niet ondersteund door vervoerder.
