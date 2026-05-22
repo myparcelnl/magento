@@ -172,7 +172,16 @@ define(
        * @param {string} identifier - Name of the event.
        */
       triggerEvent: function(identifier) {
-        document.body.dispatchEvent(new Event(identifier, {bubbles: true, cancelable: false}));
+        document.body.dispatchEvent(new CustomEvent(identifier, {
+          bubbles: true,
+          cancelable: false,
+          detail: {
+            address: window.MyParcelConfig.address,
+            config: window.MyParcelConfig.config,
+            strings: window.MyParcelConfig.strings,
+            selector: '#myparcel-delivery-options'
+          }
+        }));
       },
 
       /**
