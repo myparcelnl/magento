@@ -346,3 +346,13 @@ Show or hide JSON textarea,Toon of verberg JSON tekstvak
 Invalid JSON in textarea,Ongeldige JSON in tekstvak
 Compact view,Compacte weergave
 "When enabled, the delivery options widget is rendered in compact mode.","Wanneer ingeschakeld, wordt de bezorgopties-widget weergegeven in compacte modus."
+Import MyParcel Backoffice settings,MyParcel Backoffice-instellingen importeren
+Import,Importeren
+Compact mode back to overview text,Compacte modus 'terug naar overzicht' tekst
+Compact mode delivery title,Compacte modus bezorgtitel
+Compact mode pickup title,Compacte modus afhaaltitel
+Delivery options header,Bezorgopties koptekst
+Monday delivery title,Titel maandagbezorging
+Receipt code title,Titel ontvangstcode
+Exclude parcel lockers,Pakketkluizen uitsluiten
+Price shown in delivery options,Prijs getoond in bezorgopties
