@@ -290,6 +290,8 @@ Show details in summary, Toon details in overzicht
 delivery_title,Levering thuis of op het werk
 header_delivery_options,
 compact_back_to_overview_title,Terug naar overzicht
+compact_delivery_title,Bezorging
+compact_pickup_title,Ophalen
 standard_title,Standaard bezorging
 morning_title,Ochtendbezorging
 evening_title,Avondbezorging
