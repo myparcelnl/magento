@@ -4,4 +4,23 @@
         <plugin name="add-delivery-options-field"
                 type="MyParcelNL\Magento\Model\Checkout\LayoutProcessorPlugin" sortOrder="10"/>
     </type>
+
+    <virtualType name="MyParcelNL\Magento\Router\FrontendProxyRouter"
+                 type="MyParcelNL\Magento\Router\ProxyRouter">
+        <arguments>
+            <argument name="actionClass" xsi:type="string">MyParcelNL\Magento\Controller\Proxy\Forward</argument>
+        </arguments>
+    </virtualType>
+
+    <type name="Magento\Framework\App\RouterList">
+        <arguments>
+            <argument name="routerList" xsi:type="array">
+                <item name="myparcel_proxy" xsi:type="array">
+                    <item name="class" xsi:type="string">MyParcelNL\Magento\Router\FrontendProxyRouter</item>
+                    <item name="disable" xsi:type="boolean">false</item>
+                    <item name="sortOrder" xsi:type="string">10</item>
+                </item>
+            </argument>
+        </arguments>
+    </type>
 </config>
