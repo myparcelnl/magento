@@ -25,13 +25,12 @@ status_38,Inactif - Envoi retiré au point de collecte
 status_39,Inactif - Envoi retour livré
 status_40,Inactif - Envoi retour au point de collecte
 status_99,Inactif - Statut inconnu
-myparcelnl_magento_error_no_shipments_to_process, Non-pas d' envois MyParcel à traiter.
-package_small,Petit paquet
+No MyParcel shipments to process., Non-pas d' envois MyParcel à traiter.
 Packet,Petit paquet
 Pacet title,Titre petit paquet
 Parcel locker,Casier de colis
-show_total_price,Afficher le prix total
-show_surcharge_price,Afficher le prix supplémentaire
+Show total price,Afficher le prix total
+Show surcharge,Afficher le prix supplémentaire
 Version and support,Version et support
 General settings,Paramètres généraux
 Settings,Paramètres
@@ -186,8 +185,8 @@ Thursday,Jeudi
 Friday,Vendredi
 Saturday,Samedi
 Sunday,Dimanche
-Automate 'Large format',Automatiser "Plus grand que 100 x 70 x 58 cm"
-Large package,Plus grand que 100 x 70 x 58 cm
+Automate 'Large format',Automatiser "grand colis"
+Large package,Grand colis
 Mailbox,Colis boîte aux lettres
 Digital stamp,Timbre numérique
 Small package,Colis petit format
@@ -196,37 +195,34 @@ error3212,{field} est requis.
 error3501,Adresse introuvable.
 error3505,Le code postal n’est pas valide pour le pays actuel.
 
-delivery_title, Options de livraison
-standard_title, Livraison standard
-morning_title, Livraison du lundi
-evening_title, Livraison en soirée
-pickup_title, Points de collecte
-same_day_title, Livraison le jour même
-hide_sender_title, Masquer l'expéditeur
-list_title, Liste
-map_title, Carte
-mailbox_title, Colis boîte aux lettres
-digital_stamp_title, Timbre digital
-packet_title,Petit colis
-package_title,Colis
-signature_title, Signature à réception
-receipt_code_title, Code de réception
-only_recipient_title, Adresse de résidence uniquement
-priority_delivery_title, Livraison prioritaire (24 heures)
-monday_delivery_title, Livraison le lundi
-saturday_delivery, Livraison le samedi
-saturday_delivery_title, Livraison le samedi
-header_delivery_options,
-compact_back_to_overview_title, Retour à l'aperçu
-compact_delivery_title, Livraison
-compact_pickup_title, Retrait
-pop_up_map_title, Point de retrait
-pop_up_map_open_title, Ouvrir la carte
-pop_up_map_confirm_title, Confirmer
-load_more, Charger plus
-options_title, Options
-no_delivery_options_available, Aucune option de livraison disponible.
-delivery_moment_not_possible, "{deliveryType} (sélection de date/heure non disponible)"
+Delivery Options, Options de livraison
+Standard Delivery, Livraison standard
+Morning Delivery, Livraison du lundi
+Evening Delivery, Livraison en soirée
+Pickup locations, Points de collecte
+Same day Delivery, Livraison le jour même
+Hide Sender, Masquer l'expéditeur
+List, Liste
+Map, Carte
+Mailbox, Colis boîte aux lettres
+Digital Stamp, Timbre digital
+Packet,Petit colis
+Signature, Signature à réception
+Only Recipient, Adresse de résidence uniquement
+Priority delivery, Livraison prioritaire
+Monday delivery, Livraison le lundi
+Saturday delivery, Livraison le samedi
+Delivery options,
+Back to overview, Retour à l'aperçu
+Delivery, Livraison
+Pickup, Retrait
+Pickup location, Point de retrait
+Open map, Ouvrir la carte
+Confirm, Confirmer
+Load more, Charger plus
+Options, Options
+No delivery options available., Aucune option de livraison disponible.
+{deliveryType} (date/time selection not available), "{deliveryType} (sélection de date/heure non disponible)"
 error3224, Transporteur invalide.
 error3506, Type de livraison invalide.
 error3516, Pays non pris en charge par le transporteur.

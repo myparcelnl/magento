@@ -23,8 +23,8 @@ class PriceDeliveryOptionsView implements OptionSourceInterface
     public function toOptionArray()
     {
         return [
-            ['value' => self::TOTAL, 'label' => __('show_total_price')],
-            ['value' => self::SURCHARGE, 'label' => __('show_surcharge_price')],
+            ['value' => self::TOTAL, 'label' => __('Show total price')],
+            ['value' => self::SURCHARGE, 'label' => __('Show surcharge')],
         ];
     }
 
@@ -36,8 +36,8 @@ class PriceDeliveryOptionsView implements OptionSourceInterface
     public function toArray()
     {
         return [
-            self::TOTAL     => __('show_total_price'),
-            self::SURCHARGE => __('show_surcharge_price'),
+            self::TOTAL     => __('Show total price'),
+            self::SURCHARGE => __('Show surcharge'),
         ];
     }
 }
