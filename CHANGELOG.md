@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.6.0](https://github.com/myparcelnl/magento/compare/v5.5.2...v5.6.0) (2026-05-28)
+
+
+### :sparkles: New Features
+
+* **api:** add a generic proxy to inject API key into API requests ([#936](https://github.com/myparcelnl/magento/issues/936)) ([1e10eff](https://github.com/myparcelnl/magento/commit/1e10effee15106703b0615094d47c42ae0fd875e))
+* dedicated delivery options endpoint ([#941](https://github.com/myparcelnl/magento/issues/941)) ([2d7d388](https://github.com/myparcelnl/magento/commit/2d7d388c76794f7040489e74493187a0e0f09699)), closes [thephpleague/openapi-psr7-validator#163](https://github.com/thephpleague/openapi-psr7-validator/issues/163)
+* improve user agent header ([#953](https://github.com/myparcelnl/magento/issues/953)) ([11a20e2](https://github.com/myparcelnl/magento/commit/11a20e23023f30faffd41efe571035c41e54872d))
+* use delivery options v7 with capabilities and compact view ([#954](https://github.com/myparcelnl/magento/issues/954)) ([38e4701](https://github.com/myparcelnl/magento/commit/38e4701b340002d4ae177ee2efb08c3ed7eb44f7))
+
 ## [5.5.2](https://github.com/myparcelnl/magento/compare/v5.5.1...v5.5.2) (2026-03-30)
 
 
