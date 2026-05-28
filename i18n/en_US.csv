@@ -49,8 +49,30 @@ package_title, Package
 signature_title, Signature
 receipt_code_title, Receipt code
 only_recipient_title, Only Recipient
-priority_delivery_title, Priority delivery
+priority_delivery_title, Priority delivery (24 hours)
+monday_delivery_title, Monday delivery
 saturday_delivery, Saturday Delivery
+saturday_delivery_title, Saturday delivery
+header_delivery_options,
+compact_back_to_overview_title, Back to overview
+compact_delivery_title, Delivery
+compact_pickup_title, Pickup
+pop_up_map_title,Pickup location
+pop_up_map_open_title,Open map
+pop_up_map_confirm_title,Confirm
+load_more, Load more
+options_title, Options
+no_delivery_options_available, No delivery options available.
+delivery_moment_not_possible, "{deliveryType} (date/time selection not available)"
+error3212, {field} is required.
+error3224, Invalid carrier.
+error3501, Address not found.
+error3505, Postal code is invalid for the current country.
+error3506, Invalid delivery type.
+error3516, Country is not supported by carrier.
+error3517, Not available for this country.
+error3707, Invalid package type.
+error3728, No delivery options found.
 Delivery costs,Delivery costs
 Rule name,Rule name
 Select a condition...,Select a condition...

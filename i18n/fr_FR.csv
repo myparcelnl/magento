@@ -192,9 +192,9 @@ Mailbox,Colis boîte aux lettres
 Digital stamp,Timbre numérique
 Small package,Colis petit format
 
-{field} is required.,{field} est requis.
-Address not found.,Adresse introuvable.
-Postal code is invalid for the current country.,Le code postal n’est pas valide pour le pays actuel.
+error3212,{field} est requis.
+error3501,Adresse introuvable.
+error3505,Le code postal n’est pas valide pour le pays actuel.
 
 delivery_title, Options de livraison
 standard_title, Livraison standard
@@ -212,7 +212,27 @@ package_title,Colis
 signature_title, Signature à réception
 receipt_code_title, Code de réception
 only_recipient_title, Adresse de résidence uniquement
+priority_delivery_title, Livraison prioritaire (24 heures)
+monday_delivery_title, Livraison le lundi
 saturday_delivery, Livraison le samedi
+saturday_delivery_title, Livraison le samedi
+header_delivery_options,
+compact_back_to_overview_title, Retour à l'aperçu
+compact_delivery_title, Livraison
+compact_pickup_title, Retrait
+pop_up_map_title, Point de retrait
+pop_up_map_open_title, Ouvrir la carte
+pop_up_map_confirm_title, Confirmer
+load_more, Charger plus
+options_title, Options
+no_delivery_options_available, Aucune option de livraison disponible.
+delivery_moment_not_possible, "{deliveryType} (sélection de date/heure non disponible)"
+error3224, Transporteur invalide.
+error3506, Type de livraison invalide.
+error3516, Pays non pris en charge par le transporteur.
+error3517, Non disponible pour ce pays.
+error3707, Type de colis invalide.
+error3728, Aucune option de livraison trouvée.
 Delivery costs,Frais de livraison
 Use Free Shipping,Utiliser la livraison gratuite
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Si les frais de livraison MyParcel sont de 0 lorsque la Livraison gratuite est disponible.
@@ -237,3 +257,20 @@ Select a condition,Sélectionnez une condition
 Carrier name,Nom du transporteur
 Show or hide JSON textarea,Afficher ou Masquer la zone de texte JSON
 Invalid JSON in textarea,JSON invalide dans la zone de texte
+Compact view,Vue compacte
+"When enabled, the delivery options widget is rendered in compact mode.","Lorsqu'il est activé, le widget des options de livraison s'affiche en mode compact."
+Pop-up map,Carte en pop-up
+"When enabled, the pickup location map is displayed in a pop-up.","Lorsqu'il est activé, la carte des points de retrait s'affiche dans une pop-up."
+Import MyParcel Backoffice settings,Importer les paramètres MyParcel Backoffice
+Import,Importer
+Compact mode back to overview text,Texte « retour à l'aperçu » du mode compact
+Compact mode delivery title,Titre de livraison du mode compact
+Compact mode pickup title,Titre de retrait du mode compact
+Pop-up map title,Titre de la carte en pop-up
+Pop-up map open button text,Texte du bouton « ouvrir la carte » de la pop-up
+Pop-up map confirm button text,Texte du bouton de confirmation de la carte en pop-up
+Delivery options header,En-tête des options de livraison
+Monday delivery title,Titre de livraison du lundi
+Receipt code title,Titre du code de réception
+Exclude parcel lockers,Exclure les casiers à colis
+Price shown in delivery options,Prix affiché dans les options de livraison

@@ -293,6 +293,28 @@
               "showInStore": true,
               "tooltip": "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.",
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
+            },
+            {
+              "id": "compact_view",
+              "path": "myparcelnl_magento_general/shipping_methods/compact_view",
+              "type": "select",
+              "label": "Compact view",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "When enabled, the delivery options widget is rendered in compact mode.",
+              "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
+            },
+            {
+              "id": "pop_up_map",
+              "path": "myparcelnl_magento_general/shipping_methods/pop_up_map",
+              "type": "select",
+              "label": "Pop-up map",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "When enabled, the pickup location map is displayed in a pop-up.",
+              "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
             }
           ]
         },
@@ -447,6 +469,79 @@
               "path": "myparcelnl_magento_general/delivery_titles/pickup_map_button_title",
               "type": "text",
               "label": "Pickup map button text",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "monday_delivery_title",
+              "path": "myparcelnl_magento_general/delivery_titles/monday_delivery_title",
+              "type": "text",
+              "label": "Monday delivery title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "header_delivery_options",
+              "path": "myparcelnl_magento_general/delivery_titles/header_delivery_options",
+              "type": "text",
+              "label": "Delivery options header",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "Leave empty to hide the header above the delivery options."
+            },
+            {
+              "id": "compact_back_to_overview_title",
+              "path": "myparcelnl_magento_general/delivery_titles/compact_back_to_overview_title",
+              "type": "text",
+              "label": "Compact mode back to overview text",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "compact_delivery_title",
+              "path": "myparcelnl_magento_general/delivery_titles/compact_delivery_title",
+              "type": "text",
+              "label": "Compact mode delivery title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "compact_pickup_title",
+              "path": "myparcelnl_magento_general/delivery_titles/compact_pickup_title",
+              "type": "text",
+              "label": "Compact mode pickup title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "pop_up_map_title",
+              "path": "myparcelnl_magento_general/delivery_titles/pop_up_map_title",
+              "type": "text",
+              "label": "Pop-up map title",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "pop_up_map_open_title",
+              "path": "myparcelnl_magento_general/delivery_titles/pop_up_map_open_title",
+              "type": "text",
+              "label": "Pop-up map open button text",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true
+            },
+            {
+              "id": "pop_up_map_confirm_title",
+              "path": "myparcelnl_magento_general/delivery_titles/pop_up_map_confirm_title",
+              "type": "text",
+              "label": "Pop-up map confirm button text",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true

@@ -32,7 +32,7 @@ class Checkout
     private DeliveryCosts         $deliveryCosts;
     private PackageRepository     $package;
     private Quote                 $quote;
-    private StoreManagerInterface $currency;
+    private StoreManagerInterface $storeManager;
 
     /**
      * Checkout constructor.
@@ -41,21 +41,21 @@ class Checkout
      * @param Config                $config
      * @param DeliveryCosts         $deliveryCosts
      * @param PackageRepository     $package
-     * @param StoreManagerInterface $currency
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         Tax                   $tax,
         Config                $config,
         DeliveryCosts         $deliveryCosts,
         PackageRepository     $package, // TODO DEPRECATE / IMPROVE
-        StoreManagerInterface $currency
+        StoreManagerInterface $storeManager
     )
     {
         $this->tax           = $tax;
         $this->config        = $config;
         $this->deliveryCosts = $deliveryCosts;
         $this->package       = $package;
-        $this->currency      = $currency;
+        $this->storeManager  = $storeManager;
         $this->quote         = $this->getQuoteFromCurrentSession();
     }
 
@@ -119,7 +119,8 @@ class Checkout
 
         return [
             'platform'                          => Config::PLATFORM,
-            'currency'                          => $this->currency->getStore()->getCurrentCurrency()->getCode(),
+            'currency'                          => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
+            'proxyCapabilities'                 => $this->storeManager->getStore()->getBaseUrl() . 'myparcel/proxy/core/shipments/capabilities',
             'showDeliveryDate'                  => $deliveryDaysWindow > 0,
             'deliveryDaysWindow'                => $deliveryDaysWindow,
             'dropOffDelay'                      => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
@@ -127,6 +128,8 @@ class Checkout
             'allowPickupLocationsViewSelection' => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view_change_allowed'),
             'showPriceSurcharge'                => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
             'excludeParcelLockers'              => $this->isExcludeParcelLockersActive($carrierPath),
+            'compactView'                       => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/compact_view'),
+            'popUpMap'                          => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pop_up_map'),
         ];
     }
 
@@ -311,49 +314,71 @@ class Checkout
     private function getDeliveryOptionsStrings(): array
     {
         return [
-            'deliveryTitle'           => $this->config->getGeneralConfig('delivery_titles/delivery_title') ?: __('delivery_title'),
-            'deliveryStandardTitle'   => $this->config->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_title'),
-            'deliveryMorningTitle'    => $this->config->getGeneralConfig('delivery_titles/morning_title') ?: __('morning_title'),
-            'deliveryEveningTitle'    => $this->config->getGeneralConfig('delivery_titles/evening_title') ?: __('evening_title'),
-            'deliveryPickupTitle'     => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
-            'pickupTitle'             => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
-            'deliverySameDayTitle'    => $this->config->getGeneralConfig('delivery_titles/same_day_title') ?: __('same_day_title'),
-            'hideSenderTitle'         => $this->config->getGeneralConfig('delivery_titles/hide_sender_title') ?: __('hide_sender_title'),
-            'list'                    => $this->config->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
-            'map'                     => $this->config->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
+            'deliveryTitle'         => $this->config->getGeneralConfig('delivery_titles/delivery_title') ?: __('delivery_title'),
+            'headerDeliveryOptions' => $this->config->getGeneralConfig('delivery_titles/header_delivery_options') ?: __('header_delivery_options'),
+
+            'deliveryStandardTitle' => $this->config->getGeneralConfig('delivery_titles/standard_delivery_title') ?: __('standard_title'),
+            'deliveryMorningTitle'  => $this->config->getGeneralConfig('delivery_titles/morning_title') ?: __('morning_title'),
+            'deliveryEveningTitle'  => $this->config->getGeneralConfig('delivery_titles/evening_title') ?: __('evening_title'),
+            'deliveryPickupTitle'   => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
+            'deliverySameDayTitle'  => $this->config->getGeneralConfig('delivery_titles/same_day_title') ?: __('same_day_title'),
+
+            'priorityDeliveryTitle' => $this->config->getGeneralConfig('delivery_titles/priority_delivery_title') ?: __('priority_delivery_title'),
+            'mondayDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/monday_delivery_title') ?: __('monday_delivery_title'),
+            'saturdayDeliveryTitle' => $this->config->getGeneralConfig('delivery_titles/saturday_title') ?: __('saturday_delivery_title'),
+
+            'signatureTitle'     => $this->config->getGeneralConfig('delivery_titles/signature_title') ?: __('signature_title'),
+            'onlyRecipientTitle' => $this->config->getGeneralConfig('delivery_titles/only_recipient_title') ?: __('only_recipient_title'),
+            'hideSenderTitle'    => $this->config->getGeneralConfig('delivery_titles/hide_sender_title') ?: __('hide_sender_title'),
+
             'packageTypeMailbox'      => $this->config->getGeneralConfig('delivery_titles/mailbox_title') ?: __('mailbox_title'),
             'packageTypeDigitalStamp' => $this->config->getGeneralConfig('delivery_titles/digital_stamp_title') ?: __('digital_stamp_title'),
             'packageTypePackageSmall' => $this->config->getGeneralConfig('delivery_titles/package_small_title') ?: __('packet_title'),
-            'signatureTitle'          => $this->config->getGeneralConfig('delivery_titles/signature_title') ?: __('signature_title'),
-            'priorityDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/priority_delivery_title') ?: __('priority_delivery_title'),
-            'onlyRecipientTitle'      => $this->config->getGeneralConfig('delivery_titles/only_recipient_title') ?: __('only_recipient_title'),
-            'saturdayDeliveryTitle'   => $this->config->getGeneralConfig('delivery_titles/saturday_title') ?: __('saturday_delivery_title'),
 
-            'wrongPostalCodeCity' => __('Postcode/city combination unknown'),
-            'addressNotFound'     => __('Address details are not entered'),
-            'closed'              => __('Closed'),
-            'discount'            => __('Discount'),
-            'ecoFriendly'         => __('Most sustainable'),
-            'free'                => __('Free'),
-            'from'                => __('From'),
-            'retry'               => __('Again'),
-            'parcelLocker'        => __('Parcel locker'),
-            'pickUpFrom'          => __('Pick up from'),
-            'openingHours'        => __('Opening hours'),
-            'showMoreHours'       => __('Show more opening hours'),
-            'showMoreLocations'   => __('Show more locations'),
+            'pickupTitle'               => $this->config->getGeneralConfig('delivery_titles/pickup_title') ?: __('pickup_title'),
+            'pickUpFrom'                => __('Pick up from'),
+            'pickupLocationsListButton' => $this->config->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
+            'pickupLocationsMapButton'  => $this->config->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
+            'list'                      => $this->config->getGeneralConfig('delivery_titles/pickup_list_button_title') ?: __('list_title'),
+            'map'                       => $this->config->getGeneralConfig('delivery_titles/pickup_map_button_title') ?: __('map_title'),
+            'compactBackToOverview'     => $this->config->getGeneralConfig('delivery_titles/compact_back_to_overview_title') ?: __('compact_back_to_overview_title'),
+            'compactDelivery'           => $this->config->getGeneralConfig('delivery_titles/compact_delivery_title') ?: __('compact_delivery_title'),
+            'compactPickup'             => $this->config->getGeneralConfig('delivery_titles/compact_pickup_title') ?: __('compact_pickup_title'),
+            'popUpMapTitle'             => $this->config->getGeneralConfig('delivery_titles/pop_up_map_title') ?: __('pop_up_map_title'),
+            'popUpMapOpen'              => $this->config->getGeneralConfig('delivery_titles/pop_up_map_open_title') ?: __('pop_up_map_open_title'),
+            'popUpMapConfirm'           => $this->config->getGeneralConfig('delivery_titles/pop_up_map_confirm_title') ?: __('pop_up_map_confirm_title'),
 
-            'error3212' => __('{field} is required.'),
-            'error3501' => __('Address not found.'),
-            'error3505' => __('Postal code is invalid for the current country.'),
+            'parcelLocker'      => __('Parcel locker'),
+            'openingHours'      => __('Opening hours'),
+            'showMoreHours'     => __('Show more opening hours'),
+            'showMoreLocations' => __('Show more locations'),
+            'loadMore'          => __('load_more'),
+            'options'           => __('options_title'),
 
-            'cityText'    => __('City'),
-            'city'        => __('City'),
-            'cc'          => __('Country'),
-            'houseNumber' => __('House number'),
-            'numberText'  => __('House number'),
-            'postalCode'  => __('Postal code'),
-            'street'      => __('Street'),
+            'ecoFriendly' => __('Most sustainable'),
+            'discount'    => __('Discount'),
+            'free'        => __('Free'),
+            'from'        => __('From'),
+            'closed'      => __('Closed'),
+
+            'addressNotFound' => __('Address details are not entered'),
+            'postalCode'      => __('Postal code'),
+            'street'          => __('Street'),
+            'city'            => __('City'),
+            'cc'              => __('Country'),
+
+            'deliveryMomentNotPossible'  => __('delivery_moment_not_possible'),
+            'noDeliveryOptionsAvailable' => __('no_delivery_options_available'),
+
+            'error3212' => __('error3212'),
+            'error3224' => __('error3224'),
+            'error3501' => __('error3501'),
+            'error3505' => __('error3505'),
+            'error3506' => __('error3506'),
+            'error3516' => __('error3516'),
+            'error3517' => __('error3517'),
+            'error3707' => __('error3707'),
+            'error3728' => __('error3728'),
         ];
     }
 

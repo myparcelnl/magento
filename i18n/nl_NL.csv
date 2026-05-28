@@ -273,9 +273,9 @@ Default,Standaard
 No,Nee
 Yes,Ja
 
-{field} is required.,{field} is verplicht.
-Address not found.,Dit adres is niet gevonden.
-Postal code is invalid for the current country.,Postcode is niet geldig voor het gekozen land.
+error3212,{field} is verplicht.
+error3501,Dit adres is niet gevonden.
+error3505,Postcode is niet geldig voor het gekozen land.
 
 no_account_settings, Geen accountsettings gevonden. Klik op de importeer knop in het algemene configuratie scherm.
 location_page, locatiewijzer
@@ -287,12 +287,19 @@ Already exported, Reeds geëxporteerd
 Show details in summary, Toon details in overzicht
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).", "Waar de verzendmethode wordt getoond, toon de momenteel bekende details (ja) of de methodetitel (nee)."
 
-delivery_title,Bezorgopties
+delivery_title,Levering thuis of op het werk
+header_delivery_options,
+compact_back_to_overview_title,Terug naar overzicht
+compact_delivery_title,Bezorging
+compact_pickup_title,Ophalen
+pop_up_map_title,Afhaallocatie
+pop_up_map_open_title,Kaart openen
+pop_up_map_confirm_title,Bevestigen
 standard_title,Standaard bezorging
-morning_title,Ochtend levering
-evening_title,Avond levering
-pickup_title,Afhaal locaties
-same_day_title,Zelfde dag levering
+morning_title,Ochtendbezorging
+evening_title,Avondbezorging
+pickup_title,Ophalen bij een afhaallocatie
+same_day_title,Zelfde dag bezorging
 hide_sender_title,Afzender verbergen
 list_title,Lijst
 map_title,Kaart
@@ -302,9 +309,21 @@ packet_title,Klein pakket
 package_title,Pakket
 signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
-priority_delivery_title,Prio levering
-only_recipient_title,Alleen huisadres
-saturday_delivery,Zaterdag levering
+priority_delivery_title,Prioriteitslevering
+only_recipient_title,Alleen ontvanger
+monday_delivery_title,Maandag bezorging
+saturday_delivery,Zaterdag bezorging
+saturday_delivery_title,Zaterdag bezorging
+load_more,Laad meer
+options_title,Opties
+no_delivery_options_available,Geen bezorgopties beschikbaar.
+delivery_moment_not_possible,"{deliveryType} (datum/tijd keuze niet beschikbaar)"
+error3224,Ongeldige vervoerder.
+error3506,Ongeldig bezorgtype.
+error3516,Land wordt niet ondersteund door vervoerder.
+error3517,Niet beschikbaar voor dit land.
+error3707,Ongeldig pakkettype.
+error3728,Geen bezorgopties gevonden.
 Delivery costs,Bezorgkosten
 Use Free Shipping,Gebruik gratis verzending
 Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,Of de MyParcel bezorgkosten 0 zijn wanneer de gratis verzending verzendmethode beschikbaar is.
@@ -328,3 +347,20 @@ Remove condition,Voorwaarde verwijderen
 Select a condition,Selecteer een voorwaarde
 Show or hide JSON textarea,Toon of verberg JSON tekstvak
 Invalid JSON in textarea,Ongeldige JSON in tekstvak
+Compact view,Compacte weergave
+"When enabled, the delivery options widget is rendered in compact mode.","Wanneer ingeschakeld, wordt de bezorgopties-widget weergegeven in compacte modus."
+Pop-up map,Pop-up kaart
+"When enabled, the pickup location map is displayed in a pop-up.","Wanneer ingeschakeld, wordt de afhaalkaart in een pop-up weergegeven."
+Import MyParcel Backoffice settings,MyParcel Backoffice-instellingen importeren
+Import,Importeren
+Compact mode back to overview text,Compacte modus 'terug naar overzicht' tekst
+Compact mode delivery title,Compacte modus bezorgtitel
+Compact mode pickup title,Compacte modus afhaaltitel
+Pop-up map title,Titel pop-up kaart
+Pop-up map open button text,Tekst knop 'kaart openen' pop-up
+Pop-up map confirm button text,Tekst bevestigingsknop pop-up kaart
+Delivery options header,Bezorgopties koptekst
+Monday delivery title,Titel maandagbezorging
+Receipt code title,Titel ontvangstcode
+Exclude parcel lockers,Pakketkluizen uitsluiten
+Price shown in delivery options,Prijs getoond in bezorgopties
