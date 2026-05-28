@@ -141,10 +141,12 @@ define(
         /**
          * Make sure the delivery options are updated when the address is changed in the form, not only in the quote.
          */
+        const debouncedUpdateAddressFromCheckoutData = _.debounce(function(shippingAddressFromData) {
+          deliveryOptions.updateAddress(shippingAddressFromData);
+        }, deliveryOptions.throttleTimeout);
+
         customerData.get('checkout-data').subscribe(function(newData) {
-          _.debounce(function() {
-            deliveryOptions.updateAddress(newData.shippingAddressFromData);
-          }, deliveryOptions.throttleTimeout)();
+          debouncedUpdateAddressFromCheckoutData(newData.shippingAddressFromData);
         });
 
         document.addEventListener(
@@ -176,7 +178,8 @@ define(
           bubbles: true,
           cancelable: false,
           detail: {
-            address: window.MyParcelConfig.address,
+            // shallow copy to prevent loops when Delivery Options enriches the address
+            address: Object.assign({}, window.MyParcelConfig.address),
             config: window.MyParcelConfig.config,
             strings: window.MyParcelConfig.strings,
             selector: '#myparcel-delivery-options'
