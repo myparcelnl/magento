@@ -3,6 +3,29 @@
 declare(strict_types=1);
 
 /* @var \MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix $block */
+
+/*
+ * Build the whole x-magento-init payload as one structure and json_encode it once, so nesting and
+ * escaping are handled correctly. Hand-rolling the inner JSON (e.g. str_replace on quotes) is unsafe:
+ * a single embedded value containing a quote or backslash would produce an invalid init block, which
+ * aborts Magento's entire mage/apply JS-init pass for the page. The JSON_HEX_* flags additionally make
+ * the output safe to embed inside a <script> tag.
+ */
+$matrixConfig = [
+    '.page-footer' => [
+        'MyParcelNL_Magento/js/delivery-costs-matrix' => [
+            'carriers'        => $block->getCarriers(),
+            'packageTypes'    => $block->getPackageTypes(),
+            'countryCodes'    => $block->getCountryCodes(),
+            'countryParts'    => $block->getCountryParts(),
+            'field'           => 'myparcelnl_magento_general_matrix_delivery_costs',
+            'plusIcon'        => $block->getViewFileUrl('MyParcelNL_Magento::assets/plus-solid.svg'),
+            'chevronDownIcon' => $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-down-solid.svg'),
+            'chevronUpIcon'   => $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-up-solid.svg'),
+            'getTranslations' => $block->getTranslations(),
+        ],
+    ],
+];
 ?>
 
 <div id="delivery-costs-matrix"></div>
@@ -10,19 +33,5 @@ declare(strict_types=1);
 
 <link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css" />
 <script type="text/x-magento-init">
-{
-    ".page-footer": {
-        "MyParcelNL_Magento/js/delivery-costs-matrix": {
-            "carriers": "<?= str_replace('"', '\"', json_encode($block->getCarriers())) ?>",
-            "packageTypes": "<?= str_replace('"', '\"', json_encode($block->getPackageTypes())) ?>",
-            "countryCodes": "<?= str_replace('"', '\"', json_encode($block->getCountryCodes())) ?>",
-            "countryParts": "<?= str_replace('"', '\"', json_encode($block->getCountryParts())) ?>",
-            "field": "myparcelnl_magento_general_matrix_delivery_costs",
-            "plusIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/plus-solid.svg') ?>",
-            "chevronDownIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-down-solid.svg') ?>",
-            "chevronUpIcon": "<?= $block->getViewFileUrl('MyParcelNL_Magento::assets/chevron-up-solid.svg') ?>",
-            "getTranslations": "<?= str_replace('"', '\"', json_encode($block->getTranslations())) ?>"
-        }
-    }
-}
+    <?= /* @noEscape */ json_encode($matrixConfig, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>
 </script>
