@@ -107,7 +107,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "This options allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.",
+              "tooltip": "This option allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.",
               "source_model": "MyParcelNL\\Magento\\Model\\Source\\DropOffDelayDays"
             }
           ]
@@ -280,7 +280,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "This determines the way the price of delivery is shown to the customer through the delivery options.\n                    The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.",
+              "tooltip": "This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.",
               "source_model": "MyParcelNL\\Magento\\Model\\Source\\PriceDeliveryOptionsView"
             },
             {
@@ -376,7 +376,7 @@
               "id": "only_recipient_title",
               "path": "myparcelnl_magento_general/delivery_titles/only_recipient_title",
               "type": "text",
-              "label": "Home address only title",
+              "label": "Only recipient title",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true
@@ -688,7 +688,7 @@
               "id": "only_recipient_active",
               "path": "myparcelnl_magento_postnl_settings/delivery/only_recipient_active",
               "type": "select",
-              "label": "Home address only",
+              "label": "Only recipient",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -704,7 +704,7 @@
               "id": "only_recipient_fee",
               "path": "myparcelnl_magento_postnl_settings/delivery/only_recipient_fee",
               "type": "text",
-              "label": "Home address only fee",
+              "label": "Only recipient fee",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -986,7 +986,7 @@
               "id": "only_recipient_active",
               "path": "myparcelnl_magento_postnl_settings/default_options/only_recipient_active",
               "type": "select",
-              "label": "Automate 'Home address only'",
+              "label": "Automate 'Only recipient'",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -1000,7 +1000,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "'Home address only' operates above a certain order total amount",
+              "tooltip": "'Only recipient' operates above a certain order total amount",
               "validate": "validate-number validate-zero-or-greater",
               "depends": [
                 {
@@ -1071,7 +1071,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.",
+              "tooltip": "The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.",
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
             },
             {
@@ -1485,7 +1485,7 @@
               "id": "only_recipient_active",
               "path": "myparcelnl_magento_dhlforyou_settings/delivery/only_recipient_active",
               "type": "select",
-              "label": "Home address only",
+              "label": "Only recipient",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -1501,7 +1501,7 @@
               "id": "only_recipient_fee",
               "path": "myparcelnl_magento_dhlforyou_settings/delivery/only_recipient_fee",
               "type": "text",
-              "label": "Home address only fee",
+              "label": "Only recipient fee",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -1757,7 +1757,7 @@
               "id": "only_recipient_active",
               "path": "myparcelnl_magento_dhlforyou_settings/default_options/only_recipient_active",
               "type": "select",
-              "label": "Automate 'Home address only'",
+              "label": "Automate 'Only recipient'",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -1771,7 +1771,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "'Home address only' operates above a certain order total amount",
+              "tooltip": "'Only recipient' operates above a certain order total amount",
               "validate": "validate-number validate-zero-or-greater",
               "depends": [
                 {
@@ -1788,7 +1788,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Home address only are included. The age 18+ is further excluded from the delivery options morning and evening delivery.",
+              "tooltip": "The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.",
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
             },
             {
@@ -2834,7 +2834,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless,\n                        shipments heavier than the weight specified here will not be mailbox.",
+              "tooltip": "To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.",
               "depends": [
                 {
                   "field": "myparcelnl_magento_dpd_settings/mailbox/active",
@@ -2911,7 +2911,7 @@
               "id": "only_recipient_active",
               "path": "myparcelnl_magento_ups_settings/delivery/only_recipient_active",
               "type": "select",
-              "label": "Home address only",
+              "label": "Only recipient",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -2927,7 +2927,7 @@
               "id": "only_recipient_fee",
               "path": "myparcelnl_magento_ups_settings/delivery/only_recipient_fee",
               "type": "text",
-              "label": "Home address only fee",
+              "label": "Only recipient fee",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -3209,7 +3209,7 @@
               "id": "only_recipient_active",
               "path": "myparcelnl_magento_ups_settings/default_options/only_recipient_active",
               "type": "select",
-              "label": "Automate 'Home address only'",
+              "label": "Automate 'Only recipient'",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
@@ -3223,7 +3223,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "'Home address only' operates above a certain order total amount",
+              "tooltip": "'Only recipient' operates above a certain order total amount",
               "validate": "validate-number validate-zero-or-greater",
               "depends": [
                 {
@@ -3271,7 +3271,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next\n                        available price scale is selected.",
+              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",
               "validate": "validate-number validate-number-range number-range-0-100"
             }
           ]
@@ -3527,7 +3527,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next\n                        available price scale is selected.",
+              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",
               "validate": "validate-number validate-number-range number-range-0-100"
             }
           ]

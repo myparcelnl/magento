@@ -29,7 +29,7 @@ class NewShipmentForm
             AbstractConsignment::SHIPMENT_OPTION_SIGNATURE          => __('Signature on receipt'),
             AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE       => __('Receipt code'),
             AbstractConsignment::SHIPMENT_OPTION_COLLECT            => __('Collect package'),
-            AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT     => __('Home address only'),
+            AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT     => __('Only recipient'),
             AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK          => __('Age check 18+'),
             AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER        => __('Hide sender'),
             AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT       => __('Large package'),
