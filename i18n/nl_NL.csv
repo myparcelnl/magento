@@ -283,6 +283,10 @@ Enabling this setting automatically creates a related return shipment for any sh
 Show details in summary, Toon details in overzicht
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no)."," ""Waar de verzendmethode wordt getoond"
 
+Standard Delivery,Standaard bezorging
+Pickup locations,Ophalen bij een afhaallocatie
+Signature,Handtekening voor ontvangst
+
 delivery_title,Levering thuis of op het werk
 header_delivery_options,
 compact_back_to_overview_title,Terug naar overzicht

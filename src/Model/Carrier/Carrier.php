@@ -66,6 +66,29 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         CarrierTrunkrs::class,
     ];
 
+    private const DELIVERY_TYPE_TITLES = [
+        'standard' => 'Standard Delivery',
+        'pickup'   => 'Pickup locations',
+        'morning'  => 'Morning Delivery',
+        'evening'  => 'Evening Delivery',
+    ];
+
+    private const PACKAGE_TYPE_TITLES = [
+        'package'       => 'Package',
+        'mailbox'       => 'Mailbox',
+        'digital_stamp' => 'Digital stamp',
+        'package_small' => 'Packet',
+    ];
+
+    private const SHIPMENT_OPTION_TITLES = [
+        'signature'         => 'Signature',
+        'only_recipient'    => 'Only recipient',
+        'hide_sender'       => 'Hide sender',
+        'priority_delivery' => 'Priority delivery',
+        'receipt_code'      => 'Receipt code',
+        'same_day_delivery' => 'Same day delivery',
+    ];
+
     /**
      * Carrier constructor.
      *
@@ -195,13 +218,15 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $carrierHuman = $carrierName;
         }
 
-        ob_start();
-        echo $carrierHuman, ' ', __("{$deliveryOptions->getDeliveryType()}_title"), ', ', __("{$deliveryOptions->getPackageType()}_title");
+        $deliveryTypeTitle = self::DELIVERY_TYPE_TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
+        $packageTypeTitle  = self::PACKAGE_TYPE_TITLES[$deliveryOptions->getPackageType()] ?? $deliveryOptions->getPackageType();
 
+        ob_start();
+        echo $carrierHuman, ' ', __($deliveryTypeTitle), ', ', __($packageTypeTitle);
 
         foreach ($shipmentOptions->toArray() as $key => $value) {
-            if ($value) {
-                echo ', ', __("{$key}_title");
+            if ($value && isset(self::SHIPMENT_OPTION_TITLES[$key])) {
+                echo ', ', __(self::SHIPMENT_OPTION_TITLES[$key]);
             }
         }
 
