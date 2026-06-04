@@ -49,6 +49,12 @@ define(
       throttleTimeout: 390, // throttle / debounce timeout in ms.
 
       /**
+       * Last address sent to the widget. Tracked privately so the widget cannot affect the equality
+       * guard by writing back to window.MyParcelConfig.address.
+       */
+      _lastSentAddress: null,
+
+      /**
        * The selector of the field we use to get the delivery options data into the order.
        *
        * @type {string}
@@ -59,6 +65,7 @@ define(
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
        */
       initialize: function() {
+        deliveryOptions._lastSentAddress = null;
         window.MyParcelConfig.address = deliveryOptions.getAddress();
         checkout.hideShippingMethods();
         deliveryOptions.setToRenderWhenVisible();
@@ -198,10 +205,11 @@ define(
         }
 
         const newAddress = deliveryOptions.getAddress(address);
-        if (_.isEqual(newAddress, window.MyParcelConfig.address)) {
+        if (_.isEqual(newAddress, deliveryOptions._lastSentAddress)) {
           return;
         }
 
+        deliveryOptions._lastSentAddress = newAddress;
         window.MyParcelConfig.address = newAddress;
 
         deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
