@@ -65,8 +65,7 @@ define(
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
        */
       initialize: function() {
-        deliveryOptions._lastSentAddress = null;
-        window.MyParcelConfig.address = deliveryOptions.getAddress();
+        window.MyParcelConfig.address = deliveryOptions._lastSentAddress = deliveryOptions.getAddress();
         checkout.hideShippingMethods();
         deliveryOptions.setToRenderWhenVisible();
         deliveryOptions.addListeners();
