@@ -65,7 +65,7 @@ define(
        * Initialize the script. Render the delivery options div, request the plugin settings, then initialize listeners.
        */
       initialize: function() {
-        window.MyParcelConfig.address = deliveryOptions._lastSentAddress = deliveryOptions.getAddress();
+        deliveryOptions._lastSentAddress = deliveryOptions.getAddress();
         checkout.hideShippingMethods();
         deliveryOptions.setToRenderWhenVisible();
         deliveryOptions.addListeners();
@@ -123,13 +123,13 @@ define(
           shippingMethodDiv = document.getElementById('checkout-shipping-method-load');
 
         if (deliveryOptionsDiv) {
-          deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
+          deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent, deliveryOptions.getAddress());
         } else {
           const newDeliveryOptionsDiv = document.createElement('div');
           newDeliveryOptionsDiv.setAttribute('id', 'myparcel-delivery-options');
           shippingMethodDiv.insertAdjacentElement('afterbegin', newDeliveryOptionsDiv);
           requestAnimationFrame(function() { // wait for the element to actually be added to the DOM
-            deliveryOptions.triggerEvent(deliveryOptions.renderDeliveryOptionsEvent)
+            deliveryOptions.triggerEvent(deliveryOptions.renderDeliveryOptionsEvent, deliveryOptions.getAddress());
           });
         }
 
@@ -178,24 +178,25 @@ define(
        * Trigger an event on the document body.
        *
        * @param {string} identifier - Name of the event.
+       * @param {Object?} address - Address to include in the event detail. Omit for events that do not carry address data.
        */
-      triggerEvent: function(identifier) {
+      triggerEvent: function(identifier, address) {
+        const detail = {
+          config: window.MyParcelConfig.config,
+          strings: window.MyParcelConfig.strings,
+          selector: '#myparcel-delivery-options'
+        };
+        if (address) {
+          detail.address = address;
+        }
         document.body.dispatchEvent(new CustomEvent(identifier, {
           bubbles: true,
           cancelable: false,
-          detail: {
-            // shallow copy to prevent loops when Delivery Options enriches the address
-            address: Object.assign({}, window.MyParcelConfig.address),
-            config: window.MyParcelConfig.config,
-            strings: window.MyParcelConfig.strings,
-            selector: '#myparcel-delivery-options'
-          }
+          detail: detail
         }));
       },
 
       /**
-       * Get address data and put it in the global MyParcelConfig.
-       *
        * @param {Object?} address - Quote.shippingAddress from Magento or checkout-data shipping address from Magento or undefined
        */
       updateAddress: function(address) {
@@ -209,9 +210,7 @@ define(
         }
 
         deliveryOptions._lastSentAddress = newAddress;
-        window.MyParcelConfig.address = newAddress;
-
-        deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent);
+        deliveryOptions.triggerEvent(deliveryOptions.updateDeliveryOptionsEvent, newAddress);
       },
 
       /**
@@ -328,10 +327,7 @@ define(
       },
 
       updateConfig: function() {
-        if (!window.MyParcelConfig.hasOwnProperty('address')) {
-          window.MyParcelConfig.address = deliveryOptions.getAddress(quote.shippingAddress());
-        }
-        deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent);
+        deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent, deliveryOptions.getAddress(quote.shippingAddress()));
       },
     };
 
