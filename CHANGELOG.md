@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.7.0](https://github.com/myparcelnl/magento/compare/v5.6.0...v5.7.0) (2026-06-05)
+
+
+### :bug: Bug Fixes
+
+* **checkout:** prevent shipping method loop (2) ([#960](https://github.com/myparcelnl/magento/issues/960)) ([adec5ac](https://github.com/myparcelnl/magento/commit/adec5ac92f1ab4a1a8553ca117841d0e3134fa31))
+* **checkout:** prevent shipping_methods loop when interacting with delivery options ([#958](https://github.com/myparcelnl/magento/issues/958)) ([483dac4](https://github.com/myparcelnl/magento/commit/483dac4bd77cd7089ef165faa9b8df44b7bd22c5))
+
+
+### :sparkles: New Features
+
+* add languages DE, IT, PL, DA, and fallback to EN nicely ([#957](https://github.com/myparcelnl/magento/issues/957)) ([75cb646](https://github.com/myparcelnl/magento/commit/75cb646b46a1fb227ef2d5b80ec7c52416458da5))
+
 ## [5.6.0](https://github.com/myparcelnl/magento/compare/v5.5.2...v5.6.0) (2026-05-28)
 
 
