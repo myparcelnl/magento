@@ -1,0 +1,420 @@
+status_1,Kladde
+status_2,Forhåndsanmeldt
+status_3,Overdraget til PostNL
+status_4,Under sortering
+status_5,Under distribution
+status_6,Forsendelse hos tolden
+status_7,Forsendelse leveret
+status_8,Forsendelse på afhentningssted
+status_9,Forsendelse afhentet på afhentningssted
+status_10,Returforsendelse leveret
+status_11,Returforsendelse på afhentningssted
+status_12,Ufrankeret label printet
+status_13,Krediteret
+status_14,Printet - Digitalt frimærke
+status_17,Annulleret
+status_30,Inaktiv - Kladde
+status_31,Inaktiv - Forhåndsanmeldt
+status_32,Inaktiv - Overdraget til MyParcel
+status_33,Inaktiv - Under sortering
+status_34,Inaktiv - Under distribution
+status_35,Inaktiv - Forsendelse hos tolden
+status_36,Inaktiv - Forsendelse leveret
+status_37,Inaktiv - Forsendelse på afhentningssted
+status_38,Inaktiv - Forsendelse afhentet på afhentningssted
+status_39,Inaktiv - Returforsendelse leveret
+status_40,Inaktiv - Returforsendelse på afhentningssted
+status_99,Inaktiv - Ukendt status
+No MyParcel shipments to process.,Ingen MyParcel-forsendelser at behandle.
+Packet,Lille pakke
+Packet title,Titel for lille pakke
+Parcel locker,Pakkeboks
+Show total price,Vis totalpris
+Show surcharge,Vis tillæg
+Version and support,Version og support
+Settings,Indstillinger
+General settings,Generelle indstillinger
+API settings,API-indstillinger
+MyParcel NL Settings,MyParcel NL indstillinger
+Go to the general settings in the back office of MyParcel to generate the API Key.,Gå til generelle indstillinger i MyParcel-backoffice for at generere API-nøglen.
+The API Key,Indtast API-nøglen her
+Default shipment settings,Standard forsendelsesindstillinger
+"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.","Denne beskrivelse vises på forsendelseslabelen. Følgende dele kan bruges: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%."
+Print MyParcel labels directly,Print MyParcel-labels direkte
+Print settings,Printindstillinger
+Paper type,Udskriftsretning
+Select a standard orientation for printing labels.,Vælg en standardretning til udskrivning af labels.
+Label description,Labelbeskrivelse
+"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%.","Denne beskrivelse vises på forsendelseslabelen. Følgende dele kan bruges: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%."
+Country of origin,Oprindelsesland
+"This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dette land vises på de internationale forsendelseslabels. Det er her, dine produkter sendes fra. Du kan bruge NL, BE, DE osv. Det vil blive overskrevet af fremstillingslandet på produktniveau."
+Create Concept,Opret kladde
+"Enable create label concept, when invoice is printed.","Opret kladdeforsendelse, når fakturaen udskrives."
+Delivery methods,Forsendelsesmetoder
+Preferred pickup locations view,Foretrukket visning af afhentningssteder
+Switching the view is allowed,Skift af visning er tilladt
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Når afhentningssteder er aktiveret, kan brugeren vælge mellem kort- eller listevisning. Denne indstilling bestemmer, hvilken mulighed der vælges først, når afhentningsstederne åbnes."
+Show list first,Vis liste først
+Show map first,Vis kort først
+Default shipping options,Standard forsendelsesmuligheder
+"Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.","Indtast dine præferencer for en forsendelse. Disse indstillinger gælder kun for masseaktioner i ordreoversigten. Når du opretter en enkelt forsendelse, kan disse indstillinger ændres manuelt. Indstillingerne aktiveres baseret på det samlede ordrebeløb."
+Automate 'Signature on receipt',Automatiser 'Underskrift ved modtagelse'
+Automate 'Collect package',Automatiser 'Afhent pakke'
+Automate 'Receipt code',Automatiser 'Modtagelseskode'
+Automate 'Return if no answer',Automatiser 'Returner hvis intet svar'
+Automate 'Large format',Automatiser 'Stort format'
+Large package,Stort format
+Automate 'Age check 18+',Automatiser 'Alderskontrol 18+'
+Automate 'Insurance € 100',Automatiser 'Forsikret op til €100'
+Automate 'Insurance € 250',Automatiser 'Forsikret op til €250'
+Automate 'Insurance € 500',Automatiser 'Forsikret op til € 500'
+Automate 'Insure shipments to Belgium',Automatiser 'Forsikr forsendelser til Belgien'
+Automate Priority delivery (mailbox),Automatiser prioriteret levering (brevkasse)
+Automatically enable priority delivery for mailbox packages during export,Aktivér automatisk prioriteret levering for brevkassepakker under eksport
+Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,"Bemærk: Mandagslevering er kun mulig, når pakken afleveres inden kl. 15:00 lørdag på de udpegede PostNL-steder."
+'Signature on receipt' operates above a certain order total amount,"'Underskrift ved modtagelse' aktiveres, når det samlede beløb overstiger beløbet ovenfor"
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,"Alderskontrollen er beregnet til pakteforsendelser, hvor modtageren skal vise 18+ ved hjælp af et identitetsdokument. Med denne forsendelsesmulighed er underskrift ved modtagelse og kun modtager inkluderet. Aldersgrænse 18+ er desuden udelukket fra leveringsmulighederne morgen- og aftenlevering."
+'Insurance € 500' operates above a certain order total amount.,"'Forsikret op til € 500' aktiveres, når det samlede beløb overstiger beløbet ovenfor."
+Select automatically digital stamp packages based on weight,Vælg automatisk digitale frimærkepakker baseret på vægt
+Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.,"Prisen afhænger af vægten. Er vægten korrekt udfyldt for alle produkter? Vælg 'Ingen standardvægt' for at lade MyParcel beregne vægten selv. Vælg en standardvægt her, hvis produkterne ikke indeholder korrekte vægte."
+Enter a basic price for a digital stamp. The regular price will not affect this price.,Indtast en grundpris for et digitalt frimærke. Den normale pris vil ikke påvirke denne pris.
+Mailbox settings,Brevkassepakke-indstillinger
+Automate mailbox,Automatiser brevkassepakke
+Select automatically mailbox packages based on weight or volume,Vælg automatisk brevkassepakker baseret på vægt eller volumen
+Mailbox weight,Brevkassepakke-vægt
+Mailbox fee,Brevkassepakke-gebyr
+Enter a basic price for a mailbox. The regular price will not affect this price.,Indtast en grundpris for en brevkassepakke. Den normale pris vil ikke påvirke denne pris.
+Morning delivery,Morgenlevering
+Evening delivery,Aftenlevering
+Evening delivery fee,Gebyr for aftenlevering
+Express delivery,Ekspreslevering
+Express delivery fee,Gebyr for ekspreslevering
+Express delivery active,Ekspreslevering aktiv
+Same day delivery,Samme dag-levering
+Same day title,Titel for samme dag
+Morning delivery active,Morgenlevering aktiv
+If age check is active then the evening delivery is not possible,"Hvis alderskontrol er aktiv, er aftenlevering ikke mulig"
+If age check is active then the morning delivery is not possible,"Hvis alderskontrol er aktiv, er morgenlevering ikke mulig"
+Morning delivery fee,Gebyr for morgenlevering
+Evening delivery active,Aftenlevering aktiv
+Monday delivery,Mandagslevering
+Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"Levering om mandagen kan kræve særlige betingelser sammenlignet med andre (uge)dage, herunder, men ikke begrænset til, gebyr og deadline."
+Number of days,Antal dage
+Delivery enabled,Levering aktiveret
+Receipt code,Modtagelseskode
+Receipt code fee,Gebyr for modtagelseskode
+Collect package,Afhent pakke
+Digital stamp settings,Digitalt frimærke-indstillinger
+"Fill in weight in grams, regardless of 'weight type' settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Indtast vægt i gram, uanset indstillingerne for 'vægttype'. Denne vægt lægges til ordrevægten. Undtagelse: digitalt frimærke bruger vægtklassen præcis som angivet."
+Automate digital stamp,Automatiser digitalt frimærke
+Default weight,Standardvægt
+Digital stamp fee,Gebyr for digitalt frimærke
+From price,Fra pris
+Enable sameday delivery,Aktiver samme dag-levering
+Sameday delivery fee,Gebyr for samme dag-levering
+Sameday cut-off time,Deadline for samme dag-levering
+Saturday cut-off time,Lørdagsdeadline
+Sunday cut-off time,Søndagsdeadline
+Track number,Trackingnummer
+Track status,Trackingstatus
+Track action,Trackinghandling
+MyParcel options,MyParcel-indstillinger
+Package,Pakke
+Insured up to:,Forsikret op til:
+Download package label,Download pakkelabel
+Download small package label,Download label for lille pakke
+Download digital stamp label,Download label for digitalt frimærke
+Download mailbox label,Download brevkasselabel
+Download letter label,Download ufrankeret label
+Create new concept,Opret ny kladde
+Create shipment,Opret forsendelse
+During the transition phase the old Magento MyParcel extension can remain active. However you do need to turn off PakjeGemak in the old MyParcel extension.,I overgangsfasen kan den gamle Magento MyParcel-udvidelse forblive aktiv. Du skal dog deaktivere PakjeGemak i den gamle MyParcel-udvidelse.
+Please select an item from the list,Vælg først en ordre fra listen
+Please check address,Tjek adressen
+No key found. Go to Configuration and then to MyParcel to enter the key.,Ingen API-nøgle fundet. Gå til Konfiguration og derefter til MyParcel for at indtaste nøglen.
+No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.,"Der kan ikke oprettes en forsendelse med denne ordre. Forsendelser kan ikke oprettes, hvis status er 'Tilbageholdt' eller hvis produktet er digitalt."
+Creating shipments via bulk actions is not possible for orders without a source. Go to the details of the order and process the shipment manually.,Oprettelse af forsendelser via masseaktioner er ikke mulig for ordrer uden kilde. Gå til ordredetaljerne og behandl forsendelsen manuelt.
+MyParcel Track,MyParcel-stregkode
+Use Shipment template,Brug forsendelsesskabelon
+Enable this option to add the MyParcel barcode in the email.,Aktivér denne mulighed for at tilføje MyParcel-stregkoden i e-mailen.
+MyParcel Shipment Email Template,E-mail-skabelon for MyParcel-forsendelse
+MyParcel Shipment Email Template for Guest,E-mail-skabelon for MyParcel-forsendelse til gæst
+"Use Shipment email template when ""Default"" option is selected.","Brug forsendelses-e-mail-skabelon ved valg af ""Standard""."
+Action type,Handlingstype
+Download label,Download label
+Open in new tab,Åbn i ny fane
+Package Type,Pakketype
+Print position,Printposition
+MyParcel version,MyParcel-version
+"The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","Version %1 af udvidelsen er installeret i din webshop. I øjeblikket er version %2 den nyeste stabile version. Hvis du oplever et problem, anbefaler vi, at du installerer den nyeste stabile version."
+"To read the instructions for the Magento extension, click %1 here %2.",Klik %1 her %2 for at læse instruktionerne til Magento-udvidelsen.
+When using the extension please note:,Når du bruger udvidelsen skal du være opmærksom på følgende:
+To be able to configure the extension you need to possess and use an active account.,For at kunne konfigurere udvidelsen skal du have og bruge en aktiv konto.
+"During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.",I overgangsfasen kan den gamle Magento MyParcel-udvidelse forblive aktiv. Du skal dog deaktivere PakjeGemak i den gamle MyParcel-udvidelse.
+Magento &amp; 3rd party version compatibility,Kompatibilitet med Magento &amp; tredjepartsversioner
+We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.,"Vi kan ikke garantere perfekt funktionalitet af udvidelsen, hvis du ønsker at bruge den på en ikke-understøttet version af Magento eller sammen med en ikke-understøttet tredjepartsudvidelse. Har du spørgsmål, er du velkommen til at kontakte os."
+As of January 1st 2022 shipments to Belgium will be insured based on default export settings.,Fra den 1. januar 2022 forsikres forsendelser til Belgien baseret på standardeksportindstillinger.
+Questions and information about your account,Spørgsmål og information om din konto
+"For questions related to your account, configuration problems, extension conflicts and bugs, please contact us.","Ved spørgsmål om din konto, konfigurationsproblemer, udvidelseskonflikter og fejl bedes du kontakte os."
+Phone:,Telefon:
+Email,E-mail
+Documents,Dokumenter
+Latest stable release,Seneste stabile version
+Installation and configuration manual,Installations- og konfigurationsvejledning
+Full changelog,Komplet ændringslog
+Installation and configuration instructions,Installations- og konfigurationsvejledning
+Do you want to know what they are doing in the near future? Below you can find the schedule for Magento 2. Do you have any suggestions or ideas? They are always welcome. That way we will continue to improve the extension together.,"Vil du vide, hvad de arbejder på i den nærmeste fremtid? Nedenfor finder du planen for Magento 2. Har du forslag eller idéer? De er altid velkomne. På den måde forbedrer vi udvidelsen sammen."
+API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,API-nøglen er ikke kendt. Gå til indstillingerne i backoffice for at oprette en API-nøgle. Indtast API-nøglen i indstillingerne.
+Basic settings,Grundlæggende indstillinger
+Delivery settings,Levering
+day,dag
+days,dage
+Hide days,Skjul dage
+Cut-off time,Deadline
+"If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Hvis der afgives en ordre mellem fredag efter og mandag før deadline, vises tirsdag som næste mulige leveringsdato."
+If a request is made before this time on Saturday Monday will be shown as the next possible delivery date. This is ignored when Sunday is a drop-off day.,"Hvis der afgives en ordre før dette tidspunkt om lørdagen, vises mandag som næste mulige leveringsdato. Dette ignoreres, når søndag er en afleveringsdag."
+"If a request is made before this time on Sunday and Sunday is a drop-off day, Monday will be shown as the next possible delivery date.","Hvis der afgives en ordre før dette tidspunkt om søndagen, og søndag er en afleveringsdag, vises mandag som næste mulige leveringsdato."
+Drop-off days,Afleveringsdage
+Whether you drop off packages on this day.,Om du afleverer pakker på denne dag.
+"For orders before this time, the drop-off is considered done on this day.",For ordrer afgivet før dette tidspunkt anses afleveringen for udført på denne dag.
+Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.,"Angiv de dage, hvor du afleverer dine pakker hos denne transportør. Angiv det seneste tidspunkt, hvor en kunde kan bestille, så du kan aflevere pakken i tide til forsendelse den dag."
+Saturday active,Lørdag aktiv
+Saturday title,Titel for lørdag
+Drop-off delay,Forsinkelse
+No delay,Ingen forsinkelse
+"This option allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.","Denne mulighed lader dig indstille antallet af dage, det tager dig at plukke, pakke og aflevere dine pakker, når der er bestilt før deadline."
+Age check 18+,Alderskontrol 18+
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery.,"Alderskontrollen er beregnet til pakkeforsendelser, hvor modtageren skal kunne bevise at være 18+. Denne mulighed kan ikke kombineres med morgen- eller aftenlevering."
+Fit in digital stamp,Passer i digitalt frimærke
+HS code,HS-kode
+"HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs","HS-koder bruges til MyParcel-verdensforsendelser, du kan finde den passende kode på Toldstyrelsens hjemmeside."
+Disable delivery options,Deaktiver leveringsmuligheder
+With this option you can disable the delivery options if this product is in the cart.,"Med denne mulighed kan du deaktivere leveringsmulighederne, hvis dette produkt er i kurven."
+Fit in mailbox,Passer i brevkasse
+"Fill in the amount of products that fit in one mailbox package. Use 0 to automatically calculate based on weight, -1 if the article does not fit in a mailbox package. It will always be sent as a regular package if it's too heavy for a mailbox package.","Indtast antallet af produkter, der passer i én brevkassepakke. Brug 0 for automatisk at beregne baseret på vægt, eller -1 hvis artiklen ikke passer i en brevkassepakke. Den sendes altid som almindelig pakke, hvis den er for tung til en brevkassepakke."
+Methods,Forsendelsesmetode
+The extra myparcel options are added to this shipping method,De ekstra MyParcel-muligheder tilføjes til denne forsendelsesmetode.
+Delivery title,Leveringstitel
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Når afhentningssteder er aktiveret, kan brugeren vælge mellem kort eller liste. Denne indstilling bestemmer, hvilken mulighed der vælges først, når afhentningsstederne åbnes."
+Deliver the package only at address of the intended recipient.,Lever kun pakken til den tilsigtede modtagers adresse.
+This will be added to the regular shipping price,Dette lægges til den normale forsendelsespris
+Not possible if Pickup at PostNL location is not active,Ikke muligt hvis 'Afhentning på PostNL-sted' ikke er aktiv
+Signature on receipt,Underskrift ved modtagelse
+Signature on receipt title,Titel for underskrift ved modtagelse
+Signature on receipt fee,Gebyr for underskrift ved modtagelse
+Hide sender,Skjul afsender
+This will be added to the regular shipping price,Dette lægges til den normale forsendelsespris
+If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,"Hvis begge er valgt, lægges denne pris til den normale forsendelsespris. Lad være tomt for ikke at bruge den."
+"To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","For at bruge dette optimalt skal du indstille en vægt eller 'Passer i brevkasse'-volumen for hvert produkt. Uanset hvad sendes forsendelser, der er tungere end den her angivne vægt, ikke som brevkasse."
+This will be added to the regular shipping price,Dette lægges til den normale forsendelsespris
+Pickup at PostNL location,Afhentning på PostNL-sted
+Pickup active,Afhentning aktiv
+Standard delivery Title,Titel for standardlevering
+Signature on receipt title,Titel for underskrift ved modtagelse
+Hide sender title,Titel for skjul afsender
+Printerless return,Returnering uden printer
+Frozen,Frossen
+Fresh food,Friske fødevarer
+Priority delivery,Prioriteret levering
+Morning title,Titel for morgenlevering
+Evening title,Titel for aftenlevering
+Mailbox title,Titel for brevkasse
+Digital stamp title,Titel for digitalt frimærke
+Pickup title,Titel for afhentning
+Pickup fee,Afhentningsgebyr
+Pickup list button text,Tekst for liste-afhentningsknap
+Pickup map button text,Tekst for kort-afhentningsknap
+Drop off day,Afleveringsdage
+Select the days that you send the orders.,"Vælg de dage, hvor du sender ordrerne."
+Show a delivery day in the checkout.,Vis en leveringsdag ved kassen.
+You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,Du har ikke indtastet den korrekte API-nøgle. Gå til de generelle indstillinger i MyParcel-backoffice for at generere API-nøglen.
+Address details are not entered,Adresseoplysninger er ikke indtastet
+The times will be visible when nothing is filled in,"Tidspunkterne vises, når intet er udfyldt"
+"Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Indtast et positivt eller negativt beløb. Vil du for eksempel give en rabat for at bruge denne funktion, eller vil du opkræve et tillæg for denne leveringsmulighed."
+Discount,Rabat
+Most sustainable,Mest bæredygtigt
+Free,Gratis
+From,Fra
+Pick up from,Afhentning fra
+Pick up at a pick-up point,Afhentning på et afhentningssted
+Opening hours,Åbningstider
+Show more opening hours,Vis flere åbningstider
+Show more locations,Vis flere lokationer
+Closed,Lukket
+Postal code,Postnummer
+House number,Husnummer
+City,By
+Country,Land
+Street,Vej
+Again,Igen
+Postcode/city combination unknown,Postnummer/by-kombination ukendt
+Deliver as quickly as possible,Lever så hurtigt som muligt
+Date settings,Dato-indstillinger
+Monday,Mandag
+Tuesday,Tirsdag
+Wednesday,Onsdag
+Thursday,Torsdag
+Friday,Fredag
+Saturday,Lørdag
+Sunday,Søndag
+"Enable create label concept, when invoice is printed.","Opret kladdelabels, når du printer en faktura."
+Mailbox,Brevkassepakke
+Digital stamp,Digitalt frimærke
+Small package,Lille pakke
+Print return label directly,Print returlabel direkte
+I use the following weight type,Jeg bruger følgende vægtenhed
+This is the type of weight that I use with my products.,"Dette er den vægtenhed, du bruger til dine produkter."
+Default,Standard
+No,Nej
+Yes,Ja
+
+error3212,{field} er påkrævet.
+error3224,Ugyldig transportør.
+error3501,Denne adresse blev ikke fundet.
+error3505,Postnummeret er ikke gyldigt for det valgte land.
+error3506,Ugyldig leveringstype.
+error3516,Landet understøttes ikke af transportøren.
+error3517,Ikke tilgængelig for dette land.
+error3707,Ugyldig pakketype.
+error3728,Ingen leveringsmuligheder fundet.
+
+Without options,Uden muligheder
+Options equal to shipment,Samme muligheder som forsendelse
+Export to MyParcel,Eksporter til MyParcel
+Already exported,Allerede eksporteret
+Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,"Aktivering af denne indstilling opretter automatisk en relateret returforsendelse for hver forsendelse, du eksporterer. Når forsendelseslabels downloades, inkluderes de tilsvarende returforsendelseslabels."
+Show details in summary,Vis detaljer i oversigt
+"Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Hvor forsendelsesmetoden vises, vis de aktuelt kendte detaljer (ja) eller metodetitlen (nej)."
+
+Delivery Options,Levering hjemme eller på arbejdet
+Delivery options,
+Back to overview,Tilbage til oversigt
+Delivery,Levering
+Pickup,Afhentning
+Pickup location,Afhentningssted
+Open map,Åbn kort
+Confirm,Bekræft
+Standard Delivery,Standardlevering
+Morning Delivery,Morgenlevering
+Evening Delivery,Aftenlevering
+Pickup locations,Afhentning på et afhentningssted
+Same day Delivery,Samme dag-levering
+Hide Sender,Skjul afsender
+List,Liste
+Map,Kort
+Mailbox,Brevkassepakke
+Digital Stamp,Digitalt frimærke
+Packet,Lille pakke
+Signature,Underskrift ved modtagelse
+Priority delivery,Prioriteret levering
+Only Recipient,Kun modtager
+Monday delivery,Mandagslevering
+Saturday delivery,Lørdagslevering
+Load more,Indlæs flere
+Options,Muligheder
+No delivery options available.,Ingen leveringsmuligheder tilgængelige.
+{deliveryType} (date/time selection not available),{deliveryType} (valg af dato/tid ikke tilgængeligt)
+Delivery costs,Leveringsomkostninger
+Use Free Shipping,Brug gratis forsendelse
+Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,"Om MyParcel-leveringsomkostningerne er 0, når leveringsmetoden 'Gratis forsendelse' er tilgængelig."
+Rule name,Regelnavn
+Select a condition...,Vælg en betingelse...
+Carrier name,Transportørnavn
+Country,Land
+Package type,Pakketype
+Maximum weight (in grams),Maksimal vægt (i gram)
+Country part of,Land del af
+No rules defined. Click Add rule to create a new rule.,Ingen regler defineret. Klik på 'Tilføj regel' for at oprette en ny regel.
+Add rule,Tilføj regel
+Price,Pris
+Toggle conditions,Vis/skjul betingelser
+Remove rule,Fjern regel
+Add condition,Tilføj betingelse
+New rule,Ny regel
+Condition,Betingelse
+Value,Værdi
+Remove condition,Fjern betingelse
+Select a condition,Vælg en betingelse
+Show or hide JSON textarea,Vis eller skjul JSON-tekstområde
+Invalid JSON in textarea,Ugyldig JSON i tekstområde
+Compact view,Kompakt visning
+"When enabled, the delivery options widget is rendered in compact mode.","Når aktiveret, vises leveringsmulighederne-widgetten i kompakt tilstand."
+Pop-up map,Pop-up-kort
+"When enabled, the pickup location map is displayed in a pop-up.","Når aktiveret, vises kortet over afhentningssteder i et pop-up-vindue."
+Import MyParcel Backoffice settings,Importer MyParcel Backoffice-indstillinger
+Import,Importer
+Compact mode back to overview text,Tekst 'tilbage til oversigt' i kompakt tilstand
+Compact mode delivery title,Leveringstitel i kompakt tilstand
+Compact mode pickup title,Afhentningstitel i kompakt tilstand
+Pop-up map title,Titel for pop-up-kort
+Pop-up map open button text,Tekst for 'åbn kort'-knap i pop-up
+Pop-up map confirm button text,Tekst for bekræft-knap i pop-up
+Delivery options header,Header for leveringsmuligheder
+Monday delivery title,Titel for mandagslevering
+Receipt code title,Titel for modtagelseskode
+Exclude parcel lockers,Udeluk pakkebokse
+Price shown in delivery options,Pris vist i leveringsmuligheder
+Automate 'Only recipient',Automatiser 'Kun modtager'
+Automate 'Hide sender',Automatiser 'Skjul afsender'
+Automate Small Package,Automatiser lille pakke
+DHL Europlus settings,DHL Europlus indstillinger
+DHL For You settings,DHL For You indstillinger
+DHL Parcel Connect settings,DHL Parcel Connect indstillinger
+DPD settings,DPD indstillinger
+Delivery fee,Leveringsgebyr
+Empty package weight,Vægt på tom pakke
+Fresh food from price (€),Friske fødevarer fra pris (€)
+Frozen from price (€),Frosne varer fra pris (€)
+GLS settings,GLS indstillinger
+Insure orders for percentage,Forsikr ordrer procentvis
+Insure orders from (€),Forsikr ordrer fra (€)
+Insure orders up to,Forsikr ordrer op til
+Insure orders up to (BE),Forsikr ordrer op til (BE)
+Insure orders up to (EU),Forsikr ordrer op til (EU)
+Insure orders up to (Local),Forsikr ordrer op til (Lokal)
+Insure orders up to (ROW),Forsikr ordrer op til (ROW)
+International mailbox,International postkasse
+Mode,Tilstand
+Monday delivery fee,Mandag leveringsgebyr
+Only recipient,Kun modtager
+Only recipient fee,Kun modtager gebyr
+Only recipient from price (€),Kun modtager fra pris (€)
+Only recipient title,Kun modtager titel
+Pickup at DHL location,Afhentning på DHL-lokation
+Pickup at DPD location,Afhentning på DPD-lokation
+Pickup at GLS location,Afhentning på GLS-lokation
+PostNL settings,PostNL indstillinger
+Priority delivery fee,Prioritetsleveringsgebyr
+Priority delivery title,Prioritetsleveringstitel
+Receipt code from price (€),Kvitteringskode fra pris (€)
+Saturday delivery fee,Lørdag leveringsgebyr
+Signature from price (€),Underskrift fra pris (€)
+Small Package settings,Lille pakke indstillinger
+Small Package weight,Lille pakke vægt
+Trunkrs settings,Trunkrs indstillinger
+UPS Standard settings,UPS Standard indstillinger
+'Only recipient' operates above a certain order total amount,'Kun modtager' aktiveres over et bestemt ordrebeløb
+'Large format' operates above a certain order total amount,'Stort format' aktiveres over et bestemt ordrebeløb
+'Return if no answer' operates above a certain order total amount,'Retur ved ingen svar' aktiveres over et bestemt ordrebeløb
+A custom be insurance price within a range of possibilities.,En tilpasset BE-forsikringspris inden for en række muligheder.
+A custom eu insurance price within a range of possibilities.,En tilpasset EU-forsikringspris inden for en række muligheder.
+A custom row insurance price within a range of possibilities.,En tilpasset ROW-forsikringspris inden for en række muligheder.
+Activating the 'hide sender' option will remove the name and address of the sender from the label,Aktivering af indstillingen 'skjul afsender' fjerner afsenderens navn og adresse fra etiketten
+Amount of days in the future customers can choose from in the checkout.,"Antal fremtidige dage, som kunder kan vælge fra ved kassen."
+Automatically select package type 'Small Package' for orders under 2000 grams. Package type will be 'Small Package' when a product has setting 'Fit in mailbox' set to 0 and the weight is under 2000 grams.,"Vælg automatisk pakketypen 'Lille pakke' for ordrer under 2000 gram. Pakketypen vil være 'Lille pakke', når et produkt har indstillingen 'Passer i postkassen' sat til 0, og vægten er under 2000 gram."
+Clicking this button will fetch settings from the MyParcel Backoffice and overwrite the current settings.,Klik på denne knap vil hente indstillinger fra MyParcel Backoffice og overskrive de nuværende indstillinger.
+Leave empty to hide the header above the delivery options.,Lad tom for at skjule overskriften over leveringsmulighederne.
+"Only available for certain contracts. If this is not in your contract, the setting has no effect.","Kun tilgængelig for visse kontrakter. Hvis dette ikke er i din kontrakt, har indstillingen ingen effekt."
+Shipments heavier than the weight specified here will not be of package type 'Small Package'.,Forsendelser tungere end den her angivne vægt vil ikke være af pakketypen 'Lille pakke'.
+The minimum amount from when fresh food is active.,"Det minimumsbeløb, hvorfra friske fødevarer er aktiv."
+The minimum amount from when frozen is active.,"Det minimumsbeløb, hvorfra frosne varer er aktiv."
+The minimum amount from when insurance is active.,"Det minimumsbeløb, hvorfra forsikringen er aktiv."
+The minimum amount from when only recipient is active.,"Det minimumsbeløb, hvorfra kun modtager er aktiv."
+The minimum amount from when receipt code is active.,"Det minimumsbeløb, hvorfra kvitteringskoden er aktiv."
+The minimum amount from when signature is active.,"Det minimumsbeløb, hvorfra underskriften er aktiv."
+This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,"Dette bestemmer, hvordan leveringsprisen vises til kunden via leveringsmulighederne. Prisen kan vises som en total for hver leveringsmulighed eller som et tillæg til den regulære fragtpris."
+This setting applies to domestic shipments only,Denne indstilling gælder kun for indenlandske forsendelser
+This will be added to or subtracted from the regular shipping price,Dette vil blive lagt til eller trukket fra den regulære fragtpris
+"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Brug procentdel af det samlede ordrebeløb til forsikring. Efter beregningen vælges den næste tilgængelige prisskala.
+"When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Når aktiveret, vil pakkebokse blive udelukket fra afhentningssteder for alle produkter. Kun fysiske afhentningssteder vil blive vist."
+"With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Med 'Eksporter hele ordren' vil MyParcel eksportere hver ordre i sin helhed til back office til videre behandling.

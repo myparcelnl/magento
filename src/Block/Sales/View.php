@@ -115,7 +115,7 @@ class View extends AbstractOrder
                 echo ', ', __('Signature on receipt');
             }
             if ($shipmentOptions->hasOnlyRecipient()) {
-                echo ', ', __('Home address only');
+                echo ', ', __('Only recipient');
             }
         }
 

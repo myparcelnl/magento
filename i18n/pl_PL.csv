@@ -1,0 +1,420 @@
+status_1,Szkic
+status_2,Zgłoszono
+status_3,Przekazane do PostNL
+status_4,W trakcie sortowania
+status_5,W dystrybucji
+status_6,Przesyłka w urzędzie celnym
+status_7,Przesyłka dostarczona
+status_8,Przesyłka w punkcie odbioru
+status_9,Przesyłka odebrana z punktu odbioru
+status_10,Przesyłka zwrotna dostarczona
+status_11,Przesyłka zwrotna w punkcie odbioru
+status_12,Wydrukowano etykietę bez opłaty
+status_13,Zaksięgowano
+status_14,Wydrukowano - Cyfrowy znaczek
+status_17,Anulowano
+status_30,Nieaktywny - Szkic
+status_31,Nieaktywny - Zgłoszono
+status_32,Nieaktywny - Przekazane do MyParcel
+status_33,Nieaktywny - W trakcie sortowania
+status_34,Nieaktywny - W dystrybucji
+status_35,Nieaktywny - Przesyłka w urzędzie celnym
+status_36,Nieaktywny - Przesyłka dostarczona
+status_37,Nieaktywny - Przesyłka w punkcie odbioru
+status_38,Nieaktywny - Przesyłka odebrana z punktu odbioru
+status_39,Nieaktywny - Przesyłka zwrotna dostarczona
+status_40,Nieaktywny - Przesyłka zwrotna w punkcie odbioru
+status_99,Nieaktywny - Nieznany status
+No MyParcel shipments to process.,Brak przesyłek MyParcel do przetworzenia.
+Packet,Mała paczka
+Packet title,Tytuł małej paczki
+Parcel locker,Paczkomat
+Show total price,Pokaż cenę całkowitą
+Show surcharge,Pokaż dopłatę
+Version and support,Wersja i wsparcie
+Settings,Ustawienia
+General settings,Ustawienia ogólne
+API settings,Ustawienia API
+MyParcel NL Settings,Ustawienia MyParcel NL
+Go to the general settings in the back office of MyParcel to generate the API Key.,"Przejdź do ustawień ogólnych w backoffice MyParcel, aby wygenerować klucz API."
+The API Key,Wprowadź tutaj klucz API
+Default shipment settings,Domyślne ustawienia wysyłki
+"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.","Ten opis pojawi się na etykiecie wysyłkowej. Można użyć następujących elementów: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%."
+Print MyParcel labels directly,Drukuj etykiety MyParcel bezpośrednio
+Print settings,Ustawienia drukowania
+Paper type,Orientacja wydruku
+Select a standard orientation for printing labels.,Wybierz domyślną orientację do drukowania etykiet.
+Label description,Opis etykiety
+"This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%.","Ten opis pojawi się na etykiecie wysyłkowej. Można użyć następujących elementów: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%."
+Country of origin,Kraj pochodzenia
+"This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Ten kraj pojawi się na międzynarodowych etykietach wysyłkowych. Stąd wysyłane są Twoje produkty. Możesz użyć NL, BE, DE itd. Zostanie nadpisany przez kraj produkcji na poziomie produktu."
+Create Concept,Utwórz szkic
+"Enable create label concept, when invoice is printed.","Utwórz szkic przesyłki, gdy faktura zostanie wydrukowana."
+Delivery methods,Metody dostawy
+Preferred pickup locations view,Preferowany widok punktów odbioru
+Switching the view is allowed,Przełączanie widoku jest dozwolone
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Gdy punkty odbioru są włączone, użytkownik może wybrać między widokiem mapy a widokiem listy. To ustawienie określa, która opcja zostanie wybrana jako pierwsza po otwarciu punktów odbioru."
+Show list first,Pokaż najpierw listę
+Show map first,Pokaż najpierw mapę
+Default shipping options,Domyślne opcje wysyłki
+"Fill in your preferences for a shipment. These settings will only apply for the mass actions in the order grid. When creating a single shipment, these settings can be changed manually. These settings will activate based on the order total amount.",Wprowadź swoje preferencje dla przesyłki. Te ustawienia będą stosowane tylko dla akcji masowych w siatce zamówień. Przy tworzeniu pojedynczej przesyłki te ustawienia można zmienić ręcznie. Aktywują się one na podstawie kwoty całkowitej zamówienia.
+Automate 'Signature on receipt',Automatyzuj 'Podpis przy odbiorze'
+Automate 'Collect package',Automatyzuj 'Odbierz paczkę'
+Automate 'Receipt code',Automatyzuj 'Kod odbioru'
+Automate 'Return if no answer',Automatyzuj 'Zwróć w razie braku odpowiedzi'
+Automate 'Large format',Automatyzuj 'Duży format'
+Large package,Duży format
+Automate 'Age check 18+',Automatyzuj 'Weryfikacja wieku 18+'
+Automate 'Insurance € 100',Automatyzuj 'Ubezpieczone do €100'
+Automate 'Insurance € 250',Automatyzuj 'Ubezpieczone do €250'
+Automate 'Insurance € 500',Automatyzuj 'Ubezpieczone do € 500'
+Automate 'Insure shipments to Belgium',Automatyzuj 'Ubezpiecz przesyłki do Belgii'
+Automate Priority delivery (mailbox),Automatyzuj dostawę priorytetową (skrzynka pocztowa)
+Automatically enable priority delivery for mailbox packages during export,Automatycznie włącz dostawę priorytetową dla paczek skrzynkowych podczas eksportu
+Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,"Uwaga: dostawa w poniedziałek jest możliwa tylko wtedy, gdy paczka zostanie dostarczona przed godziną 15:00 w sobotę do wyznaczonych punktów PostNL."
+'Signature on receipt' operates above a certain order total amount,"'Podpis przy odbiorze' jest aktywowany, gdy kwota całkowita przekracza powyższą kwotę"
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,"Kontrola wieku jest przeznaczona dla przesyłek paczkowych, gdzie odbiorca musi wykazać 18+ za pomocą dowodu tożsamości. Przy tej opcji wysyłki uwzględnione są podpis przy odbiorze i tylko odbiorca. Kontrola wieku 18+ jest ponadto wykluczona z opcji dostawy rano i wieczorem."
+'Insurance € 500' operates above a certain order total amount.,"'Ubezpieczone do € 500' jest aktywowane, gdy kwota całkowita przekracza powyższą kwotę."
+Select automatically digital stamp packages based on weight,Automatycznie wybieraj paczki z cyfrowym znaczkiem na podstawie wagi
+Price depends on the weight. Are the weights correctly filled in for all products? Choose 'No standard weight' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.,"Cena zależy od wagi. Czy wagi są poprawnie wprowadzone dla wszystkich produktów? Wybierz 'Brak standardowej wagi', aby MyParcel sam obliczył wagę. Wybierz tutaj standardową wagę, jeśli produkty nie zawierają poprawnych wag."
+Enter a basic price for a digital stamp. The regular price will not affect this price.,Wprowadź podstawową cenę cyfrowego znaczka. Standardowa cena nie wpływa na tę cenę.
+Mailbox settings,Ustawienia paczki skrzynkowej
+Automate mailbox,Automatyzuj paczkę skrzynkową
+Select automatically mailbox packages based on weight or volume,Automatycznie wybieraj paczki skrzynkowe na podstawie wagi lub objętości
+Mailbox weight,Waga paczki skrzynkowej
+Mailbox fee,Koszt paczki skrzynkowej
+Enter a basic price for a mailbox. The regular price will not affect this price.,Wprowadź podstawową cenę paczki skrzynkowej. Standardowa cena nie wpływa na tę cenę.
+Morning delivery,Dostawa poranna
+Evening delivery,Dostawa wieczorna
+Evening delivery fee,Koszt dostawy wieczornej
+Express delivery,Dostawa ekspresowa
+Express delivery fee,Koszt dostawy ekspresowej
+Express delivery active,Dostawa ekspresowa aktywna
+Same day delivery,Dostawa tego samego dnia
+Same day title,Tytuł dostawy tego samego dnia
+Morning delivery active,Dostawa poranna aktywna
+If age check is active then the evening delivery is not possible,"Jeśli weryfikacja wieku jest aktywna, dostawa wieczorna nie jest możliwa"
+If age check is active then the morning delivery is not possible,"Jeśli weryfikacja wieku jest aktywna, dostawa poranna nie jest możliwa"
+Morning delivery fee,Koszt dostawy porannej
+Evening delivery active,Dostawa wieczorna aktywna
+Monday delivery,Dostawa w poniedziałek
+Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"Dostawa w poniedziałek może wymagać specjalnych warunków w porównaniu do innych dni (tygodnia), w tym między innymi opłat i godziny granicznej."
+Number of days,Liczba dni
+Delivery enabled,Dostawa włączona
+Receipt code,Kod odbioru
+Receipt code fee,Koszt kodu odbioru
+Collect package,Odbierz paczkę
+Digital stamp settings,Ustawienia cyfrowego znaczka
+"Fill in weight in grams, regardless of 'weight type' settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Wprowadź wagę w gramach, niezależnie od ustawień 'typu wagi'. Ta waga jest dodawana do wagi zamówienia. Wyjątek: cyfrowy znaczek użyje dokładnej klasy wagi, gdy zostanie określona."
+Automate digital stamp,Automatyzuj cyfrowy znaczek
+Default weight,Domyślna waga
+Digital stamp fee,Koszt cyfrowego znaczka
+From price,Od ceny
+Enable sameday delivery,Włącz dostawę tego samego dnia
+Sameday delivery fee,Koszt dostawy tego samego dnia
+Sameday cut-off time,Godzina graniczna dostawy tego samego dnia
+Saturday cut-off time,Godzina graniczna w sobotę
+Sunday cut-off time,Godzina graniczna w niedzielę
+Track number,Numer śledzenia
+Track status,Status śledzenia
+Track action,Akcja śledzenia
+MyParcel options,Opcje MyParcel
+Package,Paczka
+Insured up to:,Ubezpieczone do:
+Download package label,Pobierz etykietę paczki
+Download small package label,Pobierz etykietę małej paczki
+Download digital stamp label,Pobierz etykietę cyfrowego znaczka
+Download mailbox label,Pobierz etykietę paczki skrzynkowej
+Download letter label,Pobierz etykietę bez opłaty
+Create new concept,Utwórz nowy szkic
+Create shipment,Utwórz przesyłkę
+During the transition phase the old Magento MyParcel extension can remain active. However you do need to turn off PakjeGemak in the old MyParcel extension.,W fazie przejściowej stare rozszerzenie Magento MyParcel może pozostać aktywne. Należy jednak wyłączyć PakjeGemak w starym rozszerzeniu MyParcel.
+Please select an item from the list,Najpierw wybierz zamówienie z listy
+Please check address,Sprawdź adres
+No key found. Go to Configuration and then to MyParcel to enter the key.,"Nie znaleziono klucza API. Przejdź do Konfiguracji, a następnie do MyParcel, aby wprowadzić klucz."
+No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.,"Z tym zamówieniem nie można utworzyć przesyłki. Przesyłek nie można tworzyć, jeśli status to 'Wstrzymane' lub jeśli produkt jest cyfrowy."
+Creating shipments via bulk actions is not possible for orders without a source. Go to the details of the order and process the shipment manually.,Tworzenie przesyłek za pomocą akcji masowych nie jest możliwe dla zamówień bez źródła. Przejdź do szczegółów zamówienia i przetwórz przesyłkę ręcznie.
+MyParcel Track,Kod kreskowy MyParcel
+Use Shipment template,Użyj szablonu wysyłki
+Enable this option to add the MyParcel barcode in the email.,"Włącz tę opcję, aby dodać kod kreskowy MyParcel do wiadomości e-mail."
+MyParcel Shipment Email Template,Szablon e-mail dla przesyłki MyParcel
+MyParcel Shipment Email Template for Guest,Szablon e-mail dla przesyłki MyParcel dla gościa
+"Use Shipment email template when ""Default"" option is selected.","Użyj szablonu e-mail wysyłki przy wybranej opcji ""Domyślne""."
+Action type,Typ akcji
+Download label,Pobierz etykietę
+Open in new tab,Otwórz w nowej karcie
+Package Type,Typ paczki
+Print position,Pozycja wydruku
+MyParcel version,Wersja MyParcel
+"The version %1 of the extension is installed on your webshop. Currently version %2 is the latest stable version. If you experience an issue, we recommend that you install the latest stable version.","Wersja %1 rozszerzenia jest zainstalowana w Twoim sklepie. Aktualnie wersja %2 to najnowsza wersja stabilna. Jeśli napotkasz problem, zalecamy zainstalowanie najnowszej wersji stabilnej."
+"To read the instructions for the Magento extension, click %1 here %2.","Aby przeczytać instrukcję rozszerzenia Magento, kliknij %1 tutaj %2."
+When using the extension please note:,Podczas korzystania z rozszerzenia należy pamiętać:
+To be able to configure the extension you need to possess and use an active account.,"Aby móc skonfigurować rozszerzenie, należy posiadać i używać aktywnego konta."
+"During the transition phase the old Magento MyParcel extension can remain active. However, you do need to turn off PakjeGemak in the old MyParcel extension.",W fazie przejściowej stare rozszerzenie Magento MyParcel może pozostać aktywne. Jednakże należy wyłączyć PakjeGemak w starym rozszerzeniu MyParcel.
+Magento &amp; 3rd party version compatibility,Zgodność wersji Magento &amp; rozszerzeń stron trzecich
+We cannot guarantee perfect functionality of the extension when you intend to use the extension on a version of Magento that is not supported or when you intend to use the extension together with a 3rd part extension that is not supported. If you have any questions please contact us.,"Nie możemy zagwarantować idealnej funkcjonalności rozszerzenia, jeśli zamierzasz używać go na niewspieranej wersji Magento lub razem z niewspieranym rozszerzeniem stron trzecich. W razie pytań prosimy o kontakt."
+As of January 1st 2022 shipments to Belgium will be insured based on default export settings.,Od 1 stycznia 2022 przesyłki do Belgii będą ubezpieczone na podstawie domyślnych ustawień eksportu.
+Questions and information about your account,Pytania i informacje o Twoim koncie
+"For questions related to your account, configuration problems, extension conflicts and bugs, please contact us.","W przypadku pytań dotyczących konta, problemów z konfiguracją, konfliktów rozszerzeń i błędów, prosimy o kontakt."
+Phone:,Telefon:
+Email,E-mail
+Documents,Dokumenty
+Latest stable release,Najnowsza wersja stabilna
+Installation and configuration manual,Instrukcja instalacji i konfiguracji
+Full changelog,Pełna lista zmian
+Installation and configuration instructions,Instrukcja instalacji i konfiguracji
+Do you want to know what they are doing in the near future? Below you can find the schedule for Magento 2. Do you have any suggestions or ideas? They are always welcome. That way we will continue to improve the extension together.,"Chcesz wiedzieć, nad czym pracują w najbliższym czasie? Poniżej znajdziesz harmonogram dla Magento 2. Masz sugestie lub pomysły? Są zawsze mile widziane. W ten sposób będziemy razem ulepszać rozszerzenie."
+API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,"Klucz API nie jest znany. Przejdź do ustawień w backoffice, aby utworzyć klucz API. Wprowadź klucz API w ustawieniach."
+Basic settings,Ustawienia podstawowe
+Delivery settings,Dostawa
+day,dzień
+days,dni
+Hide days,Ukryj dni
+Cut-off time,Godzina graniczna
+"If a request is made for the delivery options between Friday after, and Monday before, cut-off time then Tuesday will be shown as the next possible delivery date.","Jeśli zamówienie zostanie złożone między piątkiem po godzinie granicznej a poniedziałkiem przed nią, wtorek zostanie wyświetlony jako najbliższa możliwa data dostawy."
+If a request is made before this time on Saturday Monday will be shown as the next possible delivery date. This is ignored when Sunday is a drop-off day.,"Jeśli zamówienie zostanie złożone przed tą godziną w sobotę, poniedziałek zostanie wyświetlony jako najbliższa możliwa data dostawy. Jest to ignorowane, gdy niedziela jest dniem nadania."
+"If a request is made before this time on Sunday and Sunday is a drop-off day, Monday will be shown as the next possible delivery date.","Jeśli zamówienie zostanie złożone przed tą godziną w niedzielę i niedziela jest dniem nadania, poniedziałek zostanie wyświetlony jako najbliższa możliwa data dostawy."
+Drop-off days,Dni nadania
+Whether you drop off packages on this day.,Czy nadajesz paczki w tym dniu.
+"For orders before this time, the drop-off is considered done on this day.",Dla zamówień złożonych przed tą godziną nadanie jest uznawane za wykonane w tym dniu.
+Specify the days you hand in your parcels for this carrier. Specify the latest time a customer can order for you to deliver the package in time for shipment that day.,"Określ dni, w których nadajesz paczki u tego przewoźnika. Określ ostateczny czas, do którego klient może złożyć zamówienie, aby paczka została wysłana tego dnia."
+Saturday active,Sobota aktywna
+Saturday title,Tytuł soboty
+Drop-off delay,Opóźnienie
+No delay,Brak opóźnienia
+"This option allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.","Ta opcja pozwala ustawić liczbę dni potrzebnych do skompletowania, zapakowania i nadania paczek, gdy zamówiono przed godziną graniczną."
+Age check 18+,Weryfikacja wieku 18+
+The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. This option can't be combined with morning or evening delivery.,"Weryfikacja wieku jest przeznaczona dla przesyłek paczkowych, w których odbiorca musi udowodnić ukończenie 18 lat. Tej opcji nie można łączyć z dostawą poranną ani wieczorną."
+Fit in digital stamp,Mieści się w cyfrowym znaczku
+HS code,Kod HS
+"HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs","Kody HS są używane dla przesyłek międzynarodowych MyParcel, odpowiedni kod znajdziesz na stronie holenderskiego urzędu celnego."
+Disable delivery options,Wyłącz opcje dostawy
+With this option you can disable the delivery options if this product is in the cart.,"Dzięki tej opcji możesz wyłączyć opcje dostawy, jeśli ten produkt znajduje się w koszyku."
+Fit in mailbox,Mieści się w skrzynce pocztowej
+"Fill in the amount of products that fit in one mailbox package. Use 0 to automatically calculate based on weight, -1 if the article does not fit in a mailbox package. It will always be sent as a regular package if it's too heavy for a mailbox package.","Wprowadź liczbę produktów mieszczących się w jednej paczce skrzynkowej. Użyj 0, aby obliczyć automatycznie na podstawie wagi, lub -1, jeśli artykuł nie mieści się w paczce skrzynkowej. Zawsze będzie wysyłany jako zwykła paczka, jeśli jest zbyt ciężki dla paczki skrzynkowej."
+Methods,Metoda wysyłki
+The extra myparcel options are added to this shipping method,Dodatkowe opcje MyParcel są dodawane do tej metody wysyłki.
+Delivery title,Tytuł dostawy
+"When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.","Gdy punkty odbioru są włączone, użytkownik może wybrać między mapą a listą. To ustawienie określa, która opcja zostanie wybrana jako pierwsza po otwarciu punktów odbioru."
+Deliver the package only at address of the intended recipient.,Dostarcz paczkę tylko pod adres wyznaczonego odbiorcy.
+This will be added to the regular shipping price,Zostanie dodane do standardowych kosztów wysyłki
+Not possible if Pickup at PostNL location is not active,"Nie jest możliwe, jeśli 'Odbiór w punkcie PostNL' nie jest aktywny"
+Signature on receipt,Podpis przy odbiorze
+Signature on receipt title,Tytuł podpisu przy odbiorze
+Signature on receipt fee,Koszt podpisu przy odbiorze
+Hide sender,Ukryj nadawcę
+This will be added to the regular shipping price,Zostanie dodane do standardowych kosztów wysyłki
+If both have been selected this price will be added to the regular shipping price. Leave empty for not using it.,"Jeśli wybrano oba, ta cena zostanie dodana do standardowych kosztów wysyłki. Pozostaw puste, aby nie używać tej funkcji."
+"To use this optimally, set a weight or 'Fit in mailbox' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.","Aby najlepiej wykorzystać tę funkcję, ustaw wagę lub objętość 'Mieści się w skrzynce pocztowej' dla każdego produktu. Niezależnie od tego, przesyłki cięższe od podanej tutaj wagi nie będą wysyłane jako paczka skrzynkowa."
+This will be added to the regular shipping price,Zostanie dodane do standardowych kosztów wysyłki
+Pickup at PostNL location,Odbiór w punkcie PostNL
+Pickup active,Odbiór aktywny
+Standard delivery Title,Tytuł dostawy standardowej
+Signature on receipt title,Tytuł podpisu przy odbiorze
+Hide sender title,Tytuł ukryj nadawcę
+Printerless return,Zwrot bez drukarki
+Frozen,Mrożone
+Fresh food,Świeża żywność
+Priority delivery,Dostawa priorytetowa
+Morning title,Tytuł dostawy porannej
+Evening title,Tytuł dostawy wieczornej
+Mailbox title,Tytuł skrzynki pocztowej
+Digital stamp title,Tytuł cyfrowego znaczka
+Pickup title,Tytuł odbioru
+Pickup fee,Koszt odbioru
+Pickup list button text,Tekst przycisku listy odbioru
+Pickup map button text,Tekst przycisku mapy odbioru
+Drop off day,Dni nadania
+Select the days that you send the orders.,"Wybierz dni, w których wysyłasz zamówienia."
+Show a delivery day in the checkout.,Pokaż dzień dostawy w kasie.
+You have not entered the correct API key. Go to the general settings in the back office of MyParcel to generate the API Key.,"Nie wprowadzono poprawnego klucza API. Przejdź do ustawień ogólnych w backoffice MyParcel, aby wygenerować klucz API."
+Address details are not entered,Dane adresowe nie zostały wprowadzone
+The times will be visible when nothing is filled in,"Godziny będą widoczne, gdy nic nie jest wypełnione"
+"Enter an amount that is either positive or negative. For example, do you want to give a discount for using this function or do you want to charge extra for this delivery option.","Wprowadź kwotę dodatnią lub ujemną. Na przykład, czy chcesz przyznać zniżkę za korzystanie z tej funkcji, czy pobierać dodatkową opłatę za tę opcję dostawy."
+Discount,Rabat
+Most sustainable,Najbardziej ekologiczne
+Free,Bezpłatnie
+From,Od
+Pick up from,Odbiór od
+Pick up at a pick-up point,Odbiór w punkcie odbioru
+Opening hours,Godziny otwarcia
+Show more opening hours,Pokaż więcej godzin otwarcia
+Show more locations,Pokaż więcej lokalizacji
+Closed,Zamknięte
+Postal code,Kod pocztowy
+House number,Numer domu
+City,Miasto
+Country,Kraj
+Street,Ulica
+Again,Ponownie
+Postcode/city combination unknown,Nieznane połączenie kodu pocztowego z miastem
+Deliver as quickly as possible,Dostarcz jak najszybciej
+Date settings,Ustawienia daty
+Monday,Poniedziałek
+Tuesday,Wtorek
+Wednesday,Środa
+Thursday,Czwartek
+Friday,Piątek
+Saturday,Sobota
+Sunday,Niedziela
+"Enable create label concept, when invoice is printed.","Utwórz szkice etykiet, gdy drukujesz fakturę."
+Mailbox,Paczka skrzynkowa
+Digital stamp,Cyfrowy znaczek
+Small package,Mała paczka
+Print return label directly,Drukuj etykietę zwrotną bezpośrednio
+I use the following weight type,Używam następującej jednostki wagi
+This is the type of weight that I use with my products.,"To jest jednostka wagi, której używasz dla swoich produktów."
+Default,Domyślne
+No,Nie
+Yes,Tak
+
+error3212,{field} jest wymagane.
+error3224,Nieprawidłowy przewoźnik.
+error3501,Nie znaleziono tego adresu.
+error3505,Kod pocztowy jest nieprawidłowy dla wybranego kraju.
+error3506,Nieprawidłowy typ dostawy.
+error3516,Kraj nie jest obsługiwany przez przewoźnika.
+error3517,Niedostępne dla tego kraju.
+error3707,Nieprawidłowy typ paczki.
+error3728,Nie znaleziono opcji dostawy.
+
+Without options,Bez opcji
+Options equal to shipment,Opcje takie same jak przesyłka
+Export to MyParcel,Eksportuj do MyParcel
+Already exported,Już wyeksportowane
+Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,Włączenie tego ustawienia automatycznie tworzy powiązaną przesyłkę zwrotną dla każdej eksportowanej przesyłki. Podczas pobierania etykiet wysyłkowych dołączane są odpowiednie etykiety zwrotne.
+Show details in summary,Pokaż szczegóły w podsumowaniu
+"Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Gdzie wyświetlana jest metoda wysyłki, pokaż aktualnie znane szczegóły (tak) lub tytuł metody (nie)."
+
+Delivery Options,Dostawa do domu lub do pracy
+Delivery options,
+Back to overview,Powrót do przeglądu
+Delivery,Dostawa
+Pickup,Odbiór
+Pickup location,Punkt odbioru
+Open map,Otwórz mapę
+Confirm,Potwierdź
+Standard Delivery,Dostawa standardowa
+Morning Delivery,Dostawa poranna
+Evening Delivery,Dostawa wieczorna
+Pickup locations,Odbiór w punkcie odbioru
+Same day Delivery,Dostawa tego samego dnia
+Hide Sender,Ukryj nadawcę
+List,Lista
+Map,Mapa
+Mailbox,Paczka skrzynkowa
+Digital Stamp,Cyfrowy znaczek
+Packet,Mała paczka
+Signature,Podpis przy odbiorze
+Priority delivery,Dostawa priorytetowa
+Only Recipient,Tylko odbiorca
+Monday delivery,Dostawa w poniedziałek
+Saturday delivery,Dostawa w sobotę
+Load more,Załaduj więcej
+Options,Opcje
+No delivery options available.,Brak dostępnych opcji dostawy.
+{deliveryType} (date/time selection not available),{deliveryType} (wybór daty/godziny niedostępny)
+Delivery costs,Koszty dostawy
+Use Free Shipping,Używaj darmowej wysyłki
+Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.,"Czy koszty dostawy MyParcel wynoszą 0, gdy dostępna jest metoda dostawy 'Darmowa wysyłka'."
+Rule name,Nazwa reguły
+Select a condition...,Wybierz warunek...
+Carrier name,Nazwa przewoźnika
+Country,Kraj
+Package type,Typ paczki
+Maximum weight (in grams),Maksymalna waga (w gramach)
+Country part of,Kraj należy do
+No rules defined. Click Add rule to create a new rule.,"Nie zdefiniowano reguł. Kliknij 'Dodaj regułę', aby utworzyć nową regułę."
+Add rule,Dodaj regułę
+Price,Cena
+Toggle conditions,Pokaż/ukryj warunki
+Remove rule,Usuń regułę
+Add condition,Dodaj warunek
+New rule,Nowa reguła
+Condition,Warunek
+Value,Wartość
+Remove condition,Usuń warunek
+Select a condition,Wybierz warunek
+Show or hide JSON textarea,Pokaż lub ukryj pole tekstowe JSON
+Invalid JSON in textarea,Nieprawidłowy JSON w polu tekstowym
+Compact view,Widok kompaktowy
+"When enabled, the delivery options widget is rendered in compact mode.","Gdy włączone, widget opcji dostawy jest renderowany w trybie kompaktowym."
+Pop-up map,Mapa pop-up
+"When enabled, the pickup location map is displayed in a pop-up.","Gdy włączone, mapa punktów odbioru jest wyświetlana w wyskakującym okienku."
+Import MyParcel Backoffice settings,Importuj ustawienia Backoffice MyParcel
+Import,Importuj
+Compact mode back to overview text,Tekst 'powrót do przeglądu' w trybie kompaktowym
+Compact mode delivery title,Tytuł dostawy w trybie kompaktowym
+Compact mode pickup title,Tytuł odbioru w trybie kompaktowym
+Pop-up map title,Tytuł mapy pop-up
+Pop-up map open button text,Tekst przycisku 'otwórz mapę' pop-up
+Pop-up map confirm button text,Tekst przycisku potwierdzenia pop-up
+Delivery options header,Nagłówek opcji dostawy
+Monday delivery title,Tytuł dostawy w poniedziałek
+Receipt code title,Tytuł kodu odbioru
+Exclude parcel lockers,Wyklucz paczkomaty
+Price shown in delivery options,Cena widoczna w opcjach dostawy
+Automate 'Only recipient',Automatyzuj 'Tylko odbiorca'
+Automate 'Hide sender',Automatyzuj 'Ukryj nadawcę'
+Automate Small Package,Automatyzuj mały pakiet
+DHL Europlus settings,Ustawienia DHL Europlus
+DHL For You settings,Ustawienia DHL For You
+DHL Parcel Connect settings,Ustawienia DHL Parcel Connect
+DPD settings,Ustawienia DPD
+Delivery fee,Koszt dostawy
+Empty package weight,Waga pustego pakietu
+Fresh food from price (€),Świeże produkty od ceny (€)
+Frozen from price (€),Zamrożone od ceny (€)
+GLS settings,Ustawienia GLS
+Insure orders for percentage,Ubezpieczaj zamówienia procentowo
+Insure orders from (€),Ubezpieczaj zamówienia od (€)
+Insure orders up to,Ubezpieczaj zamówienia do
+Insure orders up to (BE),Ubezpieczaj zamówienia do (BE)
+Insure orders up to (EU),Ubezpieczaj zamówienia do (EU)
+Insure orders up to (Local),Ubezpieczaj zamówienia do (Lokalny)
+Insure orders up to (ROW),Ubezpieczaj zamówienia do (ROW)
+International mailbox,Międzynarodowa skrzynka pocztowa
+Mode,Tryb
+Monday delivery fee,Koszt dostawy w poniedziałek
+Only recipient,Tylko odbiorca
+Only recipient fee,Koszt tylko odbiorca
+Only recipient from price (€),Tylko odbiorca od ceny (€)
+Only recipient title,Tytuł tylko odbiorca
+Pickup at DHL location,Odbiór w punkcie DHL
+Pickup at DPD location,Odbiór w punkcie DPD
+Pickup at GLS location,Odbiór w punkcie GLS
+PostNL settings,Ustawienia PostNL
+Priority delivery fee,Koszt dostawy priorytetowej
+Priority delivery title,Tytuł dostawy priorytetowej
+Receipt code from price (€),Kod odbioru od ceny (€)
+Saturday delivery fee,Koszt dostawy w sobotę
+Signature from price (€),Podpis od ceny (€)
+Small Package settings,Ustawienia małego pakietu
+Small Package weight,Waga małego pakietu
+Trunkrs settings,Ustawienia Trunkrs
+UPS Standard settings,Ustawienia UPS Standard
+'Only recipient' operates above a certain order total amount,'Tylko odbiorca' aktywuje się powyżej określonej kwoty zamówienia
+'Large format' operates above a certain order total amount,'Duży format' aktywuje się powyżej określonej kwoty zamówienia
+'Return if no answer' operates above a certain order total amount,'Zwrot bez odpowiedzi' aktywuje się powyżej określonej kwoty zamówienia
+A custom be insurance price within a range of possibilities.,Niestandardowa cena ubezpieczenia BE w zakresie możliwości.
+A custom eu insurance price within a range of possibilities.,Niestandardowa cena ubezpieczenia EU w zakresie możliwości.
+A custom row insurance price within a range of possibilities.,Niestandardowa cena ubezpieczenia ROW w zakresie możliwości.
+Activating the 'hide sender' option will remove the name and address of the sender from the label,Aktywowanie opcji 'ukryj nadawcę' usuwa imię i adres nadawcy z etykiety
+Amount of days in the future customers can choose from in the checkout.,"Liczba przyszłych dni, spośród których klienci mogą wybierać w kasie."
+Automatically select package type 'Small Package' for orders under 2000 grams. Package type will be 'Small Package' when a product has setting 'Fit in mailbox' set to 0 and the weight is under 2000 grams.,"Automatycznie wybieraj typ paczki 'Mały pakiet' dla zamówień poniżej 2000 gramów. Typ paczki będzie 'Mały pakiet', gdy produkt ma ustawienie 'Mieści się w skrzynce pocztowej' ustawione na 0 i waga jest poniżej 2000 gramów."
+Clicking this button will fetch settings from the MyParcel Backoffice and overwrite the current settings.,Kliknięcie tego przycisku pobierze ustawienia z MyParcel Backoffice i nadpisze bieżące ustawienia.
+Leave empty to hide the header above the delivery options.,"Pozostaw puste, aby ukryć nagłówek nad opcjami dostawy."
+"Only available for certain contracts. If this is not in your contract, the setting has no effect.","Dostępne tylko dla określonych umów. Jeśli nie ma tego w umowie, ustawienie nie ma żadnego efektu."
+Shipments heavier than the weight specified here will not be of package type 'Small Package'.,Przesyłki cięższe niż podany tutaj ciężar nie będą pakietem typu 'Mały pakiet'.
+The minimum amount from when fresh food is active.,"Minimalna kwota, od której świeże produkty jest aktywne."
+The minimum amount from when frozen is active.,"Minimalna kwota, od której zamrożone jest aktywne."
+The minimum amount from when insurance is active.,"Minimalna kwota, od której ubezpieczenie jest aktywne."
+The minimum amount from when only recipient is active.,"Minimalna kwota, od której tylko odbiorca jest aktywne."
+The minimum amount from when receipt code is active.,"Minimalna kwota, od której kod odbioru jest aktywny."
+The minimum amount from when signature is active.,"Minimalna kwota, od której podpis jest aktywny."
+This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Określa sposób wyświetlania ceny dostawy klientowi poprzez opcje dostawy. Cena może być wyświetlana jako łączna dla każdej opcji dostawy lub jako dopłata do standardowej ceny wysyłki.
+This setting applies to domestic shipments only,To ustawienie dotyczy tylko przesyłek krajowych
+This will be added to or subtracted from the regular shipping price,To zostanie dodane do lub odjęte od standardowej ceny wysyłki
+"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Użyj procentu całkowitej kwoty zamówienia dla ubezpieczenia. Po obliczeniu zostaje wybrana kolejna dostępna skala cenowa.
+"When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Po włączeniu, automaty paczkowe zostaną wykluczone z miejsc odbioru dla wszystkich produktów. Wyświetlane będą tylko fizyczne punkty odbioru."
+"With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Z opcją 'Eksportuj całe zamówienie', MyParcel wyeksportuje każde zamówienie w całości do biura zaplecza do dalszego przetwarzania."
