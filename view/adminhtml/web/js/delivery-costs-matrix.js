@@ -11,7 +11,7 @@ define(
                     this.hiddenInputElement = document.getElementById('myparcelnl_magento_general_matrix_delivery_costs');
 
                     // Initialize translations and condition options
-                    this.translations = JSON.parse(this.options.getTranslations);
+                    this.translations = this.options.getTranslations;
                     this.conditionOptionsList = [
                         {value: '', text: this.translations['Select a condition']},
                         {value: 'carrier_name', text: this.translations['Carrier name']},
@@ -326,7 +326,7 @@ define(
                     valueSelect.innerHTML = '';
 
                     if (conditionValue === 'country') {
-                        JSON.parse(options.countryCodes).forEach(countryCode => {
+                        options.countryCodes.forEach(countryCode => {
                             const option = document.createElement('option');
                             option.value = countryCode;
                             option.textContent = countryCode;
@@ -335,7 +335,7 @@ define(
                     }
 
                     if (conditionValue === 'package_type') {
-                        const packageTypes = JSON.parse(options.packageTypes);
+                        const packageTypes = options.packageTypes;
                         Object.entries(packageTypes).forEach(([value, text]) => {
                             const option = document.createElement('option');
                             option.value = value;
@@ -345,7 +345,7 @@ define(
                     }
 
                     if (conditionValue ==='carrier_name') {
-                        const carriers = JSON.parse(options.carriers);
+                        const carriers = options.carriers;
                         Object.entries(carriers).forEach(([value, text]) => {
                             const option = document.createElement('option');
                             option.value = value;
@@ -355,7 +355,7 @@ define(
                     }
 
                     if (conditionValue === 'country_part_of') {
-                        JSON.parse(options.countryParts).forEach(countryCode => {
+                        options.countryParts.forEach(countryCode => {
                             const option = document.createElement('option');
                             option.value = countryCode;
                             option.textContent = countryCode;
