@@ -221,23 +221,18 @@ define(
        */
       getAddress: function(address) {
         address = address || customerData.get('checkout-data')().shippingAddressFromData || quote.shippingAddress() || {};
-        const street = address.street ? [address.street[0], address.street[1]].join(' ').trim() : '',
-          houseNumber = deliveryOptions.getHouseNumber(street),
-          normalizedAddress = {
-            /* checkoutData uses country_id, quote uses countryId */
-            cc: address.country_id || address.countryId || '',
-            postalCode: address.postcode || '',
-            city: address.city || '',
-            street: street
-          };
-        /**
-         * only add the housenumber if it is not null, for the delivery-options will strip it otherwise
-         * which will result in _.isEqual returning false wrongly.
-         */
-        if (houseNumber) {
-          normalizedAddress.number = houseNumber;
-        }
-        return normalizedAddress;
+        /* checkoutData uses country_id, quote uses countryId, but use countryId from checkout form when appropriate */
+        const cc = checkout.resolveCountryId(address.country_id || address.countryId || ''),
+          street = address.street ? [address.street[0], address.street[1]].join(' ').trim() : '',
+          houseNumber = deliveryOptions.getHouseNumber(street);
+
+        return {
+          cc: cc,
+          postalCode: address.postcode || '',
+          city: address.city || '',
+          street: street,
+          houseNumber: houseNumber
+        };
       },
 
       /**
