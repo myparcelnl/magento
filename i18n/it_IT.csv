@@ -418,3 +418,24 @@ This will be added to or subtracted from the regular shipping price,Questo verr�
 "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.","Usa la percentuale dell'importo totale dell'ordine per l'assicurazione. Dopo il calcolo, viene selezionata la successiva scala di prezzo disponibile."
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Quando abilitato, i locker per pacchi saranno esclusi dai punti di ritiro per tutti i prodotti. Verranno mostrati solo i punti di ritiro fisici."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Con 'Esporta intero ordine', MyParcel esporterà ogni ordine nella sua interezza al back office per ulteriori elaborazioni."
+
+Titles,Titoli
+API Access,Accesso API
+API access token,Token di accesso API
+"Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Genera un token per l'accesso all'API REST in questo ambito. Il token in testo normale viene mostrato una sola volta, copialo prima di navigare altrove. Viene memorizzato solo il suo hash. Per ruotarlo, clicca di nuovo su Genera; il token precedente in questo ambito smette di funzionare immediatamente. Per cancellare un token (rilasciando i suoi store a un token con ambito padre se ne esiste uno), clicca su Revoca."
+MyParcel API Access Token Management,Gestione dei token di accesso API MyParcel
+"Token generated. Copy it now, it will not be shown again.","Token generato. Copialo ora, non verrà mostrato di nuovo."
+Regenerate,Rigenera
+Generate,Genera
+Unexpected response.,Risposta inaspettata.
+Failed to generate token.,Generazione del token non riuscita.
+"Unsupported scope ""%1"".","Ambito non supportato ""%1""."
+Generated token hash already exists at another scope.,L'hash del token generato esiste già in un altro ambito.
+Revoke,Revoca
+Token revoked.,Token revocato.
+Failed to revoke token.,Revoca del token non riuscita.
+"Revoke the API access token at this scope? Callers using it will be denied immediately.",Revocare il token di accesso API in questo ambito? Le chiamate che lo utilizzano verranno negate immediatamente.
+A token is currently configured at this scope.,In questo ambito è attualmente configurato un token.
+"Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.",Copre solo questo store. L'emissione di questo token rimuove questo store dalla vista del token con ambito predefinito e da qualsiasi token con ambito sito web padre: ora appartiene esclusivamente a questo token con ambito vista store.
+"Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.",Copre ogni vista store in questo sito web che non ha un token separato all'ambito vista store. L'emissione di questo token rimuove questi store dalla vista del token con ambito predefinito; qualsiasi vista store con il proprio token dedicato rimane invisibile a questo token.
+Covers every store not tokened separately at website or store-view scope.,Copre ogni store che non ha un token separato all'ambito sito web o vista store.

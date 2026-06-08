@@ -418,3 +418,24 @@ This will be added to or subtracted from the regular shipping price,To zostanie 
 "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Użyj procentu całkowitej kwoty zamówienia dla ubezpieczenia. Po obliczeniu zostaje wybrana kolejna dostępna skala cenowa.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Po włączeniu, automaty paczkowe zostaną wykluczone z miejsc odbioru dla wszystkich produktów. Wyświetlane będą tylko fizyczne punkty odbioru."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Z opcją 'Eksportuj całe zamówienie', MyParcel wyeksportuje każde zamówienie w całości do biura zaplecza do dalszego przetwarzania."
+
+Titles,Tytuły
+API Access,Dostęp API
+API access token,Token dostępu API
+"Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Wygeneruj token dostępu do REST API w tym zakresie. Token w postaci jawnego tekstu jest wyświetlany raz, skopiuj go przed opuszczeniem strony. Przechowywany jest tylko jego skrót. Aby go odnowić, kliknij ponownie Generuj; poprzedni token w tym zakresie natychmiast przestaje działać. Aby usunąć token (zwalniając jego sklepy do tokena zakresu nadrzędnego, jeśli istnieje), kliknij Cofnij."
+MyParcel API Access Token Management,Zarządzanie tokenami dostępu API MyParcel
+"Token generated. Copy it now, it will not be shown again.","Token wygenerowany. Skopiuj go teraz, nie zostanie ponownie wyświetlony."
+Regenerate,Ponownie wygeneruj
+Generate,Generuj
+Unexpected response.,Nieoczekiwana odpowiedź.
+Failed to generate token.,Nie udało się wygenerować tokena.
+"Unsupported scope ""%1"".","Nieobsługiwany zakres ""%1""."
+Generated token hash already exists at another scope.,Wygenerowany skrót tokena już istnieje w innym zakresie.
+Revoke,Cofnij
+Token revoked.,Token cofnięty.
+Failed to revoke token.,Nie udało się cofnąć tokena.
+"Revoke the API access token at this scope? Callers using it will be denied immediately.","Cofnąć token dostępu API w tym zakresie? Wywołania, które go używają, zostaną natychmiast odrzucone."
+A token is currently configured at this scope.,W tym zakresie jest aktualnie skonfigurowany token.
+"Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.",Dotyczy tylko tego sklepu. Wydanie tego tokena usuwa ten sklep z widoku tokena zakresu domyślnego oraz z widoku dowolnego tokena zakresu nadrzędnej witryny: jest teraz wyłącznie własnością tego tokena zakresu widoku sklepu.
+"Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dotyczy każdego widoku sklepu w tej witrynie, który nie ma oddzielnego tokena na poziomie widoku sklepu. Wydanie tego tokena usuwa te sklepy z widoku tokena zakresu domyślnego; widok sklepu z własnym dedykowanym tokenem pozostaje niewidoczny dla tego tokena."
+Covers every store not tokened separately at website or store-view scope.,Dotyczy każdego sklepu który nie ma oddzielnego tokena na poziomie witryny lub widoku sklepu.

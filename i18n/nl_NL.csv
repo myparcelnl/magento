@@ -430,3 +430,24 @@ This will be added to or subtracted from the regular shipping price,Dit wordt op
 "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Gebruik percentage van het totale orderbedrag voor verzekering. Na de berekening wordt de eerstvolgende beschikbare prijsschaal geselecteerd.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wanneer ingeschakeld, worden pakketkluizen uitgesloten van ophaallocaties voor alle producten. Alleen fysieke afhaalpunten worden getoond."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Met 'Exporteer hele bestelling' exporteert MyParcel elke bestelling volledig naar de backoffice voor verdere verwerking.
+
+Titles,Titels
+API Access,API-toegang
+API access token,API-toegangstoken
+"Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Genereer een token voor REST API-toegang op dit bereik. De leesbare token wordt eenmalig getoond, kopieer hem voordat je de pagina verlaat. Alleen de hash wordt opgeslagen. Klik opnieuw op Genereren om te roteren; de vorige token op dit bereik werkt direct niet meer. Klik op Intrekken om een token te wissen (de bijbehorende stores keren terug naar een token op een bovenliggend bereik indien aanwezig)."
+MyParcel API Access Token Management,MyParcel API-toegangstokenbeheer
+"Token generated. Copy it now, it will not be shown again.","Token gegenereerd. Kopieer hem nu, hij wordt niet opnieuw getoond."
+Regenerate,Opnieuw genereren
+Generate,Genereren
+Unexpected response.,Onverwacht antwoord.
+Failed to generate token.,Genereren van token mislukt.
+"Unsupported scope ""%1"".","Niet-ondersteunde scope ""%1""."
+Generated token hash already exists at another scope.,De gegenereerde tokenhash bestaat al op een andere scope.
+Revoke,Intrekken
+Token revoked.,Token ingetrokken.
+Failed to revoke token.,Intrekken van token mislukt.
+"Revoke the API access token at this scope? Callers using it will be denied immediately.","Het API-toegangstoken op dit bereik intrekken? Aanroepen die dit token gebruiken worden direct geweigerd."
+A token is currently configured at this scope.,Er is op dit bereik momenteel een token geconfigureerd.
+"Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.","Dekt uitsluitend deze store. Door dit token uit te geven wordt deze store verwijderd uit het zicht van het token op standaardbereik en van elk token op bovenliggend websitebereik: vanaf nu hoort deze store exclusief bij dit token op store-view-bereik."
+"Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dekt elke store-view binnen deze website die niet apart op store-view-bereik een eigen token heeft. Door dit token uit te geven worden deze stores verwijderd uit het zicht van het token op standaardbereik; een store-view binnen deze website met een eigen token blijft onzichtbaar voor dit token."
+Covers every store not tokened separately at website or store-view scope.,Dekt elke store die niet apart op website- of store-view-bereik een eigen token heeft.

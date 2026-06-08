@@ -418,3 +418,24 @@ This will be added to or subtracted from the regular shipping price,Dette vil bl
 "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Brug procentdel af det samlede ordrebeløb til forsikring. Efter beregningen vælges den næste tilgængelige prisskala.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Når aktiveret, vil pakkebokse blive udelukket fra afhentningssteder for alle produkter. Kun fysiske afhentningssteder vil blive vist."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Med 'Eksporter hele ordren' vil MyParcel eksportere hver ordre i sin helhed til back office til videre behandling.
+
+Titles,Titler
+API Access,API-adgang
+API access token,API-adgangstoken
+"Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Generer et token til REST API-adgang i dette omfang. Klartekst-tokenet vises én gang, kopier det inden du navigerer væk. Kun dets hash gemmes. For at rotere skal du klikke på Generer igen; det forrige token i dette omfang holder op med at virke øjeblikkeligt. For at slette et token (frigive dets butikker til et token med overordnet omfang, hvis der er et), klik på Tilbagekald."
+MyParcel API Access Token Management,MyParcel API-adgangstokenstyring
+"Token generated. Copy it now, it will not be shown again.","Token genereret. Kopiér det nu, det vil ikke blive vist igen."
+Regenerate,Regenerer
+Generate,Generer
+Unexpected response.,Uventet svar.
+Failed to generate token.,Kunne ikke generere token.
+"Unsupported scope ""%1"".","Ikke-understøttet omfang ""%1""."
+Generated token hash already exists at another scope.,Den genererede token-hash findes allerede i et andet omfang.
+Revoke,Tilbagekald
+Token revoked.,Token tilbagekaldt.
+Failed to revoke token.,Kunne ikke tilbagekalde token.
+"Revoke the API access token at this scope? Callers using it will be denied immediately.","Tilbagekald API-adgangstokenet i dette omfang? Opkaldere, der bruger det, vil blive nægtet øjeblikkeligt."
+A token is currently configured at this scope.,Der er i øjeblikket konfigureret et token i dette omfang.
+"Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.",Dækker kun denne butik. Udstedelse af dette token fjerner denne butik fra standardomfangstokenets visning og fra enhver overordnet webstedstokens visning: det ejes nu udelukkende af dette butiksvisningsomfangstoken.
+"Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dækker alle butiksvisninger i dette websted, der ikke er tokenet separat i butiksvisningsomfang. Udstedelse af dette token fjerner disse butikker fra standardomfangstokenets visning; en butiksvisning med sit eget dedikerede token forbliver usynligt for dette token."
+Covers every store not tokened separately at website or store-view scope.,Dækker alle butikker der ikke er tokenet separat i websted- eller butiksvisningsomfang.
