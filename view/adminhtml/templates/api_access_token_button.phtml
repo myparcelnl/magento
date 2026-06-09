@@ -51,6 +51,7 @@ $mageInit = [
                class="admin__control-text myparcel-api-access-token__plaintext-input"
                id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_plaintext_input"
                aria-label="<?= $escaper->escapeHtmlAttr(__('API access token')) ?>"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
                value=""/>
         <p class="message message-success myparcel-api-access-token__notice">
             <?= $escaper->escapeHtml(__('Token generated. Copy it now, it will not be shown again.')) ?>

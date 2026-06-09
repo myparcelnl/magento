@@ -76,6 +76,7 @@ define([], function () {
                 if (response && response.success) {
                     current.hidden    = true;
                     plaintext.hidden  = true;
+                    input.value       = '';
                     revoked.hidden    = false;
                     revokeBtn.hidden  = true;
                     label.textContent = config.generateLabel;
