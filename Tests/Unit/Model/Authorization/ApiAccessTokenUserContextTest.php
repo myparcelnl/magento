@@ -12,6 +12,15 @@ use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
 const FAKE_INTEGRATION_ID = 7;
 
 /**
+ * Produces a 64-char alphanumeric test token by right-padding the discriminator with zeros.
+ * Tokens must satisfy the extraction regex: ^[a-zA-Z0-9]{64}$ — no hyphens.
+ */
+function testToken(string $discriminator): string
+{
+    return str_pad($discriminator, 64, '0', STR_PAD_RIGHT);
+}
+
+/**
  * TokenScopeContext mock for tests where UserContext should NOT reach findByHash
  * (missing header, Bearer, empty token). Any unexpected interaction surfaces as
  * an assertion failure rather than silently passing.
@@ -44,7 +53,7 @@ function makeScopeContextNoMatch(): TokenScopeContext
 function makeScopeContextMatching(string $plaintext, array $coord): TokenScopeContext
 {
     $ctx = Mockery::mock(TokenScopeContext::class);
-    $ctx->shouldReceive('findByHash')->with($plaintext)->andReturn($coord);
+    $ctx->shouldReceive('findByHash')->with(hash('sha256', $plaintext))->andReturn($coord);
     $ctx->shouldReceive('setOwner')->once()->with($coord['scope'], $coord['scopeId']);
     return $ctx;
 }
@@ -84,7 +93,7 @@ it('returns null when MyParcel scheme is present but the token is empty', functi
 
 it('returns null when TokenScopeContext::findByHash finds no matching row', function () {
     $ctx = new ApiAccessTokenUserContext(
-        mockRequestWithAuthorization('MyParcel deadbeef'),
+        mockRequestWithAuthorization('MyParcel ' . testToken('deadbeef')),
         mockIntegrationService(FAKE_INTEGRATION_ID),
         makeScopeContextNoMatch()
     );
@@ -94,7 +103,7 @@ it('returns null when TokenScopeContext::findByHash finds no matching row', func
 });
 
 it('propagates the matched default-scope coordinate and returns USER_TYPE_INTEGRATION', function () {
-    $plaintext = 'plaintext-token-1';
+    $plaintext = testToken('token1');
     $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
     $ctx = new ApiAccessTokenUserContext(
@@ -108,7 +117,7 @@ it('propagates the matched default-scope coordinate and returns USER_TYPE_INTEGR
 });
 
 it('propagates the matched website-scope coordinate', function () {
-    $plaintext = 'plaintext-token-2';
+    $plaintext = testToken('token2');
     $coord     = ['scope' => ScopeInterface::SCOPE_WEBSITES, 'scopeId' => 1];
 
     $ctx = new ApiAccessTokenUserContext(
@@ -121,7 +130,7 @@ it('propagates the matched website-scope coordinate', function () {
 });
 
 it('propagates the matched store-scope coordinate', function () {
-    $plaintext = 'plaintext-token-3';
+    $plaintext = testToken('token3');
     $coord     = ['scope' => ScopeInterface::SCOPE_STORES, 'scopeId' => 2];
 
     $ctx = new ApiAccessTokenUserContext(
@@ -134,7 +143,7 @@ it('propagates the matched store-scope coordinate', function () {
 });
 
 it('accepts every casing of the MyParcel scheme', function (string $scheme) {
-    $plaintext = 'plaintext-case-' . $scheme;
+    $plaintext = testToken('case' . $scheme);
     $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
     $ctx = new ApiAccessTokenUserContext(
@@ -147,12 +156,12 @@ it('accepts every casing of the MyParcel scheme', function (string $scheme) {
 })->with(['MyParcel', 'myparcel', 'MYPARCEL', 'MyPaRcEl']);
 
 it('returns null when the integration record has not been provisioned (id missing)', function () {
-    $plaintext = 'plaintext-no-integration';
+    $plaintext = testToken('nointegration');
     $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
     // setOwner is not expected when integration resolution fails — UserContext bails before that.
     $scopeContext = Mockery::mock(TokenScopeContext::class);
-    $scopeContext->shouldReceive('findByHash')->with($plaintext)->andReturn($coord);
+    $scopeContext->shouldReceive('findByHash')->with(hash('sha256', $plaintext))->andReturn($coord);
     $scopeContext->shouldNotReceive('setOwner');
 
     $ctx = new ApiAccessTokenUserContext(
@@ -168,7 +177,7 @@ it('returns null when the integration record has not been provisioned (id missin
 it('falls back to $_SERVER[REDIRECT_HTTP_AUTHORIZATION] when the framework Request cannot see the header', function () {
     // Reproduces the Apache "internal redirect prefixes env vars with REDIRECT_" quirk
     // that affects Magento installs with DocumentRoot at the project root rather than pub/.
-    $plaintext = 'plaintext-token-redirect';
+    $plaintext = testToken('tokenredirect');
     $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
     $request = Mockery::mock(RequestInterface::class);
@@ -196,7 +205,7 @@ it('falls back to $_SERVER[REDIRECT_HTTP_AUTHORIZATION] when the framework Reque
 });
 
 it('processes the request only once across repeated getUserId/getUserType calls', function () {
-    $plaintext = 'plaintext-cached';
+    $plaintext = testToken('tokencached');
     $coord     = ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0];
 
     $request = Mockery::mock(RequestInterface::class);

@@ -191,7 +191,7 @@ it('website-scope owner whose website has zero member stores returns an empty pe
 // findByHash: timing-safe match against the stored SHA-256 hash row set.
 // ====================================================================
 
-it('findByHash returns the (scope, scopeId) of the row whose SHA-256 matches the presented plaintext', function () {
+it('findByHash returns the (scope, scopeId) of the row whose stored hash matches the presented hash', function () {
     $plaintext = 'plaintext-token-find';
     $context   = new TokenScopeContext(
         mockCollectionFactory([
@@ -201,11 +201,11 @@ it('findByHash returns the (scope, scopeId) of the row whose SHA-256 matches the
         mockStoreManager([])
     );
 
-    expect($context->findByHash($plaintext))
+    expect($context->findByHash(hash('sha256', $plaintext)))
         ->toBe(['scope' => ScopeInterface::SCOPE_WEBSITES, 'scopeId' => 1]);
 });
 
-it('findByHash returns null when no stored row hashes the presented plaintext', function () {
+it('findByHash returns null when no stored row matches the presented hash', function () {
     $context = new TokenScopeContext(
         mockCollectionFactory([
             ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0, 'value' => hash('sha256', 'unrelated')],
@@ -213,7 +213,7 @@ it('findByHash returns null when no stored row hashes the presented plaintext', 
         mockStoreManager([])
     );
 
-    expect($context->findByHash('not-the-plaintext'))->toBeNull();
+    expect($context->findByHash(hash('sha256', 'not-the-plaintext')))->toBeNull();
 });
 
 it('findByHash and permittedStoreIds share a single row load across the request', function () {
@@ -225,7 +225,7 @@ it('findByHash and permittedStoreIds share a single row load across the request'
 
     $context = new TokenScopeContext($factory, mockStoreManager(fourStoreFixture()));
 
-    $matched = $context->findByHash($plaintext);
+    $matched = $context->findByHash(hash('sha256', $plaintext));
     expect($matched)->toBe(['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scopeId' => 0]);
 
     $context->setOwner($matched['scope'], $matched['scopeId']);
