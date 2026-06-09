@@ -195,19 +195,29 @@ function(
      * @returns {XMLHttpRequest}
      */
     calculatePackageType: function(carrier) {
-      function isVisible(el) {
-        return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
-      }
-      const list = document.querySelector('[name="country_id"]'),
-          countryId = (list && isVisible(list)) ? list.options[list.selectedIndex].value : Model.countryId();
       return sendRequest(
         'rest/V1/package_type',
         'GET',
         {
           carrier: carrier,
-          countryCode: countryId,
+          countryCode: Model.resolveCountryId(Model.countryId()),
         }
       );
+    },
+
+    /**
+     * Returns the country id from the checkout form select list country_id, this is Magento standard.
+     * If the element is not shown or present, the fallbackCountryId will be returned.
+     * @param fallbackCountryId
+     * @returns {*}
+     */
+    resolveCountryId: function(fallbackCountryId) {
+      function isVisible(el) {
+        return !!(el.offsetWidth || el.offsetHeight || el.getClientRects().length);
+      }
+      const list = document.querySelector('[name="country_id"]');
+
+      return (list && isVisible(list)) ? list.options[list.selectedIndex].value : fallbackCountryId;
     },
 
     /**
