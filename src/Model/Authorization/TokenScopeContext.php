@@ -104,7 +104,7 @@ class TokenScopeContext implements ResetAfterRequestInterface
      */
     public function findByHash(string $plaintext): ?array
     {
-        $presentedHash = hash('sha256', $plaintext);
+        $presentedHash = TokenService::hashToken($plaintext);
 
         foreach ($this->loadRows() as $row) {
             if (hash_equals($row['value'], $presentedHash)) {

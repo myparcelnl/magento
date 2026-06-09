@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <!--
-        Recognizes "Authorization: MyParcel <token>" requests as authentication. Runs at sortOrder=5,
+        Recognizes "Authorization: myparcel <token>" requests as authentication. Runs at sortOrder=5,
         ahead of Magento's native Bearer/token user context (sortOrder=10), so a valid MyParcel token
         resolves to USER_TYPE_INTEGRATION before native auth gets a turn. Non-token callers (admin
         session, native Bearer, guest) fall through unchanged.

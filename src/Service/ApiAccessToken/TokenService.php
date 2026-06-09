@@ -49,6 +49,11 @@ class TokenService
         $this->randomBytes                 = $randomBytes;
     }
 
+    public static function hashToken(string $plaintext): string
+    {
+        return hash('sha256', $plaintext);
+    }
+
     /**
      * Generates a fresh plaintext token for ($scope, $scopeId), stores its SHA-256 hash, returns the plaintext.
      *
@@ -60,7 +65,7 @@ class TokenService
         [$scope, $scopeId] = $this->normalizeCoordinate($scope, $scopeId);
 
         $plaintext = bin2hex($this->randomBytes->generate(32));
-        $hash      = hash('sha256', $plaintext);
+        $hash      = self::hashToken($plaintext);
 
         $this->assertHashIsUnique($hash, $scope, $scopeId);
 
@@ -91,6 +96,10 @@ class TokenService
     {
         if (! in_array($scope, self::ALLOWED_SCOPES, true)) {
             throw new InputException(__('Unsupported scope "%1".', $scope));
+        }
+
+        if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT !== $scope && $scopeId <= 0) {
+            throw new InputException(__('scopeId must be a positive integer for scope "%1".', $scope));
         }
 
         if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $scope) {

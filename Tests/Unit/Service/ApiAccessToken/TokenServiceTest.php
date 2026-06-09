@@ -67,6 +67,24 @@ it('throws InputException for unsupported scope (e.g. group)', function () {
     $service->generateForScope('group', 1);
 })->throws(InputException::class);
 
+it('throws InputException when scopeId is zero for a non-default scope', function () {
+    $writer = Mockery::mock(WriterInterface::class);
+    $writer->shouldNotReceive('save');
+
+    $service = new TokenService($writer, mockCollectionFactory(), mockCacheTypeList(), mockRandomBytesGenerator());
+
+    $service->generateForScope(ScopeInterface::SCOPE_STORES, 0);
+})->throws(InputException::class);
+
+it('throws InputException when scopeId is negative for a website scope', function () {
+    $writer = Mockery::mock(WriterInterface::class);
+    $writer->shouldNotReceive('save');
+
+    $service = new TokenService($writer, mockCollectionFactory(), mockCacheTypeList(), mockRandomBytesGenerator());
+
+    $service->generateForScope(ScopeInterface::SCOPE_WEBSITES, -1);
+})->throws(InputException::class);
+
 it('throws AlreadyExistsException and does not persist when hash already exists at another scope', function () {
     $writer = Mockery::mock(WriterInterface::class);
     $writer->shouldNotReceive('save');

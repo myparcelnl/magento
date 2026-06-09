@@ -420,7 +420,6 @@ This will be added to or subtracted from the regular shipping price,Ceci sera aj
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Lorsqu'activé, les casiers à colis seront exclus des points de retrait pour tous les produits. Seuls les points de retrait physiques seront affichés."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Avec 'Exporter la commande entière', MyParcel exportera chaque commande dans sa totalité vers le back-office pour un traitement ultérieur."
 
-Titles,Titres
 API Access,Accès API
 API access token,Token d'accès API
 "Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Générez un token pour l'accès à l'API REST dans cette portée. Le token en texte clair est affiché une seule fois, copiez-le avant de quitter la page. Seul son hachage est stocké. Pour le renouveler, cliquez à nouveau sur Générer ; le token précédent dans cette portée cesse de fonctionner immédiatement. Pour effacer un token (libérant ses stores vers un token de portée parente s'il en existe un), cliquez sur Révoquer."

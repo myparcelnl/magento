@@ -431,7 +431,6 @@ This will be added to or subtracted from the regular shipping price,Dit wordt op
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wanneer ingeschakeld, worden pakketkluizen uitgesloten van ophaallocaties voor alle producten. Alleen fysieke afhaalpunten worden getoond."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Met 'Exporteer hele bestelling' exporteert MyParcel elke bestelling volledig naar de backoffice voor verdere verwerking.
 
-Titles,Titels
 API Access,API-toegang
 API access token,API-toegangstoken
 "Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Genereer een token voor REST API-toegang op dit bereik. De leesbare token wordt eenmalig getoond, kopieer hem voordat je de pagina verlaat. Alleen de hash wordt opgeslagen. Klik opnieuw op Genereren om te roteren; de vorige token op dit bereik werkt direct niet meer. Klik op Intrekken om een token te wissen (de bijbehorende stores keren terug naar een token op een bovenliggend bereik indien aanwezig)."
