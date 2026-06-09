@@ -7,7 +7,7 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
 
-/** Standard 2-website fixture: W1={s1,s2}, W2={s3,s4} */
+/** Standard 2-website fixture: W1={store 1, store 2}, W2={store 3, store 4} */
 function fourStoreFixture(): array
 {
     return [
@@ -52,7 +52,7 @@ it('default-scope owner has store 2 carved out by a (stores, 2) row', function (
     expect($context->permittedStoreIds())->toBe([1, 3, 4]);
 });
 
-it('default-scope owner loses entire website W1 when a (websites, 1) row exists, even with no store-tier row', function () {
+it('default-scope owner loses entire website 1 when a (websites, 1) row exists, even with no store-tier row', function () {
     $context = new TokenScopeContext(
         mockCollectionFactory([
             ['scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 'scope_id' => 0],
@@ -173,9 +173,9 @@ it('assertStoreInScope passes for a store inside the permitted set', function ()
 });
 
 // US-000006 Scenario 9: a website containing zero store-views still authenticates,
-// but its permitted set is empty (no store has W3 as its parent).
+// but its permitted set is empty (no store has website 3 as its parent).
 it('website-scope owner whose website has zero member stores returns an empty permitted set', function () {
-    $fixtureWithW3 = array_merge(fourStoreFixture(), []); // W3 intentionally has no stores
+    $fixtureWithW3 = array_merge(fourStoreFixture(), []); // website 3 intentionally has no stores
     $context = new TokenScopeContext(
         mockCollectionFactory([
             ['scope' => ScopeInterface::SCOPE_WEBSITES, 'scope_id' => 3],
@@ -188,8 +188,7 @@ it('website-scope owner whose website has zero member stores returns an empty pe
 });
 
 // ====================================================================
-// findByHash: constant-time match against the stored SHA-256 hash row set.
-// Moved here from ApiAccessTokenUserContext as part of S2 to dedupe the DB query.
+// findByHash: timing-safe match against the stored SHA-256 hash row set.
 // ====================================================================
 
 it('findByHash returns the (scope, scopeId) of the row whose SHA-256 matches the presented plaintext', function () {
