@@ -8,6 +8,7 @@ use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 use MyParcelNL\Magento\Service\Settings;
 
 /**
@@ -48,7 +49,7 @@ class ApiAccessTokenButton extends Template
     public function getTokenPath(): string
     {
         $field = (array) $this->getData('field');
-        return $field['path'] ?? 'myparcelnl_magento_general/api_access_token';
+        return $field['path'] ?? TokenService::CONFIG_PATH;
     }
 
     public function getFieldHtmlId(): string

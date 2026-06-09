@@ -119,7 +119,7 @@ class Settings
     }
 
     /**
-     * Partition-aware: true iff a row exists at the exact (scope, scopeId) for this path.
+     * Partition-aware: true if and only if a row exists at the exact (scope, scopeId) for this path.
      * Unlike hasOwnValue() this does NOT short-circuit for default scope.
      */
     public function hasRowAtScope(string $path, string $scope, int $scopeId): bool
@@ -134,7 +134,7 @@ class Settings
 
     /**
      * Inheritance-aware: default scope always "owns" its value (config.xml fallback),
-     * otherwise true iff an override row exists at the exact (scope, scopeId).
+     * otherwise true if and only if an override row exists at the exact (scope, scopeId).
      */
     public function hasOwnValue(string $path, string $scopeName = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, ?int $scopeId = null): bool
     {
