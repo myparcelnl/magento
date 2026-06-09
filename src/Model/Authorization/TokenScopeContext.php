@@ -78,7 +78,7 @@ class TokenScopeContext implements ResetAfterRequestInterface
             return $this->permittedStoreIds;
         }
 
-        $coords      = $this->coords();
+        $coords      = $this->rowCoordinateSet();
         $ownerCoord  = $this->owner['scope'] . ':' . $this->owner['scopeId'];
         $permitted   = [];
 
@@ -170,9 +170,12 @@ class TokenScopeContext implements ResetAfterRequestInterface
     }
 
     /**
+     * Returns a set of "{scope}:{scopeId}" keys for every stored token row.
+     * Used by permittedStoreIds() to determine store ownership via resolveOwner().
+     *
      * @return array<string, true>
      */
-    private function coords(): array
+    private function rowCoordinateSet(): array
     {
         $coords = [];
         foreach ($this->loadRows() as $row) {
@@ -182,22 +185,22 @@ class TokenScopeContext implements ResetAfterRequestInterface
     }
 
     /**
-     * @param array<string, true> $coords
+     * @param array<string, true> $rowCoordinateSet Result of rowCoordinateSet().
      */
-    private function resolveOwner(array $coords, int $storeId, int $websiteId): ?string
+    private function resolveOwner(array $rowCoordinateSet, int $storeId, int $websiteId): ?string
     {
         $candidate = ScopeInterface::SCOPE_STORES . ':' . $storeId;
-        if (isset($coords[$candidate])) {
+        if (isset($rowCoordinateSet[$candidate])) {
             return $candidate;
         }
 
         $candidate = ScopeInterface::SCOPE_WEBSITES . ':' . $websiteId;
-        if (isset($coords[$candidate])) {
+        if (isset($rowCoordinateSet[$candidate])) {
             return $candidate;
         }
 
         $candidate = ScopeConfigInterface::SCOPE_TYPE_DEFAULT . ':0';
-        if (isset($coords[$candidate])) {
+        if (isset($rowCoordinateSet[$candidate])) {
             return $candidate;
         }
 
