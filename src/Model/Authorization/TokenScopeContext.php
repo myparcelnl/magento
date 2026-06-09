@@ -96,18 +96,16 @@ class TokenScopeContext implements ResetAfterRequestInterface
     }
 
     /**
-     * Finds the token row whose stored SHA-256 matches the presented plaintext (constant-time).
+     * Finds the token row whose stored SHA-256 matches the presented hash (constant-time).
      * Memoizes the underlying row load so a token-authenticated request hits the DB once
      * across both findByHash() and permittedStoreIds().
      *
      * @return array{scope: string, scopeId: int}|null
      */
-    public function findByHash(string $plaintext): ?array
+    public function findByHash(string $hash): ?array
     {
-        $presentedHash = TokenService::hashToken($plaintext);
-
         foreach ($this->loadRows() as $row) {
-            if (hash_equals($row['value'], $presentedHash)) {
+            if (hash_equals($row['value'], $hash)) {
                 return ['scope' => $row['scope'], 'scopeId' => $row['scopeId']];
             }
         }

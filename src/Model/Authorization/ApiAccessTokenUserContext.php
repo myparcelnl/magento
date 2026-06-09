@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Model\Authorization;
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Integration\Api\IntegrationServiceInterface;
+use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
 /**
  * UserContextInterface for MyParcel-token-authenticated REST requests.
@@ -64,7 +65,10 @@ class ApiAccessTokenUserContext implements UserContextInterface
             return;
         }
 
-        $matched = $this->tokenScopeContext->findByHash($token);
+        $hash = TokenService::hashToken($token);
+        unset($token);
+
+        $matched = $this->tokenScopeContext->findByHash($hash);
         if ($matched === null) {
             return;
         }
@@ -90,17 +94,7 @@ class ApiAccessTokenUserContext implements UserContextInterface
             return null;
         }
 
-        $parts = explode(' ', $header, 2);
-        if (count($parts) !== 2) {
-            return null;
-        }
-
-        if (strtolower($parts[0]) !== self::SCHEME) {
-            return null;
-        }
-
-        $token = trim($parts[1]);
-        return $token === '' ? null : $token;
+        return preg_match('/^' . self::SCHEME . ' ([a-zA-Z0-9]{64})$/i', $header, $m) ? $m[1] : null;
     }
 
     /**
