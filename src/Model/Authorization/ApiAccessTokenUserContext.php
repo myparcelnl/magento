@@ -94,7 +94,7 @@ class ApiAccessTokenUserContext implements UserContextInterface
             return null;
         }
 
-        return preg_match('/^' . self::SCHEME . ' ([a-zA-Z0-9]{64})$/i', $header, $m) ? $m[1] : null;
+        return preg_match('/^' . self::SCHEME . ' ([a-z0-9]{64})$/i', $header, $m) ? $m[1] : null;
     }
 
     /**
