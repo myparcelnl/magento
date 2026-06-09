@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Plugin\Magento\Sales;
 
-use Magento\Framework\Api\Filter;
 use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\Search\FilterGroup;
 use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -46,6 +44,7 @@ class OrderRepositoryStoreFilter
         SearchCriteriaInterface  $searchCriteria
     ): array {
         $permitted = $this->tokenScopeContext->permittedStoreIds();
+        // Non-token request (admin/Bearer/guest) — no store filter applied.
         if ($permitted === null) {
             return [$searchCriteria];
         }
@@ -78,6 +77,7 @@ class OrderRepositoryStoreFilter
         OrderInterface           $order
     ): OrderInterface {
         $permitted = $this->tokenScopeContext->permittedStoreIds();
+        // Non-token request (admin/Bearer/guest) — no store filter applied.
         if ($permitted === null) {
             return $order;
         }

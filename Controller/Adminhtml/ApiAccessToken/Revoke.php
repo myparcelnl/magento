@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\ApiAccessToken;
 
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\InputException;
 
@@ -12,7 +13,7 @@ use Magento\Framework\Exception\InputException;
  *
  * No soft-revoke or grace period — once revoked, the token is gone. 400 on invalid scope.
  */
-class Revoke extends AbstractTokenAction
+class Revoke extends AbstractTokenAction implements HttpPostActionInterface
 {
     public function execute(): ResultInterface
     {

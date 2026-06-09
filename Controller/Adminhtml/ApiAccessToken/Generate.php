@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\ApiAccessToken;
 
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\InputException;
@@ -15,7 +16,7 @@ use Magento\Framework\Exception\InputException;
  * since storage holds only the SHA-256 hash. 409 on hash collision against another scope,
  * 400 on an invalid scope name.
  */
-class Generate extends AbstractTokenAction
+class Generate extends AbstractTokenAction implements HttpPostActionInterface
 {
     public function execute(): ResultInterface
     {

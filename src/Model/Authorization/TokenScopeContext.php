@@ -17,7 +17,7 @@ use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
  *
  * Memoizes the authenticated owner (scope, scopeId) plus the row-coordinate partition of
  * stores it may see: each non-admin store's owner is the most-specific row that exists
- * (stores > websites > default), and a store belongs to the caller iff its owner matches.
+ * (stores > websites > default), and a store belongs to the caller if its owner matches.
  * Implements ResetAfterRequestInterface so long-running modes (queue consumers, async API)
  * do not leak state between requests. Single source of truth for "which stores can this
  * token see" — consulted by every scope-filtering plugin.
@@ -64,7 +64,7 @@ class TokenScopeContext implements ResetAfterRequestInterface
      * Returns null when no token authenticated this request (admin / Bearer / guest).
      * Otherwise returns the row-coordinate partition: each non-admin store's owner is
      * the most-specific row that exists (stores > websites > default), and a store
-     * belongs to the caller iff its owner matches the caller's row coordinate.
+     * belongs to the caller if and only if its owner matches the caller's row coordinate.
      *
      * @return int[]|null
      */
