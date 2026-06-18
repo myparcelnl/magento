@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.7.1](https://github.com/myparcelnl/magento/compare/v5.7.0...v5.7.1) (2026-06-18)
+
+
+### :bug: Bug Fixes
+
+* **checkout:** use correct country for initial delivery options ([#961](https://github.com/myparcelnl/magento/issues/961)) ([d91d1cd](https://github.com/myparcelnl/magento/commit/d91d1cde0642cd251325eb64f850192653e4238b))
+* improve delivery costs matrix json defensively ([#959](https://github.com/myparcelnl/magento/issues/959)) ([17d790e](https://github.com/myparcelnl/magento/commit/17d790e0284f4ccc77c1ae21140b0fc6c6d23084))
+
 ## [5.7.0](https://github.com/myparcelnl/magento/compare/v5.6.0...v5.7.0) (2026-06-05)
 
 
