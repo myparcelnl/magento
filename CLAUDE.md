@@ -89,6 +89,8 @@ New versioned REST endpoints follow a structured pattern:
 
 To add a new versioned endpoint: create an interface in `Api/`, an endpoint class extending `AbstractEndpoint`, request/resource classes per version, and register in `etc/webapi.xml` + `etc/di.xml`.
 
+For endpoints that must be callable with an API access token (3-tier scoped: default / website / store), follow the checklist in [`docs/design/adding-a-token-accessible-rest-endpoint.md`](docs/design/adding-a-token-accessible-rest-endpoint.md). It enumerates all four config files (`etc/webapi.xml`, `etc/acl.xml`, `etc/integration.xml`, `etc/webapi_rest/di.xml`) that always change and when scope-filtering plugins are needed.
+
 ### Documentation (`docs/`)
 
 - **ADRs**: Architectural Decision Records live in the engineering-wide [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) repo, not in this module.
@@ -102,6 +104,15 @@ To add a new versioned endpoint: create an interface in `Api/`, an endpoint clas
 - Admin settings: `etc/dynamic_settings.json` (intermediate solution, will be replaced by capabilities endpoint later)
 - Config paths: `myparcelnl_magento_general/*`, `myparcelnl_magento_[carrier]_settings/*`
 - DI: `etc/di.xml` (backend), `etc/frontend/di.xml` (checkout)
+
+  When adding a new admin setting:
+  1. Add a JSON entry to `etc/dynamic_settings.json` with `id`, `path`, `type`,                                                                                                                                      
+     `label`, and the three `showIn*` flags.
+  2. For non-trivial UI (buttons, custom widgets), set `frontend_model` to a block
+     class in `src/Block/System/Config/Form/`.
+  3. Persist via `Magento\Framework\App\Config\Storage\WriterInterface::save(...)`.
+  4. Read scoped existence via `Settings::hasOwnValue($path, $scope, $scopeId)`                                       
+     (partition semantics — does NOT cascade).
 
 ### Database
 

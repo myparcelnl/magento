@@ -2,6 +2,9 @@
     <module name="MyParcelNL_Magento" setup_version="5.7.1">
         <sequence>
             <module name="Magento_Sales"/>
+            <module name="Magento_Webapi"/>
+            <module name="Magento_Integration"/>
+            <module name="Magento_Authorization"/>
         </sequence>
     </module>
 </config>

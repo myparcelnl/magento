@@ -167,6 +167,7 @@ Do you want to know what they are doing in the near future? Below you can find t
 API key is not known. Go to the settings in the backoffice to create an API key. Fill the API key in the settings.,La clé API est inconnue. Rendez-vous dans les paramètres du backoffice pour générer une clé API. Introduisez la clé API dans les paramètres.
 Basic settings,Paramètres de base
 Delivery settings,Paramètres de livraison
+Titles,Titres
 day,jour
 days,jours
 Hide days,Masquer les jours
@@ -418,3 +419,23 @@ This will be added to or subtracted from the regular shipping price,Ceci sera aj
 "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.","Utiliser le pourcentage du montant total de la commande pour l'assurance. Après le calcul, l'échelle de prix disponible suivante est sélectionnée."
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Lorsqu'activé, les casiers à colis seront exclus des points de retrait pour tous les produits. Seuls les points de retrait physiques seront affichés."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Avec 'Exporter la commande entière', MyParcel exportera chaque commande dans sa totalité vers le back-office pour un traitement ultérieur."
+
+API Access,Accès API
+API access token,Token d'accès API
+"Generate a token for REST API access at this scope. The plaintext token is shown once, copy it before navigating away. Only its hash is stored. To rotate, click Generate again; the previous token at this scope stops working immediately. To clear a token (releasing its stores back to a parent-scope token if one exists), click Revoke.","Générez un token pour l'accès à l'API REST dans cette portée. Le token en texte clair est affiché une seule fois, copiez-le avant de quitter la page. Seul son hachage est stocké. Pour le renouveler, cliquez à nouveau sur Générer ; le token précédent dans cette portée cesse de fonctionner immédiatement. Pour effacer un token (libérant ses stores vers un token de portée parente s'il en existe un), cliquez sur Révoquer."
+MyParcel API Access Token Management,Gestion des tokens d'accès API MyParcel
+"Token generated. Copy it now, it will not be shown again.","Token généré. Copiez-le maintenant, il ne sera plus affiché."
+Regenerate,Régénérer
+Generate,Générer
+Unexpected response.,Réponse inattendue.
+Failed to generate token.,Échec de la génération du token.
+"Unsupported scope ""%1"".","Portée non prise en charge ""%1""."
+Generated token hash already exists at another scope.,Le hachage du token généré existe déjà dans une autre portée.
+Revoke,Révoquer
+Token revoked.,Token révoqué.
+Failed to revoke token.,Échec de la révocation du token.
+"Revoke the API access token at this scope? Callers using it will be denied immediately.",Révoquer le token d'accès API dans cette portée ? Les appelants qui l'utilisent seront refusés immédiatement.
+A token is currently configured at this scope.,Un token est actuellement configuré dans cette portée.
+"Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.",Couvre uniquement ce store. L'émission de ce token retire ce store de la vue du token de portée par défaut et de tout token de portée de site web parent : il appartient désormais exclusivement à ce token de portée vue de store.
+"Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.",Couvre chaque vue de store dans ce site web qui n'a pas de token séparé au niveau de la vue de store. L'émission de ce token retire ces stores de la vue du token de portée par défaut ; toute vue de store avec son propre token dédié reste invisible pour ce token.
+Covers every store not tokened separately at website or store-view scope.,Couvre chaque store qui n'a pas de token séparé au niveau du site web ou de la vue de store.

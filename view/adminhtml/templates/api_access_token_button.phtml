@@ -1,0 +1,90 @@
+<?php
+
+declare(strict_types=1);
+
+/* @var \MyParcelNL\Magento\Block\System\Config\Form\ApiAccessTokenButton $block */
+/* @var \Magento\Framework\Escaper $escaper */
+
+[$scopeName, $scopeId] = $block->getCurrentScope();
+$hasToken     = $block->hasTokenAtCurrentScope();
+$fieldHtmlId  = $block->getFieldHtmlId();
+$scopeComment = $block->getScopeComment();
+
+$mageInit = [
+    'MyParcelNL_Magento/js/api-access-token' => [
+        'fieldId'         => $fieldHtmlId,
+        'ajaxUrl'         => $block->getAjaxUrl(),
+        'revokeUrl'       => $block->getRevokeAjaxUrl(),
+        'scopeName'       => $scopeName,
+        'scopeId'         => (int) $scopeId,
+        'generateLabel'   => (string) __('Generate'),
+        'regenerateLabel' => (string) __('Regenerate'),
+        'unexpectedLabel' => (string) __('Unexpected response.'),
+        'failureLabel'    => (string) __('Failed to generate token.'),
+        'revokeFailLabel' => (string) __('Failed to revoke token.'),
+        'revokeConfirm'   => (string) __('Revoke the API access token at this scope? Callers using it will be denied immediately.'),
+    ],
+];
+?>
+
+<div class="myparcel-api-access-token"
+     data-field-id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
+     data-mage-init="<?= $escaper->escapeHtmlAttr(json_encode($mageInit)) ?>">
+    <p class="myparcel-api-access-token__scope-note">
+        <?= $escaper->escapeHtml($scopeComment) ?>
+    </p>
+
+    <div class="myparcel-api-access-token__current"
+         id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_current"
+         aria-label="<?= $escaper->escapeHtmlAttr(__('A token is currently configured at this scope.')) ?>"
+         <?= $hasToken ? '' : 'hidden' ?>>
+        <span class="myparcel-api-access-token__masked" aria-hidden="true">••••••••</span>
+    </div>
+
+    <div class="myparcel-api-access-token__plaintext"
+         id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_plaintext"
+         role="status"
+         aria-atomic="true"
+         hidden>
+        <input type="text"
+               readonly
+               class="admin__control-text myparcel-api-access-token__plaintext-input"
+               id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_plaintext_input"
+               aria-label="<?= $escaper->escapeHtmlAttr(__('API access token')) ?>"
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+               value=""/>
+        <p class="message message-success myparcel-api-access-token__notice">
+            <?= $escaper->escapeHtml(__('Token generated. Copy it now, it will not be shown again.')) ?>
+        </p>
+    </div>
+
+    <div class="myparcel-api-access-token__revoked"
+         id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_revoked"
+         role="status"
+         aria-atomic="true"
+         hidden>
+        <p class="message message-success">
+            <?= $escaper->escapeHtml(__('Token revoked.')) ?>
+        </p>
+    </div>
+
+    <button type="button"
+            class="action-default scalable myparcel-api-access-token__generate"
+            id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_generate">
+        <span><?= $escaper->escapeHtml($hasToken ? __('Regenerate') : __('Generate')) ?></span>
+    </button>
+
+    <button type="button"
+            class="action-default scalable myparcel-api-access-token__revoke"
+            id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_revoke"
+            <?= $hasToken ? '' : 'hidden' ?>>
+        <span><?= $escaper->escapeHtml(__('Revoke')) ?></span>
+    </button>
+
+    <div class="message message-error myparcel-api-access-token__error"
+         id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>_error"
+         role="alert"
+         aria-atomic="true"
+         hidden></div>
+</div>
+

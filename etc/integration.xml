@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Integration:etc/integration.xsd">
+    <!--
+        Gate 1 of 3 for API-token authentication: ACL resources granted to the "MyParcel API"
+        integration. A token call must clear (1) this grant, (2) the ScopedResourceRegistry
+        allow-list in etc/webapi_rest/di.xml, and (3) the per-store scope filter.
+
+        See docs/design/adding-a-token-accessible-rest-endpoint.md (Access matrix) for the
+        full overview; TR-000004 for the requirement spec.
+    -->
+    <integration name="MyParcel API">
+        <email>support@myparcel.nl</email>
+        <resources>
+            <!-- required for OrderRepositoryInterface::get() used by /V1/myparcel/delivery-options -->
+            <resource name="Magento_Sales::actions_view"/>
+            <!-- gates GET /V1/myparcel/delivery-options -->
+            <resource name="MyParcelNL_Magento::delivery_options_read"/>
+        </resources>
+    </integration>
+</config>

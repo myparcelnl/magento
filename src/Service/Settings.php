@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\RequestInterface;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\Module\Dir;
 use Magento\Framework\Module\Dir\Reader as ModuleDirReader;
@@ -102,25 +103,46 @@ class Settings
     }
 
     /**
-     * @param string   $path
-     * @param string   $scopeName
-     * @param int|null $scopeId
-     * @return bool whether a specific value exists for the given scope (ie it is overriding)
+     * Resolve the admin's current scope from request params.
+     *
+     * @return array{0: string, 1: int} [scopeName, scopeId]
+     */
+    public function getCurrentScopeFromRequest(RequestInterface $request): array
+    {
+        if (($storeId = $request->getParam('store'))) {
+            return [ScopeInterface::SCOPE_STORES, (int) $storeId];
+        }
+        if (($websiteId = $request->getParam('website'))) {
+            return [ScopeInterface::SCOPE_WEBSITES, (int) $websiteId];
+        }
+        return [ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0];
+    }
+
+    /**
+     * Partition-aware: true if and only if a row exists at the exact (scope, scopeId) for this path.
+     * Unlike hasOwnValue() this does NOT short-circuit for default scope.
+     */
+    public function hasRowAtScope(string $path, string $scope, int $scopeId): bool
+    {
+        $collection = $this->scopeCollectionFactory->create()
+            ->addFieldToFilter('path', $path)
+            ->addFieldToFilter('scope', $scope)
+            ->addFieldToFilter('scope_id', $scopeId);
+
+        return $collection->getSize() > 0;
+    }
+
+    /**
+     * Inheritance-aware: default scope always "owns" its value (config.xml fallback),
+     * otherwise true if and only if an override row exists at the exact (scope, scopeId).
      */
     public function hasOwnValue(string $path, string $scopeName = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, ?int $scopeId = null): bool
     {
         if (ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $scopeName) {
-            return true; // Default scope always "owns" its values
+            return true;
         }
 
-        // Check if there's a specific value in the database for this scope
-        $collection = $this->scopeCollectionFactory->create()
-                                                   ->addFieldToFilter('path', $path)
-                                                   ->addFieldToFilter('scope', $scopeName)
-                                                   ->addFieldToFilter('scope_id', $scopeId)
-        ;
-
-        return $collection->getSize() > 0;
+        return $this->hasRowAtScope($path, $scopeName, (int) $scopeId);
     }
 
     /**

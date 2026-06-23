@@ -9,6 +9,8 @@
                             <resource id="MyParcelNL_Magento::myparcelnl_magento" title="MyParcel NL Settings" translate="label" sortOrder="100">
                                 <resource id="MyParcelNL_Magento::myparcelnl_magento_settings" title="MyParcel Dynamic Settings" translate="label" sortOrder="10" />
                                 <resource id="MyParcelNL_Magento::delivery_options_read" title="MyParcel Delivery Options - Read" sortOrder="20" />
+                                <!-- admin only: generate/revoke API access tokens -->
+                                <resource id="MyParcelNL_Magento::myparcelnl_magento_api_access_token" title="MyParcel API Access Token Management" translate="label" sortOrder="30" />
                             </resource>
                         </resource>
                     </resource>
