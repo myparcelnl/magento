@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.8.0](https://github.com/myparcelnl/magento/compare/v5.7.1...v5.8.0) (2026-06-23)
+
+
+### :sparkles: New Features
+
+* self-service, scoped API access tokens for the MyParcel REST integration ([#950](https://github.com/myparcelnl/magento/issues/950)) ([cc94040](https://github.com/myparcelnl/magento/commit/cc94040b66509a557fe931a4a82b6dfa1884697e))
+
 ## [5.7.1](https://github.com/myparcelnl/magento/compare/v5.7.0...v5.7.1) (2026-06-18)
 
 
