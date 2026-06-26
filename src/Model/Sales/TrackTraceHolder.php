@@ -102,7 +102,7 @@ class TrackTraceHolder
         $order                      = $shipment->getOrder();
         $checkoutData               = $order->getData('myparcel_delivery_options') ?? '[]';
         $deliveryOptions            = $this->jsonSerializer->unserialize($checkoutData) ?? [];
-        $deliveryOptions['carrier'] = $this->defaultOptions->getCarrierName();
+        $deliveryOptions['carrier'] = $this->getCarrierFromOptions($options) ?? $this->defaultOptions->getCarrierName();
 
         $apiKey = $this->config->getGeneralConfig('api/key', $order->getStoreId());
         if (empty($apiKey)) {
