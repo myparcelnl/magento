@@ -102,7 +102,18 @@ class TrackTraceHolder
         $order                      = $shipment->getOrder();
         $checkoutData               = $order->getData('myparcel_delivery_options') ?? '[]';
         $deliveryOptions            = $this->jsonSerializer->unserialize($checkoutData) ?? [];
-        $deliveryOptions['carrier'] = $this->getCarrierFromOptions($options) ?? $this->defaultOptions->getCarrierName();
+        $checkoutCarrier            = $deliveryOptions['carrier'] ?? null;
+        $selectedCarrier            = $this->getCarrierFromOptions($options) ?? $this->defaultOptions->getCarrierName();
+        $deliveryOptions['carrier'] = $selectedCarrier;
+
+        // A pickup location is carrier-specific (location code, retail network). If the carrier is
+        // overridden (e.g. in a bulk action) to a different one than was chosen at checkout, the
+        // inherited pickup location is no longer valid — ship as standard home delivery instead.
+        if ($checkoutCarrier && $selectedCarrier !== $checkoutCarrier && ! empty($deliveryOptions['isPickup'])) {
+            unset($deliveryOptions['pickupLocation']);
+            $deliveryOptions['isPickup']     = false;
+            $deliveryOptions['deliveryType'] = AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME;
+        }
 
         $apiKey = $this->config->getGeneralConfig('api/key', $order->getStoreId());
         if (empty($apiKey)) {
