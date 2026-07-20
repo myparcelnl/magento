@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.8.1](https://github.com/myparcelnl/magento/compare/v5.8.0...v5.8.1) (2026-07-20)
+
+
+### :bug: Bug Fixes
+
+* honor selected carrier in bulk order actions (INT-1662) ([#963](https://github.com/myparcelnl/magento/issues/963)) ([598a9ee](https://github.com/myparcelnl/magento/commit/598a9eee6e3fda89a0fbfb55c4e784366594763e))
+
 ## [5.8.0](https://github.com/myparcelnl/magento/compare/v5.7.1...v5.8.0) (2026-06-23)
 
 
