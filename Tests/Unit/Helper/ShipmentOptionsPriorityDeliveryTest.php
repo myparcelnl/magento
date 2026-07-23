@@ -10,8 +10,12 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
-function createShipmentOptions(string $countryId, string $carrier, array $options): ShipmentOptions
-{
+function createShipmentOptions(
+    string $countryId,
+    string $carrier,
+    array $options,
+    bool $defaultOptionSet = false
+): ShipmentOptions {
     $address = Mockery::mock(Address::class);
     $address->shouldReceive('getCountryId')->andReturn($countryId);
 
@@ -24,7 +28,7 @@ function createShipmentOptions(string $countryId, string $carrier, array $option
     $objectManager->shouldReceive('get')->with(Config::class)->andReturn(Mockery::mock(Config::class));
 
     $defaultOptions = Mockery::mock(DefaultOptions::class);
-    $defaultOptions->shouldReceive('hasOptionSet')->andReturn(false)->byDefault();
+    $defaultOptions->shouldReceive('hasOptionSet')->andReturn($defaultOptionSet)->byDefault();
 
     return new ShipmentOptions($defaultOptions, $order, $objectManager, $carrier, $options);
 }
@@ -38,10 +42,12 @@ it('returns true when the customer explicitly chose priority delivery', function
 });
 
 it('returns false when the customer explicitly declined priority delivery', function () {
-    // Customer choice wins: an explicit false must NOT fall through to product attribute or defaults.
+    // Customer choice wins: the default setting is forced to true here, so the only
+    // way this returns false is if the explicit false short-circuits the fallback
+    // chain instead of falling through to the product attribute or defaults.
     $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [
         ShipmentOptions::PRIORITY_DELIVERY => false,
-    ]);
+    ], true);
 
     expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
 });
@@ -64,6 +70,16 @@ it('returns false for non-PostNL carriers even when explicitly chosen', function
 
 it('returns false without explicit choice, without products and without default', function () {
     $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, []);
+
+    expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
+});
+
+it('does not consult the default setting when the cart resolves to no product priority', function () {
+    // getPriorityDeliveryFromProduct([]) returns false (not null) for an empty item
+    // list, which stops the ?? chain before the default setting is reached. Even with
+    // the default forced to true, the result stays false — this locks in the
+    // documented empty-items semantics of the fallback chain.
+    $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [], true);
 
     expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
 });
