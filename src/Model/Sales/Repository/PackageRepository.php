@@ -286,6 +286,41 @@ class PackageRepository extends Package
     }
 
     /**
+     * Whether the priority delivery checkbox may be shown in the checkout.
+     * True when the general setting is on, or when at least one product in
+     * the cart has the myparcel_priority_delivery attribute enabled.
+     *
+     * @param array  $products
+     * @param string $carrierPath
+     *
+     * @return bool
+     */
+    public function getPriorityDelivery(array $products, string $carrierPath): bool
+    {
+        if ((bool) $this->getConfigValue($carrierPath . 'mailbox/priority_delivery_active')) {
+            return true;
+        }
+
+        foreach ($products as $product) {
+            if ((bool) $this->getProductPriorityDelivery($product)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param mixed $product
+     *
+     * @return null|int
+     */
+    protected function getProductPriorityDelivery($product): ?int
+    {
+        return $this->getAttributesProductsOptions($product, 'priority_delivery');
+    }
+
+    /**
      * Init all digital stamp settings
      *
      * @param  string $carrierPath
