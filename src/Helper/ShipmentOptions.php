@@ -177,6 +177,10 @@ class ShipmentOptions
     }
 
     /**
+     * Explicit checkout choice wins; the product attribute is a fallback for
+     * orders without an explicit choice (e.g. admin orders); the default
+     * setting applies when neither is set.
+     *
      * @return bool
      */
     public function hasPriorityDelivery(): bool
@@ -189,7 +193,11 @@ class ShipmentOptions
             return false;
         }
 
-        return $this->optionIsEnabled(self::PRIORITY_DELIVERY);
+        $priorityFromOptions = $this->options[self::PRIORITY_DELIVERY] ?? null;
+
+        return (bool) ($priorityFromOptions
+            ?? self::getPriorityDeliveryFromProduct($this->order->getItems())
+            ?? $this->defaultOptions->hasOptionSet(self::PRIORITY_DELIVERY, $this->carrier));
     }
 
     /**
@@ -216,6 +224,40 @@ class ShipmentOptions
         }
 
         return $hasAgeCheck;
+    }
+
+    /**
+     * @param $products
+     *
+     * @return null|bool
+     */
+    public static function getPriorityDeliveryFromProduct($products): ?bool
+    {
+        $hasPriorityDelivery = false;
+
+        foreach ($products as $product) {
+            $productPriorityDelivery = self::getAttributeValue(
+                'catalog_product_entity_varchar',
+                $product['product_id'],
+                self::PRIORITY_DELIVERY
+            );
+
+            if (null === $productPriorityDelivery || '' === $productPriorityDelivery) {
+                $productPriorityDelivery = self::getAttributeValue(
+                    'catalog_product_entity_int',
+                    $product['product_id'],
+                    self::PRIORITY_DELIVERY
+                );
+            }
+
+            if (! isset($productPriorityDelivery) || '' === $productPriorityDelivery) {
+                $hasPriorityDelivery = null;
+            } elseif ('1' === $productPriorityDelivery) {
+                return true;
+            }
+        }
+
+        return $hasPriorityDelivery;
     }
 
     /**
