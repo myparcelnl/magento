@@ -14,7 +14,8 @@ function createShipmentOptions(
     string $countryId,
     string $carrier,
     array $options,
-    bool $defaultOptionSet = false
+    bool $defaultOptionSet = false,
+    ?bool $chosenOption = null
 ): ShipmentOptions {
     $address = Mockery::mock(Address::class);
     $address->shouldReceive('getCountryId')->andReturn($countryId);
@@ -29,6 +30,7 @@ function createShipmentOptions(
 
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('hasOptionSet')->andReturn($defaultOptionSet)->byDefault();
+    $defaultOptions->shouldReceive('getChosenShipmentOption')->andReturn($chosenOption)->byDefault();
 
     return new ShipmentOptions($defaultOptions, $order, $objectManager, $carrier, $options);
 }
@@ -74,12 +76,22 @@ it('returns false without explicit choice, without products and without default'
     expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
 });
 
-it('does not consult the default setting when the cart resolves to no product priority', function () {
-    // getPriorityDeliveryFromProduct([]) returns false (not null) for an empty item
-    // list, which stops the ?? chain before the default setting is reached. Even with
-    // the default forced to true, the result stays false — this locks in the
-    // documented empty-items semantics of the fallback chain.
-    $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [], true);
+it('falls back to the default setting when there is no explicit choice and the cart yields no product priority', function () {
+    // Empty items make the product leg yield null (it can only force true), so the
+    // default setting is consulted.
+    $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [], true, null);
+
+    expect($shipmentOptions->hasPriorityDelivery())->toBeTrue();
+});
+
+it('honours an explicit declination saved with the order over the default setting', function () {
+    $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [], true, false);
 
     expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
+});
+
+it('uses the choice saved with the order when the live options carry none', function () {
+    $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [], false, true);
+
+    expect($shipmentOptions->hasPriorityDelivery())->toBeTrue();
 });

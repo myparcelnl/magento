@@ -177,9 +177,9 @@ class ShipmentOptions
     }
 
     /**
-     * Explicit checkout choice wins; the product attribute is a fallback for
-     * orders without an explicit choice (e.g. admin orders); the default
-     * setting applies when neither is set.
+     * Explicit customer choice wins (live request options first, then the choice
+     * saved with the order); the product attribute is a fallback that can only
+     * enable priority, never disable it; the default setting applies last.
      *
      * @return bool
      */
@@ -193,10 +193,11 @@ class ShipmentOptions
             return false;
         }
 
-        $priorityFromOptions = $this->options[self::PRIORITY_DELIVERY] ?? null;
+        $priorityFromOptions = $this->options[self::PRIORITY_DELIVERY]
+            ?? $this->defaultOptions->getChosenShipmentOption(self::PRIORITY_DELIVERY);
 
         return (bool) ($priorityFromOptions
-            ?? self::getPriorityDeliveryFromProduct($this->order->getItems())
+            ?? (true === self::getPriorityDeliveryFromProduct($this->order->getItems()) ? true : null)
             ?? $this->defaultOptions->hasOptionSet(self::PRIORITY_DELIVERY, $this->carrier));
     }
 

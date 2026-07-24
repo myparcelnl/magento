@@ -87,6 +87,21 @@ class DefaultOptions
     }
 
     /**
+     * The value the customer explicitly chose for a shipment option in the
+     * checkout, or null when no explicit choice was saved with the order.
+     *
+     * @param string $option
+     *
+     * @return null|bool
+     */
+    public function getChosenShipmentOption(string $option): ?bool
+    {
+        $value = $this->chosenOptions['shipmentOptions'][$option] ?? null;
+
+        return null === $value ? null : (bool) $value;
+    }
+
+    /**
      * Get default value of options without price check
      *
      * @param string $carrier
