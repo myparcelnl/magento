@@ -177,9 +177,9 @@ class ShipmentOptions
     }
 
     /**
-     * Explicit customer choice wins (live request options first, then the choice
-     * saved with the order); the product attribute is a fallback that can only
-     * enable priority, never disable it; the default setting applies last.
+     * The myparcel_priority_delivery product attribute only controls checkout
+     * visibility (allowPriorityDelivery); it never sets the shipment option
+     * itself. Priority delivery is only enabled by an explicit choice.
      *
      * @return bool
      */
@@ -193,12 +193,7 @@ class ShipmentOptions
             return false;
         }
 
-        $priorityFromOptions = $this->options[self::PRIORITY_DELIVERY]
-            ?? $this->defaultOptions->getChosenShipmentOption(self::PRIORITY_DELIVERY);
-
-        return (bool) ($priorityFromOptions
-            ?? (true === self::getPriorityDeliveryFromProduct($this->order->getItems()) ? true : null)
-            ?? $this->defaultOptions->hasOptionSet(self::PRIORITY_DELIVERY, $this->carrier));
+        return $this->optionIsEnabled(self::PRIORITY_DELIVERY);
     }
 
     /**
@@ -225,40 +220,6 @@ class ShipmentOptions
         }
 
         return $hasAgeCheck;
-    }
-
-    /**
-     * @param $products
-     *
-     * @return null|bool
-     */
-    public static function getPriorityDeliveryFromProduct($products): ?bool
-    {
-        $hasPriorityDelivery = false;
-
-        foreach ($products as $product) {
-            $productPriorityDelivery = self::getAttributeValue(
-                'catalog_product_entity_varchar',
-                $product['product_id'],
-                self::PRIORITY_DELIVERY
-            );
-
-            if (null === $productPriorityDelivery || '' === $productPriorityDelivery) {
-                $productPriorityDelivery = self::getAttributeValue(
-                    'catalog_product_entity_int',
-                    $product['product_id'],
-                    self::PRIORITY_DELIVERY
-                );
-            }
-
-            if (! isset($productPriorityDelivery) || '' === $productPriorityDelivery) {
-                $hasPriorityDelivery = null;
-            } elseif ('1' === $productPriorityDelivery) {
-                return true;
-            }
-        }
-
-        return $hasPriorityDelivery;
     }
 
     /**
