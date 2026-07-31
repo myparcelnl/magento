@@ -7,9 +7,9 @@ namespace MyParcelNL\Magento\Model\Authorization;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use MyParcelNL\Magento\Compat\ResetAfterRequestInterface;
 use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
 /**
@@ -18,9 +18,13 @@ use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
  * Memoizes the authenticated owner (scope, scopeId) plus the row-coordinate partition of
  * stores it may see: each non-admin store's owner is the most-specific row that exists
  * (stores > websites > default), and a store belongs to the caller if its owner matches.
- * Implements ResetAfterRequestInterface so long-running modes (queue consumers, async API)
- * do not leak state between requests. Single source of truth for "which stores can this
- * token see" — consulted by every scope-filtering plugin.
+ * Implements the Compat ResetAfterRequestInterface so long-running modes (queue consumers,
+ * async API) do not leak state between requests. It must be the Compat shim, never the
+ * framework interface directly: that one only exists in recent magento/framework releases
+ * (absent in 103.0.6, present in 103.0.8) while composer.json still allows >=101.0.8, and
+ * naming a missing interface fatals on class load — taking down every REST request that
+ * resolves a user context. Single source of truth
+ * for "which stores can this token see" — consulted by every scope-filtering plugin.
  */
 class TokenScopeContext implements ResetAfterRequestInterface
 {
