@@ -59,6 +59,13 @@
     "allow-plugins": {
       "pestphp/pest-plugin": true,
       "magento/composer-dependency-version-audit-plugin": true
+    },
+    "policy": {
+      "advisories": {
+        "ignore-id": [
+          "PKSA-z3gr-8qht-p93v"
+        ]
+      }
     }
   }
 }

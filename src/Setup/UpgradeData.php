@@ -1047,6 +1047,22 @@ class UpgradeData implements UpgradeDataInterface
             $setup->endSetup();
         }
 
+        if (version_compare($context->getVersion(), '5.9.0', '<')) {
+            $setup->startSetup();
+
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_priority_delivery',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.',
+                        'label'   => '24 hour priority',
+                        'input'   => 'boolean',
+                        'default' => 0,
+                    ]
+                )
+            );
+        }
+
         $setup->endSetup();
     }
 }

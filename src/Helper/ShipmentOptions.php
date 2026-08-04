@@ -177,6 +177,10 @@ class ShipmentOptions
     }
 
     /**
+     * The myparcel_priority_delivery product attribute only controls checkout
+     * visibility (allowPriorityDelivery); it never sets the shipment option
+     * itself. Priority delivery is only enabled by an explicit choice.
+     *
      * @return bool
      */
     public function hasPriorityDelivery(): bool
