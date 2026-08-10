@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.9.0](https://github.com/myparcelnl/magento/compare/v5.8.1...v5.9.0) (2026-08-10)
+
+
+### :sparkles: New Features
+
+* 24 hour priority configurable per product ([#964](https://github.com/myparcelnl/magento/issues/964)) ([af44a1e](https://github.com/myparcelnl/magento/commit/af44a1edd53bd9f78f82bf64aa58ee733b52da66))
+
 ## [5.8.1](https://github.com/myparcelnl/magento/compare/v5.8.0...v5.8.1) (2026-07-20)
 
 
