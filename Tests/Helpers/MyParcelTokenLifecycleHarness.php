@@ -120,8 +120,7 @@ final class MyParcelTokenLifecycleHarness
     }
 
     /**
-     * Reproduces SQL LIKE semantics, wildcards included: `%` matches any run of characters, `_` exactly
-     * one. The `_` case matters — a prefix like `account_settings_` is full of underscores, so MySQL
+     * `_` matters as much as `%`: a prefix like `account_settings_` is full of underscores, so MySQL
      * matches more loosely than the pattern looks, and a double honouring only `%` would hide that.
      */
     private static function matchesSqlLike(string $value, string $pattern): bool

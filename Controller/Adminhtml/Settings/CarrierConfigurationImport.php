@@ -66,12 +66,10 @@ class CarrierConfigurationImport extends Action
     {
         $this->importer->importFor($this->apiKey);
 
-        // Flush right away so the modal in the carrier-specific configuration view shows the updated
-        // drop-off point.
+        // So the modal in the carrier-specific configuration view shows the updated drop-off point.
         $this->clearCache();
 
-        // An import proves which api key is in use, so it is the natural moment to tidy up. After the
-        // flush, because it reads config.
+        // After the flush, because it reads config.
         $this->accountSettingsMaintenance->reconcile();
 
         return $this->resultFactory->create()

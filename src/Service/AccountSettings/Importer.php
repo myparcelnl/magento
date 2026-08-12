@@ -13,14 +13,12 @@ use MyParcelNL\Sdk\Services\Web\CarrierOptionsWebService;
 use MyParcelNL\Sdk\Support\Collection;
 
 /**
- * Fetches a MyParcel account's settings from the backoffice and caches them under the api key's
- * fingerprint (see Config::XML_PATH_ACCOUNT_SETTINGS for why that is the key).
+ * Fetches a MyParcel account's settings and caches them under the api key's fingerprint (see
+ * Config::XML_PATH_ACCOUNT_SETTINGS for why that is the key). Shared by the *Import MyParcel Backoffice
+ * settings* button and the automatic import on an api key change.
  *
- * Shared by the *Import MyParcel Backoffice settings* button and the automatic import on an api key
- * change.
- *
- * Throws whatever the SDK throws: an invalid key or unreachable API must surface, but must not abort a
- * config save, so the observer catches it.
+ * Throws whatever the SDK throws: an invalid key must surface, but must not abort a config save, so the
+ * observer catches it.
  */
 class Importer
 {

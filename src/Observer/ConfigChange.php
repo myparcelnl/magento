@@ -97,10 +97,9 @@ class ConfigChange implements ObserverInterface
             $this->clearConfigCache();
 
             if ($apiKeyTouched) {
-                // The set of live keys moved. Both calls read config, so they must run after
-                // clearConfigCache() or a stale cache hands them the pre-save value. Import first:
-                // reconcile() deletes rows for keys that are not configured, so the new key's row has
-                // to exist before it runs.
+                // Both read config, so they must run after the flush or a stale cache hands them the
+                // pre-save value. Import first: reconcile() deletes rows for unconfigured keys, so the
+                // new key's row has to exist before it runs.
                 $this->importAccountSettings($scope, $scopeId);
                 $this->accountSettingsMaintenance->reconcile();
             }
@@ -112,13 +111,9 @@ class ConfigChange implements ObserverInterface
     }
 
     /**
-     * Fetches the account settings for the api key that was just saved.
-     *
-     * Failure is contained on purpose: an invalid key or unreachable API is no reason to refuse to
-     * store the key, which would leave the admin unable to save anything at all. So it warns, lets the
-     * save succeed, and leaves them to retry with the button.
-     *
-     * @return void
+     * Failure is contained on purpose: an invalid key is no reason to refuse to store it, which would
+     * leave the admin unable to save anything at all. Warn, let the save succeed, let them retry with
+     * the button.
      */
     private function importAccountSettings(string $scope, int $scopeId): void
     {

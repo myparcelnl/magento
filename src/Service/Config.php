@@ -30,12 +30,10 @@ class Config extends AbstractHelper
     public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
     public const XML_PATH_API_KEY                   = self::XML_PATH_GENERAL . 'api/key';
     /**
-     * Prefix; the full path is this plus the fingerprint of the api key the settings belong to.
+     * Prefix; append the fingerprint of the api key the settings belong to.
      *
-     * Keyed by api key, not by scope, because the settings describe a MyParcel account rather than a
-     * Magento scope: several stores may share one key, and keys cascade. So one row per account, and
-     * anything holding only an api key — iterating keys for a multi-account export, say — can resolve
-     * it without knowing which scope that key came from.
+     * Keyed by api key rather than scope: the settings describe a MyParcel account, several stores may
+     * share one key, and callers holding only a key must be able to resolve them.
      */
     public const XML_PATH_ACCOUNT_SETTINGS          = self::XML_PATH_GENERAL . 'account_settings_';
     public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
@@ -68,6 +66,7 @@ class Config extends AbstractHelper
         ];
 
     private ModuleListInterface   $moduleList;
+    private StoreManagerInterface $storeManager;
     private ?int                  $storeId;
 
     /**
@@ -84,7 +83,8 @@ class Config extends AbstractHelper
     )
     {
         parent::__construct($context);
-        $this->moduleList = $moduleList;
+        $this->moduleList   = $moduleList;
+        $this->storeManager = $storeManager;
 
         try {
             // contrary to documentation store->getId() does not always return an int, so please cast it here
@@ -125,6 +125,32 @@ class Config extends AbstractHelper
         }
 
         return $this->scopeConfig->getValue($path, $scopeName, $scopeId);
+    }
+
+    /**
+     * Every (scope, scopeId) a config value could be stored at, for reading a path across the whole
+     * installation.
+     *
+     * Excludes the admin store, and skips a website that has no stores. Throws whatever the store
+     * manager throws — callers decide whether an incomplete list beats none.
+     *
+     * @return array<int, array{0: string, 1: int}>
+     */
+    public function getScopeCoordinates(): array
+    {
+        $coordinates = [[ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0]];
+        $websiteIds  = [];
+
+        foreach ($this->storeManager->getStores(false) as $store) {
+            $coordinates[]                            = [ScopeInterface::SCOPE_STORES, (int) $store->getId()];
+            $websiteIds[(int) $store->getWebsiteId()] = true;
+        }
+
+        foreach (array_keys($websiteIds) as $websiteId) {
+            $coordinates[] = [ScopeInterface::SCOPE_WEBSITES, $websiteId];
+        }
+
+        return $coordinates;
     }
 
     /**

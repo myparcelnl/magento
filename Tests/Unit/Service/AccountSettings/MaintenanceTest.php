@@ -12,10 +12,8 @@ use MyParcelNL\Magento\Tests\Helpers\MyParcelTokenLifecycleHarness;
 use Psr\Log\LoggerInterface;
 
 /**
- * ScopeConfigInterface double answering from an explicit coordinate map, so a test can say "this key
- * is configured only at store 2" or "this key exists only in env.php".
- *
- * Coordinate keys are 'default', 'websites:<id>' and 'stores:<id>'.
+ * Coordinate keys are 'default', 'websites:<id>' and 'stores:<id>', so a test can say "configured only
+ * at store 2" or "exists only in env.php".
  *
  * @param array<string, string> $apiKeyByCoordinate
  */
@@ -50,13 +48,27 @@ function countingCacheTypeList(?int &$cleanCalls): TypeListInterface
 }
 
 /**
- * @param array<string, string>                     $apiKeyByCoordinate
- * @param array<int, array{id: int, websiteId: int}> $stores
+ * Default is always present; a test names any further coordinates it needs.
+ *
+ * @param array<int, array{0: string, 1: int}> $coordinates
+ */
+function accountSettingsConfig(array $coordinates): Config
+{
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getScopeCoordinates')
+        ->andReturn(array_merge([['default', 0]], $coordinates));
+
+    return $config;
+}
+
+/**
+ * @param array<string, string>                $apiKeyByCoordinate
+ * @param array<int, array{0: string, 1: int}> $coordinates
  */
 function accountSettingsMaintenance(
     MyParcelTokenLifecycleHarness $harness,
     array                         $apiKeyByCoordinate,
-    array                         $stores = [],
+    array                         $coordinates = [],
     ?TypeListInterface            $cacheTypeList = null
 ): Maintenance {
     return new Maintenance(
@@ -64,7 +76,7 @@ function accountSettingsMaintenance(
         $harness->writer(),
         $cacheTypeList ?? $harness->cacheTypeList(),
         accountSettingsScopeConfig($apiKeyByCoordinate),
-        mockStoreManager($stores),
+        accountSettingsConfig($coordinates),
         new Fingerprint(),
         Mockery::spy(LoggerInterface::class)
     );
@@ -117,7 +129,7 @@ it('preserves a non-default scope coordinate when migrating', function () {
     accountSettingsMaintenance(
         $harness,
         [ScopeInterface::SCOPE_WEBSITES . ':3' => $apiKey],
-        [['id' => 5, 'websiteId' => 3]]
+        [[ScopeInterface::SCOPE_STORES, 5], [ScopeInterface::SCOPE_WEBSITES, 3]]
     )->reconcile();
 
     $migrated = rowAt($harness, settingsPathFor($apiKey));
@@ -137,7 +149,7 @@ it('keeps a row whose api key is configured only at store-view scope', function 
     accountSettingsMaintenance(
         $harness,
         [ScopeInterface::SCOPE_STORES . ':2' => $apiKey],
-        [['id' => 2, 'websiteId' => 1]]
+        [[ScopeInterface::SCOPE_STORES, 2], [ScopeInterface::SCOPE_WEBSITES, 1]]
     )->reconcile();
 
     expect(array_column($harness->rows, 'path'))->toContain(settingsPathFor($apiKey));

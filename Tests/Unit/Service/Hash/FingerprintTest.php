@@ -5,9 +5,8 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 
 /**
- * The output is a storage format — the lookup key for config rows and cache entries that already
- * exist — so these tests pin the algorithm on purpose. A failure here is not a broken test; it means
- * everything stored under the old algorithm has just been orphaned.
+ * These pin the algorithm on purpose. A failure here is not a broken test; it means everything stored
+ * under the old algorithm has just been orphaned.
  */
 it('produces 64 lowercase hex characters', function () {
     expect((new Fingerprint())->of('some-api-key'))->toMatch('/^[a-f0-9]{64}$/');

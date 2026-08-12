@@ -37,11 +37,9 @@ class AccountSettings extends BaseModel
         $settings = $scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint->of($apiKey));
 
         if (! $settings) {
-            /**
-             * Legacy fallback: rows predating the fingerprinted path carry the plaintext api key.
-             * Maintenance::reconcile() rewrites them, but only on an api key change or a settings
-             * import, so an install that has done neither since upgrading would read empty here.
-             */
+            // Rows predating the fingerprinted path carry the plaintext api key. reconcile() rewrites
+            // them, but only on an api key change or import, so an install that has done neither since
+            // upgrading would read empty here.
             $settings = $scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey);
         }
 
