@@ -28,6 +28,16 @@ class Config extends AbstractHelper
     public const PLATFORM                           = 'myparcel';
     public const XML_PATH_MAGENTO_CARRIER           = 'carriers/' . Carrier::CODE . '/';
     public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
+    public const XML_PATH_API_KEY                   = self::XML_PATH_GENERAL . 'api/key';
+    /**
+     * Prefix; the full path is this plus the fingerprint of the api key the settings belong to.
+     *
+     * Keyed by api key, not by scope, because the settings describe a MyParcel account rather than a
+     * Magento scope: several stores may share one key, and keys cascade. So one row per account, and
+     * anything holding only an api key — iterating keys for a multi-account export, say — can resolve
+     * it without knowing which scope that key came from.
+     */
+    public const XML_PATH_ACCOUNT_SETTINGS          = self::XML_PATH_GENERAL . 'account_settings_';
     public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
     public const XML_PATH_DHLFORYOU_SETTINGS        = 'myparcelnl_magento_dhlforyou_settings/';
     public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';

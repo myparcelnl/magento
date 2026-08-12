@@ -452,3 +452,4 @@ A token is currently configured at this scope.,Er is op dit bereik momenteel een
 Covers every store not tokened separately at website or store-view scope.,Dekt elke store die niet apart op website- of store-view-bereik een eigen token heeft.
 24 hour priority,24 uur prio
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Indien ingeschakeld wordt de checkbox 24 uur prio in de checkout getoond wanneer dit product in de winkelwagen zit, ook als de algemene prio-instelling uit staat."
+"Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Uw API key is opgeslagen, maar de MyParcel-accountinstellingen konden niet worden geïmporteerd: %1. Controleer de API key en gebruik daarna de knop MyParcel Backoffice-instellingen importeren."

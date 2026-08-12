@@ -100,6 +100,8 @@ final class MyParcelTokenLifecycleHarness
                         $value = $row[$field] ?? null;
                         if (is_array($cond) && array_key_exists('in', $cond)) {
                             if (! in_array($value, $cond['in'], true)) { $ok = false; break; }
+                        } elseif (is_array($cond) && array_key_exists('like', $cond)) {
+                            if (! self::matchesSqlLike((string) $value, (string) $cond['like'])) { $ok = false; break; }
                         } elseif ($value !== $cond) {
                             $ok = false; break;
                         }
@@ -115,6 +117,18 @@ final class MyParcelTokenLifecycleHarness
         });
 
         return $factory;
+    }
+
+    /**
+     * Reproduces SQL LIKE semantics, wildcards included: `%` matches any run of characters, `_` exactly
+     * one. The `_` case matters — a prefix like `account_settings_` is full of underscores, so MySQL
+     * matches more loosely than the pattern looks, and a double honouring only `%` would hide that.
+     */
+    private static function matchesSqlLike(string $value, string $pattern): bool
+    {
+        $regex = str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/'));
+
+        return 1 === preg_match('/^' . $regex . '$/', $value);
     }
 
     public function cacheTypeList(): TypeListInterface

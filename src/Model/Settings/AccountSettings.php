@@ -10,9 +10,8 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Serialize\Serializer\Json;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\Factory\Account\CarrierConfigurationFactory;
+use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Sdk\Model\Account\Account;
-use MyParcelNL\Sdk\Model\Account\CarrierConfiguration;
 use MyParcelNL\Sdk\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\Model\Account\Shop;
 use MyParcelNL\Sdk\Model\BaseModel;
@@ -30,11 +29,21 @@ class AccountSettings extends BaseModel
      */
     public function __construct(string $apiKey)
     {
-        $objectManager = ObjectManager::getInstance();
-        $settings      = $objectManager->get(ScopeConfigInterface::class)
-                                       ->getValue(Config::XML_PATH_GENERAL . "account_settings_$apiKey")
-        ;
+        $objectManager  = ObjectManager::getInstance();
+        $scopeConfig    = $objectManager->get(ScopeConfigInterface::class);
+        $fingerprint    = $objectManager->get(Fingerprint::class);
         $jsonSerializer = $objectManager->get(Json::class);
+
+        $settings = $scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint->of($apiKey));
+
+        if (! $settings) {
+            /**
+             * Legacy fallback: rows predating the fingerprinted path carry the plaintext api key.
+             * Maintenance::reconcile() rewrites them, but only on an api key change or a settings
+             * import, so an install that has done neither since upgrading would read empty here.
+             */
+            $settings = $scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey);
+        }
 
         if (! $settings) {
             $redacted = substr($apiKey, 0, 4) . str_repeat('*', max(0, strlen($apiKey) - 8)) . substr($apiKey, -4);
