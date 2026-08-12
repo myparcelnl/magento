@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\AccountSettings;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -22,15 +23,29 @@ use MyParcelNL\Sdk\Support\Collection;
  */
 class Importer
 {
-    private WriterInterface $configWriter;
-    private Fingerprint     $fingerprint;
+    private WriterInterface      $configWriter;
+    private ScopeConfigInterface $scopeConfig;
+    private Fingerprint          $fingerprint;
 
     public function __construct(
-        WriterInterface $configWriter,
-        Fingerprint     $fingerprint
+        WriterInterface      $configWriter,
+        ScopeConfigInterface $scopeConfig,
+        Fingerprint          $fingerprint
     ) {
         $this->configWriter = $configWriter;
+        $this->scopeConfig  = $scopeConfig;
         $this->fingerprint  = $fingerprint;
+    }
+
+    /**
+     * Whether this account's settings are already cached, so a caller can heal a missing row without
+     * paying for an API call on every save.
+     */
+    public function hasSettingsFor(string $apiKey): bool
+    {
+        return (bool) $this->scopeConfig->getValue(
+            Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey)
+        );
     }
 
     /**

@@ -62,16 +62,10 @@ class ConfigChange implements ObserverInterface
         $configData = $request->getParam('config', []);
         $validPaths = $this->dynamicSettingsConfig->getAllFieldPaths();
 
-        $apiKeyTouched = false;
-
         try {
             foreach ($configData as $path => $postedParams) {
                 if (! in_array($path, $validPaths, true)) {
                     continue;
-                }
-
-                if (Config::XML_PATH_API_KEY === $path) {
-                    $apiKeyTouched = true;
                 }
 
                 $value   = $postedParams['value'] ?? null;
@@ -96,13 +90,18 @@ class ConfigChange implements ObserverInterface
 
             $this->clearConfigCache();
 
-            if ($apiKeyTouched) {
-                // Both read config, so they must run after the flush or a stale cache hands them the
-                // pre-save value. Import first: reconcile() deletes rows for unconfigured keys, so the
-                // new key's row has to exist before it runs.
-                $this->importAccountSettings($scope, $scopeId);
-                $this->accountSettingsMaintenance->reconcile();
+            // After the flush, or a stale cache hands us the pre-save key.
+            $apiKey = trim((string) ($this->scopeConfig->getValue(Config::XML_PATH_API_KEY, $scope, $scopeId) ?? ''));
+
+            // Whether the key changed is not worth detecting: an unchanged key already has its row, and
+            // a key that does not is exactly the case worth importing — including a brand new one. Note
+            // every field is posted on every save, so presence in $configData proves nothing.
+            if ('' !== $apiKey && ! $this->accountSettingsImporter->hasSettingsFor($apiKey)) {
+                // Before reconcile(), which deletes rows for unconfigured keys.
+                $this->importAccountSettings($apiKey);
             }
+
+            $this->accountSettingsMaintenance->reconcile();
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage(__('Error saving configuration: %1', $e->getMessage()));
         }
@@ -115,14 +114,8 @@ class ConfigChange implements ObserverInterface
      * leave the admin unable to save anything at all. Warn, let the save succeed, let them retry with
      * the button.
      */
-    private function importAccountSettings(string $scope, int $scopeId): void
+    private function importAccountSettings(string $apiKey): void
     {
-        $apiKey = (string) ($this->scopeConfig->getValue(Config::XML_PATH_API_KEY, $scope, $scopeId) ?? '');
-
-        if ('' === trim($apiKey)) {
-            return;
-        }
-
         try {
             $this->accountSettingsImporter->importFor($apiKey);
         } catch (Throwable $e) {
