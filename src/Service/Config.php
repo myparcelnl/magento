@@ -145,8 +145,8 @@ class Config extends AbstractHelper
     public function getTimeConfig(string $carrier, string $key): string
     {
         $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key"));
-        $timeComponents = explode(':', $timeAsString ?? '');
-        if (count($timeComponents) >= 3) {
+        $timeComponents = explode(':', $timeAsString);
+        if ($timeComponents && count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;
             $timeAsString = $hours . ':' . $minutes;
         }
