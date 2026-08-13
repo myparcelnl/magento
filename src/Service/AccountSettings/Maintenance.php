@@ -26,8 +26,6 @@ class Maintenance
 {
     private const CONFIG_CACHE_TYPE = 'config';
 
-    private const LOG_LABEL_LENGTH = 12;
-
     private CollectionFactory    $collectionFactory;
     private WriterInterface      $configWriter;
     private TypeListInterface    $cacheTypeList;
@@ -114,7 +112,7 @@ class Maintenance
         $this->logger->notice(
             sprintf(
                 'Moved MyParcel account settings to fingerprinted config path %s.',
-                substr($fingerprint, 0, self::LOG_LABEL_LENGTH)
+                substr($fingerprint, 0, Fingerprint::LABEL_LENGTH)
             )
         );
     }
@@ -127,7 +125,7 @@ class Maintenance
     {
         $safe = $this->fingerprint->isFingerprint($suffix) ? $suffix : $this->fingerprint->of($suffix);
 
-        return substr($safe, 0, self::LOG_LABEL_LENGTH);
+        return substr($safe, 0, Fingerprint::LABEL_LENGTH);
     }
 
     /**

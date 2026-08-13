@@ -27,11 +27,13 @@ class CarrierConfigurationImport extends Action
     private AccountSettingsMaintenance $accountSettingsMaintenance;
 
     /**
-     * @param \Magento\Backend\App\Action\Context                $context
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $config
-     * @param \Magento\Framework\Controller\Result\JsonFactory   $resultFactory
-     * @param \Magento\Framework\App\Cache\TypeListInterface     $typeListInterface
-     * @param \Magento\Framework\App\Cache\Frontend\Pool         $pool
+     * @param Context                    $context
+     * @param ScopeConfigInterface       $config
+     * @param JsonFactory                $resultFactory
+     * @param TypeListInterface          $typeListInterface
+     * @param Pool                       $pool
+     * @param Importer                   $importer
+     * @param AccountSettingsMaintenance $accountSettingsMaintenance
      */
     public function __construct(
         Context                    $context,
@@ -66,9 +68,7 @@ class CarrierConfigurationImport extends Action
     {
         $this->importer->importFor($this->apiKey);
 
-        // So the modal in the carrier-specific configuration view shows the updated drop-off point.
         $this->clearCache();
-
         // After the flush, because it reads config.
         $this->accountSettingsMaintenance->reconcile();
 

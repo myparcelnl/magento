@@ -15,6 +15,12 @@ namespace MyParcelNL\Magento\Service\Hash;
 class Fingerprint
 {
     /**
+     * Characters to keep when using a fingerprint as a log label — enough to correlate lines without
+     * printing a full digest on each one.
+     */
+    public const LABEL_LENGTH = 12;
+
+    /**
      * 64 lowercase hex characters.
      */
     public function of(string $value): string

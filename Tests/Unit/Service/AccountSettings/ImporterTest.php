@@ -7,6 +7,7 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
+use Psr\Log\LoggerInterface;
 
 /**
  * Only hasSettingsFor() is covered: the rest of Importer instantiates the SDK web services directly,
@@ -21,7 +22,12 @@ function importerFor(array $rowsByPath): Importer
         static fn (string $path) => $rowsByPath[$path] ?? null
     );
 
-    return new Importer(Mockery::spy(WriterInterface::class), $scopeConfig, new Fingerprint());
+    return new Importer(
+        Mockery::spy(WriterInterface::class),
+        $scopeConfig,
+        new Fingerprint(),
+        Mockery::spy(LoggerInterface::class)
+    );
 }
 
 function accountSettingsPath(string $apiKey): string

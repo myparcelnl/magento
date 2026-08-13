@@ -12,6 +12,7 @@ use MyParcelNL\Sdk\Model\Account\CarrierOptions;
 use MyParcelNL\Sdk\Services\Web\AccountWebService;
 use MyParcelNL\Sdk\Services\Web\CarrierOptionsWebService;
 use MyParcelNL\Sdk\Support\Collection;
+use Psr\Log\LoggerInterface;
 
 /**
  * Fetches a MyParcel account's settings and caches them under the api key's fingerprint (see
@@ -26,15 +27,18 @@ class Importer
     private WriterInterface      $configWriter;
     private ScopeConfigInterface $scopeConfig;
     private Fingerprint          $fingerprint;
+    private LoggerInterface      $logger;
 
     public function __construct(
         WriterInterface      $configWriter,
         ScopeConfigInterface $scopeConfig,
-        Fingerprint          $fingerprint
+        Fingerprint          $fingerprint,
+        LoggerInterface      $logger
     ) {
         $this->configWriter = $configWriter;
         $this->scopeConfig  = $scopeConfig;
         $this->fingerprint  = $fingerprint;
+        $this->logger       = $logger;
     }
 
     /**
@@ -55,9 +59,20 @@ class Importer
      */
     public function importFor(string $apiKey): void
     {
+        $fingerprint = $this->fingerprint->of($apiKey);
+
         $this->configWriter->save(
-            Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey),
+            Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint,
             json_encode($this->createArray($this->fetchConfigurations($apiKey)))
+        );
+
+        // Pairs with the deletion notices in Maintenance, so the log reads as a history of which
+        // account's settings were written and removed when.
+        $this->logger->notice(
+            sprintf(
+                'Imported MyParcel account settings %s.',
+                substr($fingerprint, 0, Fingerprint::LABEL_LENGTH)
+            )
         );
     }
 
@@ -91,7 +106,6 @@ class Importer
      * @param \MyParcelNL\Sdk\Support\Collection $settings
      *
      * @return array
-     * @TODO sdk#326 remove this entire function and replace with toArray
      */
     private function createArray(Collection $settings): array
     {
