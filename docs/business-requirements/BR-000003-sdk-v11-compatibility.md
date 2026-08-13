@@ -48,10 +48,10 @@ A merchant running several Magento stores against several MyParcel accounts must
 ## Success Criteria
 
 - [ ] `composer.json` requires `myparcelnl/sdk: 11.0.0-beta.31@beta`, and `setup:di:compile`, `setup:upgrade` and the Pest suite all pass on PHP 8.1 through 8.4.
-- [ ] Every export path that works on beta.17 works on beta.31: order-view shipment creation, both admin grid mass actions, create-concept-after-invoice, the return-label mail action, the status cron, and PPS/fulfilment export mode.
+- [ ] Every export path that works on beta.15 works on beta.31: order-view shipment creation, both admin grid mass actions, create-concept-after-invoice, the return-label mail action, the status cron, and PPS/fulfilment export mode.
 - [ ] A single admin mass action spanning orders from two Magento stores with **two different MyParcel API keys** creates each shipment in its correct MyParcel account and returns **one merged PDF** containing all labels.
 - [ ] A batch larger than the configured chunk size completes without timing out, and a failure in one chunk leaves the shipments created by earlier chunks recorded against their Magento orders rather than orphaned in MyParcel.
-- [ ] The admin *New Shipment* form offers the same package types, delivery types and shipment options as on beta.17 for every supported carrier, now sourced from the account's capabilities rather than from hardcoded values.
+- [ ] The admin *New Shipment* form offers the same package types, delivery types and shipment options as on beta.15 for every supported carrier, now sourced from the account's capabilities rather than from hardcoded values.
 - [ ] An admin can enter any insurance amount within their contract's range and export successfully with it, including amounts that were not previously offered as a tier.
 - [ ] A capabilities response containing an option, carrier or package type the module does not recognise does not break the admin form, the checkout, or an export. The unknown value is logged.
 - [ ] With the capabilities endpoint unreachable, label creation still succeeds.

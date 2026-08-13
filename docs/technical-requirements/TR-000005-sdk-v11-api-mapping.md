@@ -57,7 +57,7 @@ SDK beta.22 deleted 60 files: the whole consignment stack, the delivery-options 
 | `src/Model/Shipment/DeliveryType` | `AbstractConsignment::DELIVERY_TYPE_*`, `DELIVERY_TYPES_NAMES_IDS_MAP`, `DEFAULT_DELIVERY_TYPE` |
 | `src/Model/Shipment/ShipmentOption` | `AbstractConsignment::SHIPMENT_OPTION_*`, `EXTRA_OPTION_*` |
 
-Name-to-id translation delegates to SDK `Model\Shipment\{PackageType, Carrier}` and `Model\Shipment\Mapping\*`. Every new constant must equal the beta.17 SDK value it replaces, asserted by unit test.
+Name-to-id translation delegates to SDK `Model\Shipment\{PackageType, Carrier}` and `Model\Shipment\Mapping\*`. Every new constant must equal the beta.15 SDK value it replaces, asserted by unit test.
 
 Surviving and to be left alone: `Services\CountryCodes`, `Support\Str`, `Support\Collection`, `Model\Recipient`, `Model\CustomsDeclaration`, `Model\MyParcelCustomsItem`, `Model\PickupLocation`, `Helper\SplitStreet`, `Helper\ValidateStreet`, `Model\Carrier\*`. Several are now marked `@internal` — including `AccountWebService`, `CarrierOptionsWebService`, `Collection\Fulfilment\OrderCollection`, and the carrier value objects — so they work but should not attract new usage.
 
@@ -89,10 +89,10 @@ Static verification, since this is a compatibility requirement rather than a mea
 ### Test Scenarios
 
 1. **No removed symbol remains.** Grep `src/`, `Controller/`, `view/` and `Tests/` for every FQCN in the removed-class inventory; expect zero matches. This includes `view/adminhtml/templates/new_shipment.phtml`, which uses the consignment API directly and which a PHP-only grep misses.
-2. **Constant equivalence.** Unit tests assert each new module constant equals the beta.17 SDK value it replaces, run while beta.17 is still installed.
+2. **Constant equivalence.** Unit tests assert each new module constant equals the beta.15 SDK value it replaces, run while beta.15 is still installed.
 3. **DI compilation.** `bin/magento setup:di:compile` succeeds. This is the only check that catches `src/Block/Sales/OrderAction.php:41` and `ShipmentAction.php:48`, which take an SDK consignment as a constructor argument with no `di.xml` entry to grep for.
 4. **Composer resolution.** `composer update myparcelnl/sdk` resolves beta.31 with `setasign/fpdi` present as an explicit dependency, and the Pest suite passes on PHP 8.1 through 8.4.
-5. **Dead import sweep.** `MagentoCollection.php:47`, `MagentoOrderCollection.php:35`, `TrackTraceHolder.php:41` and `AccountSettings.php:13,15` carry unused imports; the last two name classes absent from **both** beta.17 and beta.31, so they are already broken and must be deleted.
+5. **Dead import sweep.** `MagentoCollection.php:47`, `MagentoOrderCollection.php:35`, `TrackTraceHolder.php:41` and `AccountSettings.php:13,15` carry unused imports; the last two name classes absent from **both** beta.15 and beta.31, so they are already broken and must be deleted.
 
 ### Monitoring
 

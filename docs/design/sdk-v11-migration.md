@@ -19,7 +19,7 @@ The module pins `myparcelnl/sdk: 11.0.0-beta.15@beta`. SDK **beta.22** deleted t
 |---|---|
 | All breaking changes landed in **beta.22** (`ac6103c`, PR #615). Only beta.29 (enum validation loosening) also flags BREAKING. | One cliff, not a drift. |
 | The v11 stack (`Model\Shipment\Shipment`, `Collection\ShipmentCollection`, `Services\Shipment\*`) **already exists at beta.15**, byte-identical to beta.31 for the model and collection. | **The whole module can be migrated against the currently-installed SDK, bumping the pin last.** Every intermediate commit stays runnable. |
-| `vendor/myparcelnl/sdk` is a **symlink** to `app/code/MyParcelNL/Sdk`, a git checkout at **beta.17**. | Local verification is a `git checkout` in that repo. The pin says beta.15; we actually run beta.17. |
+| `vendor/myparcelnl/sdk` is a **symlink** to `app/code/MyParcelNL/Sdk`, a git checkout currently at **beta.15**, matching the pin exactly. | Local verification is a `git checkout` in that repo — switch versions there to check behaviour at a different beta. |
 | The SDK's `UPGRADE.md` at beta.31 is an authoritative before/after migration guide. | Primary reference — read it, do not re-derive it. |
 | **54 module files** touch the SDK; **34** touch classes beta.31 removed. | Broad but mostly shallow. |
 | `AbstractConsignment` usage is **~41 constants / 120+ usages** and only ~7 real type usages. | The largest slice is mechanical constant replacement. |
@@ -84,7 +84,7 @@ Corrections made while planning. Each was wrong in a way that is easy to repeat.
 
 **Initially reported as** a read/write scope mismatch.
 
-**Wrong because:** the write (`CarrierConfigurationImport.php:70`) and the read (`AccountSettings.php:34`) are *both* default-scope. The API key in the path is the discriminator and it works as designed. Only the API key *lookup* is scope-aware, which is correct. Two narrower real items replaced it: `PackageRepository.php:134` reads the key without an explicit store id, and `AccountSettings.php:13,15` import classes absent from beta.17 and beta.31.
+**Wrong because:** the write (`CarrierConfigurationImport.php:70`) and the read (`AccountSettings.php:34`) are *both* default-scope. The API key in the path is the discriminator and it works as designed. Only the API key *lookup* is scope-aware, which is correct. Two narrower real items replaced it: `PackageRepository.php:134` reads the key without an explicit store id, and `AccountSettings.php:13,15` import classes absent from beta.15 and beta.31.
 
 ---
 
@@ -169,7 +169,7 @@ Then create, following `docs/templates/` and matching BR-000002's depth: BR-0000
 
 `Services\CountryCodes` and `Support\{Str,Collection}` survive in beta.31 — leave them alone.
 
-**Check:** unit tests asserting every new constant equals the beta.17 SDK value it replaces. Grep shows zero remaining `AbstractConsignment::` references.
+**Check:** unit tests asserting every new constant equals the beta.15 SDK value it replaces. Grep shows zero remaining `AbstractConsignment::` references.
 
 ### Phase 3 — Module-owned delivery options value objects · *Not started*
 
@@ -195,7 +195,7 @@ Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sal
 
 Reference `UPGRADE.md`'s claim that `CapabilitiesService` is the v11 answer for capabilities, since 1–3 together make it untrue in practice. When they land, delete the workaround behind its `@todo` and reassess whether this layer can shrink.
 
-**Check:** `setup:di:compile` succeeds. The admin New Shipment form renders the same package types, delivery types and shipment options as on beta.17, per carrier (insurance changes shape in Phase 5). Checkout delivery options unchanged. A cold checkout makes at most one capabilities call per (account, request shape); a warm one makes none.
+**Check:** `setup:di:compile` succeeds. The admin New Shipment form renders the same package types, delivery types and shipment options as on beta.15, per carrier (insurance changes shape in Phase 5). Checkout delivery options unchanged. A cold checkout makes at most one capabilities call per (account, request shape); a warm one makes none.
 
 ### Phase 5 — Insurance as a range, contract definitions, account settings · *Not started*
 
@@ -207,7 +207,7 @@ Insurance becomes a free amount between `min` and `max` (DR-4). Specification in
 - `src/Setup/UpgradeData.php:946,981,994,1012` calls `getInsurancePossibilities()` inside a **historical data migration**. Freeze the tier lists it needs as private module constants — it must not start depending on a network call.
 - `src/Model/Settings/AccountSettings.php` and `Controller/Adminhtml/Settings/CarrierConfigurationImport.php` → contract definitions. Delete the broken imports at `AccountSettings.php:13,15`. Retire the hand-rolled `createArray()` (`@TODO sdk#326` at `CarrierConfigurationImport.php:132`).
 
-**Check:** re-run *Import MyParcel Backoffice settings* and diff the stored JSON against the beta.17 output. Per carrier × zone, confirm `[min, max]` contains every value the old tier list offered — if an old top tier exceeds the contract max, that is a real finding, not a rounding error. An existing saved amount stays valid; an out-of-range one clamps rather than zeroing. Export with an amount that was never a tier (e.g. €137) and confirm the API accepts it. `setup:upgrade` on a pre-migration snapshot still produces identical rows.
+**Check:** re-run *Import MyParcel Backoffice settings* and diff the stored JSON against the beta.15 output. Per carrier × zone, confirm `[min, max]` contains every value the old tier list offered — if an old top tier exceeds the contract max, that is a real finding, not a rounding error. An existing saved amount stays valid; an out-of-range one clamps rather than zeroing. Export with an amount that was never a tier (e.g. €137) and confirm the API accepts it. `setup:upgrade` on a pre-migration snapshot still produces identical rows.
 
 ### Phase 6 — Shipment building · *Not started*
 

@@ -41,7 +41,7 @@ Resilience to capability changes is specified separately in [FR-000010](FR-00001
 ## Acceptance Criteria
 
 - [ ] Allowed package types, delivery types and shipment options rendered on the admin *New Shipment* form come from the account's capability data, per carrier.
-- [ ] For an account whose contract matches today's hardcoded assumptions, the rendered options are identical to beta.17. Any difference is explainable from that account's contract.
+- [ ] For an account whose contract matches today's hardcoded assumptions, the rendered options are identical to beta.15. Any difference is explainable from that account's contract.
 - [ ] Two stores configured with different API keys can render different option sets on the same form, each matching its own account.
 - [ ] Multicollo eligibility is decided by the reported collo maximum, not by a hardcoded carrier, country and package-type rule.
 - [ ] Insurance bounds (`min`, `max`, `default`) are read per account; see FR-000009 for how they are then used.

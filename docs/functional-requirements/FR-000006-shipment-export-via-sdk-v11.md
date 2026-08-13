@@ -44,7 +44,7 @@ The export paths in scope, all of which exist today:
 - [ ] PPS export mode creates fulfilment orders carrying delivery options, recipient, invoice address, order lines, weight, order date, external identifier, pickup location where applicable, and a customs declaration for non-EU destinations.
 - [ ] Order notes are exported per fulfilment order against that order's own account.
 - [ ] The status cron updates `track_status`, `track_number` and MyParcel status for orders in both shipment and PPS modes.
-- [ ] Package type, weight, shipment option and age-check resolution produce identical values to beta.17 for the same inputs, verified by the tests introduced before the port.
+- [ ] Package type, weight, shipment option and age-check resolution produce identical values to beta.15 for the same inputs, verified by the tests introduced before the port.
 - [ ] Customs items appear exactly once per shipped item, correcting the current double-add.
 - [ ] The track & trace URL rendered in the admin grid column and in shipment emails is unchanged, now produced by module-owned code rather than the removed `Sdk\Helper\TrackTraceUrl`.
 - [ ] No `MyParcelNL\Sdk\Model\Consignment\*`, `MyParcelNL\Sdk\Adapter\DeliveryOptions\*`, `MyParcelNL\Sdk\Factory\*` or `MyParcelNL\Sdk\Helper\MyParcelCollection` reference remains anywhere in `src/`, `Controller/`, `view/` or `Tests/`.

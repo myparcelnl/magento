@@ -98,7 +98,7 @@ Read the **flat** `min` / `max` / `default` properties on the insurance option â
 | Uncached capability calls per cold checkout | â‰¤ 1 per distinct account and request shape | Request log during a checkout |
 | Uncached capability calls per warm checkout | 0 | Request log |
 | Uncached calls per admin *New Shipment* render (warm) | 0 | Request log |
-| Checkout delivery-options latency vs beta.17 | No measurable regression once warm | Before/after timing |
+| Checkout delivery-options latency vs beta.15 | No measurable regression once warm | Before/after timing |
 | Label creation with capabilities unavailable | Succeeds | Fault injection |
 
 ## Verification Method
