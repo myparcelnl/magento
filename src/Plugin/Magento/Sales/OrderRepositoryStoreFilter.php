@@ -4,36 +4,33 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Plugin\Magento\Sales;
 
-use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\Search\FilterGroupBuilder;
 use Magento\Framework\Api\SearchCriteriaInterface;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
+use MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria;
 
 /**
  * Plugin restricting order queries to the stores visible to the token-authenticated caller.
  *
- * beforeGetList() injects a store_id IN (...) filter (or store_id IN (-1) when the caller
- * has zero permitted stores, so no row matches). afterGet() throws NoSuchEntityException
- * when a fetched order falls outside the permitted set. No-op when no token authenticated
- * the request — admin / Bearer / guest callers pass through untouched.
+ * beforeGetList() delegates to StoreScopeSearchCriteria (shared with the other repository scope
+ * filters). afterGet() throws NoSuchEntityException when a fetched order falls outside the
+ * permitted set — deliberately a 404 rather than a 403, so scope boundaries do not leak whether
+ * the order exists. No-op when no token authenticated the request — admin / Bearer / guest callers
+ * pass through untouched.
  */
 class OrderRepositoryStoreFilter
 {
-    private TokenScopeContext  $tokenScopeContext;
-    private FilterBuilder      $filterBuilder;
-    private FilterGroupBuilder $filterGroupBuilder;
+    private TokenScopeContext        $tokenScopeContext;
+    private StoreScopeSearchCriteria $storeScopeSearchCriteria;
 
     public function __construct(
-        TokenScopeContext  $tokenScopeContext,
-        FilterBuilder      $filterBuilder,
-        FilterGroupBuilder $filterGroupBuilder
+        TokenScopeContext        $tokenScopeContext,
+        StoreScopeSearchCriteria $storeScopeSearchCriteria
     ) {
-        $this->tokenScopeContext  = $tokenScopeContext;
-        $this->filterBuilder      = $filterBuilder;
-        $this->filterGroupBuilder = $filterGroupBuilder;
+        $this->tokenScopeContext        = $tokenScopeContext;
+        $this->storeScopeSearchCriteria = $storeScopeSearchCriteria;
     }
 
     /**
@@ -43,30 +40,7 @@ class OrderRepositoryStoreFilter
         OrderRepositoryInterface $subject,
         SearchCriteriaInterface  $searchCriteria
     ): array {
-        $permitted = $this->tokenScopeContext->permittedStoreIds();
-        // Non-token request (admin/Bearer/guest) — no store filter applied.
-        if ($permitted === null) {
-            return [$searchCriteria];
-        }
-
-        // Empty permitted set: force store_id IN (-1) so no row matches (store_ids are positive).
-        $values = $permitted === [] ? [-1] : $permitted;
-
-        $filter = $this->filterBuilder
-            ->setField('store_id')
-            ->setConditionType('in')
-            ->setValue($values)
-            ->create();
-
-        $group = $this->filterGroupBuilder
-            ->addFilter($filter)
-            ->create();
-
-        $searchCriteria->setFilterGroups(
-            array_merge($searchCriteria->getFilterGroups(), [$group])
-        );
-
-        return [$searchCriteria];
+        return [$this->storeScopeSearchCriteria->apply($searchCriteria)];
     }
 
     /**

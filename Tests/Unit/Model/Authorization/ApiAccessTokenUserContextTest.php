@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Authorization\ApiAccessTokenUserContext;
 use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
@@ -227,6 +228,65 @@ it('processes the request only once across repeated getUserId/getUserType calls'
     // Mockery's ->once() expectation on getHeader('Authorization') asserts the singleton parse.
     expect(true)->toBeTrue();
 });
+
+it('re-derives the identity after _resetState so it cannot leak into the next request', function () {
+    $plaintext = testToken('tokenreset');
+    $coord     = ['scope' => ScopeInterface::SCOPE_STORES, 'scopeId' => 3];
+
+    // Same singleton serving two requests, as in a queue consumer / async webapi runtime:
+    // the first presents a store-scoped token, the second presents no Authorization header.
+    $request = Mockery::mock(RequestInterface::class);
+    $request->shouldReceive('getHeader')
+        ->with('Authorization')
+        ->andReturn('MyParcel ' . $plaintext, null);
+
+    $scopeContext = Mockery::mock(TokenScopeContext::class);
+    $scopeContext->shouldReceive('findByHash')->with(hash('sha256', $plaintext))->andReturn($coord);
+    $scopeContext->shouldReceive('setOwner')->once()->with($coord['scope'], $coord['scopeId']);
+
+    $previousServerHeaders = [
+        'HTTP_AUTHORIZATION'          => $_SERVER['HTTP_AUTHORIZATION'] ?? null,
+        'REDIRECT_HTTP_AUTHORIZATION' => $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? null,
+    ];
+    unset($_SERVER['HTTP_AUTHORIZATION'], $_SERVER['REDIRECT_HTTP_AUTHORIZATION']);
+
+    try {
+        $ctx = new ApiAccessTokenUserContext(
+            $request,
+            mockIntegrationService(FAKE_INTEGRATION_ID),
+            $scopeContext
+        );
+
+        expect($ctx->getUserType())->toBe(UserContextInterface::USER_TYPE_INTEGRATION);
+        expect($ctx->getUserId())->toBe(FAKE_INTEGRATION_ID);
+
+        $ctx->_resetState();
+
+        // Without the reset the memoized identity would still be returned here, leaving the
+        // request authenticated as the integration while TokenScopeContext has no owner —
+        // which switches every store-scope filter off.
+        expect($ctx->getUserId())->toBeNull();
+        expect($ctx->getUserType())->toBeNull();
+    } finally {
+        foreach ($previousServerHeaders as $key => $value) {
+            if ($value === null) {
+                unset($_SERVER[$key]);
+            } else {
+                $_SERVER[$key] = $value;
+            }
+        }
+    }
+});
+
+/**
+ * Invariant guard: ApiAccessTokenUserContext and TokenScopeContext are both DI singletons holding
+ * two halves of the same per-request authentication state. If only one of them resets, the pair
+ * desynchronizes and the store-scope filters silently stop applying. Neither may lose the
+ * interface without the other.
+ */
+it('resets in lockstep with TokenScopeContext', function (string $class) {
+    expect(class_implements($class))->toContain(ResetAfterRequestInterface::class);
+})->with([ApiAccessTokenUserContext::class, TokenScopeContext::class]);
 
 /**
  * Coverage regression: INTEGRATION_NAME is the lookup key UserContext uses against

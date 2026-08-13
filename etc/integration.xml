@@ -11,7 +11,13 @@
     <integration name="MyParcel API">
         <email>support@myparcel.nl</email>
         <resources>
-            <!-- required for OrderRepositoryInterface::get() used by /V1/myparcel/delivery-options -->
+            <!--
+                Grants tokens the native GET /V1/orders* reads the MyParcel backoffice needs
+                (TR-000004 §Rationale). NOT required by /V1/myparcel/delivery-options: webapi ACL is
+                per-route and that route declares only delivery_options_read. This single resource
+                authorizes six routes across three services, so each needs its own store-scope filter
+                — see etc/webapi_rest/di.xml.
+            -->
             <resource name="Magento_Sales::actions_view"/>
             <!-- gates GET /V1/myparcel/delivery-options -->
             <resource name="MyParcelNL_Magento::delivery_options_read"/>

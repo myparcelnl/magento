@@ -18,10 +18,25 @@ Steps 1 + 2 are always required; step 3 depends on what the endpoint queries.
 
 This is the complete set of access an API access token can have today. Every token call must clear gates 1 + 2; gate 3 applies whenever the endpoint returns store-scoped data.
 
-| ACL resource | Routes that require it | Scopes supported | Filter (gate 3) |
-|---|---|---|---|
-| `MyParcelNL_Magento::delivery_options_read` | `GET /V1/myparcel/delivery-options` | default / website / store | `OrderRepositoryStoreFilter` (the endpoint loads the order via `OrderRepositoryInterface`) |
-| `Magento_Sales::actions_view` | none directly; required because `OrderDeliveryOptions` resolves the order through `OrderRepositoryInterface`, which Magento authorizes against this resource | default / website / store | `OrderRepositoryStoreFilter` |
+> **Gate 3 is per *service*, not per resource.** Allow-listing one resource opens every route Magento
+> maps to it. Enumerate them all and confirm each has a filter — missing one leaks data through a route
+> nobody listed. `Magento_Sales::actions_view` is the cautionary example: filtered on
+> `OrderRepositoryInterface` alone, it silently left the order-item and order-management routes open
+> (security review 2026-07, Finding 1).
+
+All scopes below support default / website / store.
+
+| ACL resource | Routes it authorizes | Filter (gate 3) |
+|---|---|---|
+| `MyParcelNL_Magento::delivery_options_read` | `GET /V1/myparcel/delivery-options` | `OrderRepositoryStoreFilter` (the endpoint loads the order via `OrderRepositoryInterface`) |
+| `Magento_Sales::actions_view` | `GET /V1/orders`, `/V1/orders/:id` | `OrderRepositoryStoreFilter` |
+| | `GET /V1/orders/items`, `/V1/orders/items/:id` | `OrderItemRepositoryStoreFilter` |
+| | `GET /V1/orders/:id/comments`, `/V1/orders/:id/statuses` | `OrderManagementStoreFilter` |
+
+`Magento_Sales::actions_view` is granted **because the MyParcel backoffice needs those native
+`/V1/orders*` reads** (`TR-000004` §Rationale) — not as a side effect of anything internal. It is not
+required by `/V1/myparcel/delivery-options`: webapi ACL is per-route, and that route declares only
+`delivery_options_read`.
 
 Sources of truth (must stay in sync; the regression test `Tests/Unit/Service/ScopedResourceRegistryTest.php` enforces alignment between the first two):
 
@@ -76,12 +91,22 @@ Also update the **Access matrix** at the top of this document with the new resou
 
 ### 7. Scope filtering — only if needed
 
-- **If the endpoint reads orders via `OrderRepositoryInterface`**: nothing to do. `OrderRepositoryStoreFilter` (`src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php`) handles both `getList()` (injects `store_id IN (...)`) and `get()` (throws `NoSuchEntityException` if out of scope).
+First **enumerate every route the resource authorizes**, not just the one you are adding:
+
+```bash
+grep -rn -B12 'resource ref="<the resource>"' vendor/magento/module-*/etc/webapi.xml \
+  | grep -E 'route url|service class'
+```
+
+Then, for each service in that list:
+
+- **Reads orders via `OrderRepositoryInterface`**: nothing to do. `OrderRepositoryStoreFilter` (`src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php`) handles both `getList()` and `get()`.
+- **Reads order items or order comments/statuses**: nothing to do. `OrderItemRepositoryStoreFilter` and `OrderManagementStoreFilter` cover those.
 - **For any other data source** (other repositories, direct DB, config reads):
-  - Inject `MyParcelNL\Magento\Model\Authorization\TokenScopeContext` into the handler.
-  - Constrain queries with `permittedStoreIds(): ?int[]` (null = no token / no constraint).
-  - Or gate per-record with `assertStoreInScope(int $storeId): void`.
-  - For Magento repository-backed sources, mirror `OrderRepositoryStoreFilter` as a `before/after` plugin in `etc/webapi_rest/di.xml`.
+  - For `getList`-shaped paths, inject `MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria` and call `apply($searchCriteria)` — it already handles the null (non-token) and empty-permitted-set cases, so do not re-implement the `store_id IN (...)` construction.
+  - For `get(id)`-shaped paths, inject `TokenScopeContext` and either compare against `permittedStoreIds(): ?int[]` (null = no token / no constraint) or call `assertStoreInScope(int $storeId): void`. Throw `NoSuchEntityException` (404), never a 403 — a 403 confirms the record exists.
+  - If the record carries no trustworthy `store_id` of its own, resolve it through the already-filtered `OrderRepositoryInterface` rather than duplicating the boundary check; `OrderManagementStoreFilter` is the reference for that.
+  - Register the plugin in `etc/webapi_rest/di.xml` (that area only — the admin must stay unaffected).
 
 ## Tests
 
@@ -119,7 +144,10 @@ Verify:
 - `src/Model/Authorization/TokenScopeContext.php` — scope state, `permittedStoreIds()`, `assertStoreInScope()`.
 - `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php` — allow-list gate.
 - `src/Service/ScopedResourceRegistry.php` — registry storage.
-- `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` — reference pattern for store filtering.
+- `src/Service/Authorization/StoreScopeSearchCriteria.php` — the shared `store_id IN (...)` injector; reuse it instead of rebuilding the filter.
+- `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` — reference pattern for store filtering (`getList` + `get`).
+- `src/Plugin/Magento/Sales/OrderItemRepositoryStoreFilter.php` — same pattern where scope comes from the record's own `store_id`.
+- `src/Plugin/Magento/Sales/OrderManagementStoreFilter.php` — pattern for gating a service that takes only an order id.
 - `src/Model/Rest/OrderDeliveryOptions.php` + `src/Model/Rest/AbstractEndpoint.php` — versioned endpoint reference.
 - `etc/webapi.xml`, `etc/acl.xml`, `etc/integration.xml`, `etc/webapi_rest/di.xml` — the four config files that always change.
 

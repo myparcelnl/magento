@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Model\Authorization;
 
 use Magento\Authorization\Model\UserContextInterface;
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\ObjectManager\ResetAfterRequestInterface;
 use Magento\Integration\Api\IntegrationServiceInterface;
 use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
@@ -17,8 +18,16 @@ use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
  * the plaintext against stored SHA-256 hashes via {@see TokenScopeContext}, and on success
  * exposes user type USER_TYPE_INTEGRATION resolved against the "MyParcel API" integration.
  * Bearer / OAuth / admin-session / guest requests pass through untouched.
+ *
+ * Implements ResetAfterRequestInterface, and must keep doing so: this is a DI singleton, so in
+ * long-running runtimes (queue consumers, async webapi, application-server modes) the memoized
+ * identity would otherwise survive into the next request. Because processRequest() short-circuits
+ * on $processed, a stale identity means setOwner() is never re-run while {@see TokenScopeContext}
+ * has already reset its owner to null — leaving the request authenticated as the integration user
+ * with permittedStoreIds() === null, which disables every store-scope filter. The two classes must
+ * therefore reset together.
  */
-class ApiAccessTokenUserContext implements UserContextInterface
+class ApiAccessTokenUserContext implements UserContextInterface, ResetAfterRequestInterface
 {
     public const INTEGRATION_NAME = 'MyParcel API';
     private const SCHEME          = 'myparcel';
@@ -51,6 +60,13 @@ class ApiAccessTokenUserContext implements UserContextInterface
     {
         $this->processRequest();
         return $this->userType;
+    }
+
+    public function _resetState(): void
+    {
+        $this->processed = false;
+        $this->userId    = null;
+        $this->userType  = null;
     }
 
     private function processRequest(): void
