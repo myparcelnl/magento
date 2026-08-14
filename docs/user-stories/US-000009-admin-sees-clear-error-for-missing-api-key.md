@@ -29,7 +29,7 @@ So that **I can fix and retry only the failures instead of guessing whether re-r
 **Then** the 40 shipments from chunks 1 and 2 are recorded against their Magento orders with shipment ids and barcodes,
 **And** the report lists those 40 as succeeded,
 **And** it lists the failing order with the API's own message,
-**And** re-running the action over the failed orders does not duplicate the 40 already created.
+**And** re-running the action over the whole batch sends only the failed order, leaving the 40 already created untouched.
 
 ### Scenario 3: An API rejection is shown verbatim, not flattened
 
@@ -71,7 +71,7 @@ So that **I can fix and retry only the failures instead of guessing whether re-r
 - Per-chunk persistence and the per-order report are specified in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).
 - Scenarios 4 and 5 implement the fail-open rules in [FR-000010](../functional-requirements/FR-000010-graceful-degradation-on-capability-changes.md); logging uses the module's `Logger` facade, with unknown enum values routed through the SDK's `Support\EnumFallback` listener.
 - Scenario 3 guards the trade FR-000010 accepts knowingly: because the module offers options without pre-validating them against capability data, the API's rejection is the merchant's only feedback. Swallowing or genericising it breaks the whole approach.
-- Scenario 2's resumability depends on the API treating reference identifiers idempotently. **Confirm against acceptance** before relying on it; if it does not hold, the report must warn against blind re-runs.
+- Scenario 2's re-run safety is **entirely the module's job**. Confirmed with the MyParcel team: the reference identifier is a string we supply to couple a shipment back to an order, and the API neither interprets nor deduplicates on it — a re-sent order becomes a second, billable shipment. The skip must therefore be driven by the shipment id persisted per chunk. See [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md)'s Partial-failure semantics, and note that today's `create_track_if_one_already_exist` default allows the duplicate.
 - The module currently catches `\Throwable` broadly in several export paths and adds a single message. That pattern loses per-order attribution and needs revisiting here.
 
 ## Dependencies
@@ -82,6 +82,7 @@ So that **I can fix and retry only the failures instead of guessing whether re-r
 
 - [ ] All six scenarios verified, using fault injection for scenarios 3 through 5.
 - [ ] Unit tests cover per-chunk persistence on a mid-batch failure and per-order attribution in the report.
-- [ ] Confirmed whether re-running over failed orders duplicates shipments; result recorded in TR-000006's Assumptions.
+- [x] Confirmed whether re-running over failed orders duplicates shipments — **it does**; recorded in TR-000006's Assumptions and specified in its Partial-failure semantics.
+- [ ] A re-run over an already-exported batch issues zero create calls, covered by a unit test with a mocked `ShipmentApi`.
 - [ ] No broad `\Throwable` catch remains in an export path that discards which order failed.
 - [ ] Documentation updated (this US, FR-000007, FR-000010, TR-000006).

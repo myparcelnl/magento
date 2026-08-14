@@ -100,9 +100,11 @@ None ongoing. This requirement is satisfied once and enforced thereafter by CI.
 
 ## Assumptions
 
-- beta.31 is the target. Later betas are ordinary maintenance, not this requirement.
-- The v11 shipment stack is byte-identical between beta.15 and beta.31 for the model and collection, so the port can be built against the installed SDK with the legacy stack as a live reference.
-- PHP floor stays `^7.4 || ^8.0`; beta.31 does not raise it.
+Checked against the real tags on 2026-08-14. Kept rather than deleted, because each was load-bearing while it was open.
+
+- beta.31 is the target. Later betas are ordinary maintenance, not this requirement. **Confirmed** — beta.31 is still the highest `v11` tag on the remote.
+- ~~The v11 shipment stack is byte-identical between beta.15 and beta.31 for the model and collection.~~ **Overstated.** `Model\Shipment\Shipment` and `Collection\ShipmentCollection` are byte-identical, and the generated `RefShipmentShipmentOptions` carries every setter the port needs at both versions — so the conclusion holds and the port can be built against the installed SDK. But `Model\Shipment\ShipmentOptions` is **not** identical: beta.31 adds `getDeliveryType()`, `setDeliveryType()`, `getInsurance()`, `toArray()`, `toArrayWithoutNull()` and `fromOrderResponse()`, plus a new `Mapping\DeliveryTypeApiMapping`. The one behavioural difference that matters: beta.31's `setDeliveryType()` normalises a string enum name to an id, where beta.15 stores the string unchanged. **Pass delivery type as an int and the two versions agree** — the module already does, via `getDeliveryTypeId()`. Re-verify this specific call after the pin moves.
+- PHP floor stays `^7.4 || ^8.0`; beta.31 does not raise it. **Confirmed** — both tags declare `"php": "^7.4 || ^8.0"`.
 
 ## Constraints
 

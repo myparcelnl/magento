@@ -35,8 +35,32 @@ The SDK's `Services\Capabilities\CapabilitiesService` **cannot be used as shippe
 | # | Defect | Effect |
 |---|---|---|
 | 1 | `HttpCapabilitiesClient` calls `postCapabilities()` with the pre-beta.25 argument order | The user-agent string is JSON-encoded into the request body and the request model is passed as the user agent. Valid JSON of the wrong shape, so a confusing API-side 4xx. **Affects every SDK consumer on beta.25–31.** |
-| 2 | The client hardcodes `ShipmentApiFactory::make(null, …)` | The key resolves only from `getenv('API_KEY')` / `API_KEY_NL` / `API_KEY_BE`, none of which a Magento install sets, so it throws. Unusable from this module. |
+| 2 | The client hardcodes `ShipmentApiFactory::make(null, …)`, and the factory silently resolves a missing key from the environment | Two faults in one. The capabilities client cannot be given a key at all, so it is unusable from this module. Underneath it, **three** factories — `ShipmentApiFactory`, `WebhookApiFactory`, `IamApiFactory` — treat an explicitly empty key as "no key" and substitute `getenv('API_KEY')`, then `API_KEY_NL` / `API_KEY_BE`. See below. |
 | 3 | `CapabilitiesMapper::mapFromCoreApi()` keeps only `array_keys($res->getOptions())` | Every per-option value is discarded, including insurance bounds. Unrecoverable downstream. |
+
+**Defect 2 in detail: the safest input produces the most dangerous behaviour.** `resolveApiKey()` is identical in all three factories:
+
+```php
+if (null !== $apiKey && '' !== $apiKey) {
+    return $apiKey;
+}
+$unifiedKey = getenv('API_KEY');            // then API_KEY_NL / API_KEY_BE
+```
+
+A caller passing `''` — a store with no key configured — does not get an error. It gets whichever account the ambient environment names, and ships a merchant's parcels against it silently. `make()` does guard on an empty resolved key, but only *after* the fallback has failed too, so the guard never fires on the case that matters.
+
+The fix to propose upstream is two lines, distinguishing "not supplied" from "supplied but empty":
+
+```php
+if (null !== $apiKey) {
+    return $apiKey;      // explicit intent wins, even when empty
+}
+// environment fallback only when nothing was supplied at all
+```
+
+`make('')` then returns `''` and the existing `InvalidArgumentException` fires; `make(null)` and `make('real-key')` are unchanged, so the SDK's own tests and CLI keep working. The same change is needed in all three factories. A cleaner variant — moving the fallback into an explicit `makeFromEnvironment()` — is worth offering, but breaks any consumer relying on implicit resolution.
+
+Until it lands, the module's defence is structural rather than defensive: see [TR-000006](TR-000006-per-api-key-export-batching.md)'s client-construction rules, which keep an unvalidated key from ever reaching a factory.
 
 Defect 3 is why implementing `CapabilitiesClientInterface` does not help: that interface must return the SDK's `final CapabilitiesResponse`, which has no insurance field. The module therefore calls the endpoint directly:
 
@@ -125,9 +149,9 @@ Unit tests with a stubbed client for behaviour, fault injection for degradation,
 
 ## Assumptions
 
-- The capabilities endpoint's V2 response remains the shape observed at beta.31. Where the OpenAPI spec and an observed acceptance response disagree, the observed response wins.
-- Contract definitions change rarely enough that account-refresh cadence is sufficient freshness.
-- The prerequisite PR's hash helper is available and stable.
+- The capabilities endpoint's V2 response remains the shape observed at beta.31. Where the OpenAPI spec and an observed acceptance response disagree, the observed response wins. **Confirmed as the right posture** — the shape is stable in practice but outside this module's control, which is exactly why the defensive-consumption rules above are mandatory rather than cautious.
+- Contract definitions change rarely enough that account-refresh cadence is sufficient freshness. **Confirmed** — fetching at account refresh is the intended strategy; no shorter TTL is needed.
+- The prerequisite PR's hash helper is available and stable. **Still open** — that PR is in progress. The two placeholders above are filled in when it merges.
 
 ## Constraints
 
