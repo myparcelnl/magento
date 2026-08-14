@@ -21,6 +21,7 @@ use Throwable;
  *  - Idempotent, so it can run from ordinary admin flows instead of a version-gated upgrade script.
  *  - Never deletes when the live key set is empty — that means a fresh install or a failed read.
  *  - Nothing logged may contain an api key.
+ *  - migrate() always targets default scope and never overwrites a row already there — see its docblock.
  */
 class Maintenance
 {
@@ -65,9 +66,11 @@ class Maintenance
             $liveFingerprints[$this->fingerprint->of($apiKey)] = true;
         }
 
-        $changed = false;
+        $rows                      = $this->accountSettingsRows();
+        $existingDefaultScopePaths = $this->existingDefaultScopePaths($rows);
+        $changed                   = false;
 
-        foreach ($this->accountSettingsRows() as $row) {
+        foreach ($rows as $row) {
             $path    = (string) $row->getData('path');
             $suffix  = substr($path, strlen(Config::XML_PATH_ACCOUNT_SETTINGS));
             $scope   = (string) $row->getData('scope');
@@ -78,7 +81,16 @@ class Maintenance
             }
 
             if (in_array($suffix, $liveKeys, true)) {
-                $this->migrate($path, $suffix, (string) $row->getData('value'), $scope, $scopeId);
+                $targetPath = Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($suffix);
+
+                $this->migrate(
+                    $path,
+                    $suffix,
+                    (string) $row->getData('value'),
+                    $scope,
+                    $scopeId,
+                    isset($existingDefaultScopePaths[$targetPath])
+                );
                 $changed = true;
                 continue;
             }
@@ -99,22 +111,57 @@ class Maintenance
     }
 
     /**
-     * Writes before deleting: a failed delete merely duplicates the row, which the next pass resolves,
-     * where the reverse order would lose the settings outright.
+     * Always targets default scope, never the legacy row's own (see Config::XML_PATH_ACCOUNT_SETTINGS).
+     * Skips the write if a default-scope row already exists there — it's fresher than the legacy value
+     * (e.g. just written by importFor()) — and only deletes the legacy row instead.
      */
-    private function migrate(string $legacyPath, string $apiKey, string $value, string $scope, int $scopeId): void
-    {
+    private function migrate(
+        string $legacyPath, string $apiKey, string $value, string $scope, int $scopeId, bool $targetExists
+    ): void {
         $fingerprint = $this->fingerprint->of($apiKey);
 
-        $this->configWriter->save(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint, $value, $scope, $scopeId);
-        $this->configWriter->delete($legacyPath, $scope, $scopeId);
+        if ($targetExists) {
+            $this->configWriter->delete($legacyPath, $scope, $scopeId);
+            $this->logger->notice(
+                sprintf(
+                    'Deleted legacy MyParcel account settings %s: a fingerprinted row already existed.',
+                    substr($fingerprint, 0, Fingerprint::LABEL_LENGTH)
+                )
+            );
+            return;
+        }
 
+        $this->configWriter->save(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint, $value);
+        $this->configWriter->delete($legacyPath, $scope, $scopeId);
         $this->logger->notice(
             sprintf(
                 'Moved MyParcel account settings to fingerprinted config path %s.',
                 substr($fingerprint, 0, Fingerprint::LABEL_LENGTH)
             )
         );
+    }
+
+    /**
+     * Account settings only live at default scope, so this is the full set of paths migrate() could
+     * already have a target row at.
+     *
+     * @param  \Magento\Framework\DataObject[] $rows
+     * @return array<string, true>
+     */
+    private function existingDefaultScopePaths(array $rows): array
+    {
+        $paths = [];
+
+        foreach ($rows as $row) {
+            $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $row->getData('scope')
+                && 0 === (int) $row->getData('scope_id');
+
+            if ($isDefaultScope) {
+                $paths[(string) $row->getData('path')] = true;
+            }
+        }
+
+        return $paths;
     }
 
     /**

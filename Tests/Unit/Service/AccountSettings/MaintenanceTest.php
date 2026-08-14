@@ -119,7 +119,7 @@ it('moves a legacy plaintext-suffixed row to its hashed path, preserving value a
         ->and($migrated['scope_id'])->toBe(0);
 });
 
-it('preserves a non-default scope coordinate when migrating', function () {
+it('migrates a legacy row configured at a non-default scope to the default-scope fingerprinted path', function () {
     $harness = new MyParcelTokenLifecycleHarness();
     $apiKey  = 'website-scoped-key';
 
@@ -135,8 +135,30 @@ it('preserves a non-default scope coordinate when migrating', function () {
     $migrated = rowAt($harness, settingsPathFor($apiKey));
 
     expect($migrated)->not->toBeNull()
-        ->and($migrated['scope'])->toBe(ScopeInterface::SCOPE_WEBSITES)
-        ->and($migrated['scope_id'])->toBe(3);
+        ->and($migrated['scope'])->toBe('default')
+        ->and($migrated['scope_id'])->toBe(0)
+        ->and(rowAt($harness, Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey))->toBeNull();
+});
+
+it('preserves a fresh fingerprinted row instead of overwriting it with a stale legacy value', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $apiKey  = 'reimport-key';
+
+    $harness->save(Config::XML_PATH_API_KEY, $apiKey, 'default', 0);
+    // Legacy row still carries the stale value from before the fingerprint migration ran.
+    $harness->save(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey, '{"shop":"stale"}', 'default', 0);
+    // Importer::importFor() already wrote fresh data to the fingerprinted path this request.
+    $harness->save(settingsPathFor($apiKey), '{"shop":"fresh"}', 'default', 0);
+
+    accountSettingsMaintenance($harness, ['default' => $apiKey])->reconcile();
+
+    $paths = array_column($harness->rows, 'path');
+
+    expect($paths)->not->toContain(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey);
+
+    $row = rowAt($harness, settingsPathFor($apiKey));
+
+    expect($row['value'])->toBe('{"shop":"fresh"}');
 });
 
 it('keeps a row whose api key is configured only at store-view scope', function () {

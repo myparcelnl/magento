@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Tests\Helpers;
 use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigDataCollection;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\DataObject;
@@ -66,7 +67,12 @@ final class MyParcelTokenLifecycleHarness
         $store  = $this;
         $writer = Mockery::mock(WriterInterface::class);
         $writer->shouldReceive('save')->andReturnUsing(
-            function (string $path, string $value, string $scope, int $scopeId) use ($store): void {
+            function (
+                string $path,
+                string $value,
+                string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                int $scopeId = 0
+            ) use ($store): void {
                 $store->save($path, $value, $scope, $scopeId);
             }
         );

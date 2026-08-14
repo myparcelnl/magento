@@ -33,7 +33,8 @@ class Config extends AbstractHelper
      * Prefix; append the fingerprint of the api key the settings belong to.
      *
      * Keyed by api key rather than scope: the settings describe a MyParcel account, several stores may
-     * share one key, and callers holding only a key must be able to resolve them.
+     * share one key, and callers holding only a key must be able to resolve them. Always default scope
+     * (scope_id 0) — never pass a store/website scope here.
      */
     public const XML_PATH_ACCOUNT_SETTINGS          = self::XML_PATH_GENERAL . 'account_settings_';
     public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
