@@ -1,6 +1,6 @@
 # SDK v11 Migration Plan
 
-**Status:** Phase 0 in progress
+**Status:** Phase 1 complete
 **Started:** 2026-08-11
 **Branch:** `feat/use-sdk-v11-shipments`
 **Business Requirement:** [BR-000003 — MyParcel SDK v11 compatibility](../business-requirements/BR-000003-sdk-v11-compatibility.md)
@@ -94,6 +94,20 @@ Corrections made while planning. Each was wrong in a way that is easy to repeat.
 
 **Treated the same as the customs double-add** (Phase 1's test asserts the documented precedence and marks the two unreachable-tier cases `->todo()`; the fix lands in Phase 6, alongside the `ShipmentBuilder` rewrite that also fixes the double-add).
 
+### DR-8: Splitting capabilities into a second PR was considered and rejected
+
+**Proposed:** defer Phases 4 and 5 to a follow-up PR that would introduce capabilities everywhere, settings included. This PR would still move the pin, ending knowingly broken, and merge to an integration branch rather than to `develop`.
+
+**Rejected because it saves no work and costs coordination.** Three things settled it:
+
+- **There is no small capabilities subset.** Every broken consumer needs the same client: the admin form (`getAllowedPackageTypes`, `getAllowedShipmentOptions`, `canHaveShipmentOption`) and checkout (`canHaveDeliveryType`, `canHavePackageType`, `canHaveExtraOption`) all go through it. To ship a module that works at beta.31 you need substantially all of Phase 4, so deferring moves the work rather than reducing it.
+- **The first PR could not ship.** Splitting a PR pays off when the first half reaches `develop`. A module whose admin form and checkout fatal cannot, so it would sit on an integration branch waiting for the second PR — which voids the risk-isolation argument the split was built on. Nothing would reach `develop` any sooner.
+- **It adds work that would not otherwise exist:** an expected-failure list to produce and reconcile on every CI run, an integration branch to rebase against `develop` drift, and deferred verification — a defect introduced by Phase 2, 3 or 6 in the form or checkout paths would surface during the second PR, far from its cause.
+
+**Kept from the exercise:** the two carve-outs recorded in Phases 2 and 8 below, which belong there on their own merits, and the `canUseMultiCollo()` retype in Phase 6, which was unassigned.
+
+If this is reconsidered, the workable seam is the *feature* line, not the capabilities line: compatibility (including the capabilities layer) in one PR, insurance-as-a-range and contract definitions in a second. Both would ship.
+
 ---
 
 ## Standing decisions
@@ -175,6 +189,7 @@ Then create, following `docs/templates/` and matching BR-000002's depth: BR-0000
 - `Sdk\Helper\ValidatePostalCode` → `src/Service/ValidatePostalCode`.
 - Give `PackageRepository.php:134` an explicit store id.
 - Validate our own **outbound** enums here: `EnumFallback` is forgiving on the read path but request serialization stays strict.
+- **Drop the `BaseConsignment` constructor argument** from `src/Block/Sales/OrderAction.php:41` and `src/Block/Sales/ShipmentAction.php:48` (moved here from Phase 4). Neither block uses it for anything but an `isToRowCountry()` call on a consignment that never gets a country, so the answer is constant today. These two arguments are the only thing that breaks `setup:di:compile` at beta.31, and fixing them here keeps `di:compile` green from Phase 2 onward instead of from Phase 4.
 
 `Services\CountryCodes` and `Support\{Str,Collection}` survive in beta.31 — leave them alone.
 
@@ -192,7 +207,9 @@ Touches `src/Model/Quote/Checkout.php`, `src/Model/Checkout/ShippingMethods.php`
 
 `src/Model/Shipment/Capabilities`: module-owned, API-key-scoped, cached. Calls `postCapabilities` directly (DR-1, DR-2). Full specification in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
-Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sales/{NewShipment,NewShipmentForm}.php`, `src/Model/Quote/Checkout.php`, `src/Block/Sales/{OrderAction,ShipmentAction}.php` (**drop the `BaseConsignment` DI argument** — this is what breaks `di:compile`), `src/Helper/CustomsDeclarationFromOrder.php`, `src/Model/Sales/MagentoOrderCollection.php:425`.
+Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sales/{NewShipment,NewShipmentForm}.php`, `src/Model/Quote/Checkout.php`, `src/Helper/CustomsDeclarationFromOrder.php`.
+
+**Two items moved out of this phase.** Dropping the `BaseConsignment` DI argument from `src/Block/Sales/{OrderAction,ShipmentAction}.php` is now **Phase 2**; re-sourcing `getLocalCountryCode()` at `MagentoOrderCollection.php:425` is now **Phase 8**. Neither is capability data — the first is a dead constructor argument, the second a static country fact that TR-000005 routes to module constants — and doing them earlier keeps `di:compile` and the PPS path healthy through more of the branch.
 
 **SDK issues to raise — manual, this phase.** Three separate issues on `myparcelnl/sdk`:
 
@@ -228,8 +245,10 @@ Insurance becomes a free amount between `min` and `max` (DR-4). Specification in
 - `setPhysicalProperties(['weight' => …])` — shape unchanged
 - `addItem(MyParcelCustomsItem)` → `setCustomsDeclaration(...)`. **`MyParcelCustomsItem::setDescription()`'s 2nd `$carrier` argument is now ignored and max length is hard-coded to 50** — verify no description regressions.
 - the pickup block → `setPickup(...)`
-- Fix the double-add at `:347-361` / `:367-382`. **The Phase 1 test for this goes green here** — that is the signal the fix landed.
+- Fix the double-add at `:347-361` / `:367-382`. **The Phase 1 test for this goes green here** — that is the signal the fix landed. Same for the age-check precedence bug (DR-7).
 - The API key is no longer on the shipment; pair each `Shipment` with its key for Phase 7.
+- `isToRowCountry()` at `:339` comes from the Phase 2 `CountryCode` constants, not from capabilities — it is a static country fact (TR-000005).
+- **Retype `canUseMultiCollo()`** (`MagentoCollection.php:644`, called from `MagentoCollection.php:440` and `src/Observer/NewShipment.php:111`). It is typed `AbstractConsignment` and receives what this phase turns into a `Shipment`, so it breaks here whatever else happens. The body is module-owned carrier logic; Phase 4 replaces the rule itself with the capabilities collo maximum, so keep the retype mechanical and leave the rule alone.
 
 **Check.** Two layers, neither a golden file. First, the Phase 1 tests still pass **unchanged** — they assert our rules, not the payload, so a correct rewrite should not need to touch them; if one needs editing to go green, that is a behaviour change, so stop and justify it. Second, validate the outbound request against the real spec: `league/openapi-psr7-validator` and `nyholm/psr7` are already dev dependencies and beta.31 ships `openapi/coreapi.yaml`. Caveat — that file is a ~3KB `$ref` root stitching in `common.yaml` and `commonProperties.yaml`, so resolving the bundle is real plumbing. Timebox it; if it fights back, read the serialised payload against the spec by hand once per fixture. Do not add snapshots as a consolation prize.
 
@@ -246,6 +265,7 @@ Touches `MagentoCollection`, `MagentoOrderCollection`, `MagentoShipmentCollectio
 - `Model\Fulfilment\AbstractOrder::getDeliveryOptions()` now returns SDK `Model\Shipment\ShipmentOptions`, and `getCarrier()` **throws** unless `setCarrierId()` was called. Update `MagentoOrderCollection::setFulfilment()` (`:163-265`).
 - `src/Cron/UpdateStatus.php:126` — loop over the distinct API keys of the orders being polled instead of one ambient key.
 - Fix `$orderLines` being created once *outside* the per-order loop at `MagentoOrderCollection.php:166`, so lines accumulate across orders in a multi-order batch.
+- **Re-source `getLocalCountryCode()`** at `MagentoOrderCollection.php:425-432` from the Phase 2 `CountryCode` constants, and delete the throwaway consignment at `:425` that exists only to read it (moved here from Phase 4). `SplitStreet::splitStreet()` itself survives at beta.31; only its second argument needs a new source. It sits here rather than in Phase 4 because `setShippingRecipient()` is reached only from `setFulfilment()`, which this phase owns.
 
 **Check:** export two orders from two stores in PPS mode; each lands in the right account with only its own order lines; cron updates both.
 

@@ -31,6 +31,8 @@ Chunking then creates a failure mode that did not previously exist. A 100-order 
 
 - The API key is resolved per order from `myparcelnl_magento_general/api/key` at the order's store scope. Never from an ambient or request-derived store.
 - Orders are grouped by resolved key. Each group is sent only under its own key.
+- Grouping is by the resolved key **value**, not by store id. Magento resolves the path through a default → website → store fallback (`Store\Model\Config\Processor\Fallback`), so several stores commonly resolve to one inherited key. Their orders form a single group and a single call. Keying the grouping on store id instead splits one account's batch into as many calls as it has stores, which multiplies round-trips and defeats the chunk size.
+- The group count is therefore the number of distinct resolved keys — neither the number of stores nor the number of orders. A website-scope override puts that website's orders in their own group, while the remaining stores stay together on the inherited default.
 - An order whose store resolves an empty key is excluded from the batch and reported by increment id. It must not be sent under another key.
 - Grouping applies to: shipment creation, status/query refresh, label retrieval, track & trace retrieval, concept deletion, and return-shipment creation. The fulfilment (PPS) path already groups internally and needs no additional layer.
 
@@ -82,14 +84,15 @@ Unit tests with a mocked `ShipmentApi` for the mechanics, plus manual multi-acco
 ### Test Scenarios
 
 1. **N keys produce N create calls.** A batch spanning three distinct keys issues exactly three create calls, each carrying only its own key's shipments.
-2. **One client per key.** Building the services for a key constructs one `ShipmentApi`, not one per service.
-3. **Chunk boundaries.** 50 shipments at the default produce three calls of 20, 20 and 10. Chunk size 1 produces 50 calls. Chunk size 100 produces one. Chunk sizes `0`, `-1`, `101` and a non-numeric value all fall back to 20.
-4. **Per-chunk persistence.** With the mock failing on chunk 3, the tracks for chunks 1 and 2 carry their shipment ids and barcodes, and the report names the orders in chunk 3 as failed.
-5. **Empty key fails loudly.** An order whose store has no key raises `LocalizedException` and never reaches `ShipmentApiFactory`, verified with the `API_KEY` environment variable deliberately set to a decoy value that must not be used.
-6. **Correlation without ordering.** A response returning mappings in a different order from the request still correlates each shipment to the correct Magento track.
-7. **Merged PDF.** Two keys yielding two PDFs produce one document whose page count is the sum, ordered by the admin's selection.
-8. **Manual, two stores, two accounts.** A mixed mass action places each shipment in its correct MyParcel backoffice and returns one merged PDF.
-9. **Manual, chunk timeout.** ~50 orders at the default size complete without timeout.
+2. **Stores sharing an inherited key produce one call.** A batch spanning three stores that all resolve to the same default-scope key issues exactly one create call carrying all of them. Adding a website-scope override for one of those stores splits the same batch into two calls, not three.
+3. **One client per key.** Building the services for a key constructs one `ShipmentApi`, not one per service.
+4. **Chunk boundaries.** 50 shipments at the default produce three calls of 20, 20 and 10. Chunk size 1 produces 50 calls. Chunk size 100 produces one. Chunk sizes `0`, `-1`, `101` and a non-numeric value all fall back to 20.
+5. **Per-chunk persistence.** With the mock failing on chunk 3, the tracks for chunks 1 and 2 carry their shipment ids and barcodes, and the report names the orders in chunk 3 as failed.
+6. **Empty key fails loudly.** An order whose store has no key raises `LocalizedException` and never reaches `ShipmentApiFactory`, verified with the `API_KEY` environment variable deliberately set to a decoy value that must not be used.
+7. **Correlation without ordering.** A response returning mappings in a different order from the request still correlates each shipment to the correct Magento track.
+8. **Merged PDF.** Two keys yielding two PDFs produce one document whose page count is the sum, ordered by the admin's selection.
+9. **Manual, two stores, two accounts.** A mixed mass action places each shipment in its correct MyParcel backoffice and returns one merged PDF.
+10. **Manual, chunk timeout.** ~50 orders at the default size complete without timeout.
 
 ### Monitoring
 
@@ -98,7 +101,7 @@ Unit tests with a mocked `ShipmentApi` for the mechanics, plus manual multi-acco
 
 ## Assumptions
 
-- The MyParcel API is idempotent with respect to reference identifiers to the extent that a re-run over failed orders does not duplicate already-created shipments. **To be confirmed against acceptance** before relying on scenario 4's resumability claim.
+- The MyParcel API is idempotent with respect to reference identifiers to the extent that a re-run over failed orders does not duplicate already-created shipments. **To be confirmed against acceptance** before relying on scenario 5's resumability claim.
 - `ShipmentApiFactory::make()` is cheap enough to call once per key per request; it builds a fresh Guzzle client with no shared mutable state.
 - The fulfilment path's internal per-order key grouping continues to work at beta.31, as observed in `Collection\Fulfilment\OrderCollection::save()`.
 
