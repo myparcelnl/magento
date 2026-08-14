@@ -86,6 +86,14 @@ Corrections made while planning. Each was wrong in a way that is easy to repeat.
 
 **Wrong because:** the write (`CarrierConfigurationImport.php:70`) and the read (`AccountSettings.php:34`) are *both* default-scope. The API key in the path is the discriminator and it works as designed. Only the API key *lookup* is scope-aware, which is correct. Two narrower real items replaced it: `PackageRepository.php:134` reads the key without an explicit store id, and `AccountSettings.php:13,15` import classes absent from beta.15 and beta.31.
 
+### DR-7: `getAgeCheck()`'s product-attribute and carrier-default tiers are dead code
+
+**Found while writing Phase 1 tests.** `TrackTraceHolder::getAgeCheck()` documents a 3-tier precedence — explicit option, then product attribute, then carrier default — mirroring `ShipmentOptions::hasAgeCheck()`. The two do not actually agree.
+
+**Wrong because:** `getAgeCheck()` calls `ShipmentOptions::getAgeCheckFromProduct($magentoTrack)`, passing the `Track` model itself rather than its items (contrast `hasAgeCheck()`, which correctly passes `$this->order->getItems()`). `getAgeCheckFromProduct()` does `foreach ($products as $product)` to read each product's age-check attribute. `Track` has no `Iterator`/`IteratorAggregate` anywhere in its inheritance chain (`AbstractModel` → `AbstractExtensibleModel` → `AbstractModel` → `DataObject`, all properties `protected`), so PHP's default object iteration exposes zero properties and the loop runs zero times. The function's initialized default, `false`, comes back unconditionally — never `null`. Because the precedence chain is `$ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings` and `??` only falls through on `null`, the carrier-default tier can never be reached either. Only the explicit-option tier is reachable today.
+
+**Treated the same as the customs double-add** (Phase 1's test asserts the documented precedence and marks the two unreachable-tier cases `->todo()`; the fix lands in Phase 6, alongside the `ShipmentBuilder` rewrite that also fixes the double-add).
+
 ---
 
 ## Standing decisions
@@ -156,6 +164,7 @@ Then create, following `docs/templates/` and matching BR-000002's depth: BR-0000
 - Shared order/track/address builders go in `Tests/Helpers/` — one set, reused by every test.
 - `Tests/bootstrap.php:29-46` stubs unresolvable `Magento\*` classes but deliberately **not** `MyParcelNL\Sdk\*`, so these run against the real SDK.
 - The customs double-add is a pre-existing bug. Assert the correct behaviour (each item once), let it fail here, and it goes green in Phase 6. Mark it `->todo()` so the suite stays green in between.
+- Same treatment for a second pre-existing bug found while writing this phase: `getAgeCheck()`'s product-attribute and carrier-default tiers are unreachable (DR-7). Assert the documented 3-tier precedence, mark the two unreachable-tier cases `->todo()`, goes green in Phase 6 alongside the double-add.
 
 **Check:** `vendor/bin/pest` green bar the one documented expected-fail. If a test's expected value depends on *which carrier* or *which country*, it belongs in Phase 4.
 
@@ -230,7 +239,7 @@ Insurance becomes a free amount between `min` and `max` (DR-4). Specification in
 
 Touches `MagentoCollection`, `MagentoOrderCollection`, `MagentoShipmentCollection`, `src/Observer/{NewShipment,CreateConceptAfterInvoice}.php`, both `CreateAndPrintMyParcelTrack` controllers, `SendMyParcelReturnMail`.
 
-**Check:** unit tests with a mocked `ShipmentApi` proving N distinct keys ⇒ N create calls; chunking at the configured size including the `1`, `100` and out-of-range-falls-back-to-20 cases; tracks persisted per chunk so a failure in chunk *n* preserves `1..n-1`; one merged PDF. Then the manual two-store and chunking tests below.
+**Check:** unit tests with a mocked `ShipmentApi` proving N distinct keys ⇒ N create calls, and — the inverse, since grouping is by resolved key value rather than by store — several stores inheriting one key ⇒ a single call; chunking at the configured size including the `1`, `100` and out-of-range-falls-back-to-20 cases; tracks persisted per chunk so a failure in chunk *n* preserves `1..n-1`; one merged PDF. Then the manual two-store and chunking tests below.
 
 ### Phase 8 — Fulfilment (PPS) alignment · *Not started*
 

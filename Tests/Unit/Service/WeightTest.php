@@ -4,20 +4,8 @@ declare(strict_types=1);
 
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item as QuoteItem;
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
-
-function createConfig(array $values = []): Config
-{
-    $config = Mockery::mock(Config::class);
-    $config->shouldReceive('getGeneralConfig')
-        ->andReturnUsing(function (string $code) use ($values) {
-            return $values[$code] ?? null;
-        });
-
-    return $config;
-}
 
 function createQuoteItem(float $weight, float $qty): QuoteItem
 {
