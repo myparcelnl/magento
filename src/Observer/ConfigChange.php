@@ -99,6 +99,7 @@ class ConfigChange implements ObserverInterface
             if ('' !== $apiKey && ! $this->accountSettingsImporter->hasSettingsFor($apiKey)) {
                 // Before reconcile(), which deletes rows for unconfigured keys.
                 $this->importAccountSettings($apiKey);
+                $this->clearConfigCache();
             }
 
             $this->accountSettingsMaintenance->reconcile();
