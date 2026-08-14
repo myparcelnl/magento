@@ -149,7 +149,7 @@ class Maintenance
             $this->logger->warning(
                 'Could not enumerate scopes while reconciling MyParcel account settings: ' . $e->getMessage()
             );
-            $coordinates = [];
+            return [];
         }
 
         foreach ($coordinates as [$scope, $scopeId]) {
