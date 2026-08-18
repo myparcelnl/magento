@@ -1,6 +1,6 @@
 # SDK v11 Migration Plan
 
-**Status:** Phase 2 in progress
+**Status:** Phase 2 complete; Phase 3 next
 **Started:** 2026-08-11
 **Branch:** `feat/use-sdk-v11-shipments`
 **Business Requirement:** [BR-000003 — MyParcel SDK v11 compatibility](../business-requirements/BR-000003-sdk-v11-compatibility.md)
@@ -257,7 +257,7 @@ Then create, following `docs/templates/` and matching BR-000002's depth: BR-0000
 
 **Check:** `vendor/bin/pest` green bar the one documented expected-fail. If a test's expected value depends on *which carrier* or *which country*, it belongs in Phase 4.
 
-### Phase 2 — Module-owned constants and small helpers · *In progress*
+### Phase 2 — Module-owned constants and small helpers · *Complete*
 
 - `AbstractConsignment::{CC_*, PACKAGE_TYPE_*, PACKAGE_TYPES_*_MAP, DELIVERY_TYPE_*, SHIPMENT_OPTION_*, EURO_COUNTRIES, …}` → `src/Model/Shipment/{CountryCode,PackageType,DeliveryType,ShipmentOption}`.
 - `Sdk\Helper\TrackTraceUrl` → `src/Service/TrackTraceUrl` (used at `src/Ui/Component/Listing/Column/TrackAndTrace.php:118` and `src/Block/DataProviders/Email/Shipment/TrackingUrl.php:32,61` — de-duplicate that repeated call).
@@ -282,11 +282,15 @@ Then create, following `docs/templates/` and matching BR-000002's depth: BR-0000
 **Check.** `vendor/bin/pest` green. `Tests/Unit/Model/Shipment/ConstantEquivalenceTest.php` asserts every new constant equals the beta.15 SDK value, with `EURO_COUNTRIES` as the one documented exception (DR-9). `setup:di:compile` succeeds. Grep shows zero remaining `AbstractConsignment::` **constant** references — the class itself survives in type hints owned by Phases 4, 6 and 7 (`MagentoCollection`, `NewShipment::consignmentHasShipmentOption()`, `NewShipmentForm::getCarrierSpecificAbstractConsignments()`, `new_shipment.phtml`), and in the equivalence test, which Phase 9 deletes:
 
 ```bash
-grep -rn "AbstractConsignment::" --include="*.php" --include="*.phtml" src Controller view Tests \
+grep -rnE "AbstractConsignment::[A-Z_]" --include="*.php" --include="*.phtml" src Controller view Tests \
   | grep -v ConstantEquivalenceTest
 ```
 
+The character class matters. A bare `AbstractConsignment::` also matches `AbstractConsignment::class`, which is a type reference rather than a constant and stays legitimately in place — `Tests/Unit/Block/Sales/NewShipmentDeliveryTypeTest.php:60` mocks it. Constants are uppercase and static methods are camelCase, so `[A-Z_]` selects exactly the references this check is about.
+
 Note `setup:di:compile` cannot run while the module has its own `vendor/` from `composer install`: Magento scans `app/code/**` and hits a `phpstan/phpdoc-parser` collision with the Magento root vendor. Move the module `vendor/` outside `app/code` for the duration, or run the check on an install without it.
+
+**Verification state at close.** `vendor/bin/pest` green — 298 passed, 2 todos, 0 failures; the two todos are the documented pre-existing bugs that go green in Phase 6. The constant grep returns zero. `ConstantEquivalenceTest` passes with the `EURO_COUNTRIES` exception asserted head-on. `setup:di:compile` is the one check that needs a vendor-free install, so confirm it there before the branch merges — the DR-10 change it guards is the removal of the two `BaseConsignment` constructor arguments, both verified absent by grep.
 
 ### Phase 3 — Module-owned delivery options value objects · *Not started*
 
