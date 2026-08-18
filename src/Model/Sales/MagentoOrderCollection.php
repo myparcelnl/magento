@@ -16,12 +16,15 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
+use Magento\Shipping\Model\ShipmentNotifier;
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
@@ -32,18 +35,15 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\Helper\SplitStreet;
-use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\Model\Fulfilment\OrderNote;
 use MyParcelNL\Sdk\Model\PickupLocation;
 use MyParcelNL\Sdk\Model\Recipient;
 use MyParcelNL\Sdk\Support\Collection;
 use MyParcelNL\Sdk\Support\Str;
-use Throwable;
 use Psr\Log\LoggerInterface;
-use Magento\Shipping\Model\ShipmentNotifier;
+use Throwable;
 
 /**
  * Class MagentoOrderCollection
@@ -179,7 +179,7 @@ class MagentoOrderCollection extends MagentoCollection
             );
 
             if ($deliveryOptions && $deliveryOptions['isPickup']) {
-                $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+                $deliveryOptions['packageType'] = PackageType::PACKAGE_NAME;
             }
 
             $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
@@ -190,8 +190,8 @@ class MagentoOrderCollection extends MagentoCollection
                 $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
             } catch (BadMethodCallException $e) {
                 // create new instance from unknown json data
-                $deliveryOptions['packageType']  = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-                $deliveryOptions['deliveryType'] = $deliveryOptions['deliveryType'] ?? AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME;
+                $deliveryOptions['packageType']  = $deliveryOptions['packageType'] ?? PackageType::PACKAGE_NAME;
+                $deliveryOptions['deliveryType'] = $deliveryOptions['deliveryType'] ?? DeliveryType::STANDARD_NAME;
                 $deliveryOptionsAdapter          = DeliveryOptionsAdapterFactory::create($deliveryOptions);
             }
 
@@ -238,7 +238,7 @@ class MagentoOrderCollection extends MagentoCollection
 
             $order->setOrderLines($orderLines);
 
-            if (! in_array($this->shippingRecipient->getCc(), AbstractConsignment::EURO_COUNTRIES, true)) {
+            if (CountryCode::isRow($this->shippingRecipient->getCc())) {
                 $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order);
                 $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
                 $order->setCustomsDeclaration($customsDeclaration);

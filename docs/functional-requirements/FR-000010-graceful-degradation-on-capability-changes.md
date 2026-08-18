@@ -50,6 +50,13 @@ Required behaviour:
 - [ ] An API rejection caused by an unavailable option is surfaced to the admin with the API's own message, identifying the affected order, and is not replaced by a generic failure.
 - [ ] An enum value the module itself constructs is validated before sending, so a module bug produces a local error rather than a malformed request.
 - [ ] No code path treats capability data as an allow-list on the outbound side.
+- [ ] **No stored value is ever replaced by a different one.** A package or delivery type read from an order's delivery options that cannot be resolved to an API value fails that shipment with a message naming the order and the unresolved value. It is never exported as the default, and never as anything other than what was stored.
+- [ ] A failure of that kind stops only its own shipment; the other orders in the batch still export, and the admin is told which succeeded.
+- [ ] Where a read path must return a value to keep a page rendering — an admin form pre-selecting a delivery type, a default package type — the substitution is logged with the unresolved value. Rendering a default in place of a value the customer chose is never silent.
+- [ ] Falling back because nothing was stored does not log. Only a value that was present and unrecognised does, so the log stays worth reading.
+- [ ] **An unrecognised package or delivery type is displayed as itself.** Wherever a type is shown to an admin, an unresolved one renders as its own value — `Package type 31`, `Delivery type pallet_xl` — never as a known type it is not. A log entry is not sufficient on its own: the admin must be able to see it without going looking.
+- [ ] **An unrecognised numeric type is still sent.** beta.31 serializes an unknown id unchanged, so an order carrying one stays exportable up to the API call and fails there with the API's own message about that type. The module does not pre-empt that judgement with a local allow-list.
+- [ ] **An unrecognised non-numeric type fails before the call**, with a message naming the value, because no id can be derived for it. The failure is per shipment, not per batch.
 
 ## Priority
 

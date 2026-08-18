@@ -1,7 +1,9 @@
 <?php
 /** @var \MyParcelNL\Magento\Block\Sales\NewShipment $block */
 
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 ?>
 <input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden" /><!-- MyParcel options -->
@@ -49,12 +51,12 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
             <?php
             $country = $block->getCountry();
             foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
-                $packageTypeId = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
-                if (AbstractConsignment::CC_NL !== $country) {
-                    if ($packageTypeId === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
+                $packageTypeId = PackageType::NAMES_IDS_MAP[$packageTypeName];
+                if (CountryCode::CC_NL !== $country) {
+                    if ($packageTypeId === PackageType::DIGITAL_STAMP) {
                         continue;
                     }
-                    if ($packageTypeId === AbstractConsignment::PACKAGE_TYPE_MAILBOX && $carrierName !== 'postnl') {
+                    if ($packageTypeId === PackageType::MAILBOX && $carrierName !== 'postnl') {
                         continue;
                     }
                 }
@@ -73,7 +75,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                             $packageTypeHuman
                         ) ?></label>
                     <?php
-                    if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP === $packageTypeId) {
+                    if (PackageType::DIGITAL_STAMP === $packageTypeId) {
                         $weight = $block->getDigitalStampWeight(); ?>
                         <span data-for_mypa_package_type="<?= $packageTypeName ?>" data-weight="<?= $weight ?>">
                             <select
@@ -145,7 +147,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                     continue;
                 }
                 foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
-                    if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
+                    if (ShipmentOption::INSURANCE === $shipmentOption
                         || ! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
                     ) {
                         continue;
@@ -175,7 +177,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                     <?php
                 }
 
-                if ($abstractConsignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_INSURANCE)) {
+                if ($abstractConsignment->canHaveShipmentOption(ShipmentOption::INSURANCE)) {
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
@@ -219,7 +221,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
     ".page-footer": {
         "myparcelnl_newshipment": {
             "carrier": "<?= $block->getCarrier() ?>",
-            "packageType":"<?= array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
+            "packageType":"<?= $escaper->escapeJs($block->getPackageTypeName()) ?>"}
     }
 }
 </script>

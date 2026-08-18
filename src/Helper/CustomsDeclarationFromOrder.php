@@ -7,10 +7,10 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
 use MyParcelNL\Sdk\Support\Str;
@@ -18,6 +18,10 @@ use MyParcelNL\Sdk\Support\Str;
 class CustomsDeclarationFromOrder
 {
     private const CURRENCY_EURO = 'EUR';
+
+    // beta.31's MyParcelCustomsItem hard-codes 50; kept here so the truncation stays visible.
+    private const DESCRIPTION_MAX_LENGTH    = 50;
+    private const CONTENTS_COMMERCIAL_GOODS = 1;
 
     /**
      * @var mixed
@@ -69,7 +73,7 @@ class CustomsDeclarationFromOrder
 
             $amount      = (float) $item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
             $totalWeight += $this->weightService->convertToGrams($product->getWeight() * $amount);
-            $description = Str::limit($product->getName(), AbstractConsignment::CUSTOMS_DECLARATION_DESCRIPTION_MAX_LENGTH);
+            $description = Str::limit($product->getName(), self::DESCRIPTION_MAX_LENGTH);
 
             $customsItem = (new MyParcelCustomsItem())
                 ->setDescription($description)
@@ -87,7 +91,7 @@ class CustomsDeclarationFromOrder
         }
 
         $customsDeclaration
-            ->setContents(AbstractConsignment::PACKAGE_CONTENTS_COMMERCIAL_GOODS)
+            ->setContents(self::CONTENTS_COMMERCIAL_GOODS)
             ->setInvoice($this->order->getIncrementId())
             ->setWeight($totalWeight)
         ;
@@ -108,7 +112,7 @@ class CustomsDeclarationFromOrder
             ->getCountryOfManufacture()
         ;
 
-        return $productCountryOfOrigin ?? AbstractConsignment::CC_NL;
+        return $productCountryOfOrigin ?? CountryCode::CC_NL;
     }
 
     /**

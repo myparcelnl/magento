@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /**
@@ -17,7 +18,7 @@ use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
  */
 function builtShipmentIsPickup(object $shipment): bool
 {
-    return AbstractConsignment::DELIVERY_TYPE_PICKUP === $shipment->getDeliveryType();
+    return DeliveryType::PICKUP === $shipment->getDeliveryType();
 }
 
 function builtShipmentPickupPostalCode(object $shipment): ?string

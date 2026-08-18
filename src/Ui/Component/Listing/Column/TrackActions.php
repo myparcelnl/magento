@@ -2,7 +2,6 @@
 
 namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Element\UiComponent\ContextInterface;

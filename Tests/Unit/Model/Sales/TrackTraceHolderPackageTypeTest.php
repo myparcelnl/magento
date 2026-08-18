@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use Magento\Sales\Model\Order\Shipment\Track;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /**
  * TrackTraceHolder::getPackageType() calls getAgeCheck() first, and a
@@ -27,20 +27,20 @@ function createHolderForPackageType(int $configuredDefault): array
 }
 
 it('lets an explicit numeric package type option win', function () {
-    [$holder, $track, $address] = createHolderForPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL);
+    [$holder, $track, $address] = createHolderForPackageType(PackageType::PACKAGE_SMALL);
 
     $result = invokePrivateMethod($holder, 'getPackageType', [
         $track,
         $address,
-        ['package_type' => AbstractConsignment::PACKAGE_TYPE_MAILBOX],
+        ['package_type' => PackageType::MAILBOX],
         ['packageType' => 'digital_stamp'],
     ]);
 
-    expect($result)->toBe(AbstractConsignment::PACKAGE_TYPE_MAILBOX);
+    expect($result)->toBe(PackageType::MAILBOX);
 });
 
 it('resolves an explicit named package type option via the name map', function () {
-    [$holder, $track, $address] = createHolderForPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL);
+    [$holder, $track, $address] = createHolderForPackageType(PackageType::PACKAGE_SMALL);
 
     $result = invokePrivateMethod($holder, 'getPackageType', [
         $track,
@@ -49,11 +49,11 @@ it('resolves an explicit named package type option via the name map', function (
         [],
     ]);
 
-    expect($result)->toBe(AbstractConsignment::PACKAGE_TYPE_MAILBOX);
+    expect($result)->toBe(PackageType::MAILBOX);
 });
 
 it('falls through to the checkout delivery option when no option is explicitly chosen', function () {
-    [$holder, $track, $address] = createHolderForPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL);
+    [$holder, $track, $address] = createHolderForPackageType(PackageType::PACKAGE_SMALL);
 
     $result = invokePrivateMethod($holder, 'getPackageType', [
         $track,
@@ -62,19 +62,19 @@ it('falls through to the checkout delivery option when no option is explicitly c
         ['packageType' => 'digital_stamp'],
     ]);
 
-    expect($result)->toBe(AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP);
+    expect($result)->toBe(PackageType::DIGITAL_STAMP);
 });
 
 it('falls through to the configured default when nothing is chosen anywhere', function () {
-    [$holder, $track, $address] = createHolderForPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL);
+    [$holder, $track, $address] = createHolderForPackageType(PackageType::PACKAGE_SMALL);
 
     $result = invokePrivateMethod($holder, 'getPackageType', [$track, $address, [], []]);
 
-    expect($result)->toBe(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL);
+    expect($result)->toBe(PackageType::PACKAGE_SMALL);
 });
 
 it('falls back to the configured default when the explicit option name is unmapped', function () {
-    [$holder, $track, $address] = createHolderForPackageType(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL);
+    [$holder, $track, $address] = createHolderForPackageType(PackageType::PACKAGE_SMALL);
 
     $result = invokePrivateMethod($holder, 'getPackageType', [
         $track,
@@ -83,5 +83,5 @@ it('falls back to the configured default when the explicit option name is unmapp
         [],
     ]);
 
-    expect($result)->toBe(AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL);
+    expect($result)->toBe(PackageType::PACKAGE_SMALL);
 });

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 
 class Weight
 {
@@ -44,11 +44,10 @@ class Weight
      */
     public function getEmptyPackageWeightInGrams(int $packageType): int
     {
-        if (!in_array($packageType, AbstractConsignment::PACKAGE_TYPES_IDS, true)) {
+        if (!PackageType::isValidId($packageType)) {
             return 0;
         }
-        // todo if this array_flip is used in multiple places, consider making a method or something else
-        $packageTypeName = array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$packageType];
+        $packageTypeName = PackageType::nameFromId($packageType);
 
         return (int) $this->config->getGeneralConfig("empty_package_weight/$packageTypeName");
     }

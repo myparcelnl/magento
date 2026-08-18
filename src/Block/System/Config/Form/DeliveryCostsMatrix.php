@@ -6,9 +6,8 @@ namespace MyParcelNL\Magento\Block\System\Config\Form;
 
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
-use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCostsMatrix extends Field
@@ -33,11 +32,11 @@ class DeliveryCostsMatrix extends Field
     public function getPackageTypes(): array
     {
         return [
-            AbstractConsignment::PACKAGE_TYPE_PACKAGE       => __('Package'),
-            AbstractConsignment::PACKAGE_TYPE_MAILBOX       => __('Mailbox'),
-            AbstractConsignment::PACKAGE_TYPE_LETTER        => __('Letter'),
-            AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => __('Digital stamp'),
-            AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL => __('Small package'),
+            PackageType::PACKAGE       => __('Package'),
+            PackageType::MAILBOX       => __('Mailbox'),
+            PackageType::LETTER        => __('Letter'),
+            PackageType::DIGITAL_STAMP => __('Digital stamp'),
+            PackageType::PACKAGE_SMALL => __('Small package'),
         ];
     }
 

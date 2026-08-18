@@ -24,6 +24,11 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
+use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
@@ -121,6 +126,15 @@ class NewShipment extends AbstractItems
     }
 
     /**
+     * Unresolved on purpose: an unrecognised value matches no radio, so nothing is pre-selected
+     * rather than the form suggesting a package type the customer never chose.
+     */
+    public function getPackageTypeName(): string
+    {
+        return $this->defaultOptions->getPackageTypeName() ?? PackageType::DEFAULT_NAME;
+    }
+
+    /**
      * @return string
      */
     public function getCarrier(): string
@@ -140,13 +154,33 @@ class NewShipment extends AbstractItems
         return '';
     }
 
-    public function getDeliveryType(): int
+    /**
+     * Null means the order carries a delivery type we do not recognise, so callers withhold
+     * anything that depends on it rather than guessing. Absent is different: no stored type means
+     * there was never a choice to honour, so it defaults quietly.
+     */
+    public function getDeliveryType(): ?int
     {
         try {
-            $deliveryTypeName = json_decode($this->order->getData(Config::FIELD_DELIVERY_OPTIONS), true)['deliveryType'];
-            $deliveryType     = AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP[$deliveryTypeName];
+            $deliveryOptions  = json_decode($this->order->getData(Config::FIELD_DELIVERY_OPTIONS), true);
+            $deliveryTypeName = $deliveryOptions['deliveryType'] ?? null;
         } catch (\Throwable $e) {
-            $deliveryType = AbstractConsignment::DEFAULT_DELIVERY_TYPE;
+            $deliveryTypeName = null;
+        }
+
+        if (null === $deliveryTypeName) {
+            return DeliveryType::DEFAULT;
+        }
+
+        $deliveryType = DeliveryType::toIdOrNull($deliveryTypeName);
+
+        if (null === $deliveryType) {
+            Logger::warning(sprintf(
+                'Unrecognised delivery type "%s" on order %s; shipment options that depend on the '
+                . 'delivery type are withheld rather than guessed.',
+                (string) $deliveryTypeName,
+                (string) $this->order->getIncrementId()
+            ));
         }
 
         return $deliveryType;
@@ -154,25 +188,23 @@ class NewShipment extends AbstractItems
 
     public function consignmentHasShipmentOption(AbstractConsignment $consignment, string $shipmentOption): bool
     {
-        /**
-         * Business logic determining what shipment options to show, if any.
-         */
-        if (AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE === $shipmentOption
-            && AbstractConsignment::DELIVERY_TYPE_STANDARD !== $this->getDeliveryType()
+        // Receipt code is standard-only, so an unresolved delivery type fails closed.
+        if (ShipmentOption::RECEIPT_CODE === $shipmentOption
+            && DeliveryType::STANDARD !== $this->getDeliveryType()
         ) {
             return false; // receipt code is only available for standard delivery
         }
 
-        if (AbstractConsignment::CC_NL === $consignment->getCountry()) {
+        if (CountryCode::CC_NL === $consignment->getCountry()) {
             return $consignment->canHaveShipmentOption($shipmentOption);
         }
 
         // For PostNL in Belgium - recipient-only, signature and receipt-code are available
-        if (AbstractConsignment::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
+        if (CountryCode::CC_BE === $consignment->getCountry() && CarrierPostNL::NAME === $consignment->getCarrierName()) {
             return in_array($shipmentOption, [
-                AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT,
-                AbstractConsignment::SHIPMENT_OPTION_SIGNATURE,
-                AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE,
+                ShipmentOption::ONLY_RECIPIENT,
+                ShipmentOption::SIGNATURE,
+                ShipmentOption::RECEIPT_CODE,
             ],true);
         }
 

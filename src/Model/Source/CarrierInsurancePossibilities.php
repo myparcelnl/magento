@@ -6,8 +6,8 @@ namespace MyParcelNL\Magento\Model\Source;
 
 use Exception;
 use Magento\Framework\Data\OptionSourceInterface;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class CarrierInsurancePossibilities implements OptionSourceInterface
@@ -73,8 +73,8 @@ class CarrierInsurancePossibilities implements OptionSourceInterface
             $cc = $this->carrier->getLocalCountryCode();
         }
 
-        if ($this->type === AbstractConsignment::CC_BE) {
-            $cc = AbstractConsignment::CC_BE;
+        if ($this->type === CountryCode::CC_BE) {
+            $cc = CountryCode::CC_BE;
         }
 
         if ($this->type === CountryCodes::ZONE_EU) {

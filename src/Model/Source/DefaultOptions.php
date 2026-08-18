@@ -20,10 +20,13 @@ use Exception;
 use Magento\Framework\App\ObjectManager;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use Throwable;
 
 class DefaultOptions
@@ -71,7 +74,7 @@ class DefaultOptions
      */
     public function hasOptionSet(string $option, string $carrier): bool
     {
-        if (AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $option) {
+        if (ShipmentOption::LARGE_FORMAT === $option) {
             return $this->hasDefaultLargeFormat($carrier, $option);
         }
 
@@ -137,17 +140,17 @@ class DefaultOptions
     public function getDefaultInsurance(string $carrier): int
     {
         $shippingAddress = $this->quote->getShippingAddress();
-        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : AbstractConsignment::CC_NL;
+        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCode::CC_NL;
 
-        if (AbstractConsignment::CC_NL === $shippingCountry) {
+        if (CountryCode::CC_NL === $shippingCountry) {
             return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT, $shippingCountry);
         }
 
-        if (AbstractConsignment::CC_BE === $shippingCountry) {
+        if (CountryCode::CC_BE === $shippingCountry) {
             return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT, $shippingCountry);
         }
 
-        if (in_array($shippingCountry, AbstractConsignment::EURO_COUNTRIES)) {
+        if (CountryCode::isEu($shippingCountry)) {
             return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT, $shippingCountry);
         }
 
@@ -198,19 +201,37 @@ class DefaultOptions
     }
 
     /**
-     * Get package type ID as an int by default
+     * The stored name, unresolved. Use this when showing or passing the value on; getPackageType()
+     * has to answer with an int and therefore has to substitute.
+     *
+     * Customer-influenced, so escape it at the output site.
+     */
+    public function getPackageTypeName(): ?string
+    {
+        $name = $this->chosenOptions['packageType'] ?? null;
+
+        return null === $name ? null : (string) $name;
+    }
+
+    /**
+     * Substitutes the default for a name we do not recognise, and logs when it does.
      *
      * @return int
      */
     public function getPackageType(): int
     {
-        if (isset($this->chosenOptions['packageType'])) {
-            $packageType = $this->chosenOptions['packageType'];
+        $name = $this->chosenOptions['packageType'] ?? null;
+        $id   = PackageType::toIdOrNull($name);
 
-            return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+        if (null === $id && null !== $name) {
+            Logger::warning(sprintf(
+                'Unknown package type "%s" in the stored delivery options; falling back to "%s".',
+                (string) $name,
+                PackageType::DEFAULT_NAME
+            ));
         }
 
-        return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        return $id ?? PackageType::PACKAGE;
     }
 
     /**

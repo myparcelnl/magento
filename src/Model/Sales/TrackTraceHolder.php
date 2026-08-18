@@ -15,6 +15,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use BadMethodCallException;
 use Exception;
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
@@ -28,7 +29,9 @@ use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
-use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
@@ -38,11 +41,8 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
-use RuntimeException;
-use Magento\Catalog\Api\ProductRepositoryInterface;
 
 /**
  * Class TrackTraceHolder
@@ -112,7 +112,7 @@ class TrackTraceHolder
         if ($checkoutCarrier && $selectedCarrier !== $checkoutCarrier && ! empty($deliveryOptions['isPickup'])) {
             unset($deliveryOptions['pickupLocation']);
             $deliveryOptions['isPickup']     = false;
-            $deliveryOptions['deliveryType'] = AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME;
+            $deliveryOptions['deliveryType'] = DeliveryType::STANDARD_NAME;
         }
 
         $apiKey = $this->config->getGeneralConfig('api/key', $order->getStoreId());
@@ -169,7 +169,7 @@ class TrackTraceHolder
         }
 
         $packageType  = $this->getPackageType($magentoTrack, $address, $options, $deliveryOptions);
-        $deliveryDate = (AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL === $packageType
+        $deliveryDate = (PackageType::PACKAGE_SMALL === $packageType
             && 'NL' !== $address->getCountryId()) ? null : Dating::convertDeliveryDate($deliveryOptionsAdapter->getDate());
 
         $regionCode = $address->getRegionCode();
@@ -181,7 +181,7 @@ class TrackTraceHolder
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
             ->setLabelDescription($shipmentOptions->getLabelDescription())
-            ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId() ?? AbstractConsignment::DELIVERY_TYPE_STANDARD)
+            ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId() ?? DeliveryType::STANDARD)
             ->setDeliveryDate($deliveryDate)
             ->setPackageType($packageType)
             // until capabilities: set receipt code first because it blocks other options
@@ -221,7 +221,7 @@ class TrackTraceHolder
         }
 
         $weight = 0;
-        if ($packageType === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
+        if ($packageType === PackageType::DIGITAL_STAMP) {
             // NOTE: digital stamp weight is always managed in grams regardless of weight settings, can still be 0 after this
             $weight = (int) ($options['digital_stamp_weight'] ?? $this->defaultOptions->getDigitalStampDefaultWeight());
         }
@@ -395,7 +395,7 @@ class TrackTraceHolder
      */
     private function getAgeCheck(Track $magentoTrack, $address, array $options = []): bool
     {
-        if ($address->getCountryId() !== AbstractConsignment::CC_NL) {
+        if ($address->getCountryId() !== CountryCode::CC_NL) {
             return false;
         }
 
@@ -462,7 +462,7 @@ class TrackTraceHolder
     private function getPackageType(Track $magentoTrack, $address, array $options, array $deliveryOptions): int
     {
         if ($this->getAgeCheck($magentoTrack, $address, $options)) {
-            return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+            return PackageType::PACKAGE;
         }
 
         // get package type from selected radio buttons, try to get from delivery options when default or not set
@@ -472,7 +472,7 @@ class TrackTraceHolder
         }
 
         if (! is_numeric($packageType)) {
-            $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType] ?? $this->defaultOptions->getPackageType();
+            $packageType = PackageType::NAMES_IDS_MAP[$packageType] ?? $this->defaultOptions->getPackageType();
         }
 
         return $packageType;

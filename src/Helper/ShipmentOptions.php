@@ -6,25 +6,27 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 class ShipmentOptions
 {
-    public const  INSURANCE         = AbstractConsignment::SHIPMENT_OPTION_INSURANCE;
-    public const  ONLY_RECIPIENT    = AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT;
-    private const SAME_DAY_DELIVERY = AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY;
-    public const  SIGNATURE         = AbstractConsignment::SHIPMENT_OPTION_SIGNATURE;
-    public const  COLLECT           = AbstractConsignment::SHIPMENT_OPTION_COLLECT;
-    public const  RECEIPT_CODE      = AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE;
-    public const  RETURN            = AbstractConsignment::SHIPMENT_OPTION_RETURN;
-    public const  AGE_CHECK         = AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK;
-    public const  LARGE_FORMAT      = AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT;
-    private const HIDE_SENDER       = AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER;
-    public const  PRIORITY_DELIVERY = AbstractConsignment::SHIPMENT_OPTION_PRIORITY_DELIVERY;
+    public const  INSURANCE         = ShipmentOption::INSURANCE;
+    public const  ONLY_RECIPIENT    = ShipmentOption::ONLY_RECIPIENT;
+    private const SAME_DAY_DELIVERY = ShipmentOption::SAME_DAY_DELIVERY;
+    public const  SIGNATURE         = ShipmentOption::SIGNATURE;
+    public const  COLLECT           = ShipmentOption::COLLECT;
+    public const  RECEIPT_CODE      = ShipmentOption::RECEIPT_CODE;
+    public const  RETURN            = ShipmentOption::RETURN;
+    public const  AGE_CHECK         = ShipmentOption::AGE_CHECK;
+    public const  LARGE_FORMAT      = ShipmentOption::LARGE_FORMAT;
+    private const HIDE_SENDER       = ShipmentOption::HIDE_SENDER;
+    public const  PRIORITY_DELIVERY = ShipmentOption::PRIORITY_DELIVERY;
     private const LABEL_DESCRIPTION = 'label_description';
     private const ORDER_NUMBER      = '%order_nr%';
     private const DELIVERY_DATE     = '%delivery_date%';
@@ -104,7 +106,7 @@ class ShipmentOptions
      */
     public function hasSignature(): bool
     {
-        if (AbstractConsignment::CC_BE === $this->cc && $this->hasOnlyRecipient()) {
+        if (CountryCode::CC_BE === $this->cc && $this->hasOnlyRecipient()) {
             return false;
         }
 
@@ -119,11 +121,11 @@ class ShipmentOptions
     public function hasReceiptCode(): bool
     {
         $deliveryOptions = $this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? [];
-        $deliveryType    = $deliveryOptions['deliveryType'] ?? AbstractConsignment::DEFAULT_DELIVERY_TYPE;
+        $deliveryType    = $deliveryOptions['deliveryType'] ?? DeliveryType::DEFAULT;
 
-        if (AbstractConsignment::CC_NL !== $this->cc
+        if (CountryCode::CC_NL !== $this->cc
             || CarrierPostNL::NAME !== $this->carrier
-            || AbstractConsignment::DELIVERY_TYPE_STANDARD !== $deliveryType
+            || DeliveryType::STANDARD !== $deliveryType
         ) {
             return false;
         }
@@ -160,7 +162,7 @@ class ShipmentOptions
      */
     public function hasAgeCheck(): bool
     {
-        if (AbstractConsignment::CC_NL !== $this->cc) {
+        if (CountryCode::CC_NL !== $this->cc) {
             return false;
         }
 
@@ -185,7 +187,7 @@ class ShipmentOptions
      */
     public function hasPriorityDelivery(): bool
     {
-        if (AbstractConsignment::CC_NL !== $this->cc) {
+        if (CountryCode::CC_NL !== $this->cc) {
             return false;
         }
 
@@ -296,7 +298,7 @@ class ShipmentOptions
      */
     public function hasLargeFormat(): bool
     {
-        if (! in_array($this->cc, AbstractConsignment::EURO_COUNTRIES)) {
+        if (CountryCode::isRow($this->cc)) {
             return false;
         }
 

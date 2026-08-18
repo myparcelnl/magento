@@ -41,8 +41,8 @@ SDK beta.22 deleted 60 files: the whole consignment stack, the delivery-options 
 | `MyParcelCollection::addMultiCollo()` | `Services\MultiCollo\MultiColloShipmentService::splitShipment()` |
 | `$consignment->getBarcode()` / status | `ShipmentQueryService::find()`, or `Services\TrackTrace\ShipmentTrackTraceService::fetchTrackTraceData()` for full history |
 | `Adapter\DeliveryOptions\*`, `Factory\DeliveryOptionsAdapterFactory` | Module-owned value objects under `src/Adapter/DeliveryOptions/` |
-| `Helper\TrackTraceUrl` | Module-owned `src/Service/TrackTraceUrl` |
-| `Helper\ValidatePostalCode` | Module-owned `src/Service/ValidatePostalCode` |
+| `Helper\TrackTraceUrl` | Module-owned `src/Service/TrackTraceUrl`, provisionally. Its hard-coded base URL is replaced in Phase 7 by `link_consumer_portal` / `link_tracktrace` from the track & trace response; there is no account setting to read instead |
+| `Helper\ValidatePostalCode` | **Removed, not replaced.** The API is the only authority on address validity — see DR-11 |
 | `AbstractConsignment::canHave*()`, `getAllowed*()`, `getInsurancePossibilities()` | Capability data — see [TR-000007](TR-000007-capabilities-retrieval-and-storage.md) |
 | `AbstractConsignment::isToRowCountry()`, `getLocalCountryCode()` | Module constants over `Services\CountryCodes` (**not** a network call) |
 | Carrier `::CONSIGNMENT` constants, `getConsignmentClass()` | Removed with no equivalent; nothing may depend on them |
@@ -52,12 +52,52 @@ SDK beta.22 deleted 60 files: the whole consignment stack, the delivery-options 
 
 | New module class | Replaces |
 |---|---|
-| `src/Model/Shipment/CountryCode` | `AbstractConsignment::CC_*`, `EURO_COUNTRIES` |
+| `src/Model/Shipment/CountryCode` | `AbstractConsignment::CC_*`, `EURO_COUNTRIES` — see the exception below |
 | `src/Model/Shipment/PackageType` | `AbstractConsignment::PACKAGE_TYPE_*`, `PACKAGE_TYPES_*_MAP`, `PACKAGE_TYPES_IDS` |
 | `src/Model/Shipment/DeliveryType` | `AbstractConsignment::DELIVERY_TYPE_*`, `DELIVERY_TYPES_NAMES_IDS_MAP`, `DEFAULT_DELIVERY_TYPE` |
 | `src/Model/Shipment/ShipmentOption` | `AbstractConsignment::SHIPMENT_OPTION_*`, `EXTRA_OPTION_*` |
 
-Name-to-id translation delegates to SDK `Model\Shipment\{PackageType, Carrier}` and `Model\Shipment\Mapping\*`. Every new constant must equal the beta.15 SDK value it replaces, asserted by unit test.
+**Ids** are sourced from the SDK's generated `Client\Generated\CoreApi\Model\{RefShipmentPackageType, RefTypesDeliveryType}`, so no wire value is hard-coded in the module. **Names are not**: the module's snake_case names (`letter`, `package_small`, `standard`) are persisted in `core_config_data`, in the order's delivery-options JSON and in the versioned REST v1 contract, while the SDK's v2 vocabulary calls the same things `UNFRANKED`, `SMALL_PACKAGE` and `STANDARD_DELIVERY`. The module keeps its own names and translates at the API boundary; `Model\Rest\Transformer\PackageTypeTransformer::LEGACY_NAME_MAP` is the existing precedent.
+
+`Model\Shipment\Mapping\DeliveryTypeApiMapping` exists only from beta.31, so nothing developed against the installed beta.15 may depend on it. The generated ref models are present and identical at both tags and are used instead.
+
+#### Which vocabulary crosses which boundary
+
+Four boundaries, three vocabularies. Getting this wrong is silent at compile time and loud at runtime, so it is tabulated rather than left to inference. Checked against the beta.31 tag on 2026-08-17.
+
+| Boundary | Vocabulary | Established by |
+|---|---|---|
+| Shipment create — the outbound path (Phase 6) | **integer id** | `ShipmentOptions::openAPITypes()` forces `package_type` to `int`; `setPackageType()`/`setDeliveryType()` coerce a string to an id before storing |
+| Capabilities request and response (Phase 4) | **v2 enum name** (`SMALL_PACKAGE`, `STANDARD_DELIVERY`) | `CapabilitiesRequest::withPackageType()` documents `RefShipmentPackageTypeV2::PACKAGE`; the response's `getPackageTypes()` returns the same |
+| Versioned REST v1 endpoint (already built) | Order API enum name | `Model\Rest\Transformer\PackageTypeTransformer` |
+| `core_config_data`, the order's delivery-options JSON, the checkout widget | **module snake_case** (`package_small`, `standard`) | persisted data; cannot change without a migration |
+
+**The operative rule: give the SDK an id, never a module name.** `Model\Shipment\PackageType::isValid('letter')` and `isValid('package_small')` both return **false** — the SDK knows only `UNFRANKED` and `SMALL_PACKAGE` — so `ShipmentOptions::setPackageType('letter')` throws `InvalidArgumentException`. Verified by running it against the installed SDK. Every module call site already passes an id (`TrackTraceHolder.php:187,189`, `Checkout.php:189`), so Phase 6 inherits a correct outbound path and needs no name translation at all.
+
+**Name translation is needed in one direction only:** v2 to ours, on the way in from capabilities, in Phase 4. When that map is written it belongs on the facades, and `PackageTypeTransformer::LEGACY_NAME_MAP` should then read from it rather than holding a second copy of the same knowledge.
+
+**An unknown *id* is sendable at beta.31, an unknown *name* is not.** Tested at both tags, because the answer reversed between them:
+
+| | `setPackageType(31)` | `setDeliveryType(99)` |
+|---|---|---|
+| beta.15 | rejected — "must be one of 1…7" | rejected — "must be one of 1…8" |
+| beta.31 | stored and serialized | stored and serialized |
+
+beta.29's enum-validation loosening removed the checks from the generated setters, so `RefShipmentShipmentOptions` now rejects only null. An unknown id therefore reaches the API and the API decides — which is what lets Phase 3 carry an unrecognised type through rather than substituting a default (DR-12, FR-000010). A non-numeric unknown still throws locally, because `ShipmentOptions::setPackageType()` resolves strings through the mapping while an int bypasses it. Both end in a named error; neither ends in a silent substitution.
+
+Note this only holds once the pin moves. Until Phase 9 the installed beta.15 rejects unknown ids locally, so an integration test for the carry-through path must run against beta.31.
+
+#### The names survive; the fixed list does not
+
+Asked in review and worth settling once. The **ids** are no longer module-owned in any meaningful sense — they are aliases of the generated ref models. The **names** cannot be given up, for three reasons none of which are ours to change:
+
+1. They are `core_config_data` **path segments** — `empty_package_weight/package_small`, `delivery_titles/package_small_title`. Renaming means a data migration.
+2. Every historical order carries them in its delivery-options JSON, read at export, re-export and in the admin form.
+3. The CDN-loaded `@myparcel-dev/delivery-options` widget emits them; the module does not control its protocol.
+
+So the end state is not "no constants". It is that `PackageType::IDS` / `NAMES` and the `DeliveryType` equivalents **dissolve into capabilities in Phase 4**, while a small legacy↔v2 name map remains permanently. Until then the facades name all seven SDK types rather than the five the module has code for: naming a type is what allows it to be rejected legibly instead of silently replaced (DR-12). A list of seven is no less an allow-list than a list of five, which is why it is transitional and why FR-000010 forbids treating it as authoritative.
+
+Every new constant must equal the beta.15 SDK value it replaces, asserted by unit test — **with one exception**. `EURO_COUNTRIES` deliberately does not: the beta.15 list holds `XK` (Kosovo) and omits `MT` (Malta), and `Services\CountryCodes::EU_COUNTRIES` is the other way round and correct. beta.31's own `Concerns\HasCountry` already reads the new list. The unit test asserts the `MT`/`XK` delta explicitly rather than asserting equality. Rationale in DR-9 of [the migration plan](../design/sdk-v11-migration.md).
 
 Surviving and to be left alone: `Services\CountryCodes`, `Support\Str`, `Support\Collection`, `Model\Recipient`, `Model\CustomsDeclaration`, `Model\MyParcelCustomsItem`, `Model\PickupLocation`, `Helper\SplitStreet`, `Helper\ValidateStreet`, `Model\Carrier\*`. Several are now marked `@internal` — including `AccountWebService`, `CarrierOptionsWebService`, `Collection\Fulfilment\OrderCollection`, and the carrier value objects — so they work but should not attract new usage.
 
@@ -105,6 +145,9 @@ Checked against the real tags on 2026-08-14. Kept rather than deleted, because e
 - beta.31 is the target. Later betas are ordinary maintenance, not this requirement. **Confirmed** — beta.31 is still the highest `v11` tag on the remote.
 - ~~The v11 shipment stack is byte-identical between beta.15 and beta.31 for the model and collection.~~ **Overstated.** `Model\Shipment\Shipment` and `Collection\ShipmentCollection` are byte-identical, and the generated `RefShipmentShipmentOptions` carries every setter the port needs at both versions — so the conclusion holds and the port can be built against the installed SDK. But `Model\Shipment\ShipmentOptions` is **not** identical: beta.31 adds `getDeliveryType()`, `setDeliveryType()`, `getInsurance()`, `toArray()`, `toArrayWithoutNull()` and `fromOrderResponse()`, plus a new `Mapping\DeliveryTypeApiMapping`. The one behavioural difference that matters: beta.31's `setDeliveryType()` normalises a string enum name to an id, where beta.15 stores the string unchanged. **Pass delivery type as an int and the two versions agree** — the module already does, via `getDeliveryTypeId()`. Re-verify this specific call after the pin moves.
 - PHP floor stays `^7.4 || ^8.0`; beta.31 does not raise it. **Confirmed** — both tags declare `"php": "^7.4 || ^8.0"`.
+- ~~Replacing a constant with its SDK v11 equivalent is behaviour-neutral.~~ **False for one of them.** The EU country list changed membership between the two sources (Malta in, Kosovo out), so the swap moves those two destinations between the EU and ROW branches at three call sites. Checked against both tags on 2026-08-17. Carried as the documented exception above rather than as a surprise.
+- ~~`ValidateStreet` keeps working, so street validation stays.~~ **Superseded by DR-11**: it survives at beta.31 but is no longer called. Address validation was removed whole rather than left half-ported.
+- `Helper\SplitStreet` and `Helper\ValidateStreet` survive at beta.31 and must not be moved into the module. **Confirmed** — beta.31's `src/Helper/` contains exactly `MyParcelCurl`, `RequestError`, `SplitStreet` and `ValidateStreet`. Only `TrackTraceUrl` and `ValidatePostalCode` are gone.
 
 ## Constraints
 

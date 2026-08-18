@@ -4,6 +4,8 @@ namespace MyParcelNL\Magento\Block\Sales;
 
 use Exception;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
@@ -11,11 +13,11 @@ use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 class NewShipmentForm
 {
     public const PACKAGE_TYPE_HUMAN_MAP = [
-        AbstractConsignment::PACKAGE_TYPE_PACKAGE       => 'Package',
-        AbstractConsignment::PACKAGE_TYPE_MAILBOX       => 'Mailbox',
-        AbstractConsignment::PACKAGE_TYPE_LETTER        => 'Letter',
-        AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP => 'Digital stamp',
-        AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL => 'Small package',
+        PackageType::PACKAGE       => 'Package',
+        PackageType::MAILBOX       => 'Mailbox',
+        PackageType::LETTER        => 'Letter',
+        PackageType::DIGITAL_STAMP => 'Digital stamp',
+        PackageType::PACKAGE_SMALL => 'Small package',
     ];
 
     /**
@@ -26,19 +28,19 @@ class NewShipmentForm
     public function __construct()
     {
         $this->shipmentOptionsHumanMap = [
-            AbstractConsignment::SHIPMENT_OPTION_SIGNATURE          => __('Signature on receipt'),
-            AbstractConsignment::SHIPMENT_OPTION_RECEIPT_CODE       => __('Receipt code'),
-            AbstractConsignment::SHIPMENT_OPTION_COLLECT            => __('Collect package'),
-            AbstractConsignment::SHIPMENT_OPTION_ONLY_RECIPIENT     => __('Only recipient'),
-            AbstractConsignment::SHIPMENT_OPTION_AGE_CHECK          => __('Age check 18+'),
-            AbstractConsignment::SHIPMENT_OPTION_HIDE_SENDER        => __('Hide sender'),
-            AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT       => __('Large package'),
-            AbstractConsignment::SHIPMENT_OPTION_RETURN             => __('Return if no answer'),
-            AbstractConsignment::SHIPMENT_OPTION_SAME_DAY_DELIVERY  => __('Same day delivery'),
-            AbstractConsignment::SHIPMENT_OPTION_PRINTERLESS_RETURN => __('Printerless return'),
-            AbstractConsignment::SHIPMENT_OPTION_FRESH_FOOD         => __('Fresh food'),
-            AbstractConsignment::SHIPMENT_OPTION_FROZEN             => __('Frozen'),
-            AbstractConsignment::SHIPMENT_OPTION_PRIORITY_DELIVERY  => __('Priority delivery'),
+            ShipmentOption::SIGNATURE          => __('Signature on receipt'),
+            ShipmentOption::RECEIPT_CODE       => __('Receipt code'),
+            ShipmentOption::COLLECT            => __('Collect package'),
+            ShipmentOption::ONLY_RECIPIENT     => __('Only recipient'),
+            ShipmentOption::AGE_CHECK          => __('Age check 18+'),
+            ShipmentOption::HIDE_SENDER        => __('Hide sender'),
+            ShipmentOption::LARGE_FORMAT       => __('Large package'),
+            ShipmentOption::RETURN             => __('Return if no answer'),
+            ShipmentOption::SAME_DAY_DELIVERY  => __('Same day delivery'),
+            ShipmentOption::PRINTERLESS_RETURN => __('Printerless return'),
+            ShipmentOption::FRESH_FOOD         => __('Fresh food'),
+            ShipmentOption::FROZEN             => __('Frozen'),
+            ShipmentOption::PRIORITY_DELIVERY  => __('Priority delivery'),
         ];
     }
 

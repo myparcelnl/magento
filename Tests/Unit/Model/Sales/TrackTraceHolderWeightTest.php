@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 function createHolderForWeight(array $configValues = []): TrackTraceHolder
 {
@@ -24,7 +24,7 @@ it('uses the preset weight and never touches the shipment', function () {
     // would mean the preset branch stopped short-circuiting.
     $track = Mockery::mock(Track::class);
 
-    invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 500, AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP]);
+    invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 500, PackageType::DIGITAL_STAMP]);
 
     expect($holder->consignment->getPhysicalProperties()['weight'])->toBe(500);
 });
@@ -37,7 +37,7 @@ it('sums item weight times quantity plus the empty package weight, in grams', fu
     ]]);
     $track = createShipmentTrack(['getShipment' => $shipment]);
 
-    invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, AbstractConsignment::PACKAGE_TYPE_PACKAGE]);
+    invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, PackageType::PACKAGE]);
 
     expect($holder->consignment->getPhysicalProperties()['weight'])->toBe(2 * 300 + 150 + 50);
 });
@@ -49,7 +49,7 @@ it('sums item weight times quantity plus the empty package weight, in kilo mode'
     ]]);
     $track = createShipmentTrack(['getShipment' => $shipment]);
 
-    invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, AbstractConsignment::PACKAGE_TYPE_MAILBOX]);
+    invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, PackageType::MAILBOX]);
 
     expect($holder->consignment->getPhysicalProperties()['weight'])->toBe((int) (1.5 * 2 * 1000) + 20);
 });
@@ -61,7 +61,7 @@ it('floors a zero-weight shipment at the configured default weight', function ()
     ]]);
     $track = createShipmentTrack(['getShipment' => $shipment]);
 
-    invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, AbstractConsignment::PACKAGE_TYPE_PACKAGE]);
+    invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, PackageType::PACKAGE]);
 
     expect($holder->consignment->getPhysicalProperties()['weight'])->toBe(Weight::DEFAULT_WEIGHT);
 });

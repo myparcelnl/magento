@@ -44,7 +44,6 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Helper\MyParcelCollection;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\Model\Consignment\BaseConsignment;
 use Throwable;
 
 /**
