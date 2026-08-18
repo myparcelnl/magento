@@ -2,7 +2,7 @@
 
 ## Business Context
 
-The Magento module is an adapter over the MyParcel PHP SDK (`myparcelnl/sdk`). The SDK's v11 line replaced its hand-written consignment stack with generated API clients and typed service wrappers, and in **beta.22** it deleted the legacy stack outright. The module is pinned to `11.0.0-beta.15@beta` because every release from beta.23 onward removes classes the module depends on.
+The Magento module is an adapter over the MyParcel PHP SDK (`myparcelnl/sdk`). The SDK's v11 line replaced its hand-written consignment stack with generated API clients and typed service wrappers, and in **beta.22** it deleted the legacy stack outright. The module is pinned to `11.0.0-beta.15@beta` because beta.22 and every release after it removes classes the module depends on.
 
 That pin is not a stable resting place. It is a snapshot of a moving beta, held in place by incompatibility rather than by choice. While it holds:
 
@@ -14,7 +14,7 @@ Separately, the SDK's removal of `MyParcelCollection` removed a capability the m
 
 ## Objective
 
-The module runs on `myparcelnl/sdk` **v11.0.0-beta.31**, with no loss of existing merchant-facing capability, and with multi-account batch export re-implemented inside the module.
+The module runs on `myparcelnl/sdk` **v11.0.0-beta.31**, with multi-account batch export re-implemented inside the module, and with one deliberate capability removal: pre-export address validation, for the reasons below.
 
 A merchant running several Magento stores against several MyParcel accounts must be able to select orders across those stores in one admin action and receive one merged label PDF, exactly as they can today.
 
@@ -35,12 +35,13 @@ A merchant running several Magento stores against several MyParcel accounts must
 - **Insurance as a range.** Insurance becomes any amount within the account's contract minimum and maximum, replacing the fixed per-carrier tier lists. This is a user-visible admin change and an increase in merchant capability.
 - **Graceful degradation.** The module keeps exporting when the capabilities response changes shape, contains unknown values, or is unavailable.
 - **A configurable export chunk size** (default 20), because large single batches time out in practice.
-- Two pre-existing multi-store defects in the same area: cron PPS status polling reaching only one account, and return labels being created against the wrong account in a mixed batch.
+- **Pre-export address validation is removed**, not ported. `Sdk\Helper\ValidatePostalCode` is deleted at beta.22 and `Helper\ValidateStreet` survives, so the module could have kept half of the check. Keeping half is worse than keeping none: a bad street is named before export while a bad postcode is found only when the API rejects it. The API becomes the single authority on address validity. Merchants lose the "⚠️ Please check street" and "Please check postal code" warnings in the order grid, and a malformed address no longer drops its order out of a mass action with a named message. Rationale in DR-11 of the migration plan.
+- Six pre-existing defects in the same area, four of them multi-store: cron PPS status polling reaching only one account; return labels created against the wrong account in a mixed batch; PPS order lines accumulating across orders in one batch; a repeated concept mass action creating duplicate billable shipments; customs items added twice on some paths; and the age-check precedence chain whose lower two tiers are unreachable.
 
 ### Out of Scope
 
 - **Upgrading past beta.31.** The target is a specific tag. Tracking the beta line thereafter is ordinary maintenance.
-- **Fixing the SDK.** Three defects found during investigation are raised as issues on `myparcelnl/sdk` and worked around in the module. We do not open SDK pull requests as part of this work.
+- **Fixing the SDK.** Three defects found during investigation are reported as issues on `myparcelnl/sdk` in Phase 4 and worked around in the module. We do not open SDK pull requests as part of this work.
 - **Any change to the checkout delivery-options widget contract**, the versioned REST API response shape, or the admin configuration structure beyond the insurance field.
 - **Retiring the legacy `@internal` SDK classes** the module still uses (`AccountWebService`, `CarrierOptionsWebService`, `OrderCollection`). They work at beta.31; replacing them is separate work.
 - **Hashing the API key out of the `account_settings_{apiKey}` config path and cleaning up orphaned rows.** Related and lands first, but a separate pull request with its own rationale.
@@ -56,6 +57,7 @@ A merchant running several Magento stores against several MyParcel accounts must
 - [ ] A capabilities response containing an option, carrier or package type the module does not recognise does not break the admin form, the checkout, or an export. The unknown value is logged.
 - [ ] With the capabilities endpoint unreachable, label creation still succeeds.
 - [ ] The status cron updates orders across **all** configured MyParcel accounts, not only the default-scope one.
+- [ ] An order with a malformed street or postcode is accepted, shows no warning in the order grid, and surfaces the API's own rejection legibly at export.
 - [ ] No merchant-visible configuration is lost or silently reset by the upgrade; existing saved insurance amounts remain valid.
 
 ## Stakeholders
@@ -65,7 +67,7 @@ A merchant running several Magento stores against several MyParcel accounts must
 | Business Sponsor | MyParcel External Integrations team | Funds and prioritises this work |
 | Product Owner | MyParcel platform PM | Accepts the insurance UI change and the degradation behaviour |
 | Technical Lead | MyParcel Magento module maintainer | Feasibility, phasing, design decisions (see the migration plan) |
-| Consumer | MyParcel PHP SDK team | Owns the three raised defects and the capabilities contract |
+| Supplier | MyParcel PHP SDK team | Owns the three reported defects and the capabilities contract |
 | End Users | MyParcel customers (Magento shop admins), especially multi-store merchants | Validation |
 
 ## Constraints
@@ -92,7 +94,7 @@ A merchant running several Magento stores against several MyParcel accounts must
 | Multi-account batching implemented incorrectly, shipping parcels against the wrong contract | Medium | High | TR-000006 makes grouping explicit and one client per key mandatory. Unit tests assert N keys produce N create calls; the two-store manual test is a release gate. |
 | A mid-batch failure leaves shipments in MyParcel with no Magento reference | Medium | Medium | Per-chunk persistence before the next chunk is issued, plus a per-chunk success/failure report to the admin. |
 | The insurance field change confuses admins or invalidates saved values | Low | Low | The new domain is a superset of the old, so saved tier values stay valid. Out-of-range values clamp rather than zero. Covered by FR-000009 and US-000010. |
-| Three SDK defects remain unfixed, leaving workaround code in place indefinitely | Medium | Low | Workarounds carry a `@todo` referencing the issue, and TR-000007 records what to delete once fixed. |
+| Three SDK defects remain unfixed, leaving workaround code in place indefinitely | Medium | Low | Workarounds carry a `@todo` referencing the issue, and TR-000007 records what to delete once fixed. Filing them is Phase 4 work, so the `@todo` numbers land with that phase. |
 | Divergence from the PDK on three deliberate points is later "corrected" by someone unaware of the reasoning | Medium | Medium | Each divergence is recorded with its rationale in TR-000005 and in the migration plan's decision records. |
 
 ## Approval

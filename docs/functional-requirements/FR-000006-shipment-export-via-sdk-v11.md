@@ -3,7 +3,7 @@
 ## Parent Requirement
 
 - **Business Requirement:** [BR-000003 — MyParcel Magento module runs on MyParcel SDK v11](../business-requirements/BR-000003-sdk-v11-compatibility.md)
-- **Related User Stories:** [US-000007](../user-stories/US-000007-admin-exports-mixed-store-batch.md), [US-000008](../user-stories/US-000008-admin-prints-one-merged-label-pdf.md), [US-000009](../user-stories/US-000009-admin-sees-clear-error-for-missing-api-key.md), [US-000011](../user-stories/US-000011-order-status-updates-across-accounts.md)
+- **Related User Stories:** [US-000007](../user-stories/US-000007-admin-exports-mixed-store-batch.md), [US-000008](../user-stories/US-000008-admin-prints-one-merged-label-pdf.md), [US-000009](../user-stories/US-000009-admin-gets-per-order-export-report.md), [US-000011](../user-stories/US-000011-order-status-updates-across-accounts.md)
 
 ## Description
 
@@ -22,9 +22,15 @@ The export paths in scope, all of which exist today:
 7. **Fulfilment / PPS export mode**, including order lines, customs declarations, pickup locations and order notes.
 8. **Status cron.** Polling MyParcel for status and barcode updates and writing them back to Magento.
 
-**Behaviour that must be preserved exactly:** which package type is chosen and from which source; how weight is calculated; how shipment options are resolved from configuration, product attributes and request parameters; the label description; label positions and paper size; how a pickup location is cleared when the carrier is overridden; the content of the `sales_order.track_status` and `track_number` grid columns; and the track & trace URL shown in the admin grid and shipment emails.
+**Behaviour that must be preserved exactly:** which package type is chosen and from which source; how weight is calculated; how shipment options are resolved from configuration, product attributes and request parameters; the label description; label positions and paper size; how a pickup location is cleared when the carrier is overridden; the export statuses written into the `sales_order.track_status` and `track_number` grid columns; and the track & trace URL shown in the admin grid and shipment emails. The address-warning values that used to reach `track_status` are the one exception — they go with address validation, per BR-000003.
 
-**Behaviour that is explicitly corrected rather than preserved:** customs items are currently added twice on some code paths, because `TrackTraceHolder::convertDataForCdCountry()` iterates both `$shipment->getData('items')` and `$shipment->getItems()`. The port fixes this. It is the one intentional behaviour change in this FR.
+**Behaviour that is explicitly corrected rather than preserved.** Three defects are fixed rather than carried over:
+
+1. **Customs items added twice** on some code paths, because `TrackTraceHolder::convertDataForCdCountry()` iterates both `$shipment->getData('items')` and `$shipment->getItems()`.
+2. **The age-check precedence chain's lower two tiers are unreachable** — the product-attribute and carrier-default tiers never run, so only an explicit option takes effect. Diagnosis in DR-7 of the migration plan.
+3. **The per-country print-position rule is removed**, not repaired: it returned the same answer for every order and the order grid never consulted it, so the two single-entity views disagreed with the grid. DR-10.
+
+A fourth change is deliberate and larger than this FR: **pre-export address validation is removed**, specified in [BR-000003](../business-requirements/BR-000003-sdk-v11-compatibility.md) and DR-11. It is not an acceptance criterion here.
 
 ## User Impact
 
@@ -47,7 +53,7 @@ The export paths in scope, all of which exist today:
 - [ ] Package type, weight, shipment option and age-check resolution produce identical values to beta.15 for the same inputs, verified by the tests introduced before the port.
 - [ ] Customs items appear exactly once per shipped item, correcting the current double-add.
 - [ ] The track & trace URL rendered in the admin grid column and in shipment emails is unchanged, now produced by module-owned code rather than the removed `Sdk\Helper\TrackTraceUrl`.
-- [ ] No `MyParcelNL\Sdk\Model\Consignment\*`, `MyParcelNL\Sdk\Adapter\DeliveryOptions\*`, `MyParcelNL\Sdk\Factory\*` or `MyParcelNL\Sdk\Helper\MyParcelCollection` reference remains anywhere in `src/`, `Controller/`, `view/` or `Tests/`.
+- [ ] No reference to a removed SDK symbol remains, checked by the grep sweep in [TR-000005](../technical-requirements/TR-000005-sdk-v11-api-mapping.md), which owns the removed-class inventory and the paths to search.
 
 ## Priority
 
@@ -75,11 +81,11 @@ The v11 shipment stack already exists at beta.15 and is byte-identical to beta.3
 
 - SDK v11.0.0-beta.31.
 - FR-000008 — the shipment builder needs capability data for multicollo eligibility and option availability.
+- FR-000009 — supplies the insurance amount this FR writes into the shipment options.
 
 ### Downstream (depends on this FR)
 
 - FR-000007 — multi-account batching orchestrates the services this FR ports to.
-- FR-000009 — insurance is written inside the shipment options this FR builds.
 
 ## Cross-References
 

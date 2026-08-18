@@ -67,14 +67,14 @@ So that **I can work from a single queue instead of filtering the grid by store 
 ## Technical Notes
 
 - Grouping, client construction and the empty-key guard are specified in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).
-- The API key is resolved per order from `myparcelnl_magento_general/api/key` at the order's store scope. The module already does this correctly in `TrackTraceHolder.php:118` and `MagentoCollection.php:628`; what is new is the grouping on the send side.
-- Scenario 4 is not hypothetical. `ShipmentApiFactory::resolveApiKey()` falls back to those environment variables when handed an empty string, so the guard must run before the SDK factory is reached.
+- The API key is resolved per order from `myparcelnl_magento_general/api/key` at the order's store scope. The module already does this correctly in `TrackTraceHolder.php:118` and `MagentoCollection.php:627`; what is new is the grouping on the send side.
+- Scenario 4 is not hypothetical: the SDK factory resolves an empty key from the environment, so the guard must run before the factory is reached. Mechanism in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md)'s defect 2.
 - Scenario 6 corrects a defect that exists today: the removed `generateReturnConsignments()` used only the first consignment's key.
 
 ## Dependencies
 
 - [US-000008](US-000008-admin-prints-one-merged-label-pdf.md) — the same mass action must also produce one merged PDF; both are needed for the action to be usable.
-- [US-000009](US-000009-admin-sees-clear-error-for-missing-api-key.md) — expands scenarios 3 and 4.
+- [US-000009](US-000009-admin-gets-per-order-export-report.md) — expands scenarios 3 and 4.
 
 ## Definition of Done
 

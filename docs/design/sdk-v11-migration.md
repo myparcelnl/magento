@@ -11,7 +11,7 @@ This is the working plan for migrating the module from `myparcelnl/sdk` beta.15 
 
 ## Why this migration is happening
 
-The module pins `myparcelnl/sdk: 11.0.0-beta.15@beta`. SDK **beta.22** deleted the entire legacy consignment stack, so the module cannot run on beta.23 or later. The goal is compatibility with **beta.31**, plus re-implementing the multi-API-key ("multi MyParcel store") batch export that the SDK dropped along with `MyParcelCollection`.
+The module pins `myparcelnl/sdk: 11.0.0-beta.15@beta`. SDK **beta.22** deleted the entire legacy consignment stack, so the module cannot run on beta.22 or later. The goal is compatibility with **beta.31**, plus re-implementing the multi-API-key ("multi MyParcel store") batch export that the SDK dropped along with `MyParcelCollection`.
 
 ### What the investigation established
 
@@ -32,7 +32,7 @@ The module pins `myparcelnl/sdk: 11.0.0-beta.15@beta`. SDK **beta.22** deleted t
 
 ### The sleeper: capability probes
 
-Beyond shipment creation, the module builds throwaway consignments purely to *ask questions*: `canHaveShipmentOption()`, `canHaveDeliveryType()`, `canHavePackageType()`, `canHaveExtraOption()`, `getAllowedPackageTypes()`, `getAllowedShipmentOptions()`, `getInsurancePossibilities()`, `getLocalCountryCode()`, `isToRowCountry()`. All are gone at beta.31.
+Beyond shipment creation, the module builds throwaway consignments purely to *ask questions* — the nine probe methods listed in [FR-000008](../functional-requirements/FR-000008-carrier-capabilities-and-contract-definitions.md), from `canHaveShipmentOption()` to `isToRowCountry()`. All are gone at beta.31.
 
 This drives the admin *New Shipment* form (`view/adminhtml/templates/new_shipment.phtml`), checkout (`src/Model/Quote/Checkout.php`), 16 insurance virtual types in `etc/di.xml`, and `src/Setup/UpgradeData.php`. beta.31's answers are the **capabilities** and **contract-definitions** endpoints. This is the largest slice of the work, and the one place where behaviour stops being hardcoded and starts being account-specific.
 
@@ -40,7 +40,7 @@ Two `BaseConsignment` usages are **constructor-injected via Magento DI** (`src/B
 
 ### The PDK is the reference implementation
 
-`myparcelnl/pdk` has already done this migration: v4.7.1 requires `myparcelnl/sdk: ^11.0.0-beta.30@beta`. Read it before designing anything in Phases 4 or 5. It settles the client shape and the caching split, and it carries at least one requirement documented nowhere else (the V2 `Accept` header).
+`myparcelnl/pdk` has already done this migration: v4.7.1 requires `myparcelnl/sdk: ^11.0.0-beta.30@beta`. Read it before designing anything in Phases 4 or 5. It settles the client shape and the caching split, and it carries at least one requirement documented nowhere else (the V2 `Accept` header — specified in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md)).
 
 We deviate from it deliberately in three places, all recorded below.
 
@@ -54,7 +54,7 @@ Corrections made while planning. Each was wrong in a way that is easy to repeat.
 
 **Initially assumed:** Phase 4 needs no API key, because `CapabilitiesService::__construct` takes none.
 
-**Wrong because:** capabilities differ per MyParcel account — different carrier contracts give different options. The layer must be API-key scoped. The key is not absent from the request, merely unreachable: `HttpCapabilitiesClient` hardcodes `ShipmentApiFactory::make(null, …)`, so it resolves only from `getenv('API_KEY')` / `API_KEY_NL` / `API_KEY_BE` and otherwise throws.
+**Wrong because:** capabilities differ per MyParcel account — different carrier contracts give different options. The layer must be API-key scoped. The key is not absent from the request, merely unreachable: `Sdk\Services\Capabilities\HttpCapabilitiesClient` hardcodes `ShipmentApiFactory::make(null, …)`, so the key cannot be supplied at all. That factory's environment fallback is the wrong-account hazard specified as defect 2 in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
 ### DR-2: `CapabilitiesResponse` cannot carry what we need
 
@@ -84,7 +84,7 @@ Corrections made while planning. Each was wrong in a way that is easy to repeat.
 
 **Initially reported as** a read/write scope mismatch.
 
-**Wrong because:** the write (`CarrierConfigurationImport.php:70`) and the read (`AccountSettings.php:34`) are *both* default-scope. The API key in the path is the discriminator and it works as designed. Only the API key *lookup* is scope-aware, which is correct. Two narrower real items replaced it: `PackageRepository.php:134` reads the key without an explicit store id, and `AccountSettings.php:13,15` import classes absent from beta.15 and beta.31.
+**Wrong because:** the write (`CarrierConfigurationImport.php:70-71`) and the read (`AccountSettings.php:32`) are *both* default-scope. The API key in the path is the discriminator and it works as designed. Only the API key *lookup* is scope-aware, which is correct. Two narrower real items replaced it: `PackageRepository` read the key without an explicit store id (fixed in Phase 2 by `Package::setStoreId()`), and `AccountSettings.php:13,15` import classes absent from beta.15 and beta.31.
 
 ### DR-7: `getAgeCheck()`'s product-attribute and carrier-default tiers are dead code
 
@@ -114,7 +114,7 @@ If this is reconsidered, the workable seam is the *feature* line, not the capabi
 
 `AbstractConsignment::EURO_COUNTRIES` at beta.15 holds **XK** (Kosovo) and omits **MT** (Malta). `Services\CountryCodes::EU_COUNTRIES` — which survives at beta.31, and is byte-identical at beta.15 — holds MT and omits XK. beta.31's own `Concerns\HasCountry::isToEuCountry()` already reads the new list, so the SDK has made this correction internally.
 
-**Decision: adopt the beta.31 list.** Malta is in the EU and Kosovo is not, so the old list was simply wrong. Effect at the three call sites — `MagentoOrderCollection.php:243`, `DefaultOptions.php:153`, `ShipmentOptions.php:302`: a Malta shipment stops getting a customs declaration and drops to the EU insurance tier; a Kosovo shipment starts getting a customs declaration and moves to the ROW tier. Both are corrections, and both are visible to merchants shipping to those two countries.
+**Decision: adopt the beta.31 list.** Malta is in the EU and Kosovo is not, so the old list was simply wrong. Effect at the three call sites — `MagentoOrderCollection.php:241`, `src/Model/Source/DefaultOptions.php:153`, `src/Helper/ShipmentOptions.php:301` (the module's helper, not the SDK's class of the same name): a Malta shipment stops getting a customs declaration and drops to the EU insurance tier; a Kosovo shipment starts getting a customs declaration and moves to the ROW tier. Both are corrections, and both are visible to merchants shipping to those two countries.
 
 **This is an exception to TR-000005**, which requires every new constant to equal the beta.15 value it replaces. The requirement is amended there rather than quietly broken here. `Tests/Unit/Model/Shipment/ConstantEquivalenceTest.php` asserts the MT/XK delta head-on, so the difference is a pinned decision rather than a drift.
 
@@ -158,12 +158,7 @@ A value we do not understand must never be quietly replaced with one we do. Acce
 
 **The SDK is asymmetric, deliberately.** `Support\EnumFallback` says so: the generated `ObjectSerializer` passes an unknown enum value through unchanged on the read path so a new API value never breaks parsing, while request serialization stays strict and throws. So the SDK can hand us a value it will then refuse to send back.
 
-**Corrected after a first, wrong reading.** It was recorded here that shipment create could never send a type the SDK's id map does not know, and an SDK issue was queued to ask for it. That is true at beta.15 and false at beta.31. Tested at both tags:
-
-| | `setPackageType(31)` | `setDeliveryType(99)` |
-|---|---|---|
-| beta.15 | rejected — "must be one of 1…7" | rejected — "must be one of 1…8" |
-| beta.31 | **stored and serialized** | **stored and serialized** |
+**Corrected after a first, wrong reading.** It was recorded here that shipment create could never send a type the SDK's id map does not know, and an SDK issue was queued to ask for it. That is true at beta.15 and false at beta.31 — tested at both tags, in the table at [TR-000005](../technical-requirements/TR-000005-sdk-v11-api-mapping.md).
 
 beta.29's "enum validation loosening" — the second BREAKING flag in the whole range — removed the enum checks from the generated setters, which is the same change that introduced `EnumFallback`. At beta.31 `RefShipmentShipmentOptions` rejects only null. So an unknown **id** reaches the API and the API answers for it, which is exactly the behaviour this rule wants. The SDK issue was withdrawn.
 
@@ -174,7 +169,7 @@ The one asymmetry that remains is names, not ids: `ShipmentOptions::setPackageTy
 ```
 AbstractDeliveryOptionsAdapter::getDeliveryTypeId()   // DELIVERY_TYPES_NAMES_IDS_MAP[$x] ?? null
   → null for 'early_morning'
-TrackTraceHolder.php:187  ->setDeliveryType($adapter->getDeliveryTypeId() ?? DeliveryType::STANDARD)
+TrackTraceHolder.php:184  ->setDeliveryType($adapter->getDeliveryTypeId() ?? DeliveryType::STANDARD)
   → shipment created and paid for as standard, no error anywhere
 ```
 
@@ -193,7 +188,7 @@ Worth knowing the module already displays unknown delivery types correctly where
 ## Standing decisions
 
 - **Git:** one PR on `feat/use-sdk-v11-shipments`, **one commit per phase**. The composer bump is the last code commit.
-- **Multi-account label PDF:** merge into a single PDF in Magento via `setasign/fpdi`, preserving today's UX. Add fpdi as an explicit module dependency — beta.31 keeps it in `require` but no longer uses it.
+- **Multi-account label PDF:** merge into a single PDF in Magento via `setasign/fpdi`, preserving today's UX, and make fpdi an explicit module dependency. Specified in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).
 - **Carrier options:** migrate to contract definitions now, not deferred. The SDK warns this is not a 1:1 replacement for the `CarrierOptions` model; consumers read the generated contract-definition models directly.
 - **Latent multi-store bugs in scope:** cron PPS status polling (`src/Cron/UpdateStatus.php:126` polls one key only) and return labels using the wrong key.
 - **We do not touch the SDK.** No PR, no `vendor/` patch (per `CLAUDE.md`). Three defects are raised as issues; the module works around them.
@@ -204,7 +199,7 @@ Worth knowing the module already displays unknown delivery types correctly where
 
 Built on the fly, with **no requirement documents** — small, self-contained, rationale lives in its PR description.
 
-**Naming note:** the path is `myparcelnl_magento_general/account_settings_{apiKey}`, not `account_data_`. Only two call sites exist — `src/Model/Settings/AccountSettings.php:35` (read) and `Controller/Adminhtml/Settings/CarrierConfigurationImport.php:71` (write) — so the change is contained, but a cleanup routine must match the real prefix or it will run clean and delete nothing, which looks like success.
+**Naming note:** the path is `myparcelnl_magento_general/account_settings_{apiKey}`, not `account_data_`. Only two call sites exist — `src/Model/Settings/AccountSettings.php:32` (read) and `Controller/Adminhtml/Settings/CarrierConfigurationImport.php:70-71` (write) — so the change is contained, but a cleanup routine must match the real prefix or it will run clean and delete nothing, which looks like success.
 
 **1. Hash the API key in the config path.** The plaintext key is currently part of a `core_config_data` path, which leaks it through `bin/magento config:show`, `config:dump`, support exports, and anyone with config-table read access. Use **one shared hash helper** for both the config suffix and the Phase 4 cache id — two implementations drifting means a silent cache miss on every request rather than a visible error. Migration is lossless and needs no re-import: the existing suffix *is* the plaintext key, so a data patch can read `account_settings_<plain>`, write `account_settings_<hash>`, and delete the original. Keep it idempotent; a row already hashed must be left alone.
 
@@ -225,7 +220,7 @@ New module code lands under:
 - `src/Model/Shipment/` — `PackageType`, `DeliveryType`, `ShipmentOption`, `CountryCode` (constant facades); `Capabilities`; `ShipmentBuilder`
 - `src/Adapter/DeliveryOptions/` — module-owned `DeliveryOptions`, `ShipmentOptions`, `PickupLocation` value objects and a factory
 - `src/Service/Export/` — `ShipmentExportService` (per-key batching), `LabelPdfMerger`
-- `src/Service/TrackTraceUrl.php`, `src/Service/ValidatePostalCode.php`
+- `src/Service/TrackTraceUrl.php` — provisional: Phase 7 replaces its hard-coded base URL with the API's own links (TR-000005)
 
 Every new class gets a class-level doc block explaining responsibility and invariants (per `CLAUDE.md`).
 
@@ -266,9 +261,8 @@ Then create, following `docs/templates/` and matching BR-000002's depth: BR-0000
 
 - `AbstractConsignment::{CC_*, PACKAGE_TYPE_*, PACKAGE_TYPES_*_MAP, DELIVERY_TYPE_*, SHIPMENT_OPTION_*, EURO_COUNTRIES, …}` → `src/Model/Shipment/{CountryCode,PackageType,DeliveryType,ShipmentOption}`.
 - `Sdk\Helper\TrackTraceUrl` → `src/Service/TrackTraceUrl` (used at `src/Ui/Component/Listing/Column/TrackAndTrace.php:118` and `src/Block/DataProviders/Email/Shipment/TrackingUrl.php:32,61` — de-duplicate that repeated call).
-- `Sdk\Helper\ValidatePostalCode` → `src/Service/ValidatePostalCode`.
-- Give `PackageRepository.php:134` an explicit store id.
-- Validate our own **outbound** enums here: `EnumFallback` is forgiving on the read path but request serialization stays strict.
+- `Sdk\Helper\ValidatePostalCode` is **deleted, not ported** — address validation is removed whole, see DR-11.
+- Validate our own **outbound** enums here, per the read-leniently / write-strictly rule in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 - **Drop the `BaseConsignment` constructor argument** from `src/Block/Sales/OrderAction.php:41` and `src/Block/Sales/ShipmentAction.php:48` (moved here from Phase 4). These two arguments are the only thing that breaks `setup:di:compile` at beta.31, and fixing them here keeps `di:compile` green from Phase 2 onward instead of from Phase 4. The `isToRowCountry()` they fed is deleted rather than rewired — see DR-10.
 
 `Services\CountryCodes` and `Support\{Str,Collection}` survive in beta.31 — leave them alone. So does `Helper\SplitStreet`, verified against the tag: beta.31's `src/Helper/` keeps only `MyParcelCurl`, `RequestError`, `SplitStreet` and `ValidateStreet`. `ValidateStreet` survives too but is no longer used — see DR-11.
@@ -331,7 +325,7 @@ Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sal
 | # | Issue | Severity | Notes for the write-up |
 |---|---|---|---|
 | 1 | `HttpCapabilitiesClient` calls `postCapabilities()` with the pre-beta.25 argument order | **Broken for every consumer on beta.25–31** | The user-agent string passes the null/empty-array guard and is `jsonEncode`d into the body as a bare JSON string, while the request model goes to `ObjectSerializer::toHeaderValue()`. Valid JSON of the wrong shape, so a confusing API-side 4xx rather than a clear local error. Ask for a regression test exercising `HttpCapabilitiesClient` itself — the coverage gap is why it shipped. |
-| 2 | `HttpCapabilitiesClient` / `CapabilitiesService` accept no API key, **and** three factories silently fall back to `getenv` | Blocks all library use; the fallback is a wrong-account hazard for every consumer | Two asks in one issue. First, an appended optional constructor arg on both (non-breaking). Second — the more serious one — `ShipmentApiFactory`, `WebhookApiFactory` and `IamApiFactory` all treat an explicitly empty key as "no key" and substitute `API_KEY` / `API_KEY_NL` / `API_KEY_BE`, so the safest input yields the most dangerous behaviour. Lead with that. The fix is two lines per factory: return the key whenever it is not `null`, so `make('')` fails instead of resolving an ambient account. Concrete patch in TR-000007. |
+| 2 | `HttpCapabilitiesClient` / `CapabilitiesService` accept no API key, **and** three factories silently fall back to `getenv` | Blocks all library use; the fallback is a wrong-account hazard for every consumer | Two asks in one issue. First, an appended optional constructor arg on both (non-breaking). Second — the more serious one, and the one to lead with — the three factories' environment fallback. Both the argument and the two-line patch are written out in TR-000007's defect 2; copy them from there rather than restating. |
 | 3 | `CapabilitiesMapper::mapFromCoreApi()` drops all option values | Design question, not a bug | Propose rather than prescribe: `CapabilitiesResponse` is `final` with a 6-arg positional constructor the SDK's own test calls positionally, so adding insurance means a 7th positional arg or exposing the raw models. Note our client is close to the latter — that may speed agreement. |
 
 Reference `UPGRADE.md`'s claim that `CapabilitiesService` is the v11 answer for capabilities, since 1–3 together make it untrue in practice. When they land, delete the workaround behind its `@todo` and reassess whether this layer can shrink.
@@ -342,8 +336,8 @@ Reference `UPGRADE.md`'s claim that `CapabilitiesService` is the v11 answer for 
 
 Insurance becomes a free amount between `min` and `max` (DR-4). Specification in [FR-000009](../functional-requirements/FR-000009-insurance-as-a-range.md) and [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
-- `src/Model/Source/CarrierInsurancePossibilities.php` and the **16 virtual types at `etc/di.xml:74-194`** exist only to populate tier dropdowns, so they go. Convert the 16 `source_model` references in `etc/dynamic_settings.json` (lines 1117, 1128, 1139, 1150, 1845, 1856, 2200, 2211, 2222, 2233, 2504, 2515, 3284, 3520, 3530, 3540) from a select to a numeric field validated against `[min, max]`.
-- `src/Model/Source/DefaultOptions.php:172` snaps to the nearest tier today; it becomes a clamp to `[min, max]`.
+- `src/Model/Source/CarrierInsurancePossibilities.php` and the **17 virtual types at `etc/di.xml:75-196`** exist only to populate tier dropdowns, so they go. Only 16 of them are referenced by a setting, so one carrier-and-zone virtual type is already orphaned — identify which while removing them, since it may mean a missing setting rather than a dead type. Convert the 16 `source_model` references in `etc/dynamic_settings.json` (lines 1117, 1128, 1139, 1150, 1845, 1856, 2200, 2211, 2222, 2233, 2504, 2515, 3284, 3520, 3530, 3540) from a select to a numeric field validated against `[min, max]`.
+- `DefaultOptions::getInsurance()` (`src/Model/Source/DefaultOptions.php:163`) snaps to the nearest tier today; it becomes a clamp to `[min, max]`.
 - **Read the flat `min` / `max` / `default`** on the insurance option — confirmed populated by the API. Not the nested `insured_amount` wrapper, which the spec marks deprecated. PDK still reads the wrapper; that is PDK being behind, and worth a heads-up to that team since the wrapper is slated for removal.
 - `src/Setup/UpgradeData.php:946,981,994,1012` calls `getInsurancePossibilities()` inside a **historical data migration**. Freeze the tier lists it needs as private module constants — it must not start depending on a network call.
 - `src/Model/Settings/AccountSettings.php` and `Controller/Adminhtml/Settings/CarrierConfigurationImport.php` → contract definitions. Delete the broken imports at `AccountSettings.php:13,15`. Retire the hand-rolled `createArray()` (`@TODO sdk#326` at `CarrierConfigurationImport.php:132`).
@@ -364,7 +358,7 @@ Insurance becomes a free amount between `min` and `max` (DR-4). Specification in
 - The API key is no longer on the shipment; pair each `Shipment` with its key for Phase 7.
 - **Never substitute a type we cannot resolve** (DR-12). If a stored delivery or package type has no id, fail that shipment with a message naming the order and the value, and leave the rest of the batch intact — the per-chunk persistence Phase 7 specifies. Silently exporting a different delivery than the customer paid for is the outcome this phase must make impossible.
 - `isToRowCountry()` at `:339` comes from the Phase 2 `CountryCode` constants, not from capabilities — it is a static country fact (TR-000005).
-- **Retype `canUseMultiCollo()`** (`MagentoCollection.php:644`, called from `MagentoCollection.php:440` and `src/Observer/NewShipment.php:111`). It is typed `AbstractConsignment` and receives what this phase turns into a `Shipment`, so it breaks here whatever else happens. The body is module-owned carrier logic; Phase 4 replaces the rule itself with the capabilities collo maximum, so keep the retype mechanical and leave the rule alone.
+- **Retype `canUseMultiCollo()`** (`MagentoCollection.php:643`, called from `MagentoCollection.php:439` and `src/Observer/NewShipment.php:111`). It is typed `AbstractConsignment` and receives what this phase turns into a `Shipment`, so it breaks here whatever else happens. The body is module-owned carrier logic; Phase 4 replaces the rule itself with the capabilities collo maximum, so keep the retype mechanical and leave the rule alone.
 
 **Check.** Two layers, neither a golden file. First, the Phase 1 tests still pass **unchanged** — they assert our rules, not the payload, so a correct rewrite should not need to touch them; if one needs editing to go green, that is a behaviour change, so stop and justify it. Second, validate the outbound request against the real spec: `league/openapi-psr7-validator` and `nyholm/psr7` are already dev dependencies and beta.31 ships `openapi/coreapi.yaml`. Caveat — that file is a ~3KB `$ref` root stitching in `common.yaml` and `commonProperties.yaml`, so resolving the bundle is real plumbing. Timebox it; if it fights back, read the serialised payload against the spec by hand once per fixture. Do not add snapshots as a consolation prize.
 
@@ -422,7 +416,7 @@ Tracking is this matrix plus each document's own Traceability section (house con
 
 Two things this makes visible:
 
-- **Phases 2, 3 and 6 have no FR** — they trace only to a TR. Correct for a like-for-like port: there is no new capability to specify, and an FR asserting "behaviour is unchanged" is not usefully testable.
+- **Phases 2 and 3 have no FR** — they trace only to TR-000005. Correct for a like-for-like port: there is no new capability to specify, and an FR asserting "behaviour is unchanged" is not usefully testable.
 - **BR-000003 is only satisfied at Phase 9.** Nothing before it delivers the business outcome, so this is one deliverable with nine reviewable steps, not nine shippable increments. Worth stating in the PR description.
 
 If a phase splits — Phase 4 is the likely candidate — split its row rather than letting the mapping go stale.
@@ -464,9 +458,9 @@ Manual end-to-end, on `*.acceptance.myparcel.nl` credentials only — never prod
 ## Open risks
 
 - **Capability parity (Phases 4–5) is the least certain part**, though the PDK removes most of the design risk. Expect gaps needing an SDK/API answer. Raise them as questions **and** keep moving with a documented assumption recorded in TR-000005 — do not block a phase on an upstream answer, and do not bury the guess either. Where PDK and the OpenAPI spec disagree, trust an observed acceptance response over either.
-- **We diverge from the PDK on purpose, in three places:** we reuse `CapabilitiesMapper` instead of porting `hydrateModel()` (DR-3), we do not port `filterSupportedCapabilities()` (FR-000010), and we do not port `InsuranceTierMath` (DR-4). Recorded in TR-000005 so nobody "aligns with the PDK" later without re-reading the argument.
-- **Loose coupling has a cost to accept knowingly:** offering an option the account cannot use surfaces as an API error at export time rather than a greyed-out checkbox. That is the intended trade — a clear late failure beats a silent missing feature — but the error must reach the admin legibly rather than being swallowed. Check explicitly in Phase 7.
-- **Three SDK defects are raised but not fixed by us.** Until they land, `src/Model/Shipment/Capabilities` carries glue duplicating what `CapabilitiesService` should do, and defect 1 means capabilities is broken for every SDK consumer on beta.25–31 — expect other integrations to hit it.
+- **We diverge from the PDK on purpose, in three places** — DR-3, DR-4 and FR-000010 each own one. Enumerated with their reasoning in [TR-000005](../technical-requirements/TR-000005-sdk-v11-api-mapping.md), so nobody "aligns with the PDK" later without re-reading the argument.
+- **Loose coupling has a cost to accept knowingly**, stated in [FR-000010](../functional-requirements/FR-000010-graceful-degradation-on-capability-changes.md): the API error at export replaces the greyed-out checkbox, and the trade only holds while that error reaches the admin legibly. Check explicitly in Phase 7.
+- **Three SDK defects are raised in Phase 4 and are not fixed by us.** Until they land, `src/Model/Shipment/Capabilities` carries glue duplicating what `CapabilitiesService` should do, and defect 1 means capabilities is broken for every SDK consumer on beta.25–31 — expect other integrations to hit it.
 - The generated `Client\Generated\OrderApi\Model\*` enums the REST transformers bind to are the highest-churn SDK surface; `ShipmentOptionsTransformerTest` asserts `attributeMap()` keys verbatim.
-- `MultiColloShipmentService` is pure in-memory and takes **no** API key — do not build it per key. Our capabilities client, by contrast, **is** per key.
+- `MultiColloShipmentService` takes no API key while our capabilities client is per key — the asymmetry that makes per-key client construction easy to get wrong. Rule in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).
 - Worth raising an ADR in [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) for "the Magento module owns its shipment domain layer", since that boundary is now permanent rather than borrowed from the SDK.

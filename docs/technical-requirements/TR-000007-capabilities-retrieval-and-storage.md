@@ -30,11 +30,11 @@ The storage split is not an implementation preference. Contract definitions are 
 
 ### Retrieval client
 
-The SDK's `Services\Capabilities\CapabilitiesService` **cannot be used as shipped**. Three defects, raised upstream and worked around here:
+The SDK's `Services\Capabilities\CapabilitiesService` **cannot be used as shipped**. Three defects, reported upstream in Phase 4 and worked around here regardless:
 
 | # | Defect | Effect |
 |---|---|---|
-| 1 | `HttpCapabilitiesClient` calls `postCapabilities()` with the pre-beta.25 argument order | The user-agent string is JSON-encoded into the request body and the request model is passed as the user agent. Valid JSON of the wrong shape, so a confusing API-side 4xx. **Affects every SDK consumer on beta.25–31.** |
+| 1 | `Sdk\Services\Capabilities\HttpCapabilitiesClient` calls `postCapabilities()` with the pre-beta.25 argument order | The user-agent string is JSON-encoded into the request body and the request model is passed as the user agent. Valid JSON of the wrong shape, so a confusing API-side 4xx. **Affects every SDK consumer on beta.25–31.** |
 | 2 | The client hardcodes `ShipmentApiFactory::make(null, …)`, and the factory silently resolves a missing key from the environment | Two faults in one. The capabilities client cannot be given a key at all, so it is unusable from this module. Underneath it, **three** factories — `ShipmentApiFactory`, `WebhookApiFactory`, `IamApiFactory` — treat an explicitly empty key as "no key" and substitute `getenv('API_KEY')`, then `API_KEY_NL` / `API_KEY_BE`. See below. |
 | 3 | `CapabilitiesMapper::mapFromCoreApi()` keeps only `array_keys($res->getOptions())` | Every per-option value is discarded, including insurance bounds. Unrecoverable downstream. |
 
@@ -62,12 +62,12 @@ if (null !== $apiKey) {
 
 Until it lands, the module's defence is structural rather than defensive: see [TR-000006](TR-000006-per-api-key-export-batching.md)'s client-construction rules, which keep an unvalidated key from ever reaching a factory.
 
-Defect 3 is why implementing `CapabilitiesClientInterface` does not help: that interface must return the SDK's `final CapabilitiesResponse`, which has no insurance field. The module therefore calls the endpoint directly:
+Two of the three defects independently rule the SDK's service out. Defect 2 means the client cannot be given an API key, and the module needs one per account. Defect 3 means implementing `CapabilitiesClientInterface` does not help either: that interface must return the SDK's `final CapabilitiesResponse`, which has no insurance field, so the values are already gone. Fixing one without the other changes nothing. The module therefore calls the endpoint directly:
 
 | Aspect | Requirement |
 |---|---|
 | Request construction | SDK `Model\Capabilities\CapabilitiesRequest` + `CapabilitiesMapper::mapToCoreApi()`. Do **not** hand-roll this — see TR-000005 for why. |
-| Client | `ShipmentApiFactory::make($apiKey, …)` with the store's real key, reusing the per-key client from [TR-000006](TR-000006-per-api-key-export-batching.md) |
+| Client | The per-key client from [TR-000006](TR-000006-per-api-key-export-batching.md), built with the store's real key. Take it from that document's single choke point; do not call `ShipmentApiFactory::make()` here, or the grep assertion protecting the empty-key guard stops holding |
 | Call | `postCapabilities($request, $userAgent)` — request first. Getting this backwards is defect 1. |
 | Response | Read `RefCapabilitiesResponseCapabilityV2` directly, preserving option values. Do not use `mapFromCoreApi()` or `CapabilitiesResponse`. |
 | `Accept` header | **Must** force `application/json;charset=utf-8;version=2` on any path containing `/shipments/capabilities`, via Guzzle middleware. Without it the response may arrive in the V1 shape. Documented nowhere in the SDK; observed in `myparcelnl/pdk`. |
@@ -157,5 +157,5 @@ Unit tests with a stubbed client for behaviour, fault injection for degradation,
 
 - The SDK's own capabilities service cannot be used until the three defects land; we must not patch `vendor/**`.
 - `CapabilitiesResponse` is `final` with a 6-argument positional constructor, so it cannot be extended to carry insurance.
-- `Services\Capabilities\CapabilitiesService` and `MultiColloShipmentService` take no API key. Do not build them per key.
+- `MultiColloShipmentService` takes no API key. Do not build it per key. (`CapabilitiesService` also takes none, which is defect 2 — the module does not use it at all.)
 - Capability lookups must never be made from `src/Setup/UpgradeData.php`; upgrades must work offline.

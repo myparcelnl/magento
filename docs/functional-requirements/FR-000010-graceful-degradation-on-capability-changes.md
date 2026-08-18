@@ -3,7 +3,7 @@
 ## Parent Requirement
 
 - **Business Requirement:** [BR-000003 — MyParcel Magento module runs on MyParcel SDK v11](../business-requirements/BR-000003-sdk-v11-compatibility.md)
-- **Related User Stories:** [US-000009](../user-stories/US-000009-admin-sees-clear-error-for-missing-api-key.md)
+- **Related User Stories:** [US-000009](../user-stories/US-000009-admin-gets-per-order-export-report.md)
 
 ## Description
 
@@ -17,11 +17,11 @@ Required behaviour:
 
 1. **Fail open.** If a capability lookup errors, times out, or returns an unparseable shape, the module logs it and continues with permissive defaults — offering what configuration allows. A capability failure must never prevent a label being created.
 2. **Serve stale over nothing.** If a refresh fails but previously retrieved data is available, the stale data is used.
-3. **Never gate the export path.** Options arriving from stored checkout data, bulk-action parameters or the REST API are passed through to the shipment even when current capability data does not list them. There is no equivalent of the old `canHaveShipmentOption()` gate on the way out.
+3. **Never gate the export path on capability data.** Options arriving from stored checkout data, bulk-action parameters or the REST API are passed through to the shipment even when current capability data does not list them. There is no equivalent of the old `canHaveShipmentOption()` gate on the way out. The one thing that does stop a shipment locally is a value the SDK cannot serialize at all — a non-numeric package or delivery type for which no id exists (criteria below). That is not a capability judgement; it is the absence of anything to send.
 4. **Unknown values pass through and are logged.** An unrecognised option key, carrier, package type or delivery type in a response is ignored where it cannot be used and recorded in the log. It must not raise an error, and it must not disappear without trace.
 5. **Read defensively.** No code may assume a given option key exists in a response. Every read is null-safe; iteration is over what the response actually contains.
-6. **Degrade, do not disappear.** Where capability data cannot tell us whether an option is available, the module offers it and lets the API decide, rather than hiding a feature the merchant may be paying for.
-7. **Outbound values are still validated.** The tolerance above applies to reading responses. Sending an unknown enum value to the API fails, so values the module itself constructs must be validated before sending. Read leniently, write strictly.
+6. **Degrade, do not disappear.** Where capability data cannot tell us whether an option is available, the module offers it and lets the API decide, rather than hiding a feature the merchant may be paying for. An unknown *numeric* type is sendable at beta.31 and therefore sent; only a non-numeric one, which has no derivable id, fails before the call.
+7. **Outbound values are still validated.** The tolerance above applies to reading responses. Values the module itself constructs are validated before sending — read leniently, write strictly, per [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
 **Divergence from the PDK, deliberately.** `myparcelnl/pdk` filters capability responses against an allow-list of carriers, delivery types, package types and options it recognises, dropping the rest. The Magento module does not port that filter. The allow-list is the mechanism that turns an upstream addition into a local breakage, and this module prioritises staying up over presenting a curated set.
 
@@ -34,8 +34,6 @@ Required behaviour:
 **Merchants during an incident** can still create labels when the capabilities endpoint is degraded, because label creation does not depend on it.
 
 **MyParcel support** gets a log trail of unrecognised values, which turns "the plugin is broken" into "the plugin saw an option it did not know about, here it is". This is also an early-warning signal that the module needs updating.
-
-**Cost to merchants:** occasionally an option is offered that their contract rejects, and they learn this from an error at export rather than from a disabled control. Acceptable only while those errors remain legible.
 
 ## Acceptance Criteria
 
@@ -73,7 +71,7 @@ Required behaviour:
 
 ### Notes
 
-The SDK supports this direction. Since beta.29 its generated deserializer routes unknown enum values through `Support\EnumFallback`, passing them through unchanged rather than throwing, and exposing a listener so they can be observed rather than lost. That listener is the natural implementation of criterion 4. The same class documents the asymmetry behind criterion 7: the read path is forgiving, request serialization is strict.
+The SDK supports this direction: `Support\EnumFallback` passes unknown enum values through unchanged and exposes a listener so they can be observed rather than lost. That listener is the natural implementation of criterion 4, and the same class documents the asymmetry behind criterion 7. Wiring and version detail in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
 The SDK's own request mapper for capabilities deliberately does not filter enum-like values, "to preserve forward compatibility when the API adds new allowable values" — the same principle, stated upstream.
 
@@ -81,7 +79,7 @@ The SDK's own request mapper for capabilities deliberately does not filter enum-
 
 ### Upstream (this FR depends on)
 
-- [FR-000008 — Carrier capabilities and contract definitions](FR-000008-carrier-capabilities-and-contract-definitions.md) — this constrains how that data may be used.
+- [FR-000008 — Carrier capabilities and contract definitions](FR-000008-carrier-capabilities-and-contract-definitions.md) — supplies the capability data whose use this FR constrains. There is no data to degrade gracefully over until FR-000008 retrieves it.
 - SDK `Support\EnumFallback` (beta.29 or later).
 
 ### Downstream (depends on this FR)

@@ -72,10 +72,8 @@ So that **I stop having to round up to the next offered tier and over-pay, or ro
 ## Technical Notes
 
 - Bounds come from two sources depending on context, both giving flat `min` / `max` / `default`: shipment capabilities for a concrete shipment, contract definitions for the admin screen. See [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
-- Read the **flat** properties, not the deprecated nested `insured_amount` wrapper. `myparcelnl/pdk` still reads the wrapper; that wrapper is slated for removal.
-- The 16 virtual types in `etc/di.xml` and their source model exist only to populate tier dropdowns and are removed. Their `carrierName` and `type` arguments encode the carrier-and-zone matrix, which must be preserved in whatever replaces them — a bound is meaningless without knowing which carrier and zone it applies to.
+- The virtual types in `etc/di.xml` and their source model exist only to populate tier dropdowns and are removed. Their `carrierName` and `type` arguments encode the carrier-and-zone matrix, which whatever replaces them must preserve — see [FR-000009](../functional-requirements/FR-000009-insurance-as-a-range.md).
 - Scenario 3 works because the new domain is a superset of the old: every tier value was inside the contract range. No data migration is needed, which is the main argument for free input over a synthesised ladder.
-- `src/Setup/UpgradeData.php` keeps frozen tier constants for historical migrations and must not make a network call.
 
 ## Dependencies
 

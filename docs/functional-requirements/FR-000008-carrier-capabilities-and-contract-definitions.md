@@ -25,7 +25,7 @@ Required behaviour:
 3. **Checkout reflects the account.** Delivery options offered at checkout are consistent with the store's own capabilities.
 4. **Multicollo eligibility comes from the API.** The current hardcoded rule — PostNL, NL or BE, package type `package` — is replaced by the collo maximum the capabilities response reports.
 5. **Country-zone logic is not capability data.** Whether a destination is outside the EU, and what a carrier's local country is, are static facts. They stay in the module, sourced from `Sdk\Services\CountryCodes`, and must not become network calls.
-6. **Historical data migrations do not call the network.** `src/Setup/UpgradeData.php` currently derives insurance tiers via a consignment probe during upgrade. It must use frozen constants so that upgrading an old installation is deterministic and works offline.
+6. **Historical data migrations do not call the network.** `src/Setup/UpgradeData.php` currently derives insurance tiers via a consignment probe during upgrade. It must use frozen constants instead, so upgrading an old installation is deterministic and works offline. Constraint in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 7. **Capability lookups must not make the module slow.** These answers are currently computed in-process with no I/O, and they are needed on checkout and on every admin form render. Caching is a requirement, not an optimisation; see [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
 Resilience to capability changes is specified separately in [FR-000010](FR-000010-graceful-degradation-on-capability-changes.md), which this FR must not contradict: capability data informs what is offered, but never blocks an export.
@@ -47,10 +47,9 @@ Resilience to capability changes is specified separately in [FR-000010](FR-00001
 - [ ] Insurance bounds (`min`, `max`, `default`) are read per account; see FR-000009 for how they are then used.
 - [ ] Checkout delivery options remain consistent with the store's capabilities and are unchanged in shape from today.
 - [ ] Whether a destination is outside the EU, and a carrier's local country code, are resolved without a network call.
-- [ ] `setup:upgrade` on a pre-migration database produces identical rows with no network access available.
+- [ ] `setup:upgrade` on a pre-migration database produces identical rows with no network access available. This is the one offline-upgrade criterion for the set; FR-000009 states the frozen-tier rule that makes it hold.
 - [ ] A cold checkout makes at most one capability call per distinct account and request shape; a warm one makes none.
 - [ ] Rendering the admin *New Shipment* form does not make one uncached call per carrier on every page load.
-- [ ] `setup:di:compile` succeeds — the two blocks that currently take an SDK consignment as a constructor argument no longer do.
 
 ## Priority
 
@@ -67,9 +66,9 @@ Resilience to capability changes is specified separately in [FR-000010](FR-00001
 
 ### Notes
 
-The SDK's own `Services\Capabilities\CapabilitiesService` cannot be used as shipped: it accepts no API key, calls the generated client with the wrong argument order, and its response mapper discards every per-option value including insurance bounds. Three issues are raised upstream; the module calls the generated endpoint directly in the meantime. Full detail and the retirement path are in TR-000007.
+The SDK's own `Services\Capabilities\CapabilitiesService` cannot be used as shipped: it accepts no API key, calls the generated client with the wrong argument order, and its response mapper discards every per-option value including insurance bounds. Three issues are reported upstream in Phase 4; the module calls the generated endpoint directly regardless. Full detail and the retirement path are in TR-000007.
 
-`myparcelnl/pdk` v4.7.1 has already solved this and is the reference implementation. It also carries one requirement documented nowhere else: the capabilities endpoint needs an explicit `version=2` `Accept` header, or the response may come back in the V1 shape.
+`myparcelnl/pdk` v4.7.1 has already solved this and is the reference implementation. It also carries one requirement documented nowhere else — the explicit `version=2` `Accept` header, specified in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
 ## Dependencies
 

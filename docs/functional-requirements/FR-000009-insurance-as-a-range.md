@@ -18,7 +18,7 @@ Required behaviour:
 3. **Existing saved values stay valid.** Every amount currently saved was chosen from a tier inside the contract range, so it remains a legal value. The new domain is a superset of the old one; no migration of stored values is required.
 4. **An out-of-range value clamps.** If a stored or submitted amount falls outside the account's range — because the contract changed — it is clamped to the nearest bound. It must never be silently reset to zero, which would ship a parcel uninsured without telling anyone.
 5. **Unresolvable bounds do not block insurance.** Per [FR-000010](FR-000010-graceful-degradation-on-capability-changes.md), if the bounds cannot be retrieved, the configured amount is used and the API decides. Insurance is not disabled just because we could not confirm its limits.
-6. **Historical data migrations keep their frozen tiers.** `src/Setup/UpgradeData.php` migrates old configuration using the tier lists that existed at the time. Those stay as module constants so old installations upgrade deterministically. This is the only place tiers survive.
+6. **Historical data migrations keep their frozen tiers.** `src/Setup/UpgradeData.php` migrates old configuration using the tier lists that existed at the time, frozen as module constants. This is the only place tiers survive; the offline constraint is in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
 **Divergence from the PDK, deliberately.** `myparcelnl/pdk` synthesises a tier ladder from the range (`InsuranceTierMath`: minimum, then €100/€250/€500 floors, then €500 steps, then maximum) in order to keep a select list. The Magento module does not port this. The steps are arbitrary, they are not what the API models, keeping a second copy in sync adds no functional value, and a derived ladder is the riskier migration — a stored amount could fail to match any generated step, whereas free input keeps every stored amount valid.
 
@@ -41,7 +41,6 @@ Required behaviour:
 - [ ] Two stores on different accounts can enforce different ranges for the same carrier and zone.
 - [ ] With bounds unresolvable, the configured amount is still sent and insurance is not silently disabled.
 - [ ] For each carrier and zone, the enforced range contains every amount the old tier list offered. If an old top tier exceeds the contract maximum, that is reported as a finding rather than quietly clamped in the migration.
-- [ ] `setup:upgrade` on a pre-migration database produces identical rows, using the frozen tier constants and no network call.
 - [ ] The insurance amount written to a shipment sits inside the shipment options object, matching the v11 request shape.
 
 ## Priority
@@ -59,17 +58,18 @@ Required behaviour:
 
 ### Notes
 
-The 16 virtual types in `etc/di.xml` and the source model behind them exist only to populate tier dropdowns and are removed with them. Their `carrierName` and `type` string arguments (`postnl`, `upsstandard`, …; `local`, `BE`, `EU`, `ROW`) currently encode the carrier-and-zone matrix, so whatever replaces them must preserve that matrix — a bound is meaningless without knowing which carrier and zone it applies to.
+The 17 virtual types in `etc/di.xml` and the source model behind them exist only to populate tier dropdowns and are removed with them. Only 16 are referenced by a setting, so one is already orphaned. Their `carrierName` and `type` string arguments (`postnl`, `upsstandard`, …; `local`, `BE`, `EU`, `ROW`) currently encode the carrier-and-zone matrix, so whatever replaces them must preserve that matrix — a bound is meaningless without knowing which carrier and zone it applies to.
 
 ## Dependencies
 
 ### Upstream (this FR depends on)
 
 - [FR-000008 — Carrier capabilities and contract definitions](FR-000008-carrier-capabilities-and-contract-definitions.md) — supplies the bounds.
+- [FR-000010 — Graceful degradation on capability changes](FR-000010-graceful-degradation-on-capability-changes.md) — its fail-open rule is what keeps insurance enabled when the bounds cannot be resolved.
 
 ### Downstream (depends on this FR)
 
-- [FR-000006 — Shipment export via SDK v11](FR-000006-shipment-export-via-sdk-v11.md) — writes the resulting amount into the shipment options.
+- [FR-000006 — Shipment export via SDK v11](FR-000006-shipment-export-via-sdk-v11.md) — consumes the amount and writes it into the shipment options it builds. Phase 5 therefore lands before Phase 6.
 
 ## Cross-References
 
@@ -79,4 +79,4 @@ The 16 virtual types in `etc/di.xml` and the source model behind them exist only
 
 Phase 5 of the [migration plan](../design/sdk-v11-migration.md).
 
-Worth flagging to the PDK team while implementing: PDK currently reads the deprecated nested `insured_amount` wrapper rather than the flat properties, and that wrapper is slated for removal.
+Worth flagging to the PDK team while implementing: PDK reads the deprecated wrapper rather than the flat properties. Detail in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).

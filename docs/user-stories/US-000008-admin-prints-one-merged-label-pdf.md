@@ -60,9 +60,8 @@ So that **I can send a single document to the printer and pack in grid order, in
 ## Technical Notes
 
 - SDK beta.15's `MyParcelCollection::setPdfOfLabels()` merged per-account PDFs internally using FPDI. beta.31 has no equivalent: `ShipmentLabelsService` holds a single PDF string per instance, so merging must happen in module code.
-- `setasign/fpdi` becomes an explicit module dependency (`^2.6`). beta.31 still declares it but no longer uses it, so relying on it transitively is fragile.
 - Merge specification in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).
-- `downloadPdfOfLabels()` sends headers and exits, so it must be the last call in the request; the merge completes before it.
+- The merge completes before `downloadPdfOfLabels()`, which sends headers and exits. That constraint and the `setasign/fpdi` dependency are both in TR-000006.
 - Scenario 6 matters because most merchants are single-account and any regression there affects everyone.
 
 ## Dependencies
