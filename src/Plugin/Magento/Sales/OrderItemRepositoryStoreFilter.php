@@ -13,9 +13,6 @@ use MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria;
 
 /**
  * Plugin restricting order-item queries to the stores visible to the token-authenticated caller.
- *
- * Scope comes from the item's own store_id. That column is nullable and NULL casts to 0, never a
- * valid store id, so unattributable rows stay invisible to token callers.
  */
 class OrderItemRepositoryStoreFilter
 {

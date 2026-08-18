@@ -18,12 +18,6 @@ Steps 1 + 2 are always required; step 3 depends on what the endpoint queries.
 
 This is the complete set of access an API access token can have today. Every token call must clear gates 1 + 2; gate 3 applies whenever the endpoint returns store-scoped data.
 
-> **Gate 3 is per *service*, not per resource.** Allow-listing one resource opens every route Magento
-> maps to it. Enumerate them all and confirm each has a filter — missing one leaks data through a route
-> nobody listed. `Magento_Sales::actions_view` is the cautionary example: filtered on
-> `OrderRepositoryInterface` alone, it silently left the order-item and order-management routes open
-> (security review 2026-07, Finding 1).
-
 All scopes below support default / website / store.
 
 | ACL resource | Routes it authorizes | Filter (gate 3) |
@@ -33,10 +27,8 @@ All scopes below support default / website / store.
 | | `GET /V1/orders/items`, `/V1/orders/items/:id` | `OrderItemRepositoryStoreFilter` |
 | | `GET /V1/orders/:id/comments`, `/V1/orders/:id/statuses` | `OrderManagementStoreFilter` |
 
-`Magento_Sales::actions_view` is granted **because the MyParcel backoffice needs those native
-`/V1/orders*` reads** (`TR-000004` §Rationale) — not as a side effect of anything internal. It is not
-required by `/V1/myparcel/delivery-options`: webapi ACL is per-route, and that route declares only
-`delivery_options_read`.
+`Magento_Sales::actions_view` is granted **because the MyParcel needs those native
+`/V1/orders*` reads** (`TR-000004` §Rationale).
 
 Sources of truth (must stay in sync; the regression test `Tests/Unit/Service/ScopedResourceRegistryTest.php` enforces alignment between the first two):
 
