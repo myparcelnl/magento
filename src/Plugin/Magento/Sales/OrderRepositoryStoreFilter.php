@@ -14,11 +14,8 @@ use MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria;
 /**
  * Plugin restricting order queries to the stores visible to the token-authenticated caller.
  *
- * beforeGetList() delegates to StoreScopeSearchCriteria (shared with the other repository scope
- * filters). afterGet() throws NoSuchEntityException when a fetched order falls outside the
- * permitted set — deliberately a 404 rather than a 403, so scope boundaries do not leak whether
- * the order exists. No-op when no token authenticated the request — admin / Bearer / guest callers
- * pass through untouched.
+ * afterGet() throws NoSuchEntityException (404) rather than a 403, so the boundary does not reveal
+ * that the order exists.
  */
 class OrderRepositoryStoreFilter
 {

@@ -12,13 +12,8 @@ use MyParcelNL\Magento\Model\Authorization\TokenScopeContext;
 /**
  * Plugin gating per-order OrderManagement reads on the token-authenticated caller's store scope.
  *
- * Covers GET /V1/orders/:id/comments and /V1/orders/:id/statuses, which Magento_Sales::actions_view
- * authorizes alongside the order routes.
- *
- * The scope decision is delegated to the store-filtered OrderRepositoryInterface rather than
- * re-derived: {@see OrderRepositoryStoreFilter::afterGet} already throws NoSuchEntityException for an
- * out-of-scope order, so the boundary stays in one place and both routes answer 404 identically.
- * Non-token callers short-circuit before that load, so admin and Bearer requests pay no extra query.
+ * The scope decision is delegated to the store-filtered {@see OrderRepositoryStoreFilter::afterGet},
+ * which already throws NoSuchEntityException out of scope, so the boundary stays in one place.
  */
 class OrderManagementStoreFilter
 {
@@ -46,10 +41,8 @@ class OrderManagementStoreFilter
     }
 
     /**
-     * Redundant *today*: getStatus() happens to resolve the order through OrderRepositoryInterface,
-     * so it already 404s out of scope — which is why the security review did not list /statuses as
-     * vulnerable. That is an internal implementation detail of Magento's OrderManagement, not a
-     * contract, so the guard stays explicit rather than relying on it surviving an upgrade.
+     * Redundant today: getStatus() resolves the order through OrderRepositoryInterface anyway. That
+     * is an implementation detail of Magento, not a contract, so the guard stays explicit.
      *
      * @param int|string $id
      *
@@ -69,7 +62,7 @@ class OrderManagementStoreFilter
      */
     private function assertOrderInScope($id): void
     {
-        // Non-token request (admin/Bearer/guest): skip the load entirely, no scope to enforce.
+        // Non-token request (admin/Bearer/guest) — no scope to enforce.
         if ($this->tokenScopeContext->permittedStoreIds() === null) {
             return;
         }

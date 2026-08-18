@@ -78,13 +78,9 @@ class TrackAndTrace extends Column
     }
 
     /**
-     * Builds the Track & Trace anchors for an order.
-     *
-     * The return value is intentionally raw HTML: it is rendered through the `ui/grid/cells/html`
-     * body template (a Knockout `html:` binding, i.e. innerHTML) in the sales order grid and echoed
-     * unescaped in order_view.phtml. Callers therefore must NOT escape it. Every interpolated value
-     * is escaped here instead — the postcode and barcode reach this method straight from the
-     * customer-supplied shipping address and the carrier API respectively.
+     * Returns raw HTML on purpose: the grid renders it through a Knockout `html:` binding and
+     * order_view.phtml echoes it unescaped. Callers must NOT escape it — every interpolated value
+     * is escaped here.
      *
      * @param \Magento\Sales\Model\Order $order
      *
@@ -125,10 +121,6 @@ class TrackAndTrace extends Column
                 default:
                     $barcode = (string) $trackNumber;
 
-                    // Percent-encode every path segment: TrackTraceUrl::create() concatenates them
-                    // verbatim, so an unencoded postcode could otherwise close the href attribute and
-                    // inject markup. Spaces are stripped from the postcode first to keep the URL
-                    // identical to what create() produced before (the portal expects no spaces).
                     $trackTrace = TrackTraceUrl::create(
                         rawurlencode($barcode),
                         rawurlencode(str_replace(' ', '', (string) $postCode)),

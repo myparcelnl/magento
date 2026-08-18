@@ -14,12 +14,8 @@ use MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria;
 /**
  * Plugin restricting order-item queries to the stores visible to the token-authenticated caller.
  *
- * Counterpart of {@see OrderRepositoryStoreFilter} for GET /V1/orders/items and /V1/orders/items/:id,
- * which Magento_Sales::actions_view authorizes alongside the order routes.
- *
- * Scope is decided on the item's own denormalised store_id, avoiding a parent-order load. That column
- * is nullable, and a NULL casts to 0 — never a valid store id — so unattributable rows are invisible
- * to token callers. Failing closed is deliberate.
+ * Scope comes from the item's own store_id. That column is nullable and NULL casts to 0, never a
+ * valid store id, so unattributable rows stay invisible to token callers.
  */
 class OrderItemRepositoryStoreFilter
 {

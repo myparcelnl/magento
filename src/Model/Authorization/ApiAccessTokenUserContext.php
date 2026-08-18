@@ -19,13 +19,9 @@ use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
  * exposes user type USER_TYPE_INTEGRATION resolved against the "MyParcel API" integration.
  * Bearer / OAuth / admin-session / guest requests pass through untouched.
  *
- * Implements ResetAfterRequestInterface, and must keep doing so: this is a DI singleton, so in
- * long-running runtimes (queue consumers, async webapi, application-server modes) the memoized
- * identity would otherwise survive into the next request. Because processRequest() short-circuits
- * on $processed, a stale identity means setOwner() is never re-run while {@see TokenScopeContext}
- * has already reset its owner to null — leaving the request authenticated as the integration user
- * with permittedStoreIds() === null, which disables every store-scope filter. The two classes must
- * therefore reset together.
+ * Must keep implementing ResetAfterRequestInterface, in lockstep with {@see TokenScopeContext}: a
+ * reused singleton would otherwise keep the memoized identity while the scope owner is already
+ * null, which disables every store-scope filter.
  */
 class ApiAccessTokenUserContext implements UserContextInterface, ResetAfterRequestInterface
 {

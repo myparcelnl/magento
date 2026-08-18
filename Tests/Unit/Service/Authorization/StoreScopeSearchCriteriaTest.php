@@ -12,9 +12,6 @@ use MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria;
 /**
  * Builds the subject over mocked builders, capturing the Filter it produces.
  *
- * This is the only place the produced Filter is inspected — the plugin tests assert delegation only,
- * so the capture rig lives here rather than in Tests/Helpers.
- *
  * @param int[]|null $permitted
  *
  * @return array{subject: StoreScopeSearchCriteria, captured: array, group: FilterGroup}

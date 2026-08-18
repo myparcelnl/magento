@@ -46,13 +46,10 @@
     </type>
 
     <!--
-        Gate 3 (per-store scope). One allow-listed ACL resource can authorize several services, so
-        every service reachable through it needs its own filter — Magento_Sales::actions_view alone
-        opens six routes across the three interfaces below. Each plugin constrains getList() to the
-        token's permitted stores and turns an out-of-scope single read into a 404.
-
-        Full route -> filter mapping: docs/design/adding-a-token-accessible-rest-endpoint.md
-        (Access matrix). Keep it in sync when adding a grant.
+        Gate 3 (per-store scope). One ACL resource can authorize several services —
+        Magento_Sales::actions_view alone opens six routes across the three interfaces below — so
+        each needs its own filter. Route -> filter mapping:
+        docs/design/adding-a-token-accessible-rest-endpoint.md
     -->
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
         <plugin name="myparcel-order-repository-store-filter"

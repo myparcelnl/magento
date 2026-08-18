@@ -9,8 +9,7 @@ use MyParcelNL\Magento\Plugin\Magento\Sales\OrderRepositoryStoreFilter;
 use MyParcelNL\Magento\Service\Authorization\StoreScopeSearchCriteria;
 
 /**
- * beforeGetList's behaviour is covered once in StoreScopeSearchCriteriaTest; here the collaborator is
- * mocked so the plugin is only asked to prove it delegates.
+ * beforeGetList behaviour is covered in StoreScopeSearchCriteriaTest; this only proves delegation.
  *
  * @param int[]|null $permitted
  */

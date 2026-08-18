@@ -233,8 +233,7 @@ it('re-derives the identity after _resetState so it cannot leak into the next re
     $plaintext = testToken('tokenreset');
     $coord     = ['scope' => ScopeInterface::SCOPE_STORES, 'scopeId' => 3];
 
-    // Same singleton serving two requests, as in a queue consumer / async webapi runtime:
-    // the first presents a store-scoped token, the second presents no Authorization header.
+    // Consecutive returns: request 1 presents a token, request 2 presents none.
     $request = Mockery::mock(RequestInterface::class);
     $request->shouldReceive('getHeader')
         ->with('Authorization')
@@ -262,9 +261,6 @@ it('re-derives the identity after _resetState so it cannot leak into the next re
 
         $ctx->_resetState();
 
-        // Without the reset the memoized identity would still be returned here, leaving the
-        // request authenticated as the integration while TokenScopeContext has no owner —
-        // which switches every store-scope filter off.
         expect($ctx->getUserId())->toBeNull();
         expect($ctx->getUserType())->toBeNull();
     } finally {
@@ -279,10 +275,7 @@ it('re-derives the identity after _resetState so it cannot leak into the next re
 });
 
 /**
- * Invariant guard: ApiAccessTokenUserContext and TokenScopeContext are both DI singletons holding
- * two halves of the same per-request authentication state. If only one of them resets, the pair
- * desynchronizes and the store-scope filters silently stop applying. Neither may lose the
- * interface without the other.
+ * If only one of the pair resets, the store-scope filters silently stop applying.
  */
 it('resets in lockstep with TokenScopeContext', function (string $class) {
     expect(class_implements($class))->toContain(ResetAfterRequestInterface::class);

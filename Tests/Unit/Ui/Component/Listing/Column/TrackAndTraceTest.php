@@ -6,11 +6,6 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Address;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
-/**
- * Builds an Order mock carrying a shipping postcode, country and stored track_number payload —
- * the only three values getTrackAndTraceLinksAsHtml() reads. Keeps ObjectManager out of the test,
- * since that is confined to prepareDataSource().
- */
 function makeOrderWithTrackData(string $postcode, string $trackData, string $countryId = 'NL'): Order
 {
     $address = Mockery::mock(Address::class);
@@ -39,7 +34,6 @@ it('does not let a postcode break out of the href attribute', function () {
         makeOrderWithTrackData('1411"><svg/onload=alert(31337)>', '["3SHOHR420090229"]', 'DE')
     );
 
-    // The payload must not survive as markup: no injected element, no attribute breakout.
     expect($html)
         ->not->toContain('<svg')
         ->not->toContain('onload=')
@@ -55,7 +49,7 @@ it('does not let a postcode inject a javascript: scheme into the href', function
         ->not->toContain('javascript:')
         ->toContain('1411%22href%3D%22javascript%3Aalert%281%29');
 
-    // The payload must not have produced a second href attribute.
+    // Exactly one href — the payload must not have added a second.
     expect(substr_count($html, 'href="'))->toBe(1);
 });
 
@@ -64,7 +58,6 @@ it('escapes a track number payload in both the href and the link text', function
         makeOrderWithTrackData('1411CM', '["<img src=x onerror=alert(1)>"]')
     );
 
-    // The payload stays visible as inert text, but never as a tag.
     expect($html)
         ->not->toContain('<img')
         ->toContain('&lt;img src=x onerror=alert(1)&gt;');

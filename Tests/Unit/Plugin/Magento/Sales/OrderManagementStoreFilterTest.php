@@ -9,10 +9,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use MyParcelNL\Magento\Plugin\Magento\Sales\OrderManagementStoreFilter;
 
 /**
- * The plugin delegates the scope decision to the store-filtered OrderRepository, so these tests
- * assert on how the repository is used. Both intercepted methods run the same private guard, so each
- * case is driven over both method names rather than duplicated.
- *
  * @param int[]|null $permitted
  */
 function makeOrderManagementFilter(?array $permitted): array
@@ -34,7 +30,7 @@ it('does not load the order at all when no token authenticated the request', fun
 
 it('resolves the order through the store-filtered repository, casting the id to int', function (string $method) {
     $bag = makeOrderManagementFilter([3]);
-    // ->with(117) is itself the assertion: the string '117' would not match the int expectation.
+    // ->with(117) is the assertion: the string '117' would not match it.
     $bag['repository']->shouldReceive('get')->once()->with(117)->andReturn(Mockery::mock(OrderInterface::class));
 
     expect($bag['plugin']->{$method}(Mockery::mock(OrderManagementInterface::class), '117'))->toBeNull();
@@ -50,8 +46,7 @@ it('propagates the repository 404 for an out-of-scope order', function (string $
 })->with(['beforeGetCommentsList', 'beforeGetStatus'])->throws(NoSuchEntityException::class);
 
 it('still consults the repository when the token owns no stores', function () {
-    // permittedStoreIds() === [] is not null, so the guard must run: the repository's own filter
-    // forces store_id IN (-1), which never matches.
+    // [] is not null, so the guard must still run.
     $bag = makeOrderManagementFilter([]);
     $bag['repository']->shouldReceive('get')
         ->once()
