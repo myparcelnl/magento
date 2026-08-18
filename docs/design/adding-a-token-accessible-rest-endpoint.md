@@ -16,7 +16,7 @@ Steps 1 + 2 are always required; step 3 depends on what the endpoint queries.
 
 ## Access matrix (current state)
 
-This is the complete set of access an API access token can have today. Every token call must clear gates 1 + 2; gate 3 applies whenever the endpoint returns store-scoped data.
+This is the complete set of access an API access token can have today.
 
 All scopes below support default / website / store.
 
@@ -27,13 +27,13 @@ All scopes below support default / website / store.
 | | `GET /V1/orders/items`, `/V1/orders/items/:id` | `OrderItemRepositoryStoreFilter` |
 | | `GET /V1/orders/:id/comments`, `/V1/orders/:id/statuses` | `OrderManagementStoreFilter` |
 
-`Magento_Sales::actions_view` is granted **because the MyParcel needs those native
+`Magento_Sales::actions_view` is granted **because the MyParcel backoffice needs those native
 `/V1/orders*` reads** (`TR-000004` §Rationale).
 
 Sources of truth (must stay in sync; the regression test `Tests/Unit/Service/ScopedResourceRegistryTest.php` enforces alignment between the first two):
 
-- `etc/integration.xml` — gate 1 (integration grant).
-- `etc/webapi_rest/di.xml` `ScopedResourceRegistry` — gate 2 (deny-by-default allow-list).
+- `etc/integration.xml` — gate 1.
+- `etc/webapi_rest/di.xml` `ScopedResourceRegistry` — gate 2.
 - `etc/webapi.xml` — which route requires which resource.
 - `etc/acl.xml` — where the resource sits in the admin tree.
 
@@ -79,7 +79,7 @@ Add an entry to the `$resources` argument of `ScopedResourceRegistry`:
 
 **This is the line that actually opens the endpoint to tokens.** Skipping it makes `MyParcelTokenAclGate` deny the request even with the integration grant in place.
 
-Also update the **Access matrix** at the top of this document with the new resource → route → scope → filter row.
+Also update the **Access matrix** at the top of this document with the new resource → route → filter row.
 
 ### 7. Scope filtering — only if needed
 
@@ -136,10 +136,10 @@ Verify:
 - `src/Model/Authorization/TokenScopeContext.php` — scope state, `permittedStoreIds()`, `assertStoreInScope()`.
 - `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php` — allow-list gate.
 - `src/Service/ScopedResourceRegistry.php` — registry storage.
-- `src/Service/Authorization/StoreScopeSearchCriteria.php` — the shared `store_id IN (...)` injector; reuse it instead of rebuilding the filter.
-- `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` — reference pattern for store filtering (`getList` + `get`).
-- `src/Plugin/Magento/Sales/OrderItemRepositoryStoreFilter.php` — same pattern where scope comes from the record's own `store_id`.
-- `src/Plugin/Magento/Sales/OrderManagementStoreFilter.php` — pattern for gating a service that takes only an order id.
+- `src/Service/Authorization/StoreScopeSearchCriteria.php` — the shared `store_id IN (...)` injector.
+- `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` — store filtering over `getList` + `get`.
+- `src/Plugin/Magento/Sales/OrderItemRepositoryStoreFilter.php` — scope from the record's own `store_id`.
+- `src/Plugin/Magento/Sales/OrderManagementStoreFilter.php` — gating a service that takes only an order id.
 - `src/Model/Rest/OrderDeliveryOptions.php` + `src/Model/Rest/AbstractEndpoint.php` — versioned endpoint reference.
 - `etc/webapi.xml`, `etc/acl.xml`, `etc/integration.xml`, `etc/webapi_rest/di.xml` — the four config files that always change.
 

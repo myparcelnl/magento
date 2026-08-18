@@ -133,7 +133,7 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 
 - Implementation lives in `src/Model/Authorization/ApiAccessTokenUserContext.php` (custom UserContext at `sortOrder=5` in `CompositeUserContext`), `src/Model/Authorization/TokenScopeContext.php` (request-scoped scope state), `src/Service/ScopedResourceRegistry.php` (allow-list), `src/Plugin/Magento/Sales/OrderRepositoryStoreFilter.php` (per-store filter), `src/Plugin/Magento/Webapi/Rest/RequestValidator/MyParcelTokenAclGate.php` (deny-by-default gate), `etc/webapi_rest/di.xml` (registration), and `etc/integration.xml` (auto-provisioned integration for ACL grants).
 - Per TR-000004 §Specifications: storage compares SHA-256 hashes via `hash_equals` (constant-time); the UserContext SELECTs against `core_config_data` directly with `scope IN ('default','websites','stores')` (NOT via `ScopeConfigInterface`, which would cascade); ACL enforcement combines Magento-native install-wide grants with the module's `ScopedResourceRegistry` allow-list and the per-resource filter plugins; per-store membership is row-coordinate based, not hash-value based, so duplicate hashes across rows cannot conflate ownership.
-- Critical files in `vendor/magento/**` that this UserContext and its plugins interact with — see PHPDoc on each class (added when the file is created).
+- Critical files in `vendor/magento/**` that this UserContext and its plugins interact with are cited inline in TR-000004 §Rationale and §Compatibility Criteria.
 
 ## Dependencies
 

@@ -70,7 +70,7 @@ So that **I can connect MyParcel to my store without using the CLI or activating
 
 ## Technical Notes
 
-- Implementation is the *Generate* admin controller (`Controller/Adminhtml/ApiAccessToken/Generate.php`), the `ApiAccessTokenManager` service (`src/Service/ApiAccessTokenManager.php`), the `frontend_model` block (`src/Block/System/Config/Form/ApiAccessTokenField.php`), and the `etc/adminhtml/system.xml` group `api_access` under `myparcelnl_magento_dynamic_settings` with `showInDefault=1, showInWebsite=1, showInStore=1`.
+- Implementation is the *Generate* admin controller (`Controller/Adminhtml/ApiAccessToken/Generate.php`), the `TokenService` (`src/Service/ApiAccessToken/TokenService.php`), the `frontend_model` block (`src/Block/System/Config/Form/ApiAccessTokenButton.php`), and the `etc/adminhtml/system.xml` group `api_access` under `myparcelnl_magento_dynamic_settings` with `showInDefault=1, showInWebsite=1, showInStore=1`.
 - The Generate controller resolves the current admin scope from the request and accepts only `scope=default` (with `scopeId=0`), `scope=websites` (with `scopeId>0` referring to a real website), or `scope=stores` (with `scopeId>0` referring to a real, non-admin store). Anything else returns `400`. A pre-INSERT hash-uniqueness check returns `409 Conflict` if the freshly hashed token collides with any other scope coordinate's existing row.
 - See TR-000004 §Specifications for token entropy, hashing primitive, and per-scope storage/partition criteria.
 - The `system.xml` group `<comment>` carries the admin-visible caveats; copy is owned by TR-000004 §Implementation notes (verbatim) and varies per scope (default / website / store-view).
@@ -88,5 +88,5 @@ So that **I can connect MyParcel to my store without using the CLI or activating
 - [ ] Reload masks the field; no server-side read of plaintext exists.
 - [ ] POST to the Generate controller with any scope value outside `default`/`websites`/`stores` returns `400` and does not write any storage row.
 - [ ] POST to the Generate controller whose freshly hashed token collides with an existing row at another scope coordinate returns `409 Conflict` with a clear admin-visible message; no row is written.
-- [ ] Unit tests on `ApiAccessTokenManager::generate()` cover entropy, hash output, scope-aware persistence at all three tiers, hash-uniqueness rejection (409), and idempotency.
+- [ ] Unit tests on `TokenService::generateForScope()` cover entropy, hash output, scope-aware persistence at all three tiers, hash-uniqueness rejection (409), and idempotency.
 - [ ] Documentation updated (this US, US-000005, US-000006, FR-000005, TR-000004 cross-references).
