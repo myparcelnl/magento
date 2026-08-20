@@ -54,6 +54,10 @@ class ConfigChange implements ObserverInterface
         $this->accountSettingsMaintenance = $accountSettingsMaintenance;
     }
 
+    /**
+     * Saves every posted dynamic setting, then brings the stored account settings in step: import
+     * for an api key that has none, and reconcile away rows for keys configured nowhere.
+     */
     public function execute(EventObserver $observer): self
     {
         $request    = $this->request;

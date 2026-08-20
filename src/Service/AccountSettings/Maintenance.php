@@ -50,6 +50,10 @@ class Maintenance
         $this->logger            = $logger;
     }
 
+    /**
+     * Deletes stored account settings whose api key is not configured. Callers may run it after any
+     * config save: it is idempotent, and an empty live key set makes it a no-op instead of a purge.
+     */
     public function reconcile(): void
     {
         $liveKeys = $this->liveApiKeys();

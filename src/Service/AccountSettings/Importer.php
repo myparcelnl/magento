@@ -53,6 +53,10 @@ class Importer
     }
 
     /**
+     * Fetches the account from the MyParcel API and stores it under the api key's fingerprint,
+     * replacing whatever was there. Costs one API call every time, so check hasSettingsFor() first
+     * when the goal is only to heal a missing row.
+     *
      * @throws \MyParcelNL\Sdk\Exception\ApiException
      * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
      * @throws \MyParcelNL\Sdk\Exception\MissingFieldException

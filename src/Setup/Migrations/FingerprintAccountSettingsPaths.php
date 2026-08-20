@@ -41,6 +41,10 @@ class FingerprintAccountSettingsPaths
         $this->logger            = $logger;
     }
 
+    /**
+     * Rewrites every plaintext-suffixed row it finds and deletes the row it replaced. Safe to call
+     * again — a fingerprinted suffix is skipped.
+     */
     public function run(): void
     {
         $rows        = $this->accountSettingsRows();
