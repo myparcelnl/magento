@@ -12,6 +12,9 @@ use MyParcelNL\Magento\Tests\Helpers\MyParcelTokenLifecycleHarness;
 use Psr\Log\LoggerInterface;
 
 /**
+ * Every row here is already fingerprinted: Setup\Migrations\FingerprintAccountSettingsPaths runs
+ * first and guarantees no plaintext-suffixed row survives, so reconcile() only ever deletes.
+ *
  * Coordinate keys are 'default', 'websites:<id>' and 'stores:<id>', so a test can say "configured only
  * at store 2" or "exists only in env.php".
  *
@@ -82,85 +85,6 @@ function accountSettingsMaintenance(
     );
 }
 
-function settingsPathFor(string $apiKey): string
-{
-    return Config::XML_PATH_ACCOUNT_SETTINGS . (new Fingerprint())->of($apiKey);
-}
-
-function rowAt(MyParcelTokenLifecycleHarness $harness, string $path): ?array
-{
-    foreach ($harness->rows as $row) {
-        if ($row['path'] === $path) {
-            return $row;
-        }
-    }
-
-    return null;
-}
-
-it('moves a legacy plaintext-suffixed row to its hashed path, preserving value and scope', function () {
-    $harness = new MyParcelTokenLifecycleHarness();
-    $apiKey  = 'live-key-alpha';
-
-    $harness->save(Config::XML_PATH_API_KEY, $apiKey, 'default', 0);
-    $harness->save(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey, '{"shop":1}', 'default', 0);
-
-    accountSettingsMaintenance($harness, ['default' => $apiKey])->reconcile();
-
-    $paths = array_column($harness->rows, 'path');
-
-    expect($paths)->toContain(settingsPathFor($apiKey))
-        ->and($paths)->not->toContain(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey);
-
-    $migrated = rowAt($harness, settingsPathFor($apiKey));
-
-    expect($migrated['value'])->toBe('{"shop":1}')
-        ->and($migrated['scope'])->toBe('default')
-        ->and($migrated['scope_id'])->toBe(0);
-});
-
-it('migrates a legacy row configured at a non-default scope to the default-scope fingerprinted path', function () {
-    $harness = new MyParcelTokenLifecycleHarness();
-    $apiKey  = 'website-scoped-key';
-
-    $harness->save(Config::XML_PATH_API_KEY, $apiKey, ScopeInterface::SCOPE_WEBSITES, 3);
-    $harness->save(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey, '{"shop":7}', ScopeInterface::SCOPE_WEBSITES, 3);
-
-    accountSettingsMaintenance(
-        $harness,
-        [ScopeInterface::SCOPE_WEBSITES . ':3' => $apiKey],
-        [[ScopeInterface::SCOPE_STORES, 5], [ScopeInterface::SCOPE_WEBSITES, 3]]
-    )->reconcile();
-
-    $migrated = rowAt($harness, settingsPathFor($apiKey));
-
-    expect($migrated)->not->toBeNull()
-        ->and($migrated['scope'])->toBe('default')
-        ->and($migrated['scope_id'])->toBe(0)
-        ->and(rowAt($harness, Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey))->toBeNull();
-});
-
-it('preserves a fresh fingerprinted row instead of overwriting it with a stale legacy value', function () {
-    $harness = new MyParcelTokenLifecycleHarness();
-    $apiKey  = 'reimport-key';
-
-    $harness->save(Config::XML_PATH_API_KEY, $apiKey, 'default', 0);
-    // Legacy row still carries the stale value from before the fingerprint migration ran.
-    $harness->save(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey, '{"shop":"stale"}', 'default', 0);
-    // Importer::importFor() already wrote fresh data to the fingerprinted path this request.
-    $harness->save(settingsPathFor($apiKey), '{"shop":"fresh"}', 'default', 0);
-
-    accountSettingsMaintenance($harness, ['default' => $apiKey])->reconcile();
-
-    $paths = array_column($harness->rows, 'path');
-
-    expect($paths)->not->toContain(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey);
-
-    $row = rowAt($harness, settingsPathFor($apiKey));
-
-    expect($row['value'])->toBe('{"shop":"fresh"}');
-});
-
 it('keeps a row whose api key is configured only at store-view scope', function () {
     $harness = new MyParcelTokenLifecycleHarness();
     $apiKey  = 'store-only-key';
@@ -210,7 +134,7 @@ it('deletes nothing when no api key is configured anywhere', function () {
     $harness = new MyParcelTokenLifecycleHarness();
 
     $harness->save(settingsPathFor('some-key'), '{"shop":1}', 'default', 0);
-    $harness->save(Config::XML_PATH_ACCOUNT_SETTINGS . 'legacy-plaintext', '{"shop":2}', 'default', 0);
+    $harness->save(settingsPathFor('another-key'), '{"shop":2}', 'default', 0);
 
     accountSettingsMaintenance($harness, [])->reconcile();
 
@@ -223,7 +147,7 @@ it('changes nothing on a second pass', function () {
     $dead    = 'removed-key';
 
     $harness->save(Config::XML_PATH_API_KEY, $live, 'default', 0);
-    $harness->save(Config::XML_PATH_ACCOUNT_SETTINGS . $live, '{"shop":1}', 'default', 0);
+    $harness->save(settingsPathFor($live), '{"shop":1}', 'default', 0);
     $harness->save(settingsPathFor($dead), '{"shop":9}', 'default', 0);
 
     accountSettingsMaintenance($harness, ['default' => $live])->reconcile();

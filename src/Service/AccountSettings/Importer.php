@@ -85,6 +85,7 @@ class Importer
     {
         $accountService = (new AccountWebService())->setApiKey($apiKey);
 
+        // each api key points to a specific shop in an account, so we can just take the first one.
         $account = $accountService->getAccount();
         $shop    = $account->getShops()
                            ->first()

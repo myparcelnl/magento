@@ -62,6 +62,22 @@ final class MyParcelTokenLifecycleHarness
         return null;
     }
 
+    /**
+     * First row at this path, whatever scope it sits at. Account settings rows are unique by path,
+     * so a caller asserting on one does not have to name the scope it expects.
+     *
+     * @return array{path: string, value: string, scope: string, scope_id: int}|null
+     */
+    public function rowAt(string $path): ?array
+    {
+        foreach ($this->rows as $row) {
+            if ($row['path'] === $path) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
     public function writer(): WriterInterface
     {
         $store  = $this;

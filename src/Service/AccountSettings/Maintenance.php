@@ -14,14 +14,11 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Keeps stored account settings rows in step with the configured api keys: rows still carrying a
- * plaintext api key are rewritten under its fingerprint, rows for keys configured nowhere are deleted.
+ * Deletes stored account settings rows whose api key is configured nowhere any more.
  *
  * Invariants:
- *  - Idempotent, so it can run from ordinary admin flows instead of a version-gated upgrade script.
+ *  - Idempotent, so calling it after every config save costs nothing when there is nothing to do.
  *  - Never deletes when the live key set is empty — that means a fresh install or a failed read.
- *  - Nothing logged may contain an api key.
- *  - migrate() always targets default scope and never overwrites a row already there — see its docblock.
  */
 class Maintenance
 {
@@ -66,40 +63,25 @@ class Maintenance
             $liveFingerprints[$this->fingerprint->of($apiKey)] = true;
         }
 
-        $rows                      = $this->accountSettingsRows();
-        $existingDefaultScopePaths = $this->existingDefaultScopePaths($rows);
-        $changed                   = false;
+        $changed = false;
 
-        foreach ($rows as $row) {
-            $path    = (string) $row->getData('path');
-            $suffix  = substr($path, strlen(Config::XML_PATH_ACCOUNT_SETTINGS));
-            $scope   = (string) $row->getData('scope');
-            $scopeId = (int) $row->getData('scope_id');
+        foreach ($this->accountSettingsRows() as $row) {
+            $path   = (string) $row->getData('path');
+            $suffix = substr($path, strlen(Config::XML_PATH_ACCOUNT_SETTINGS));
 
             if ('' === $suffix || isset($liveFingerprints[$suffix])) {
                 continue;
             }
 
-            if (in_array($suffix, $liveKeys, true)) {
-                $targetPath = Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($suffix);
-
-                $this->migrate(
-                    $path,
-                    $suffix,
-                    (string) $row->getData('value'),
-                    $scope,
-                    $scopeId,
-                    isset($existingDefaultScopePaths[$targetPath])
-                );
-                $changed = true;
-                continue;
-            }
-
-            $this->configWriter->delete($path, $scope, $scopeId);
+            $this->configWriter->delete(
+                $path,
+                (string) $row->getData('scope'),
+                (int) $row->getData('scope_id')
+            );
             $this->logger->notice(
                 sprintf(
                     'Deleted orphaned MyParcel account settings %s: its api key is no longer configured.',
-                    $this->logLabel($suffix)
+                    substr($suffix, 0, Fingerprint::LABEL_LENGTH)
                 )
             );
             $changed = true;
@@ -108,71 +90,6 @@ class Maintenance
         if ($changed) {
             $this->cacheTypeList->cleanType(self::CONFIG_CACHE_TYPE);
         }
-    }
-
-    /**
-     * Always targets default scope, never the legacy row's own (see Config::XML_PATH_ACCOUNT_SETTINGS).
-     * Skips the write if a default-scope row already exists there — it's fresher than the legacy value
-     * (e.g. just written by importFor()) — and only deletes the legacy row instead.
-     */
-    private function migrate(
-        string $legacyPath, string $apiKey, string $value, string $scope, int $scopeId, bool $targetExists
-    ): void {
-        $fingerprint = $this->fingerprint->of($apiKey);
-
-        if ($targetExists) {
-            $this->configWriter->delete($legacyPath, $scope, $scopeId);
-            $this->logger->notice(
-                sprintf(
-                    'Deleted legacy MyParcel account settings %s: a fingerprinted row already existed.',
-                    substr($fingerprint, 0, Fingerprint::LABEL_LENGTH)
-                )
-            );
-            return;
-        }
-
-        $this->configWriter->save(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint, $value);
-        $this->configWriter->delete($legacyPath, $scope, $scopeId);
-        $this->logger->notice(
-            sprintf(
-                'Moved MyParcel account settings to fingerprinted config path %s.',
-                substr($fingerprint, 0, Fingerprint::LABEL_LENGTH)
-            )
-        );
-    }
-
-    /**
-     * Account settings only live at default scope, so this is the full set of paths migrate() could
-     * already have a target row at.
-     *
-     * @param  \Magento\Framework\DataObject[] $rows
-     * @return array<string, true>
-     */
-    private function existingDefaultScopePaths(array $rows): array
-    {
-        $paths = [];
-
-        foreach ($rows as $row) {
-            $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $row->getData('scope')
-                && 0 === (int) $row->getData('scope_id');
-
-            if ($isDefaultScope) {
-                $paths[(string) $row->getData('path')] = true;
-            }
-        }
-
-        return $paths;
-    }
-
-    /**
-     * A fingerprint is safe to log as-is and correlates with the row; a plaintext api key gets
-     * fingerprinted first so the credential never reaches the log.
-     */
-    private function logLabel(string $suffix): string
-    {
-        $safe = $this->fingerprint->isFingerprint($suffix) ? $suffix : $this->fingerprint->of($suffix);
-
-        return substr($safe, 0, Fingerprint::LABEL_LENGTH);
     }
 
     /**

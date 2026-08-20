@@ -120,7 +120,7 @@ class ConfigChange implements ObserverInterface
         try {
             $this->accountSettingsImporter->importFor($apiKey);
         } catch (Throwable $e) {
-            Logger::warning('Could not import MyParcel account settings after an api key change: ' . $e->getMessage());
+            Logger::warning('Could not import MyParcel account settings after an api key change.', ['exception' => $e]);
             $this->messageManager->addWarningMessage(
                 __(
                     'Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.',

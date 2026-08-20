@@ -37,13 +37,6 @@ class AccountSettings extends BaseModel
         $settings = $scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint->of($apiKey));
 
         if (! $settings) {
-            // Rows predating the fingerprinted path carry the plaintext api key. reconcile() rewrites
-            // them, but only on an api key change or import, so an install that has done neither since
-            // upgrading would read empty here.
-            $settings = $scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $apiKey);
-        }
-
-        if (! $settings) {
             $redacted = substr($apiKey, 0, 4) . str_repeat('*', max(0, strlen($apiKey) - 8)) . substr($apiKey, -4);
             Logger::alert((sprintf('No account settings found for api key: %s. Shops -> Configurations -> MyParcel -> General -> Import MyParcel Backoffice settings.', $redacted)));
             return;
