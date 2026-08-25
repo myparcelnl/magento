@@ -28,6 +28,15 @@ class Config extends AbstractHelper
     public const PLATFORM                           = 'myparcel';
     public const XML_PATH_MAGENTO_CARRIER           = 'carriers/' . Carrier::CODE . '/';
     public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
+    public const XML_PATH_API_KEY                   = self::XML_PATH_GENERAL . 'api/key';
+    /**
+     * Prefix; append the fingerprint of the api key the settings belong to.
+     *
+     * Keyed by api key rather than scope: the settings describe a MyParcel account, several stores may
+     * share one key, and callers holding only a key must be able to resolve them. Always default scope
+     * (scope_id 0) — never pass a store/website scope here.
+     */
+    public const XML_PATH_ACCOUNT_SETTINGS          = self::XML_PATH_GENERAL . 'account_settings_';
     public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
     public const XML_PATH_DHLFORYOU_SETTINGS        = 'myparcelnl_magento_dhlforyou_settings/';
     public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
@@ -58,6 +67,7 @@ class Config extends AbstractHelper
         ];
 
     private ModuleListInterface   $moduleList;
+    private StoreManagerInterface $storeManager;
     private ?int                  $storeId;
 
     /**
@@ -74,7 +84,8 @@ class Config extends AbstractHelper
     )
     {
         parent::__construct($context);
-        $this->moduleList = $moduleList;
+        $this->moduleList   = $moduleList;
+        $this->storeManager = $storeManager;
 
         try {
             // contrary to documentation store->getId() does not always return an int, so please cast it here
@@ -118,6 +129,32 @@ class Config extends AbstractHelper
     }
 
     /**
+     * Every (scope, scopeId) a config value could be stored at, for reading a path across the whole
+     * installation.
+     *
+     * Excludes the admin store, and skips a website that has no stores. Throws whatever the store
+     * manager throws — callers decide whether an incomplete list beats none.
+     *
+     * @return array<int, array{0: string, 1: int}>
+     */
+    public function getScopeCoordinates(): array
+    {
+        $coordinates = [[ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0]];
+        $websiteIds  = [];
+
+        foreach ($this->storeManager->getStores(false) as $store) {
+            $coordinates[]                            = [ScopeInterface::SCOPE_STORES, (int) $store->getId()];
+            $websiteIds[(int) $store->getWebsiteId()] = true;
+        }
+
+        foreach (array_keys($websiteIds) as $websiteId) {
+            $coordinates[] = [ScopeInterface::SCOPE_WEBSITES, $websiteId];
+        }
+
+        return $coordinates;
+    }
+
+    /**
      * @param string $path
      * @param string $key
      * @return bool
@@ -135,8 +172,8 @@ class Config extends AbstractHelper
     public function getTimeConfig(string $carrier, string $key): string
     {
         $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key"));
-        $timeComponents = explode(':', $timeAsString ?? '');
-        if (count($timeComponents) >= 3) {
+        $timeComponents = explode(':', $timeAsString);
+        if ($timeComponents && count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;
             $timeAsString = $hours . ':' . $minutes;
         }

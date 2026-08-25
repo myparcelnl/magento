@@ -441,3 +441,4 @@ A token is currently configured at this scope.,Un token est actuellement configu
 Covers every store not tokened separately at website or store-view scope.,Couvre chaque store qui n'a pas de token séparé au niveau du site web ou de la vue de store.
 24 hour priority,Priorité 24 heures
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Si activé, la case Priorité 24 heures s'affiche lors du paiement lorsque ce produit est dans le panier, même si le paramètre général de priorité est désactivé."
+"Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Votre API key a été enregistrée, mais les paramètres du compte MyParcel n’ont pas pu être importés : %1. Vérifiez l’API key, puis utilisez le bouton Importer les paramètres MyParcel Backoffice."

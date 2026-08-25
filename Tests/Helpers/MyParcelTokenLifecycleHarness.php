@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Tests\Helpers;
 use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigDataCollection;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\DataObject;
@@ -61,12 +62,33 @@ final class MyParcelTokenLifecycleHarness
         return null;
     }
 
+    /**
+     * First row at this path, whatever scope it sits at. Account settings rows are unique by path,
+     * so a caller asserting on one does not have to name the scope it expects.
+     *
+     * @return array{path: string, value: string, scope: string, scope_id: int}|null
+     */
+    public function rowAt(string $path): ?array
+    {
+        foreach ($this->rows as $row) {
+            if ($row['path'] === $path) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
     public function writer(): WriterInterface
     {
         $store  = $this;
         $writer = Mockery::mock(WriterInterface::class);
         $writer->shouldReceive('save')->andReturnUsing(
-            function (string $path, string $value, string $scope, int $scopeId) use ($store): void {
+            function (
+                string $path,
+                string $value,
+                string $scope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
+                int $scopeId = 0
+            ) use ($store): void {
                 $store->save($path, $value, $scope, $scopeId);
             }
         );
@@ -100,6 +122,8 @@ final class MyParcelTokenLifecycleHarness
                         $value = $row[$field] ?? null;
                         if (is_array($cond) && array_key_exists('in', $cond)) {
                             if (! in_array($value, $cond['in'], true)) { $ok = false; break; }
+                        } elseif (is_array($cond) && array_key_exists('like', $cond)) {
+                            if (! self::matchesSqlLike((string) $value, (string) $cond['like'])) { $ok = false; break; }
                         } elseif ($value !== $cond) {
                             $ok = false; break;
                         }
@@ -115,6 +139,17 @@ final class MyParcelTokenLifecycleHarness
         });
 
         return $factory;
+    }
+
+    /**
+     * `_` matters as much as `%`: a prefix like `account_settings_` is full of underscores, so MySQL
+     * matches more loosely than the pattern looks, and a double honouring only `%` would hide that.
+     */
+    private static function matchesSqlLike(string $value, string $pattern): bool
+    {
+        $regex = str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/'));
+
+        return 1 === preg_match('/^' . $regex . '$/', $value);
     }
 
     public function cacheTypeList(): TypeListInterface

@@ -1,0 +1,198 @@
+<?php
+
+declare(strict_types=1);
+
+use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Service\AccountSettings\Maintenance;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Hash\Fingerprint;
+use MyParcelNL\Magento\Tests\Helpers\MyParcelTokenLifecycleHarness;
+use Psr\Log\LoggerInterface;
+
+/**
+ * Every row here is already fingerprinted: Setup\Migrations\FingerprintAccountSettingsPaths runs
+ * first and guarantees no plaintext-suffixed row survives, so reconcile() only ever deletes.
+ *
+ * Coordinate keys are 'default', 'websites:<id>' and 'stores:<id>', so a test can say "configured only
+ * at store 2" or "exists only in env.php".
+ *
+ * @param array<string, string> $apiKeyByCoordinate
+ */
+function accountSettingsScopeConfig(array $apiKeyByCoordinate): ScopeConfigInterface
+{
+    $config = Mockery::mock(ScopeConfigInterface::class);
+    $config->shouldReceive('getValue')->andReturnUsing(
+        function (string $path, string $scope = 'default', $scopeId = null) use ($apiKeyByCoordinate) {
+            if (Config::XML_PATH_API_KEY !== $path) {
+                return null;
+            }
+
+            $coordinate = 'default' === $scope ? 'default' : $scope . ':' . (int) $scopeId;
+
+            return $apiKeyByCoordinate[$coordinate] ?? null;
+        }
+    );
+
+    return $config;
+}
+
+function countingCacheTypeList(?int &$cleanCalls): TypeListInterface
+{
+    $cleanCalls ??= 0;
+
+    $cache = Mockery::mock(TypeListInterface::class);
+    $cache->shouldReceive('cleanType')->andReturnUsing(function () use (&$cleanCalls): void {
+        $cleanCalls++;
+    });
+
+    return $cache;
+}
+
+/**
+ * Default is always present; a test names any further coordinates it needs.
+ *
+ * @param array<int, array{0: string, 1: int}> $coordinates
+ */
+function accountSettingsConfig(array $coordinates): Config
+{
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getScopeCoordinates')
+        ->andReturn(array_merge([['default', 0]], $coordinates));
+
+    return $config;
+}
+
+/**
+ * @param array<string, string>                $apiKeyByCoordinate
+ * @param array<int, array{0: string, 1: int}> $coordinates
+ */
+function accountSettingsMaintenance(
+    MyParcelTokenLifecycleHarness $harness,
+    array                         $apiKeyByCoordinate,
+    array                         $coordinates = [],
+    ?TypeListInterface            $cacheTypeList = null
+): Maintenance {
+    return new Maintenance(
+        $harness->collectionFactory(),
+        $harness->writer(),
+        $cacheTypeList ?? $harness->cacheTypeList(),
+        accountSettingsScopeConfig($apiKeyByCoordinate),
+        accountSettingsConfig($coordinates),
+        new Fingerprint(),
+        Mockery::spy(LoggerInterface::class)
+    );
+}
+
+it('keeps a row whose api key is configured only at store-view scope', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $apiKey  = 'store-only-key';
+
+    $harness->save(Config::XML_PATH_API_KEY, $apiKey, ScopeInterface::SCOPE_STORES, 2);
+    $harness->save(settingsPathFor($apiKey), '{"shop":2}', 'default', 0);
+
+    accountSettingsMaintenance(
+        $harness,
+        [ScopeInterface::SCOPE_STORES . ':2' => $apiKey],
+        [[ScopeInterface::SCOPE_STORES, 2], [ScopeInterface::SCOPE_WEBSITES, 1]]
+    )->reconcile();
+
+    expect(array_column($harness->rows, 'path'))->toContain(settingsPathFor($apiKey));
+});
+
+it('keeps a row whose api key exists only in env.php and has no config row', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $apiKey  = 'env-locked-key';
+
+    // Deliberately no api/key row: config:set --lock-env writes to app/etc/env.php, not core_config_data.
+    $harness->save(settingsPathFor($apiKey), '{"shop":3}', 'default', 0);
+
+    accountSettingsMaintenance($harness, ['default' => $apiKey])->reconcile();
+
+    expect(array_column($harness->rows, 'path'))->toContain(settingsPathFor($apiKey));
+});
+
+it('deletes a row whose api key is not configured anywhere', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $live    = 'still-configured';
+    $dead    = 'long-gone';
+
+    $harness->save(Config::XML_PATH_API_KEY, $live, 'default', 0);
+    $harness->save(settingsPathFor($live), '{"shop":1}', 'default', 0);
+    $harness->save(settingsPathFor($dead), '{"shop":9}', 'default', 0);
+
+    accountSettingsMaintenance($harness, ['default' => $live])->reconcile();
+
+    $paths = array_column($harness->rows, 'path');
+
+    expect($paths)->toContain(settingsPathFor($live))
+        ->and($paths)->not->toContain(settingsPathFor($dead));
+});
+
+it('deletes nothing when no api key is configured anywhere', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+
+    $harness->save(settingsPathFor('some-key'), '{"shop":1}', 'default', 0);
+    $harness->save(settingsPathFor('another-key'), '{"shop":2}', 'default', 0);
+
+    accountSettingsMaintenance($harness, [])->reconcile();
+
+    expect($harness->rows)->toHaveCount(2);
+});
+
+it('changes nothing on a second pass', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $live    = 'idempotent-key';
+    $dead    = 'removed-key';
+
+    $harness->save(Config::XML_PATH_API_KEY, $live, 'default', 0);
+    $harness->save(settingsPathFor($live), '{"shop":1}', 'default', 0);
+    $harness->save(settingsPathFor($dead), '{"shop":9}', 'default', 0);
+
+    accountSettingsMaintenance($harness, ['default' => $live])->reconcile();
+    $afterFirstPass = $harness->rows;
+
+    accountSettingsMaintenance($harness, ['default' => $live])->reconcile();
+
+    expect($harness->rows)->toEqual($afterFirstPass);
+});
+
+it('flushes the config cache when something changed', function () {
+    $harness    = new MyParcelTokenLifecycleHarness();
+    $cleanCalls = null;
+
+    $harness->save(Config::XML_PATH_API_KEY, 'a-key', 'default', 0);
+    $harness->save(settingsPathFor('vanished-key'), '{"shop":9}', 'default', 0);
+
+    accountSettingsMaintenance($harness, ['default' => 'a-key'], [], countingCacheTypeList($cleanCalls))
+        ->reconcile();
+
+    expect($cleanCalls)->toBe(1);
+});
+
+it('does not flush the config cache when nothing changed', function () {
+    $harness    = new MyParcelTokenLifecycleHarness();
+    $cleanCalls = null;
+
+    $harness->save(Config::XML_PATH_API_KEY, 'a-key', 'default', 0);
+    $harness->save(settingsPathFor('a-key'), '{"shop":1}', 'default', 0);
+
+    accountSettingsMaintenance($harness, ['default' => 'a-key'], [], countingCacheTypeList($cleanCalls))
+        ->reconcile();
+
+    expect($cleanCalls)->toBe(0);
+});
+
+it('ignores config rows belonging to other settings', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $apiKey  = 'a-key';
+
+    $harness->save(Config::XML_PATH_API_KEY, $apiKey, 'default', 0);
+    $harness->save('myparcelnl_magento_general/print/paper_type', 'A4', 'default', 0);
+    $harness->save(settingsPathFor($apiKey), '{"shop":1}', 'default', 0);
+
+    accountSettingsMaintenance($harness, ['default' => $apiKey])->reconcile();
+
+    expect(array_column($harness->rows, 'path'))->toContain('myparcelnl_magento_general/print/paper_type');
+});
