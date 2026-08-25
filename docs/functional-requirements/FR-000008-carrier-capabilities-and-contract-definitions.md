@@ -75,7 +75,7 @@ The SDK's own `Services\Capabilities\CapabilitiesService` cannot be used as ship
 ### Upstream (this FR depends on)
 
 - The MyParcel Core API capabilities and contract-definitions endpoints.
-- The prerequisite pull request's shared hash helper, reused for cache keys.
+- `MyParcelNL\Magento\Service\Hash\Fingerprint`, reused for cache keys. **Satisfied** — landed in #967; see [TR-000005](../technical-requirements/TR-000005-sdk-v11-api-mapping.md).
 
 ### Downstream (depends on this FR)
 

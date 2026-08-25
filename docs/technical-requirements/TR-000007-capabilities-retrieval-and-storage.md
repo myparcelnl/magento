@@ -91,10 +91,10 @@ Shipment capabilities use a **dedicated Magento cache type** via `Magento\Framew
 |---|---|
 | Components | Hashed API key + hash of the full capabilities request payload |
 | API key handling | **Hashed, never plaintext**, in the cache id, the tag, and any log line |
-| Shared helper | The **same** hash helper as the prerequisite PR's config path. Two implementations drifting produces a silent cache miss on every request rather than a visible error |
+| Shared helper | `MyParcelNL\Magento\Service\Hash\Fingerprint::of()` — the **same** helper as the account settings config path. A second implementation drifting produces a silent cache miss on every request rather than a visible error |
 | Completeness | Every field that can change the answer must be in the key. A missing field yields a wrong cached answer, which is worse than no cache |
 
-> _Hash helper name and location: to be filled in when the prerequisite PR merges. Also recorded in [TR-000005](TR-000005-sdk-v11-api-mapping.md)._
+> Hash helper: `MyParcelNL\Magento\Service\Hash\Fingerprint` (`src/Service/Hash/Fingerprint.php`), landed in #967. `of()` is sha256 as 64 lowercase hex; `LABEL_LENGTH` (12) is the prefix to log instead of a full digest. Also recorded in [TR-000005](TR-000005-sdk-v11-api-mapping.md).
 
 ### Defensive consumption
 
@@ -151,7 +151,7 @@ Unit tests with a stubbed client for behaviour, fault injection for degradation,
 
 - The capabilities endpoint's V2 response remains the shape observed at beta.31. Where the OpenAPI spec and an observed acceptance response disagree, the observed response wins. **Confirmed as the right posture** — the shape is stable in practice but outside this module's control, which is exactly why the defensive-consumption rules above are mandatory rather than cautious.
 - Contract definitions change rarely enough that account-refresh cadence is sufficient freshness. **Confirmed** — fetching at account refresh is the intended strategy; no shorter TTL is needed.
-- The prerequisite PR's hash helper is available and stable. **Still open** — that PR is in progress. The two placeholders above are filled in when it merges.
+- The prerequisite PR's hash helper is available and stable. **Confirmed** — #967 merged, and `Service\Hash\Fingerprint` is the helper. It is deliberately ignorant of what it hashes, so the cache id needs no change to it. One consequence to respect: its output is the lookup key for rows already stored, so a change to `of()` invalidates the cache *and* orphans the account settings rows.
 
 ## Constraints
 

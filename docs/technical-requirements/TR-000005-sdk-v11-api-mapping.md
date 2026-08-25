@@ -119,9 +119,21 @@ Three, all deliberate. A future reader finding them should treat them as decisio
 
 ### Prerequisite hand-off
 
-The pull request that hashes the API key out of the `account_settings_{apiKey}` config path lands first and carries no requirement documents. **Its final config path shape is recorded here** once known, because Phase 5 writes contract definitions alongside it.
+The pull request that hashes the API key out of the `account_settings_{apiKey}` config path landed first, with no requirement documents of its own: **#967, `feat: hash api key in path and cleanup scoped account settings`**. Its two hand-off facts are recorded below, because Phase 5 writes contract definitions alongside them.
 
-> _To be filled in when the prerequisite PR merges: final config path, and the name and location of the shared hash helper (also referenced by TR-000007)._
+**Config path.** `myparcelnl_magento_general/account_settings_{sha256(apiKey)}`, assembled as `Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint->of($apiKey)`. The row is written at **default scope only**, whatever scope a legacy row sat at, so Phase 5 must not assume a website- or store-scoped row exists.
+
+**Shared hash helper.** `MyParcelNL\Magento\Service\Hash\Fingerprint` (`src/Service/Hash/Fingerprint.php`), constructor-injectable and dependency-free:
+
+| Member | Behaviour |
+|---|---|
+| `of(string): string` | sha256, returned as 64 lowercase hex characters |
+| `isFingerprint(string): bool` | Tells an already-hashed value from a raw one, for reading back a mixed set of stored keys |
+| `LABEL_LENGTH` | `12` — the prefix length to use when a fingerprint appears in a log line |
+
+The helper knows nothing about what it hashes, which is what lets Phase 4 reuse it for the cache id (TR-000007). Its output is a storage format: changing `of()` orphans every row keyed by it, so treat that as a data migration.
+
+**Migration.** `src/Setup/Migrations/FingerprintAccountSettingsPaths.php`, invoked from `src/Setup/UpgradeData.php`. Idempotent, and it never overwrites an existing fingerprinted row.
 
 ## Verification Method
 

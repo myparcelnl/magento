@@ -84,7 +84,7 @@ Corrections made while planning. Each was wrong in a way that is easy to repeat.
 
 **Initially reported as** a read/write scope mismatch.
 
-**Wrong because:** the write (`CarrierConfigurationImport.php:70-71`) and the read (`AccountSettings.php:32`) are *both* default-scope. The API key in the path is the discriminator and it works as designed. Only the API key *lookup* is scope-aware, which is correct. Two narrower real items replaced it: `PackageRepository` read the key without an explicit store id (fixed in Phase 2 by `Package::setStoreId()`), and `AccountSettings.php:13,15` import classes absent from beta.15 and beta.31.
+**Wrong because:** the write and the read are *both* default-scope. The API key in the path is the discriminator and it works as designed. Only the API key *lookup* is scope-aware, which is correct. **#967 confirmed this rather than changing it** — the fingerprinted row is written at default scope only, whatever scope a legacy row sat at. Its call sites moved in that PR: the read is `AccountSettings.php:36`, and the write left the controller for `Service\AccountSettings\Importer`. Two narrower real items replaced it: `PackageRepository` read the key without an explicit store id (fixed in Phase 2 by `Package::setStoreId()`), and `AccountSettings.php:13,15` import classes absent from beta.15 and beta.31.
 
 ### DR-7: `getAgeCheck()`'s product-attribute and carrier-default tiers are dead code
 
@@ -232,19 +232,26 @@ Phase 3 fixes it and then removes the class of bug: `ShipmentOptionsResolver` ta
 
 ---
 
-## Prerequisite: separate PR, lands before this one
+## Prerequisite: separate PR · *Merged*
 
-Built on the fly, with **no requirement documents** — small, self-contained, rationale lives in its PR description.
+Landed as **#967, `feat: hash api key in path and cleanup scoped account settings`**, with **no requirement documents** — small, self-contained, rationale lives in its PR description. What it produced is below; the description of the work is kept because the reasoning still explains the shape of what shipped.
 
-**Naming note:** the path is `myparcelnl_magento_general/account_settings_{apiKey}`, not `account_data_`. Only two call sites exist — `src/Model/Settings/AccountSettings.php:32` (read) and `Controller/Adminhtml/Settings/CarrierConfigurationImport.php:70-71` (write) — so the change is contained, but a cleanup routine must match the real prefix or it will run clean and delete nothing, which looks like success.
+**Naming note:** the legacy path was `myparcelnl_magento_general/account_settings_{apiKey}`, not `account_data_`. The prefix is `Config::XML_PATH_ACCOUNT_SETTINGS`; a cleanup routine that does not match it runs clean and deletes nothing, which looks like success.
 
-**1. Hash the API key in the config path.** The plaintext key is currently part of a `core_config_data` path, which leaks it through `bin/magento config:show`, `config:dump`, support exports, and anyone with config-table read access. Use **one shared hash helper** for both the config suffix and the Phase 4 cache id — two implementations drifting means a silent cache miss on every request rather than a visible error. Migration is lossless and needs no re-import: the existing suffix *is* the plaintext key, so a data patch can read `account_settings_<plain>`, write `account_settings_<hash>`, and delete the original. Keep it idempotent; a row already hashed must be left alone.
+**1. Hash the API key in the config path.** The plaintext key was part of a `core_config_data` path, which leaked it through `bin/magento config:show`, `config:dump`, support exports, and anyone with config-table read access. Use **one shared hash helper** for both the config suffix and the Phase 4 cache id — two implementations drifting means a silent cache miss on every request rather than a visible error. Migration is lossless and needs no re-import: the existing suffix *is* the plaintext key, so a data patch can read `account_settings_<plain>`, write `account_settings_<hash>`, and delete the original. Keep it idempotent; a row already hashed must be left alone.
 
 **2. Clean up orphaned rows.** Collect the hashes of every API key currently configured **across all scopes**, enumerate `account_settings_*`, delete those not in the set. Two hazards: a key configured only at store-view or website scope must not look orphaned (`Service\Settings::hasOwnValue()` and `hasRowAtScope()` already have the partition semantics — getting this wrong deletes live config on exactly the multi-store installs this project targets); and trigger on explicit events only — after a settings import, on API key add/change/remove — not on arbitrary config writes, since a partly-saved form can transiently look like a removal. Log every deletion. Consider report-only first.
 
-**Two facts must survive that PR**, because this plan depends on them: the **name and location of the shared hash helper** (recorded in TR-000007) and the **final config path shape** (recorded in TR-000005).
+**The two facts this plan depends on, as they landed:**
 
-**Why first:** Phase 5 extends this storage to hold contract definitions. Doing that on the plaintext scheme means writing rows we would immediately migrate, and spreading the plaintext key to a second path.
+- **Shared hash helper:** `MyParcelNL\Magento\Service\Hash\Fingerprint` (`src/Service/Hash/Fingerprint.php`). `of()` is sha256 as 64 lowercase hex, `isFingerprint()` tells a hashed value from a raw one, and `LABEL_LENGTH` (12) is the prefix to log instead of a whole digest. Dependency-free and deliberately ignorant of what it hashes, so Phase 4 reuses it for the cache id unchanged. Recorded in TR-000007.
+- **Config path:** `myparcelnl_magento_general/account_settings_{sha256(apiKey)}`, written at **default scope only** whatever scope the legacy row sat at. Recorded in TR-000005.
+
+Both hazards named above were handled rather than deferred. The migration is `src/Setup/Migrations/FingerprintAccountSettingsPaths.php`, run from `UpgradeData`, idempotent, and it never overwrites an existing fingerprinted row. The orphan cleanup is `Service\AccountSettings\Maintenance::reconcile()`, triggered from `Observer\ConfigChange` and the settings-import controller rather than on arbitrary config writes.
+
+One consequence to carry forward: the fingerprint is the lookup key for rows already stored, so changing `of()` orphans every one of them **and** invalidates the Phase 4 cache. Treat it as a data migration, not a refactor.
+
+**Why it went first:** Phase 5 extends this storage to hold contract definitions. Doing that on the plaintext scheme would have meant writing rows we immediately migrate, and spreading the plaintext key to a second path.
 
 ---
 
@@ -475,7 +482,7 @@ Tracking is this matrix plus each document's own Traceability section (house con
 
 | Phase | Implements | Notes |
 |---|---|---|
-| **Prereq PR** | — (no docs, by decision) | Lands first. Its two hand-off facts go into TR-000007 (hash helper) and TR-000005 (config path) |
+| **Prereq PR** (#967) | — (no docs, by decision) | Merged. Its two hand-off facts are recorded in TR-000007 (hash helper) and TR-000005 (config path) |
 | **0** — Plan + requirements | — | Commits this plan, then produces everything below |
 | **1** — Tests for our own rules | *supports all* | No FR of its own. Test infrastructure protecting the refactor; inventing an FR would be traceability theatre. Say so in the PR description rather than faking a parent. |
 | **2** — Constants and helpers | TR-000005 | Pure refactor, no user-visible capability |
