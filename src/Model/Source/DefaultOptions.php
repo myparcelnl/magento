@@ -20,13 +20,13 @@ use Exception;
 use Magento\Framework\App\ObjectManager;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 use Throwable;
 
 class DefaultOptions
@@ -56,7 +56,7 @@ class DefaultOptions
         $this->config  = $objectManager->get(Config::class);
         $this->quote   = $quote;
         try {
-            $this->chosenOptions = DeliveryOptionsAdapterFactory::create(
+            $this->chosenOptions = DeliveryOptionsFactory::create(
                 (array) json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 4, JSON_THROW_ON_ERROR)
             )->toArray();
         } catch (Throwable $e) {

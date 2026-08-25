@@ -1,77 +1,65 @@
 <?php
 
-namespace MyParcelNL\Magento\Helper;
+namespace MyParcelNL\Magento\Service;
 
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
-class ShipmentOptions
+/**
+ * Decides what shipment options one shipment gets, from the posted options, the configured
+ * defaults, the country, the carrier and per-product attributes. Answers with a ShipmentOptions.
+ *
+ * Takes the parsed DeliveryOptions on purpose: this class used to read the order column itself, and
+ * read it two different ways, which is how the receipt code gate broke (DR-14).
+ */
+class ShipmentOptionsResolver
 {
-    public const  INSURANCE         = ShipmentOption::INSURANCE;
-    public const  ONLY_RECIPIENT    = ShipmentOption::ONLY_RECIPIENT;
-    private const SAME_DAY_DELIVERY = ShipmentOption::SAME_DAY_DELIVERY;
-    public const  SIGNATURE         = ShipmentOption::SIGNATURE;
-    public const  COLLECT           = ShipmentOption::COLLECT;
-    public const  RECEIPT_CODE      = ShipmentOption::RECEIPT_CODE;
-    public const  RETURN            = ShipmentOption::RETURN;
-    public const  AGE_CHECK         = ShipmentOption::AGE_CHECK;
-    public const  LARGE_FORMAT      = ShipmentOption::LARGE_FORMAT;
-    private const HIDE_SENDER       = ShipmentOption::HIDE_SENDER;
-    public const  PRIORITY_DELIVERY = ShipmentOption::PRIORITY_DELIVERY;
+    // Not a ShipmentOption: a label field, not a toggle the carrier offers.
     private const LABEL_DESCRIPTION = 'label_description';
+
     private const ORDER_NUMBER      = '%order_nr%';
     private const DELIVERY_DATE     = '%delivery_date%';
     private const PRODUCT_ID        = '%product_id%';
     private const PRODUCT_NAME      = '%product_name%';
     private const PRODUCT_QTY       = '%product_qty%';
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $carrier;
 
-    /**
-     * @var DefaultOptions
-     */
+    /** @var DefaultOptions */
     private $defaultOptions;
 
-    /**
-     * @var ObjectManagerInterface
-     */
+    /** @var ObjectManagerInterface */
     private $objectManager;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $options;
 
-    /**
-     * @var Config
-     */
+    /** @var Config */
     private $config;
 
-    /**
-     * @var Order
-     */
+    /** @var Order */
     private $order;
 
-    /**
-     * @var string|null
-     */
+    /** @var DeliveryOptions */
+    private $deliveryOptions;
+
+    /** @var string|null */
     private ?string $cc;
 
     /**
      * @param DefaultOptions         $defaultOptions
      * @param Order                  $order
+     * @param DeliveryOptions        $deliveryOptions
      * @param ObjectManagerInterface $objectManager
      * @param string                 $carrier
      * @param array                  $options
@@ -79,12 +67,14 @@ class ShipmentOptions
     public function __construct(
         DefaultOptions         $defaultOptions,
         Order                  $order,
+        DeliveryOptions        $deliveryOptions,
         ObjectManagerInterface $objectManager,
         string                 $carrier,
         array                  $options = []
     )
     {
-        $this->defaultOptions = $defaultOptions;
+        $this->defaultOptions  = $defaultOptions;
+        $this->deliveryOptions = $deliveryOptions;
         $this->config         = $objectManager->get(Config::class);
         $this->order          = $order;
         $this->objectManager  = $objectManager;
@@ -93,89 +83,80 @@ class ShipmentOptions
         $this->cc             = $order->getShippingAddress() ? $order->getShippingAddress()->getCountryId() : null;
     }
 
-    /**
-     * @return int
-     */
+    /** @return int */
     public function getInsurance(): int
     {
         return $this->options['insurance'] ?? $this->defaultOptions->getDefaultInsurance($this->carrier);
     }
 
-    /**
-     * @return bool
-     */
+    /** @return bool */
     public function hasSignature(): bool
     {
         if (CountryCode::CC_BE === $this->cc && $this->hasOnlyRecipient()) {
             return false;
         }
 
-        return $this->optionIsEnabled(self::SIGNATURE);
+        return $this->optionIsEnabled(ShipmentOption::SIGNATURE);
     }
 
     public function hasCollect(): bool
     {
-        return $this->optionIsEnabled(self::COLLECT);
+        return $this->optionIsEnabled(ShipmentOption::COLLECT);
     }
 
+    /**
+     * PostNL, NL and standard delivery only. An order with no stored delivery type counts as
+     * standard, so the admin New Shipment form keeps working.
+     */
     public function hasReceiptCode(): bool
     {
-        $deliveryOptions = $this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? [];
-        $deliveryType    = $deliveryOptions['deliveryType'] ?? DeliveryType::DEFAULT;
+        $deliveryType = $this->deliveryOptions->getDeliveryType() ?? DeliveryType::DEFAULT_NAME;
 
         if (CountryCode::CC_NL !== $this->cc
             || CarrierPostNL::NAME !== $this->carrier
-            || DeliveryType::STANDARD !== $deliveryType
+            || DeliveryType::STANDARD_NAME !== $deliveryType
         ) {
             return false;
         }
 
-        return $this->optionIsEnabled(self::RECEIPT_CODE);
+        return $this->optionIsEnabled(ShipmentOption::RECEIPT_CODE);
     }
 
-    /**
-     * @return bool
-     */
+    /** @return bool */
     public function hasOnlyRecipient(): bool
     {
-        return $this->optionIsEnabled(self::ONLY_RECIPIENT);
+        return $this->optionIsEnabled(ShipmentOption::ONLY_RECIPIENT);
     }
 
-    /**
-     * @return bool
-     */
+    /** @return bool */
     public function hasSameDayDelivery(): bool
     {
-        return $this->optionIsEnabled(self::SAME_DAY_DELIVERY);
+        return $this->optionIsEnabled(ShipmentOption::SAME_DAY_DELIVERY);
     }
 
-    /**
-     * @return bool
-     */
+    /** @return bool */
     public function hasReturn(): bool
     {
-        return $this->optionIsEnabled(self::RETURN);
+        return $this->optionIsEnabled(ShipmentOption::RETURN);
     }
 
-    /**
-     * @return bool
-     */
+    /** @return bool */
     public function hasAgeCheck(): bool
     {
         if (CountryCode::CC_NL !== $this->cc) {
             return false;
         }
 
-        $ageCheckFromOptions  = $this->options[self::AGE_CHECK] ?? null;
+        $ageCheckFromOptions  = $this->options[ShipmentOption::AGE_CHECK] ?? null;
         $ageCheckOfProduct    = self::getAgeCheckFromProduct($this->order->getItems());
-        $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, self::AGE_CHECK);
+        $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, ShipmentOption::AGE_CHECK);
 
         return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
 
     public function hasHideSender(): bool
     {
-        return $this->optionIsEnabled(self::HIDE_SENDER);
+        return $this->optionIsEnabled(ShipmentOption::HIDE_SENDER);
     }
 
     /**
@@ -195,7 +176,7 @@ class ShipmentOptions
             return false;
         }
 
-        return $this->optionIsEnabled(self::PRIORITY_DELIVERY);
+        return $this->optionIsEnabled(ShipmentOption::PRIORITY_DELIVERY);
     }
 
     /**
@@ -211,7 +192,7 @@ class ShipmentOptions
             $productAgeCheck = self::getAttributeValue(
                 'catalog_product_entity_varchar',
                 $product['product_id'],
-                self::AGE_CHECK
+                ShipmentOption::AGE_CHECK
             );
 
             if (! isset($productAgeCheck) || '' === $productAgeCheck) {
@@ -293,21 +274,17 @@ class ShipmentOptions
         return $connection->fetchOne($sql);
     }
 
-    /**
-     * @return bool
-     */
+    /** @return bool */
     public function hasLargeFormat(): bool
     {
         if (CountryCode::isRow($this->cc)) {
             return false;
         }
 
-        return $this->optionIsEnabled(self::LARGE_FORMAT);
+        return $this->optionIsEnabled(ShipmentOption::LARGE_FORMAT);
     }
 
-    /**
-     * @return string
-     */
+    /** @return string */
     public function getLabelDescription(): string
     {
         $labelDescription = $this->config->getGeneralConfig(
@@ -319,8 +296,7 @@ class ShipmentOptions
             return '';
         }
 
-        $deliveryOptions  = $this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '{}';
-        $checkoutDate     = json_decode($deliveryOptions, true)['date'] ?? null;
+        $checkoutDate     = $this->deliveryOptions->getDate();
         $productInfo      = $this->getItemsCollectionByShipmentId($this->order->getId());
         $labelDescription = str_replace(
             [
@@ -391,24 +367,24 @@ class ShipmentOptions
                        $this->defaultOptions->hasOptionSet($optionKey, $this->carrier));
     }
 
-    /**
-     * @return array
-     */
-    public function getShipmentOptions(): array
+    /** Every option here is non-null, except extra_assurance, which nothing decides. */
+    public function resolve(): ShipmentOptions
     {
-        return [
-            self::INSURANCE         => $this->getInsurance(),
-            self::RETURN            => $this->hasReturn(),
-            self::ONLY_RECIPIENT    => $this->hasOnlyRecipient(),
-            self::SIGNATURE         => $this->hasSignature(),
-            self::COLLECT           => $this->hasCollect(),
-            self::RECEIPT_CODE      => $this->hasReceiptCode(),
-            self::AGE_CHECK         => $this->hasAgeCheck(),
-            self::LARGE_FORMAT      => $this->hasLargeFormat(),
-            self::LABEL_DESCRIPTION => $this->getLabelDescription(),
-            self::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
-            self::HIDE_SENDER       => $this->hasHideSender(),
-            self::PRIORITY_DELIVERY => $this->hasPriorityDelivery(),
-        ];
+        return ShipmentOptions::resolved(
+            [
+                ShipmentOption::INSURANCE         => $this->getInsurance(),
+                ShipmentOption::RETURN            => $this->hasReturn(),
+                ShipmentOption::ONLY_RECIPIENT    => $this->hasOnlyRecipient(),
+                ShipmentOption::SIGNATURE         => $this->hasSignature(),
+                ShipmentOption::COLLECT           => $this->hasCollect(),
+                ShipmentOption::RECEIPT_CODE      => $this->hasReceiptCode(),
+                ShipmentOption::AGE_CHECK         => $this->hasAgeCheck(),
+                ShipmentOption::LARGE_FORMAT      => $this->hasLargeFormat(),
+                self::LABEL_DESCRIPTION           => $this->getLabelDescription(),
+                ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
+                ShipmentOption::HIDE_SENDER       => $this->hasHideSender(),
+                ShipmentOption::PRIORITY_DELIVERY => $this->hasPriorityDelivery(),
+            ]
+        );
     }
 }

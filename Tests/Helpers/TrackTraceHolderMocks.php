@@ -13,13 +13,9 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
- * Builds a TrackTraceHolder bypassing its constructor — which reaches for a
- * live \Magento\Framework\App\ObjectManager::getInstance() through
- * `new DefaultOptions($order)` — then reflectively sets only the private
- * properties the test needs (see createConvertibleTrackTraceHolder() below
- * for the handful of behaviours that require the real constructor instead).
- * Anything left unset stays uninitialized, which is fine as long as the
- * method under test never touches it.
+ * Builds a TrackTraceHolder past its constructor, which reaches for a live
+ * ObjectManager. Sets only the private properties the test names; anything
+ * else stays uninitialized.
  */
 function createTrackTraceHolder(array $properties = []): TrackTraceHolder
 {
@@ -33,23 +29,14 @@ function createTrackTraceHolder(array $properties = []): TrackTraceHolder
 }
 
 /**
- * Builds a TrackTraceHolder through its real public constructor and drives
- * it through the real public convertDataFromMagentoToApi(), for the Phase 1
- * behaviours that live inline in that method rather than in an isolatable
- * private one (carrier-override pickup clearing, API key resolution).
+ * Drives the real constructor and the real convertDataFromMagentoToApi(),
+ * for the behaviours that live inline in that method.
  *
- * $checkoutDeliveryOptions becomes the order's saved `myparcel_delivery_options`
- * JSON — it must include a `deliveryType` key, or the SDK's
- * DeliveryOptionsAdapterFactory can't recognize the shape and throws. The
- * address is fixed to a non-NL, non-ROW destination (Germany) so age-check
- * and customs-declaration logic — covered by their own test files — never
- * activate here.
- *
- * $apiKeyStoreId makes only that store resolve to the key, leaving every
- * other store with none; null (the default) has every store resolve to it,
- * as an inherited default-scope value does. Pass it to exercise which store
- * the lookup consults — not Magento's own default/website/store fallback,
- * which createConfig() deliberately does not model.
+ * $checkoutDeliveryOptions must carry a `deliveryType` key, or
+ * DeliveryOptionsFactory throws. The address is fixed to Germany, so
+ * age-check and customs logic never activate here. $apiKeyStoreId null means
+ * every store resolves to the key, as an inherited default does; pass one to
+ * make only that store resolve.
  *
  * @return array{0: TrackTraceHolder, 1: \Magento\Sales\Model\Order\Shipment\Track}
  */
@@ -91,12 +78,9 @@ function createConvertibleTrackTraceHolder(
 }
 
 /**
- * Stubs the static \Magento\Framework\App\ObjectManager::getInstance() chain
- * that TrackTraceHolder::getAttributeValue() (private) and
- * ShipmentOptions::getAttributeValue() (static) use for the classification /
- * age-check EAV lookups — always the static singleton, never the instance
- * ObjectManager injected into the class under test. Both DB round-trips
- * (attribute id, then value) return $value; callers only ever use the second.
+ * Stubs the static ObjectManager the EAV lookups resolve through — the static
+ * singleton, never the instance one injected into the class under test. Both
+ * round-trips return $value; callers only use the second.
  */
 function mockAttributeValueLookup(string $value): void
 {

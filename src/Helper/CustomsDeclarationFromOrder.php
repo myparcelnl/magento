@@ -9,6 +9,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Model\CustomsDeclaration;
@@ -122,7 +123,7 @@ class CustomsDeclarationFromOrder
      */
     private function getHsCode(Product $product): int
     {
-        return (int) ShipmentOptions::getAttributeValue(
+        return (int) ShipmentOptionsResolver::getAttributeValue(
             'catalog_product_entity_int',
             $product->getId(),
             'classification'

@@ -5,15 +5,13 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * State config in terms of what a scope *resolves to*, not where the row
- * lives. Magento resolves `core_config_data` through a default → website →
- * store fallback (Store\Model\Config\Processor\Fallback), and that cascade is
- * Magento's, not ours — modelling it here would only assert this mock's own
- * logic. So:
+ * States config as what a scope *resolves to*, not where the row lives.
+ * Magento's default → website → store cascade is Magento's, so modelling it
+ * here would only assert this mock.
  *
- * - $values: paths every store resolves to (i.e. inherited, whatever tier set them)
+ * - $values: paths every store resolves to
  * - $perStoreValues: [storeId][path] where one store resolves to something else
- * - $carrierValues: [carrier][code] returned by getCarrierConfig()
+ * - $carrierValues: [carrier][code] for getCarrierConfig()
  *
  * Anything unlisted is "not configured" (null / []).
  */

@@ -7,13 +7,11 @@ use MyParcelNL\Sdk\Exception\InvalidConsignmentException;
 use MyParcelNL\Sdk\Model\Recipient;
 
 /**
- * setShippingRecipient() delegates the actual street splitting to the SDK's
- * SplitStreet helper, so what belongs to Phase 1 is our wiring around it:
- * joining the street lines before handing them over, mapping each address
- * field onto the matching recipient field, taking the person from the
- * billing address, and letting a rejected address surface rather than be
- * swallowed. None of the cases below asserts a literal the SDK's NL regex
- * produced — those values are the SDK's to change.
+ * The street splitting itself is the SDK's, so these test our wiring around
+ * it: joining the lines, mapping the fields, taking the person from the
+ * billing address, and letting a rejected address surface.
+ *
+ * No case asserts a literal the SDK's regex produced — those are its to change.
  */
 function createOrderCollectionForShippingRecipient(
     array $addressOverrides,

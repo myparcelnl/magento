@@ -9,14 +9,12 @@ use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * Builds a Mockery double of an Order\Address with sane defaults for every
- * field TrackTraceHolder and MagentoOrderCollection read off it.
+ * An Order\Address double with defaults for every field TrackTraceHolder and
+ * MagentoOrderCollection read.
  *
- * `street` accepts one line as a string or several as an array — Magento
- * stores one array entry per street line. It sets both getStreet() (the
- * exploded-array view MagentoOrderCollection::setShippingRecipient() reads)
- * and getData('street') (the joined string TrackTraceHolder::setFullStreet()
- * reads), so a test only has to state the address once.
+ * `street` takes one line as a string or several as an array, and sets both
+ * getStreet() (the array view) and getData('street') (the joined string), so
+ * a test states the address once.
  */
 function createAddress(array $overrides = []): Address
 {

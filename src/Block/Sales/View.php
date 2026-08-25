@@ -22,10 +22,10 @@ use DateTime;
 use Exception;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Block\Adminhtml\Order\AbstractOrder;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
-use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 use Throwable;
 
 class View extends AbstractOrder
@@ -48,7 +48,7 @@ class View extends AbstractOrder
             return '';
         }
 
-        $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
+        $deliveryOptions = DeliveryOptionsFactory::create((array) $data);
         $returnString    = '';
 
         try {
@@ -68,10 +68,10 @@ class View extends AbstractOrder
     }
 
     /**
-     * @param AbstractDeliveryOptionsAdapter $deliveryOptions
+     * @param DeliveryOptions $deliveryOptions
      * @return string
      */
-    private function getCheckoutOptionsPickupHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string
+    private function getCheckoutOptionsPickupHtml(DeliveryOptions $deliveryOptions): string
     {
         ob_start();
 
@@ -92,11 +92,11 @@ class View extends AbstractOrder
     }
 
     /**
-     * @param AbstractDeliveryOptionsAdapter $deliveryOptions
+     * @param DeliveryOptions $deliveryOptions
      * @return string
      * @throws Exception
      */
-    private function getCheckoutOptionsDeliveryHtml(AbstractDeliveryOptionsAdapter $deliveryOptions): string
+    private function getCheckoutOptionsDeliveryHtml(DeliveryOptions $deliveryOptions): string
     {
         ob_start();
 

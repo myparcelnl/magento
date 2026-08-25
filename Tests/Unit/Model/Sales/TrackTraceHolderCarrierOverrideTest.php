@@ -6,13 +6,12 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
- * A pickup location is carrier-specific — its location code and retail
- * network belong to one carrier's network. Overriding the carrier after
- * checkout therefore invalidates any inherited pickup location, and the
- * shipment falls back to standard home delivery. That rule is ours and
- * survives the SDK migration; the shape it is read from does not, so these
- * tests go through Tests/Helpers/ShipmentAccessors.php rather than naming
- * consignment getters directly.
+ * A pickup location belongs to one carrier's network, so overriding the
+ * carrier after checkout invalidates it and the shipment falls back to
+ * standard home delivery.
+ *
+ * Read through ShipmentAccessors rather than consignment getters: the rule
+ * survives the SDK migration, the shape it is read from does not.
  */
 function pickupCheckoutOptions(): array
 {

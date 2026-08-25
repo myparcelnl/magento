@@ -40,7 +40,7 @@ SDK beta.22 deleted 60 files: the whole consignment stack, the delivery-options 
 | `MyParcelCollection::generateReturnConsignments()` | `Services\Returns\ReturnShipmentService::createRelated()` |
 | `MyParcelCollection::addMultiCollo()` | `Services\MultiCollo\MultiColloShipmentService::splitShipment()` |
 | `$consignment->getBarcode()` / status | `ShipmentQueryService::find()`, or `Services\TrackTrace\ShipmentTrackTraceService::fetchTrackTraceData()` for full history |
-| `Adapter\DeliveryOptions\*`, `Factory\DeliveryOptionsAdapterFactory` | Module-owned value objects under `src/Adapter/DeliveryOptions/` |
+| `Adapter\DeliveryOptions\*`, `Factory\DeliveryOptionsAdapterFactory` | Module-owned value objects under `src/Adapter/DeliveryOptions/`: `DeliveryOptions`, `ShipmentOptions`, `PickupLocation`, `DeliveryOptionsFactory`. The SDK’s own `Model\Shipment\ShipmentOptions` shares the short name and is aliased at the import where both appear. `Helper\ShipmentOptions` was the resolver, not a second value object; it is `Service\ShipmentOptionsResolver` and answers with `resolve(): ShipmentOptions`. One SDK reference survives at `MagentoOrderCollection::setFulfilment()` until Phase 8, where `FulfilmentOrder::setDeliveryOptions()` type hints the SDK adapter |
 | `Helper\TrackTraceUrl` | Module-owned `src/Service/TrackTraceUrl`. The class stays; its hard-coded base URL does not — Phase 7 replaces that with `link_consumer_portal` / `link_tracktrace` from the track & trace response, since no account setting carries a base URL |
 | `Helper\ValidatePostalCode` | **Removed, not replaced.** The API is the only authority on address validity — see DR-11 |
 | `AbstractConsignment::canHave*()`, `getAllowed*()`, `getInsurancePossibilities()` | Capability data — see [TR-000007](TR-000007-capabilities-retrieval-and-storage.md) |
@@ -56,6 +56,7 @@ SDK beta.22 deleted 60 files: the whole consignment stack, the delivery-options 
 | `src/Model/Shipment/PackageType` | `AbstractConsignment::PACKAGE_TYPE_*`, `PACKAGE_TYPES_*_MAP`, `PACKAGE_TYPES_IDS` |
 | `src/Model/Shipment/DeliveryType` | `AbstractConsignment::DELIVERY_TYPE_*`, `DELIVERY_TYPES_NAMES_IDS_MAP`, `DEFAULT_DELIVERY_TYPE` |
 | `src/Model/Shipment/ShipmentOption` | `AbstractConsignment::SHIPMENT_OPTION_*`, `EXTRA_OPTION_*` |
+| `src/Model/Shipment/Type/{PackageTypeValue,DeliveryTypeValue}` | nothing — new. A stored type that can hold a value the module does not recognise, so a read path never has to substitute one (DR-12) |
 
 **Ids** are sourced from the SDK's generated `Client\Generated\CoreApi\Model\{RefShipmentPackageType, RefTypesDeliveryType}`, so no wire value is hard-coded in the module. **Names are not**: the module's snake_case names (`letter`, `package_small`, `standard`) are persisted in `core_config_data`, in the order's delivery-options JSON and in the versioned REST v1 contract, while the SDK's v2 vocabulary calls the same things `UNFRANKED`, `SMALL_PACKAGE` and `STANDARD_DELIVERY`. The module keeps its own names and translates at the API boundary; `Model\Rest\Transformer\PackageTypeTransformer::LEGACY_NAME_MAP` is the existing precedent.
 
@@ -83,7 +84,7 @@ Four boundaries, three vocabularies. Getting this wrong is silent at compile tim
 | beta.15 | rejected — "must be one of 1…7" | rejected — "must be one of 1…8" |
 | beta.31 | stored and serialized | stored and serialized |
 
-beta.29's enum-validation loosening removed the checks from the generated setters, so `RefShipmentShipmentOptions` now rejects only null. An unknown id therefore reaches the API and the API decides — which is what lets Phase 3 carry an unrecognised type through rather than substituting a default (DR-12, FR-000010). A non-numeric unknown still throws locally, because `ShipmentOptions::setPackageType()` resolves strings through the mapping while an int bypasses it. Both end in a named error; neither ends in a silent substitution.
+beta.29's enum-validation loosening removed the checks from the generated setters, so `RefShipmentShipmentOptions` now rejects only null. An unknown id therefore reaches the API and the API decides — which is what lets Phase 3 carry an unrecognised type through rather than substituting a default (DR-12, FR-000010). Implemented as `Model\Shipment\Type\AbstractTypeValue::toApiValue()`: a resolved type gives its id, an unresolved number is passed through, an unresolved name throws naming itself. A non-numeric unknown still throws locally, because `ShipmentOptions::setPackageType()` resolves strings through the mapping while an int bypasses it. Both end in a named error; neither ends in a silent substitution.
 
 Note this only holds once the pin moves. Until Phase 9 the installed beta.15 rejects unknown ids locally, so an integration test for the carry-through path must run against beta.31.
 
@@ -132,7 +133,11 @@ Static verification, since this is a compatibility requirement rather than a mea
 2. **Constant equivalence.** Unit tests assert each new module constant equals the beta.15 SDK value it replaces, run while beta.15 is still installed.
 3. **DI compilation.** `bin/magento setup:di:compile` succeeds, and neither `src/Block/Sales/OrderAction.php` nor `ShipmentAction.php` takes an SDK consignment as a constructor argument any more. This is the only check that catches those two, since they have no `di.xml` entry to grep for. Phase 2 owns the fix (DR-10).
 4. **Composer resolution.** `composer update myparcelnl/sdk` resolves beta.31 with `setasign/fpdi` present as an explicit dependency, and the Pest suite passes on PHP 8.1 through 8.4.
-5. **Dead import sweep.** Unused imports in `MagentoCollection`, `MagentoOrderCollection`, `TrackTraceHolder` and `AccountSettings`; the `AccountSettings` pair name classes absent from **both** beta.15 and beta.31, so they were already broken. Done in Phase 2, together with thirteen others found in the same sweep — this scenario is now a regression check, not open work.
+5. **Delivery options equivalence.** `Tests/Unit/Adapter/DeliveryOptions/DeliveryOptionsEquivalenceTest.php`
+   builds the SDK adapter and the module value object from the same stored data, for every shape the
+   factory accepts, and compares `toArray()` as encoded JSON — key order is part of the persisted
+   format. Run while beta.15 is still installed; deleted at Phase 9 with the constant equivalence test.
+6. **Dead import sweep.** Unused imports in `MagentoCollection`, `MagentoOrderCollection`, `TrackTraceHolder` and `AccountSettings`; the `AccountSettings` pair name classes absent from **both** beta.15 and beta.31, so they were already broken. Done in Phase 2, together with thirteen others found in the same sweep — this scenario is now a regression check, not open work.
 
 ### Monitoring
 

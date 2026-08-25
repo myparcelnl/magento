@@ -5,9 +5,7 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Service\TrackTraceUrl;
 use MyParcelNL\Sdk\Helper\TrackTraceUrl as SdkTrackTraceUrl;
 
-/**
- * The SDK comparison goes at Phase 9 with the pin bump; the explicit cases below survive it.
- */
+/** The SDK comparison goes at Phase 9 with the pin bump; the explicit cases below survive it. */
 it('matches the SDK helper it replaces', function (string $barcode, string $postalCode, ?string $countryCode) {
     expect(TrackTraceUrl::create($barcode, $postalCode, $countryCode))
         ->toBe(SdkTrackTraceUrl::create($barcode, $postalCode, $countryCode));

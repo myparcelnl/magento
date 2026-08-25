@@ -1,6 +1,6 @@
 # SDK v11 Migration Plan
 
-**Status:** Phase 2 complete; Phase 3 next
+**Status:** Phase 3 complete; Phase 4 next
 **Started:** 2026-08-11
 **Branch:** `feat/use-sdk-v11-shipments`
 **Business Requirement:** [BR-000003 — MyParcel SDK v11 compatibility](../business-requirements/BR-000003-sdk-v11-compatibility.md)
@@ -183,6 +183,43 @@ Worth knowing the module already displays unknown delivery types correctly where
 
 **Deferred to the phases that own the code:** Phase 3 keeps a stored name verbatim rather than mapping an unknown one to null, and Phase 6's `ShipmentBuilder` refuses to substitute at all — an unresolvable type fails its own shipment with a message naming the order and the value, leaving the rest of the batch intact. Added to FR-000010 as an acceptance criterion.
 
+### DR-13: The SDK's name-to-id maps were two entries short, and that was charging customers for the wrong delivery
+
+**Found while doing Phase 3**, and it is the first change in this branch a merchant will see as a fix rather than as a removal.
+
+`AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP` at beta.15 names five delivery types — morning, standard, evening, pickup, express — and stops there. `PACKAGE_TYPES_NAMES_IDS_MAP` names five package types and omits pallet and envelope. The Phase 2 facades name all seven of each, because naming a type is what lets it be rejected legibly instead of replaced silently (DR-12, TR-000005).
+
+**What that cost.** `AbstractDeliveryOptionsAdapter::getDeliveryTypeId()` read the short map, so it answered null for `same_day` and `early_morning`. `TrackTraceHolder.php:184` reads `getDeliveryTypeId() ?? DeliveryType::STANDARD`. A customer who chose and paid for early-morning delivery got a standard shipment, with no error at any layer. This is the live bug written out in DR-12; Phase 3 is where it stops, because `DeliveryOptions` resolves both types through the module facades.
+
+The package-type half is **inert today** — nothing called `getPackageTypeId()`. The correction still stands rather than being reverted to match: one facade as the single source is the whole point, and a second, shorter map is exactly what produced this.
+
+**The legacy path was worse, not better.** The SDK's `DeliveryOptionsV2Adapter::normalizeDeliveryType()` does `array_flip(MAP)[$id]` behind a `string` return type, so an old order carrying an id the map lacks was a fatal rather than a substitution. `DeliveryOptions::fromLegacyCheckoutData()` uses `DeliveryType::nameFromIdOrNull()` and answers null, which the caller can then handle.
+
+`DeliveryOptionsEquivalenceTest` asserts both halves head-on — the SDK returning null where the module returns the id — so this is a pinned decision rather than a drift, the same treatment DR-9 got.
+
+
+### DR-14: Receipt code was never restricted to standard delivery, because the gate read a string as an array
+
+**Found while renaming `ChosenShipmentOptions`**, in the class the rename put under a microscope.
+
+`Helper\ShipmentOptions::hasReceiptCode()` meant to allow receipt code only for PostNL, NL and standard delivery:
+
+```php
+$deliveryOptions = $this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? [];
+$deliveryType    = $deliveryOptions['deliveryType'] ?? DeliveryType::DEFAULT;
+// ... || DeliveryType::STANDARD !== $deliveryType
+```
+
+`getData()` returns the JSON **string**. `??` uses `isset` semantics, and `isset($string['deliveryType'])` is false for a non-numeric offset — no warning, no error, no log line. So `$deliveryType` was always `DeliveryType::DEFAULT`, which is `STANDARD`, and the third check compared `2 !== 2`. Verified on PHP 8.2.28. The `?? []` branch reaches the same value.
+
+**What that cost.** The delivery-type restriction did not exist. A PostNL NL **evening or morning** order got receipt code whenever a merchant had it on as a carrier default or ticked it on the New Shipment form. The SDK covers pickup only — `PostNLConsignment::getAllowedShipmentOptionsForPickup()` omits `RECEIPT_CODE` — and `canHaveShipmentOption()` does not distinguish evening from standard. It compounds: `getAllowedShipmentOptions()` returns only insurance and receipt code once receipt code is set, so the wrongly-enabled option also silently dropped signature, only recipient, age check, return and priority delivery, and made insurance mandatory. On the fulfilment path there is no capability guard at all.
+
+**The obvious fix inverts the bug.** The stored value is the delivery type *name*, so adding a `json_decode` alone makes the comparison `2 !== 'standard'` and receipt code applies to nobody. Both halves had to change together.
+
+Phase 3 fixes it and then removes the class of bug: `ShipmentOptionsResolver` takes the parsed `DeliveryOptions` and asks `getDeliveryType()`, so the comparison is name-to-name by construction and nothing re-parses that column. The same class had been reading the same field two different ways — indexed in `hasReceiptCode()`, correctly decoded in `getLabelDescription()` — which is what kept it invisible.
+
+**What a merchant sees.** PostNL NL evening and morning orders stop getting receipt code, and keep signature and only recipient instead. An order with no stored delivery options still counts as standard, so the admin New Shipment form is unaffected. `Tests/Unit/Service/ShipmentOptionsResolverReceiptCodeTest.php` pins every delivery type separately; it fails on the old code for all six non-standard types.
+
 ---
 
 ## Standing decisions
@@ -218,7 +255,10 @@ Build a **module-owned shipment domain layer**, then swap the SDK underneath it.
 New module code lands under:
 
 - `src/Model/Shipment/` — `PackageType`, `DeliveryType`, `ShipmentOption`, `CountryCode` (constant facades); `Capabilities`; `ShipmentBuilder`
-- `src/Adapter/DeliveryOptions/` — module-owned `DeliveryOptions`, `ShipmentOptions`, `PickupLocation` value objects and a factory
+- `src/Adapter/DeliveryOptions/` — module-owned `DeliveryOptions`, `ShipmentOptions`,
+  `PickupLocation` value objects and a factory
+- `src/Model/Shipment/Type/` — `PackageTypeValue`, `DeliveryTypeValue`: a stored type that can hold a
+  value we do not recognise (DR-12)
 - `src/Service/Export/` — `ShipmentExportService` (per-key batching), `LabelPdfMerger`
 - `src/Service/TrackTraceUrl.php` — provisional: Phase 7 replaces its hard-coded base URL with the API's own links (TR-000005)
 
@@ -269,7 +309,7 @@ Then create, following `docs/templates/` and matching BR-000002's depth: BR-0000
 
 **Absorbed into this phase during review:**
 
-- All seven SDK package and delivery types are named, not five (DR-12's worked example is why). Verified inert: nothing iterates the lists, both admin lists are hardcoded arrays, and an empty weight lookup for a pallet still returns 0.
+- All seven SDK package and delivery types are named, not five (DR-12's worked example is why). Verified inert *at the time*: nothing iterates the lists, both admin lists are hardcoded arrays, and an empty weight lookup for a pallet still returns 0. It stopped being inert in Phase 3, where routing the adapter through the facade turned the two extra delivery types into a fix — see DR-13.
 - Address validation removed entirely (DR-11).
 - Store scoping moved from a `fitInMailbox()` parameter onto `Package::setStoreId()`, so all ten config reads in `PackageRepository` resolve against one store instead of one read being scoped and nine ambient. `Checkout` sets it once in its constructor, because the settings setters read config and a store set after them would apply to nothing.
 - 17 unused imports removed, including five from the Phase 9 dead-import list.
@@ -292,27 +332,44 @@ Note `setup:di:compile` cannot run while the module has its own `vendor/` from `
 
 **Verification state at close.** `vendor/bin/pest` green — 298 passed, 2 todos, 0 failures; the two todos are the documented pre-existing bugs that go green in Phase 6. The constant grep returns zero. `ConstantEquivalenceTest` passes with the `EURO_COUNTRIES` exception asserted head-on. `setup:di:compile` is the one check that needs a vendor-free install, so confirm it there before the branch merges — the DR-10 change it guards is the removal of the two `BaseConsignment` constructor arguments, both verified absent by grep.
 
-### Phase 3 — Module-owned delivery options value objects · *Not started*
+### Phase 3 — Module-owned delivery options value objects · *Complete*
 
-Replace `Sdk\Adapter\DeliveryOptions\*` and `Factory\DeliveryOptionsAdapterFactory` (13 files) with module-owned immutable value objects and a factory. `src/Adapter/DeliveryOptionsFromOrderAdapter.php` and `ShipmentOptionsFromAdapter.php` currently extend SDK abstracts and write their protected properties directly; that coupling disappears here.
+`Sdk\Adapter\DeliveryOptions\*` (10 classes) and `Factory\DeliveryOptionsAdapterFactory` are replaced by four immutable module classes under `src/Adapter/DeliveryOptions/`: `DeliveryOptions`, `ShipmentOptions`, `PickupLocation`, `DeliveryOptionsFactory`. The SDK's V2 and V3 subclasses become **named constructors**: a stored shape is an input format, not a type, and nothing downstream ever needed to know which one it came from.
 
-Touches `src/Model/Quote/Checkout.php`, `src/Model/Checkout/ShippingMethods.php`, `src/Service/NeedsQuoteProps.php`, `src/Model/Carrier/Carrier.php`, `src/Block/Sales/View.php`, `src/Model/Rest/{OrderDeliveryOptions.php, Request/OrderDeliveryOptionsV1Request.php, Transformer/{ShipmentOptionsTransformer,PickupLocationTransformer}.php}`, `src/Plugin/Magento/Sales/Api/Data/OrderInformationUpdate.php`, `src/Model/Source/DefaultOptions.php`, `Tests/Helpers/DeliveryOptionsMocks.php`.
+`src/Adapter/{DeliveryOptionsFromOrderAdapter,ShipmentOptionsFromAdapter}.php` extended SDK abstracts and wrote their protected properties directly. Both are deleted; their behaviour is now `DeliveryOptions::fromOrderFallback()` and `ShipmentOptions::fromMagentoOptions()`.
 
-**Carry an unrecognised type through as a value, do not reduce it to null** (DR-12). This is the phase that makes the rule enforceable, because it owns the types.
+Retyped with no logic change: `NeedsQuoteProps`, `Carrier`, `ShippingMethods`, `Block\Sales\View`, `Model\Rest\{OrderDeliveryOptions, Request\OrderDeliveryOptionsV1Request, Transformer\{ShipmentOptionsTransformer, PickupLocationTransformer}}`, `Plugin\Magento\Sales\Api\Data\OrderInformationUpdate`, `Model\Source\DefaultOptions`, and **`TrackTraceHolder`** — which this plan's file list had omitted. `Model\Quote\Checkout` needed nothing: it reaches delivery options only through the `NeedsQuoteProps` trait.
 
-`AbstractDeliveryOptionsAdapter::getDeliveryTypeId()` returns null for a name it does not know, and `DefaultOptions::getPackageType()` / `NewShipment::getDeliveryType()` are typed `int`, so today an unknown value has nowhere to live and gets replaced with a default. Phase 2 could only log that; a value that can hold the unknown is what actually fixes it.
+**~~Named `ChosenShipmentOptions`, not `ShipmentOptions`.~~ Reversed, and the reason it was wrong is worth keeping.** `Chosen` was false: `fromMagentoOptions()` reads the admin New Shipment form, `fromCheckoutData()` also reads back the config defaults that `MagentoOrderCollection` writes into the same key, and receipt code, hide sender, large format, age check and label description are never customer choices at all. The class holds the stored option set, whoever decided it, so it is `ShipmentOptions`.
 
-Give package type and delivery type a small value object holding **either a resolved id or the raw input**:
+The clash the prefix avoided was not a real constraint. Three same-named classes in three namespaces only collide inside one file's import block, and an alias fixes it — `ShipmentOptionsTransformer` already does exactly that with `use ...OrderApi\Model\ShipmentOptions as OrderApiShipmentOptions`.
 
-- `isKnown()` — whether it resolved.
-- a **label** used everywhere a type is displayed. For an unresolved value it renders the value itself — `Package type 31`, `Delivery type pallet_xl` — so an admin sees what the order actually carries instead of a plausible wrong answer. Nothing may show a default in its place.
-- `toApiValue()` — the id for a known type, and for an unknown one the raw value if it is numeric, since **beta.31 serializes an unknown id unchanged** and lets the API judge it. A non-numeric unknown cannot be sent and throws here, naming the value.
+**`Helper\ShipmentOptions` became `Service\ShipmentOptionsResolver`, and it now returns the value object.** It was never a second DTO — it resolves what a shipment should get from the posted options, the configured defaults, the country, the carrier and per-product attributes. But it duplicated 12 of the value object's 13 fields, used a second getter vocabulary for the same concepts (`hasReturn` against `isReturn`), handed back an untyped `array`, and re-read the raw order JSON that `DeliveryOptions` had already parsed. `TrackTraceHolder` was holding both objects to describe one shipment.
 
-The consequence to design for, not around: an order carrying an unknown type stays exportable right up to the API call, and fails there with the API's own message. That is the intended outcome — the merchant learns the type is unsupported from the party that decides it, and the value is never quietly changed on the way.
+So: one value object, one resolver that returns it. `getShipmentOptions(): array` is now `resolve(): ShipmentOptions`; the resolver takes `DeliveryOptions` instead of the order column; the value object's three `is*` getters are `has*`, matching the resolver and every other option getter; and `ShipmentOptions::resolved()` is the named constructor for a decided set. The resolver's aliasing constants are gone — `Model\Shipment\ShipmentOption` was already the single source, and the templates that the earlier plan claimed needed the aliases were using `ShipmentOption::` all along. TR-000005 is amended to match.
 
-Return types widen accordingly (`getPackageType()`, `getDeliveryType()`), which reaches `new_shipment.phtml`, `Checkout` and `DefaultOptions`. Phase 2's logging in `DefaultOptions::getPackageType()` and `NewShipment::getDeliveryType()` is a stopgap and is removed here.
+**`MagentoOrderCollection::setFulfilment()` is deliberately untouched.** Its adapter goes into `FulfilmentOrder::setDeliveryOptions()`, which type hints `AbstractDeliveryOptionsAdapter` at beta.15, so a module value object cannot be passed there at all. Phase 8 owns the fulfilment path. That leaves exactly one SDK delivery-options reference in the module, commented at the call site, and the Phase 3 grep check allows it.
 
-**Check:** `Tests/Unit/Model/Rest/OpenApiConformanceTest.php` and the transformer tests stay green — the versioned REST response must be byte-identical.
+**The DR-12 value objects landed** as `src/Model/Shipment/Type/{AbstractTypeValue, PackageTypeValue, DeliveryTypeValue}`, reachable from `DeliveryOptions::packageTypeValue()` / `deliveryTypeValue()`. They answer three states a caller has to be able to tell apart — absent, stored-but-unresolvable, resolved — and `toApiValue()` passes an unknown *id* through while refusing an unknown *name*, per TR-000005. **Their consumer is Phase 6**; here they are covered by their own tests and hold the two types inside `DeliveryOptions`. `TrackTraceHolder::getPackageType()` and `DeliveryCosts::getBasePrice()` keep substituting a default, because failing a single shipment legibly is the `ShipmentBuilder`'s job and doing it earlier would fail a whole mass action on one bad order. **So Phase 2's logging stopgap in `DefaultOptions::getPackageType()` is not removed here** — that moves to Phase 6.
+
+**Two behaviour changes, and both are fixes.** DR-13 and DR-14.
+
+**Absorbed into this phase while doing it:**
+
+- The three REST fixtures in `Tests/Helpers/` were Mockery doubles over the SDK abstracts. Final value objects cannot be mocked, and value objects should not be: the file is now `DeliveryOptionsFixtures.php` and builds real objects. Overrides stay keyed by getter name so the three test files kept their vocabulary. Two consequences worth knowing. The "full" fixture was returning a pickup location alongside standard delivery, which no order can hold; it is a pickup now. And `PickupLocationTransformerTest`'s null-country case tested a state no named constructor can produce — it now asserts the reachable one, that an unset country stays empty rather than being given a value.
+- `Str::snake()` still does the nested-key conversion. It survives at beta.31 (TR-000005) and re-implementing it would have been a second copy of a cache-backed regex.
+- Where the SDK read a required pickup key unguarded and ended in a `TypeError` from a getter, the module throws `InvalidArgumentException` naming the missing key. **Not neutral at every call site, and the difference is an improvement worth knowing about.** A `TypeError` is an `Error`, so it walked straight through `OrderInformationUpdate`'s `catch (\Exception)` and fataled Magento's own order REST API on a malformed pickup order; an `InvalidArgumentException` is caught there, logged, and the order is served without the attribute. The other four call sites catch `Throwable` or nothing, so they behave as before.
+
+**Check.** `vendor/bin/pest` green — **355 passed, 2 todos, 0 failures**, up from 298; the two todos are still the pre-existing bugs that go green in Phase 6. The guard is `Tests/Unit/Adapter/DeliveryOptions/DeliveryOptionsEquivalenceTest.php`, which builds the SDK adapter and the module object from the same stored data for nine shapes — current checkout, a `toArray()` round trip, legacy `time`-based, pickup and not, unknown types — and compares `json_encode($x->toArray())`. Encoded, not array-compared: key order is part of the format and an array comparison does not see it. Deleted at Phase 9 with `ConstantEquivalenceTest`.
+
+`OpenApiConformanceTest` and the five transformer tests pass with no change beyond the fixture rename and the one case above, so the versioned REST v1 response is unmoved. The grep below returns only `MagentoOrderCollection`:
+
+```bash
+grep -rnE "Sdk\\\\Adapter\\\\DeliveryOptions|DeliveryOptionsAdapterFactory" \
+  --include="*.php" --include="*.phtml" src Controller Tests view
+```
+
+`setup:di:compile` still needs a vendor-free install. `ShipmentOptionsResolver` takes one more constructor argument than `Helper\ShipmentOptions` did, and it is constructed with `new` at both call sites rather than injected, so DI has nothing to regenerate for it — but the compile is a real check here rather than a formality.
 
 ### Phase 4 — Capabilities layer · *Not started*
 
@@ -354,13 +411,19 @@ Insurance becomes a free amount between `min` and `max` (DR-4). Specification in
 
 - `ConsignmentFactory::createByCarrierName()` → `(new Shipment())->setCarrier(...)`
 - flat address setters → `setRecipient([...])`
-- the ~18 option setters → `setOptions(ShipmentOptions)`; `label_description`, `delivery_type`, `delivery_date` and `insurance` all live **inside** options at beta.31
+- the ~18 option setters → `setOptions(ShipmentOptions)`; `label_description`, `delivery_type`, `delivery_date` and `insurance` all live **inside** options at beta.31. Phase 3 left this with **one** source: `ShipmentOptionsResolver::resolve()` returns the module's `ShipmentOptions`, so this becomes a mapping between two option objects rather than a re-read of the order. Watch the namespace collision — the module and SDK classes share the short name, so alias one at the import, the way `ShipmentOptionsTransformer` does.
+- Drop the `?? false` coercions the module `ShipmentOptions` getters need at `TrackTraceHolder:188-196`. They exist because the value object's getters are `?bool` — `null` means 'not stored' on the read paths — while `resolved()` guarantees non-null and the consignment setters take `bool`. If the SDK's `setOptions()` accepts the nullable shape, the coercion disappears rather than moving.
 - `setPhysicalProperties(['weight' => …])` — shape unchanged
 - `addItem(MyParcelCustomsItem)` → `setCustomsDeclaration(...)`. **`MyParcelCustomsItem::setDescription()`'s 2nd `$carrier` argument is now ignored and max length is hard-coded to 50** — verify no description regressions.
 - the pickup block → `setPickup(...)`
 - Fix the double-add at `:347-361` / `:367-382`. **The Phase 1 test for this goes green here** — that is the signal the fix landed. Same for the age-check precedence bug (DR-7).
 - The API key is no longer on the shipment; pair each `Shipment` with its key for Phase 7.
 - **Never substitute a type we cannot resolve** (DR-12). If a stored delivery or package type has no id, fail that shipment with a message naming the order and the value, and leave the rest of the batch intact — the per-chunk persistence Phase 7 specifies. Silently exporting a different delivery than the customer paid for is the outcome this phase must make impossible.
+- **Decide whether the order-fallback path should carry a delivery date.**
+  `DeliveryOptions::fromOrderFallback()` never sets `date` or `pickupLocation`, inherited from the
+  class it replaces: that class read both from an undefined variable, so both were always null.
+  Phase 3 preserved the behaviour rather than fixing it, because supplying a date changes what gets
+  exported. `Tests/Unit/Adapter/DeliveryOptions/DeliveryOptionsFallbackTest.php` pins it either way.
 - `isToRowCountry()` at `:339` comes from the Phase 2 `CountryCode` constants, not from capabilities — it is a static country fact (TR-000005).
 - **Retype `canUseMultiCollo()`** (`MagentoCollection.php:643`, called from `MagentoCollection.php:439` and `src/Observer/NewShipment.php:111`). It is typed `AbstractConsignment` and receives what this phase turns into a `Shipment`, so it breaks here whatever else happens. The body is module-owned carrier logic; Phase 4 replaces the rule itself with the capabilities collo maximum, so keep the retype mechanical and leave the rule alone.
 
@@ -391,7 +454,13 @@ Touches `MagentoCollection`, `MagentoOrderCollection`, `MagentoShipmentCollectio
 - ~~Delete dead/broken imports: `BaseConsignment`, `CarrierFactory` ×2, `CarrierConfigurationFactory`, `CarrierConfiguration`.~~ **Done in Phase 2**, along with twelve other unused imports found in the same sweep.
 - `Model\PrinterlessReturnRequest` constructor is now `(string $apiKey, int $consignmentId)`.
 - Carrier `::CONSIGNMENT` constants and `getConsignmentClass()` are gone; `TYPE_B2C`/`TYPE_B2B` moved to `AbstractCarrier`.
-- Retire `Tests/Helpers/DeliveryOptionsMocks.php` (dead and SDK-coupled).
+- ~~Retire `Tests/Helpers/DeliveryOptionsMocks.php` (dead and SDK-coupled).~~ **Wrong on both counts.**
+  Three REST tests use it. Phase 3 rebuilt it as `DeliveryOptionsFixtures.php` over the module
+  value objects, so it is live and no longer SDK-coupled. Nothing to retire.
+- **Remove `extra_assurance` from `Adapter\DeliveryOptions\ShipmentOptions`.** It has no reader
+  anywhere in the module, no `ShipmentOption` constant, no `AbstractConsignment` setter, and no
+  entry in `ShipmentOptionsTransformer`'s map. It only survives because `DeliveryOptionsEquivalenceTest`
+  compares all thirteen `toArray()` keys against the SDK adapter, and that test goes here.
 - Note in TR-000005 that `AccountWebService`, `CarrierOptionsWebService` and `OrderCollection` are now `@internal`.
 
 **Check:** `composer update myparcelnl/sdk`, then the full verification below.
@@ -420,7 +489,7 @@ Tracking is this matrix plus each document's own Traceability section (house con
 
 Two things this makes visible:
 
-- **Phases 2 and 3 have no FR** — they trace only to TR-000005. Correct for a like-for-like port: there is no new capability to specify, and an FR asserting "behaviour is unchanged" is not usefully testable.
+- **Phases 2 and 3 have no FR** — they trace only to TR-000005. Correct for a like-for-like port: there is no new capability to specify, and an FR asserting "behaviour is unchanged" is not usefully testable. Each turned out to carry one visible correction anyway — the EU country list (DR-9) and the short delivery type map (DR-13) — and both are recorded as decision records rather than retrofitted into an FR.
 - **BR-000003 is only satisfied at Phase 9.** Nothing before it delivers the business outcome, so this is one deliverable with nine reviewable steps, not nine shippable increments. Worth stating in the PR description.
 
 If a phase splits — Phase 4 is the likely candidate — split its row rather than letting the mapping go stale.
@@ -456,6 +525,9 @@ Manual end-to-end, on `*.acceptance.myparcel.nl` credentials only — never prod
 9. A store with **no** API key configured — the clear `LocalizedException`, not an env-var fallback.
 10. **Address validation is gone (DR-11).** Place an order with a malformed NL postcode and street. It is accepted, no warning shows in the order grid, and exporting it surfaces the API's rejection legibly rather than silently.
 11. **Store-scoped package settings (Phase 2).** Two stores with different mailbox, digital stamp and package small settings; confirm checkout in each resolves its own store's values, not the other's.
+12. **A delivery type the old SDK map lacked (Phase 3, DR-13).** Export an order stored with `early_morning` or `same_day`. It ships as that delivery type; before Phase 3 it silently shipped and charged as standard.
+13. **Receipt code on a non-standard delivery (Phase 3, DR-14).** Turn receipt code on as the PostNL default. Export an NL **evening** order: it ships without receipt code and keeps signature and only recipient. A **standard** order still gets receipt code. Before Phase 3 the evening order got receipt code and silently lost the other two options. Check the fulfilment (PPS) path as well as the label path — it never had the SDK's pickup guard.
+14. **Label description placeholders (Phase 3).** Print a label for an order whose label description uses `%delivery_date%`. The date still renders; the resolver now reads it from the parsed delivery options rather than decoding the order column itself.
 
 ---
 

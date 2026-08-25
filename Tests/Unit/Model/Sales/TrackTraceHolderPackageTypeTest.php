@@ -7,12 +7,9 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
 /**
- * TrackTraceHolder::getPackageType() calls getAgeCheck() first, and a
- * forced-package-type result there would override everything below — but
- * getAgeCheck() returns false immediately for a non-NL address, before it
- * touches anything else. Using a non-NL address in every case here isolates
- * package-type precedence from age-check precedence (which is carrier-fact
- * territory the SDK v11 migration plan defers to Phase 4 — see DR-5).
+ * getPackageType() consults getAgeCheck() first, which would override
+ * everything below. Every case here uses a non-NL address, where getAgeCheck()
+ * returns false immediately, so package-type precedence is isolated.
  */
 function createHolderForPackageType(int $configuredDefault): array
 {

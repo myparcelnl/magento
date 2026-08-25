@@ -2,38 +2,14 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\ObjectManagerInterface;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\Order\Address;
-use MyParcelNL\Magento\Helper\ShipmentOptions;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
-function createShipmentOptions(
-    string $countryId,
-    string $carrier,
-    array $options,
-    bool $defaultOptionSet = false
-): ShipmentOptions {
-    $address = Mockery::mock(Address::class);
-    $address->shouldReceive('getCountryId')->andReturn($countryId);
-
-    $order = Mockery::mock(Order::class);
-    $order->shouldReceive('getShippingAddress')->andReturn($address);
-
-    $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('get')->with(Config::class)->andReturn(Mockery::mock(Config::class));
-
-    $defaultOptions = Mockery::mock(DefaultOptions::class);
-    $defaultOptions->shouldReceive('hasOptionSet')->andReturn($defaultOptionSet)->byDefault();
-
-    return new ShipmentOptions($defaultOptions, $order, $objectManager, $carrier, $options);
-}
+// createShipmentOptions() lives in Tests/Helpers/ShipmentOptionsResolverFixtures.php.
 
 it('returns true when priority delivery was explicitly chosen', function () {
     $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [
-        ShipmentOptions::PRIORITY_DELIVERY => true,
+        ShipmentOption::PRIORITY_DELIVERY => true,
     ]);
 
     expect($shipmentOptions->hasPriorityDelivery())->toBeTrue();
@@ -43,7 +19,7 @@ it('returns false when priority delivery was explicitly declined', function () {
     // The fallback is forced to true here, so this only returns false when the
     // explicit false in the live options short-circuits the fallback.
     $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [
-        ShipmentOptions::PRIORITY_DELIVERY => false,
+        ShipmentOption::PRIORITY_DELIVERY => false,
     ], true);
 
     expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
@@ -51,7 +27,7 @@ it('returns false when priority delivery was explicitly declined', function () {
 
 it('returns false for non-NL destinations even when explicitly chosen', function () {
     $shipmentOptions = createShipmentOptions('BE', CarrierPostNL::NAME, [
-        ShipmentOptions::PRIORITY_DELIVERY => true,
+        ShipmentOption::PRIORITY_DELIVERY => true,
     ]);
 
     expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();
@@ -59,7 +35,7 @@ it('returns false for non-NL destinations even when explicitly chosen', function
 
 it('returns false for non-PostNL carriers even when explicitly chosen', function () {
     $shipmentOptions = createShipmentOptions('NL', 'dhlforyou', [
-        ShipmentOptions::PRIORITY_DELIVERY => true,
+        ShipmentOption::PRIORITY_DELIVERY => true,
     ]);
 
     expect($shipmentOptions->hasPriorityDelivery())->toBeFalse();

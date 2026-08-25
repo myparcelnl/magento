@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Magento\Sales\Model\Order\Shipment\Track;
-use MyParcelNL\Magento\Helper\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
@@ -32,7 +32,7 @@ it('lets an explicit true option win', function () {
     [$holder, $track] = createHolderForAgeCheck(false);
     $address = createAddress(['getCountryId' => 'NL']);
 
-    $result = invokePrivateMethod($holder, 'getAgeCheck', [$track, $address, [ShipmentOptions::AGE_CHECK => true]]);
+    $result = invokePrivateMethod($holder, 'getAgeCheck', [$track, $address, [ShipmentOption::AGE_CHECK => true]]);
 
     expect($result)->toBeTrue();
 });
@@ -41,22 +41,17 @@ it('lets an explicit false option win over the carrier default', function () {
     [$holder, $track] = createHolderForAgeCheck(true);
     $address = createAddress(['getCountryId' => 'NL']);
 
-    $result = invokePrivateMethod($holder, 'getAgeCheck', [$track, $address, [ShipmentOptions::AGE_CHECK => false]]);
+    $result = invokePrivateMethod($holder, 'getAgeCheck', [$track, $address, [ShipmentOption::AGE_CHECK => false]]);
 
     expect($result)->toBeFalse();
 });
 
 it('falls through to the product attribute, then the carrier default, when nothing is explicit', function () {
-    // DR-7 (docs/design/sdk-v11-migration.md): getAgeCheck() passes
-    // $magentoTrack itself — not its items — into
-    // ShipmentOptions::getAgeCheckFromProduct(), which does `foreach
-    // ($products as $product)`. Track has no Iterator/IteratorAggregate
-    // anywhere in its hierarchy, so that loop runs zero times and the
-    // function always returns false, never null. Because `??` only falls
-    // through on null, the carrier-default tier below can never be reached
-    // either. Only the explicit-option tier (tested above) is reachable
-    // today. Fixed alongside the customs double-add in Phase 6, when
-    // TrackTraceHolder is rewritten into ShipmentBuilder.
+    // DR-7: getAgeCheck() passes $magentoTrack itself, not its items, into
+    // getAgeCheckFromProduct(), which foreaches it. Track is not iterable, so
+    // the loop never runs and it returns false rather than null — and `??`
+    // only falls through on null, so the carrier-default tier below is
+    // unreachable too. Fixed in Phase 6.
     [$holder, $track] = createHolderForAgeCheck(true);
     $address = createAddress(['getCountryId' => 'NL']);
 

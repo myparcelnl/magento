@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Rest\Transformer;
 
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractShipmentOptionsAdapter;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\ShipmentOptions as OrderApiShipmentOptions;
 
 class ShipmentOptionsTransformer
@@ -15,19 +15,19 @@ class ShipmentOptionsTransformer
      * so field renames in the SDK propagate automatically.
      */
     private const BOOLEAN_GETTER_TO_ORDER_API_KEY = [
-        'hasAgeCheck'        => 'requires_age_verification',
-        'hasSignature'       => 'requires_signature',
-        'hasOnlyRecipient'   => 'recipient_only_delivery',
-        'hasLargeFormat'     => 'oversized_package',
-        'isReturn'           => 'print_return_label_at_drop_off',
-        'hasHideSender'      => 'hide_sender',
-        'isPriorityDelivery' => 'priority_delivery',
-        'hasReceiptCode'     => 'requires_receipt_code',
-        'isSameDayDelivery'  => 'same_day_delivery',
-        'hasCollect'         => 'scheduled_collection',
+        'hasAgeCheck'         => 'requires_age_verification',
+        'hasSignature'        => 'requires_signature',
+        'hasOnlyRecipient'    => 'recipient_only_delivery',
+        'hasLargeFormat'      => 'oversized_package',
+        'hasReturn'           => 'print_return_label_at_drop_off',
+        'hasHideSender'       => 'hide_sender',
+        'hasPriorityDelivery' => 'priority_delivery',
+        'hasReceiptCode'      => 'requires_receipt_code',
+        'hasSameDayDelivery'  => 'same_day_delivery',
+        'hasCollect'          => 'scheduled_collection',
     ];
 
-    public function transform(?AbstractShipmentOptionsAdapter $shipmentOptions): ?\stdClass
+    public function transform(?ShipmentOptions $shipmentOptions): ?\stdClass
     {
         if ($shipmentOptions === null) {
             return null;

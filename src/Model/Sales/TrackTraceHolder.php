@@ -25,22 +25,23 @@ use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\Track;
-use MyParcelNL\Magento\Adapter\DeliveryOptionsFromOrderAdapter;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
 
@@ -124,21 +125,22 @@ class TrackTraceHolder
 
         try {
             // create new instance from known json
-            $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
+            $deliveryOptionsAdapter = DeliveryOptionsFactory::create((array) $deliveryOptions);
         } catch (BadMethodCallException $e) {
             // create new instance from unknown json data
-            $deliveryOptionsAdapter = new DeliveryOptionsFromOrderAdapter((array) $deliveryOptions + $options);
+            $deliveryOptionsAdapter = DeliveryOptions::fromOrderFallback((array) $deliveryOptions + $options);
         }
 
         $pickupLocationAdapter = $deliveryOptionsAdapter->getPickupLocation();
         $this->carrier         = $deliveryOptionsAdapter->getCarrier();
-        $shipmentOptions       = new ShipmentOptions(
+        $shipmentOptions       = (new ShipmentOptionsResolver(
             $this->defaultOptions,
             $order,
+            $deliveryOptionsAdapter,
             $this->objectManager,
             $this->carrier,
             $options
-        );
+        ))->resolve();
 
         $this->consignment = (ConsignmentFactory::createByCarrierName($deliveryOptionsAdapter->getCarrier()))
             ->setApiKey($apiKey)
@@ -180,20 +182,20 @@ class TrackTraceHolder
             ->setState($state)
             ->setPhone($address->getTelephone())
             ->setEmail($address->getEmail())
-            ->setLabelDescription($shipmentOptions->getLabelDescription())
+            ->setLabelDescription($shipmentOptions->getLabelDescription() ?? '')
             ->setDeliveryType($deliveryOptionsAdapter->getDeliveryTypeId() ?? DeliveryType::STANDARD)
             ->setDeliveryDate($deliveryDate)
             ->setPackageType($packageType)
             // until capabilities: set receipt code first because it blocks other options
-            ->setReceiptCode($shipmentOptions->hasReceiptCode())
-            ->setOnlyRecipient($shipmentOptions->hasOnlyRecipient())
-            ->setSignature($shipmentOptions->hasSignature())
-            ->setCollect($shipmentOptions->hasCollect())
-            ->setReturn($shipmentOptions->hasReturn())
-            ->setSameDayDelivery($shipmentOptions->hasSameDayDelivery())
-            ->setLargeFormat($shipmentOptions->hasLargeFormat())
-            ->setAgeCheck($shipmentOptions->hasAgeCheck())
-            ->setPriorityDelivery($shipmentOptions->hasPriorityDelivery())
+            ->setReceiptCode($shipmentOptions->hasReceiptCode() ?? false)
+            ->setOnlyRecipient($shipmentOptions->hasOnlyRecipient() ?? false)
+            ->setSignature($shipmentOptions->hasSignature() ?? false)
+            ->setCollect($shipmentOptions->hasCollect() ?? false)
+            ->setReturn($shipmentOptions->hasReturn() ?? false)
+            ->setSameDayDelivery($shipmentOptions->hasSameDayDelivery() ?? false)
+            ->setLargeFormat($shipmentOptions->hasLargeFormat() ?? false)
+            ->setAgeCheck($shipmentOptions->hasAgeCheck() ?? false)
+            ->setPriorityDelivery($shipmentOptions->hasPriorityDelivery() ?? false)
             ->setInsurance($shipmentOptions->getInsurance())
             ->setInvoice(
                 $shipment
@@ -399,9 +401,9 @@ class TrackTraceHolder
             return false;
         }
 
-        $ageCheckFromOptions  = $options[ShipmentOptions::AGE_CHECK] ?? null;
-        $ageCheckOfProduct    = ShipmentOptions::getAgeCheckFromProduct($magentoTrack);
-        $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, ShipmentOptions::AGE_CHECK);
+        $ageCheckFromOptions  = $options[ShipmentOption::AGE_CHECK] ?? null;
+        $ageCheckOfProduct    = ShipmentOptionsResolver::getAgeCheckFromProduct($magentoTrack);
+        $ageCheckFromSettings = $this->defaultOptions->hasDefaultOption($this->carrier, ShipmentOption::AGE_CHECK);
 
         return $ageCheckFromOptions ?? $ageCheckOfProduct ?? $ageCheckFromSettings;
     }
@@ -418,13 +420,13 @@ class TrackTraceHolder
         $objectManager = ObjectManager::getInstance();
         $resource      = $objectManager->get(ResourceConnection::class);
         $connection    = $resource->getConnection();
-        $attributeId   = ShipmentOptions::getAttributeId(
+        $attributeId   = ShipmentOptionsResolver::getAttributeId(
             $connection,
             $resource->getTableName('eav_attribute'),
             $column
         );
 
-        return ShipmentOptions::getValueFromAttribute(
+        return ShipmentOptionsResolver::getValueFromAttribute(
             $connection,
             $resource->getTableName($tableName),
             $attributeId,

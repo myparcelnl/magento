@@ -85,17 +85,13 @@ final class DeliveryType
         return self::NAMES_IDS_MAP[$name];
     }
 
-    /**
-     * Forgiving: use on read paths.
-     */
+    /** Forgiving: use on read paths. */
     public static function toIdOrNull(?string $name): ?int
     {
         return null === $name ? null : (self::NAMES_IDS_MAP[$name] ?? null);
     }
 
-    /**
-     * @throws \InvalidArgumentException
-     */
+    /** @throws \InvalidArgumentException */
     public static function nameFromId(int $id): string
     {
         $name = self::nameFromIdOrNull($id);

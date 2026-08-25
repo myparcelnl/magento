@@ -9,12 +9,12 @@ use Magento\Framework\Webapi\Exception as WebapiException;
 use Magento\Framework\Webapi\Rest\Request;
 use Magento\Framework\Webapi\Rest\Response;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Api\OrderDeliveryOptionsInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Rest\Request\OrderDeliveryOptionsV1Request;
 use MyParcelNL\Magento\Model\Rest\Resource\OrderDeliveryOptionsV1Resource;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
 class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOptionsInterface
 {
@@ -71,7 +71,7 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
                     'pickupLocation'  => null,
                 ]);
             } else {
-                $adapter  = DeliveryOptionsAdapterFactory::create($data);
+                $adapter  = DeliveryOptionsFactory::create($data);
                 $resource = $this->createResource($handler->transform($adapter));
             }
 

@@ -8,6 +8,7 @@ use BadMethodCallException;
 use DateTime;
 use DateTimeZone;
 use Exception;
+use InvalidArgumentException;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -18,15 +19,17 @@ use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
 use Magento\Shipping\Model\ShipmentNotifier;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
-use MyParcelNL\Magento\Helper\ShipmentOptions;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderNotesCollection;
 use MyParcelNL\Sdk\Exception\AccountNotActiveException;
@@ -170,9 +173,18 @@ class MagentoOrderCollection extends MagentoCollection
             $myparcelDeliveryOptions = $magentoOrder[Config::FIELD_DELIVERY_OPTIONS] ?? '';
             $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
             $selectedCarrier         = $deliveryOptions['carrier'] ?? $this->options['carrier'] ?? CarrierPostNL::NAME;
-            $shipmentOptionsHelper   = new ShipmentOptions(
+            try {
+                $deliveryOptionsDto = DeliveryOptionsFactory::create((array) $deliveryOptions);
+            } catch (BadMethodCallException | InvalidArgumentException $e) {
+                $deliveryOptionsDto = DeliveryOptions::fromOrderFallback(
+                    (array) $deliveryOptions + $this->options
+                );
+            }
+
+            $shipmentOptionsResolver = new ShipmentOptionsResolver(
                 $defaultOptions,
                 $magentoOrder,
+                $deliveryOptionsDto,
                 $this->objectManager,
                 $selectedCarrier,
                 $this->options
@@ -182,9 +194,11 @@ class MagentoOrderCollection extends MagentoCollection
                 $deliveryOptions['packageType'] = PackageType::PACKAGE_NAME;
             }
 
-            $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
+            $deliveryOptions['shipmentOptions'] = $shipmentOptionsResolver->resolve()->toArray();
             $deliveryOptions['carrier']         = $selectedCarrier;
 
+            // Still the SDK factory: FulfilmentOrder::setDeliveryOptions() type hints the SDK
+            // class, so the module value object cannot go here. Phase 8 aligns this path.
             try {
                 // create new instance from known json
                 $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
@@ -619,7 +633,9 @@ class MagentoOrderCollection extends MagentoCollection
     public function createMagentoShipment(Order $order, bool $notifyClientByEmail = true): bool
     {
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
-        /** @var Shipment $shipment */
+        /**
+         * @var Shipment $shipment
+         */
         $shipment = $convertOrder->toShipment($order);
 
         $shipmentAttributes = $shipment->getExtensionAttributes();

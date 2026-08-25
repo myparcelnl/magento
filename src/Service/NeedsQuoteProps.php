@@ -15,20 +15,19 @@ use Magento\Quote\Api\ShippingMethodManagementInterface as ShippingMethodManagem
 use Magento\Quote\Model\EstimateAddress;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address\RateRequest;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Quote\Checkout;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
-use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 
 /**
  * Use this trait when you need to get the quote in several scenarios and have easy access to its properties.
  *
- * @property AbstractDeliveryOptionsAdapter $deliveryOptions
+ * @property DeliveryOptions $deliveryOptions
  */
 trait NeedsQuoteProps
 {
-    protected AbstractDeliveryOptionsAdapter $deliveryOptions;
+    protected DeliveryOptions $deliveryOptions;
 
     /**
      * Use this method during raterequest, because getting it from session will cause infinite loop for
@@ -68,7 +67,7 @@ trait NeedsQuoteProps
         return $quote;
     }
 
-    protected function getDeliveryOptionsFromQuote(Quote $quote): AbstractDeliveryOptionsAdapter
+    protected function getDeliveryOptionsFromQuote(Quote $quote): DeliveryOptions
     {
         if (isset($this->deliveryOptions)) {
             return $this->deliveryOptions;
@@ -78,13 +77,13 @@ trait NeedsQuoteProps
 
         if (is_string($deliveryOptions)) {
             try {
-                $this->deliveryOptions = DeliveryOptionsAdapterFactory::create(json_decode($deliveryOptions, true, 512, JSON_THROW_ON_ERROR));
+                $this->deliveryOptions = DeliveryOptionsFactory::create(json_decode($deliveryOptions, true, 512, JSON_THROW_ON_ERROR));
             } catch (\Throwable $e) {
                 Logger::log('warning', "Failed to retrieve delivery options from quote {$quote->getId()}", (array) $deliveryOptions);
-                $this->deliveryOptions = new DeliveryOptionsV3Adapter();
+                $this->deliveryOptions = DeliveryOptions::defaults();
             }
         } else {
-            $this->deliveryOptions = new DeliveryOptionsV3Adapter();
+            $this->deliveryOptions = DeliveryOptions::defaults();
         }
 
         return $this->deliveryOptions;

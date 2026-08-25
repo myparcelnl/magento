@@ -22,9 +22,7 @@ trait BuildsTrackingUrl
      */
     public function getUrl(Track $track): string
     {
-        /**
-         * @var Order $order
-         */
+        /** @var Order $order */
         $order = (ObjectManager::getInstance())->create(Order::class)->load($track->getOrderId());
 
         return TrackTraceUrl::create(
