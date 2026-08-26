@@ -5,6 +5,7 @@ declare(strict_types=1);
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
@@ -15,6 +16,19 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 function capabilitiesOk(?array $results = null): GuzzleResponse
 {
     return new GuzzleResponse(200, [], capabilitiesBody($results ?? [capabilityResult()]));
+}
+
+/**
+ * The Repository's own id prefixes, read off the class so a rename cannot quietly stop these tests
+ * from asserting anything.
+ *
+ * @return array{0: string, 1: string} success prefix, failure prefix
+ */
+function capabilitiesCacheIdPrefixes(): array
+{
+    $class = new ReflectionClass(CapabilitiesRepository::class);
+
+    return [$class->getConstant('CACHE_ID_PREFIX'), $class->getConstant('FAILURE_ID_PREFIX')];
 }
 
 it('fetches once and serves the cache after that', function () {
@@ -159,4 +173,73 @@ it('logs each kind of unrecognised value once per fetch', function () {
 
     // Logged, and still usable: the recognised half of the response survives the unknown half.
     expect($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME]);
+});
+
+// ---- not hammering a failing endpoint -------------------------------------
+
+it('remembers a failed shape briefly, so a reload does not repeat the burst', function () {
+    mockLoggerFacade()->shouldReceive('warning');
+
+    $r       = makeCapabilitiesRepository([new GuzzleResponse(429, [], '')]);
+    $request = CapabilitiesRequest::forCountry('NL');
+
+    $r['repository']->forStore(1, $request);
+
+    [, $failurePrefix] = capabilitiesCacheIdPrefixes();
+
+    $failures = array_filter(
+        $r['store']->savedTags,
+        static fn (string $id): bool => 0 === strpos($id, $failurePrefix),
+        ARRAY_FILTER_USE_KEY
+    );
+
+    expect($failures)->toHaveCount(1)
+        ->and(array_values($failures)[0]['lifeTime'])->toBe(60);
+});
+
+it('does not call again while a failure is remembered', function () {
+    mockLoggerFacade()->shouldReceive('warning')->once();
+
+    // One queued response: a second call would exhaust the handler and fail loudly.
+    $r       = makeCapabilitiesRepository([new GuzzleResponse(429, [], '')]);
+    $request = CapabilitiesRequest::forCountry('NL');
+
+    $r['repository']->forStore(1, $request);
+
+    // A fresh Repository over the same cache: no memo, so only the failure entry can stop the call.
+    $again = makeCapabilitiesRepository([]);
+    $again['store']->entries = $r['store']->entries;
+
+    expect($again['repository']->forStore(1, $request)->isPermissive())->toBeTrue()
+        ->and($again['history'])->toHaveCount(0);
+});
+
+it('prefers a previous good answer over a recent failure', function () {
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+    mockLoggerFacade()->shouldReceive('warning')->byDefault();
+
+    $request = CapabilitiesRequest::forCountry('NL');
+
+    // A store holding both a success and a failure entry for the same shape.
+    $ok = makeCapabilitiesRepository([capabilitiesOk()]);
+    $ok['repository']->forStore(1, $request);
+
+    // The double stores ids exactly as the Repository passes them, so lower case and unprefixed by
+    // Magento. Add a failure marker beside the success entry for the same shape.
+    [$okPrefix, $failurePrefix] = capabilitiesCacheIdPrefixes();
+
+    $entries = $ok['store']->entries;
+    foreach (array_keys($entries) as $id) {
+        expect($id)->toStartWith($okPrefix);
+        $entries[$failurePrefix . substr($id, strlen($okPrefix))] = '1';
+    }
+
+    $both = makeCapabilitiesRepository([]);
+    $both['store']->entries = $entries;
+
+    $set = $both['repository']->forStore(1, $request);
+
+    expect($set->isPermissive())->toBeFalse()
+        ->and($set->carriers())->toBe([Carrier::POSTNL])
+        ->and($both['history'])->toHaveCount(0);
 });

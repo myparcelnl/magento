@@ -71,7 +71,7 @@ Automate 'Insurance € 250',Automatiseer 'Verzekerd tot €250'
 Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
 Automate 'Insure shipments to Belgium',Automatiseer 'Verzeker zendingen naar België'
 Automate Priority delivery (mailbox),Automatiseer Prio levering (brievenbus)
-Automatically enable priority delivery for mailbox packages during export,Automatisch prioriteitslevering inschakelen voor brievenbuspakketten tijdens export
+Automatically enable priority delivery for mailbox packages during export,Automatisch prio levering inschakelen voor brievenbuspakketten tijdens export
 Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Let op: Maandagbezorging is alleen mogelijk als het pakket op zaterdag voor 15.00 uur is afgeleverd op de daarvoor bestemde PostNL locaties.
 'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscontrole is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ dient te tonen door middel van een identiteitsbewijs. Bij deze verzendoptie zijn handtekening voor ontvangst en alleen ontvanger inbegrepen. De leeftijd van 18+ is verder uitgesloten van de bezorgopties 's morgens en 's avonds.
@@ -310,7 +310,7 @@ packet_title,Klein pakket
 package_title,Pakket
 signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
-priority_delivery_title,Prioriteitslevering
+priority_delivery_title,Prio levering
 only_recipient_title,Alleen ontvanger
 monday_delivery_title,Maandag bezorging
 saturday_delivery,Zaterdag bezorging
@@ -450,6 +450,14 @@ A token is currently configured at this scope.,Er is op dit bereik momenteel een
 "Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.","Dekt uitsluitend deze store. Door dit token uit te geven wordt deze store verwijderd uit het zicht van het token op standaardbereik en van elk token op bovenliggend websitebereik: vanaf nu hoort deze store exclusief bij dit token op store-view-bereik."
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dekt elke store-view binnen deze website die niet apart op store-view-bereik een eigen token heeft. Door dit token uit te geven worden deze stores verwijderd uit het zicht van het token op standaardbereik; een store-view binnen deze website met een eigen token blijft onzichtbaar voor dit token."
 Covers every store not tokened separately at website or store-view scope.,Dekt elke store die niet apart op website- of store-view-bereik een eigen token heeft.
-24 hour priority,24 uur prio
-"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Indien ingeschakeld wordt de checkbox 24 uur prio in de checkout getoond wanneer dit product in de winkelwagen zit, ook als de algemene prio-instelling uit staat."
+24 hour priority,Prio levering
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Indien ingeschakeld wordt de checkbox prio levering in de checkout getoond wanneer dit product in de winkelwagen zit, ook als de algemene prio levering instelling uit staat."
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Uw API key is opgeslagen, maar de MyParcel-accountinstellingen konden niet worden geïmporteerd: %1. Controleer de API key en gebruik daarna de knop MyParcel Backoffice-instellingen importeren."
+"MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel kon niet vaststellen welke opties dit account heeft, daarom worden alle opties getoond. Een optie die het account niet heeft, wordt geweigerd bij het exporteren van de zending."
+No standard weight,Geen standaardgewicht
+Create MyParcel consignment,MyParcel zending aanmaken
+Export Entire Order,Volledige bestelling exporteren
+Label amount:,Aantal labels:
+Letter,Ongefrankeerd
+No insurance,Geen verzekering
+Return if no answer,Retour bij geen gehoor

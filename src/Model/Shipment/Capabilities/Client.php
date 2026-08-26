@@ -13,6 +13,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Configuration;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesMapper;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
+use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 use Throwable;
 
@@ -38,6 +39,19 @@ class Client
     private const ACCEPT          = 'application/json;charset=utf-8;version=2';
     private const CONTENT_TYPE    = 'application/json;charset=utf-8';
     private const TIMEOUT_SECONDS = 10;
+
+    /** Statuses that mean "ask again", as opposed to "this request is wrong". */
+    private const RETRYABLE_STATUSES = [429, 503, 529];
+
+    /**
+     * Longest we will hold a page open waiting out a throttle. A Retry-After beyond this is honoured
+     * by not retrying at all: the negative cache entry the Repository writes is the better answer
+     * than a page that hangs.
+     */
+    private const MAX_RETRY_WAIT_SECONDS = 2.0;
+
+    /** Used when a throttling response names no Retry-After. */
+    private const DEFAULT_RETRY_WAIT_SECONDS = 0.5;
 
     private GuzzleClient       $httpClient;
     private Config             $config;
@@ -80,8 +94,56 @@ class Client
      */
     public function send(string $apiKey, string $body): array
     {
+        $response = $this->request($apiKey, $body);
+        $status   = $response->getStatusCode();
+
+        if (in_array($status, self::RETRYABLE_STATUSES, true)) {
+            $wait = $this->retryWaitFor($response);
+
+            if (null === $wait) {
+                throw new RuntimeException(sprintf(
+                    'capabilities responded %d and asked to wait longer than %.1fs',
+                    $status,
+                    self::MAX_RETRY_WAIT_SECONDS
+                ));
+            }
+
+            Logger::notice(sprintf(
+                'Capabilities throttled with %d; retrying once after %.2fs.',
+                $status,
+                $wait
+            ));
+
+            if ($wait > 0.0) {
+                usleep((int) round($wait * 1000000));
+            }
+
+            // One retry only. A second would double a latency budget the admin form already spends
+            // once per package type.
+            $response = $this->request($apiKey, $body);
+            $status   = $response->getStatusCode();
+        }
+
+        if ($status < 200 || $status > 299) {
+            throw new RuntimeException(sprintf('capabilities responded %d', $status));
+        }
+
+        $decoded = json_decode((string) $response->getBody(), true);
+
+        if (! is_array($decoded) || ! is_array($decoded['results'] ?? null)) {
+            throw new RuntimeException('capabilities response carried no results array');
+        }
+
+        return $decoded['results'];
+    }
+
+    /**
+     * @throws \RuntimeException on a transport failure
+     */
+    private function request(string $apiKey, string $body): ResponseInterface
+    {
         try {
-            $response = $this->httpClient->request('POST', $this->url(), [
+            return $this->httpClient->request('POST', $this->url(), [
                 RequestOptions::HEADERS         => [
                     'Authorization' => 'Bearer ' . base64_encode($apiKey),
                     'Content-Type'  => self::CONTENT_TYPE,
@@ -95,22 +157,44 @@ class Client
                 RequestOptions::CONNECT_TIMEOUT => self::TIMEOUT_SECONDS,
             ]);
         } catch (Throwable $e) {
+            // A timeout is deliberately not retried: it has already spent the whole budget, and a
+            // second attempt would double the worst case rather than improve it.
             throw new RuntimeException('capabilities request failed: ' . $e->getMessage(), 0, $e);
         }
+    }
 
-        $status = $response->getStatusCode();
+    /**
+     * Seconds to wait before the single retry, or null when the API asks for longer than we are
+     * willing to hold a page open.
+     *
+     * Retry-After is either a number of seconds or an HTTP date; both are accepted, and anything
+     * unparseable falls back to the default rather than being treated as zero.
+     */
+    private function retryWaitFor(ResponseInterface $response): ?float
+    {
+        $header = trim($response->getHeaderLine('Retry-After'));
 
-        if ($status < 200 || $status > 299) {
-            throw new RuntimeException(sprintf('capabilities responded %d', $status));
+        if ('' === $header) {
+            return self::DEFAULT_RETRY_WAIT_SECONDS;
         }
 
-        $decoded = json_decode((string) $response->getBody(), true);
+        if (is_numeric($header)) {
+            $wait = (float) $header;
+        } else {
+            $at = strtotime($header);
 
-        if (! is_array($decoded) || ! is_array($decoded['results'] ?? null)) {
-            throw new RuntimeException('capabilities response carried no results array');
+            if (false === $at) {
+                return self::DEFAULT_RETRY_WAIT_SECONDS;
+            }
+
+            $wait = (float) ($at - time());
         }
 
-        return $decoded['results'];
+        if ($wait <= 0.0) {
+            return 0.0;
+        }
+
+        return $wait > self::MAX_RETRY_WAIT_SECONDS ? null : $wait;
     }
 
     /**

@@ -440,3 +440,13 @@ A token is currently configured at this scope.,Der er i øjeblikket konfigureret
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dækker alle butiksvisninger i dette websted, der ikke er tokenet separat i butiksvisningsomfang. Udstedelse af dette token fjerner disse butikker fra standardomfangstokenets visning; en butiksvisning med sit eget dedikerede token forbliver usynligt for dette token."
 Covers every store not tokened separately at website or store-view scope.,Dækker alle butikker der ikke er tokenet separat i websted- eller butiksvisningsomfang.
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Din API-nøgle blev gemt, men MyParcel-kontoindstillingerne kunne ikke importeres: %1. Kontrollér API-nøglen, og brug derefter knappen Importer MyParcel Backoffice-indstillinger."
+"MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel kunne ikke bekræfte, hvilke muligheder denne konto har, så alle muligheder vises. En mulighed, som kontoen ikke har, afvises, når forsendelsen eksporteres."
+No standard weight,Ingen standardvægt
+Create MyParcel consignment,Opret MyParcel forsendelse
+Export Entire Order,Eksporter hele ordren
+Label amount:,Antal labels:
+Letter,Ufrankeret
+No insurance,Ingen forsikring
+Return if no answer,Returner hvis intet svar
+24 hour priority,Prioriteret levering
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Når dette er aktiveret, vises afkrydsningsfeltet Prioriteret levering ved kassen, når dette produkt er i kurven, også når den generelle indstilling for prioriteret levering er slået fra."

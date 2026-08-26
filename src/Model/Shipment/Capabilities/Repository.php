@@ -14,19 +14,32 @@ use Throwable;
 /**
  * Cache-aside access to capability answers, scoped to the API key of a given store.
  *
- * The only class consumers touch. Two rules it must keep (FR-000010):
+ * The only class consumers touch. Three rules it must keep (FR-000010):
  *
- * - Fail open. Any failure — no API key, a transport error, a 500, an undecodable body — returns
- *   CapabilitySet::permissive() rather than throwing. A capability lookup must never stop a label
- *   being created, and a store with no key must still render its admin form; export fails loudly
- *   on its own path instead.
- * - Serve stale. Entries are written with no expiry and removed only by cache:clean, an API key
- *   change or a settings import, so a failed refresh finds the previous answer still there. That is
- *   the whole mechanism; there is no second store.
+ * - Fail open. Any failure — no API key, a transport error, a 429, a 500, an undecodable body —
+ *   returns CapabilitySet::permissive() rather than throwing. A capability lookup must never stop a
+ *   label being created, and a store with no key must still render its admin form; export fails
+ *   loudly on its own path instead.
+ * - Serve stale. Successful entries are written with no expiry and removed only by cache:clean, an
+ *   API key change or a settings import, so a failed refresh finds the previous answer still there.
+ * - Do not hammer a failing endpoint. A shape that failed is remembered as failed for
+ *   FAILURE_LIFETIME_SECONDS, so a reload does not repeat the burst. Checked *after* the success
+ *   entry, never before it, so a previous good answer always beats a recent failure.
  */
 class Repository
 {
-    private const CACHE_ID_PREFIX = 'myparcel_caps_';
+    private const CACHE_ID_PREFIX   = 'myparcel_capabilities_';
+    private const FAILURE_ID_PREFIX = 'myparcel_capabilities_failed_';
+
+    /**
+     * How long a failed shape is remembered as failed.
+     *
+     * The one place a lifetime belongs. Successful entries never expire, but a failure must:
+     * without it, an admin form that fans out over several package types repeats the whole burst on
+     * every reload, which is exactly the load a 429 asks us to stop applying. Short enough that a
+     * merchant is not left on permissive answers after an incident passes.
+     */
+    private const FAILURE_LIFETIME_SECONDS = 60;
 
     private Client            $client;
     private CapabilitiesCache $cache;
@@ -78,7 +91,9 @@ class Repository
             return CapabilitySet::permissive();
         }
 
-        $cacheId = self::CACHE_ID_PREFIX . $this->fingerprint->of($apiKey . '|' . $body);
+        $shape     = $this->fingerprint->of($apiKey . '|' . $body);
+        $cacheId   = self::CACHE_ID_PREFIX . $shape;
+        $failureId = self::FAILURE_ID_PREFIX . $shape;
 
         if (isset($this->memo[$cacheId])) {
             return $this->memo[$cacheId];
@@ -94,10 +109,16 @@ class Repository
             }
         }
 
+        if (false !== $this->cache->load($failureId)) {
+            // Asked recently and it failed. Do not ask again yet.
+            return $this->memo[$cacheId] = CapabilitySet::permissive();
+        }
+
         try {
             $results = $this->client->send($apiKey, $body);
         } catch (Throwable $e) {
             $this->logFailure($apiKey, $e->getMessage());
+            $this->cache->save('1', $failureId, [], self::FAILURE_LIFETIME_SECONDS);
 
             return $this->memo[$cacheId] = CapabilitySet::permissive();
         }

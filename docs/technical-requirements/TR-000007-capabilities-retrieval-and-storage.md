@@ -72,6 +72,7 @@ Two of the three defects independently rule the SDK's service out. Defect 2 mean
 | Call | ~~`postCapabilities($request, $userAgent)` — request first.~~ **Amended: not called.** The argument order is the defect, and it differs between the pinned SDK and the target — `($user_agent, $request)` at beta.15, `($request, $user_agent = null)` at beta.31. Not calling the method is what makes this layer version-independent. |
 | Response | ~~Read `RefCapabilitiesResponseCapabilityV2` directly.~~ **Amended: read the decoded body.** A generated response model is an allow-list — `ObjectSerializer::deserialize()` iterates the model's own declared properties and there is no `additionalProperties` catch-all, so any key that SDK release does not declare is dropped silently. That is what FR-000010 forbids, and it holds at beta.31 too. It also loses the insurance bounds outright at beta.15, where the flat `min`/`max`/`default` are not declared. Module-owned value objects read the body instead. `mapFromCoreApi()` and `CapabilitiesResponse` remain excluded for the original reason. |
 | `Accept` header | `application/json;charset=utf-8;version=2`. ~~Via Guzzle middleware.~~ **Amended: set directly on the request.** Middleware was never reachable: `ShipmentApiFactory::make()` builds its own Guzzle client and `ShipmentApi::$client` is `protected`. Without the header the response may arrive in the V1 shape. Documented nowhere in the SDK; observed in `myparcelnl/pdk`. |
+| Throttling | A 429 — and defensively 503 and 529 — is retried **once**, honouring `Retry-After` in either its seconds or HTTP-date form. A `Retry-After` longer than 2s is not waited out: the negative cache entry below is a better answer than a page that hangs. A timeout is never retried, having already spent the whole budget. Neither the SDK nor the OpenAPI spec mentions rate limiting, so this is the module's own policy. |
 | Options logging | `mapOptions()` silently skips an option with no matching setter. Log when an option we passed does not survive mapping. Two exist today: `fresh_food` and `frozen` appear in a response but have no setter on `CapabilitiesOptionsV2`, so they are read-only. |
 | Retirement | The workaround carries a `@todo` referencing the three issues. When they land, reassess whether this layer can shrink to a thin wrapper. |
 
@@ -90,8 +91,16 @@ exists to prevent.
 |---|---|---|---|
 | Contract definitions | account | Fetched at account refresh and persisted per API key, alongside the existing account settings row | The *Import MyParcel Backoffice settings* action; API key change |
 | Shipment capabilities | account × country × weight × package type × delivery type × direction × options | Cache-aside, keyed on a hash of the request | `bin/magento cache:clean`; API key change; settings import |
+| A shape that failed | the same | A marker entry under its own id prefix, **60s lifetime** | Expiry, plus everything above |
 
 Shipment capabilities use a **dedicated Magento cache type**, declared in `etc/cache.xml` with a `TagScope` type class, so `cache:clean myparcelnl_capabilities` and the admin cache page both flush it by its own tag alone. They must **not** go in configuration storage: high-cardinality derived data does not belong in `core_config_data`, where every write invalidates the config cache and appears in config dumps, and there is no admin-triggered moment to hang a refresh off.
+
+**A failure is cached too, briefly, and it is the one place a lifetime belongs.** Successful entries
+never expire; a failure expires after 60 seconds. Without that, an admin form that fans out over
+several package types repeats the whole burst on every reload — precisely the load a 429 asks us to
+stop applying — because a failure leaves nothing behind to remember it by. The marker is checked
+*after* the success entry and never before it, so a previous good answer always beats a recent
+failure, and serve-stale still wins.
 
 **A new cache type is disabled until `env.php` says otherwise, and `setup:upgrade` does not add
 one** — verified against 2.4.6, not assumed. `App\Cache\State::isEnabled()` reads `cache_types`
@@ -156,6 +165,8 @@ Unit tests with a stubbed client for behaviour, fault injection for degradation,
 4b. **Granularity.** A broad response whose single result lists several package types must not answer a per-package-type question. Assert with a broad superset and a narrowed response that disagree — a mailbox that the superset says may be oversized and insured, and a narrowed answer that says neither.
 5. **No plaintext key.** No cache id, tag or log line contains the API key. Assert against a recognisable test key value.
 6. **Degradation.** Four injected faults — HTTP 500, timeout, a response with an extra unknown option, a response missing an expected key — each leave the form rendering and label creation working.
+6b. **Throttling.** A 429 followed by a 200 yields the 200 and exactly two requests. Two 429s stop at two requests, not more. A `Retry-After` of 300s makes exactly one request and no wait. A timeout is not retried. A failed shape writes a 60s marker, and a second lookup inside that window makes no request at all.
+6c. **Partial failure is visible.** With some shapes answered and others failed, the admin form says so: the fallback is announced on the page, not only in the log. Asserted through the block's own flag rather than by scraping markup.
 7. **Stale preference.** With data cached and a refresh failing, the cached value is used rather than defaults.
 8. **Unknown value logging.** A response containing an unknown carrier, package type, delivery type or option key is logged and does not throw, and the recognised half of the same response still answers.
 9. **Invalidation.** Changing the API key, and running the settings import, both invalidate the affected entries. `cache:clean` flushes the cache type.

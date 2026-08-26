@@ -580,6 +580,36 @@ enumerating readers keep the broad answer, and `getShipmentOptions()`, `hasShipm
 and a narrowed mailbox answer that disagree; both new cases fail on the old lookup and no other case
 moves.
 
+**Reliability added after review.** A 429 was indistinguishable from a 500: fail open, nothing
+cached, so every reload repeated the whole per-package-type burst — the amplification a rate limit
+exists to stop. Three changes, all in 4a's layer and specified in TR-000007: one retry honouring
+`Retry-After` (capped at 2s, and a timeout is never retried); a 60-second negative cache entry per
+failed shape, checked after the success entry so serve-stale still wins; and an inline warning on the
+form when any answer was a fallback, because a partial failure otherwise renders at mixed fidelity
+with only the log to say so.
+
+`new_shipment.phtml` was rewritten around `NewShipment::getFormCarriers()`, which resolves the whole
+form once so the notice can precede it. The markup is unchanged by design — `new-shipment.js` walks
+`element.parentNode.parentNode` to find the `data-for_mypa_carrier` wrapper, so the nesting depth is
+load-bearing, and the emitted attribute, id and class names were diffed against the previous version
+to prove it. The template lost 45 lines and every `NAMES_IDS_MAP` lookup, and now escapes its output.
+
+Two latent defects fixed in passing: `NewShipment::$weightService` and `$configService` were dynamic
+properties, deprecated since PHP 8.2 on a class built for every admin shipment page; and
+`Tests/Helpers/OrderMocks.php` stubbed no `getWeight()`.
+
+**Digital stamp weights, found in review.** The New Shipment form and the admin default-weight
+setting held **separate** lists. v5 merged the 50-100 and 100-350 ranges into one 50-350 range that
+sends **200** — a weight inside the range rather than on its boundary — and
+`Setup\Migrations\ReplaceDpzRange` rewrote any stored `100` or `350` to `200`. The form was never
+updated, so it kept offering both retired values, and `TrackTraceHolder.php:228` passes whatever it
+posts straight to the shipment.
+
+`Model\Shipment\DigitalStampWeight` is now the single declaration; the source model and the form both
+read it. `value` is deliberately not the upper bound, so a range is matched on `max` and sent as
+`value`. **Merchant-visible:** an order between 50g and 350g now sends 200g where it previously sent
+100g or 350g. The two dead labels were dropped from the locales that had them.
+
 **Verification state at 4b close.** `vendor/bin/pest` green — **430 passed, 2 todos, 4 risky, 0
 failures**, up from 418. `setup:di:compile` succeeds on a vendor-free install. The probe grep over
 `src/Block`, `Controller` and `view` returns zero, and the only `MyParcelNL\Sdk` references left on

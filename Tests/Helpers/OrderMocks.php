@@ -108,6 +108,7 @@ function createOrder(array $overrides = []): Order
         'getItems'           => [],
         'getId'              => 1,
         'getGrandTotal'      => 0.0,
+        'getWeight'          => 0.0,
     ];
 
     $order = Mockery::mock(Order::class);

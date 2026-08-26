@@ -439,6 +439,18 @@ A token is currently configured at this scope.,Un token est actuellement configu
 "Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.",Couvre uniquement ce store. L'émission de ce token retire ce store de la vue du token de portée par défaut et de tout token de portée de site web parent : il appartient désormais exclusivement à ce token de portée vue de store.
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.",Couvre chaque vue de store dans ce site web qui n'a pas de token séparé au niveau de la vue de store. L'émission de ce token retire ces stores de la vue du token de portée par défaut ; toute vue de store avec son propre token dédié reste invisible pour ce token.
 Covers every store not tokened separately at website or store-view scope.,Couvre chaque store qui n'a pas de token séparé au niveau du site web ou de la vue de store.
-24 hour priority,Priorité 24 heures
-"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Si activé, la case Priorité 24 heures s'affiche lors du paiement lorsque ce produit est dans le panier, même si le paramètre général de priorité est désactivé."
+24 hour priority,Livraison prioritaire
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Si activé, la case Livraison prioritaire s'affiche lors du paiement lorsque ce produit est dans le panier, même si le paramètre général de livraison prioritaire est désactivé."
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Votre API key a été enregistrée, mais les paramètres du compte MyParcel n’ont pas pu être importés : %1. Vérifiez l’API key, puis utilisez le bouton Importer les paramètres MyParcel Backoffice."
+"MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.",MyParcel n'a pas pu confirmer les options de ce compte. Toutes les options sont donc affichées. Une option que le compte ne possède pas est refusée lors de l'export de l'envoi.
+No standard weight,Pas de poids standard
+0 - 20 gram,0 - 20 g
+20 - 50 gram,20 - 50 g
+50 - 350 gram,50 - 350 g
+350 - 2000 gram,350 - 2000 g
+Create MyParcel consignment,Créer un envoi MyParcel
+Export Entire Order,Exporter toute la commande
+Label amount:,Nombre d'étiquettes :
+Letter,Lettre
+No insurance,Pas d'assurance
+Return if no answer,Retour si absence

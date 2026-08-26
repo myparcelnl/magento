@@ -116,3 +116,88 @@ it('honours a host override, the only seam for testing against acceptance', func
     expect((string) $c['history'][0]['request']->getUri())
         ->toBe('https://api.acceptance.myparcel.nl/shipments/capabilities');
 });
+
+// ---- throttling -----------------------------------------------------------
+
+it('retries once after a 429 and returns the second answer', function () {
+    mockLoggerFacade()->shouldReceive('notice')->once()->with(Mockery::pattern('/throttled with 429/'));
+
+    $c = makeCapabilitiesClient([
+        new GuzzleResponse(429, ['Retry-After' => '0'], ''),
+        new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()])),
+    ]);
+
+    $results = $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
+
+    expect($results)->toHaveCount(1)
+        ->and($c['history'])->toHaveCount(2);
+});
+
+it('gives up after one retry rather than hammering a throttled endpoint', function () {
+    mockLoggerFacade()->shouldReceive('notice');
+
+    $c = makeCapabilitiesClient([
+        new GuzzleResponse(429, ['Retry-After' => '0'], ''),
+        new GuzzleResponse(429, ['Retry-After' => '0'], ''),
+    ]);
+
+    expect(fn () => $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}'))
+        ->toThrow(RuntimeException::class, 'capabilities responded 429')
+        ->and($c['history'])->toHaveCount(2);
+});
+
+it('does not retry at all when asked to wait longer than a page should hang', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('notice')->never();
+
+    $c = makeCapabilitiesClient([new GuzzleResponse(429, ['Retry-After' => '300'], '')]);
+
+    expect(fn () => $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}'))
+        ->toThrow(RuntimeException::class, 'asked to wait longer')
+        ->and($c['history'])->toHaveCount(1);
+});
+
+it('reads a Retry-After given as an HTTP date', function () {
+    mockLoggerFacade()->shouldReceive('notice')->once();
+
+    $c = makeCapabilitiesClient([
+        // In the past, so the wait clamps to zero rather than being treated as unparseable.
+        new GuzzleResponse(429, ['Retry-After' => gmdate('D, d M Y H:i:s \G\M\T', time() - 60)], ''),
+        new GuzzleResponse(200, [], capabilitiesBody([])),
+    ]);
+
+    $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
+
+    expect($c['history'])->toHaveCount(2);
+});
+
+it('retries a 503 and a 529 but never a 500', function () {
+    mockLoggerFacade()->shouldReceive('notice');
+
+    foreach ([503, 529] as $status) {
+        $c = makeCapabilitiesClient([
+            new GuzzleResponse($status, ['Retry-After' => '0'], ''),
+            new GuzzleResponse(200, [], capabilitiesBody([])),
+        ]);
+        $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
+
+        expect($c['history'])->toHaveCount(2);
+    }
+
+    $c = makeCapabilitiesClient([new GuzzleResponse(500, [], '')]);
+
+    expect(fn () => $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}'))
+        ->toThrow(RuntimeException::class)
+        ->and($c['history'])->toHaveCount(1);
+});
+
+it('does not retry a timeout, which has already spent the whole budget', function () {
+    $c = makeCapabilitiesClient([
+        new ConnectException('timed out', new GuzzleRequest('POST', '/')),
+        new GuzzleResponse(200, [], capabilitiesBody([])),
+    ]);
+
+    expect(fn () => $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}'))
+        ->toThrow(RuntimeException::class)
+        ->and($c['history'])->toHaveCount(1);
+});

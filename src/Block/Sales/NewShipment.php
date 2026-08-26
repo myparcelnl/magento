@@ -27,7 +27,9 @@ use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -54,6 +56,10 @@ class NewShipment extends AbstractItems
     private NewShipmentForm $form;
 
     private CapabilitiesRepository $capabilitiesRepository;
+
+    private Weight $weightService;
+
+    private Config $configService;
 
     /**
      * Keyed by package type, with '' for the package-type-agnostic lookup. One entry per distinct
@@ -317,6 +323,100 @@ class NewShipment extends AbstractItems
         }
 
         return $this->getCapabilities($packageType)->hasOption($carrier, $packageType, $shipmentOption);
+    }
+
+    /**
+     * Whether any answer this render used was a fallback rather than the account's own.
+     *
+     * Only meaningful once the form data has been resolved, which is why the template asks for
+     * getFormCarriers() first. A partial failure is the case that matters: some package types
+     * answered, others fell back and are therefore offering everything.
+     */
+    public function hasUnverifiedCapabilities(): bool
+    {
+        foreach ($this->capabilities as $set) {
+            if ($set->isPermissive()) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * The whole form, resolved: carriers, their package types, and per package type the options,
+     * insurance and digital-stamp weights.
+     *
+     * Built here rather than in the template so the template is a renderer, and so the
+     * unverified-capabilities notice can be rendered above a form whose data is already known.
+     *
+     * @return array<int,array{name:string,human:string,packageTypes:array}>
+     */
+    public function getFormCarriers(): array
+    {
+        $carriers = [];
+
+        foreach ($this->getCarriers() as $carrierName) {
+            $packageTypes = [];
+
+            foreach ($this->getPackageTypes($carrierName) as $packageTypeName) {
+                $packageTypeId = PackageType::toIdOrNull($packageTypeName);
+
+                if (null === $packageTypeId) {
+                    // Nothing to submit: the radio's value would resolve to no id on the way out.
+                    continue;
+                }
+
+                $packageTypes[] = [
+                    'name'      => $packageTypeName,
+                    'id'        => $packageTypeId,
+                    'human'     => NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId] ?? $packageTypeName,
+                    'options'   => $this->getShipmentOptions($carrierName, $packageTypeName),
+                    'insurance' => $this->hasInsurance($carrierName, $packageTypeName)
+                        ? [
+                            'default' => $this->getDefaultInsurance($carrierName),
+                            'amounts' => $this->getInsurancePossibilities($carrierName),
+                        ]
+                        : null,
+                    'weights'   => PackageType::DIGITAL_STAMP === $packageTypeId
+                        ? $this->getDigitalStampWeightOptions()
+                        : null,
+                ];
+            }
+
+            $carriers[] = [
+                'name'         => $carrierName,
+                'human'        => Carrier::humanFor($carrierName),
+                'packageTypes' => $packageTypes,
+            ];
+        }
+
+        return $carriers;
+    }
+
+    /**
+     * Digital stamp weight ranges, with the one the order falls in pre-selected.
+     *
+     * The ranges are DigitalStampWeight's, shared with the admin default-weight setting. This form
+     * used to hold its own list, which still offered the two values the setting had retired.
+     *
+     * @return array<int,array{value:int,label:\Magento\Framework\Phrase,selected:bool}>
+     */
+    public function getDigitalStampWeightOptions(): array
+    {
+        $selected = DigitalStampWeight::valueFor($this->getDigitalStampWeight());
+
+        return array_map(
+            static function (array $option) use ($selected): array {
+                return [
+                    'value'    => $option['value'],
+                    'label'    => $option['label'],
+                    // NO_STANDARD_WEIGHT is never the answer valueFor() gives, so it stays unselected.
+                    'selected' => $option['value'] === $selected,
+                ];
+            },
+            DigitalStampWeight::options()
+        );
     }
 
     public function hasInsurance(string $carrier, string $packageType): bool

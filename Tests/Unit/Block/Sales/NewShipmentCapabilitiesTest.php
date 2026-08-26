@@ -6,9 +6,13 @@ use MyParcelNL\Magento\Block\Sales\NewShipment;
 use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
+use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Weight;
 
 // capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php.
 
@@ -38,6 +42,17 @@ function createNewShipmentBlockWith($capabilities, array $orderOverrides = []): 
     ], $orderOverrides)));
     setPrivateProperty($block, 'capabilities', $capabilities);
     setPrivateProperty($block, 'form', new NewShipmentForm());
+
+    // getFormCarriers() reaches these whenever a shape reports insurance, which a permissive shape
+    // always does.
+    $defaults = Mockery::mock(DefaultOptions::class);
+    $defaults->shouldReceive('getDefaultInsurance')->andReturn(0)->byDefault();
+    $defaults->shouldReceive('getDigitalStampDefaultWeight')->andReturn(0)->byDefault();
+    setPrivateProperty($block, 'defaultOptions', $defaults);
+
+    $weight = Mockery::mock(Weight::class);
+    $weight->shouldReceive('convertToGrams')->andReturn(0)->byDefault();
+    setPrivateProperty($block, 'weightService', $weight);
 
     return $block;
 }
@@ -255,4 +270,139 @@ it('withholds rather than over-reports for a package type it cannot express as a
             ShipmentOption::TO_CHECK,
             static fn (string $o): bool => ShipmentOption::INSURANCE !== $o
         )));
+});
+
+// ---- the unverified-capabilities notice ------------------------------------
+
+/**
+ * getFormCarriers() is the real path: the template resolves the whole form through it, then reads
+ * the flag, so the flag is only meaningful after it has run. No insurance and no digital stamp in
+ * these fixtures, which keeps DefaultOptions and Weight out of the picture.
+ */
+function resolveFormWith(array $byPackageType): NewShipment
+{
+    // getInsurancePossibilities() still probes the SDK (Phase 5 carve-out) and logs when it cannot
+    // answer, which it cannot for an order with no country.
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+
+    $block = createNewShipmentBlockWith($byPackageType);
+    $block->getFormCarriers();
+
+    return $block;
+}
+
+function plainResult(array $packageTypes, array $options): array
+{
+    return capabilityResult([
+        'packageTypes' => $packageTypes,
+        'options'      => $options,
+        'collo'        => ['max' => 1],
+    ]);
+}
+
+it('reports nothing unverified when every answer came from the account', function () {
+    $answered = CapabilitySet::fromApiResults([
+        plainResult(['PACKAGE', 'MAILBOX'], ['requiresSignature' => []]),
+    ]);
+
+    $block = resolveFormWith([
+        ''                        => $answered,
+        PackageType::PACKAGE_NAME => $answered,
+        PackageType::MAILBOX_NAME => $answered,
+    ]);
+
+    expect($block->hasUnverifiedCapabilities())->toBeFalse();
+});
+
+it('reports unverified when only some package types answered', function () {
+    $answered = CapabilitySet::fromApiResults([
+        plainResult(['PACKAGE', 'MAILBOX'], ['requiresSignature' => []]),
+    ]);
+
+    $block = resolveFormWith([
+        ''                        => $answered,
+        PackageType::PACKAGE_NAME => $answered,
+        PackageType::MAILBOX_NAME => CapabilitySet::permissive(),
+    ]);
+
+    $form    = $block->getFormCarriers();
+    $byName  = array_column($form[0]['packageTypes'], 'options', 'name');
+
+    expect($block->hasUnverifiedCapabilities())->toBeTrue()
+        // and the fallback is visible in the data, not only in the flag: the mailbox offers
+        // everything while the package offers the one option the account reported.
+        ->and($byName[PackageType::PACKAGE_NAME])->toBe([ShipmentOption::SIGNATURE])
+        ->and(count($byName[PackageType::MAILBOX_NAME]))->toBeGreaterThan(1);
+});
+
+it('reports unverified when the whole lookup fell back', function () {
+    $block = resolveFormWith(array_fill_keys(
+        array_merge([''], array_keys(PackageType::NAMES_IDS_MAP)),
+        CapabilitySet::permissive()
+    ));
+
+    expect($block->hasUnverifiedCapabilities())->toBeTrue();
+});
+
+// ---- digital stamp weight buckets ------------------------------------------
+
+/** @param int $orderWeightGrams what getDigitalStampWeight() resolves to */
+function createNewShipmentBlockWeighing(int $orderWeightGrams): NewShipment
+{
+    $block = newInstanceWithoutConstructor(NewShipment::class);
+
+    $weight = Mockery::mock(\MyParcelNL\Magento\Service\Weight::class);
+    $weight->shouldReceive('convertToGrams')->andReturn($orderWeightGrams);
+
+    // A zero order weight falls through to the configured default, so pin that at zero too and the
+    // weightless case stays genuinely weightless.
+    $defaults = Mockery::mock(\MyParcelNL\Magento\Model\Source\DefaultOptions::class);
+    $defaults->shouldReceive('getDigitalStampDefaultWeight')->andReturn(0);
+
+    setPrivateProperty($block, 'order', createOrder(['getWeight' => (float) $orderWeightGrams]));
+    setPrivateProperty($block, 'weightService', $weight);
+    setPrivateProperty($block, 'defaultOptions', $defaults);
+
+    return $block;
+}
+
+/** @return int[] values of the selected buckets */
+function selectedWeights(NewShipment $block): array
+{
+    return array_column(
+        array_filter($block->getDigitalStampWeightOptions(), static fn (array $o): bool => $o['selected']),
+        'value'
+    );
+}
+
+it('selects exactly one range, and the lightest one for a weightless order', function () {
+    // 90g and 300g both send 200: the merged 50-350 range sends a weight inside itself rather than
+    // its own boundary. The old form-local list sent 100 and 350 here, values ReplaceDpzRange had
+    // already retired from the matching admin setting.
+    foreach ([0 => 20, 15 => 20, 20 => 20, 25 => 50, 90 => 200, 300 => 200, 350 => 200, 1500 => 2000] as $grams => $expected) {
+        expect(selectedWeights(createNewShipmentBlockWeighing($grams)))
+            ->toBe([$expected], "an order of {$grams}g should send {$expected}g");
+    }
+});
+
+it('selects nothing above the heaviest range rather than guessing', function () {
+    expect(selectedWeights(createNewShipmentBlockWeighing(5000)))->toBe([]);
+});
+
+it('offers the no-standard-weight option first and never selected', function () {
+    $options = createNewShipmentBlockWeighing(25)->getDigitalStampWeightOptions();
+
+    expect($options[0]['value'])->toBe(DigitalStampWeight::NO_STANDARD_WEIGHT)
+        ->and($options[0]['selected'])->toBeFalse()
+        ->and(array_column($options, 'value'))->toBe([0, 20, 50, 200, 2000])
+        ->and(array_column($options, 'value'))->not->toContain(100)
+        ->and(array_column($options, 'value'))->not->toContain(350);
+});
+
+it('offers the admin setting and the form the identical set of weights', function () {
+    // They held separate lists until 2026-08, and the form's still carried the retired values.
+    $setting = new DigitalStampWeightOptions(Mockery::mock(Config::class));
+
+    expect(array_column($setting->toOptionArray(), 'value'))
+        ->toBe(array_column(createNewShipmentBlockWeighing(0)->getDigitalStampWeightOptions(), 'value'));
 });
