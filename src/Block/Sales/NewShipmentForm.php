@@ -2,14 +2,15 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-use Exception;
-use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
+/**
+ * Human labels for new_shipment.phtml.
+ *
+ * Labels only. Which carriers, package types and options a form offers is account data and comes
+ * from {@see NewShipment}'s capability lookup, not from here.
+ */
 class NewShipmentForm
 {
     public const PACKAGE_TYPE_HUMAN_MAP = [
@@ -42,21 +43,6 @@ class NewShipmentForm
             ShipmentOption::FROZEN             => __('Frozen'),
             ShipmentOption::PRIORITY_DELIVERY  => __('Priority delivery'),
         ];
-    }
-
-    /**
-     * @return AbstractConsignment[]
-     * @throws Exception
-     */
-    public function getCarrierSpecificAbstractConsignments(): array
-    {
-        $returnArray = [];
-
-        foreach (Carrier::ALLOWED_CARRIER_CLASSES as $carrier) {
-            $returnArray[] = ConsignmentFactory::createFromCarrier(CarrierFactory::create($carrier));
-        }
-
-        return $returnArray;
     }
 
     /**

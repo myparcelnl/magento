@@ -67,6 +67,7 @@ Two of the three defects independently rule the SDK's service out. Defect 2 mean
 | Aspect | Requirement |
 |---|---|
 | Request construction | SDK `Model\Capabilities\CapabilitiesRequest` + `CapabilitiesMapper::mapToCoreApi()`. Do **not** hand-roll this — see TR-000005 for why. |
+| Request granularity | **`packageType` is singular, and the response answers the shape it was asked about.** A request without one returns a superset grouped by carrier: one result covering several package types, carrying the union of their options. Enumerating questions (which carriers, which package types) use the broad call; anything that varies per package type — options, insurance, the collo maximum — must set `packageType`. Reading the broad answer as a matrix over-reports, which is the defect DR-18 records. |
 | Client | ~~The per-key client from TR-000006.~~ **Amended.** `ShipmentApi` is not used at all: `Configuration` supplies the host and the `Bearer base64(key)` auth format, `ObjectSerializer::sanitizeForSerialization()` supplies the body, and the module sends the request with its own Guzzle client. `ShipmentApiFactory` is therefore never reached from this layer, so [TR-000006](TR-000006-per-api-key-export-batching.md)'s empty-key hazard is structurally absent rather than guarded, and its "exactly one `make()` call site" assertion still holds. |
 | Call | ~~`postCapabilities($request, $userAgent)` — request first.~~ **Amended: not called.** The argument order is the defect, and it differs between the pinned SDK and the target — `($user_agent, $request)` at beta.15, `($request, $user_agent = null)` at beta.31. Not calling the method is what makes this layer version-independent. |
 | Response | ~~Read `RefCapabilitiesResponseCapabilityV2` directly.~~ **Amended: read the decoded body.** A generated response model is an allow-list — `ObjectSerializer::deserialize()` iterates the model's own declared properties and there is no `additionalProperties` catch-all, so any key that SDK release does not declare is dropped silently. That is what FR-000010 forbids, and it holds at beta.31 too. It also loses the insurance bounds outright at beta.15, where the flat `min`/`max`/`default` are not declared. Module-owned value objects read the body instead. `mapFromCoreApi()` and `CapabilitiesResponse` remain excluded for the original reason. |
@@ -135,9 +136,10 @@ Read the **flat** `min` / `max` / `default` properties on the insurance option �
 
 | Metric | Requirement | Measurement |
 |---|---|---|
-| Uncached capability calls per cold checkout | ≤ 1 per distinct account and request shape | Request log during a checkout |
+| Uncached capability calls per cold checkout | ≤ 1 per distinct account and request shape. Checkout resolves one package type before it asks, so that is one call | Request log during a checkout |
 | Uncached capability calls per warm checkout | 0 | Request log |
 | Uncached calls per admin *New Shipment* render (warm) | 0 | Request log |
+| Uncached calls per admin *New Shipment* render (cold) | One broad call plus one per distinct package type offered, so ≤ 8. Per package type, never per carrier — FR-000008's criterion is about carriers | Request log |
 | Checkout delivery-options latency vs beta.15 | No measurable regression once warm | Before/after timing |
 | Label creation with capabilities unavailable | Succeeds | Fault injection |
 
@@ -151,6 +153,7 @@ Unit tests with a stubbed client for behaviour, fault injection for degradation,
 2. **Option values survive.** A stubbed response containing `insurance` with `min`, `max` and `default` yields those values to the caller, proving the `mapFromCoreApi()` path is not in use.
 3. **Per-account isolation.** Two keys with different stubbed responses produce different option sets for the same shipment input, and neither is served from the other's cache entry.
 4. **Cache key completeness.** Changing any request field (country, weight, package type, delivery type, an option) produces a cache miss; repeating an identical request produces a hit.
+4b. **Granularity.** A broad response whose single result lists several package types must not answer a per-package-type question. Assert with a broad superset and a narrowed response that disagree — a mailbox that the superset says may be oversized and insured, and a narrowed answer that says neither.
 5. **No plaintext key.** No cache id, tag or log line contains the API key. Assert against a recognisable test key value.
 6. **Degradation.** Four injected faults — HTTP 500, timeout, a response with an extra unknown option, a response missing an expected key — each leave the form rendering and label creation working.
 7. **Stale preference.** With data cached and a refresh failing, the cached value is used rather than defaults.

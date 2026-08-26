@@ -3,7 +3,10 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Block\Sales\NewShipment;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 /**
@@ -56,11 +59,18 @@ it('returns null rather than standard when the stored delivery type is unrecogni
 it('withholds the receipt code option when the delivery type is unrecognised', function () {
     mockLoggerFacade()->shouldReceive('warning');
 
-    $block       = createNewShipmentBlockFor('teleport');
-    $consignment = Mockery::mock(\MyParcelNL\Sdk\Model\Consignment\AbstractConsignment::class);
+    $block = createNewShipmentBlockFor('teleport');
+    // Permissive says yes to everything, so a false here is the module's own standard-only rule
+    // beating the capability answer rather than agreeing with it.
+    setPrivateProperty($block, 'capabilities', array_fill_keys(
+        array_merge([''], array_keys(PackageType::NAMES_IDS_MAP)),
+        CapabilitySet::permissive()
+    ));
 
-    expect($block->consignmentHasShipmentOption($consignment, ShipmentOption::RECEIPT_CODE))
-        ->toBeFalse();
+    expect($block->hasShipmentOption(Carrier::POSTNL, PackageType::PACKAGE_NAME, ShipmentOption::RECEIPT_CODE))
+        ->toBeFalse()
+        ->and($block->hasShipmentOption(Carrier::POSTNL, PackageType::PACKAGE_NAME, ShipmentOption::SIGNATURE))
+        ->toBeTrue();
 });
 
 it('defaults silently when the order carries no delivery type', function () {

@@ -1,9 +1,8 @@
 <?php
 /** @var \MyParcelNL\Magento\Block\Sales\NewShipment $block */
 
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
-use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 ?>
 <input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden" /><!-- MyParcel options -->
@@ -21,11 +20,8 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 </div>
 <?php
 $form = $block->getNewShipmentForm();
-foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
-    $abstractConsignment->setCountry($block->getCountry());
-    $carrier      = $abstractConsignment->getCarrier();
-    $carrierName  = $carrier->getName();
-    $carrierHuman = $carrier->getHuman();
+foreach ($block->getCarriers() as $carrierName) {
+    $carrierHuman = Carrier::humanFor($carrierName);
     ?>
     <div class="field field-mypa_carrier_<?= $carrierName ?> mypa_carrier-toggle js--mypa-options" style="margin-top:
     10px;">
@@ -49,17 +45,8 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
         style="margin: 10px 0 0 30px;">
         <div class="admin__field-control">
             <?php
-            $country = $block->getCountry();
-            foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
-                $packageTypeId = PackageType::NAMES_IDS_MAP[$packageTypeName];
-                if (CountryCode::CC_NL !== $country) {
-                    if ($packageTypeId === PackageType::DIGITAL_STAMP) {
-                        continue;
-                    }
-                    if ($packageTypeId === PackageType::MAILBOX && $carrierName !== 'postnl') {
-                        continue;
-                    }
-                }
+            foreach ($block->getPackageTypes($carrierName) as $packageTypeName) {
+                $packageTypeId    = PackageType::NAMES_IDS_MAP[$packageTypeName];
                 $packageTypeHuman = $form::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId] ?? $packageTypeName;
                 ?>
                 <div class="admin__field admin__field-option">
@@ -141,17 +128,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                     </select>
                 </div>
                 <?php
-                try {
-                    $abstractConsignment->setPackageType($packageTypeId);
-                } catch (\Exception $e) {
-                    continue;
-                }
-                foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
-                    if (ShipmentOption::INSURANCE === $shipmentOption
-                        || ! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
-                    ) {
-                        continue;
-                    }
+                foreach ($block->getShipmentOptions($carrierName, $packageTypeName) as $shipmentOption) {
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
@@ -177,7 +154,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                     <?php
                 }
 
-                if ($abstractConsignment->canHaveShipmentOption(ShipmentOption::INSURANCE)) {
+                if ($block->hasInsurance($carrierName, $packageTypeName)) {
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
@@ -194,7 +171,7 @@ foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment
                             title="">
                             <option value="0"><?= __('No insurance') ?></option>
                             <?php
-                            foreach ($abstractConsignment->getInsurancePossibilities($block->getCountry()) as $insuranceAmount) {
+                            foreach ($block->getInsurancePossibilities($carrierName) as $insuranceAmount) {
                                 printf(
                                     '<option value="%1$s" %2$s>€ %1$s</option>',
                                     $insuranceAmount,

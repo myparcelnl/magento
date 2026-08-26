@@ -1,6 +1,6 @@
 # SDK v11 Migration Plan
 
-**Status:** Phase 4a complete; Phase 4b next
+**Status:** Phase 4b complete; Phase 4c next
 **Started:** 2026-08-11
 **Branch:** `feat/use-sdk-v11-shipments`
 **Business Requirement:** [BR-000003 — MyParcel SDK v11 compatibility](../business-requirements/BR-000003-sdk-v11-compatibility.md)
@@ -299,6 +299,52 @@ cannot tell an absent one from a disabled one. A type an admin has switched off 
 switch is what it is for. A failed write, as on a read-only `app/etc`, logs the `cache:enable`
 command instead of failing the upgrade.
 
+### DR-18: A package-type-agnostic capabilities response is a superset, not a matrix
+
+**Assumed in Phase 4a, and it shaped the whole layer:** that a request carrying only a country
+returns one result per (carrier, package type), so a single call could answer an entire form.
+Recorded in this plan as "one call serves a page".
+
+**Wrong, and it shipped.** `CapabilitiesPostCapabilitiesRequestV2::packageType` is **singular**, and
+the endpoint is *List shipment capabilities* — it answers for the shipment shape it is given. Ask
+without a package type and the API groups every package type of a carrier into one result carrying
+the **union** of their options. A live account returned exactly that:
+
+```
+POSTNL  packageTypes  PACKAGE,MAILBOX,UNFRANKED,DIGITAL_STAMP,SMALL_PACKAGE
+        options       requiresAgeVerification,insurance,oversizedPackage,recipientOnlyDelivery,
+                      priorityDelivery,requiresReceiptCode,returnOnFirstFailedDelivery,requiresSignature
+        collo max     20
+```
+
+`oversizedPackage` on a digital stamp and a collo maximum of 20 on a mailbox are both nonsense, which
+is what gives the superset away. `CapabilitySet::matching()` reads "mailbox is among this result's
+package types" as "these options apply to mailbox", so the admin form offered every package option
+on a mailbox. **Found by a reviewer on the rendered form, not by the tests** — every 4b test asserted
+the mapping from a response to behaviour, and the fixtures encoded the same wrong assumption as the
+code.
+
+**Decision: two tiers of question, one per shape.** The broad call is still the only one that can
+*enumerate* — which carriers, and which package types each has — because a narrowed response only
+ever names the package type it was asked about. Everything that varies per package type (options,
+insurance, the collo maximum) is asked with `packageType` set. Each shape is its own cache entry, so
+this costs cold calls rather than warm ones.
+
+**What it costs.** A cold admin form is one broad call plus one per distinct package type it offers,
+so at most eight rather than one; a warm one is still zero. That keeps
+[FR-000008](../functional-requirements/FR-000008-carrier-capabilities-and-contract-definitions.md)'s
+"not one uncached call per carrier on every page load" — the calls are per package type, not per
+carrier, and only on a cold cache. Checkout is unaffected: it resolves a single package type before
+it asks anything, so 4c needs one narrow call.
+
+**A package type with no v2 name gets the permissive set, not the broad one.** No request can be
+built for it, and answering from the superset would claim options nobody asked about.
+
+**The lesson worth keeping.** 4a's classes needed no change at all — `Client`, `Repository` and
+`CapabilitySet` were all correct. The bug was entirely in *what question was asked*, which no unit
+test built on the same assumption could have caught. Where a response's grouping carries meaning,
+verify it against a real account before building on it.
+
 ---
 
 ## Standing decisions
@@ -464,7 +510,7 @@ grep -rnE "Sdk\\\\Adapter\\\\DeliveryOptions|DeliveryOptionsAdapterFactory" \
 | | | |
 |---|---|---|
 | **4a** | Client, cache, module value objects | *Complete* |
-| **4b** | Admin *New Shipment* form | *Not started* |
+| **4b** | Admin *New Shipment* form | *Complete* |
 | **4c** | Checkout, multicollo, type lists | *Not started* |
 
 `src/Model/Shipment/Capabilities`: module-owned, API-key-scoped, cached. ~~Calls `postCapabilities` directly~~ — calls the endpoint directly, without `ShipmentApi`, per DR-15 and DR-16. Still not `CapabilitiesService` (DR-1, DR-2). Full specification in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md), amended by those two records.
@@ -473,11 +519,42 @@ Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sal
 
 **What 4a landed.** Six classes and one XML file: `Capabilities\{Client, Repository, CapabilitySet, CarrierCapability, OptionSet}`, the `Model\Shipment\Carrier` name facade, and `etc/cache.xml` with its `Model\Cache\Type\Capabilities` type class. `V2_NAMES_MAP` went onto `PackageType`, `DeliveryType` and `Carrier`, and `V2_KEYS_MAP` onto `ShipmentOption`; `Tests/Unit/Model/Shipment/V2NameMapTest.php` pins the option half by round-tripping every entry through the SDK's own `mapToCoreApi()`, because `CapabilitiesMapper::KNOWN_OPTION_SETTERS` is private and a second copy of it is exactly what would drift. Invalidation hangs off `Observer\ConfigChange` and the settings-import controller. No consumer changed, so nothing could regress.
 
-**One call serves a page.** The response is `results[]`, each entry carrying `carrier`, `contract`, `packageTypes[]`, `deliveryTypes[]`, `options{}`, `collo{max}`, so a request carrying only a country returns the matrix across every carrier and package type. That is what makes TR-000007's "≤ 1 uncached call per cold checkout, 0 per warm" reachable rather than one call per carrier × package type.
+~~**One call serves a page.**~~ **Wrong — see DR-18.** The response is `results[]`, each entry carrying `carrier`, `contract`, `packageTypes[]`, `deliveryTypes[]`, `options{}`, `collo{max}`, but a request carrying only a country returns a *superset grouped by carrier*, not a matrix: one result covers several package types and carries the union of their options. Anything that varies per package type has to be asked with `packageType` set. Caching is per request shape, so the cost is cold calls rather than warm ones.
 
 **Deliberately not done in 4a**, each recorded so it does not read as an oversight: the `EnumFallback` listener moved to Phase 7 (DR-16); no `InsuranceRange` class, because `OptionSet` keeps every key verbatim and Phase 5 adds the typed accessor when it has a consumer; no second cache entry for serve-stale, because TR-000007 lists no TTL, so an entry survives a failed refresh by construction; and the three REST transformers keep their own name maps rather than reading the new shared ones — they bind to **Order API** enums while capabilities is **Core API**, and sharing would silently give `upsstandard` the `UPS_STANDARD` mapping it lacks today, changing a shipped versioned response from inside a capabilities phase. That one deserves its own change with its own test.
 
 **Dissolve the fixed type lists here.** `PackageType::IDS` / `NAMES` and the `DeliveryType` equivalents are transitional: "which types exist" becomes what capabilities reports per account. What survives permanently is the *name* map, because the module's snake_case names are `core_config_data` path segments, sit in every historical order's delivery-options JSON, and are the checkout widget's protocol — none of which we control. The list is not an allow-list and must not become one (FR-000010). This is also where the v2→module name translation lands; `PackageTypeTransformer::LEGACY_NAME_MAP` should then read from it rather than holding a second copy.
+
+**What 4b landed.** `new_shipment.phtml` constructs no SDK object at all now: `getCarriers()`,
+`getPackageTypes()`, `getShipmentOptions()` and `hasInsurance()` on `Block\Sales\NewShipment` answer
+from one `CapabilitySet`, fetched once per render on the order's store and destination.
+`NewShipmentForm` is reduced to what it always really was — a bag of human labels — and
+`getCarrierSpecificAbstractConsignments()` is gone. `consignmentHasShipmentOption()` became
+`hasShipmentOption(carrier, packageType, option)`; its NL / BE+PostNL / UPS-EU ladder went whole,
+and the receipt-code standard-only guard stayed, because that one is our rule rather than the
+carrier's (DR-14).
+
+**Three merchant-visible changes, all of them the point of the phase.** Outside NL the old ladder
+returned false for every option, so a non-NL order got *no* shipment options at all; it now gets
+whatever the account's contract carries. Digital stamp was hidden outside NL and mailbox outside NL
+for every carrier but PostNL; both are now the account's answer. And a carrier the account has no
+contract for no longer appears on the form.
+
+**Insurance is the one carve-out.** `hasInsurance()` reads capabilities, but the amount list still
+comes from `NewShipment::getInsurancePossibilities()`, which builds a throwaway consignment. That is
+the last SDK probe on this form, it is confined to one method behind a `@todo`, and Phase 5 replaces
+it with the contract-definition range (FR-000009).
+
+**Two findings from a live account**, worth more than the stub could give:
+
+- The API returned **`CHEAP_CARGO` and `UPS_EXPRESS_SAVER`** — carriers with no entry in
+  `Carrier::V2_NAMES_MAP` and no config path. Logged at notice and skipped, exactly as designed, and
+  `NewShipmentCapabilitiesTest` now pins that case with those real names.
+- It also returned the option key **`saturdayDelivery`**, which `ShipmentOption` has no constant
+  for. Deliberately still unmapped: the module has `EXTRA_DELIVERY_SATURDAY` as a checkout *extra*,
+  there is no `dynamic_settings.json` fee or active flag for a saturday shipment option, and no
+  field on `ShipmentOptions` to carry it to export — so mapping it now would render a checkbox that
+  goes nowhere. It stays logged, and whether it becomes a real option is its own decision.
 
 **Carrier lists.** `Carrier::ALLOWED_CARRIER_CLASSES` goes: 4b moves `NewShipmentForm` off it, 4c moves `Block\System\Config\Form\DeliveryCostsMatrix` off it, and both read `array_keys(Config::CARRIERS_XML_PATH_MAP)` instead — which also removes the GLS asymmetry, since the class list omits GLS while the path map includes it. `CARRIERS_XML_PATH_MAP` itself **stays hardcoded and is not capability data**: it is a carrier-name → config-path map, so a carrier with no path has no fee, no active flag and no drop-off days, and `UpgradeData.php:768` iterates it inside a migration that must run offline. Capabilities decides which of those carriers to *show*; a carrier it reports that we have no path for is logged at notice, which is FR-000010's early-warning signal that a new carrier needs a module release for its settings. `DeliveryCostsMatrix` is admin configuration with no shipment in hand, so its own filtering belongs to Phase 5's contract definitions, not here.
 
@@ -494,6 +571,22 @@ Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sal
 Reference `UPGRADE.md`'s claim that `CapabilitiesService` is the v11 answer for capabilities, since 1–3 together make it untrue in practice. When they land, delete the workaround behind its `@todo` and reassess whether this layer can shrink.
 
 **Check:** `setup:di:compile` succeeds. The admin New Shipment form renders the same package types, delivery types and shipment options as on beta.15, per carrier (insurance changes shape in Phase 5). Checkout delivery options unchanged. A cold checkout makes at most one capabilities call per (account, request shape); a warm one makes none.
+
+**Fixed after 4b review.** The form asked one package-type-agnostic question and read it as a
+matrix, so every package option showed on a mailbox. DR-18 has the mechanism and the cost. The fix is
+confined to `NewShipment`: `getCapabilities(?string $packageType)` memoises one set per shape, the
+enumerating readers keep the broad answer, and `getShipmentOptions()`, `hasShipmentOption()` and
+`hasInsurance()` ask per package type. `NewShipmentCapabilitiesTest` pins it with a broad superset
+and a narrowed mailbox answer that disagree; both new cases fail on the old lookup and no other case
+moves.
+
+**Verification state at 4b close.** `vendor/bin/pest` green — **430 passed, 2 todos, 4 risky, 0
+failures**, up from 418. `setup:di:compile` succeeds on a vendor-free install. The probe grep over
+`src/Block`, `Controller` and `view` returns zero, and the only `MyParcelNL\Sdk` references left on
+the form path are `CapabilitiesRequest`, which is the SDK DTO we are meant to use, and the
+`ConsignmentFactory` behind the insurance `@todo`. Every `$block->` and `$form->` call in the
+template was checked against the blocks' public API, since a template typo is invisible to both the
+test suite and `di:compile`.
 
 **Verification state at 4a close.** `vendor/bin/pest` green — **418 passed, 2 todos, 4 risky, 0 failures**, up from 378; the todos and the risky four are pre-existing. `setup:di:compile` succeeds on a vendor-free install. `cache:status` lists `myparcelnl_capabilities` and `cache:clean myparcelnl_capabilities` flushes it by its own tag. DR-17's migration was verified both ways on a real install: with the key removed from `env.php`, `setup:upgrade` re-enables it; with the type explicitly disabled, `setup:upgrade` leaves it alone.
 
