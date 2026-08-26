@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
 
 use InvalidArgumentException;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesDeliveryType;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesDeliveryTypeV2;
 
 /**
  * Delivery type names and ids.
@@ -70,6 +71,33 @@ final class DeliveryType
             self::EXPRESS_NAME       => self::EXPRESS,
             self::EARLY_MORNING_NAME => self::EARLY_MORNING,
         ];
+
+    /**
+     * Module name to the Core API v2 name a capabilities response speaks.
+     */
+    public const V2_NAMES_MAP
+        = [
+            self::MORNING_NAME       => RefTypesDeliveryTypeV2::MORNING,
+            self::STANDARD_NAME      => RefTypesDeliveryTypeV2::STANDARD,
+            self::EVENING_NAME       => RefTypesDeliveryTypeV2::EVENING,
+            self::PICKUP_NAME        => RefTypesDeliveryTypeV2::PICKUP,
+            self::SAME_DAY_NAME      => RefTypesDeliveryTypeV2::SAME_DAY,
+            self::EXPRESS_NAME       => RefTypesDeliveryTypeV2::EXPRESS,
+            self::EARLY_MORNING_NAME => RefTypesDeliveryTypeV2::EARLY_MORNING,
+        ];
+
+    public static function toV2Name(string $name): ?string
+    {
+        return self::V2_NAMES_MAP[$name] ?? null;
+    }
+
+    /** Null for a v2 name the module does not know; the caller logs it rather than inventing one. */
+    public static function fromV2Name(string $v2Name): ?string
+    {
+        $name = array_search($v2Name, self::V2_NAMES_MAP, true);
+
+        return false === $name ? null : $name;
+    }
 
     /**
      * Strict: use on any path that ends in an API request.

@@ -1,6 +1,6 @@
 # SDK v11 Migration Plan
 
-**Status:** Phase 3 complete; Phase 4 next
+**Status:** Phase 4a complete; Phase 4b next
 **Started:** 2026-08-11
 **Branch:** `feat/use-sdk-v11-shipments`
 **Business Requirement:** [BR-000003 — MyParcel SDK v11 compatibility](../business-requirements/BR-000003-sdk-v11-compatibility.md)
@@ -220,6 +220,85 @@ Phase 3 fixes it and then removes the class of bug: `ShipmentOptionsResolver` ta
 
 **What a merchant sees.** PostNL NL evening and morning orders stop getting receipt code, and keep signature and only recipient instead. An order with no stored delivery options still counts as standard, so the admin New Shipment form is unaffected. `Tests/Unit/Service/ShipmentOptionsResolverReceiptCodeTest.php` pins every delivery type separately; it fails on the old code for all six non-standard types.
 
+### DR-15: Phase 4 is the first phase whose SDK surface differs between the two tags
+
+**Assumed by the Strategy section:** that every phase before 9 can be written once and run at both
+beta.15 and beta.31, because the v11 stack is byte-identical across them.
+
+**True for Phases 1-3, false for capabilities.** Five differences, all verified by diffing the tags:
+
+| Symbol | beta.15 | beta.31 |
+|---|---|---|
+| `ShipmentApi::postCapabilities()` | `($user_agent, $request)` | `($request, $user_agent = null)` |
+| `postCapabilitiesContractDefinitions()` | same swap | same swap |
+| `RefCapabilitiesResponseOptionsInsuranceOptionV2` | nested `insured_amount` only | adds flat `min` / `max` / `default` |
+| `RefCapabilitiesResponseCapabilityV2::$physical_properties` | `...PhysicalProperties` | `...PhysicalPropertiesV2` |
+| `RefCapabilitiesResponseOptionsOptionsV2` | carries `cooled_delivery`, `custom_label_text`, `delivery_date`, `return_contribution_fee` | dropped |
+| `Support\EnumFallback` | absent | present |
+
+Everything else the layer touches — `CapabilitiesRequest`, `CapabilitiesMapper`, `Configuration`,
+`ObjectSerializer`, `ShipmentApiFactory` — is byte-identical, and the three v2 enums are identical
+apart from a doc-version comment.
+
+The argument swap is [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md)'s
+defect 1 seen from the other side: beta.15's `HttpCapabilitiesClient` is *correct* for beta.15 and
+becomes wrong at beta.25.
+
+**Resolved by DR-16 rather than by a version shim.** Not calling `postCapabilities()` removes the
+argument-order problem, and not binding to the response models removes the other four. An earlier
+draft carried a `ReflectionMethod` check on the parameter order; it is unnecessary and was cut.
+
+### DR-16: A generated response model is an allow-list, so the module reads the body
+
+**Initially specified:** read `RefCapabilitiesResponseCapabilityV2` directly, which was already the
+correction DR-2 made to using `CapabilitiesResponse`.
+
+**Not far enough.** `ObjectSerializer::deserialize()` iterates `$instance::openAPITypes()` — the
+model's own declared property list — and reads only those keys off the body
+(`ObjectSerializer.php:533-549`). `RefCapabilitiesResponseOptionsOptionsV2` has no
+`additionalProperties` catch-all. So every response key that SDK release does not declare is dropped
+at parse time, silently.
+
+That is precisely what [FR-000010](../functional-requirements/FR-000010-graceful-degradation-on-capability-changes.md)
+forbids: *unknown values pass through and are logged; iterate what the response contains; no code
+path treats capability data as an allow-list.* And it is not a beta.15 problem — at beta.31 a newly
+added API option is dropped until the SDK regenerates and we bump the pin. It is DR-2's defect one
+layer down.
+
+**Decision: the SDK builds the request, the module reads the response.** `CapabilitiesRequest` and
+`CapabilitiesMapper::mapToCoreApi()` stay, per TR-000007 and DR-3; `Configuration` supplies the host
+and auth format and `ObjectSerializer::sanitizeForSerialization()` the body, so the module hand-rolls
+nothing. The decoded body is read into module-owned value objects under
+`src/Model/Shipment/Capabilities/`.
+
+The asymmetry is deliberate and matches DR-12. Outbound, strictness is what we want —
+`sanitizeForSerialization()` throws on a value the API would reject. Inbound, the same strictness is
+a filter, and a filter on capability data is the mechanism FR-000010 exists to prevent.
+
+**Three things this removed** from the phase, each unnecessary rather than unimportant: the
+`ShipmentApi` argument-order shim; a `ShipmentApiProvider` class, since only Phase 7 needs a
+`ShipmentApi`; and the Guzzle middleware TR-000007 wanted for the `Accept` header, which was never
+reachable anyway — `ShipmentApiFactory::make()` builds its own Guzzle client and
+`ShipmentApi::$client` is `protected`. One header on the outgoing request replaces it.
+
+### DR-17: A new Magento cache type is disabled until `env.php` says so
+
+**Found while verifying Phase 4a on a real install.** `etc/cache.xml` declares the type, `cache:status`
+lists it, `cache:clean myparcelnl_capabilities` flushes it — and it caches nothing.
+
+`App\Cache\State::isEnabled()` reads `cache_types` from `app/etc/env.php` and returns `false` for an
+absent key, and **`setup:upgrade` does not add a newly declared type** — tested by removing the key
+and re-running it. So every upgraded install would make an uncached capabilities call on every
+checkout and every admin form render, which is the exact regression TR-000007 exists to prevent, and
+`cache:status` would report the type as present the whole time.
+
+**Decision: enable it once from `UpgradeData`, and only when the key is absent.**
+`Setup\Migrations\EnableCapabilitiesCache` reads `DeploymentConfig` rather than
+`Cache\Manager::getStatus()`, because `getStatus()` lists every type declared in `cache.xml` and so
+cannot tell an absent one from a disabled one. A type an admin has switched off stays off — that
+switch is what it is for. A failed write, as on a read-only `app/etc`, logs the `cache:enable`
+command instead of failing the upgrade.
+
 ---
 
 ## Standing decisions
@@ -378,13 +457,29 @@ grep -rnE "Sdk\\\\Adapter\\\\DeliveryOptions|DeliveryOptionsAdapterFactory" \
 
 `setup:di:compile` still needs a vendor-free install. `ShipmentOptionsResolver` takes one more constructor argument than `Helper\ShipmentOptions` did, and it is constructed with `new` at both call sites rather than injected, so DI has nothing to regenerate for it — but the compile is a real check here rather than a formality.
 
-### Phase 4 — Capabilities layer · *Not started*
+### Phase 4 — Capabilities layer
 
-`src/Model/Shipment/Capabilities`: module-owned, API-key-scoped, cached. Calls `postCapabilities` directly (DR-1, DR-2). Full specification in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
+**Split into three commits**, along the seams [FR-000008](../functional-requirements/FR-000008-carrier-capabilities-and-contract-definitions.md) names. Its fourth seam, the DI cleanup, left for Phase 2 under DR-10.
 
-Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sales/{NewShipment,NewShipmentForm}.php`, `src/Model/Quote/Checkout.php`, `src/Helper/CustomsDeclarationFromOrder.php`.
+| | | |
+|---|---|---|
+| **4a** | Client, cache, module value objects | *Complete* |
+| **4b** | Admin *New Shipment* form | *Not started* |
+| **4c** | Checkout, multicollo, type lists | *Not started* |
+
+`src/Model/Shipment/Capabilities`: module-owned, API-key-scoped, cached. ~~Calls `postCapabilities` directly~~ — calls the endpoint directly, without `ShipmentApi`, per DR-15 and DR-16. Still not `CapabilitiesService` (DR-1, DR-2). Full specification in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md), amended by those two records.
+
+Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sales/{NewShipment,NewShipmentForm}.php`, `src/Model/Quote/Checkout.php`. ~~`src/Helper/CustomsDeclarationFromOrder.php`~~ — **wrong, it needs no change.** Its only country reference is `CountryCode::CC_NL` at `:116`, a static country fact that FR-000008 criterion 5 keeps in the module. The entry was probably meant for `getLocalCountryCode()`, which moved to Phase 8.
+
+**What 4a landed.** Six classes and one XML file: `Capabilities\{Client, Repository, CapabilitySet, CarrierCapability, OptionSet}`, the `Model\Shipment\Carrier` name facade, and `etc/cache.xml` with its `Model\Cache\Type\Capabilities` type class. `V2_NAMES_MAP` went onto `PackageType`, `DeliveryType` and `Carrier`, and `V2_KEYS_MAP` onto `ShipmentOption`; `Tests/Unit/Model/Shipment/V2NameMapTest.php` pins the option half by round-tripping every entry through the SDK's own `mapToCoreApi()`, because `CapabilitiesMapper::KNOWN_OPTION_SETTERS` is private and a second copy of it is exactly what would drift. Invalidation hangs off `Observer\ConfigChange` and the settings-import controller. No consumer changed, so nothing could regress.
+
+**One call serves a page.** The response is `results[]`, each entry carrying `carrier`, `contract`, `packageTypes[]`, `deliveryTypes[]`, `options{}`, `collo{max}`, so a request carrying only a country returns the matrix across every carrier and package type. That is what makes TR-000007's "≤ 1 uncached call per cold checkout, 0 per warm" reachable rather than one call per carrier × package type.
+
+**Deliberately not done in 4a**, each recorded so it does not read as an oversight: the `EnumFallback` listener moved to Phase 7 (DR-16); no `InsuranceRange` class, because `OptionSet` keeps every key verbatim and Phase 5 adds the typed accessor when it has a consumer; no second cache entry for serve-stale, because TR-000007 lists no TTL, so an entry survives a failed refresh by construction; and the three REST transformers keep their own name maps rather than reading the new shared ones — they bind to **Order API** enums while capabilities is **Core API**, and sharing would silently give `upsstandard` the `UPS_STANDARD` mapping it lacks today, changing a shipped versioned response from inside a capabilities phase. That one deserves its own change with its own test.
 
 **Dissolve the fixed type lists here.** `PackageType::IDS` / `NAMES` and the `DeliveryType` equivalents are transitional: "which types exist" becomes what capabilities reports per account. What survives permanently is the *name* map, because the module's snake_case names are `core_config_data` path segments, sit in every historical order's delivery-options JSON, and are the checkout widget's protocol — none of which we control. The list is not an allow-list and must not become one (FR-000010). This is also where the v2→module name translation lands; `PackageTypeTransformer::LEGACY_NAME_MAP` should then read from it rather than holding a second copy.
+
+**Carrier lists.** `Carrier::ALLOWED_CARRIER_CLASSES` goes: 4b moves `NewShipmentForm` off it, 4c moves `Block\System\Config\Form\DeliveryCostsMatrix` off it, and both read `array_keys(Config::CARRIERS_XML_PATH_MAP)` instead — which also removes the GLS asymmetry, since the class list omits GLS while the path map includes it. `CARRIERS_XML_PATH_MAP` itself **stays hardcoded and is not capability data**: it is a carrier-name → config-path map, so a carrier with no path has no fee, no active flag and no drop-off days, and `UpgradeData.php:768` iterates it inside a migration that must run offline. Capabilities decides which of those carriers to *show*; a carrier it reports that we have no path for is logged at notice, which is FR-000010's early-warning signal that a new carrier needs a module release for its settings. `DeliveryCostsMatrix` is admin configuration with no shipment in hand, so its own filtering belongs to Phase 5's contract definitions, not here.
 
 **Two items moved out of this phase.** Dropping the `BaseConsignment` DI argument from `src/Block/Sales/{OrderAction,ShipmentAction}.php` is now **Phase 2**; re-sourcing `getLocalCountryCode()` at `MagentoOrderCollection.php:425` is now **Phase 8**. Neither is capability data — the first is a dead constructor argument, the second a static country fact that TR-000005 routes to module constants — and doing them earlier keeps `di:compile` and the PPS path healthy through more of the branch.
 
@@ -399,6 +494,8 @@ Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sal
 Reference `UPGRADE.md`'s claim that `CapabilitiesService` is the v11 answer for capabilities, since 1–3 together make it untrue in practice. When they land, delete the workaround behind its `@todo` and reassess whether this layer can shrink.
 
 **Check:** `setup:di:compile` succeeds. The admin New Shipment form renders the same package types, delivery types and shipment options as on beta.15, per carrier (insurance changes shape in Phase 5). Checkout delivery options unchanged. A cold checkout makes at most one capabilities call per (account, request shape); a warm one makes none.
+
+**Verification state at 4a close.** `vendor/bin/pest` green — **418 passed, 2 todos, 4 risky, 0 failures**, up from 378; the todos and the risky four are pre-existing. `setup:di:compile` succeeds on a vendor-free install. `cache:status` lists `myparcelnl_capabilities` and `cache:clean myparcelnl_capabilities` flushes it by its own tag. DR-17's migration was verified both ways on a real install: with the key removed from `env.php`, `setup:upgrade` re-enables it; with the type explicitly disabled, `setup:upgrade` leaves it alone.
 
 ### Phase 5 — Insurance as a range, contract definitions, account settings · *Not started*
 
@@ -487,7 +584,9 @@ Tracking is this matrix plus each document's own Traceability section (house con
 | **1** — Tests for our own rules | *supports all* | No FR of its own. Test infrastructure protecting the refactor; inventing an FR would be traceability theatre. Say so in the PR description rather than faking a parent. |
 | **2** — Constants and helpers | TR-000005 | Pure refactor, no user-visible capability |
 | **3** — Delivery options value objects | TR-000005 | Ditto; guarded by the existing REST conformance tests |
-| **4** — Capabilities layer | **FR-000008**, **FR-000010**, TR-000007 | The loose-coupling rules *are* FR-000010's acceptance criteria |
+| **4a** — Capabilities client, cache, models | **FR-000010**, TR-000007 | The loose-coupling rules *are* FR-000010's acceptance criteria. No consumer changes |
+| **4b** — Admin New Shipment form | **FR-000008**, **FR-000010** | |
+| **4c** — Checkout, multicollo, type lists | **FR-000008**, **FR-000010** | |
 | **5** — Insurance as a range | **FR-000009**, TR-000007 | US-000010 |
 | **6** — Shipment building | **FR-000006**, TR-000005 | |
 | **7** — Per-key export orchestration | **FR-000006**, **FR-000007**, TR-000006 | US-000007, US-000008, US-000009 |

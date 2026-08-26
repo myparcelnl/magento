@@ -12,6 +12,7 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
@@ -162,6 +163,7 @@ class ConfigChange implements ObserverInterface
     private function clearConfigCache(): void
     {
         $this->cacheTypeList->cleanType('config');
+        $this->cacheTypeList->cleanType(CapabilitiesCache::TYPE_IDENTIFIER);
 
         foreach ($this->cacheFrontendPool as $cacheFrontend) {
             $cacheFrontend->getBackend()->clean();

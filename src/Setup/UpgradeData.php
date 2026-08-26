@@ -29,6 +29,7 @@ use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
 use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
@@ -99,12 +100,18 @@ class UpgradeData implements UpgradeDataInterface
     private $fingerprintAccountSettingsPaths;
 
     /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache
+     */
+    private $enableCapabilitiesCache;
+
+    /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                     $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                              $eavSetupFactory
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout $replaceDisableCheckout
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange        $replaceDpzRange
      * @param  \MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths
+     * @param  \MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache $enableCapabilitiesCache
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -112,7 +119,8 @@ class UpgradeData implements UpgradeDataInterface
         ReplaceFitInMailbox $replaceFitInMailbox,
         ReplaceDisableCheckout $replaceDisableCheckout,
         ReplaceDpzRange $replaceDpzRange,
-        FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths
+        FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths,
+        EnableCapabilitiesCache $enableCapabilitiesCache
     ) {
         $this->categorySetupFactory            = $categorySetupFactory;
         $this->eavSetupFactory                 = $eavSetupFactory;
@@ -120,6 +128,7 @@ class UpgradeData implements UpgradeDataInterface
         $this->replaceDisableCheckout          = $replaceDisableCheckout;
         $this->replaceDpzRange                 = $replaceDpzRange;
         $this->fingerprintAccountSettingsPaths = $fingerprintAccountSettingsPaths;
+        $this->enableCapabilitiesCache         = $enableCapabilitiesCache;
     }
 
     /**
@@ -1074,6 +1083,10 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '5.9.1', '<')) {
             $this->fingerprintAccountSettingsPaths->run();
+        }
+
+        if (version_compare($context->getVersion(), '5.10.0', '<')) {
+            $this->enableCapabilitiesCache->run();
         }
 
         $setup->endSetup();

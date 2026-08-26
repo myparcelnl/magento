@@ -135,6 +135,40 @@ The helper knows nothing about what it hashes, which is what lets Phase 4 reuse 
 
 **Migration.** `src/Setup/Migrations/FingerprintAccountSettingsPaths.php`, invoked from `src/Setup/UpgradeData.php`. Idempotent, and it never overwrites an existing fingerprinted row.
 
+### Module name to Core API v2 name
+
+The module's names are `core_config_data` path segments, sit in every historical order's
+delivery-options JSON, and are the checkout widget's protocol, so they cannot follow the SDK. The
+capabilities endpoint speaks v2. One map per kind, on the facade that already owns the names:
+
+| Kind | Map | Shape |
+|---|---|---|
+| Carrier | `Model\Shipment\Carrier::V2_NAMES_MAP` | `postnl` ⇄ `POSTNL`, `dhlforyou` ⇄ `DHL_FOR_YOU`, `upsstandard` ⇄ `UPS_STANDARD`, … |
+| Package type | `Model\Shipment\PackageType::V2_NAMES_MAP` | `letter` ⇄ `UNFRANKED`, `package_small` ⇄ `SMALL_PACKAGE`, the rest the name upper-cased |
+| Delivery type | `Model\Shipment\DeliveryType::V2_NAMES_MAP` | the name upper-cased plus `_DELIVERY` |
+| Shipment option | `Model\Shipment\ShipmentOption::V2_KEYS_MAP` | `signature` ⇄ `requiresSignature`, `only_recipient` ⇄ `recipientOnlyDelivery`, … |
+
+Each has a `toV2*()` and a `fromV2*()`; **`fromV2*()` returns null for a value the module does not
+know, and the caller logs it** rather than substituting — the read half of DR-12.
+
+The package, delivery and carrier maps take their v2 values from the generated
+`RefShipmentPackageTypeV2`, `RefTypesDeliveryTypeV2` and `RefCapabilitiesSharedCarrierV2` enums,
+which are constant-identical at beta.15 and beta.31. The option map is written out, because
+`CapabilitiesMapper::KNOWN_OPTION_SETTERS` is `private`;
+`Tests/Unit/Model/Shipment/V2NameMapTest.php` round-trips every entry through the SDK's own
+`mapToCoreApi()` instead, so the request and response sides cannot disagree on a wire key.
+
+Two options are **read-only**: `fresh_food` and `frozen` appear in a capabilities response but have
+no setter on `CapabilitiesOptionsV2`, so a request cannot ask about them. The mapper drops them
+silently; the module logs it (TR-000007).
+
+**The REST transformers keep their own maps.** `Model\Rest\Transformer\{Carrier,PackageType,DeliveryType}Transformer`
+bind to **Order API** enums while capabilities is **Core API**. The strings match today, but they are
+two generated contracts that can diverge, and one map serving both couples them. There is also a
+live difference: `CarrierTransformer::LEGACY_NAME_MAP` maps `ups` but not `upsstandard`, which is the
+name `Config::CARRIERS_XML_PATH_MAP` uses, so sharing the map would change a shipped versioned
+response as a side effect. If they are ever merged, that difference needs its own test first.
+
 ## Verification Method
 
 Static verification, since this is a compatibility requirement rather than a measurable one.

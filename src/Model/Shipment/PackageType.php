@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
 
 use InvalidArgumentException;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPackageType;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPackageTypeV2;
 
 /**
  * Package type names and ids.
@@ -69,6 +70,33 @@ final class PackageType
             self::PACKAGE_SMALL_NAME => self::PACKAGE_SMALL,
             self::ENVELOPE_NAME      => self::ENVELOPE,
         ];
+
+    /**
+     * Module name to the Core API v2 name a capabilities response speaks.
+     */
+    public const V2_NAMES_MAP
+        = [
+            self::PACKAGE_NAME       => RefShipmentPackageTypeV2::PACKAGE,
+            self::MAILBOX_NAME       => RefShipmentPackageTypeV2::MAILBOX,
+            self::LETTER_NAME        => RefShipmentPackageTypeV2::UNFRANKED,
+            self::DIGITAL_STAMP_NAME => RefShipmentPackageTypeV2::DIGITAL_STAMP,
+            self::PALLET_NAME        => RefShipmentPackageTypeV2::PALLET,
+            self::PACKAGE_SMALL_NAME => RefShipmentPackageTypeV2::SMALL_PACKAGE,
+            self::ENVELOPE_NAME      => RefShipmentPackageTypeV2::ENVELOPE,
+        ];
+
+    public static function toV2Name(string $name): ?string
+    {
+        return self::V2_NAMES_MAP[$name] ?? null;
+    }
+
+    /** Null for a v2 name the module does not know; the caller logs it rather than inventing one. */
+    public static function fromV2Name(string $v2Name): ?string
+    {
+        $name = array_search($v2Name, self::V2_NAMES_MAP, true);
+
+        return false === $name ? null : $name;
+    }
 
     /**
      * Strict: use on any path that ends in an API request.

@@ -10,6 +10,7 @@ use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Controller\Result\JsonFactory;
+use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
@@ -86,6 +87,7 @@ class CarrierConfigurationImport extends Action
     {
         $cacheFrontendPool = $this->pool;
         $this->typeListInterface->cleanType('config');
+        $this->typeListInterface->cleanType(CapabilitiesCache::TYPE_IDENTIFIER);
 
         foreach ($cacheFrontendPool as $cacheFrontend) {
             $cacheFrontend->getBackend()

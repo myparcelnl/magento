@@ -67,14 +67,21 @@ Two of the three defects independently rule the SDK's service out. Defect 2 mean
 | Aspect | Requirement |
 |---|---|
 | Request construction | SDK `Model\Capabilities\CapabilitiesRequest` + `CapabilitiesMapper::mapToCoreApi()`. Do **not** hand-roll this — see TR-000005 for why. |
-| Client | The per-key client from [TR-000006](TR-000006-per-api-key-export-batching.md), built with the store's real key. Take it from that document's single choke point; do not call `ShipmentApiFactory::make()` here, or the grep assertion protecting the empty-key guard stops holding |
-| Call | `postCapabilities($request, $userAgent)` — request first. Getting this backwards is defect 1. |
-| Response | Read `RefCapabilitiesResponseCapabilityV2` directly, preserving option values. Do not use `mapFromCoreApi()` or `CapabilitiesResponse`. |
-| `Accept` header | **Must** force `application/json;charset=utf-8;version=2` on any path containing `/shipments/capabilities`, via Guzzle middleware. Without it the response may arrive in the V1 shape. Documented nowhere in the SDK; observed in `myparcelnl/pdk`. |
-| Options logging | `mapOptions()` silently skips an option with no matching setter. Log when an option we passed does not survive mapping. |
+| Client | ~~The per-key client from TR-000006.~~ **Amended.** `ShipmentApi` is not used at all: `Configuration` supplies the host and the `Bearer base64(key)` auth format, `ObjectSerializer::sanitizeForSerialization()` supplies the body, and the module sends the request with its own Guzzle client. `ShipmentApiFactory` is therefore never reached from this layer, so [TR-000006](TR-000006-per-api-key-export-batching.md)'s empty-key hazard is structurally absent rather than guarded, and its "exactly one `make()` call site" assertion still holds. |
+| Call | ~~`postCapabilities($request, $userAgent)` — request first.~~ **Amended: not called.** The argument order is the defect, and it differs between the pinned SDK and the target — `($user_agent, $request)` at beta.15, `($request, $user_agent = null)` at beta.31. Not calling the method is what makes this layer version-independent. |
+| Response | ~~Read `RefCapabilitiesResponseCapabilityV2` directly.~~ **Amended: read the decoded body.** A generated response model is an allow-list — `ObjectSerializer::deserialize()` iterates the model's own declared properties and there is no `additionalProperties` catch-all, so any key that SDK release does not declare is dropped silently. That is what FR-000010 forbids, and it holds at beta.31 too. It also loses the insurance bounds outright at beta.15, where the flat `min`/`max`/`default` are not declared. Module-owned value objects read the body instead. `mapFromCoreApi()` and `CapabilitiesResponse` remain excluded for the original reason. |
+| `Accept` header | `application/json;charset=utf-8;version=2`. ~~Via Guzzle middleware.~~ **Amended: set directly on the request.** Middleware was never reachable: `ShipmentApiFactory::make()` builds its own Guzzle client and `ShipmentApi::$client` is `protected`. Without the header the response may arrive in the V1 shape. Documented nowhere in the SDK; observed in `myparcelnl/pdk`. |
+| Options logging | `mapOptions()` silently skips an option with no matching setter. Log when an option we passed does not survive mapping. Two exist today: `fresh_food` and `frozen` appear in a response but have no setter on `CapabilitiesOptionsV2`, so they are read-only. |
 | Retirement | The workaround carries a `@todo` referencing the three issues. When they land, reassess whether this layer can shrink to a thin wrapper. |
 
 Contract definitions use `postCapabilitiesContractDefinitions()` through the same client.
+
+**Why the SDK still builds the request but not the response.** The split is not squeamishness about
+generated code. On the way out, strictness is what we want: `sanitizeForSerialization()` throws on a
+value the API would reject, which is the write-strictly half of the rule below, and
+`CapabilitiesMapper` carries domain knowledge we would otherwise rediscover (DR-3). On the way in,
+that same strictness is a filter, and a filter on capability data is the exact mechanism FR-000010
+exists to prevent.
 
 ### Storage
 
@@ -83,13 +90,22 @@ Contract definitions use `postCapabilitiesContractDefinitions()` through the sam
 | Contract definitions | account | Fetched at account refresh and persisted per API key, alongside the existing account settings row | The *Import MyParcel Backoffice settings* action; API key change |
 | Shipment capabilities | account × country × weight × package type × delivery type × direction × options | Cache-aside, keyed on a hash of the request | `bin/magento cache:clean`; API key change; settings import |
 
-Shipment capabilities use a **dedicated Magento cache type** via `Magento\Framework\App\CacheInterface`, declared in `etc/cache.xml` with its own tag, so it is flushable from the CLI and the admin cache page. They must **not** go in configuration storage: high-cardinality derived data does not belong in `core_config_data`, where every write invalidates the config cache and appears in config dumps, and there is no admin-triggered moment to hang a refresh off.
+Shipment capabilities use a **dedicated Magento cache type**, declared in `etc/cache.xml` with a `TagScope` type class, so `cache:clean myparcelnl_capabilities` and the admin cache page both flush it by its own tag alone. They must **not** go in configuration storage: high-cardinality derived data does not belong in `core_config_data`, where every write invalidates the config cache and appears in config dumps, and there is no admin-triggered moment to hang a refresh off.
+
+**A new cache type is disabled until `env.php` says otherwise, and `setup:upgrade` does not add
+one** — verified against 2.4.6, not assumed. `App\Cache\State::isEnabled()` reads `cache_types`
+from `app/etc/env.php` and treats an absent key as `false`, so on an upgraded install the type
+exists, appears in `cache:status`, and caches nothing. Every checkout would then make an uncached
+call, which is the regression this document exists to prevent. The module therefore enables it once
+from its upgrade path, and **only when the key is absent** — a type an admin has switched off stays
+off, because that switch is what it is for. A write that fails, as on a read-only `app/etc`, logs
+the `cache:enable` command rather than failing the upgrade.
 
 ### Cache key derivation
 
 | Criterion | Requirement |
 |---|---|
-| Components | Hashed API key + hash of the full capabilities request payload |
+| Components | One hash over the API key and the full serialized request payload together. Two separate hashes were specified first; nothing invalidates by account alone, so the second bought nothing but a longer id. |
 | API key handling | **Hashed, never plaintext**, in the cache id, the tag, and any log line |
 | Shared helper | `MyParcelNL\Magento\Service\Hash\Fingerprint::of()` — the **same** helper as the account settings config path. A second implementation drifting produces a silent cache miss on every request rather than a visible error |
 | Completeness | Every field that can change the answer must be in the key. A missing field yields a wrong cached answer, which is worse than no cache |
@@ -104,7 +120,7 @@ Implementing [FR-000010](../functional-requirements/FR-000010-graceful-degradati
 - **Serve stale.** Prefer previously cached data over falling through to defaults.
 - **Never gate outbound.** Options from stored checkout data, bulk parameters or REST are sent regardless of what capability data lists. No allow-list filter — deliberately unlike `myparcelnl/pdk`.
 - **Null-safe reads.** Iterate what the response contains; assume no key exists.
-- **Log unknown enums.** Register a listener on `Support\EnumFallback`, which since beta.29 passes unknown enum values through unchanged instead of throwing, routed to the module's `Logger` facade. Read leniently; note that request serialization stays strict, so module-constructed enums are validated before sending.
+- **Log unknown values.** Every v2 carrier, package type, delivery type and option key the module cannot translate is kept and logged at notice, once per fetch. ~~Register a listener on `Support\EnumFallback`.~~ **Moved to the phases that deserialize SDK models.** `EnumFallback` fires inside `ObjectSerializer::deserialize()`, which the capabilities path no longer calls, and it does not exist at beta.15 — so there is nothing for it to observe here and no way to register it on the pinned SDK. Read leniently; note that request serialization stays strict, so module-constructed enums are validated before sending.
 
 ### Insurance bounds
 
@@ -138,7 +154,7 @@ Unit tests with a stubbed client for behaviour, fault injection for degradation,
 5. **No plaintext key.** No cache id, tag or log line contains the API key. Assert against a recognisable test key value.
 6. **Degradation.** Four injected faults — HTTP 500, timeout, a response with an extra unknown option, a response missing an expected key — each leave the form rendering and label creation working.
 7. **Stale preference.** With data cached and a refresh failing, the cached value is used rather than defaults.
-8. **Unknown enum logging.** A response containing an unknown carrier is logged via the `EnumFallback` listener and does not throw.
+8. **Unknown value logging.** A response containing an unknown carrier, package type, delivery type or option key is logged and does not throw, and the recognised half of the same response still answers.
 9. **Invalidation.** Changing the API key, and running the settings import, both invalidate the affected entries. `cache:clean` flushes the cache type.
 10. **Offline upgrade.** `setup:upgrade` on a pre-migration database succeeds with no network access.
 
@@ -156,6 +172,7 @@ Unit tests with a stubbed client for behaviour, fault injection for degradation,
 ## Constraints
 
 - The SDK's own capabilities service cannot be used until the three defects land; we must not patch `vendor/**`.
+- The SDK knows one host, `https://api.myparcel.nl`, and no acceptance counterpart. The client takes an optional host override, which is the only seam for verifying against acceptance.
 - `CapabilitiesResponse` is `final` with a 6-argument positional constructor, so it cannot be extended to carry insurance.
 - `MultiColloShipmentService` takes no API key. Do not build it per key. (`CapabilitiesService` also takes none, which is defect 2 — the module does not use it at all.)
 - Capability lookups must never be made from `src/Setup/UpgradeData.php`; upgrades must work offline.

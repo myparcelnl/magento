@@ -47,6 +47,45 @@ final class ShipmentOption
             self::FROZEN,
         ];
 
+    /**
+     * Module option name to the camelCase key a capabilities response uses.
+     *
+     * Mirrors CapabilitiesMapper's own request-side mapping, so the two sides cannot disagree on a
+     * wire key. ShipmentOptionV2KeyTest asserts that agreement by round-tripping every entry
+     * through mapToCoreApi(); FRESH_FOOD and FROZEN are the two the request model cannot carry at
+     * all, so they are read-only and the Client logs them when they are passed.
+     */
+    public const V2_KEYS_MAP
+        = [
+            self::AGE_CHECK          => 'requiresAgeVerification',
+            self::HIDE_SENDER        => 'hideSender',
+            self::INSURANCE          => 'insurance',
+            self::LARGE_FORMAT       => 'oversizedPackage',
+            self::ONLY_RECIPIENT     => 'recipientOnlyDelivery',
+            self::PRINTERLESS_RETURN => 'printReturnLabelAtDropOff',
+            self::RETURN             => 'returnOnFirstFailedDelivery',
+            self::SAME_DAY_DELIVERY  => 'sameDayDelivery',
+            self::SIGNATURE          => 'requiresSignature',
+            self::COLLECT            => 'scheduledCollection',
+            self::RECEIPT_CODE       => 'requiresReceiptCode',
+            self::PRIORITY_DELIVERY  => 'priorityDelivery',
+            self::FRESH_FOOD         => 'freshFood',
+            self::FROZEN             => 'frozen',
+        ];
+
+    public static function toV2Key(string $name): ?string
+    {
+        return self::V2_KEYS_MAP[$name] ?? null;
+    }
+
+    /** Null for a response key the module has no option for; the caller logs it. */
+    public static function fromV2Key(string $v2Key): ?string
+    {
+        $name = array_search($v2Key, self::V2_KEYS_MAP, true);
+
+        return false === $name ? null : $name;
+    }
+
     public const EXTRA_DELIVERY_DATE     = 'delivery_date';
     public const EXTRA_DELIVERY_MONDAY   = 'delivery_monday';
     public const EXTRA_DELIVERY_SATURDAY = 'delivery_saturday';
