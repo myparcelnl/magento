@@ -36,14 +36,7 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
 use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
@@ -55,16 +48,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
     protected $_name;
     protected $_title;
-
-    public const ALLOWED_CARRIER_CLASSES = [
-        CarrierPostNL::class,
-        CarrierDHLForYou::class,
-        CarrierDHLEuroplus::class,
-        CarrierDHLParcelConnect::class,
-        CarrierUPSStandard::class,
-        CarrierDPD::class,
-        CarrierTrunkrs::class,
-    ];
 
     private const DELIVERY_TYPE_TITLES = [
         'standard' => 'Standard Delivery',

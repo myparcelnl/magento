@@ -6,8 +6,9 @@ namespace MyParcelNL\Magento\Block\System\Config\Form;
 
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
-use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCostsMatrix extends Field
@@ -19,13 +20,20 @@ class DeliveryCostsMatrix extends Field
      */
     protected $_template = 'MyParcelNL_Magento::delivery_costs_matrix.phtml';
 
+    /**
+     * Every carrier the module has settings for, unfiltered.
+     *
+     * This form configures rates with no shipment in hand, so narrowing it to the account's own
+     * carriers needs contract definitions rather than the capabilities endpoint. Phase 5 owns that.
+     */
     public function getCarriers(): array
     {
         $carriers = [];
-        foreach (Carrier::ALLOWED_CARRIER_CLASSES as $carrierClass) {
-            $carrier                       = new $carrierClass();
-            $carriers[$carrier->getName()] = $carrier->getHuman();
+
+        foreach (array_keys(Config::CARRIERS_XML_PATH_MAP) as $carrierName) {
+            $carriers[$carrierName] = ShipmentCarrier::humanFor($carrierName);
         }
+
         return $carriers;
     }
 

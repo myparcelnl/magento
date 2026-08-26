@@ -42,7 +42,9 @@ use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\Exception\ApiException;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use Throwable;
 
@@ -636,19 +638,41 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @param AbstractConsignment $consignment
+     * Whether this shipment may be sent as one multicollo consignment rather than as separate ones.
      *
-     * @return bool whether $consignment properties allow for multicollo shipments
+     * The key comes off the consignment, which is per-account and needs no store lookup. Phase 6
+     * retypes the parameter to the v11 Shipment, which carries no key, and will pass it alongside.
+     *
+     * @param AbstractConsignment $consignment
      */
     public function canUseMultiCollo(AbstractConsignment $consignment): bool
     {
-        $carrier = $consignment->getCarrierId();
-        $country = $consignment->getCountry();
-        $package = $consignment->getPackageType();
+        $carrier     = $consignment->getCarrierName();
+        $country     = $consignment->getCountry();
+        $packageType = PackageType::nameFromIdOrNull($consignment->getPackageType());
+        $apiKey      = (string) $consignment->getApiKey();
 
-        return ($consignment::CC_NL === $country || $consignment::CC_BE === $country)
-               && CarrierPostNL::ID === $carrier
-               && $consignment::PACKAGE_TYPE_PACKAGE === $package;
+        if (null === $carrier || null === $country || null === $packageType || '' === $apiKey) {
+            return false;
+        }
+
+        $v2PackageType = PackageType::toV2Name($packageType);
+
+        if (null === $v2PackageType) {
+            return false;
+        }
+
+        $capabilities = $this->getCapabilitiesRepository()->forApiKey(
+            $apiKey,
+            CapabilitiesRequest::forCountry($country)->withPackageType($v2PackageType)
+        );
+
+        return 1 < (int) $capabilities->colloMaxFor($carrier, $packageType);
+    }
+
+    private function getCapabilitiesRepository(): CapabilitiesRepository
+    {
+        return $this->objectManager->get(CapabilitiesRepository::class);
     }
 
     /**

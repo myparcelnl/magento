@@ -40,23 +40,26 @@ it('returns null instead of throwing on the forgiving path', function () {
         ->and(DeliveryType::toIdOrNull('pickup'))->toBe(DeliveryType::PICKUP);
 });
 
-it('validates names and ids', function () {
-    expect(PackageType::isValidName('digital_stamp'))->toBeTrue()
-        ->and(PackageType::isValidName('DIGITAL_STAMP'))->toBeFalse()
-        ->and(PackageType::isValidId(PackageType::LETTER))->toBeTrue()
-        ->and(PackageType::isValidId(99))->toBeFalse()
-        ->and(DeliveryType::isValidName('evening'))->toBeTrue()
-        ->and(DeliveryType::isValidId(DeliveryType::EXPRESS))->toBeTrue()
-        ->and(DeliveryType::isValidId(99))->toBeFalse();
+it('resolves a name it knows and answers null for one it does not', function () {
+    // isValidName()/isValidId() are gone: which types exist is the account's answer now, and a
+    // local predicate shaped like an allow-list is what FR-000010 forbids. The resolvers survive,
+    // because translating a name is not the same as deciding one is permitted.
+    expect(PackageType::toIdOrNull('digital_stamp'))->toBe(PackageType::DIGITAL_STAMP)
+        ->and(PackageType::toIdOrNull('DIGITAL_STAMP'))->toBeNull()
+        ->and(PackageType::nameFromIdOrNull(PackageType::LETTER))->toBe(PackageType::LETTER_NAME)
+        ->and(PackageType::nameFromIdOrNull(99))->toBeNull()
+        ->and(DeliveryType::toIdOrNull('evening'))->toBe(DeliveryType::EVENING)
+        ->and(DeliveryType::nameFromIdOrNull(DeliveryType::EXPRESS))->toBe(DeliveryType::EXPRESS_NAME)
+        ->and(DeliveryType::nameFromIdOrNull(99))->toBeNull();
 });
 
 it('names every type the SDK can round-trip', function () {
     expect(PackageType::NAMES_IDS_MAP)->toHaveCount(7)
         ->and(DeliveryType::NAMES_IDS_MAP)->toHaveCount(7)
-        ->and(PackageType::isValidId(PackageType::PALLET))->toBeTrue()
-        ->and(PackageType::isValidId(PackageType::ENVELOPE))->toBeTrue()
-        ->and(DeliveryType::isValidId(DeliveryType::SAME_DAY))->toBeTrue()
-        ->and(DeliveryType::isValidId(DeliveryType::EARLY_MORNING))->toBeTrue();
+        ->and(PackageType::nameFromIdOrNull(PackageType::PALLET))->toBe(PackageType::PALLET_NAME)
+        ->and(PackageType::nameFromIdOrNull(PackageType::ENVELOPE))->toBe(PackageType::ENVELOPE_NAME)
+        ->and(DeliveryType::nameFromIdOrNull(DeliveryType::SAME_DAY))->toBe(DeliveryType::SAME_DAY_NAME)
+        ->and(DeliveryType::nameFromIdOrNull(DeliveryType::EARLY_MORNING))->toBe(DeliveryType::EARLY_MORNING_NAME);
 });
 
 it('reads forgivingly and writes strictly', function () {

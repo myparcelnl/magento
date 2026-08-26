@@ -39,28 +39,6 @@ final class DeliveryType
     public const DEFAULT      = self::STANDARD;
     public const DEFAULT_NAME = self::STANDARD_NAME;
 
-    public const IDS
-        = [
-            self::MORNING,
-            self::STANDARD,
-            self::EVENING,
-            self::PICKUP,
-            self::SAME_DAY,
-            self::EXPRESS,
-            self::EARLY_MORNING,
-        ];
-
-    public const NAMES
-        = [
-            self::MORNING_NAME,
-            self::STANDARD_NAME,
-            self::EVENING_NAME,
-            self::PICKUP_NAME,
-            self::SAME_DAY_NAME,
-            self::EXPRESS_NAME,
-            self::EARLY_MORNING_NAME,
-        ];
-
     public const NAMES_IDS_MAP
         = [
             self::MORNING_NAME       => self::MORNING,
@@ -140,15 +118,5 @@ final class DeliveryType
         $name = array_search($id, self::NAMES_IDS_MAP, true);
 
         return false === $name ? null : $name;
-    }
-
-    public static function isValidName(string $name): bool
-    {
-        return isset(self::NAMES_IDS_MAP[$name]);
-    }
-
-    public static function isValidId(int $id): bool
-    {
-        return in_array($id, self::IDS, true);
     }
 }

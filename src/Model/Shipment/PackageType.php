@@ -38,28 +38,6 @@ final class PackageType
     public const DEFAULT      = self::PACKAGE;
     public const DEFAULT_NAME = self::PACKAGE_NAME;
 
-    public const IDS
-        = [
-            self::PACKAGE,
-            self::MAILBOX,
-            self::LETTER,
-            self::DIGITAL_STAMP,
-            self::PALLET,
-            self::PACKAGE_SMALL,
-            self::ENVELOPE,
-        ];
-
-    public const NAMES
-        = [
-            self::PACKAGE_NAME,
-            self::MAILBOX_NAME,
-            self::LETTER_NAME,
-            self::DIGITAL_STAMP_NAME,
-            self::PALLET_NAME,
-            self::PACKAGE_SMALL_NAME,
-            self::ENVELOPE_NAME,
-        ];
-
     public const NAMES_IDS_MAP
         = [
             self::PACKAGE_NAME       => self::PACKAGE,
@@ -139,15 +117,5 @@ final class PackageType
         $name = array_search($id, self::NAMES_IDS_MAP, true);
 
         return false === $name ? null : $name;
-    }
-
-    public static function isValidName(string $name): bool
-    {
-        return isset(self::NAMES_IDS_MAP[$name]);
-    }
-
-    public static function isValidId(int $id): bool
-    {
-        return in_array($id, self::IDS, true);
     }
 }

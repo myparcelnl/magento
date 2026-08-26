@@ -96,6 +96,19 @@ final class CapabilitySet
         });
     }
 
+    /** Permissive answers yes, for the same reason hasOption() does. */
+    public function hasPackageType(string $carrier, string $packageType): bool
+    {
+        return $this->permissive || in_array($packageType, $this->packageTypesFor($carrier), true);
+    }
+
+    /** Permissive answers yes, for the same reason hasOption() does. */
+    public function hasDeliveryType(string $carrier, ?string $packageType, string $deliveryType): bool
+    {
+        return $this->permissive
+               || in_array($deliveryType, $this->deliveryTypesFor($carrier, $packageType), true);
+    }
+
     /** Permissive answers yes: offer the option and let the API decide (FR-000010). */
     public function hasOption(string $carrier, ?string $packageType, string $option): bool
     {

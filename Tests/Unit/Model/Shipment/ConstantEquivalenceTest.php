@@ -30,8 +30,9 @@ it('carries the beta.15 package type ids and names', function () {
 });
 
 it('keeps every beta.15 package type collection entry unchanged', function () {
-    expect(array_diff(AbstractConsignment::PACKAGE_TYPES_IDS, PackageType::IDS))->toBe([])
-        ->and(array_diff(AbstractConsignment::PACKAGE_TYPES_NAMES, PackageType::NAMES))->toBe([])
+    // Derived from the surviving name map: the standalone IDS and NAMES arrays went in 4c.
+    expect(array_diff(AbstractConsignment::PACKAGE_TYPES_IDS, array_values(PackageType::NAMES_IDS_MAP)))->toBe([])
+        ->and(array_diff(AbstractConsignment::PACKAGE_TYPES_NAMES, array_keys(PackageType::NAMES_IDS_MAP)))->toBe([])
         ->and(array_intersect_key(PackageType::NAMES_IDS_MAP, AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP))
         ->toBe(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP);
 });
@@ -52,8 +53,8 @@ it('carries the beta.15 delivery type ids and names', function () {
 });
 
 it('keeps every beta.15 delivery type collection entry unchanged', function () {
-    expect(array_diff(AbstractConsignment::DELIVERY_TYPES_IDS, DeliveryType::IDS))->toBe([])
-        ->and(array_diff(AbstractConsignment::DELIVERY_TYPES_NAMES, DeliveryType::NAMES))->toBe([])
+    expect(array_diff(AbstractConsignment::DELIVERY_TYPES_IDS, array_values(DeliveryType::NAMES_IDS_MAP)))->toBe([])
+        ->and(array_diff(AbstractConsignment::DELIVERY_TYPES_NAMES, array_keys(DeliveryType::NAMES_IDS_MAP)))->toBe([])
         ->and(array_intersect_key(DeliveryType::NAMES_IDS_MAP, AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP))
         ->toBe(AbstractConsignment::DELIVERY_TYPES_NAMES_IDS_MAP);
 });

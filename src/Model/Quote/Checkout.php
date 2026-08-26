@@ -8,9 +8,10 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
-use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -20,9 +21,8 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
+use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use MyParcelNL\Sdk\Services\CountryCodes;
-use Throwable;
 
 class Checkout
 {
@@ -36,29 +36,41 @@ class Checkout
     private PackageRepository     $package;
     private Quote                 $quote;
     private StoreManagerInterface $storeManager;
+    private CapabilitiesRepository $capabilitiesRepository;
+
+    /**
+     * Keyed by country and package type, '' for the package-type-agnostic lookup. A checkout
+     * resolves one package type before it asks anything else, so this holds two entries at most.
+     *
+     * @var array<string,CapabilitySet>
+     */
+    private array $capabilities = [];
 
     /**
      * Checkout constructor.
      *
-     * @param Tax                   $tax
-     * @param Config                $config
-     * @param DeliveryCosts         $deliveryCosts
-     * @param PackageRepository     $package
-     * @param StoreManagerInterface $storeManager
+     * @param Tax                    $tax
+     * @param Config                 $config
+     * @param DeliveryCosts          $deliveryCosts
+     * @param PackageRepository      $package
+     * @param StoreManagerInterface  $storeManager
+     * @param CapabilitiesRepository $capabilitiesRepository
      */
     public function __construct(
         Tax                   $tax,
         Config                $config,
         DeliveryCosts         $deliveryCosts,
         PackageRepository     $package, // TODO DEPRECATE / IMPROVE
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        CapabilitiesRepository $capabilitiesRepository
     )
     {
-        $this->tax           = $tax;
-        $this->config        = $config;
-        $this->deliveryCosts = $deliveryCosts;
-        $this->package       = $package;
-        $this->storeManager  = $storeManager;
+        $this->tax                    = $tax;
+        $this->config                 = $config;
+        $this->deliveryCosts          = $deliveryCosts;
+        $this->package                = $package;
+        $this->storeManager           = $storeManager;
+        $this->capabilitiesRepository = $capabilitiesRepository;
         $this->quote         = $this->getQuoteFromCurrentSession();
 
         // Must happen before any setMailboxSettings() call, which reads config.
@@ -184,31 +196,26 @@ class Checkout
         $showTotalPrice = $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
 
         $quote = $this->quote;
+        $caps  = $this->getCapabilities($country, $packageType);
 
         foreach ($activeCarriers as $carrierName) {
             $carrierPath = $carrierPaths[$carrierName];
             $basePrice   = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country);
 
-            try {
-                $consignment = ConsignmentFactory::createByCarrierName($carrierName);
-                $consignment->setPackageType(PackageType::NAMES_IDS_MAP[$packageType] ?? PackageType::PACKAGE);
-            } catch (Throwable $ex) {
-                Logger::info(sprintf('getDeliveryData: Could not create default consignment for %s', $carrierName));
-                continue;
-            }
-
-            $canHaveSameDay          = $consignment->canHaveExtraOption(ShipmentOption::SAME_DAY_DELIVERY);
-            $canHaveMonday           = $consignment->canHaveExtraOption(ShipmentOption::EXTRA_DELIVERY_MONDAY);
-            $canHaveMorning          = $consignment->canHaveDeliveryType(DeliveryType::MORNING_NAME);
-            $canHaveEvening          = $consignment->canHaveDeliveryType(DeliveryType::EVENING_NAME);
-            $canHaveExpress          = $consignment->canHaveDeliveryType(DeliveryType::EXPRESS_NAME);
-            $canHavePickup           = $consignment->canHaveDeliveryType(DeliveryType::PICKUP_NAME);
-            $canHaveSignature        = $consignment->canHaveShipmentOption(ShipmentOption::SIGNATURE);
-            $canHaveCollect          = $consignment->canHaveShipmentOption(ShipmentOption::COLLECT);
-            $canHaveReceiptCode      = $consignment->canHaveShipmentOption(ShipmentOption::RECEIPT_CODE);
-            $canHavePriorityDelivery = $consignment->canHaveShipmentOption(ShipmentOption::PRIORITY_DELIVERY);
-            $canHaveOnlyRecipient    = $consignment->canHaveShipmentOption(ShipmentOption::ONLY_RECIPIENT);
-            $canHaveAgeCheck         = $consignment->canHaveShipmentOption(ShipmentOption::AGE_CHECK);
+            $canHaveSameDay          = $caps->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
+            $canHaveMorning          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::MORNING_NAME);
+            $canHaveEvening          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::EVENING_NAME);
+            $canHaveExpress          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::EXPRESS_NAME);
+            $canHavePickup           = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::PICKUP_NAME);
+            $canHaveSignature        = $caps->hasOption($carrierName, $packageType, ShipmentOption::SIGNATURE);
+            $canHaveCollect          = $caps->hasOption($carrierName, $packageType, ShipmentOption::COLLECT);
+            $canHaveReceiptCode      = $caps->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
+            $canHavePriorityDelivery = $caps->hasOption($carrierName, $packageType, ShipmentOption::PRIORITY_DELIVERY);
+            $canHaveOnlyRecipient    = $caps->hasOption($carrierName, $packageType, ShipmentOption::ONLY_RECIPIENT);
+            $canHaveAgeCheck         = $caps->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
+            // Monday delivery is not a capability the API reports, so configuration alone decides.
+            // Offering it and letting the API refuse beats hiding a feature the merchant pays for.
+            $canHaveMonday           = true;
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
             $mondayFee           = $canHaveMonday ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/monday_fee'), $quote) + $addBasePrice : 0;
@@ -273,6 +280,40 @@ class Checkout
         }
 
         return $myParcelConfig;
+    }
+
+    /**
+     * Capabilities for one shipment shape. Pass null for the shape-agnostic question, which is the
+     * only one that can say which package types a carrier has.
+     *
+     * A shape-agnostic response is a superset: it groups every package type of a carrier into one
+     * result carrying the union of their options, so anything that varies per package type must be
+     * asked with the package type set. See DR-18.
+     */
+    private function getCapabilities(string $country, ?string $packageType = null): CapabilitySet
+    {
+        $key = $country . '|' . (string) $packageType;
+
+        if (isset($this->capabilities[$key])) {
+            return $this->capabilities[$key];
+        }
+
+        $request = CapabilitiesRequest::forCountry($country);
+
+        if (null !== $packageType) {
+            $v2 = PackageType::toV2Name($packageType);
+
+            if (null === $v2) {
+                return $this->capabilities[$key] = CapabilitySet::permissive();
+            }
+
+            $request = $request->withPackageType($v2);
+        }
+
+        return $this->capabilities[$key] = $this->capabilitiesRepository->forStore(
+            (int) $this->quote->getStoreId(),
+            $request
+        );
     }
 
     /**
@@ -398,19 +439,15 @@ class Checkout
      */
     public function checkPackageType(string $carrierName, string $country): string
     {
-        try {
-            $consignment = ConsignmentFactory::createByCarrierName($carrierName);
-        } catch (Throwable $e) {
-            Logger::critical(sprintf('checkPackageType: Could not create default consignment for %s', $carrierName));
-
-            return PackageType::DEFAULT_NAME;
-        }
+        // The package-type-agnostic question: this method is what decides the package type, so
+        // there is none to narrow by yet.
+        $caps = $this->getCapabilities($country);
 
         $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrierName];
         $products            = $this->quote->getAllItems();
-        $canHaveDigitalStamp = $consignment->canHavePackageType(PackageType::DIGITAL_STAMP_NAME);
-        $canHaveMailbox      = $consignment->canHavePackageType(PackageType::MAILBOX_NAME);
-        $canHavePackageSmall = $consignment->canHavePackageType(PackageType::PACKAGE_SMALL_NAME);
+        $canHaveDigitalStamp = $caps->hasPackageType($carrierName, PackageType::DIGITAL_STAMP_NAME);
+        $canHaveMailbox      = $caps->hasPackageType($carrierName, PackageType::MAILBOX_NAME);
+        $canHavePackageSmall = $caps->hasPackageType($carrierName, PackageType::PACKAGE_SMALL_NAME);
 
         $this->package->setMailboxSettings($carrierPath);
         $this->package->setDigitalStampSettings($carrierPath);

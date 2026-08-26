@@ -1,6 +1,6 @@
 # SDK v11 Migration Plan
 
-**Status:** Phase 4b complete; Phase 4c next
+**Status:** Phase 4c complete; Phase 5 next
 **Started:** 2026-08-11
 **Branch:** `feat/use-sdk-v11-shipments`
 **Business Requirement:** [BR-000003 — MyParcel SDK v11 compatibility](../business-requirements/BR-000003-sdk-v11-compatibility.md)
@@ -511,7 +511,7 @@ grep -rnE "Sdk\\\\Adapter\\\\DeliveryOptions|DeliveryOptionsAdapterFactory" \
 |---|---|---|
 | **4a** | Client, cache, module value objects | *Complete* |
 | **4b** | Admin *New Shipment* form | *Complete* |
-| **4c** | Checkout, multicollo, type lists | *Not started* |
+| **4c** | Checkout, multicollo, type lists | *Complete* |
 
 `src/Model/Shipment/Capabilities`: module-owned, API-key-scoped, cached. ~~Calls `postCapabilities` directly~~ — calls the endpoint directly, without `ShipmentApi`, per DR-15 and DR-16. Still not `CapabilitiesService` (DR-1, DR-2). Full specification in [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md), amended by those two records.
 
@@ -598,6 +598,33 @@ Two latent defects fixed in passing: `NewShipment::$weightService` and `$configS
 properties, deprecated since PHP 8.2 on a class built for every admin shipment page; and
 `Tests/Helpers/OrderMocks.php` stubbed no `getWeight()`.
 
+**What 4c landed.** `Model\Quote\Checkout` takes the `Capabilities\Repository` and answers from it:
+`checkPackageType()` asks the shape-agnostic question, because it is what *decides* the package type,
+and `getDeliveryData()` asks with that package type set. Two calls cold, zero warm.
+`MagentoCollection::canUseMultiCollo()` reads the reported collo maximum, keyed on the consignment's
+own API key so it needs no store lookup — Phase 6 retypes the parameter and will pass the key
+alongside. `DeliveryCostsMatrix` moved off `Carrier::ALLOWED_CARRIER_CLASSES`, which is now deleted
+along with the seven SDK carrier imports it needed. `PackageType`/`DeliveryType` lost `IDS`, `NAMES`,
+`isValidName()` and `isValidId()`; the two equivalence tests derive from the surviving name map.
+
+**Three deliberate asymmetries.**
+
+- **Multicollo fails *closed*.** An unknown collo maximum answers false, unlike everything else in
+  this layer. It is not a feature being offered to a customer; it is a choice between two ways to
+  export, and separate consignments are the branch that cannot fail.
+- **Monday delivery has no capability to read.** The v2 options object carries `saturdayDelivery` but
+  no monday equivalent, so configuration alone decides it now. Merchant-visible: monday delivery can
+  appear for a carrier whose config enables it, where the old SDK rule allowed PostNL only. The
+  per-carrier setting defaults off, so the practical reach is small.
+- **`Checkout.php:420` and `:91` are untouched.** The first picks between `mailbox/active` and
+  `mailbox/international_active` — both merchant settings, so the country test is not asking what a
+  carrier can do. The second is a country default.
+
+**One thing the plan had wrong.** It said `IDS`/`NAMES` were referenced only by the equivalence test.
+`Service\Weight::getEmptyPackageWeightInGrams()` used `isValidId()` too — as a guard against
+`nameFromId()` throwing, not as an allow-list. It now uses `nameFromIdOrNull()` and returns 0 for a
+name it has no config path for, which is the same behaviour in one step instead of two.
+
 **Digital stamp weights, found in review.** The New Shipment form and the admin default-weight
 setting held **separate** lists. v5 merged the 50-100 and 100-350 ranges into one 50-350 range that
 sends **200** — a weight inside the range rather than on its boundary — and
@@ -609,6 +636,16 @@ posts straight to the shipment.
 read it. `value` is deliberately not the upper bound, so a range is matched on `max` and sent as
 `value`. **Merchant-visible:** an order between 50g and 350g now sends 200g where it previously sent
 100g or 350g. The two dead labels were dropped from the locales that had them.
+
+**Verification state at 4c close.** `vendor/bin/pest` green — **458 passed, 2 todos, 4 risky, 0
+failures**, up from 449. `setup:di:compile` succeeds with `Checkout`'s new constructor argument. The
+probe grep over `src`, `Controller` and `view` returns **zero** for `canHave*` and `getAllowed*`; what
+remains is `getInsurancePossibilities` (Phase 5), `isToRowCountry` (Phase 6) and `getLocalCountryCode`
+(Phase 8), each in the phase that owns it.
+
+One test-writing trap worth recording: `AbstractConsignment::getCarrierName()` is `final`, so a
+Mockery double silently runs the real method and answers null for every carrier. The multicollo tests
+build real consignments through `ConsignmentFactory` instead.
 
 **Verification state at 4b close.** `vendor/bin/pest` green — **430 passed, 2 todos, 4 risky, 0
 failures**, up from 418. `setup:di:compile` succeeds on a vendor-free install. The probe grep over
