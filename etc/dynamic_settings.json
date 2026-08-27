@@ -1108,46 +1108,46 @@
             {
               "id": "insurance_local_amount",
               "path": "myparcelnl_magento_postnl_settings/default_options/insurance_local_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "This setting applies to domestic shipments only",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\Postnl\\Local"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_belgium_amount",
               "path": "myparcelnl_magento_postnl_settings/default_options/insurance_belgium_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (BE)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom be insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\Postnl\\Belgium"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_eu_amount",
               "path": "myparcelnl_magento_postnl_settings/default_options/insurance_eu_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (EU)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom eu insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\Postnl\\EU"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_row_amount",
               "path": "myparcelnl_magento_postnl_settings/default_options/insurance_row_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (ROW)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom row insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\Postnl\\ROW"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_percentage",
@@ -1157,7 +1157,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",
+              "tooltip": "Use percentage of total order amount for insurance.",
               "validate": "validate-number validate-number-range number-range-0-100"
             }
           ]
@@ -1836,24 +1836,24 @@
             {
               "id": "insurance_local_amount",
               "path": "myparcelnl_magento_dhlforyou_settings/default_options/insurance_local_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "This setting applies to domestic shipments only",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\DHLForYou\\Local"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_belgium_amount",
               "path": "myparcelnl_magento_dhlforyou_settings/default_options/insurance_belgium_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (BE)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom be insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\DHLForYou\\Belgium"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_percentage",
@@ -1863,7 +1863,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",
+              "tooltip": "Use percentage of total order amount for insurance.",
               "validate": "validate-number validate-number-range number-range-0-100"
             }
           ]
@@ -2191,46 +2191,46 @@
             {
               "id": "insurance_local_amount",
               "path": "myparcelnl_magento_dhleuroplus_settings/default_options/insurance_local_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "This setting applies to domestic shipments only",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\DHLEuroPlus\\Local"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_belgium_amount",
               "path": "myparcelnl_magento_dhleuroplus_settings/default_options/insurance_belgium_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (BE)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom be insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\DHLEuroPlus\\Belgium"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_eu_amount",
               "path": "myparcelnl_magento_dhleuroplus_settings/default_options/insurance_eu_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (EU)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom eu insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\DHLEuroPlus\\EU"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_row_amount",
               "path": "myparcelnl_magento_dhleuroplus_settings/default_options/insurance_row_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (ROW)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom row insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\DHLEuroPlus\\ROW"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_percentage",
@@ -2240,7 +2240,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",
+              "tooltip": "Use percentage of total order amount for insurance.",
               "validate": "validate-number validate-number-range number-range-0-100"
             }
           ]
@@ -2495,24 +2495,24 @@
             {
               "id": "insurance_eu_amount",
               "path": "myparcelnl_magento_dhlparcelconnect_settings/default_options/insurance_eu_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (EU)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom eu insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\DHLParcelConnect\\EU"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_row_amount",
               "path": "myparcelnl_magento_dhlparcelconnect_settings/default_options/insurance_row_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (ROW)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
               "tooltip": "A custom row insurance price within a range of possibilities.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\DHLParcelConnect\\ROW"
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_percentage",
@@ -2522,7 +2522,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",
+              "tooltip": "Use percentage of total order amount for insurance.",
               "validate": "validate-number validate-number-range number-range-0-100"
             }
           ]
@@ -3276,12 +3276,13 @@
             {
               "id": "insurance_local_amount",
               "path": "myparcelnl_magento_ups_settings/default_options/insurance_local_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\UPSStandard\\Local"
+              "tooltip": "This setting applies to domestic shipments only",
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_percentage",
@@ -3291,7 +3292,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",
+              "tooltip": "Use percentage of total order amount for insurance.",
               "validate": "validate-number validate-number-range number-range-0-100"
             }
           ]
@@ -3512,32 +3513,46 @@
             {
               "id": "insurance_local_amount",
               "path": "myparcelnl_magento_gls_settings/default_options/insurance_local_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (Local)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\GLS\\Local"
+              "tooltip": "This setting applies to domestic shipments only",
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
+            },
+            {
+              "id": "insurance_belgium_amount",
+              "path": "myparcelnl_magento_gls_settings/default_options/insurance_belgium_amount",
+              "type": "text",
+              "label": "Insure orders up to (BE)",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "A custom be insurance price within a range of possibilities.",
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_eu_amount",
               "path": "myparcelnl_magento_gls_settings/default_options/insurance_eu_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (EU)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\GLS\\EU"
+              "tooltip": "A custom eu insurance price within a range of possibilities.",
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_row_amount",
               "path": "myparcelnl_magento_gls_settings/default_options/insurance_row_amount",
-              "type": "select",
+              "type": "text",
               "label": "Insure orders up to (ROW)",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\CarrierInsurancePossibilities\\GLS\\ROW"
+              "tooltip": "A custom row insurance price within a range of possibilities.",
+              "frontend_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\InsuranceAmount"
             },
             {
               "id": "insurance_percentage",
@@ -3547,7 +3562,7 @@
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",
+              "tooltip": "Use percentage of total order amount for insurance.",
               "validate": "validate-number validate-number-range number-range-0-100"
             }
           ]

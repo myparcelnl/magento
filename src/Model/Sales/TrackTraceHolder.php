@@ -31,6 +31,7 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\LegacyInsuranceTiers;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -196,7 +197,7 @@ class TrackTraceHolder
             ->setLargeFormat($shipmentOptions->hasLargeFormat() ?? false)
             ->setAgeCheck($shipmentOptions->hasAgeCheck() ?? false)
             ->setPriorityDelivery($shipmentOptions->hasPriorityDelivery() ?? false)
-            ->setInsurance($shipmentOptions->getInsurance())
+            ->setInsurance($this->insuranceAcceptedByTheSdk($shipmentOptions->getInsurance(), $address->getCountryId()))
             ->setInvoice(
                 $shipment
                     ->getOrder()
@@ -461,6 +462,40 @@ class TrackTraceHolder
      * @return int
      * @throws LocalizedException
      */
+    /**
+     * @todo Phase 6 deletes this with the consignment path (DR-20).
+     *
+     * beta.15's AbstractConsignment::setInsurance() throws for a domestic amount that is not one of
+     * the carrier's hardcoded tiers, and ConsignmentEncode uses the same list as a floor. Insurance
+     * is a free amount from Phase 5 on, so without this the branch cannot export a domestic order
+     * between Phases 5 and 6.
+     *
+     * It substitutes silently, which DR-12 forbids — recorded there as a known, temporary cost on an
+     * unreleased branch, not as the intended behaviour.
+     */
+    private function insuranceAcceptedByTheSdk(int $insurance, ?string $countryCode): int
+    {
+        if (0 === $insurance) {
+            return 0;
+        }
+
+        $accepted = LegacyInsuranceTiers::acceptableForSdk(
+            $this->carrier,
+            LegacyInsuranceTiers::zoneFor($countryCode),
+            $insurance
+        );
+
+        if ($accepted !== $insurance) {
+            Logger::notice(sprintf(
+                'Insurance %d sent as %d: the pinned SDK accepts only its own tiers (DR-20).',
+                $insurance,
+                $accepted
+            ));
+        }
+
+        return $accepted;
+    }
+
     private function getPackageType(Track $magentoTrack, $address, array $options, array $deliveryOptions): int
     {
         if ($this->getAgeCheck($magentoTrack, $address, $options)) {

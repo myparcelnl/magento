@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Exception;
 use Magento\Framework\App\ObjectManager;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
@@ -26,7 +25,6 @@ use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use Throwable;
 
 class DefaultOptions
@@ -130,11 +128,12 @@ class DefaultOptions
     }
 
     /**
-     * Get default value of insurance based on order grand total
+     * What the merchant's configuration asks for on this order, in whole euros.
      *
-     * @param string $carrier
+     * The destination decides which of the four configured caps applies. It does **not** bound the
+     * amount against the account's contract: that is one clamp, in ShipmentOptionsResolver, so the
+     * posted admin override goes through it too (DR-19).
      *
-     * @return int
      * @throws \Exception
      */
     public function getDefaultInsurance(string $carrier): int
@@ -143,27 +142,32 @@ class DefaultOptions
         $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCode::CC_NL;
 
         if (CountryCode::CC_NL === $shippingCountry) {
-            return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT, $shippingCountry);
+            return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT);
         }
 
         if (CountryCode::CC_BE === $shippingCountry) {
-            return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT, $shippingCountry);
+            return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT);
         }
 
         if (CountryCode::isEu($shippingCountry)) {
-            return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT, $shippingCountry);
+            return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT);
         }
 
-        return $this->getInsurance($carrier, self::INSURANCE_ROW_AMOUNT, $shippingCountry);
+        return $this->getInsurance($carrier, self::INSURANCE_ROW_AMOUNT);
     }
 
     /**
-     * @throws Exception
+     * The insured value the order earns, never above the configured cap. Rounded up: under-insuring
+     * a parcel is the worse of the two errors.
+     *
+     * A cap of 0 means insurance is off. It is indistinguishable from a contract minimum of 0, which
+     * is a pre-existing ambiguity kept on purpose — reading 0 as "insure at the minimum" would switch
+     * insurance on for every merchant who never configured it.
      */
-    private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
+    private function getInsurance(string $carrierName, string $priceKey): int
     {
         $total                = $this->quote->getGrandTotal();
-        $settings             = $this->config->getCarrierConfig($carrierName, 'default_options');
+        $settings             = $this->config->getCarrierConfig($carrierName, 'default_options', (int) $this->quote->getStoreId());
         $totalAfterPercentage = $total * ((int) ($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
         if (! isset($settings[$priceKey])
@@ -172,22 +176,7 @@ class DefaultOptions
             return 0;
         }
 
-        $carrier        = ConsignmentFactory::createByCarrierName($carrierName);
-        $insuranceTiers = $carrier->getInsurancePossibilities($shippingCountry);
-        sort($insuranceTiers);
-
-        $insurance = 0;
-        foreach ($insuranceTiers as $insuranceTier) {
-            $totalPriceFallsIntoTier = $totalAfterPercentage <= $insuranceTier;
-            $atMaxInsuranceTier      = $insuranceTier >= $settings[$priceKey];
-
-            if ($totalPriceFallsIntoTier || $atMaxInsuranceTier) {
-                $insurance = $insuranceTier;
-                break;
-            }
-        }
-
-        return $insurance;
+        return (int) min(ceil($totalAfterPercentage), (int) $settings[$priceKey]);
     }
 
     /**

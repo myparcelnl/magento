@@ -415,7 +415,7 @@ The minimum amount from when signature is active.,"Det minimumsbeløb, hvorfra u
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,"Dette bestemmer, hvordan leveringsprisen vises til kunden via leveringsmulighederne. Prisen kan vises som en total for hver leveringsmulighed eller som et tillæg til den regulære fragtpris."
 This setting applies to domestic shipments only,Denne indstilling gælder kun for indenlandske forsendelser
 This will be added to or subtracted from the regular shipping price,Dette vil blive lagt til eller trukket fra den regulære fragtpris
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Brug procentdel af det samlede ordrebeløb til forsikring. Efter beregningen vælges den næste tilgængelige prisskala.
+Use percentage of total order amount for insurance.,Brug procentdel af det samlede ordrebeløb til forsikring.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Når aktiveret, vil pakkebokse blive udelukket fra afhentningssteder for alle produkter. Kun fysiske afhentningssteder vil blive vist."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Med 'Eksporter hele ordren' vil MyParcel eksportere hver ordre i sin helhed til back office til videre behandling.
 
@@ -446,7 +446,6 @@ Create MyParcel consignment,Opret MyParcel forsendelse
 Export Entire Order,Eksporter hele ordren
 Label amount:,Antal labels:
 Letter,Ufrankeret
-No insurance,Ingen forsikring
 Return if no answer,Returner hvis intet svar
 24 hour priority,Prioriteret levering
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Når dette er aktiveret, vises afkrydsningsfeltet Prioriteret levering ved kassen, når dette produkt er i kurven, også når den generelle indstilling for prioriteret levering er slået fra."

@@ -41,6 +41,17 @@ final class CapabilitySet
         return new self($capabilities, false);
     }
 
+    /**
+     * A contract-definitions response. Its `items` entries are a strict subset of a capabilities
+     * `results` entry — same wire keys, minus `contract` and `physicalProperties` — so the same
+     * parser reads them. Named separately so a call site says which endpoint answered: contract
+     * definitions carry no country, so a set built from them must not be read as a shipment answer.
+     */
+    public static function fromContractDefinitionItems(array $items): self
+    {
+        return self::fromApiResults($items);
+    }
+
     public static function permissive(): self
     {
         return new self([], true);

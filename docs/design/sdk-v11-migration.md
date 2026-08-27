@@ -345,6 +345,52 @@ built for it, and answering from the superset would claim options nobody asked a
 test built on the same assumption could have caught. Where a response's grouping carries meaning,
 verify it against a real account before building on it.
 
+### DR-19: The admin insurance bound is advisory; the per-shipment bound is authoritative
+
+**Found while planning Phase 5**, by reading the two endpoints at the pinned tag rather than trusting
+the requirement's wording.
+
+`POST /shipments/capabilities/contract-definitions` takes `{carrier}` and nothing else, and its
+response carries **no country and no zone**. The settings screen has four zone fields per carrier
+(`local`, `BE`, `EU`, `ROW`), so contract definitions cannot supply what FR-000009 criterion 2 asked
+for literally.
+
+**Asking shipment capabilities with a representative country per zone was considered and rejected.**
+Bounds may differ between FR, DE and DK, so no single country can stand for "EU", and a zone-shaped
+setting cannot hold a per-country answer whichever country is picked.
+
+**What the setting is decides it.** `insurance_local_amount` is labelled *"Insure orders up to"* — a
+merchant **cap**, not the contract maximum; `DefaultOptions` computes `min(order value × percentage,
+cap)`. So there are two questions, and they get two sources:
+
+| | Question | Source | Authority |
+|---|---|---|---|
+| Settings screen | Is this cap plausible for this carrier? | Contract definitions, one call per carrier | **Advisory** — states the range, refuses an out-of-range entry |
+| Per shipment | What may *this* parcel be insured for? | Shipment capabilities for the order's real country **and** package type (DR-18) | **Authoritative** — clamps, logs |
+
+The four zone fields are unchanged. The design holds even if the contract range is wider than any
+single country's: an over-wide cap is clamped down at resolution and logged, which is FR-000009
+criterion 4 and US-000010 Scenario 4 satisfied by construction rather than by a second bound.
+FR-000009 criterion 2 is amended there — the admin screen validates per carrier, and per-destination
+precision lands where the destination is known.
+
+### DR-20: A temporary tier-snap shim keeps the branch exportable between Phases 5 and 6
+
+`AbstractConsignment::setInsurance()` throws `BadMethodCallException` when a domestic amount is not in
+the carrier's tier list, and `TrackTraceHolder` still calls it on the pinned SDK. So the moment
+Phase 5's clamp can resolve a non-tier amount, domestic export breaks — and stays broken until
+Phase 6 moves export off consignments.
+
+**Decision: snap to the frozen tiers at that one call site**, marked `@todo Phase 6`, deleted with the
+consignment path. It keeps the plan's standing rule that every intermediate commit stays runnable, and
+it reuses the frozen constants `UpgradeData` needs regardless.
+
+**This is a silent substitution, which DR-12 forbids, and it is recorded rather than hidden.** During
+Phases 5–8 the branch ships €250 for a configured €137. It is one call site on an unreleased branch,
+and the alternative is a knowingly broken export path across four commits. FR-000009 criterion 3 and
+US-000010 Scenario 1 are therefore verified in Phase 6, not Phase 5 — stated in both documents rather
+than left to be discovered.
+
 ---
 
 ## Standing decisions
@@ -657,15 +703,149 @@ test suite and `di:compile`.
 
 **Verification state at 4a close.** `vendor/bin/pest` green — **418 passed, 2 todos, 4 risky, 0 failures**, up from 378; the todos and the risky four are pre-existing. `setup:di:compile` succeeds on a vendor-free install. `cache:status` lists `myparcelnl_capabilities` and `cache:clean myparcelnl_capabilities` flushes it by its own tag. DR-17's migration was verified both ways on a real install: with the key removed from `env.php`, `setup:upgrade` re-enables it; with the type explicitly disabled, `setup:upgrade` leaves it alone.
 
-### Phase 5 — Insurance as a range, contract definitions, account settings · *Not started*
+### Phase 5 — Insurance as a range, contract definitions, account settings
 
-Insurance becomes a free amount between `min` and `max` (DR-4). Specification in [FR-000009](../functional-requirements/FR-000009-insurance-as-a-range.md) and [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
+**Split into two commits**, along the seam the two FRs already draw.
+
+| | | |
+|---|---|---|
+| **5a** | Contract definitions replace carrier options | *Complete* |
+| **5b** | Insurance as a range | *Complete* |
+
+Insurance becomes a free amount between `min` and `max` (DR-4), bounded per DR-19. Specification in [FR-000009](../functional-requirements/FR-000009-insurance-as-a-range.md) and [TR-000007](../technical-requirements/TR-000007-capabilities-retrieval-and-storage.md).
 
 - `src/Model/Source/CarrierInsurancePossibilities.php` and the **17 virtual types at `etc/di.xml:75-196`** exist only to populate tier dropdowns, so they go. Only 16 of them are referenced by a setting, so one carrier-and-zone virtual type is already orphaned — identify which while removing them, since it may mean a missing setting rather than a dead type. Convert the 16 `source_model` references in `etc/dynamic_settings.json` (lines 1117, 1128, 1139, 1150, 1845, 1856, 2200, 2211, 2222, 2233, 2504, 2515, 3284, 3520, 3530, 3540) from a select to a numeric field validated against `[min, max]`.
-- `DefaultOptions::getInsurance()` (`src/Model/Source/DefaultOptions.php:163`) snaps to the nearest tier today; it becomes a clamp to `[min, max]`.
+- `DefaultOptions::getInsurance()` (`src/Model/Source/DefaultOptions.php:163`) snaps to the nearest tier today; the snapping goes and the clamp lands one layer out, in `ShipmentOptionsResolver`, so there is exactly one clamp for both the resolved default and a posted admin override.
 - **Read the flat `min` / `max` / `default`** on the insurance option — confirmed populated by the API. Not the nested `insured_amount` wrapper, which the spec marks deprecated. PDK still reads the wrapper; that is PDK being behind, and worth a heads-up to that team since the wrapper is slated for removal.
-- `src/Setup/UpgradeData.php:946,981,994,1012` calls `getInsurancePossibilities()` inside a **historical data migration**. Freeze the tier lists it needs as private module constants — it must not start depending on a network call.
-- `src/Model/Settings/AccountSettings.php` and `Controller/Adminhtml/Settings/CarrierConfigurationImport.php` → contract definitions. Delete the broken imports at `AccountSettings.php:13,15`. Retire the hand-rolled `createArray()` (`@TODO sdk#326` at `CarrierConfigurationImport.php:132`).
+- ~~`src/Setup/UpgradeData.php:946,981,994,1012`~~ — **wrong line numbers, and one call too many.** There are **three** calls: `:999` (NL), `:1012` (BE), `:1030` (EU). ROW never calls it; `:1034` hardcodes `0`. They sit inside a **historical data migration**, so the tier lists they need are frozen as module constants — it must not start depending on a network call.
+- ~~Delete the broken imports at `AccountSettings.php:13,15`.~~ **Not broken.** All three `Model\Account\*` classes load on beta.15; they are live couplings this phase removes, not current breakage.
+- ~~Retire the hand-rolled `createArray()` (`@TODO sdk#326` at `CarrierConfigurationImport.php:132`).~~ **Moved.** #967 lifted `createArray()` into `Service\AccountSettings\Importer.php` and dropped the TODO comment with it; the controller is 99 lines and delegates.
+
+**What 5a landed.** `Client` gained `sendContractDefinitions()`: a second path, a `{carrier}` body and
+an `items` envelope over the same auth, `Accept` header, retry ladder and host override. The endpoint
+is posted to directly, like capabilities, because `postCapabilitiesContractDefinitions()` carries the
+same reversed-argument defect (DR-15). `Importer` now fetches one contract definition per carrier in
+`Config::CARRIERS_XML_PATH_MAP` and stores the flattened `items` verbatim under
+`contract_definitions`, replacing `carrier_options`; a carrier the account has no contract for is
+logged at notice and skipped rather than failing the import. `Service\AccountSettings\ContractDefinitions`
+reads that row back as a `CapabilitySet` — constructor-injected, so unlike `AccountSettings` it is
+testable.
+
+**The account half is untouched, and that was the finding.** `AccountSettings` had exactly one live
+reader: `PackageRepository.php:135-137` → `getAccount()->getGeneralSettings()->hasPostnlMailboxInternational()`.
+That flag lives on the account's general settings, which no contract carries, so `AccountWebService`
+and `getAccount()` stay. `getShop()`, `getCarrierOptions()` and `getCarrierOptionsByCarrier()` had
+zero callers between them and were deleted outright — which also removes the uninitialised
+typed-property `getShop()` would have thrown on.
+
+**Two things fixed in passing.** `DeliveryCostsMatrix` now filters by contract definitions, closing
+the `@todo` 4c left it, and fails open to every configured carrier.
+
+And the *Import MyParcel Backoffice settings* button answered a 500 to an AJAX call that read nothing
+at all, so an invalid key produced a spinner that simply stopped. The controller now catches and
+answers, and the button was rebuilt to match `ApiAccessTokenButton`: a `data-mage-init` root and a
+RequireJS module in `view/adminhtml/web/js/account-settings-import.js`, replacing an inline script
+that used Prototype's `Ajax.Request`. The outcome is reported through Magento's own inline admin
+message markup rather than a `window.alert`, since the import runs beside a form the admin is still
+filling in. The scope is resolved by the block through `Settings::getCurrentScopeFromRequest()`
+instead of being parsed out of `window.location.pathname` in JavaScript; `App\Config::getValue()`
+normalises `store`/`website` to their plural forms itself, so that swap changes nothing about which
+key is read.
+
+**Production mode needs `setup:static-content:deploy` for the new module**, which is in the standard
+rebuild below but easy to skip when only a `.js` file moved.
+
+**Check at 5a close.** `vendor/bin/pest` green — **481 passed, 2 todos, 0 failures**, up from 466 (466
+itself is 458 plus the two 4c test files that were never committed). `setup:di:compile` succeeds with
+`Importer` and `DeliveryCostsMatrix` both carrying new constructor arguments.
+
+**What 5b landed.** `Capabilities\InsuranceRange` owns the cents-to-euros conversion in one place and
+reads the flat `min`/`max`/`default` properties only. It rounds inwards, so a fractional bound can
+never widen a range.
+
+**One clamp, not three.** The plan said `DefaultOptions::getInsurance()` would become the clamp.
+Instead its tier loop went and the clamp moved one layer out, to
+`ShipmentOptionsResolver::getInsurance()` — the single funnel through which both a posted admin
+amount and the resolved configuration pass. `DefaultOptions` now answers what the merchant's
+configuration asks for (`min(order value × percentage, cap)`, rounded up) and nothing more. It gained
+the `getStoreId()` argument `hasOptionSet()` already passed and it did not, without which a
+multi-store install resolved the cap against the wrong store.
+
+**The settings screen.** All 16 selects became number fields behind a new `frontend_model`,
+`Block\System\Config\Form\InsuranceAmount`, which states the contract range in the field's comment
+and emits Magento's own `validate-number-range` class.
+
+Enforcement on save is a **validator**, not a branch in the observer. `Model\Settings\Validator\SettingValidatorInterface`
+has two methods — `handles(string $path)` and `validate()` — and `Observer\ConfigChange` takes an
+array of them from `etc/di.xml`, asking each whether a path is its business before asking it to judge
+anything. The next validator is one `<item>`; the observer keeps no per-setting knowledge at all.
+
+**The path gate is a named method, on purpose.** The first cut hid it inside
+`ContractDefinitions::insuranceRangeForPath()`, whose null meant both "not an insurance path" and "no
+bound resolvable" — two unrelated answers a caller could not tell apart, in a class that had no
+business knowing `core_config_data` path shapes. Now `Model\Settings\InsuranceAmountSetting::carrierFor()`
+owns the path knowledge for both the validator and the settings field, and `ContractDefinitions`
+answers per carrier.
+
+A rejection costs **one field**: every field is posted on every save, so failing the lot would let one
+bad amount block every other change. The validator also refuses a value that is not a whole number of
+euros — accepting `abc` would save it and every reader coerces it to `0`, switching insurance off
+silently. A cleared field is judged as `0` for the same reason, which is also what stops clearing the
+box being a way around a contract that requires insurance.
+
+**Zero is governed by `is_required`, not by the minimum.** This took two corrections, both worth
+recording because the wrong answers were each plausible.
+
+The first draft treated the permitted set as `{0} ∪ [min, max]`, reasoning that zero is how a merchant
+switches insurance off. That was inferred from the module rather than from the contract, and a
+domain check said zero is not accepted when the minimum is above zero. The second draft therefore made
+the set exactly `[min, max]` — which is right about amounts and wrong about opt-out: it took away a
+merchant's ability to not insure at all, for a carrier whose contract merely sets a floor on insured
+value.
+
+**Settled:** a contract minimum bounds what an *insured* parcel may be insured for; whether a parcel
+must be insured is `is_required`'s answer, and contract definitions already carry it. So the permitted
+set is `[min, max]` for a compulsory contract and `[min, max]` plus zero for an optional one. An amount
+between zero and the minimum is refused either way. An option that does not state `is_required` counts
+as optional, so a silent contract cannot cost a merchant their opt-out.
+
+`InsuranceRange::allows()` and `lowestAccepted()` are the single statement of that rule; the settings
+field, the New Shipment form and the save observer all ask rather than restate it. The browser can
+express only one span, so an optional contract's span starts at zero and the observer catches the gap
+between zero and the minimum.
+
+Zero on the export path is not an amount at all: it means the insurance option is omitted from the
+request, which is why both encoders guard on it before writing anything. An order below the configured
+`insurance_from_price` still ships uninsured whatever the contract says — and if the contract required
+insurance, the API refuses it, which is the visible failure DR-12 prefers over a silent substitution.
+
+**Two config gaps, found by running the old SDK rather than reading it.** GLS's Belgium tier list is
+*empty* at beta.15, which is why the orphaned `\GLS\Belgium` virtual type never got a setting: the
+dropdown would have offered only `0`. With the bound coming from the account, the field is meaningful,
+so it exists now — 17 settings for 17 combinations, and one new field on the GLS tab.
+`myparcelnl_magento_ups_settings` had no insurance defaults at all despite carrying a setting; added.
+
+**`UpgradeData` no longer references the SDK at all.** `grep MyParcelNL\\Sdk src/Setup/UpgradeData.php`
+returns nothing. The three tier lookups and `$compareAmountWithTiers` moved to
+`Model\Shipment\LegacyInsuranceTiers`, whose lists were extracted by running
+`getInsurancePossibilities()` against beta.15 for all eight configured carriers and four zones, and
+whose test asserts they still match while the old SDK is installed. The rounding rule moved with them
+rather than being copied, so the migration and the DR-20 shim cannot drift.
+
+**A bug found and deliberately not fixed.** `$getFromPriceFunction` (`UpgradeData.php:919-940`) closes
+over an undefined `$insuranceFromPriceArray`, so it always returns a fresh single-element array and
+the caller then nests arrays that `sort()` compares as arrays. It is real, and fixing it inside a
+historical migration would change rows on installs that already ran it. Left alone on purpose.
+
+**Verification state at 5b close.** `vendor/bin/pest` green — **534 passed, 2 todos, 0 failures**, up
+from 481. `setup:di:compile` succeeds with 17 virtual types and a source model deleted and two classes
+carrying new constructor arguments. The probe grep over `src`, `Controller`, `etc`, `view` and `i18n`
+returns only `LegacyInsuranceTiers` and its own equivalence test.
+
+One test-writing note worth recording: `Magento\Backend\Block\Template` is an empty stub under the
+unit suite, so a block test declares the two inherited accessors it needs on a subclass rather than
+reflecting them onto a parent that does not have them. `setPrivateProperty()` now walks the class
+hierarchy, which is what makes that work.
 
 **Check:** re-run *Import MyParcel Backoffice settings* and diff the stored JSON against the beta.15 output. Per carrier × zone, confirm `[min, max]` contains every value the old tier list offered — if an old top tier exceeds the contract max, that is a real finding, not a rounding error. An existing saved amount stays valid; an out-of-range one clamps rather than zeroing. Export with an amount that was never a tier (e.g. €137) and confirm the API accepts it. `setup:upgrade` on a pre-migration snapshot still produces identical rows.
 
@@ -747,7 +927,8 @@ Tracking is this matrix plus each document's own Traceability section (house con
 | **4a** — Capabilities client, cache, models | **FR-000010**, TR-000007 | The loose-coupling rules *are* FR-000010's acceptance criteria. No consumer changes |
 | **4b** — Admin New Shipment form | **FR-000008**, **FR-000010** | |
 | **4c** — Checkout, multicollo, type lists | **FR-000008**, **FR-000010** | |
-| **5** — Insurance as a range | **FR-000009**, TR-000007 | US-000010 |
+| **5a** — Contract definitions replace carrier options | **FR-000008** criterion 5 (source half), TR-000007 | |
+| **5b** — Insurance as a range | **FR-000009**, **FR-000008** criterion 8, TR-000007 | US-000010 |
 | **6** — Shipment building | **FR-000006**, TR-000005 | |
 | **7** — Per-key export orchestration | **FR-000006**, **FR-000007**, TR-000006 | US-000007, US-000008, US-000009 |
 | **8** — Fulfilment (PPS) alignment | **FR-000006**, **FR-000007** | US-000011 |

@@ -169,6 +169,25 @@ live difference: `CarrierTransformer::LEGACY_NAME_MAP` maps `ups` but not `upsst
 name `Config::CARRIERS_XML_PATH_MAP` uses, so sharing the map would change a shipped versioned
 response as a side effect. If they are ever merged, that difference needs its own test first.
 
+### Money scales
+
+Three coexist. None of them throws when confused for another, and each mistake is a factor of 100 or
+10 000 on a merchant's insured value, so the boundary is written down rather than inferred.
+
+| Scale | Where | Established by |
+|---|---|---|
+| Whole euros | Every stored setting, the frozen legacy tiers, `Adapter\DeliveryOptions\ShipmentOptions::getInsurance()` | The module's own domain; `GLSConsignment`'s `[10000]` is €10 000 |
+| Cents | **Core API** — capabilities, contract definitions, shipment create | `Services\ConsignmentEncode` sent `getInsurance() * 100` at beta.15, and `Tests/Fixtures/capabilities-acceptance-v2.json` answers `max: 500000` for a €5000 bound and `min: 8500` for an €85 one |
+| Integer-micro (1 EUR = 1 000 000) | The module's **own** REST v1 delivery-options response | `docs/openapi/delivery-options.yaml`, which records the divergence from the Order API's Money object as deliberate |
+
+Conversion between the first two happens in exactly one place,
+`Model\Shipment\Capabilities\InsuranceRange`. The third is `Model\Rest\Transformer\ShipmentOptionsTransformer`'s
+and touches nothing else.
+
+The `Money` object names no scale — it is `currency` plus an integer `amount`, and the word "cents"
+appears nowhere in the generated client. An integer amount with an ISO-4217 currency means minor
+units, and the captured response is what pins that reading to the observed magnitudes.
+
 ## Verification Method
 
 Static verification, since this is a compatibility requirement rather than a measurable one.

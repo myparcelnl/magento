@@ -415,7 +415,7 @@ The minimum amount from when signature is active.,"Der Mindestbetrag, ab dem die
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,"Dies bestimmt, wie der Lieferpreis dem Kunden über die Lieferoptionen angezeigt wird. Der Preis kann als Gesamtpreis für jede Lieferoption oder als Aufschlag auf den regulären Versandpreis angezeigt werden."
 This setting applies to domestic shipments only,Diese Einstellung gilt nur für Inlandssendungen
 This will be added to or subtracted from the regular shipping price,Dies wird zum regulären Versandpreis hinzuaddiert oder davon abgezogen
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Prozentsatz des Gesamtbestellwerts für die Versicherung verwenden. Nach der Berechnung wird die nächste verfügbare Preisstufe ausgewählt.
+Use percentage of total order amount for insurance.,Prozentsatz des Gesamtbestellwerts für die Versicherung verwenden.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wenn aktiviert, werden Paketautomaten von den Abholorten für alle Produkte ausgeschlossen. Es werden nur physische Abholpunkte angezeigt."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Mit 'Gesamte Bestellung exportieren' exportiert MyParcel jede Bestellung vollständig in das Backoffice zur weiteren Verarbeitung.
 
@@ -450,7 +450,6 @@ Create MyParcel consignment,MyParcel Sendung erstellen
 Export Entire Order,Gesamte Bestellung exportieren
 Label amount:,Anzahl Etiketten:
 Letter,Unfrankiert
-No insurance,Keine Versicherung
 Return if no answer,Bei Nichtannahme zurücksenden
 24 hour priority,Prio-Lieferung
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Wenn aktiviert, wird das Kontrollkästchen Prio-Lieferung im Checkout angezeigt, wenn dieses Produkt im Warenkorb liegt, auch wenn die allgemeine Einstellung für Prio-Lieferung ausgeschaltet ist."

@@ -76,7 +76,21 @@ Two of the three defects independently rule the SDK's service out. Defect 2 mean
 | Options logging | `mapOptions()` silently skips an option with no matching setter. Log when an option we passed does not survive mapping. Two exist today: `fresh_food` and `frozen` appear in a response but have no setter on `CapabilitiesOptionsV2`, so they are read-only. |
 | Retirement | The workaround carries a `@todo` referencing the three issues. When they land, reassess whether this layer can shrink to a thin wrapper. |
 
-Contract definitions use `postCapabilitiesContractDefinitions()` through the same client.
+**Contract definitions** ~~use `postCapabilitiesContractDefinitions()`~~ **through the same client, and are not called through the SDK either.** `postCapabilitiesContractDefinitions()` carries the same reversed-argument defect as `postCapabilities()`, so the module posts to `/shipments/capabilities/contract-definitions` itself, reusing the client's auth, `Accept` header, retry ladder and host override. Three shape facts, verified at beta.15:
+
+| | Contract definitions | Shipment capabilities |
+|---|---|---|
+| Request body | `{carrier}` — one string, so **one call per carrier**, and no country | The mapped `CapabilitiesRequest`, country included |
+| Response envelope | `items` | `results` |
+| Entry keys | `carrier`, `packageTypes`, `options`, `deliveryTypes`, `transactionTypes`, `collo` | the same, plus `contract` and `physicalProperties` |
+
+An entry is therefore a strict subset of a capabilities result, and one parser reads both —
+`CapabilitySet::fromContractDefinitionItems()` is a named constructor over the same code, not a
+second implementation. Option keys are byte-identical between the two endpoints, so
+`ShipmentOption::V2_KEYS_MAP` and `OptionSet` are reused unchanged.
+
+**There is no country or zone anywhere in a contract-definitions request or response.** That is what
+DR-19 turns on: a per-destination answer can only come from shipment capabilities.
 
 **Why the SDK still builds the request but not the response.** The split is not squeamishness about
 generated code. On the way out, strictness is what we want: `sanitizeForSerialization()` throws on a
@@ -89,7 +103,7 @@ exists to prevent.
 
 | Data | Varies by | Strategy | Invalidated by |
 |---|---|---|---|
-| Contract definitions | account | Fetched at account refresh and persisted per API key, alongside the existing account settings row | The *Import MyParcel Backoffice settings* action; API key change |
+| Contract definitions | account | Fetched at account refresh and persisted per API key, under `contract_definitions` in the account settings row, verbatim | The *Import MyParcel Backoffice settings* action; API key change |
 | Shipment capabilities | account × country × weight × package type × delivery type × direction × options | Cache-aside, keyed on a hash of the request | `bin/magento cache:clean`; API key change; settings import |
 | A shape that failed | the same | A marker entry under its own id prefix, **60s lifetime** | Expiry, plus everything above |
 
@@ -136,10 +150,30 @@ Implementing [FR-000010](../functional-requirements/FR-000010-graceful-degradati
 
 Read the **flat** `min` / `max` / `default` properties on the insurance option — confirmed populated by the API. Not the nested `insured_amount` wrapper, which the spec marks deprecated and which `myparcelnl/pdk` still reads.
 
-| Context | Source |
-|---|---|
-| A concrete shipment | Shipment capabilities → `options.insurance` |
-| Admin configuration (no shipment) | Contract definitions → insurance option, which additionally carries `is_required` and `is_selected_by_default` |
+**The flat shape only, and a witness for it.** `Model\Shipment\Capabilities\InsuranceRange` reads the flat properties and nothing else; there is no fallback. The pinned beta.15 generated models declare only the wrapper, on both endpoints; beta.31 adds the flat properties, which is the third row of the beta.15-to-beta.31 diff in [sdk-v11-migration](../design/sdk-v11-migration.md). The read path uses neither — `Capabilities\Client` decodes the body as-is — so what holds the shape is `Tests/Unit/Model/Shipment/Capabilities/InsuranceShapeConformanceTest.php`: a captured acceptance response, asserted to carry the flat Money properties and to parse. Acceptance answers with **both** shapes, carrying identical values on all six carriers, which is why the committed fixture contains `insuredAmount` — it records the wire, not our preference. A body carrying only the wrapper now yields no range, and the caller falls open to an unbounded field rather than losing insurance.
+
+**Cents in, euros out, in one place.** `min`, `max` and `default` are each a `Money` object whose `amount` is in **cents**, while every stored setting and every module value object is in whole euros. The conversion lives in `InsuranceRange` and nowhere else, and it rounds inwards — a minimum up, a maximum down — so a fractional bound can never widen the range. A maximum that rounds below one euro yields no range at all: `[0,0]` would make `clamp()` answer zero for every amount, which is an uninsured parcel. Two other scales exist in this module and neither is this one; they are enumerated in [TR-000005](TR-000005-sdk-v11-api-mapping.md).
+
+| Context | Source | Authority |
+|---|---|---|
+| A concrete shipment | Shipment capabilities → `options.insurance`, asked with the package type set (DR-18) | **Authoritative.** `ShipmentOptionsResolver` clamps here, and it is the only clamp |
+| Admin configuration (no shipment) | Contract definitions → insurance option, which additionally carries `is_required` and `is_selected_by_default` | **Advisory.** Contract definitions carry no country, so this bounds the carrier, not the destination (DR-19) |
+
+The settings screen states its range and refuses an out-of-range entry on save; export clamps and logs. The screen and the save both read the bound through `Service\AccountSettings\ContractDefinitions::insuranceRangeFor()`, so what a field promises and what a save enforces cannot drift; export reads its own through `Capabilities\Repository`.
+
+**Zero is not part of the range, and `is_required` governs it.** A contract minimum bounds what an *insured* parcel may be insured for; it does not by itself make insurance compulsory. So the permitted set is `[min, max]` when the option is required, and `[min, max]` plus zero when it is not — confirmed with the MyParcel team, not inferred from the response. An amount strictly between zero and the minimum is refused either way.
+
+`is_required` sits on the option itself rather than inside the deprecated wrapper, so it is read the same way however the bounds were found, and an option that does not state it counts as optional: a contract that does not say insurance is compulsory must not cost a merchant their opt-out.
+
+`validate-number-range` expresses one span, so the browser's span starts at zero for an optional contract and the save observer catches the gap between zero and the minimum; for a compulsory contract the span is the range itself and zero is refused in the browser too.
+
+Enforcement on save is a `Model\Settings\Validator\SettingValidatorInterface`, wired into `Observer\ConfigChange` through `etc/di.xml`. A validator is asked `handles($path)` before it is asked to judge anything, so the observer keeps no per-setting knowledge and the path gate is visible rather than implied. A rejection costs that one field: the form posts every field on every submit, so failing the whole submission would let one bad value block every other change.
+
+`Model\Settings\InsuranceAmountSetting::carrierFor()` is the one place that recognises an insurance amount by its config path, used by both the validator and the settings field. `ContractDefinitions` answers per **carrier** and knows nothing about `core_config_data` paths.
+
+A value that is not a whole number of euros is refused with its own message rather than saved: every reader coerces a non-numeric amount to `0`, so accepting one would switch insurance off silently. A cleared or absent value is judged as `0` for the same reason.
+
+On the export path zero is not an amount at all: it means the insurance option is **left out of the request**, which is why both encoders guard on it before writing anything. An order below the configured `insurance_from_price` therefore ships uninsured whatever the contract says — and if the contract required insurance, the API refuses the shipment, which is the visible failure DR-12 prefers to a silent substitution.
 
 ### Performance criteria
 

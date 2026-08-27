@@ -427,7 +427,7 @@ The minimum amount from when signature is active.,Het minimale bedrag vanaf wann
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Dit bepaalt hoe de bezorgkosten aan de klant worden getoond via de bezorgopties. De prijs kan worden weergegeven als totaal voor elke bezorgoptie of als toeslag bovenop de normale verzendkosten.
 This setting applies to domestic shipments only,Deze instelling geldt alleen voor binnenlandse zendingen
 This will be added to or subtracted from the regular shipping price,Dit wordt opgeteld bij of afgetrokken van de normale verzendkosten
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Gebruik percentage van het totale orderbedrag voor verzekering. Na de berekening wordt de eerstvolgende beschikbare prijsschaal geselecteerd.
+Use percentage of total order amount for insurance.,Gebruik percentage van het totale orderbedrag voor verzekering.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wanneer ingeschakeld, worden pakketkluizen uitgesloten van ophaallocaties voor alle producten. Alleen fysieke afhaalpunten worden getoond."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Met 'Exporteer hele bestelling' exporteert MyParcel elke bestelling volledig naar de backoffice voor verdere verwerking.
 
@@ -459,5 +459,12 @@ Create MyParcel consignment,MyParcel zending aanmaken
 Export Entire Order,Volledige bestelling exporteren
 Label amount:,Aantal labels:
 Letter,Ongefrankeerd
-No insurance,Geen verzekering
 Return if no answer,Retour bij geen gehoor
+Your contract allows € %1 to € %2. Enter 0 to switch insurance off.,Uw contract staat € %1 tot € %2 toe. Vul 0 in om de verzekering uit te zetten.
+"The permitted range could not be retrieved, so any amount is accepted here and MyParcel decides. Enter 0 to switch insurance off.",Het toegestane bereik kon niet worden opgehaald. Elk bedrag wordt hier geaccepteerd en MyParcel beslist. Vul 0 in om de verzekering uit te zetten.
+Insurance amount %1 was not saved: your contract allows € %2 to € %3.,Verzekeringsbedrag %1 is niet opgeslagen: uw contract staat € %2 tot € %3 toe.
+Importing the MyParcel Backoffice settings failed:,Het importeren van de MyParcel Backoffice-instellingen is mislukt:
+Importing the MyParcel Backoffice settings failed. Check the log for details.,Het importeren van de MyParcel Backoffice-instellingen is mislukt. Bekijk het logbestand voor details.
+"Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Uw contract staat € %1 tot € %2 toe. Verzekering is verplicht voor deze vervoerder en kan niet worden uitgezet."
+"Insurance amount ""%1"" was not saved: enter a whole number of euros.","Verzekeringsbedrag ""%1"" is niet opgeslagen: vul een heel bedrag in euro's in."
+MyParcel Backoffice settings imported.,MyParcel Backoffice-instellingen zijn geïmporteerd.

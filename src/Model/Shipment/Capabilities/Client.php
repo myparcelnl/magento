@@ -18,7 +18,11 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Calls the Core API capabilities endpoint for one API key and returns the response body decoded.
+ * Calls the Core API capabilities endpoints for one API key and returns the response body decoded.
+ *
+ * Two endpoints, one transport: shipment capabilities answer for a shipment shape, contract
+ * definitions answer per carrier with no shipment in hand. They differ only in path, request body
+ * and envelope key, so they share the retry ladder, auth and host override.
  *
  * The SDK builds the request — CapabilitiesRequest and CapabilitiesMapper carry domain knowledge we
  * would otherwise rediscover — but not the response: a generated response model reads only its own
@@ -36,6 +40,7 @@ use Throwable;
 class Client
 {
     private const PATH            = '/shipments/capabilities';
+    private const PATH_CONTRACTS  = self::PATH . '/contract-definitions';
     private const ACCEPT          = 'application/json;charset=utf-8;version=2';
     private const CONTENT_TYPE    = 'application/json;charset=utf-8';
     private const TIMEOUT_SECONDS = 10;
@@ -94,7 +99,41 @@ class Client
      */
     public function send(string $apiKey, string $body): array
     {
-        $response = $this->request($apiKey, $body);
+        return $this->post($apiKey, $body, self::PATH, 'results', 'capabilities');
+    }
+
+    /**
+     * Contract definitions for one carrier. The request carries no country and the response no zone,
+     * so this answers what the account's contract allows at all — not what a shipment may have.
+     *
+     * The body is built here rather than through the SDK: CapabilitiesPostContractDefinitionsRequestV2
+     * is a single string property, so there is no domain knowledge to borrow, and
+     * postCapabilitiesContractDefinitions() carries the same reversed-argument defect as
+     * postCapabilities() (DR-15).
+     *
+     * @param  string $v2Carrier the V2 wire name, from Carrier::toV2Name()
+     * @return array the response's `items` entries, verbatim
+     * @throws \RuntimeException on a transport failure, a non-2xx status or an undecodable body
+     */
+    public function sendContractDefinitions(string $apiKey, string $v2Carrier): array
+    {
+        return $this->post(
+            $apiKey,
+            (string) json_encode(['carrier' => $v2Carrier]),
+            self::PATH_CONTRACTS,
+            'items',
+            'contract definitions'
+        );
+    }
+
+    /**
+     * @param  string $envelope the response key carrying the entries
+     * @param  string $label    what to call this endpoint in an error or log line
+     * @throws \RuntimeException on a transport failure, a non-2xx status or an undecodable body
+     */
+    private function post(string $apiKey, string $body, string $path, string $envelope, string $label): array
+    {
+        $response = $this->request($apiKey, $body, $path);
         $status   = $response->getStatusCode();
 
         if (in_array($status, self::RETRYABLE_STATUSES, true)) {
@@ -102,14 +141,16 @@ class Client
 
             if (null === $wait) {
                 throw new RuntimeException(sprintf(
-                    'capabilities responded %d and asked to wait longer than %.1fs',
+                    '%s responded %d and asked to wait longer than %.1fs',
+                    $label,
                     $status,
                     self::MAX_RETRY_WAIT_SECONDS
                 ));
             }
 
             Logger::notice(sprintf(
-                'Capabilities throttled with %d; retrying once after %.2fs.',
+                '%s throttled with %d; retrying once after %.2fs.',
+                ucfirst($label),
                 $status,
                 $wait
             ));
@@ -120,30 +161,30 @@ class Client
 
             // One retry only. A second would double a latency budget the admin form already spends
             // once per package type.
-            $response = $this->request($apiKey, $body);
+            $response = $this->request($apiKey, $body, $path);
             $status   = $response->getStatusCode();
         }
 
         if ($status < 200 || $status > 299) {
-            throw new RuntimeException(sprintf('capabilities responded %d', $status));
+            throw new RuntimeException(sprintf('%s responded %d', $label, $status));
         }
 
         $decoded = json_decode((string) $response->getBody(), true);
 
-        if (! is_array($decoded) || ! is_array($decoded['results'] ?? null)) {
-            throw new RuntimeException('capabilities response carried no results array');
+        if (! is_array($decoded) || ! is_array($decoded[$envelope] ?? null)) {
+            throw new RuntimeException(sprintf('%s response carried no %s array', $label, $envelope));
         }
 
-        return $decoded['results'];
+        return $decoded[$envelope];
     }
 
     /**
      * @throws \RuntimeException on a transport failure
      */
-    private function request(string $apiKey, string $body): ResponseInterface
+    private function request(string $apiKey, string $body, string $path): ResponseInterface
     {
         try {
-            return $this->httpClient->request('POST', $this->url(), [
+            return $this->httpClient->request('POST', $this->url($path), [
                 RequestOptions::HEADERS         => [
                     'Authorization' => 'Bearer ' . base64_encode($apiKey),
                     'Content-Type'  => self::CONTENT_TYPE,
@@ -229,9 +270,9 @@ class Client
         }
     }
 
-    private function url(): string
+    private function url(string $path): string
     {
-        return ($this->host ?? (new Configuration())->getHost()) . self::PATH;
+        return ($this->host ?? (new Configuration())->getHost()) . $path;
     }
 
     private function userAgent(): string

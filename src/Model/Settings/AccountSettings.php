@@ -11,17 +11,20 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Sdk\Model\Account\Account;
-use MyParcelNL\Sdk\Model\Account\CarrierOptions;
-use MyParcelNL\Sdk\Model\Account\Shop;
 use MyParcelNL\Sdk\Model\BaseModel;
-use MyParcelNL\Sdk\Model\Carrier\AbstractCarrier;
 use MyParcelNL\Sdk\Support\Collection;
 
+/**
+ * The account half of a stored account settings row: whose account it is and what its general
+ * settings say.
+ *
+ * The carrier half moved to contract definitions, read through
+ * Service\AccountSettings\ContractDefinitions. What is left is the account's own general settings,
+ * which no contract carries — hasPostnlMailboxInternational() is the one live reader.
+ */
 class AccountSettings extends BaseModel
 {
-    protected Shop       $shop;
-    protected Account    $account;
-    protected Collection $carrierOptions;
+    protected Account $account;
 
     /**
      * @var string $apiKey the api key (shop identifier) to get the account settings for
@@ -52,42 +55,6 @@ class AccountSettings extends BaseModel
         return $this->account ?? null;
     }
 
-    /** c
-     *
-     * @return CarrierOptions[]|Collection
-     */
-    public function getCarrierOptions(): Collection
-    {
-        return $this->carrierOptions ?? new Collection();
-    }
-
-    /**
-     * @param AbstractCarrier $carrier
-     *
-     * @return null|CarrierOptions
-     */
-    public function getCarrierOptionsByCarrier(AbstractCarrier $carrier): ?CarrierOptions
-    {
-        $carrierOptions = $this->getCarrierOptions();
-
-        return $carrierOptions
-            ->filter(
-                static function (CarrierOptions $carrierOptions) use ($carrier) {
-                    return $carrier->getId() === $carrierOptions->getCarrier()->getId();
-                }
-            )
-            ->first()
-        ;
-    }
-
-    /**
-     * @return null|Shop
-     */
-    public function getShop(): ?Shop
-    {
-        return $this->shop;
-    }
-
     /**
      * @param Collection $settings
      *
@@ -95,12 +62,12 @@ class AccountSettings extends BaseModel
      */
     private function fillProperties(Collection $settings): void
     {
-        $shop                        = $settings->get('shop');
-        $account                     = $settings->get('account');
-        $carrierOptions              = $settings->get('carrier_options');
-        $this->shop                  = new Shop($shop);
-        $account['shops']            = [$shop];
-        $this->account               = new Account($account);
-        $this->carrierOptions        = (new Collection($carrierOptions))->mapInto(CarrierOptions::class);
+        $shop    = $settings->get('shop');
+        $account = $settings->get('account');
+
+        // Account's constructor needs its shops, and toArray() serialised them as empty objects, so
+        // the shop is re-grafted from its own key. Do not remove: the row carries no usable shops.
+        $account['shops'] = [$shop];
+        $this->account    = new Account($account);
     }
 }

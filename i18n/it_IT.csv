@@ -415,7 +415,7 @@ The minimum amount from when signature is active.,L'importo minimo da cui la fir
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Questo determina il modo in cui il prezzo di consegna viene mostrato al cliente tramite le opzioni di consegna. Il prezzo può essere mostrato come totale per ciascuna opzione di consegna o come sovrapprezzo rispetto al prezzo di spedizione standard.
 This setting applies to domestic shipments only,Questa impostazione si applica solo alle spedizioni nazionali
 This will be added to or subtracted from the regular shipping price,Questo verrà aggiunto o sottratto dal prezzo di spedizione standard
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.","Usa la percentuale dell'importo totale dell'ordine per l'assicurazione. Dopo il calcolo, viene selezionata la successiva scala di prezzo disponibile."
+Use percentage of total order amount for insurance.,Usa la percentuale dell'importo totale dell'ordine per l'assicurazione.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Quando abilitato, i locker per pacchi saranno esclusi dai punti di ritiro per tutti i prodotti. Verranno mostrati solo i punti di ritiro fisici."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Con 'Esporta intero ordine', MyParcel esporterà ogni ordine nella sua interezza al back office per ulteriori elaborazioni."
 
@@ -450,7 +450,6 @@ Create MyParcel consignment,Crea spedizione MyParcel
 Export Entire Order,Esporta l'intero ordine
 Label amount:,Numero di etichette:
 Letter,Non affrancata
-No insurance,Nessuna assicurazione
 Return if no answer,Restituisci se nessuna risposta
 24 hour priority,Consegna prioritaria
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Se abilitato, la casella Consegna prioritaria viene mostrata nel checkout quando questo prodotto è nel carrello, anche se l'impostazione generale della consegna prioritaria è disattivata."

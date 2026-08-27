@@ -22,9 +22,20 @@ function invokePrivateMethod(object $object, string $method, array $args = [])
  */
 function setPrivateProperty(object $object, string $property, $value): void
 {
-    $property = new ReflectionProperty($object, $property);
-    $property->setAccessible(true);
-    $property->setValue($object, $value);
+    // Walks up the hierarchy: a private property declared on a parent is invisible to
+    // ReflectionProperty when addressed through a subclass, which is how a block under test that
+    // declares its own accessors would otherwise fail.
+    for ($class = new ReflectionClass($object); $class; $class = $class->getParentClass()) {
+        if ($class->hasProperty($property)) {
+            $reflected = $class->getProperty($property);
+            $reflected->setAccessible(true);
+            $reflected->setValue($object, $value);
+
+            return;
+        }
+    }
+
+    throw new ReflectionException(sprintf('Property %s::$%s does not exist', get_class($object), $property));
 }
 
 /**

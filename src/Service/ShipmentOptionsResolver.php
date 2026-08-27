@@ -8,11 +8,18 @@ use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use Throwable;
 
 /**
  * Decides what shipment options one shipment gets, from the posted options, the configured
@@ -83,10 +90,85 @@ class ShipmentOptionsResolver
         $this->cc             = $order->getShippingAddress() ? $order->getShippingAddress()->getCountryId() : null;
     }
 
-    /** @return int */
+    /**
+     * The insured amount for this shipment, in whole euros, bounded by what the account's contract
+     * allows for this destination and package type.
+     *
+     * This is the **only** clamp (DR-19). Both inputs pass through it: an amount posted from the
+     * admin New Shipment form and the amount the merchant's configuration resolves to.
+     */
     public function getInsurance(): int
     {
-        return $this->options['insurance'] ?? $this->defaultOptions->getDefaultInsurance($this->carrier);
+        $configured = $this->options['insurance'] ?? $this->defaultOptions->getDefaultInsurance($this->carrier);
+
+        return $this->clampInsurance((int) $configured);
+    }
+
+    /**
+     * Falls open: bounds we cannot resolve leave the amount alone and let the API decide, rather than
+     * shipping a parcel less insured than the merchant asked for (FR-000009 criterion 5).
+     */
+    private function clampInsurance(int $amount): int
+    {
+        // Zero is not an insured amount of nothing — it means the option is left out of the request
+        // entirely, which is why the encoders guard on it before writing anything. So it survives a
+        // contract whose minimum is above zero: that minimum bounds what an insured parcel may be
+        // insured for, not whether a parcel is insured at all. An order below the configured
+        // insurance_from_price still ships uninsured.
+        if (0 === $amount) {
+            return 0;
+        }
+
+        $range = $this->insuranceRange();
+
+        if (null === $range || $range->contains($amount)) {
+            return $amount;
+        }
+
+        $clamped = $range->clamp($amount);
+
+        Logger::notice(sprintf(
+            'Insurance for order %s clamped from %d to %d, the contract range for %s being %d-%d.',
+            $this->order->getIncrementId(),
+            $amount,
+            $clamped,
+            $this->carrier,
+            $range->min(),
+            $range->max()
+        ));
+
+        return $clamped;
+    }
+
+    private function insuranceRange(): ?InsuranceRange
+    {
+        $v2Carrier     = ShipmentCarrier::toV2Name($this->carrier);
+        $packageType   = $this->deliveryOptions->getPackageType();
+        $v2PackageType = null === $packageType ? null : PackageType::toV2Name($packageType);
+
+        // Every one of these is needed to ask a question narrow enough to trust: without the package
+        // type the answer is a union across package types (DR-18), and a union bound is not this
+        // shipment's bound.
+        if (null === $this->cc || null === $v2Carrier || null === $v2PackageType) {
+            return null;
+        }
+
+        try {
+            $capabilities = $this->objectManager->get(CapabilitiesRepository::class)->forStore(
+                (int) $this->order->getStoreId(),
+                CapabilitiesRequest::forCountry($this->cc)
+                    ->withCarrier($v2Carrier)
+                    ->withPackageType($v2PackageType)
+            );
+        } catch (Throwable $e) {
+            Logger::notice('Could not resolve the insurance range: ' . $e->getMessage());
+
+            return null;
+        }
+
+        return InsuranceRange::fromOptionValue(
+            $capabilities->optionValue($this->carrier, $packageType, ShipmentOption::INSURANCE)
+        );
     }
 
     /** @return bool */

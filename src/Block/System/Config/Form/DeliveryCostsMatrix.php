@@ -4,15 +4,33 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Block\System\Config\Form;
 
+use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Settings;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCostsMatrix extends Field
 {
+    private ContractDefinitions $contractDefinitions;
+    private Settings            $settings;
+
+    public function __construct(
+        Context             $context,
+        ContractDefinitions $contractDefinitions,
+        Settings            $settings,
+        array               $data = []
+    )
+    {
+        parent::__construct($context, $data);
+        $this->contractDefinitions = $contractDefinitions;
+        $this->settings            = $settings;
+    }
+
     /**
      * Path to template file in theme.
      *
@@ -21,16 +39,25 @@ class DeliveryCostsMatrix extends Field
     protected $_template = 'MyParcelNL_Magento::delivery_costs_matrix.phtml';
 
     /**
-     * Every carrier the module has settings for, unfiltered.
+     * Every carrier the module has settings for that this account also has a contract for.
      *
-     * This form configures rates with no shipment in hand, so narrowing it to the account's own
-     * carriers needs contract definitions rather than the capabilities endpoint. Phase 5 owns that.
+     * This form configures rates with no shipment in hand, so the filter is contract definitions
+     * rather than the capabilities endpoint (DR-19). Unresolvable bounds show every configured
+     * carrier: a merchant must not lose the ability to price a lane because we could not confirm it
+     * (FR-000010).
      */
     public function getCarriers(): array
     {
-        $carriers = [];
+        [$scopeName, $scopeId] = $this->settings->getCurrentScopeFromRequest($this->getRequest());
+
+        $contracted = $this->contractDefinitions->forScope($scopeName, $scopeId);
+        $carriers   = [];
 
         foreach (array_keys(Config::CARRIERS_XML_PATH_MAP) as $carrierName) {
+            if (! $contracted->isPermissive() && ! in_array($carrierName, $contracted->carriers(), true)) {
+                continue;
+            }
+
             $carriers[$carrierName] = ShipmentCarrier::humanFor($carrierName);
         }
 

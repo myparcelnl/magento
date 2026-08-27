@@ -10,9 +10,12 @@ use Magento\Framework\Event\Observer as EventObserver;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Phrase;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Facade\Logger;
+use InvalidArgumentException;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
+use MyParcelNL\Magento\Model\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
@@ -32,6 +35,9 @@ class ConfigChange implements ObserverInterface
     private Importer                   $accountSettingsImporter;
     private AccountSettingsMaintenance $accountSettingsMaintenance;
 
+    /** @var SettingValidatorInterface[] declared in etc/di.xml, one per kind of setting */
+    private array $validators;
+
     public function __construct(
         RequestInterface           $request,
         WriterInterface            $configWriter,
@@ -41,9 +47,20 @@ class ConfigChange implements ObserverInterface
         ManagerInterface           $messageManager,
         ScopeConfigInterface       $scopeConfig,
         Importer                   $accountSettingsImporter,
-        AccountSettingsMaintenance $accountSettingsMaintenance
+        AccountSettingsMaintenance $accountSettingsMaintenance,
+        array                      $validators = []
     )
     {
+        foreach ($validators as $validator) {
+            if (! $validator instanceof SettingValidatorInterface) {
+                throw new InvalidArgumentException(sprintf(
+                    'Setting validators must implement %s, %s given.',
+                    SettingValidatorInterface::class,
+                    is_object($validator) ? get_class($validator) : gettype($validator)
+                ));
+            }
+        }
+
         $this->request                    = $request;
         $this->configWriter               = $configWriter;
         $this->cacheTypeList              = $cacheTypeList;
@@ -53,6 +70,7 @@ class ConfigChange implements ObserverInterface
         $this->scopeConfig                = $scopeConfig;
         $this->accountSettingsImporter    = $accountSettingsImporter;
         $this->accountSettingsMaintenance = $accountSettingsMaintenance;
+        $this->validators                 = $validators;
     }
 
     /**
@@ -86,6 +104,15 @@ class ConfigChange implements ObserverInterface
                     $value = implode(',', $value);
                 }
 
+                $rejection = $this->rejectionFor($path, $value, $scope, $scopeId);
+
+                // Refuse this one field rather than the whole save: the form posts every field on
+                // every submit, so failing the lot would make one bad value block every other change.
+                if (null !== $rejection) {
+                    $this->messageManager->addErrorMessage($rejection);
+                    continue;
+                }
+
                 if ($scope === ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
                     $this->configWriter->save($path, $value);
                 } else {
@@ -113,6 +140,30 @@ class ConfigChange implements ObserverInterface
         }
 
         return $this;
+    }
+
+    /**
+     * The first reason any validator gives to refuse this field, or null when every one that claims
+     * the path is satisfied. A path no validator claims is saved unexamined, which is every setting
+     * in the form but the few that have a validator.
+     *
+     * @param mixed $value
+     */
+    private function rejectionFor(string $path, $value, string $scopeName, int $scopeId): ?Phrase
+    {
+        foreach ($this->validators as $validator) {
+            if (! $validator->handles($path)) {
+                continue;
+            }
+
+            $rejection = $validator->validate($path, $value, $scopeName, $scopeId);
+
+            if (null !== $rejection) {
+                return $rejection;
+            }
+        }
+
+        return null;
     }
 
     /**

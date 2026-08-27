@@ -415,7 +415,7 @@ The minimum amount from when signature is active.,"Minimalna kwota, od której p
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Określa sposób wyświetlania ceny dostawy klientowi poprzez opcje dostawy. Cena może być wyświetlana jako łączna dla każdej opcji dostawy lub jako dopłata do standardowej ceny wysyłki.
 This setting applies to domestic shipments only,To ustawienie dotyczy tylko przesyłek krajowych
 This will be added to or subtracted from the regular shipping price,To zostanie dodane do lub odjęte od standardowej ceny wysyłki
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Użyj procentu całkowitej kwoty zamówienia dla ubezpieczenia. Po obliczeniu zostaje wybrana kolejna dostępna skala cenowa.
+Use percentage of total order amount for insurance.,Użyj procentu całkowitej kwoty zamówienia dla ubezpieczenia.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Po włączeniu, automaty paczkowe zostaną wykluczone z miejsc odbioru dla wszystkich produktów. Wyświetlane będą tylko fizyczne punkty odbioru."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Z opcją 'Eksportuj całe zamówienie', MyParcel wyeksportuje każde zamówienie w całości do biura zaplecza do dalszego przetwarzania."
 
@@ -450,7 +450,6 @@ Create MyParcel consignment,Utwórz przesyłkę MyParcel
 Export Entire Order,Eksportuj całe zamówienie
 Label amount:,Liczba etykiet:
 Letter,Bez opłaty
-No insurance,Brak ubezpieczenia
 Return if no answer,Zwróć w razie braku odpowiedzi
 24 hour priority,Dostawa priorytetowa
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Gdy ta opcja jest włączona, pole wyboru Dostawa priorytetowa jest wyświetlane w kasie, gdy ten produkt znajduje się w koszyku, nawet jeśli ogólne ustawienie dostawy priorytetowej jest wyłączone."

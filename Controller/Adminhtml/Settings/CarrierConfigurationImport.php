@@ -14,6 +14,8 @@ use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Facade\Logger;
+use Throwable;
 
 class CarrierConfigurationImport extends Action
 {
@@ -61,13 +63,25 @@ class CarrierConfigurationImport extends Action
     }
 
     /**
-     * @throws \MyParcelNL\Sdk\Exception\ApiException
-     * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
-     * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
+     * Answers the button rather than throwing. An invalid key is the common failure here, and a 500
+     * tells the admin nothing they can act on.
      */
     public function execute()
     {
-        $this->importer->importFor($this->apiKey);
+        try {
+            $this->importer->importFor($this->apiKey);
+        } catch (Throwable $e) {
+            Logger::warning('Could not import MyParcel account settings.', ['exception' => $e]);
+
+            return $this->resultFactory->create()
+                                       ->setData(
+                                           [
+                                               'success' => false,
+                                               'message' => $e->getMessage(),
+                                           ]
+                                       )
+            ;
+        }
 
         $this->clearCache();
         // After the flush, because it reads config.

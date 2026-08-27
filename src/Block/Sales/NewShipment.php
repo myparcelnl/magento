@@ -26,6 +26,7 @@ use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
@@ -35,7 +36,6 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
 class NewShipment extends AbstractItems
@@ -373,10 +373,7 @@ class NewShipment extends AbstractItems
                     'human'     => NewShipmentForm::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId] ?? $packageTypeName,
                     'options'   => $this->getShipmentOptions($carrierName, $packageTypeName),
                     'insurance' => $this->hasInsurance($carrierName, $packageTypeName)
-                        ? [
-                            'default' => $this->getDefaultInsurance($carrierName),
-                            'amounts' => $this->getInsurancePossibilities($carrierName),
-                        ]
+                        ? $this->insuranceField($carrierName, $packageTypeName)
                         : null,
                     'weights'   => PackageType::DIGITAL_STAMP === $packageTypeId
                         ? $this->getDigitalStampWeightOptions()
@@ -426,24 +423,31 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * @todo Phase 5 replaces this with the contract-definition range (FR-000009). It is the last
-     *       SDK consignment probe on this form, and it is gone at beta.31.
-     * @return int[]
+     * The amount field's bounds and starting value.
+     *
+     * Asked with the package type set, so the bound is this shape's rather than a union across
+     * package types (DR-18). Null bounds render an unbounded field: the export path clamps against
+     * the real destination anyway, and refusing to offer insurance because a lookup failed is what
+     * FR-000010 rules out.
+     *
+     * @return array{default: int, min: int|null, max: int|null, floor: int, required: bool}
      */
-    public function getInsurancePossibilities(string $carrier): array
+    private function insuranceField(string $carrier, string $packageType): array
     {
-        try {
-            return ConsignmentFactory::createByCarrierName($carrier)
-                                     ->getInsurancePossibilities($this->getCountry());
-        } catch (\Throwable $e) {
-            Logger::notice(sprintf(
-                'No insurance amounts for carrier "%s": %s',
-                $carrier,
-                $e->getMessage()
-            ));
+        $range = InsuranceRange::fromOptionValue(
+            $this->getCapabilities($packageType)
+                 ->optionValue($carrier, $packageType, ShipmentOption::INSURANCE)
+        );
 
-            return [];
-        }
+        return [
+            'default'  => $this->getDefaultInsurance($carrier),
+            'min'      => $range ? $range->min() : null,
+            'max'      => $range ? $range->max() : null,
+            // Zero is enterable unless the contract makes insurance compulsory; the rule lives on
+            // InsuranceRange so the form and the settings screen cannot disagree about it.
+            'floor'    => $range ? $range->lowestAccepted() : 0,
+            'required' => $range && $range->isRequired(),
+        ];
     }
 
     /**

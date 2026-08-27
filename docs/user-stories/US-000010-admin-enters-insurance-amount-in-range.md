@@ -19,9 +19,14 @@ So that **I stop having to round up to the next offered tier and over-pay, or ro
 **Then** the value is accepted,
 **And** exporting a shipment with it succeeds and MyParcel records €137 insured.
 
+> **The export half is verified in Phase 6, not Phase 5.** On the pinned SDK,
+> `AbstractConsignment::setInsurance()` refuses a domestic amount that is not one of its hardcoded
+> tiers, so between Phases 5 and 6 the DR-20 shim snaps €137 to €250 at that one call site. Saving
+> €137 works from Phase 5; shipping it as €137 works when Phase 6 deletes the consignment path.
+
 ### Scenario 2: The range is shown and enforced
 
-**Given** my contract's maximum for a carrier and zone is €500,
+**Given** my contract's maximum for a carrier is €500,
 **When I** open that insurance setting,
 **Then** the permitted range is stated in the field's label or comment,
 **And** entering €600 is rejected with a message naming the permitted range,

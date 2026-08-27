@@ -416,7 +416,7 @@ The minimum amount from when signature is active.,Le montant minimum à partir d
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Cela détermine la façon dont le prix de livraison est affiché au client via les options de livraison. Le prix peut être affiché comme total pour chaque option de livraison ou comme supplément au prix de livraison standard.
 This setting applies to domestic shipments only,Ce paramètre s'applique uniquement aux envois nationaux
 This will be added to or subtracted from the regular shipping price,Ceci sera ajouté ou soustrait du prix de livraison standard
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.","Utiliser le pourcentage du montant total de la commande pour l'assurance. Après le calcul, l'échelle de prix disponible suivante est sélectionnée."
+Use percentage of total order amount for insurance.,Utiliser le pourcentage du montant total de la commande pour l'assurance.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Lorsqu'activé, les casiers à colis seront exclus des points de retrait pour tous les produits. Seuls les points de retrait physiques seront affichés."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Avec 'Exporter la commande entière', MyParcel exportera chaque commande dans sa totalité vers le back-office pour un traitement ultérieur."
 
@@ -452,5 +452,4 @@ Create MyParcel consignment,Créer un envoi MyParcel
 Export Entire Order,Exporter toute la commande
 Label amount:,Nombre d'étiquettes :
 Letter,Lettre
-No insurance,Pas d'assurance
 Return if no answer,Retour si absence

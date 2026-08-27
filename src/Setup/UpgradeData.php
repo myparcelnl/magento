@@ -27,6 +27,7 @@ use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
+use MyParcelNL\Magento\Model\Shipment\LegacyInsuranceTiers;
 use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
@@ -34,8 +35,6 @@ use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
  * Upgrade Data script
@@ -939,29 +938,11 @@ class UpgradeData implements UpgradeDataInterface
                 return $insuranceCustomAmount;
             };
 
-            $compareAmountWithTiers = static function ($insuranceAmount, $insuranceTiers) {
-                if ($insuranceAmount === 0) {
-                    return 0;
-                }
-                sort($insuranceTiers);
-                $amountOfTiers = count($insuranceTiers);
-                for ($i = 0; $i < $amountOfTiers; $i++) {
-                    // Check if the insurance falls into the tier
-                    if ($insuranceAmount <= $insuranceTiers[$i]) {
-                        $insuranceAmount = $insuranceTiers[$i];
-                        break;
-                    }
-                    // If the insurance is even larger than the largest tier we use the largest tier instead.
-                    if ($i === $amountOfTiers - 1) {
-                        $insuranceAmount = $insuranceTiers[$i];
-                    }
-                }
-
-                return $insuranceAmount;
-            };
-
+            // The tier lists this migration rounds to are frozen in LegacyInsuranceTiers, and the
+            // rounding rule moved there with them: an upgrade must run offline (TR-000007) and must
+            // keep producing the rows it produced when those tiers were live.
             foreach ($carriers as $carrier) {
-                $carrierConsignment = ConsignmentFactory::createByCarrierName($carrier['carrierName']);
+                $carrierName = $carrier['carrierName'];
                 $insuranceFromPriceArray = [];
                 $basePath = $carrier['basePath'];
 
@@ -996,8 +977,10 @@ class UpgradeData implements UpgradeDataInterface
                                 $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_custom_from_price', $rows);
                             }
                         }
-                        $insuranceTiersLocal = $carrierConsignment->getInsurancePossibilities(CountryCodes::CC_NL);
-                        $insuranceLocalAmount = $compareAmountWithTiers($insuranceLocalAmount, $insuranceTiersLocal);
+                        $insuranceLocalAmount = LegacyInsuranceTiers::snap(
+                            LegacyInsuranceTiers::forCarrierAndZone($carrierName, LegacyInsuranceTiers::ZONE_LOCAL),
+                            $insuranceLocalAmount
+                        );
                         $updates[$basePath . 'insurance_local_amount'] = $insuranceLocalAmount;
                     }
 
@@ -1009,8 +992,10 @@ class UpgradeData implements UpgradeDataInterface
                                 $insuranceFromPriceArray[] = $getFromPriceFunction($basePath . 'insurance_belgium_custom_from_price', $rows);
                             }
                         }
-                        $insuranceTiersBe = $carrierConsignment->getInsurancePossibilities(CountryCodes::CC_BE);
-                        $insuranceBelgiumAmount = $compareAmountWithTiers($insuranceBelgiumAmount, $insuranceTiersBe);
+                        $insuranceBelgiumAmount = LegacyInsuranceTiers::snap(
+                            LegacyInsuranceTiers::forCarrierAndZone($carrierName, LegacyInsuranceTiers::ZONE_BE),
+                            $insuranceBelgiumAmount
+                        );
                         $updates[$basePath . 'insurance_belgium_amount'] = $insuranceBelgiumAmount;
                     }
 
@@ -1027,8 +1012,10 @@ class UpgradeData implements UpgradeDataInterface
                             }
                         }
 
-                        $insuranceTiersEu = $carrierConsignment->getInsurancePossibilities(CountryCodes::ZONE_EU);
-                        $insuranceEuAmount = $compareAmountWithTiers($insuranceEuAmount, $insuranceTiersEu);
+                        $insuranceEuAmount = LegacyInsuranceTiers::snap(
+                            LegacyInsuranceTiers::forCarrierAndZone($carrierName, LegacyInsuranceTiers::ZONE_EU),
+                            $insuranceEuAmount
+                        );
                         $updates[$basePath . 'insurance_eu_amount'] = $insuranceEuAmount;
                     }
                     if ($type === 'insurance_row_amount') {

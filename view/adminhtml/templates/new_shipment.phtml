@@ -129,20 +129,31 @@ $form     = $block->getNewShipmentForm();
                         data-for_mypa_package_type="<?= $ptName ?>"
                         style="padding-left:30px;">
                         <label class="admin__field-label" for="mypa_insurance" style="display: block">
-                            <span><?= __('Insured up to:') ?></span>
+                            <span><?= $escaper->escapeHtml(__('Insured up to:')) ?></span>
                         </label>
-                        <select
+                        <input
+                            type="number"
                             name="mypa_insurance"
                             id="mypa_insurance"
-                            class="required product-custom-option admin__control-select"
-                            title="">
-                            <option value="0"><?= __('No insurance') ?></option>
-                            <?php foreach ($packageType['insurance']['amounts'] as $amount): ?>
-                                <option
-                                    value="<?= (int) $amount ?>"
-                                    <?= $amount === $packageType['insurance']['default'] ? 'selected="selected"' : '' ?>>€ <?= (int) $amount ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                            step="1"
+                            min="<?= (int) $packageType['insurance']['floor'] ?>"
+                            <?php if (null !== $packageType['insurance']['max']): ?>
+                                max="<?= (int) $packageType['insurance']['max'] ?>"
+                            <?php endif; ?>
+                            value="<?= (int) $packageType['insurance']['default'] ?>"
+                            class="required product-custom-option admin__control-text"
+                            title=""/>
+                        <?php if (null !== $packageType['insurance']['max']): ?>
+                            <p class="note admin__field-note">
+                                <span><?= $escaper->escapeHtml(__(
+                                    $packageType['insurance']['required']
+                                        ? 'Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.'
+                                        : 'Your contract allows € %1 to € %2. Enter 0 to switch insurance off.',
+                                    (int) $packageType['insurance']['min'],
+                                    (int) $packageType['insurance']['max']
+                                )) ?></span>
+                            </p>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             <?php endforeach; ?>

@@ -197,6 +197,77 @@ it('shows the insurance selector only where the account has insurance', function
             ->hasInsurance(Carrier::DPD, PackageType::PALLET_NAME))->toBeTrue();
 });
 
+it('offers the contract range as the field bounds, not a list of tiers', function () {
+    $block = createNewShipmentBlockWith(CapabilitySet::fromApiResults([capabilityResult()]));
+
+    $insurance = null;
+
+    foreach ($block->getFormCarriers() as $carrier) {
+        foreach ($carrier['packageTypes'] as $packageType) {
+            if (PackageType::PACKAGE_NAME === $packageType['name']) {
+                $insurance = $packageType['insurance'];
+            }
+        }
+    }
+
+    expect($insurance)->toBe([
+        'default'  => 0,
+        'min'      => 0,
+        'max'      => 5000,
+        'floor'    => 0,
+        'required' => false,
+    ]);
+});
+
+it('leaves the field unbounded when the account named no insurance bounds', function () {
+    $withoutBounds = CapabilitySet::fromApiResults([
+        capabilityResult(['options' => ['insurance' => ['isRequired' => false]]]),
+    ]);
+
+    $block     = createNewShipmentBlockWith($withoutBounds);
+    $insurance = null;
+
+    foreach ($block->getFormCarriers() as $carrier) {
+        foreach ($carrier['packageTypes'] as $packageType) {
+            if (PackageType::PACKAGE_NAME === $packageType['name']) {
+                $insurance = $packageType['insurance'];
+            }
+        }
+    }
+
+    expect($insurance)->toBe([
+        'default'  => 0,
+        'min'      => null,
+        'max'      => null,
+        'floor'    => 0,
+        'required' => false,
+    ]);
+});
+
+it('floors the form at the minimum when the contract requires insurance', function () {
+    $required = CapabilitySet::fromApiResults([
+        capabilityResult(['options' => capabilityOptions(['insurance' => [
+            'isRequired' => true,
+            'min'        => ['amount' => 10000],
+            'max'        => ['amount' => 250000],
+        ]])]),
+    ]);
+
+    $block     = createNewShipmentBlockWith($required);
+    $insurance = null;
+
+    foreach ($block->getFormCarriers() as $carrier) {
+        foreach ($carrier['packageTypes'] as $packageType) {
+            if (PackageType::PACKAGE_NAME === $packageType['name']) {
+                $insurance = $packageType['insurance'];
+            }
+        }
+    }
+
+    expect($insurance['floor'])->toBe(100)
+        ->and($insurance['required'])->toBeTrue();
+});
+
 it('asks nothing for an order with no shipping address rather than inventing a country', function () {
     $block = newInstanceWithoutConstructor(NewShipment::class);
     setPrivateProperty($block, 'order', createOrder(['getShippingAddress' => null]));
@@ -281,10 +352,6 @@ it('withholds rather than over-reports for a package type it cannot express as a
  */
 function resolveFormWith(array $byPackageType): NewShipment
 {
-    // getInsurancePossibilities() still probes the SDK (Phase 5 carve-out) and logs when it cannot
-    // answer, which it cannot for an order with no country.
-    mockLoggerFacade()->shouldReceive('notice')->byDefault();
-
     $block = createNewShipmentBlockWith($byPackageType);
     $block->getFormCarriers();
 

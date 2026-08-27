@@ -13,8 +13,8 @@ Today the module offers insurance as a select list, populated per carrier and de
 
 Required behaviour:
 
-1. **The admin insurance setting becomes a numeric amount**, validated against the account's `[min, max]` for that carrier and zone, replacing the select list.
-2. **Bounds come from the account.** The admin configuration screen reads them from the account's contract definitions; a concrete shipment reads them from that shipment's capabilities. Both yield `min`, `max` and `default`.
+1. **The admin insurance setting becomes a numeric amount**, validated against the account's `[min, max]` ~~for that carrier and zone~~ **for that carrier**, replacing the select list. The permitted set is the range itself, plus zero when the contract's `is_required` says insurance is optional. A minimum above zero bounds what an insured parcel may be insured for; it does not by itself make insurance compulsory. An amount between zero and the minimum is refused either way. Amended by DR-19: contract definitions carry no country, so the settings screen has no per-zone bound to validate against and the four zone fields stay what they always were — a merchant's own cap per destination zone.
+2. **Bounds come from the account**, and they answer two different questions. The admin configuration screen reads the account's contract definitions, which bound the **carrier**; a concrete shipment reads that shipment's capabilities, which bound this **destination and package type**. The second is the authoritative one and is where clamping happens. Both yield `min`, `max` and `default`.
 3. **Existing saved values stay valid.** Every amount currently saved was chosen from a tier inside the contract range, so it remains a legal value. The new domain is a superset of the old one; no migration of stored values is required.
 4. **An out-of-range value clamps.** If a stored or submitted amount falls outside the account's range — because the contract changed — it is clamped to the nearest bound. It must never be silently reset to zero, which would ship a parcel uninsured without telling anyone.
 5. **Unresolvable bounds do not block insurance.** Per [FR-000010](FR-000010-graceful-degradation-on-capability-changes.md), if the bounds cannot be retrieved, the configured amount is used and the API decides. Insurance is not disabled just because we could not confirm its limits.
@@ -32,16 +32,16 @@ Required behaviour:
 
 ## Acceptance Criteria
 
-- [ ] The insurance setting renders as a numeric field, not a select, at every place it is configurable — all 16 carrier-and-zone combinations currently backed by a source model.
-- [ ] The field validates against the account's `min` and `max` for that carrier and zone, and states the permitted range to the admin.
-- [ ] An amount inside the range saves and exports successfully, including amounts that were never offered as a tier.
-- [ ] An amount outside the range clamps to the nearest bound and is never reset to zero.
-- [ ] Existing saved insurance amounts remain valid after upgrade with no manual step and no data migration.
-- [ ] Bounds are read from the flat `min` / `max` / `default` properties on the insurance option, not from the deprecated nested wrapper.
-- [ ] Two stores on different accounts can enforce different ranges for the same carrier and zone.
-- [ ] With bounds unresolvable, the configured amount is still sent and insurance is not silently disabled.
-- [ ] For each carrier and zone, the enforced range contains every amount the old tier list offered. If an old top tier exceeds the contract maximum, that is reported as a finding rather than quietly clamped in the migration.
-- [ ] The insurance amount written to a shipment sits inside the shipment options object, matching the v11 request shape.
+- [x] The insurance setting renders as a numeric field, not a select, at every place it is configurable — **17** carrier-and-zone combinations, not 16: the GLS Belgium field was the missing setting the orphaned virtual type pointed at (see Notes).
+- [x] The field validates against the account's `min` and `max` for that carrier, and states the permitted range to the admin.
+- [ ] An amount inside the range saves and exports successfully, including amounts that were never offered as a tier. **Saving is verified in Phase 5; exporting is verified in Phase 6** — DR-20's shim still snaps a domestic amount to a tier on the pinned SDK.
+- [x] An amount outside the range clamps to the nearest bound and is never reset to zero.
+- [x] Existing saved insurance amounts remain valid after upgrade with no manual step and no data migration.
+- [x] Bounds are read from the flat `min` / `max` / `default` properties on the insurance option. The deprecated nested wrapper is not read, and a captured acceptance response holds the API to that shape.
+- [x] Two stores on different accounts can enforce different ranges for the same carrier.
+- [x] With bounds unresolvable, the configured amount is still sent and insurance is not silently disabled.
+- [ ] For each carrier and zone, the enforced range contains every amount the old tier list offered. If an old top tier exceeds the contract maximum, that is reported as a finding rather than quietly clamped in the migration. **A manual check against a real account, not a test.**
+- [ ] The insurance amount written to a shipment sits inside the shipment options object, matching the v11 request shape. **Phase 6.**
 
 ## Priority
 
@@ -58,7 +58,19 @@ Required behaviour:
 
 ### Notes
 
-The 17 virtual types in `etc/di.xml` and the source model behind them exist only to populate tier dropdowns and are removed with them. Only 16 are referenced by a setting, so one is already orphaned. Their `carrierName` and `type` string arguments (`postnl`, `upsstandard`, …; `local`, `BE`, `EU`, `ROW`) currently encode the carrier-and-zone matrix, so whatever replaces them must preserve that matrix — a bound is meaningless without knowing which carrier and zone it applies to.
+The 17 virtual types in `etc/di.xml` and the source model behind them exist only to populate tier dropdowns and are removed with them. Only 16 are referenced by a setting, so one is already orphaned. Their `carrierName` and `type` string arguments (`postnl`, `upsstandard`, …; `local`, `BE`, `EU`, `ROW`) currently encode the carrier-and-zone matrix, so whatever replaces them must preserve that matrix.
+
+**The orphan was a missing setting, and the reason it was missing is gone.** `\GLS\Belgium` had no
+field in `etc/dynamic_settings.json`, but `etc/config.xml` carried a GLS `insurance_belgium_amount`
+default with nothing to fill it. Running the beta.15 SDK explains the gap: GLS's Belgium tier list is
+**empty**, so the dropdown would have offered nothing but `0`. With the bound now coming from the
+account rather than a hardcoded list, the field is meaningful, so it was added — 17 settings for 17
+combinations. Merchant-visible: a new field appears on the GLS tab.
+
+A second gap found the same way: `myparcelnl_magento_ups_settings` had **no** insurance defaults in
+`etc/config.xml` despite carrying an insurance setting. Added. The GLS defaults of `100` need no
+change — `100` was never in the GLS tier list `[10000]`, so it rendered unselected; with free input it
+is simply a legal value.
 
 ## Dependencies
 
