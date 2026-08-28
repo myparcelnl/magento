@@ -109,7 +109,7 @@ So that **I can give MyParcel access per shop, partition my customers' data acro
 ## Technical Notes
 
 - This story is the multi-store walkthrough that ties together the admin-side generation flow (US-000001) and the caller-side filtering rules (US-000004). Companion story US-000006 covers website-scope generation. Implementation does not introduce new files beyond those listed in TR-000004 §Implementation notes; this story exists to trace the partition (3-tier, row-coordinate) and cascade-back semantics end-to-end as testable scenarios for the store-view tier specifically.
-- The "config cache flush" step in Scenarios 3 and 7 is performed by `ApiAccessTokenManager::generate()` and `clear()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
+- The "config cache flush" step in Scenarios 3 and 7 is performed by `TokenService::generateForScope()` and `revokeForScope()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
 - Admin-visible copy in `<comment>` for the *API Access* group at store-view scope must mention that issuing a token at this scope removes the store from any parent-website token's view AND from the default-scope token's view (the store is now exclusively owned by its store-tier row).
 - Scenario 10's "test seam" for forcing a hash collision should be a swap-in `RandomBytesGenerator` accepted via DI; production wiring uses `random_bytes(32)`.
 

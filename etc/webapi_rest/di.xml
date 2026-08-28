@@ -46,14 +46,26 @@
     </type>
 
     <!--
-        Gate 3 (per-store scope) for the orders repository: constrains getList() to the token's
-        permitted store set and turns out-of-scope get() into NoSuchEntityException (404). Any new
-        token-callable endpoint backed by a different repository needs an analogous plugin — see
-        docs/design/adding-a-token-accessible-rest-endpoint.md step 7.
+        Gate 3 (per-store scope). One ACL resource can authorize several services —
+        Magento_Sales::actions_view alone opens six routes across the three interfaces below — so
+        each needs its own filter. Route -> filter mapping:
+        docs/design/adding-a-token-accessible-rest-endpoint.md
     -->
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
         <plugin name="myparcel-order-repository-store-filter"
                 type="MyParcelNL\Magento\Plugin\Magento\Sales\OrderRepositoryStoreFilter"
+                sortOrder="20"/>
+    </type>
+
+    <type name="Magento\Sales\Api\OrderItemRepositoryInterface">
+        <plugin name="myparcel-order-item-repository-store-filter"
+                type="MyParcelNL\Magento\Plugin\Magento\Sales\OrderItemRepositoryStoreFilter"
+                sortOrder="20"/>
+    </type>
+
+    <type name="Magento\Sales\Api\OrderManagementInterface">
+        <plugin name="myparcel-order-management-store-filter"
+                type="MyParcelNL\Magento\Plugin\Magento\Sales\OrderManagementStoreFilter"
                 sortOrder="20"/>
     </type>
 </config>

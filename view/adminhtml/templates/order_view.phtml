@@ -42,10 +42,10 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
     </div>
     <div class="admin__page-section-item-content">
         <div style="float: left; margin-right: 10px;">
-            <?php echo TrackAndTrace::getTrackAndTraceLinksAsHtml($order); ?>
+<?php /* @noEscape */ /* Escaped inside getTrackAndTraceLinksAsHtml(). */ echo TrackAndTrace::getTrackAndTraceLinksAsHtml($order); ?>
         </div>
         <div style="float: left;">
-            <?php echo $order->getData('track_status');?>
+<?php /* @noEscape */ /* Server-set statuses, joined with <br>. */ echo $order->getData('track_status');?>
         </div>
     </div>
 </div>

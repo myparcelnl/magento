@@ -78,6 +78,10 @@ class TrackAndTrace extends Column
     }
 
     /**
+     * Returns raw HTML on purpose: the grid renders it through a Knockout `html:` binding and
+     * order_view.phtml echoes it unescaped. Callers must NOT escape it — every interpolated value
+     * is escaped here.
+     *
      * @param \Magento\Sales\Model\Order $order
      *
      * @return string
@@ -115,12 +119,18 @@ class TrackAndTrace extends Column
                     $html .= $trackNumber . '<br/>';
                     break;
                 default:
-                    $trackTrace = TrackTraceUrl::create($trackNumber, $postCode, $countryId);
+                    $barcode = (string) $trackNumber;
+
+                    $trackTrace = TrackTraceUrl::create(
+                        rawurlencode($barcode),
+                        rawurlencode(str_replace(' ', '', (string) $postCode)),
+                        rawurlencode((string) $countryId)
+                    );
 
                     $html .= sprintf(
                         '<a class="myparcel-barcode-link" target="_blank" href="%1$s">%2$s</a><br/>',
-                        $trackTrace,
-                        $trackNumber
+                        htmlspecialchars($trackTrace, ENT_QUOTES, 'UTF-8'),
+                        htmlspecialchars($barcode, ENT_QUOTES, 'UTF-8')
                     );
             }
         }

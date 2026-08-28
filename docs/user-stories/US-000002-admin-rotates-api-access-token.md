@@ -62,7 +62,7 @@ So that **I can revoke access for the previous token at that scope coordinate im
 
 ## Technical Notes
 
-- Rotation is `ApiAccessTokenManager::generate($scopeType, $scopeId)` called a second time at the same `(scopeType, scopeId)`. Because storage is the same `core_config_data` row, writing the new hash overwrites the old one atomically and the config cache is flushed before the response returns.
+- Rotation is `TokenService::generateForScope($scope, $scopeId)` called a second time at the same coordinate. Because storage is the same `core_config_data` row, writing the new hash overwrites the old one atomically and the config cache is flushed before the response returns.
 - Per TR-000004 §Specifications "Rotation isolation" criterion: rotation at scope `S` MUST NOT touch any other scope's row.
 - The partition rule (TR-000004 §Specifications "Scope partitioning") is independent of rotation: rotating any scope's token does not change ownership at any other tier, because ownership is computed from row *existence* at `(scope, scope_id)` coordinates, not from token values. Rotating overwrites the hash at one coordinate; ownership of every store stays exactly where it was.
 - Adds the hash-uniqueness invariant: a rotation that happens to produce the same hash as another scope's existing row is rejected with `409 Conflict` (extremely unlikely cryptographically; defended for operator-test-seam scenarios).

@@ -115,7 +115,7 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 
 - This story is the multi-website walkthrough for the website tier specifically. Companion story US-000005 covers the store-view tier; both stories share the row-coordinate ownership and hash-uniqueness invariants from TR-000004.
 - Implementation does not introduce new files beyond those listed in TR-000004 §Implementation notes; this story exists to trace the website-tier partition + 3-way carve-out semantics end-to-end as testable scenarios.
-- The "config cache flush" step in Scenarios 3 and 7 is performed by `ApiAccessTokenManager::generate()` and `clear()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
+- The "config cache flush" step in Scenarios 3 and 7 is performed by `TokenService::generateForScope()` and `revokeForScope()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
 - Admin-visible copy in `<comment>` for the *API Access* group at website scope must mention that issuing a token at this scope removes every store-view in this website from the default-scope token's view, and that any store-view in this website with its own dedicated token is invisible to this website-tier token.
 - Scenario 10's "test seam" for forcing a hash collision should be a swap-in `RandomBytesGenerator` accepted via DI; production wiring uses `random_bytes(32)`.
 - Scenario 9 (empty-website token) is operationally surprising but valid; the admin UI does NOT require the website to have store-views before allowing generation. Documented as Assumption in TR-000004.

@@ -80,11 +80,11 @@ Token-authenticated calls succeed only against REST resources for which the modu
 
 ### Referenced Technical Requirements
 
-- [TR-000004 — REST API Access Token Authentication](../technical-requirements/TR-000004-rest-api-access-token-authentication.md) — defines the security/compatibility/performance criteria, the verification scenarios, and the cross-cutting design rationale (custom UserContext bypassing the bearer gate; default-scope-only single-tenant model).
+- [TR-000004 — REST API Access Token Authentication](../technical-requirements/TR-000004-rest-api-access-token-authentication.md) — defines the security/compatibility/performance criteria, the verification scenarios, and the cross-cutting design rationale (custom UserContext bypassing the bearer gate; three-tier partition scoping).
 
 ### Referenced Architectural Decisions
 
-This module does not maintain a separate `docs/architectural-decisions/` directory. Cross-cutting design decisions live in TR-000004 §Rationale and §Constraints. Local class-level decisions are documented as PHPDoc / XML comments on the implementation files (`src/Model/Authorization/ApiAccessTokenUserContext.php`, `src/Service/ApiAccessTokenManager.php`, `etc/integration.xml`) — see TR-000004 §Implementation notes for the contract those comments must carry.
+This module does not maintain a separate `docs/architectural-decisions/` directory. All design rationale lives in TR-000004 §Rationale and §Constraints. Class-level docblocks on the implementation files carry only what a reader cannot get from the code itself.
 
 ### Notes
 
@@ -112,4 +112,4 @@ Per-store filtering is layered on top of native auth, after `RequestValidator` a
 
 ## Implementation Notes
 
-The full implementation contract (file layout, class responsibilities, scope pinning, hashing primitive) lives in TR-000004 §Specifications and §Implementation notes. Per-class design rationale will land as PHPDoc / XML comments on the source files when they are created. No standalone ADR documents will be authored.
+The full implementation contract (file layout, class responsibilities, scope pinning, hashing primitive) lives in TR-000004 §Specifications and §Implementation notes. Design rationale lives in TR-000004 §Rationale and §Constraints rather than in per-class docblocks. No standalone ADR documents will be authored.
