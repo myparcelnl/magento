@@ -34,9 +34,17 @@ function createShipmentOptions(
     $order->shouldReceive('getShippingAddress')->andReturn($address);
     $order->shouldReceive('getStoreId')->andReturn(1)->byDefault();
     $order->shouldReceive('getIncrementId')->andReturn('100000001')->byDefault();
+    $order->shouldReceive('getId')->andReturn(1)->byDefault();
+    $order->shouldReceive('getItems')->andReturn([])->byDefault();
+
+    // Answers null for every setting, so resolve() reaches its own defaults rather than
+    // a BadMethodCallException. An option that needs a real setting stubs it per test.
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getGeneralConfig')->andReturnNull()->byDefault();
+    $config->shouldReceive('getCarrierConfig')->andReturnNull()->byDefault();
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('get')->with(Config::class)->andReturn(Mockery::mock(Config::class));
+    $objectManager->shouldReceive('get')->with(Config::class)->andReturn($config);
 
     // Absent on purpose when no repository is supplied: the resolver must fall open on a capabilities
     // lookup it cannot make, and a test that stubs one would not prove that.
@@ -46,6 +54,8 @@ function createShipmentOptions(
 
     $defaultOptions = $defaultOptions ?? Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('hasOptionSet')->andReturn($defaultOptionSet)->byDefault();
+    $defaultOptions->shouldReceive('hasDefaultOption')->andReturn($defaultOptionSet)->byDefault();
+    $defaultOptions->shouldReceive('getDefaultInsurance')->andReturn(0)->byDefault();
 
     return new ShipmentOptionsResolver(
         $defaultOptions,

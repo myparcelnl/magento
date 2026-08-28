@@ -15,6 +15,7 @@ namespace MyParcelNL\Magento\Model\Sales;
 
 use BadMethodCallException;
 use Exception;
+use InvalidArgumentException;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
@@ -127,7 +128,7 @@ class TrackTraceHolder
         try {
             // create new instance from known json
             $deliveryOptionsAdapter = DeliveryOptionsFactory::create((array) $deliveryOptions);
-        } catch (BadMethodCallException $e) {
+        } catch (BadMethodCallException | InvalidArgumentException $e) {
             // create new instance from unknown json data
             $deliveryOptionsAdapter = DeliveryOptions::fromOrderFallback((array) $deliveryOptions + $options);
         }

@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\Type\DeliveryTypeValue;
 use MyParcelNL\Magento\Model\Shipment\Type\PackageTypeValue;
+use MyParcelNL\Sdk\Support\Str;
 
 /**
  * The delivery options stored on an order: carrier, date, delivery type, package type, shipment
@@ -66,6 +67,7 @@ final class DeliveryOptions
     /** @throws \InvalidArgumentException when the options say pickup but carry no location */
     public static function fromCheckoutData(array $data): self
     {
+        $data         = self::normaliseNestedKeys($data);
         $deliveryType = $data['deliveryType'] ?? null;
         $pickup       = null;
 
@@ -93,6 +95,7 @@ final class DeliveryOptions
      */
     public static function fromLegacyCheckoutData(array $data): self
     {
+        $data           = self::normaliseNestedKeys($data);
         $deliveryTypeId = $data['time'][0]['type'] ?? null;
         $deliveryType   = null === $deliveryTypeId
             ? null
@@ -111,20 +114,54 @@ final class DeliveryOptions
     /**
      * Stored data in no recognised shape, merged with the options the admin posted.
      *
-     * Carries no date and no pickup location. That is inherited, not intended: the class this
-     * replaced read both from an undefined variable. Supplying a date here would change what gets
-     * exported, so it stays until someone decides.
+     * Reads whatever it is given, including a pickup location — unlike fromCheckoutData() it never
+     * refuses one that is absent, because this is the degrade path.
      */
     public static function fromOrderFallback(array $data): self
     {
+        $data   = self::normaliseNestedKeys($data);
+        $pickup = isset($data['pickupLocation']) && is_array($data['pickupLocation'])
+            ? PickupLocation::fromCheckoutData($data['pickupLocation'])
+            : null;
+
         return new self(
             $data['carrier'] ?? null,
-            null,
+            $data['date'] ?? null,
             $data['deliveryType'] ?? null,
             $data['packageType'] ?? null,
             ShipmentOptions::fromMagentoOptions($data),
-            null
+            $pickup
         );
+    }
+
+    /**
+     * The widget sends these two nested objects in camelCase, and a toArray() round trip writes them
+     * back in snake_case, so both spellings exist in the database. The top level stays camelCase.
+     *
+     * Every named constructor calls this on its own input rather than trusting the caller to have
+     * done it. Trusting the caller is what let fromOrderFallback() drop a pickup location silently
+     * for six years (DR-24). Idempotent, so a second pass costs nothing.
+     */
+    private static function normaliseNestedKeys(array $data): array
+    {
+        foreach (['shipmentOptions', 'pickupLocation'] as $nested) {
+            if (! isset($data[$nested]) || ! is_array($data[$nested])) {
+                continue;
+            }
+
+            foreach ($data[$nested] as $key => $value) {
+                $snakeCased = Str::snake((string) $key);
+
+                if ($snakeCased === $key) {
+                    continue;
+                }
+
+                unset($data[$nested][$key]);
+                $data[$nested][$snakeCased] = $value;
+            }
+        }
+
+        return $data;
     }
 
     /** Nothing stored, or unreadable: standard delivery, no date, no options. */

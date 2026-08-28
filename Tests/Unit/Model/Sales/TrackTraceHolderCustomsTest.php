@@ -57,11 +57,11 @@ it('maps every customs field from the shipment item', function () {
 
     invokePrivateMethod($holder, 'convertDataForCdCountry', [$track]);
 
-    $items = $consignment->getItems();
+    $items = builtShipmentCustomsItems($consignment);
     expect($items[0]->getDescription())->toBe('Widget');
     expect($items[0]->getAmount())->toBe(1);
     expect($items[0]->getWeight())->toBe(250);
-    expect($items[0]->getItemValue())->toBe(['amount' => 1234, 'currency' => ConsignmentEncode::DEFAULT_CURRENCY]);
+    expect(customsItemValue($items[0]))->toBe(['amount' => 1234, 'currency' => ConsignmentEncode::DEFAULT_CURRENCY]);
     expect($items[0]->getClassification())->toBe('61');
     expect($items[0]->getCountry())->toBe('CN');
 });
@@ -79,5 +79,5 @@ it('adds each shipment item to the consignment exactly once', function () {
 
     invokePrivateMethod($holder, 'convertDataForCdCountry', [$track]);
 
-    expect($consignment->getItems())->toHaveCount(1);
+    expect(builtShipmentCustomsItems($consignment))->toHaveCount(1);
 })->todo();

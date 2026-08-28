@@ -1,6 +1,6 @@
 # SDK v11 Migration Plan
 
-**Status:** Phase 4c complete; Phase 5 next
+**Status:** Phase 5b complete; Phase 6 next (6a landed)
 **Started:** 2026-08-11
 **Branch:** `feat/use-sdk-v11-shipments`
 **Business Requirement:** [BR-000003 — MyParcel SDK v11 compatibility](../business-requirements/BR-000003-sdk-v11-compatibility.md)
@@ -18,12 +18,12 @@ The module pins `myparcelnl/sdk: 11.0.0-beta.15@beta`. SDK **beta.22** deleted t
 | Fact | Consequence |
 |---|---|
 | All breaking changes landed in **beta.22** (`ac6103c`, PR #615). Only beta.29 (enum validation loosening) also flags BREAKING. | One cliff, not a drift. |
-| The v11 stack (`Model\Shipment\Shipment`, `Collection\ShipmentCollection`, `Services\Shipment\*`) **already exists at beta.15**, byte-identical to beta.31 for the model and collection. | **The whole module can be migrated against the currently-installed SDK, bumping the pin last.** Every intermediate commit stays runnable. |
+| The v11 stack (`Model\Shipment\Shipment`, `Collection\ShipmentCollection`, `Services\Shipment\*`) **already exists at beta.15**. `Shipment.php` and `ShipmentCollection.php` are byte-identical to beta.31; **the rest of the stack is not** — see DR-21. | **The whole module can be migrated against the currently-installed SDK, bumping the pin last**, provided it writes to beta.15's stricter surface. Every intermediate commit stays runnable. |
 | `vendor/myparcelnl/sdk` is a **symlink** to `app/code/MyParcelNL/Sdk`, a git checkout currently at **beta.15**, matching the pin exactly. | Local verification is a `git checkout` in that repo — switch versions there to check behaviour at a different beta. |
 | The SDK's `UPGRADE.md` at beta.31 is an authoritative before/after migration guide. | Primary reference — read it, do not re-derive it. |
 | **54 module files** touch the SDK; **34** touch classes beta.31 removed. | Broad but mostly shallow. |
 | `AbstractConsignment` usage is **~41 constants / 120+ usages** and only ~7 real type usages. | The largest slice is mechanical constant replacement. |
-| `Shipment` has **no `setApiKey()`**; every v11 service takes the key as its **first constructor argument** and is `final` and immutable. | Grouping by API key is now entirely the consumer's job. |
+| `Shipment` has **no `setApiKey()`**; the seven per-account services take the key as their **first constructor argument** and are `final`. Not immutable — `ShipmentLabelsService` caches `$labelPdf`, and all inherit the mutable `HasUserAgent` trait. `MultiColloShipmentService` has no constructor and `CapabilitiesService` takes no key. | Grouping by API key is now entirely the consumer's job. |
 | beta.31 has **no cross-key label PDF merge** (beta.15's `setPdfOfLabels()` merged with FPDI). | Merging is re-implemented in Magento. |
 | `ShipmentCreateService::create()` rejects **>100 shipments** per call — but large batches time out well below that. | Chunk at a **configurable size, default 20**. The SDK limit is the ceiling, not the target. |
 | PHP floor unchanged (`^7.4 \|\| ^8.0`); guzzle `^7.10` already installed (7.10.0); `setasign/fpdi` v2.6.6 present. | No platform risk. |
@@ -276,7 +276,7 @@ The asymmetry is deliberate and matches DR-12. Outbound, strictness is what we w
 a filter, and a filter on capability data is the mechanism FR-000010 exists to prevent.
 
 **Three things this removed** from the phase, each unnecessary rather than unimportant: the
-`ShipmentApi` argument-order shim; a `ShipmentApiProvider` class, since only Phase 7 needs a
+`ShipmentApi` argument-order shim; a `ShipmentApiProvider` class, since only Phase 6b needs a
 `ShipmentApi`; and the Guzzle middleware TR-000007 wanted for the `Accept` header, which was never
 reachable anyway — `ShipmentApiFactory::make()` builds its own Guzzle client and
 `ShipmentApi::$client` is `protected`. One header on the outgoing request replaces it.
@@ -391,6 +391,115 @@ and the alternative is a knowingly broken export path across four commits. FR-00
 US-000010 Scenario 1 are therefore verified in Phase 6, not Phase 5 — stated in both documents rather
 than left to be discovered.
 
+### DR-21: The v11 shipment stack is not identical across the two tags either
+
+**Assumed by the investigation table and by every phase before 6:** that the v11 stack is
+byte-identical at beta.15 and beta.31, so Phase 6 can be written once and run at both.
+
+**True for `Shipment.php` and `ShipmentCollection.php` only.** `git diff v11.0.0-beta.15
+v11.0.0-beta.31` over the stack shows **42 changed files**, four of which Phase 6 writes through:
+
+| Symbol | beta.15 | beta.31 |
+|---|---|---|
+| `Model\Shipment\ShipmentOptions` | 74 lines | +113: adds a `setDeliveryType` override, `getDeliveryType`, `getInsurance`, `toArray` |
+| `RefShipmentShipmentOptions::setDeliveryType` | **enum-throws** outside `1..8`, strict `int` | throw removed |
+| `Mapping\DeliveryTypeApiMapping` | absent | present |
+| `RefShipmentCustomsDeclarationItem::setCountry` | enum-throws | throw removed |
+
+This is DR-15 one layer down, and it is the same shape: beta.31 only **loosened**. So it does not
+force the pin to move. Code written to beta.15's stricter surface runs unchanged at both — integer
+delivery types in `1..8`, literal `0`/`1` for boolean options, label descriptions of 45 characters
+or fewer.
+
+**One case cannot be verified at beta.15.** DR-12's carry-through, where an unresolved *id* reaches
+the API so the API can answer for it, throws locally at beta.15. TR-000005 already requires that
+test to run at beta.31. Both tags still end in a **named error rather than a substitution**, so
+DR-12's rule holds at both; only the mechanism differs.
+
+### DR-22: The two customs stacks are unrelated, so Phase 6 writes a second builder
+
+**Initially read** `src/Helper/CustomsDeclarationFromOrder.php` as the reuse target for
+`setCustomsDeclaration()`, since it already builds a declaration and already iterates items once.
+
+**Wrong, because they are different APIs.** That helper builds the legacy `Model\CustomsDeclaration`
+from `MyParcelCustomsItem`, which TR-000005 records as `@internal Legacy — used by Order v1
+(fulfilment)`. The v11 shipment path needs `RefShipmentCustomsDeclaration` and
+`RefShipmentCustomsDeclarationItem`. Two builders is correct while the fulfilment path stays on
+Order v1; revisit only if Phase 8 moves it.
+
+Three behaviours differ and must be carried deliberately rather than discovered:
+
+- `RefShipmentCustomsDeclaration::setItems()` **replaces the whole array** — there is no `addItem()` —
+  and throws below 1 or above 100 items.
+- `RefShipmentCustomsDeclarationItem::setDescription()` **rejects** over 50 characters where
+  `MyParcelCustomsItem` silently truncated with `Str::limit`. Truncate before setting, or a long
+  product name becomes an exception instead of a short label.
+- `setAmount()` throws below 1 and above 99999.
+
+### DR-23: Phases 6 and 7 merge, because a Shipment has nowhere to go until the collection is replaced
+
+**Assumed by the phase split:** that Phase 6 could swap the built object and leave orchestration to
+Phase 7.
+
+**It cannot.** The only two doors into the export path are `MyParcelCollection::addConsignment()` and
+`addMultiCollo()`, and both take `AbstractConsignment`. A `Shipment` cannot be passed to either, so a
+Phase 6 that ends at the builder leaves the branch unexportable — breaking the standing rule that
+every intermediate commit runs.
+
+**A bridge was considered and rejected.** A throwaway `Shipment`→`AbstractConsignment` adapter would
+keep the seam and the one-commit-per-phase rule, but the consignment path would still export, so the
+DR-20 insurance shim would have to survive Phase 6 — and FR-000009 criterion 3 and US-000010
+Scenario 1 would slip again, having already been moved once. The bridge would also sit on exactly the
+path DR-12 is about.
+
+**Merged instead**, split into 6a/6b/6c along its own seams. The consignment path then dies whole,
+which is what removes the shim and makes the insurance range verifiable where it was promised.
+
+### DR-24: Nothing ever decided to drop the fallback's date and pickup location
+
+**Recorded in Phase 3 and again while planning Phase 6** as a behaviour to preserve, on the grounds
+that supplying a date would change what gets exported. Then reversed, because the premise was wrong.
+
+`DeliveryOptionsFromOrderAdapter` assigned both from `$originAdapter`:
+
+```php
+$this->date            = $originAdapter ?? null;
+$this->pickupLocation  = $originAdapter ?? null;
+```
+
+**`$originAdapter` was never a constructor parameter, in any commit.** It is undefined in the file's
+first version (`bdef21c`, 2020-03-24) and in all four that followed, so both expressions always
+evaluated to null and `??` suppressed the notice for six years. `git log -S'originAdapter'` returns
+only the commit that added the file, one unrelated `wip`, and Phase 3's deletion. There is no commit
+where it was live and no discussion to find — it is a copy-paste artefact, not a decision.
+
+So this is not a behaviour change weighed against FR-000006's behaviour-preserving remit; it is a
+defect fix, and the third correction of its kind on this branch after DR-13 and DR-14. `date`,
+`pickupLocation` and `packageType` are read from the stored data, the way every sibling constructor
+already reads them.
+
+**A real stored pickup order** carries `deliveryType`, so it routes to `fromCheckoutData()` and was
+never affected. What the fix reaches is the genuine degrade path — and the PPS path, which also
+catches `InvalidArgumentException` and so falls back for a pickup whose location failed to parse.
+
+**The trap this exposed is the more valuable half.** `fromOrderFallback()` is handed **raw** stored
+data by both call sites, while `fromCheckoutData()` is only ever reached through the factory, which
+snake-cased the nested `shipmentOptions` and `pickupLocation` keys first. The widget writes them in
+camelCase and a `toArray()` round trip writes them back in snake_case, so both spellings are in the
+database — and reading raw camelCase through `PickupLocation::fromCheckoutData()`, whose fields all
+default to `''`, produces a **fully-empty** pickup location rather than a null one. Worse than the
+bug being fixed.
+
+So the invariant "data reaching a named constructor is normalised" was held by the *caller*, and
+nothing enforced it. That is the actual defect; the missing pickup location is one instance of it.
+The normaliser is now `private` on `DeliveryOptions` and **every named constructor calls it on its
+own input** — it is idempotent, so a second pass costs nothing — and the factory no longer
+normalises at all. `DeliveryOptionsFactory` is reduced to what its name says: it detects which
+stored shape applies, dispatching on top-level keys, which are camelCase in every shape.
+
+Checked before writing a second implementation: the SDK's `Support\Str` has only per-string `snake()`
+and `camel()`, and no array-key normaliser exists anywhere in the module or the SDK.
+
 ---
 
 ## Standing decisions
@@ -438,7 +547,7 @@ New module code lands under:
 - `src/Model/Shipment/Type/` — `PackageTypeValue`, `DeliveryTypeValue`: a stored type that can hold a
   value we do not recognise (DR-12)
 - `src/Service/Export/` — `ShipmentExportService` (per-key batching), `LabelPdfMerger`
-- `src/Service/TrackTraceUrl.php` — provisional: Phase 7 replaces its hard-coded base URL with the API's own links (TR-000005)
+- `src/Service/TrackTraceUrl.php` — provisional: Phase 6c replaces its hard-coded base URL with the API's own links (TR-000005)
 
 Every new class gets a class-level doc block explaining responsibility and invariants (per `CLAUDE.md`).
 
@@ -567,7 +676,7 @@ Touches `view/adminhtml/templates/new_shipment.phtml` (heaviest), `src/Block/Sal
 
 ~~**One call serves a page.**~~ **Wrong — see DR-18.** The response is `results[]`, each entry carrying `carrier`, `contract`, `packageTypes[]`, `deliveryTypes[]`, `options{}`, `collo{max}`, but a request carrying only a country returns a *superset grouped by carrier*, not a matrix: one result covers several package types and carries the union of their options. Anything that varies per package type has to be asked with `packageType` set. Caching is per request shape, so the cost is cold calls rather than warm ones.
 
-**Deliberately not done in 4a**, each recorded so it does not read as an oversight: the `EnumFallback` listener moved to Phase 7 (DR-16); no `InsuranceRange` class, because `OptionSet` keeps every key verbatim and Phase 5 adds the typed accessor when it has a consumer; no second cache entry for serve-stale, because TR-000007 lists no TTL, so an entry survives a failed refresh by construction; and the three REST transformers keep their own name maps rather than reading the new shared ones — they bind to **Order API** enums while capabilities is **Core API**, and sharing would silently give `upsstandard` the `UPS_STANDARD` mapping it lacks today, changing a shipped versioned response from inside a capabilities phase. That one deserves its own change with its own test.
+**Deliberately not done in 4a**, each recorded so it does not read as an oversight: the `EnumFallback` listener moved to Phase 6b (DR-16); no `InsuranceRange` class, because `OptionSet` keeps every key verbatim and Phase 5 adds the typed accessor when it has a consumer; no second cache entry for serve-stale, because TR-000007 lists no TTL, so an entry survives a failed refresh by construction; and the three REST transformers keep their own name maps rather than reading the new shared ones — they bind to **Order API** enums while capabilities is **Core API**, and sharing would silently give `upsstandard` the `UPS_STANDARD` mapping it lacks today, changing a shipped versioned response from inside a capabilities phase. That one deserves its own change with its own test.
 
 **Dissolve the fixed type lists here.** `PackageType::IDS` / `NAMES` and the `DeliveryType` equivalents are transitional: "which types exist" becomes what capabilities reports per account. What survives permanently is the *name* map, because the module's snake_case names are `core_config_data` path segments, sit in every historical order's delivery-options JSON, and are the checkout widget's protocol — none of which we control. The list is not an allow-list and must not become one (FR-000010). This is also where the v2→module name translation lands; `PackageTypeTransformer::LEGACY_NAME_MAP` should then read from it rather than holding a second copy.
 
@@ -849,46 +958,136 @@ hierarchy, which is what makes that work.
 
 **Check:** re-run *Import MyParcel Backoffice settings* and diff the stored JSON against the beta.15 output. Per carrier × zone, confirm `[min, max]` contains every value the old tier list offered — if an old top tier exceeds the contract max, that is a real finding, not a rounding error. An existing saved amount stays valid; an out-of-range one clamps rather than zeroing. Export with an amount that was never a tier (e.g. €137) and confirm the API accepts it. `setup:upgrade` on a pre-migration snapshot still produces identical rows.
 
-### Phase 6 — Shipment building · *Not started*
+### Phase 6 — Shipment building and per-key export
 
-`src/Model/Sales/TrackTraceHolder.php` → `src/Model/Shipment/ShipmentBuilder`, producing an SDK `Shipment`:
+**Merged with the former Phase 7** (DR-23) and **split into three commits**.
+
+| | | |
+|---|---|---|
+| **6a** | Test harness: grow the accessors, pin the homeless rules | *Complete* |
+| **6b** | `ShipmentBuilder` and `ShipmentExportService` — the swap | |
+| **6c** | Merged label PDF, track & trace links from the API | |
+
+`src/Model/Sales/TrackTraceHolder.php` → `src/Model/Shipment/ShipmentBuilder`, producing an SDK
+`Shipment`, and `MagentoCollection::$myParcelCollection` → `src/Service/Export/ShipmentExportService`.
+Specification in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).
+
+**The pass/fail signal needs restating.** The plan said "the Phase 1 tests still pass unchanged".
+Taken literally that cannot hold: four of the six `TrackTraceHolder*` tests reach private methods by
+name through `invokePrivateMethod()`, and two more read `$holder->consignment` directly, so deleting
+the class makes them **error** rather than fail — a stack trace carries no behaviour signal. The rule
+is therefore: **the assertions are unchanged; only the subject construction moves.** An edit to an
+`expect(...)` line is what needs justifying. `MagentoCollectionMultiColloTest` is a sanctioned edit,
+since this phase retypes the method it exercises.
+
+**What 6a landed.** `Tests/Helpers/ShipmentAccessors.php` grew from two facts to eight, plus
+`customsItemValue()` — the one customs getter whose *shape* changes, since `item_value` becomes a
+`RefTypesMoney`. The weight and customs tests now read through it. Two gaps were filled: the rule
+that **an age check forces `PackageType::PACKAGE`**, which lives only in
+`TrackTraceHolder::getPackageType()` and had no test, and `ShipmentOptionsResolver::resolve()`'s
+non-null contract, which nothing covered — `ShipmentOptions::resolved()` is a bare constructor call
+that enforces nothing and every getter is declared nullable, so that guarantee lived in one caller's
+convention. 551 → 555 passing, no other test touched.
+
+**6b — the builder.**
 
 - `ConsignmentFactory::createByCarrierName()` → `(new Shipment())->setCarrier(...)`
-- flat address setters → `setRecipient([...])`
-- the ~18 option setters → `setOptions(ShipmentOptions)`; `label_description`, `delivery_type`, `delivery_date` and `insurance` all live **inside** options at beta.31. Phase 3 left this with **one** source: `ShipmentOptionsResolver::resolve()` returns the module's `ShipmentOptions`, so this becomes a mapping between two option objects rather than a re-read of the order. Watch the namespace collision — the module and SDK classes share the short name, so alias one at the import, the way `ShipmentOptionsTransformer` does.
-- Drop the `?? false` coercions the module `ShipmentOptions` getters need at `TrackTraceHolder:188-196`. They exist because the value object's getters are `?bool` — `null` means 'not stored' on the read paths — while `resolved()` guarantees non-null and the consignment setters take `bool`. If the SDK's `setOptions()` accepts the nullable shape, the coercion disappears rather than moving.
-- `setPhysicalProperties(['weight' => …])` — shape unchanged
-- `addItem(MyParcelCustomsItem)` → `setCustomsDeclaration(...)`. **`MyParcelCustomsItem::setDescription()`'s 2nd `$carrier` argument is now ignored and max length is hard-coded to 50** — verify no description regressions.
-- the pickup block → `setPickup(...)`
-- Fix the double-add at `:347-361` / `:367-382`. **The Phase 1 test for this goes green here** — that is the signal the fix landed. Same for the age-check precedence bug (DR-7).
-- The API key is no longer on the shipment; pair each `Shipment` with its key for Phase 7.
-- **Never substitute a type we cannot resolve** (DR-12). If a stored delivery or package type has no id, fail that shipment with a message naming the order and the value, and leave the rest of the batch intact — the per-chunk persistence Phase 7 specifies. Silently exporting a different delivery than the customer paid for is the outcome this phase must make impossible.
-- **Decide whether the order-fallback path should carry a delivery date.**
-  `DeliveryOptions::fromOrderFallback()` never sets `date` or `pickupLocation`, inherited from the
-  class it replaces: that class read both from an undefined variable, so both were always null.
-  Phase 3 preserved the behaviour rather than fixing it, because supplying a date changes what gets
-  exported. `Tests/Unit/Adapter/DeliveryOptions/DeliveryOptionsFallbackTest.php` pins it either way.
-- `isToRowCountry()` at `:339` comes from the Phase 2 `CountryCode` constants, not from capabilities — it is a static country fact (TR-000005).
-- **Retype `canUseMultiCollo()`** (`MagentoCollection.php:643`, called from `MagentoCollection.php:439` and `src/Observer/NewShipment.php:111`). It is typed `AbstractConsignment` and receives what this phase turns into a `Shipment`, so it breaks here whatever else happens. The body is module-owned carrier logic; Phase 4 replaces the rule itself with the capabilities collo maximum, so keep the retype mechanical and leave the rule alone.
+- flat address setters → `setRecipient([...])`. **Not a rename: v11 has no `full_street`.**
+  `AbstractConsignment::setFullStreet()` did the splitting; the recipient takes `street` (max 40),
+  `number`, `number_suffix` and `box_number` separately. So `Helper\SplitStreet::splitStreet()` moves
+  onto the label path, and with it `getLocalCountryCode()` — **moved here from Phase 8**, since this
+  is now the first phase that needs it.
+- the ~18 option setters → `setOptions(ShipmentOptions)`; `label_description`, `delivery_type`,
+  `delivery_date` and `insurance` all live **inside** options at beta.31. Phase 3 left this with
+  **one** source for the options themselves: `ShipmentOptionsResolver::resolve()`. It does **not**
+  decide package type, delivery type, delivery date or weight — those stay the builder's. Watch the
+  namespace collision — alias one at the import, the way `ShipmentOptionsTransformer` does.
+- **The `?? false` coercions at `:191-199` change rather than disappear.** Every boolean option is
+  typed `RefTypesIntBoolean` and `ObjectSerializer` checks it against `[0, 1]` with a strict
+  `in_array`, so PHP `true`/`false` passes the setter and throws at **serialization** time, far from
+  the call site. They become `? 1 : 0`.
+- **`label_description` throws above 45 characters where it used to truncate.** Both caps are 45, but
+  `AbstractConsignment::setLabelDescription()` does `Str::limit($x, 42)` while the generated setter
+  throws. Truncate to 42 before setting to preserve behaviour exactly.
+- `delivery_date` must match `Y-m-d H:i:s`; `delivery_type` must be a literal `int` in `1..8` (DR-21).
+- `setPhysicalProperties(['weight' => …])` — shape unchanged, the one claim that verified clean.
+- `addItem(MyParcelCustomsItem)` → `setCustomsDeclaration(...)` — see DR-22.
+- the pickup block → `setPickup(...)`. **`setCustomsDeclaration()`, `setPickup()` and `setSender()`
+  are not array-normalized** the way `setRecipient()`, `setPhysicalProperties()` and `setOptions()`
+  are: they take the generated model or throw. An array is stored raw and comes back raw.
+- Fix the double-add at `:346-366` / `:368-386`. **The Phase 1 test for this goes green here.** Same
+  for the age-check precedence bug (DR-7), whose fix already exists in
+  `ShipmentOptionsResolver::hasAgeCheck()` — routing the builder through `resolve()` gets it free.
+- **`$consignment->validate()` (`MagentoCollection.php:414`) has no automatic v11 equivalent.**
+  `listInvalidProperties()` and `valid()` exist but are never called on the create path, so a missing
+  `recipient.cc` or `physical_properties.weight` would surface as an API error rather than the
+  per-order local message it is today. Call `valid()` explicitly.
+- The API key is no longer on the shipment; pair each `Shipment` with its key.
+- **Never substitute a type we cannot resolve** (DR-12). If a stored delivery or package type has no
+  id, fail that shipment with a message naming the order and the value, and leave the rest of the
+  batch intact. Silently exporting a different delivery than the customer paid for is the outcome
+  this phase must make impossible.
+- **The order fallback now reads the date and the pickup location** — see DR-24. It was never a
+  decision to drop them.
+- **The two export paths disagree about a pickup with no location, and the label path fatals.**
+  `fromCheckoutData()` throws `InvalidArgumentException` for that shape. `MagentoOrderCollection:177`
+  catches it and degrades to the fallback; `TrackTraceHolder:130` catches only
+  `BadMethodCallException`, so the same stored order exports on the PPS path and raises an uncaught
+  exception into the mass action on the label path. DR-24 makes the two fall back to the same answer,
+  which narrows the gap but does not close it. Which behaviour is right is its own decision — a
+  pickup that cannot be read is arguably worth refusing — so it is recorded rather than folded in.
+- `isToRowCountry()` at `:342` comes from the Phase 2 `CountryCode` constants, not from capabilities.
+- **Retype `canUseMultiCollo()`** (`MagentoCollection.php:648`, called from `:441` and
+  `src/Observer/NewShipment.php:111`) and **add the API key as a second argument**, since
+  `getApiKey()` is what it reads off the consignment today. Keep the rule itself alone.
+- **Multicollo has no collo field.** `MultiColloShipmentService::splitShipment(Shipment, int)` builds
+  `secondary_shipments` and divides the weight; it takes no API key and must not be built per key.
+  `$amount === 1` **throws**, and `NewShipment.php:111` has no `1 < $amount` guard the way
+  `MagentoCollection.php:441` does. Guard it.
+- **The tightest coupling is `NewShipment.php:143-150`**, which pairs the SDK collection against
+  `array_pop($trackTraceHolders)` positionally and reversed. `$trackTraceHolder->mageTrack` is the
+  only carrier of the Magento `Track`, so the builder must hand the track back alongside the
+  shipment. TR-000006 also forbids correlating by result order — correlate by reference identifier.
 
-**Check.** Two layers, neither a golden file. First, the Phase 1 tests still pass **unchanged** — they assert our rules, not the payload, so a correct rewrite should not need to touch them; if one needs editing to go green, that is a behaviour change, so stop and justify it. Second, validate the outbound request against the real spec: `league/openapi-psr7-validator` and `nyholm/psr7` are already dev dependencies and beta.31 ships `openapi/coreapi.yaml`. Caveat — that file is a ~3KB `$ref` root stitching in `common.yaml` and `commonProperties.yaml`, so resolving the bundle is real plumbing. Timebox it; if it fights back, read the serialised payload against the spec by hand once per fixture. Do not add snapshots as a consolation prize.
+**6b — the export service.** Group by resolved API key **value**, not store id; one `ShipmentApi` per
+key from a single `ShipmentApiFactory::make()` call site, with an empty key raising
+`LocalizedException` before it; chunk at a configurable size defaulting to 20; persist each chunk
+before issuing the next; skip an order that already carries a shipment id, because the API
+deduplicates nothing. Full specification and the eleven test scenarios in TR-000006.
 
-### Phase 7 — Per-API-key export orchestration · *Not started*
+**6c — labels and links.** `LabelPdfMerger` over `setasign/fpdi`, made an explicit dependency.
+`ShipmentLabelsService` holds one PDF string per instance, so cross-account merging happens in module
+code; merged output follows the admin's selection order. Then `src/Service/TrackTraceUrl` moves off
+its hard-coded base URL to the API's own `link_consumer_portal` / `link_tracktrace`, requested via
+`Services\TrackTrace\ShipmentTrackTraceService::fetchTrackTraceData()`. Not a drop-in —
+`src/Ui/Component/Listing/Column/TrackAndTrace.php:118` renders one link per grid row and needs a
+batched fetch keyed by shipment id plus caching, and
+`src/Block/DataProviders/Email/Shipment/TrackingUrl.php` should store the link at export time rather
+than fetch it while rendering an email.
 
-`src/Service/Export/ShipmentExportService` replaces `MagentoCollection::$myParcelCollection` and its 25 call sites. Specification in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).
+**Out of scope here.** `MagentoCollection.php:480-505` `addReturnInTheBox()` and its
+`AbstractConsignment` closure are dictated by the SDK's `generateReturnConsignments()` and leave when
+that call does.
 
-Touches `MagentoCollection`, `MagentoOrderCollection`, `MagentoShipmentCollection`, `src/Observer/{NewShipment,CreateConceptAfterInvoice}.php`, both `CreateAndPrintMyParcelTrack` controllers, `SendMyParcelReturnMail`.
+**Check.** Three layers, none a golden file. First, the Phase 1 tests pass with their **assertions**
+unedited, and both `->todo()` markers are gone. Second, TR-000006's eleven scenarios, of which the
+load-bearing one is that a re-run over already-shipped orders makes **zero** create calls. Third,
+validate the outbound request against the real spec: `league/openapi-psr7-validator` and
+`nyholm/psr7` are already dev dependencies and beta.31 ships `openapi/coreapi.yaml`. Caveat — that
+file is a ~3KB `$ref` root stitching in `common.yaml` and `commonProperties.yaml`, so resolving the
+bundle is real plumbing. Timebox it; if it fights back, read the serialised payload against the spec
+by hand once per fixture. Do not add snapshots as a consolation prize.
 
-**Switch track & trace links to the API's own.** `src/Service/TrackTraceUrl` currently builds the URL from a hard-coded `https://myparcel.me/track-trace/` base, carried over from the deleted SDK helper. beta.31 returns the authoritative links per shipment as `link_consumer_portal` and `link_tracktrace` on `ShipmentDefsTrackTrace`, requested via a `link_consumer_portal` flag on `getShipmentsById` and reachable through `Services\TrackTrace\ShipmentTrackTraceService::fetchTrackTraceData()`. Checked at the tag: there is **no** account setting carrying a base URL, so this is the only way to stop hard-coding it. Not a drop-in — `src/Ui/Component/Listing/Column/TrackAndTrace.php:118` renders one link per grid row and needs a batched fetch keyed by shipment id plus caching, and `src/Block/DataProviders/Email/Shipment/TrackingUrl.php` should store the link at export time rather than fetch it while rendering an email.
-
-**Check:** unit tests with a mocked `ShipmentApi` proving N distinct keys ⇒ N create calls, and — the inverse, since grouping is by resolved key value rather than by store — several stores inheriting one key ⇒ a single call; chunking at the configured size including the `1`, `100` and out-of-range-falls-back-to-20 cases; tracks persisted per chunk so a failure in chunk *n* preserves `1..n-1`; one merged PDF. Then the manual two-store and chunking tests below.
+**The DR-20 removal has no automated signal at all** — the shim was never covered by a test. Export a
+domestic order insured at **€137**, an amount that was never a tier, and confirm the API accepts it.
+That is an exit criterion for this phase, not a nice-to-have.
 
 ### Phase 8 — Fulfilment (PPS) alignment · *Not started*
 
 - `Model\Fulfilment\AbstractOrder::getDeliveryOptions()` now returns SDK `Model\Shipment\ShipmentOptions`, and `getCarrier()` **throws** unless `setCarrierId()` was called. Update `MagentoOrderCollection::setFulfilment()` (`:163-265`).
 - `src/Cron/UpdateStatus.php:126` — loop over the distinct API keys of the orders being polled instead of one ambient key.
 - Fix `$orderLines` being created once *outside* the per-order loop at `MagentoOrderCollection.php:166`, so lines accumulate across orders in a multi-order batch.
-- **Re-source `getLocalCountryCode()`** at `MagentoOrderCollection.php:425-432` from the Phase 2 `CountryCode` constants, and delete the throwaway consignment at `:425` that exists only to read it (moved here from Phase 4). `SplitStreet::splitStreet()` itself survives at beta.31; only its second argument needs a new source. It sits here rather than in Phase 4 because `setShippingRecipient()` is reached only from `setFulfilment()`, which this phase owns.
+- ~~**Re-source `getLocalCountryCode()`**~~ — **moved to Phase 6.** It sat here because `setShippingRecipient()` is reached only from `setFulfilment()`, but v11's recipient has no `full_street`, so Phase 6's label path needs `SplitStreet::splitStreet()` and therefore the same country source. What stays here is deleting the throwaway consignment at `MagentoOrderCollection.php:425` once the fulfilment path no longer reads it.
 
 **Check:** export two orders from two stores in PPS mode; each lands in the right account with only its own order lines; cron updates both.
 
@@ -929,8 +1128,9 @@ Tracking is this matrix plus each document's own Traceability section (house con
 | **4c** — Checkout, multicollo, type lists | **FR-000008**, **FR-000010** | |
 | **5a** — Contract definitions replace carrier options | **FR-000008** criterion 5 (source half), TR-000007 | |
 | **5b** — Insurance as a range | **FR-000009**, **FR-000008** criterion 8, TR-000007 | US-000010 |
-| **6** — Shipment building | **FR-000006**, TR-000005 | |
-| **7** — Per-key export orchestration | **FR-000006**, **FR-000007**, TR-000006 | US-000007, US-000008, US-000009 |
+| **6a** — Test harness for the rewrite | *supports 6b* | No FR. Grows the accessors and pins two rules that had no test |
+| **6b** — Shipment building and per-key export | **FR-000006**, **FR-000007**, TR-000005, TR-000006 | US-000007, US-000009. Former Phase 7 merged in — DR-23 |
+| **6c** — Merged label PDF, track & trace links | **FR-000006**, **FR-000007**, TR-000006 | US-000008 |
 | **8** — Fulfilment (PPS) alignment | **FR-000006**, **FR-000007** | US-000011 |
 | **9** — Bump the pin, remove dead code | BR-000003 | The phase that actually satisfies the business requirement |
 
@@ -982,7 +1182,7 @@ Manual end-to-end, on `*.acceptance.myparcel.nl` credentials only — never prod
 
 - **Capability parity (Phases 4–5) is the least certain part**, though the PDK removes most of the design risk. Expect gaps needing an SDK/API answer. Raise them as questions **and** keep moving with a documented assumption recorded in TR-000005 — do not block a phase on an upstream answer, and do not bury the guess either. Where PDK and the OpenAPI spec disagree, trust an observed acceptance response over either.
 - **We diverge from the PDK on purpose, in three places** — DR-3, DR-4 and FR-000010 each own one. Enumerated with their reasoning in [TR-000005](../technical-requirements/TR-000005-sdk-v11-api-mapping.md), so nobody "aligns with the PDK" later without re-reading the argument.
-- **Loose coupling has a cost to accept knowingly**, stated in [FR-000010](../functional-requirements/FR-000010-graceful-degradation-on-capability-changes.md): the API error at export replaces the greyed-out checkbox, and the trade only holds while that error reaches the admin legibly. Check explicitly in Phase 7.
+- **Loose coupling has a cost to accept knowingly**, stated in [FR-000010](../functional-requirements/FR-000010-graceful-degradation-on-capability-changes.md): the API error at export replaces the greyed-out checkbox, and the trade only holds while that error reaches the admin legibly. Check explicitly in Phase 6b.
 - **Three SDK defects are raised in Phase 4 and are not fixed by us.** Until they land, `src/Model/Shipment/Capabilities` carries glue duplicating what `CapabilitiesService` should do, and defect 1 means capabilities is broken for every SDK consumer on beta.25–31 — expect other integrations to hit it.
 - The generated `Client\Generated\OrderApi\Model\*` enums the REST transformers bind to are the highest-churn SDK surface; `ShipmentOptionsTransformerTest` asserts `attributeMap()` keys verbatim.
 - `MultiColloShipmentService` takes no API key while our capabilities client is per key — the asymmetry that makes per-key client construction easy to get wrong. Rule in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).

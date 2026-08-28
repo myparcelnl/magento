@@ -26,7 +26,7 @@ it('uses the preset weight and never touches the shipment', function () {
 
     invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 500, PackageType::DIGITAL_STAMP]);
 
-    expect($holder->consignment->getPhysicalProperties()['weight'])->toBe(500);
+    expect(builtShipmentWeight($holder->consignment))->toBe(500);
 });
 
 it('sums item weight times quantity plus the empty package weight, in grams', function () {
@@ -39,7 +39,7 @@ it('sums item weight times quantity plus the empty package weight, in grams', fu
 
     invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, PackageType::PACKAGE]);
 
-    expect($holder->consignment->getPhysicalProperties()['weight'])->toBe(2 * 300 + 150 + 50);
+    expect(builtShipmentWeight($holder->consignment))->toBe(2 * 300 + 150 + 50);
 });
 
 it('sums item weight times quantity plus the empty package weight, in kilo mode', function () {
@@ -51,7 +51,7 @@ it('sums item weight times quantity plus the empty package weight, in kilo mode'
 
     invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, PackageType::MAILBOX]);
 
-    expect($holder->consignment->getPhysicalProperties()['weight'])->toBe((int) (1.5 * 2 * 1000) + 20);
+    expect(builtShipmentWeight($holder->consignment))->toBe((int) (1.5 * 2 * 1000) + 20);
 });
 
 it('floors a zero-weight shipment at the configured default weight', function () {
@@ -63,5 +63,5 @@ it('floors a zero-weight shipment at the configured default weight', function ()
 
     invokePrivateMethod($holder, 'calculateTotalWeight', [$track, 0, PackageType::PACKAGE]);
 
-    expect($holder->consignment->getPhysicalProperties()['weight'])->toBe(Weight::DEFAULT_WEIGHT);
+    expect(builtShipmentWeight($holder->consignment))->toBe(Weight::DEFAULT_WEIGHT);
 });
