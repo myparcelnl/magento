@@ -7,14 +7,14 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
+use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
 // capabilityResult() and makeCapabilitiesRepository() live in Tests/Helpers/CapabilitiesFixtures.php.
 
 /**
- * The constructor is skipped: it builds an SDK collection and half a dozen services, while
- * canUseMultiCollo() reads only the consignment and the repository off the object manager.
+ * The constructor is skipped: it builds half a dozen services, while canUseMultiCollo() reads only
+ * the shipment, the API key it is handed, and the repository off the object manager.
  *
  * @param \GuzzleHttp\Psr7\Response[] $responses
  */
@@ -34,24 +34,21 @@ function createCollectionAnswering(array $responses): array
 }
 
 /**
- * A real consignment, not a double: AbstractConsignment::getCarrierName() is final, so a Mockery
- * mock runs the real method and answers null for every carrier.
+ * A real Shipment, not a double. The API key is no longer on it — v11 has no setApiKey() — so it is
+ * passed to canUseMultiCollo() alongside, which is the whole shape change this phase makes here.
  */
-function consignmentFor(string $carrier, ?string $country, ?int $packageType, ?string $apiKey): AbstractConsignment
+function shipmentFor(string $carrier, ?string $country, ?int $packageType): Shipment
 {
-    $consignment = ConsignmentFactory::createByCarrierName($carrier);
+    $shipment = (new Shipment())->setCarrier(SdkCarrier::toId(Carrier::toV2Name($carrier)));
 
     if (null !== $country) {
-        $consignment->setCountry($country);
+        $shipment->setRecipient(['cc' => $country]);
     }
     if (null !== $packageType) {
-        setPrivateProperty($consignment, 'package_type', $packageType);
-    }
-    if (null !== $apiKey) {
-        $consignment->setApiKey($apiKey);
+        $shipment->setOptions(['package_type' => $packageType]);
     }
 
-    return $consignment;
+    return $shipment;
 }
 
 function colloResponse(int $max): GuzzleHttp\Psr7\Response
@@ -67,7 +64,7 @@ it('allows multicollo when the account reports room for more than one collo', fu
     $c = createCollectionAnswering([colloResponse(10)]);
 
     expect($c['collection']->canUseMultiCollo(
-        consignmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE, 'a-key')
+        shipmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE), 'a-key'
     ))->toBeTrue();
 });
 
@@ -77,7 +74,7 @@ it('refuses multicollo when the account reports a maximum of one', function () {
     $c = createCollectionAnswering([colloResponse(1)]);
 
     expect($c['collection']->canUseMultiCollo(
-        consignmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE, 'a-key')
+        shipmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE), 'a-key'
     ))->toBeFalse();
 });
 
@@ -90,7 +87,7 @@ it('no longer hardcodes PostNL and NL or BE', function () {
     ]))]);
 
     expect($c['collection']->canUseMultiCollo(
-        consignmentFor(Carrier::DPD, 'FR', PackageType::PACKAGE, 'a-key')
+        shipmentFor(Carrier::DPD, 'FR', PackageType::PACKAGE), 'a-key'
     ))->toBeTrue();
 });
 
@@ -102,19 +99,19 @@ it('refuses rather than fails open when the maximum is unknown', function () {
     $c = createCollectionAnswering([new GuzzleHttp\Psr7\Response(500, [], '')]);
 
     expect($c['collection']->canUseMultiCollo(
-        consignmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE, 'a-key')
+        shipmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE), 'a-key'
     ))->toBeFalse();
 });
 
-it('asks nothing when the consignment cannot say what it is', function () {
+it('asks nothing when the shipment cannot say what it is', function () {
     // An empty response queue: any lookup would exhaust the handler and fail the test.
     $c = createCollectionAnswering([]);
 
-    expect($c['collection']->canUseMultiCollo(consignmentFor(Carrier::POSTNL, null, PackageType::PACKAGE, 'a-key')))
+    expect($c['collection']->canUseMultiCollo(shipmentFor(Carrier::POSTNL, null, PackageType::PACKAGE), 'a-key'))
         ->toBeFalse('no country')
-        ->and($c['collection']->canUseMultiCollo(consignmentFor(Carrier::POSTNL, 'NL', 99, 'a-key')))
+        ->and($c['collection']->canUseMultiCollo(shipmentFor(Carrier::POSTNL, 'NL', 99), 'a-key'))
         ->toBeFalse('a package type with no name')
-        ->and($c['collection']->canUseMultiCollo(consignmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE, null)))
+        ->and($c['collection']->canUseMultiCollo(shipmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE), ''))
         ->toBeFalse('no api key')
         ->and($c['history'])->toHaveCount(0);
 });

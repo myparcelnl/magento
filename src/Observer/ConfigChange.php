@@ -19,6 +19,7 @@ use MyParcelNL\Magento\Model\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\Settings;
 use Throwable;
 
@@ -199,7 +200,7 @@ class ConfigChange implements ObserverInterface
         try {
             $this->accountSettingsImporter->importFor($apiKey);
         } catch (Throwable $e) {
-            Logger::warning('Could not import MyParcel account settings after an api key change.', ['exception' => $e]);
+            Logger::warning('Could not import MyParcel account settings after an api key change.', LogContext::of($e));
             $this->messageManager->addWarningMessage(
                 __(
                     'Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.',

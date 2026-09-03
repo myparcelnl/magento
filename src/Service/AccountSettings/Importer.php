@@ -11,6 +11,7 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
+use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Sdk\Services\Web\AccountWebService;
 use MyParcelNL\Sdk\Support\Collection;
 use Psr\Log\LoggerInterface;
@@ -140,11 +141,10 @@ class Importer
                     }
                 }
             } catch (Throwable $e) {
-                Logger::notice(sprintf(
-                    'No contract definitions for carrier "%s": %s',
-                    $carrierName,
-                    $e->getMessage()
-                ));
+                Logger::notice(
+                    sprintf('No contract definitions for carrier "%s"', $carrierName),
+                    LogContext::of($e)
+                );
             }
         }
 

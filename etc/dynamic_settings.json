@@ -183,6 +183,17 @@
               "showInStore": true,
               "tooltip": "This is the type of weight that I use with my products.",
               "source_model": "MyParcelNL\\Magento\\Model\\Source\\WeightType"
+            },
+            {
+              "id": "export_chunk_size",
+              "path": "myparcelnl_magento_general/print/export_chunk_size",
+              "type": "text",
+              "label": "Shipments per export request",
+              "showInDefault": true,
+              "showInWebsite": true,
+              "showInStore": true,
+              "tooltip": "How many shipments are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.",
+              "validate": "validate-digits validate-digits-range digits-range-1-100"
             }
           ]
         },

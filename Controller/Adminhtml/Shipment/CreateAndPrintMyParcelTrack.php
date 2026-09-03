@@ -1,20 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace MyParcelNL\Magento\Controller\Adminhtml\Shipment;
 
-use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
+use MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
-use MyParcelNL\Sdk\Exception\ApiException;
-use MyParcelNL\Sdk\Exception\MissingFieldException;
 
 /**
- * Action to create and print MyParcel Track
+ * The shipment grid's export: creates the MyParcel shipments for the selected shipments.
+ *
+ * The order grid's controller of the same name does the same for orders.
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -25,26 +25,15 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class CreateAndPrintMyParcelTrack extends Action
+class CreateAndPrintMyParcelTrack extends LabelExportAction
 {
-    const PATH_URI_SHIPMENT_INDEX = 'sales/shipment/index';
-
-    /**
-     * @var MagentoShipmentCollection
-     */
     private MagentoShipmentCollection $shipmentCollection;
 
-    /**
-     * CreateAndPrintMyParcelTrack constructor.
-     *
-     * @param Context $context
-     */
     public function __construct(Context $context)
     {
         parent::__construct($context);
 
-        $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->shipmentCollection    = new MagentoShipmentCollection(
+        $this->shipmentCollection = new MagentoShipmentCollection(
             $context->getObjectManager(),
             $this->getRequest(),
             null
@@ -52,40 +41,11 @@ class CreateAndPrintMyParcelTrack extends Action
     }
 
     /**
-     * Dispatch request
-     *
-     * @return ResultInterface|ResponseInterface
      * @throws LocalizedException
-     * @throws ApiException
-     * @throws MissingFieldException
      */
-    public function execute()
+    protected function massAction(): ?array
     {
-        $this->massAction();
-
-        return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_SHIPMENT_INDEX);
-    }
-
-    /**
-     * Get selected items and process them
-     *
-     * @return void
-     * @throws LocalizedException
-     * @throws ApiException
-     * @throws MissingFieldException
-     * @throws \Exception
-     */
-    private function massAction(): void
-    {
-        if ($this->getRequest()->getParam('selected_ids')) {
-            $shipmentIds = explode(',', $this->getRequest()->getParam('selected_ids'));
-        } else {
-            $shipmentIds = $this->getRequest()->getParam('selected');
-        }
-
-        if (empty($shipmentIds)) {
-            throw new LocalizedException(__('No items selected'));
-        }
+        $shipmentIds = $this->selectedIds();
 
         $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
@@ -96,7 +56,6 @@ class CreateAndPrintMyParcelTrack extends Action
         ;
 
         $this->shipmentCollection
-            ->syncMagentoToMyparcel()
             ->setMagentoTrack()
             ->setNewMyParcelTracks()
             ->createMyParcelConcepts()
@@ -104,21 +63,18 @@ class CreateAndPrintMyParcelTrack extends Action
         ;
 
         if (TrackAndTrace::VALUE_CONCEPT === $this->shipmentCollection->getOption('request_type')) {
-            return;
+            return null;
         }
 
-        $this->shipmentCollection
-            ->addReturnShipments()
-            ->setPdfOfLabels()
-            ->updateMagentoTrack()
-            ->downloadPdfOfLabels()
-        ;
+        $this->shipmentCollection->addReturnShipments();
+
+        return $this->labelsFor($this->shipmentCollection, false);
     }
 
     /**
-     * @param int[] $shipmentIds
+     * @param string[] $shipmentIds
      */
-    private function addShipmentsToCollection($shipmentIds): void
+    private function addShipmentsToCollection(array $shipmentIds): void
     {
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection $collection

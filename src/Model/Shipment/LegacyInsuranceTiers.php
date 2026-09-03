@@ -106,29 +106,5 @@ final class LegacyInsuranceTiers
         return $amount;
     }
 
-    /**
-     * An amount beta.15's setInsurance() will accept for this carrier and zone. Unlike snap(), an
-     * empty list answers 0 rather than passing the amount through, because an empty list is exactly
-     * the case where beta.15 throws.
-     */
-    public static function acceptableForSdk(string $carrier, string $zone, int $amount): int
-    {
-        $tiers = self::forCarrierAndZone($carrier, $zone);
 
-        return [] === $tiers ? 0 : self::snap($tiers, $amount);
-    }
-
-    /** Which frozen zone a destination country falls in, matching beta.15's own dispatch. */
-    public static function zoneFor(?string $countryCode): string
-    {
-        if (CountryCode::CC_BE === $countryCode) {
-            return self::ZONE_BE;
-        }
-
-        if (null === $countryCode || CountryCode::CC_NL === $countryCode) {
-            return self::ZONE_LOCAL;
-        }
-
-        return CountryCode::isEu($countryCode) ? self::ZONE_EU : self::ZONE_ROW;
-    }
 }

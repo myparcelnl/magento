@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Sdk\Exception\InvalidConsignmentException;
 use MyParcelNL\Sdk\Model\Recipient;
 
 /**
@@ -89,7 +88,11 @@ it('takes the person from the billing address name parts', function () {
 });
 
 it('lets a rejected address surface instead of swallowing it', function () {
+    // beta.31 deleted InvalidConsignmentException along with the consignment stack; SplitStreet now
+    // throws a plain InvalidArgumentException. What is asserted is unchanged — the address is not
+    // swallowed — only the class it arrives as.
     $collection = createOrderCollectionForShippingRecipient(['getCountryId' => 'NL', 'street' => '1234']);
 
-    expect(fn () => $collection->setShippingRecipient())->toThrow(InvalidConsignmentException::class);
+    expect(fn () => $collection->setShippingRecipient())
+        ->toThrow(InvalidArgumentException::class, 'Invalid full street supplied');
 });

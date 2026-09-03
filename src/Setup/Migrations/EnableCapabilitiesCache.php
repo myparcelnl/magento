@@ -9,6 +9,7 @@ use Magento\Framework\App\Cache\State;
 use Magento\Framework\App\DeploymentConfig;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities;
+use MyParcelNL\Magento\Service\LogContext;
 use Throwable;
 
 /**
@@ -48,13 +49,15 @@ class EnableCapabilitiesCache
         } catch (Throwable $e) {
             // A read-only app/etc is a deployment choice, not a reason to fail an upgrade. Say so
             // loudly enough that the missing cache is explainable later.
-            Logger::warning(sprintf(
-                'Could not enable the %s cache type: %s. Enable it with "bin/magento cache:enable %s", '
-                . 'or capability lookups stay uncached.',
-                Capabilities::TYPE_IDENTIFIER,
-                $e->getMessage(),
-                Capabilities::TYPE_IDENTIFIER
-            ));
+            Logger::warning(
+                sprintf(
+                    'Could not enable the %s cache type. Enable it with "bin/magento cache:enable %s", '
+                    . 'or capability lookups stay uncached.',
+                    Capabilities::TYPE_IDENTIFIER,
+                    Capabilities::TYPE_IDENTIFIER
+                ),
+                LogContext::of($e)
+            );
         }
     }
 }

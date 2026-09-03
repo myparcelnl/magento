@@ -15,6 +15,7 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Rest\Request\OrderDeliveryOptionsV1Request;
 use MyParcelNL\Magento\Model\Rest\Resource\OrderDeliveryOptionsV1Resource;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\LogContext;
 
 class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOptionsInterface
 {
@@ -87,10 +88,10 @@ class OrderDeliveryOptions extends AbstractEndpoint implements OrderDeliveryOpti
                 sprintf('Order with id %d was not found', $orderId)
             ));
         } catch (\Throwable $e) {
-            Logger::error('Unexpected error in OrderDeliveryOptions::getByOrderId', [
-                'exception' => $e,
-                'orderId'   => $orderId,
-            ]);
+            Logger::error(
+                'Unexpected error in OrderDeliveryOptions::getByOrderId',
+                LogContext::of($e, ['orderId' => $orderId])
+            );
 
             return $this->errorResponse(ProblemDetails::fromStatus(
                 500,

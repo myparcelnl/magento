@@ -48,6 +48,29 @@ final class Carrier
             self::TRUNKRS            => 'Trunkrs',
         ];
 
+    /**
+     * The country each carrier ships from, which is what SplitStreet needs to know whether a street
+     * splits by Dutch or Belgian rules. Sourced from the beta.15 consignments' getLocalCountryCode();
+     * pinned by CarrierLocalCountryTest now that those classes are gone.
+     */
+    public const LOCAL_COUNTRY_MAP
+        = [
+            self::POSTNL             => CountryCode::CC_NL,
+            self::DHL_FOR_YOU        => CountryCode::CC_NL,
+            self::DHL_EUROPLUS       => CountryCode::CC_NL,
+            self::DHL_PARCEL_CONNECT => CountryCode::CC_NL,
+            self::UPS_STANDARD       => CountryCode::CC_NL,
+            self::DPD                => CountryCode::CC_BE,
+            self::GLS                => CountryCode::CC_NL,
+            self::TRUNKRS            => CountryCode::CC_NL,
+        ];
+
+    /** Falls back to NL, which is what every carrier but DPD answers and what the old code hardcoded. */
+    public static function localCountryCodeFor(?string $name): string
+    {
+        return self::LOCAL_COUNTRY_MAP[$name] ?? CountryCode::CC_NL;
+    }
+
     public static function toV2Name(string $name): ?string
     {
         return self::V2_NAMES_MAP[$name] ?? null;

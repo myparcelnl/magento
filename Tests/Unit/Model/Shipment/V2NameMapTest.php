@@ -34,23 +34,21 @@ function mappedOptionKeys(string $moduleOption): array
 
 // The request model has no setter for these two, so the SDK cannot ask about them. They still
 // appear in a response, so the module keeps reading them; Client logs a request that sends one.
-const OPTIONS_THE_REQUEST_CANNOT_CARRY = [ShipmentOption::FRESH_FOOD, ShipmentOption::FROZEN];
-
 it('agrees with the SDK request mapper on every option wire key', function () {
     foreach (ShipmentOption::V2_KEYS_MAP as $moduleName => $v2Key) {
-        if (in_array($moduleName, OPTIONS_THE_REQUEST_CANNOT_CARRY, true)) {
-            continue;
-        }
-
         expect(mappedOptionKeys($moduleName))
             ->toBe([$v2Key], "option '$moduleName' should map to '$v2Key'");
     }
 });
 
-it('names the two options the request model cannot carry, so the gap stays deliberate', function () {
-    foreach (OPTIONS_THE_REQUEST_CANNOT_CARRY as $moduleName) {
-        expect(mappedOptionKeys($moduleName))->toBe([], "'$moduleName' unexpectedly became sendable")
-            ->and(ShipmentOption::toV2Key($moduleName))->not->toBeNull();
+it('carries fresh food and frozen, which the request model could not always ask about', function () {
+    // Both were read-only at beta.15: they appear in a capabilities response but CapabilitiesOptionsV2
+    // had no setter, so a request could not ask about them. beta.31 added setFreshFood() and
+    // setFrozen(), closing the gap TR-000005 recorded. Asserted head-on so a regression upstream is a
+    // failure here rather than a silently unasked question.
+    foreach ([ShipmentOption::FRESH_FOOD, ShipmentOption::FROZEN] as $moduleName) {
+        expect(mappedOptionKeys($moduleName))
+            ->toBe([ShipmentOption::toV2Key($moduleName)], "'$moduleName' stopped being sendable");
     }
 });
 

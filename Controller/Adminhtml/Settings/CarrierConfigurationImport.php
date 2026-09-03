@@ -14,6 +14,7 @@ use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Facade\Logger;
 use Throwable;
 
@@ -71,7 +72,7 @@ class CarrierConfigurationImport extends Action
         try {
             $this->importer->importFor($this->apiKey);
         } catch (Throwable $e) {
-            Logger::warning('Could not import MyParcel account settings.', ['exception' => $e]);
+            Logger::warning('Could not import MyParcel account settings.', LogContext::of($e));
 
             return $this->resultFactory->create()
                                        ->setData(

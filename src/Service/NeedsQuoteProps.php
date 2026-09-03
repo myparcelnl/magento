@@ -79,7 +79,10 @@ trait NeedsQuoteProps
             try {
                 $this->deliveryOptions = DeliveryOptionsFactory::create(json_decode($deliveryOptions, true, 512, JSON_THROW_ON_ERROR));
             } catch (\Throwable $e) {
-                Logger::log('warning', "Failed to retrieve delivery options from quote {$quote->getId()}", (array) $deliveryOptions);
+                Logger::warning(
+                    "Failed to retrieve delivery options from quote {$quote->getId()}",
+                    LogContext::of($e, ['delivery_options' => $deliveryOptions])
+                );
                 $this->deliveryOptions = DeliveryOptions::defaults();
             }
         } else {
@@ -143,9 +146,9 @@ trait NeedsQuoteProps
                 $methods[] = $method;
             }
         } catch (StateException $exception) {
-            Logger::error('Shipping address is missing.', ['quote_id' => $quoteId, 'exception' => $exception]);
+            Logger::error('Shipping address is missing.', LogContext::of($exception, ['quote_id' => $quoteId]));
         } catch (NoSuchEntityException $exception) {
-            Logger::error('Quote does not exist.', ['quote_id' => $quoteId, 'exception' => $exception]);
+            Logger::error('Quote does not exist.', LogContext::of($exception, ['quote_id' => $quoteId]));
         }
 
         return $methods;

@@ -23,19 +23,18 @@ use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Cron\UpdateStatus;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderNotesCollection;
-use MyParcelNL\Sdk\Exception\AccountNotActiveException;
-use MyParcelNL\Sdk\Exception\ApiException;
-use MyParcelNL\Sdk\Exception\MissingFieldException;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
 use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
 use MyParcelNL\Sdk\Helper\SplitStreet;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
@@ -45,7 +44,6 @@ use MyParcelNL\Sdk\Model\PickupLocation;
 use MyParcelNL\Sdk\Model\Recipient;
 use MyParcelNL\Sdk\Support\Collection;
 use MyParcelNL\Sdk\Support\Str;
-use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
@@ -436,14 +434,15 @@ class MagentoOrderCollection extends MagentoCollection
             return $this;
         }
 
-        $carrier = ConsignmentFactory::createByCarrierName(CarrierPostNL::NAME);
-        $street  = implode(
+        $street = implode(
             ' ',
             $shippingAddress->getStreet() ?? []
         );
 
+        // Still PostNL's local country, which is what the throwaway consignment answered here before.
+        // Which carrier's country this should be is the fulfilment path's question, and Phase 8 owns it.
         $country     = $shippingAddress->getCountryId();
-        $streetParts = SplitStreet::splitStreet($street, $carrier->getLocalCountryCode(), $country);
+        $streetParts = SplitStreet::splitStreet($street, ShipmentCarrier::localCountryCodeFor(ShipmentCarrier::POSTNL), $country);
 
         $this->shippingRecipient = (new Recipient())
             ->setCc($country)
@@ -488,75 +487,9 @@ class MagentoOrderCollection extends MagentoCollection
         return "$firstName $middleName $lastName";
     }
 
-    /**
-     * Set PDF content and convert status 'Concept' to 'Registered'
-     *
-     * @return $this
-     * @throws Exception
-     */
-    public function setPdfOfLabels(): self
-    {
-        $this->myParcelCollection->setPdfOfLabels($this->options['positions']);
 
-        return $this;
-    }
 
-    /**
-     * Download PDF directly
-     *
-     * @return $this
-     * @throws Exception
-     */
-    public function downloadPdfOfLabels(): self
-    {
-        $inlineDownload = 'open_new_tab' === $this->options['request_type'];
-        $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
 
-        return $this;
-    }
-
-    /**
-     * Update MyParcel collection
-     *
-     * @return $this
-     * @throws Exception
-     */
-    public function setLatestData(): self
-    {
-        if ($this->myParcelCollection->isEmpty()) {
-            return $this;
-        }
-
-        $this->myParcelCollection->setLatestData();
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     * @throws ApiException
-     * @throws MissingFieldException|AccountNotActiveException
-     */
-    public function sendReturnLabelMails()
-    {
-        $this->myParcelCollection->generateReturnConsignments(true);
-
-        return $this;
-    }
-
-    /**
-     * Send multiple shipment emails with Track and trace variable
-     *
-     * @return $this
-     */
-    public function sendTrackEmails()
-    {
-        foreach ($this->getOrders() as $order) {
-            $this->sendTrackEmailFromOrder($order);
-        }
-
-        return $this;
-    }
 
     /**
      * Check if there is 1 shipment in all orders
@@ -600,31 +533,6 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($this->getOrders() as $order) {
             $resourceManager->save($order);
         }
-    }
-
-    /**
-     * Send shipment email with Track and trace variable
-     *
-     * @param Order $order
-     *
-     * @return $this
-     */
-    private function sendTrackEmailFromOrder(Order $order): self
-    {
-        /**
-         * @var Shipment $shipment
-         */
-        if (! $this->trackSender->isEnabled()) {
-            return $this;
-        }
-
-        foreach ($order->getShipmentsCollection() as $shipment) {
-            if ($shipment->getEmailSent() == null) {
-                $this->trackSender->send($shipment);
-            }
-        }
-
-        return $this;
     }
 
     /**
@@ -676,7 +584,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
             $this->objectManager->get(OrderResource::class)->save($shipment->getOrder());
 
-            $this->objectManager->get(LoggerInterface::class)->critical($e);
+            Logger::critical('MyParcel: the Magento shipment could not be saved', LogContext::of($e));
 
             return false; // well that didn’t work
         }

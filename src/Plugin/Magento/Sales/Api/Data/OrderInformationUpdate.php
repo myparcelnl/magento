@@ -12,6 +12,7 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\LogContext;
 
 
 /**
@@ -77,7 +78,10 @@ class OrderInformationUpdate
             $data = $this->jsonSerializer->unserialize($deliveryOptionsString);
             $deliveryOptions = DeliveryOptionsFactory::create((array) $data);
         } catch (\Exception $e) {
-            Logger::warning("Invalid delivery options data for order ID {$order->getEntityId()}.");
+            Logger::warning(
+                "Invalid delivery options data for order ID {$order->getEntityId()}.",
+                LogContext::of($e, ['delivery_options' => $deliveryOptionsString])
+            );
 
             return;
         }

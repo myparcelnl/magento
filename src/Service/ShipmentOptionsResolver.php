@@ -161,7 +161,7 @@ class ShipmentOptionsResolver
                     ->withPackageType($v2PackageType)
             );
         } catch (Throwable $e) {
-            Logger::notice('Could not resolve the insurance range: ' . $e->getMessage());
+            Logger::notice('Could not resolve the insurance range', LogContext::of($e));
 
             return null;
         }
@@ -262,13 +262,20 @@ class ShipmentOptionsResolver
     }
 
     /**
-     * @param $products
+     * What the products say about the age check, or null when they say nothing.
      *
-     * @return null|bool
+     * Null is the tier's "no opinion", and the caller's `??` depends on it: starting at false meant
+     * an order with no items answered false, which is an opinion, so the carrier-default tier below
+     * it could never run. That was the surviving half of DR-7 — passing the items rather than the
+     * Track fixed the loop, not the seed.
+     *
+     * An explicit non-'1' value is still an opinion, and beats the carrier default.
+     *
+     * @param $products
      */
     public static function getAgeCheckFromProduct($products): ?bool
     {
-        $hasAgeCheck = false;
+        $hasAgeCheck = null;
 
         foreach ($products as $product) {
             $productAgeCheck = self::getAttributeValue(
@@ -277,10 +284,12 @@ class ShipmentOptionsResolver
                 ShipmentOption::AGE_CHECK
             );
 
-            if (! isset($productAgeCheck) || '' === $productAgeCheck) {
-                $hasAgeCheck = null;
-            } elseif ('1' === $productAgeCheck) {
+            if ('1' === $productAgeCheck) {
                 return true;
+            }
+
+            if (isset($productAgeCheck) && '' !== $productAgeCheck) {
+                $hasAgeCheck = false;
             }
         }
 

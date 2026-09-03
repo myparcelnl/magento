@@ -80,17 +80,21 @@ it('raises on a body carrying no results array', function () {
 });
 
 it('logs an option the SDK request model cannot carry instead of dropping it silently', function () {
+    // fresh_food and frozen used to be the subject here: they had no setter on CapabilitiesOptionsV2,
+    // so a request could not ask about them. beta.31 added both, and no module option is unsendable
+    // any more. The mechanism still matters — FR-000010 forbids a silent drop — so it is exercised
+    // with a name the mapper cannot place, which is what a future unknown option looks like.
     $logger = mockLoggerFacade();
     $logger->shouldReceive('notice')
         ->once()
-        ->with(Mockery::pattern('/dropped option\(s\).*fresh_food/'));
+        ->with(Mockery::pattern('/dropped option\(s\).*not_a_known_option/'));
 
     $c    = makeCapabilitiesClient();
     $body = json_decode($c['client']->serialize(
-        CapabilitiesRequest::forCountry('NL')->withOptions([ShipmentOption::FRESH_FOOD => true])
+        CapabilitiesRequest::forCountry('NL')->withOptions(['not_a_known_option' => true])
     ), true);
 
-    expect($body['options'] ?? [])->not->toHaveKey('freshFood');
+    expect($body['options'] ?? [])->not->toHaveKey('not_a_known_option');
 });
 
 it('does not log when every option survives mapping', function () {

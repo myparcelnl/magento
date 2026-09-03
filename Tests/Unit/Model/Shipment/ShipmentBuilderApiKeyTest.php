@@ -7,11 +7,10 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
  * Both cases short-circuit at the `empty($apiKey)` guard, before any
- * consignment exists, so nothing carrier-specific can change the outcome.
+ * shipment exists, so nothing carrier-specific can change the outcome.
  *
- * Not asserted on purpose: that the key ends up on the consignment. The v11
- * Shipment has no setApiKey(), so pinning it would fix a mechanism this
- * migration removes.
+ * Not asserted on purpose: that the key ends up on the shipment. The v11
+ * Shipment has no setApiKey() — the key rides alongside on BuiltShipment.
  */
 function standardCheckoutOptions(): array
 {
@@ -23,10 +22,10 @@ function standardCheckoutOptions(): array
 }
 
 it('raises a LocalizedException when the store has no API key', function () {
-    [$holder, $track] = createConvertibleTrackTraceHolder(standardCheckoutOptions(), '');
+    [$builder, $track] = createConvertibleShipmentBuilder(standardCheckoutOptions(), '');
 
-    $convert = function () use ($holder, $track) {
-        $holder->convertDataFromMagentoToApi($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0]);
+    $convert = function () use ($builder, $track) {
+        $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0]);
     };
 
     expect($convert)->toThrow(LocalizedException::class);
@@ -37,10 +36,10 @@ it('resolves the API key from the order\'s own store, not another store\'s', fun
     // ignoring the order's store would find store 5's key and not throw.
     // This asserts *which* store is consulted, not Magento's own
     // default -> website -> store fallback.
-    [$holder, $track] = createConvertibleTrackTraceHolder(standardCheckoutOptions(), 'store-5-key', 9, 5);
+    [$builder, $track] = createConvertibleShipmentBuilder(standardCheckoutOptions(), 'store-5-key', 9, 5);
 
-    $convert = function () use ($holder, $track) {
-        $holder->convertDataFromMagentoToApi($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0]);
+    $convert = function () use ($builder, $track) {
+        $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0]);
     };
 
     expect($convert)->toThrow(LocalizedException::class);

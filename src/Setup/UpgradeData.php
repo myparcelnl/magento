@@ -30,6 +30,7 @@ use Magento\Framework\Setup\UpgradeDataInterface;
 use MyParcelNL\Magento\Model\Shipment\LegacyInsuranceTiers;
 use MyParcelNL\Magento\Model\Source\FitInMailboxOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar;
 use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
 use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
@@ -104,6 +105,11 @@ class UpgradeData implements UpgradeDataInterface
     private $enableCapabilitiesCache;
 
     /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar
+     */
+    private $classificationToVarchar;
+
+    /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                     $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                              $eavSetupFactory
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
@@ -111,6 +117,7 @@ class UpgradeData implements UpgradeDataInterface
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange        $replaceDpzRange
      * @param  \MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths
      * @param  \MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache $enableCapabilitiesCache
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar $classificationToVarchar
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -119,7 +126,8 @@ class UpgradeData implements UpgradeDataInterface
         ReplaceDisableCheckout $replaceDisableCheckout,
         ReplaceDpzRange $replaceDpzRange,
         FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths,
-        EnableCapabilitiesCache $enableCapabilitiesCache
+        EnableCapabilitiesCache $enableCapabilitiesCache,
+        ClassificationToVarchar $classificationToVarchar
     ) {
         $this->categorySetupFactory            = $categorySetupFactory;
         $this->eavSetupFactory                 = $eavSetupFactory;
@@ -128,6 +136,7 @@ class UpgradeData implements UpgradeDataInterface
         $this->replaceDpzRange                 = $replaceDpzRange;
         $this->fingerprintAccountSettingsPaths = $fingerprintAccountSettingsPaths;
         $this->enableCapabilitiesCache         = $enableCapabilitiesCache;
+        $this->classificationToVarchar         = $classificationToVarchar;
     }
 
     /**
@@ -298,7 +307,13 @@ class UpgradeData implements UpgradeDataInterface
                         'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                         'label'   => 'HS code',
                         'input'   => 'text',
-                        'default' => '0',
+                        // An HS code is a numeric string of up to 18 characters and may carry dots
+                        // (6109.10). DEFAULT_ATTRIBUTES types everything int, which holds none of
+                        // that: dots are impossible, leading zeros are lost, and anything above
+                        // 2147483647 is clamped to it.
+                        'type'    => 'varchar',
+                        'class'   => 'validate-length maximum-length-18',
+                        'default' => '',
                     ]
                 )
             );
@@ -652,7 +667,10 @@ class UpgradeData implements UpgradeDataInterface
                             'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                             'label'   => 'HS code',
                             'input'   => 'text',
-                            'default' => '0',
+                            // See the note on the first definition of this attribute.
+                            'type'    => 'varchar',
+                            'class'   => 'validate-length maximum-length-18',
+                            'default' => '',
                         ]
                     )
                 );
@@ -1074,6 +1092,7 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($context->getVersion(), '5.10.0', '<')) {
             $this->enableCapabilitiesCache->run();
+            $this->classificationToVarchar->run($eavSetup);
         }
 
         $setup->endSetup();

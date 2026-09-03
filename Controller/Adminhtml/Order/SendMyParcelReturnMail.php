@@ -8,8 +8,10 @@ use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\LogContext;
 
 /**
  * Action to send mails with a return label
@@ -88,15 +90,13 @@ class SendMyParcelReturnMail extends Action
 
         try {
             $this->orderCollection
-                ->syncMagentoToMyparcel()
                 ->setNewMyParcelTracks()
-                ->setLatestData()
                 ->sendReturnLabelMails()
             ;
         } catch (\Exception $e) {
             if (count($this->messageManager->getMessages()->getItems()) == 0) {
                 $this->messageManager->addErrorMessage(__('An error has occurred while sending mails with a return label. Please contact MyParcel.'));
-                $this->_objectManager->get('Psr\Log\LoggerInterface')->critical($e);
+                Logger::critical('MyParcel return label mails could not be sent', LogContext::of($e));
             }
 
             return $this;

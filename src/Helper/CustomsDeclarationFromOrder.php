@@ -117,14 +117,16 @@ class CustomsDeclarationFromOrder
     }
 
     /**
-     * @param Product $product
+     * An HS code is a string — digits and dots, leading zeros significant.
      *
-     * @return int
+     * MyParcelCustomsItem::setClassification() truncates at 10 inside the SDK, so a longer code is
+     * cut on this path where the v11 shipment path carries it whole. Raised with the SDK rather than
+     * worked around here.
      */
-    private function getHsCode(Product $product): int
+    private function getHsCode(Product $product): string
     {
-        return (int) ShipmentOptionsResolver::getAttributeValue(
-            'catalog_product_entity_int',
+        return (string) ShipmentOptionsResolver::getAttributeValue(
+            'catalog_product_entity_varchar',
             $product->getId(),
             'classification'
         );

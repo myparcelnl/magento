@@ -1,6 +1,6 @@
 # SDK v11 Migration Plan
 
-**Status:** Phase 5b complete; Phase 6 next (6a landed)
+**Status:** Phase 6b complete and the pin is on **beta.31** (DR-30); Phase 6c next
 **Started:** 2026-08-11
 **Branch:** `feat/use-sdk-v11-shipments`
 **Business Requirement:** [BR-000003 — MyParcel SDK v11 compatibility](../business-requirements/BR-000003-sdk-v11-compatibility.md)
@@ -500,6 +500,533 @@ stored shape applies, dispatching on top-level keys, which are camelCase in ever
 Checked before writing a second implementation: the SDK's `Support\Str` has only per-string `snake()`
 and `camel()`, and no array-key normaliser exists anywhere in the module or the SDK.
 
+### DR-25: A pickup that cannot be read is refused, not degraded
+
+**Left open by the Phase 6b notes**, on the grounds that a pickup whose location fails to parse is
+arguably worth refusing but that nothing had decided.
+
+**Decided: refuse that shipment.** `fromOrderFallback()` would ship it as a home delivery, which is
+a different delivery from the one the customer chose and paid for — the substitution DR-12 and
+FR-000010 exist to prevent. `ShipmentBuilder::parse()` therefore lets `InvalidArgumentException`
+through as a per-shipment failure naming the order, and catches only `BadMethodCallException` for
+the genuine unknown-shape fallback. One order fails; the rest of the batch exports.
+
+The PPS path is untouched and still degrades, because Phase 8 owns it.
+
+### DR-26: The reference identifier gains a collo suffix
+
+TR-000006 names the Magento **shipment** entity id. That is unique per shipment but not per label: a
+`label_amount` above one makes several Magento tracks for one shipment, `create()` answers
+`[shipmentId => referenceIdentifier]`, and a shared reference pairs only one of them. Correlating by
+position is what TR-000006 forbids in the first place.
+
+**So the reference identifier is `<shipment entity id>-<collo number>`, always suffixed** rather than
+suffixed only from the second collo, so there is one format to read and one prefix to match on —
+which is what `ShipmentCollection::whereReferenceIdentifierPrefix()` is for. The API attaches no
+meaning to the value and the module stores the shipment id rather than the reference, so nothing
+local depends on the old format.
+
+### DR-27: DR-7 was only half fixed by Phase 3, and the seed was the other half
+
+**Assumed by the Phase 6b plan:** that routing the builder through `ShipmentOptionsResolver::hasAgeCheck()`
+fixes the unreachable age-check tiers "for free", because the resolver passes `$order->getItems()`
+where `TrackTraceHolder` passed the `Track` itself.
+
+**It fixes the loop, not the seed.** `getAgeCheckFromProduct()` started at `$hasAgeCheck = false` and
+only assigned `null` *inside* the loop, so an order with **no items** returned `false` — an opinion —
+and `??` never fell through to the carrier default. The tier was still unreachable for exactly the
+orders most likely to hit it.
+
+Found by the test that was written to prove the fix, which failed. The seed is now `null`, and an
+explicit non-`1` product value assigns `false`, which keeps a product-level opt-out beating the
+carrier default. The `->todo()` on that case is gone.
+
+### DR-28: `RefShipmentCustomsDeclarationItem::setCountry()` cannot be called at all
+
+The generated enum for that field lists exactly one allowable value, `''`, at **both** beta.15 and
+beta.31, so `setCountry('NL')` throws `Invalid value 'NL' for 'country', must be one of ''`. An SDK
+generation defect, not a rule.
+
+**The country goes in through the constructor**, which uses `setIfExists` and bypasses every setter,
+and the field is declared `string` so `ObjectSerializer`'s enum gate never runs on it either. The
+value serializes correctly. The cost is that `listInvalidProperties()` reports a false invalid
+country for every item, which is why `ShipmentValidator` does not walk the customs declaration —
+customs is validated by construction instead.
+
+### DR-29: `Shipment::valid()` is not a replacement for `$consignment->validate()`
+
+Phase 6b's plan said to "call `valid()` explicitly". That is necessary and nowhere near sufficient:
+`Shipment::listInvalidProperties()` checks only that carrier and options are non-null plus a few of
+its own enum fields, and **does not recurse** into recipient, options, physical properties or pickup.
+A missing `recipient.cc` or `physical_properties.weight` would have passed it and failed at the API
+as a batch-level error, replacing the per-order message the admin gets today.
+
+Measured, not assumed: a `Shipment` with **no country and no weight** answers `valid() === true`,
+serializes cleanly and reaches the API. The SDK's own `listInvalidProperties()` on the nested
+recipient and physical properties names both faults at once.
+
+`Model\Shipment\ShipmentValidator` walks those nested models. It carries **no MyParcel rules of its
+own** — it calls the SDK's generated validators recursively, which is the only reason it is not the
+duplicated local judgement FR-000010 warns about.
+
+**It is provisional, and one acceptance finding decides its fate.** `create()` takes a whole chunk,
+so the blast radius of an unvalidated bad shipment depends entirely on how the Core API answers a
+partial rejection:
+
+| API behaviour on one bad shipment in a chunk | Cost without the validator |
+|---|---|
+| Atomic 4xx for the whole request | The whole chunk fails — **20 orders by default**, where `$consignment->validate()` cost exactly 1 |
+| Ids returned for the good shipments only | **1 order.** `ShipmentExportService::recordCreated()` already fails anything the response did not name, so the per-order behaviour needs no local check at all |
+
+**Observed on acceptance: it rejects atomically** (DR-31). The validator therefore stays, and chunk
+size doubles as failure granularity. If the API reports per shipment, delete `ShipmentValidator` and rely on
+`recordCreated()`. If it rejects atomically, the validator stays and chunk size doubles as failure
+granularity — worth stating in the setting's tooltip if so.
+
+The alternative considered and not taken: drop the validator and isolate a failed chunk by re-sending
+it one shipment at a time. It reaches a blast radius of 1 with no local rules, but is safe only for a
+4xx. Retrying after a timeout would create duplicate billable shipments, because the API deduplicates
+nothing (TR-000006).
+
+### DR-30: `ShipmentCreateService::create()` cannot succeed at beta.15, so 6b needs the pin moved
+
+**Found on acceptance**, not by reading: a successful export answered
+`Unexpected response type returned by ShipmentApi::postShipments()` for every order.
+
+| | beta.15 | beta.31 |
+|---|---|---|
+| Generated client returns on 200 | `ShipmentResponsesPostShipmentsV12` | `ShipmentResponsesPostShipmentsV12` |
+| `parseCreateResponse()` requires | `InlineObject` | `ShipmentResponsesPostShipmentsV12` |
+
+The service rejects the only type its own client produces. **Fixed at beta.31**, so this is the first
+place the plan's founding assumption — *the whole module can be migrated against the installed SDK,
+bumping the pin last* — does not hold. Every earlier phase held because beta.31 only **loosened**;
+here beta.15 is simply **broken**.
+
+There is no clean route around it inside the module. Calling `postShipments()` directly works at
+beta.15 and breaks at beta.31, where `$user_agent` moves from the **first** argument to the
+**sixth**. So the pin moves for 6b rather than at Phase 9.
+
+**The failure mode is the dangerous part and is worth remembering.** The API returned 2xx and created
+the shipments; the SDK threw while *parsing*, the module recorded the orders as failed, and no
+shipment id was stored. A re-run would have created second billable shipments. TR-000006 point 4
+anticipated duplicate exports from a re-run, but not from a **local exception after a successful
+create** — the record is what makes a re-run safe, and an exception between the API's yes and that
+record is the one gap in it.
+
+### DR-31: The only per-order pointer in a rejection is a key the generated model throws away
+
+The API refuses a batch **atomically** — three orders, one bad postal code, one `POST`, one 422 with
+one `request_id` — which settles DR-29's open question. Every order in the chunk therefore received
+the same message, prefixed with its own increment id, which reads as a per-order diagnosis of a
+per-chunk event.
+
+**What the spec says, and what the API actually sends, are different — the spec is not the one to
+build against.** DR-31 was first written from the spec below; acceptance then produced the real
+thing, and it is **RFC 9457 Problem Details**:
+
+```json
+{"type":"urn:problem:invalid-shipments","title":"Invalid shipments","status":422,
+ "detail":"Verzending validatiefout","instance":"/shipments","request_id":"…",
+ "errors":[{"type":"urn:problem:invalid-postal-code","title":"Invalid postal code",
+            "detail":"postal_code 'OPA' doesn't look like a correct postal code for country NL",
+            "instance":"/data/shipments/0/recipient/postal_code"}]}
+```
+
+Three differences, each of which cost something:
+
+| | Spec (`common_responses_user_error`) | Actual |
+|---|---|---|
+| Summary | `message` | `detail` |
+| Per-error text | `message` | `detail` — **the generated model declares neither this nor `instance`** |
+| Which shipment | keys of an `errors` **object** | `instance`, a JSON Pointer, inside a plain **list** |
+
+So `errors` arrived as a list, the keyed-object path never fired, and nothing was attributed: all
+three orders were told *"MyParcel refused this batch of 3 orders: Invalid postal code Invalid
+recipient phone number"* — two bare `title`s concatenated, with the sentence naming the offending
+value (`detail`) dropped entirely. The pointer that identifies the shipment was sitting in a field
+neither the spec nor the model mentions.
+
+The parser now reads `instance` for the index and `detail` for the text, keeps the documented shape
+as a fallback since a future regeneration will follow it, and trims the pointer to the part an admin
+can act on (`recipient.postal_code`). **Reasons also accumulate per order** rather than overwriting:
+one shipment broke two rules here, and showing only the first would have cost a second fix-and-retry.
+
+The original spec text, kept because it is what a reader will find if they go looking:
+
+`common_responses_user_error` in the Core API spec types `errors` as:
+
+```yaml
+errors:
+  type: ["array", "object"]
+  items:                { $ref: common_error_user }
+  additionalProperties: { $ref: common_error_user }
+```
+
+In the **object** form the keys are the only thing pointing at a shipment, and the generated
+`CommonResponsesUserError` types `errors` as a plain `CommonErrorUser[]` — so deserializing discards
+them. This is DR-16 one layer down, on the error path: **read the raw body.** Guzzle's own exception
+message is truncated at ~120 characters and carries none of it either.
+
+`ShipmentExportService::attributeFailure()` therefore reads `ApiException::getResponseBody()`, and:
+
+- a keyed error naming a shipment index blames **only that order**, keeping the API's field pointer
+  in the message so the admin knows what to correct;
+- the rest of the chunk is told it did not ship *because another order was refused*, rather than
+  being accused of the fault;
+- an error that points at nothing is recorded against every order in the chunk, worded as a batch
+  rejection;
+- the raw body is logged whole, because the key format is **not in the spec** and this is what makes
+  an unrecognised one diagnosable rather than silently unattributed.
+
+**A list is not a map.** `errors` in its array form has keys that are its own positions, not shipment
+indexes; only the keyed form points at a shipment. Conflating them blamed the first order in the
+chunk for every unkeyed error.
+
+**Isolating a failed chunk by re-sending it one at a time was considered and rejected** — it costs a
+round of calls and the merchant's workflow is to fix the named order and re-run the same batch, which
+is safe precisely because an atomic rejection creates nothing.
+
+### DR-32: The pin moved at 6b, and Phase 9's parity tests went with it
+
+DR-30 forced the bump. Doing it revealed what the plan had bundled into Phase 9, and most of it is a
+consequence of the pin rather than separate work — so it landed here.
+
+**Deleted, because their subject no longer exists.** They existed to prove parity *while beta.15 was
+installed*, which is a job that cannot be repeated once it is not:
+
+| Removed | Why |
+|---|---|
+| `Tests/Unit/Model/Shipment/ConstantEquivalenceTest.php` | asserted each module constant equals the beta.15 SDK value |
+| `Tests/Unit/Adapter/DeliveryOptions/DeliveryOptionsEquivalenceTest.php` | compared the module value objects against the removed SDK adapters |
+| `TrackTraceUrlTest`'s *matches the SDK helper it replaces* | `Sdk\Helper\TrackTraceUrl` is gone; the three module-behaviour cases stay |
+| `LegacyInsuranceTiersTest`'s beta.15 equivalence case | called `getInsurancePossibilities()` on the removed consignments; the `snap()` cases stay |
+
+**`LegacyInsuranceTiers::acceptableForSdk()` and `zoneFor()` are deleted as dead code.** Both existed
+only for the DR-20 shim, which 6b removed. `UpgradeData` uses `snap()` and `forCarrierAndZone()`
+only, so those stay — the class survives, halved.
+
+**Three behaviour changes at beta.31 that the plan had not recorded**, all found by the suite:
+
+1. **`InvalidConsignmentException` is deleted** along with the consignment stack, and
+   `Helper\SplitStreet` now throws a plain `\InvalidArgumentException`. It also no longer depends on
+   `AbstractConsignment` at all — it reads `Services\CountryCodes` and its own `MAX_STREET_LENGTH`,
+   which is why it survives the removal that would otherwise have broken it. Only the expected class
+   changed; nothing swallows the rejection either way.
+2. **`fresh_food` and `frozen` became sendable.** TR-000005 records them as read-only — present in a
+   capabilities response but with no setter on `CapabilitiesOptionsV2`, so a request could not ask.
+   beta.31 adds `setFreshFood()` and `setFrozen()`. **No module option is unsendable any more**,
+   verified by mapping every entry of `ShipmentOption::V2_KEYS_MAP` through the SDK's own mapper.
+   `Capabilities\Client`'s drop-logging stays — FR-000010 still forbids a silent drop — but its
+   subject is now an unknown option rather than a known-but-unsendable one, and its test says so.
+3. **`postShipments()` takes the request first and `$user_agent` sixth**, where beta.15 took the user
+   agent first. Production code never calls it directly, so only the test spy was affected — and it
+   failed *silently*, recording nothing rather than erroring. The spy now finds the request by type
+   wherever it sits, so the next reordering cannot quietly blind it.
+
+**beta.33 was tried and reverted.** The suite is green on it and nothing in the shipment path
+changed, but the generated error models are byte-identical, so it does not close the DR-31 gap and
+buys this PR nothing. Recorded in TR-000005's assumptions; bump it as ordinary maintenance after this
+merges.
+
+**The create response shape changed too**, which the plan had not flagged: beta.15's parser read
+`data.ids[]`, beta.31's reads `data.shipments[]` as full `ShipmentDefsShipment` objects. The
+`[shipmentId => referenceIdentifier]` return contract is identical, so `ShipmentExportService` needed
+no change — only the test fixture did.
+
+### DR-33: A rejected chunk is re-sent once without the orders the API named
+
+**Found by using it.** A batch with one bad postal code produced one useful message and nineteen
+repeating it, each prefixed with its own increment id so every order read as individually at fault.
+The admin then had to re-find the orders, because Magento clears the grid selection on the way back.
+
+The rejection already names which shipment it objected to (DR-31), and **the API reports every faulty
+shipment in one response** — confirmed on acceptance. So the fix is to use that: exclude the blamed
+orders and re-send the chunk **once**. A 50-order batch with one bad order now ships 49 and reports
+one, which removes the message noise and the re-selection problem together.
+
+One retry, not a loop: after excluding everything the first response named, nothing faulty is left. A
+second rejection is not expected and is reported rather than retried again.
+
+**Retrying is only safe because a 422 created nothing.** A timeout or a 5xx says nothing about whether
+the request was processed, and the API deduplicates nothing (TR-000006), so re-sending could bill the
+merchant twice. `isSafeToRetry()` gates on 422 alone; widening it needs that argument made for the
+status being added.
+
+**Failures are now two kinds.** *Blamed* keeps its own message with the API's sentence and field.
+*Collateral* — an order that merely shared a rejected chunk — is counted in one line and never named,
+because a per-order line for each is the noise this removes. Only reachable when a retry also fails.
+
+**Rejected: a checkbox restore and a grid status filter.** The retry removes the need for both. The
+restore was also awkward at the time, because `downloadPdfOfLabels()` ended in `exit` and there was no
+return trip to hook — DR-35 has since removed that, but the retry still makes the restore unnecessary.
+Filtering on `track_status` would need a stable value first: it stores a *translated* display string.
+
+### DR-34: One prefix, one owner
+
+`ShipmentBuilder` prefixed `Order %s: ` on its own exceptions while both catch sites prefixed the
+increment id again, so a local validation failure rendered as
+`000000116: Order 000000116: recipient: invalid value for 'postal_code'…`.
+
+**The reporting layer owns the prefix**, since it already keys by increment id. The builder says only
+what went wrong; `MagentoCollection::setNewMyParcelTracks()` and `Observer\NewShipment` name the
+order. That also removed an `$incrementId` argument threaded through five private methods that used it
+for nothing else.
+
+Build failures are now recorded in the report as well as shown, so `getLastReport()` is a complete
+account of a run rather than only of what the API said. They are still shown where they happen rather
+than deferred, because `setNewMyParcelTracks()` has callers that never reach `createMyParcelConcepts()`
+— the return-label action and the status cron.
+
+### DR-35: The export redirects and a second request fetches the labels
+
+**The grid showed stale barcodes and no messages after an export**, and the cause was one line:
+`MagentoCollection::downloadPdfOfLabels()` ended in `exit`, so the controller's redirect never ran and
+the page was never re-rendered. In *open in new tab* mode the grid tab was not even navigated.
+
+**Nothing was stale but the page.** `updateMagentoTrack()` runs *before* the download, so barcodes and
+`track_status` were already written. It also explains an asymmetry that made this hard to see: a
+wholly failed export produces no PDF, so no `exit`, so the redirect runs and its messages *do* appear.
+Only a partly successful export went quiet — which the DR-33 retry made the common case.
+
+A response can be a PDF or a page, not both. So the export now ends at `sendTrackEmails()` and falls
+through to the redirect that was always there, and the labels are collected by a second request:
+
+- `Service\Export\PendingLabels` carries the exported **order ids** — never API keys, which the print
+  controller re-resolves per order from store config — through `Magento\Backend\Model\Session`.
+  Reading **takes**: the page that receives them owns them, so a reload does not download the same PDF
+  twice and an admin who navigates away is not ambushed on a later visit.
+- `Controller\Adminhtml\Order\PrintMyParcelLabels` groups those orders' shipment ids by resolved key
+  and calls the existing `ShipmentExportService::fetchLabelPdf()`. It creates nothing.
+- `view/adminhtml/web/js/label-download.js` starts the download from the reloaded grid. Setting
+  `window.location` to an `attachment` response downloads *without* navigating, so the fresh grid
+  stays on screen; the `inline` case opens a tab, because inline in this tab would replace the grid.
+
+**`setPdfOfLabels()`, `downloadPdfOfLabels()` and `$labelPdf` are deleted** from `MagentoCollection`,
+along with the `exit` and the raw `header()`/`echo`. The print controller returns a
+`ResultFactory::TYPE_RAW` result instead — `FileFactory` was rejected because it always sends
+`attachment` and the *open in new tab* option needs `inline`.
+
+**It fixes both entry points**, because the change is server-side plus a hook on the grid page rather
+than in the submit path: the module's own JS modal and the native ui_component mass action
+(`sales_order_grid.xml:4-13`) both benefit.
+
+~~`Block\Sales\OffersPendingLabels` is a trait because both grid blocks need it and neither is the
+other's parent.~~ **Wrong, and DR-36 undoes it:** `ShipmentsAction` was simply the one block that had
+never joined the `OrdersAction` hierarchy the other three were already in.
+
+**DR-41 supersedes the redirect.** The two-request split survives, but the export stops navigating, so
+`PendingLabels` and the session hand-off it needed are gone.
+
+### DR-36: `ShipmentsAction` rejoins the hierarchy, and the row action stops exporting to print
+
+Two loose ends from DR-35, both smaller than they looked.
+
+**The duplicated block was one class, not a shared concern.** `OrdersAction` and `ShipmentsAction`
+had identical `getOrderAjaxUrl()`, `getShipmentAjaxUrl()`, `getAjaxUrlSendReturnMail()` and
+`getPrintSettings()`, identical `$config`, identical constructors — while `OrderAction` and
+`ShipmentAction` **already extended `OrdersAction`** for exactly that reason. So DR-35's
+`OffersPendingLabels` trait was solving a problem that did not exist; `ShipmentsAction` now extends
+`OrdersAction` and is an empty class, and `getPendingLabelsConfig()` sits on the parent where all
+three subclasses inherit it.
+
+Two accidents went with it: `getPrintSettings()` gains the `: string` the shipment copy had, and
+`$this->config = $this->Config = …` loses its second assignment — a dynamic property written and
+never read, surviving only because `DataObject` carries `#[\AllowDynamicProperties]`.
+
+**Printing no longer means exporting.** *Download label*, offered only on already-exported orders,
+pointed at `CreateAndPrintMyParcelTrack` with `mypa_package_type=1`: the whole export chain, every
+step skipped by `withoutAlreadyShipped()`, purely to reach the PDF — and forcing package type 1
+whatever the order actually shipped as. It now points at `PrintMyParcelLabels`, which creates nothing.
+
+**The mass action deliberately does not change.** *Print MyParcel labels directly* runs over whatever
+is selected, including orders never exported, and those must be exported before a label exists. It
+already reaches the print controller one hop later, through DR-35's redirect and session handoff.
+
+**This is `PrintMyParcelLabels`' first user-facing caller.** It was previously reachable only as the
+second leg of an export the same admin had just run, so its `order_ids` were always ones the module
+had just written; now they come from a URL. `ADMIN_RESOURCE = 'Magento_Sales::shipment'` was already
+on it and it returns labels only for orders carrying a MyParcel shipment id in this install — but that
+gate starts doing real work here.
+
+### DR-37: The HS code was stored as an integer
+
+`myparcel_classification` is an `input => 'text'` attribute that inherited `'type' => 'int'` from
+`UpgradeData::DEFAULT_ATTRIBUTES`, so every HS code was written to `catalog_product_entity_int`.
+
+An HS code is a numeric string of up to 18 characters that may carry dots (`6109.10`). An INT column
+holds none of that. Measured on the dev database before the fix, attribute 160: of ten rows, **one
+was exactly 2147483647** — INT_MAX, so a longer code had been clamped — and eight were `0`, the old
+default, indistinguishable from a real code. Leading zeros were the symptom that surfaced it; the
+clamping was the worse half.
+
+Every other free-text MyParcel attribute — `myparcel_age_check`, `myparcel_dropoff_delay`,
+`myparcel_fit_in_mailbox` — already overrides to `varchar`. This one was the outlier.
+
+**Fixed as `varchar`, defaulting to empty, capped at 18 in the form.** `Setup\Migrations\ClassificationToVarchar`
+moves the surviving values across and drops the zeros, which were the old default rather than data.
+Nothing recovers what the INT column destroyed, so it preserves what survived rather than pretending
+to repair it.
+
+**Character set is not validated in the browser, deliberately.** No stock Magento rule expresses
+"digits and dots": `validate-digits` rejects the dot and `validate-number` both accepts negatives and
+rejects two-dot forms such as `6109.10.00`. Only the length is enforced client-side; a wrong character
+set is caught at export, where the API names the order.
+
+**The 10-character truncation in `CustomsDeclarationBuilder` was ours, not the API's.** The Core API
+spec types `classification` as a plain `string` with no `maxLength`, so that cap would have halved a
+valid 18-character code. It is now 18, matching the attribute.
+
+**One path still truncates and we cannot change it.** `Sdk\Model\MyParcelCustomsItem::setClassification()`
+does `substr($classification, 0, 10)` inside the SDK, so a code longer than ten characters survives the
+v11 shipment export but is cut on the Order v1 (PPS) export. Worth raising upstream; this module does
+not patch the SDK.
+
+**On when a migration actually runs.** Magento calls `UpgradeData::upgrade()` only while
+`setup_version` exceeds the stored `data_version`, and `setup_version` is bumped automatically at
+release by `private/updateVersion.js`. On an install sitting at the released version the two are
+equal, so **no gate in that file fires until the next release**, and a gate numbered above the coming
+version re-fires on each release until the module passes it. That is why this migration is idempotent
+rather than merely tidy — verified by running it twice.
+
+### DR-38: Reprinting an existing label is not "nothing to do"
+
+**A regression from 6b, found by using it.** Selecting already-exported orders and choosing *Print
+MyParcel labels* stopped reprinting them and warned *"No MyParcel shipments to process."*
+
+Before 6b, `syncMagentoToMyparcel()` pulled existing consignments into the SDK collection and the
+order controller's guard asked whether that collection was empty. An already-exported order put its
+consignment in it, so the guard passed and the label fetch covered existing and new alike.
+
+6b removed the collection, and with it that method's only job: status and barcode are read back by
+stored id now, and the labels come from the same stored ids. It is **deleted** rather than left as a
+no-op, along with its four call sites in the two export controllers, the return-mail controller and
+the status cron. It was never on `MagentoCollectionInterface`, so nothing outside those four lines
+knew about it.
+
+What actually broke was the guard beside it, rewritten as `! $this->orderCollection->builtShipments` —
+which holds only *newly built* shipments, so an all-already-exported selection returned before it
+could hand the label ids on.
+
+**The label fetch was never the problem.** `getMyparcelConsignmentIdsByApiKey()` reads every track in
+the shipment collection, already-exported ones included; only the early return stopped us reaching it.
+
+**The shipment grid was never affected**, because its controller guards on `VALUE_CONCEPT` alone — at
+HEAD and now. That asymmetry was the tell, and the two now agree.
+
+Two changes, and a third deliberately not made:
+
+- the order controller returns early for `concept` only;
+- `createMyParcelConcepts()` warns only when nothing was built **and** nothing in the selection
+  carries a shipment id, so a reprint is no longer reported as a failure;
+- **the duplicate guard stays.** `setNewMyParcelTracks()` and `withoutAlreadyShipped()` still skip a
+  track that already has a shipment id. A reprint must remain a pure label fetch that creates nothing
+  — that guard is what stopped a repeated mass action billing a second shipment, and it is the reason
+  this looked like a bug rather than causing one.
+
+### DR-39: The barcode is read after the label, not before it
+
+A shipment is created as a concept — status 1, no barcode — and gets one when its **label is
+requested**, which moves it to status 2. DR-35 put the label fetch in a second request, leaving the
+only `updateMagentoTrack()` in the first one, before the barcode exists. The grid therefore filled in
+on the *second* print, or whenever the status cron next ran.
+
+Measured before the fix: orders exported once sat at `myparcel_status = 1` with `track_number = –`,
+while orders printed more than once were at status 2 with real barcodes.
+
+`PrintMyParcelLabels` now refreshes the printed orders once the PDF is in hand, reusing
+`MagentoOrderCollection::updateMagentoTrack()` — which fetches the latest shipments, writes status and
+barcode onto the tracks and updates the grid columns. The refresh is wrapped: the PDF already exists
+at that point, and losing the download over a write-back would trade a small problem for a larger one.
+
+**This is better than the behaviour it replaces, not a restoration of it.** beta.15's
+`setPdfOfLabels()` (`MyParcelCollection:504-530`) performed no data refresh either, and
+`addConsignmentByConsignmentIds()` only built id-stubs — so the old flow also missed the barcode on
+the first run and picked it up on a later one. An earlier note in DR-35's wake claimed otherwise; it
+was wrong.
+
+### DR-40: `setLatestData()` is gone
+
+Its only job was to populate `$latestShipments` ahead of a consumer, and both consumers already fell
+back on their own — `$this->latestShipments ?: $this->exportService->fetchLatest(...)`. All three call
+sites placed it immediately before a single consumer, so every chain issued exactly one API call with
+or without it.
+
+Removed along with `$latestShipments` and the two fallbacks, which now simply fetch. Same shape as
+`syncMagentoToMyparcel()` before it: a seam that existed to memoise the SDK collection and outlived
+it. Both are worth remembering as a pattern — a method that reads like orchestration but, once the
+thing it orchestrated is gone, only hides where the work happens.
+
+### DR-41: The export stops navigating
+
+**The grid was fetched twice per export and the selection was lost.** DR-35 made the export redirect
+so the grid would re-render with its barcodes and messages. That worked, but it bought the re-render
+at the price of a page load, and the page load was the problem.
+
+**The barcodes were a race, not a guarantee.** `Magento_Ui/js/grid/provider::initialize()` calls
+`clearData()` and then `resolver(this.reload, this)` (`provider.js:47-59`): rows start empty and
+arrive from **one** AJAX call, which ran alongside the label request that mints the barcodes. It
+usually won — which is why barcodes appeared and the bug stayed hidden — but nothing ordered the two.
+
+Three more faults had the same single cause, `window.location.href` in `_createConsignment`:
+
+- the ticked checkboxes were discarded, so a batch where one address was wrong could not be corrected
+  and re-run — the complaint that started this thread, and the reason DR-33's per-order attribution
+  was less useful than it looked;
+- `window.open` ran outside a user gesture and was blocked, so *open in new tab* produced a download
+  and two grid tabs;
+- `PendingLabels` existed solely to carry order ids across the redirect.
+
+**So the export no longer navigates.** `mass-action.js` fetches it, and both `CreateAndPrintMyParcelTrack`
+controllers answer JSON built by `Service\Export\ExportResponse`: the messages that ran, and where to
+fetch the labels. Then, and only then, `provider.reload({refresh: true})` — the export's *only* grid
+fetch, after the barcodes exist rather than against them.
+
+**The export has three entry points, and changing the response format breaks every one that
+navigates.** Two were missed at first and shipped the raw JSON to the screen:
+
+| Entry point | Was | Now |
+|---|---|---|
+| The module's modal (`_showMyParcelModal`) | `window.location.href` | `fetch` |
+| *Print MyParcel labels directly* (`sales_order_grid.xml`) | `utils.submit()`, a form POST | `callback` → `exportSelected` |
+| The seven row actions (`TrackActions.php`) | plain `href` links | `callback` → `exportRow` |
+
+Both grid components resolve a `callback` the same way — `{provider, target}` reaches
+`registry.async(provider)`, which calls `component[target](…)`. The provider does **not** have to be a
+uiComponent: `registry.get()` returns anything `registry.set()` put there, so `mass-action.js`
+registers itself as `myparcel_grid_massaction` and both XML and PHP name it. The row actions pass
+`(actionIndex, recordId, action)` and the mass action `(action, selections)`, which is the only
+difference between the two handlers.
+
+A row action with a `callback` object also stops being a link at all — `isHandlerRequired()`
+(`columns/actions.js:204`) reads `_.isObject(action.callback)` — so the `href` stays as the URL to
+fetch rather than to follow.
+
+**A page with no grid reloads instead.** The single order and shipment views run the same export
+through the same modal, and they used to end on the order grid because the controller redirected
+there. They now stay put, so they reload themselves — unless something failed, since the reload would
+take the message explaining it along too.
+
+Two details decide whether the reload works at all, and both fail silently:
+
+- **`{refresh: true}` is not optional.** `data-storage.js:103` reads
+  `!options.refresh && cachedRequest ? <cached> : <new request>` — a bare `reload()` re-renders the
+  same stale rows and looks exactly like a fix that did nothing.
+- **`registry.get(name, callback)` queues** until the component registers (`registry.js:222-228`), so
+  the lookup does not depend on script order. A *wrong* name therefore never errors; the callback
+  simply never fires. The names come from the ui_component file names, since those `<listing>` roots
+  carry no `name` attribute, and `ShipmentsAction` overrides `getGridDataSource()` for the second grid.
+
+**Messages are harvested, not refactored.** `ExportResponse` reads
+`messageManager->getMessages(true)`, which takes and clears the shared `Message\Session` pool
+(`Manager.php:120-133`). All thirteen `addErrorMessage`/`addWarningMessage` call sites in the two
+collections are untouched — including the ones on the separate Manager instance `MagentoCollection`
+creates for itself, which write to that same pool.
+
+**`loadingPopup` went with it.** It hides itself after five seconds (`theme.js:501-546`), which a
+navigation concealed and an AJAX export would not: any batch over five seconds would have run with no
+loader at all. Replaced by the `processStart`/`processStop` pair `label-download.js` already used.
+
 ---
 
 ## Standing decisions
@@ -637,7 +1164,7 @@ So: one value object, one resolver that returns it. `getShipmentOptions(): array
 
 **`MagentoOrderCollection::setFulfilment()` is deliberately untouched.** Its adapter goes into `FulfilmentOrder::setDeliveryOptions()`, which type hints `AbstractDeliveryOptionsAdapter` at beta.15, so a module value object cannot be passed there at all. Phase 8 owns the fulfilment path. That leaves exactly one SDK delivery-options reference in the module, commented at the call site, and the Phase 3 grep check allows it.
 
-**The DR-12 value objects landed** as `src/Model/Shipment/Type/{AbstractTypeValue, PackageTypeValue, DeliveryTypeValue}`, reachable from `DeliveryOptions::packageTypeValue()` / `deliveryTypeValue()`. They answer three states a caller has to be able to tell apart — absent, stored-but-unresolvable, resolved — and `toApiValue()` passes an unknown *id* through while refusing an unknown *name*, per TR-000005. **Their consumer is Phase 6**; here they are covered by their own tests and hold the two types inside `DeliveryOptions`. `TrackTraceHolder::getPackageType()` and `DeliveryCosts::getBasePrice()` keep substituting a default, because failing a single shipment legibly is the `ShipmentBuilder`'s job and doing it earlier would fail a whole mass action on one bad order. **So Phase 2's logging stopgap in `DefaultOptions::getPackageType()` is not removed here** — that moves to Phase 6.
+**The DR-12 value objects landed** as `src/Model/Shipment/Type/{AbstractTypeValue, PackageTypeValue, DeliveryTypeValue}`, reachable from `DeliveryOptions::packageTypeValue()` / `deliveryTypeValue()`. They answer three states a caller has to be able to tell apart — absent, stored-but-unresolvable, resolved — and `toApiValue()` passes an unknown *id* through while refusing an unknown *name*, per TR-000005. **Their consumer is Phase 6**; here they are covered by their own tests and hold the two types inside `DeliveryOptions`. `TrackTraceHolder::getPackageType()` and `DeliveryCosts::getBasePrice()` keep substituting a default, because failing a single shipment legibly is the `ShipmentBuilder`'s job and doing it earlier would fail a whole mass action on one bad order. **So Phase 2's logging stopgap in `DefaultOptions::getPackageType()` is not removed here** — that moves to Phase 6. ~~Removed at Phase 6.~~ **It stays, and calling it a stopgap was the error.** It is a read path — the configured default, reached only when nothing was stored — and FR-000010 sanctions exactly that: a substitution that keeps a page rendering, logged with the unresolved value. What Phase 6b removed is the export path's *reliance* on it; a stored type that cannot be resolved now fails the shipment instead.
 
 **Two behaviour changes, and both are fixes.** DR-13 and DR-14.
 
@@ -715,15 +1242,17 @@ it with the contract-definition range (FR-000009).
 
 **Two items moved out of this phase.** Dropping the `BaseConsignment` DI argument from `src/Block/Sales/{OrderAction,ShipmentAction}.php` is now **Phase 2**; re-sourcing `getLocalCountryCode()` at `MagentoOrderCollection.php:425` is now **Phase 8**. Neither is capability data — the first is a dead constructor argument, the second a static country fact that TR-000005 routes to module constants — and doing them earlier keeps `di:compile` and the PPS path healthy through more of the branch.
 
-**SDK issues to raise — manual, this phase.** Three separate issues on `myparcelnl/sdk`:
+**SDK issues to raise — manual.** Three separate issues on `myparcelnl/sdk` from this phase, plus two found at Phase 6b. Kept in one table so they are raised together:
 
 | # | Issue | Severity | Notes for the write-up |
 |---|---|---|---|
 | 1 | `HttpCapabilitiesClient` calls `postCapabilities()` with the pre-beta.25 argument order | **Broken for every consumer on beta.25–31** | The user-agent string passes the null/empty-array guard and is `jsonEncode`d into the body as a bare JSON string, while the request model goes to `ObjectSerializer::toHeaderValue()`. Valid JSON of the wrong shape, so a confusing API-side 4xx rather than a clear local error. Ask for a regression test exercising `HttpCapabilitiesClient` itself — the coverage gap is why it shipped. |
 | 2 | `HttpCapabilitiesClient` / `CapabilitiesService` accept no API key, **and** three factories silently fall back to `getenv` | Blocks all library use; the fallback is a wrong-account hazard for every consumer | Two asks in one issue. First, an appended optional constructor arg on both (non-breaking). Second — the more serious one, and the one to lead with — the three factories' environment fallback. Both the argument and the two-line patch are written out in TR-000007's defect 2; copy them from there rather than restating. |
 | 3 | `CapabilitiesMapper::mapFromCoreApi()` drops all option values | Design question, not a bug | Propose rather than prescribe: `CapabilitiesResponse` is `final` with a 6-arg positional constructor the SDK's own test calls positionally, so adding insurance means a 7th positional arg or exposing the raw models. Note our client is close to the latter — that may speed agreement. |
+| 4 | `ObjectSerializer::toPathValue()` rawurlencodes the documented `;` shipment-id separator | **Multi-label fetching is broken for every v11 consumer** | Raised at Phase 6b, not Phase 4. `GET /shipment_labels/{ids}` receives `%3B` and answers HTTP 500 with `errors:[{"code":400}]`. The spec is explicit — `components/parameters/shipment_ids` says *"Separate multiple shipment IDs using `;`"*, example `"1;2"` — and the SDK joins correctly; only the generated path substitution encodes it. beta.15's hand-built URL (`MyParcelCollection::setPdfOfLabels():517` → `MyParcelRequest::createRequestUrl():392`) sent it raw, so this arrived with the generated client. A single id has no separator, which is why one label always worked. The same applies in the **query**: `ShipmentLabelsService` joins A4 positions with `;` and `ObjectSerializer::buildQuery()` encodes it to `positions=1%3B2%3B3%3B4`, which the endpoint refuses with the same 500 — legal percent-encoding per RFC 3986, so the API's parser evidently splits before decoding. Worked around (path and query both) in `Service\Export\LabelHttpClient`; delete that when this lands. |
+| 5 | `ShipmentCreateService::parseCreateResponse()` ignores the response's `secondary_shipments` | **Multicollo consumers cannot learn the ids or barcodes of colli 2..N** | Found at Phase 6b review. `splitShipment()` gives the main shipment and every `SecondaryShipmentRequest` the same reference identifier, and the create response nests the secondary ids (each with `id`, `parent_id`, `barcode`) under the main shipment's `secondary_shipments` — which `parseCreateResponse()` never reads, returning only the main id. Until the SDK exposes them (or a consumer re-queries by `multi_collo_main_shipment_id`), an N-collo shipment yields one stored id and one barcode module-side; the observer's single-track multicollo path documents this. |
 
-Reference `UPGRADE.md`'s claim that `CapabilitiesService` is the v11 answer for capabilities, since 1–3 together make it untrue in practice. When they land, delete the workaround behind its `@todo` and reassess whether this layer can shrink.
+Reference `UPGRADE.md`'s claim that `CapabilitiesService` is the v11 answer for capabilities, since 1–3 together make it untrue in practice. When they land, delete the workaround behind its `@todo` and reassess whether this layer can shrink. Issue 4 is independent of the capabilities layer — `Client.php:38`'s `@todo` deliberately still says *issues 1-3*.
 
 **Check:** `setup:di:compile` succeeds. The admin New Shipment form renders the same package types, delivery types and shipment options as on beta.15, per carrier (insurance changes shape in Phase 5). Checkout delivery options unchanged. A cold checkout makes at most one capabilities call per (account, request shape); a warm one makes none.
 
@@ -965,7 +1494,7 @@ hierarchy, which is what makes that work.
 | | | |
 |---|---|---|
 | **6a** | Test harness: grow the accessors, pin the homeless rules | *Complete* |
-| **6b** | `ShipmentBuilder` and `ShipmentExportService` — the swap | |
+| **6b** | `ShipmentBuilder` and `ShipmentExportService` — the swap | *Complete* |
 | **6c** | Merged label PDF, track & trace links from the API | |
 
 `src/Model/Sales/TrackTraceHolder.php` → `src/Model/Shipment/ShipmentBuilder`, producing an SDK
@@ -1029,13 +1558,11 @@ convention. 551 → 555 passing, no other test touched.
   this phase must make impossible.
 - **The order fallback now reads the date and the pickup location** — see DR-24. It was never a
   decision to drop them.
-- **The two export paths disagree about a pickup with no location, and the label path fatals.**
-  `fromCheckoutData()` throws `InvalidArgumentException` for that shape. `MagentoOrderCollection:177`
-  catches it and degrades to the fallback; `TrackTraceHolder:130` catches only
-  `BadMethodCallException`, so the same stored order exports on the PPS path and raises an uncaught
-  exception into the mass action on the label path. DR-24 makes the two fall back to the same answer,
-  which narrows the gap but does not close it. Which behaviour is right is its own decision — a
-  pickup that cannot be read is arguably worth refusing — so it is recorded rather than folded in.
+- ~~**The two export paths disagree about a pickup with no location, and the label path fatals.**~~
+  **Half wrong when written, and now decided.** Both sites already caught
+  `BadMethodCallException | InvalidArgumentException` — `TrackTraceHolder:131` and
+  `MagentoOrderCollection:178` — so neither fataled and the two agreed. The open half was what they
+  should agree *on*, and the answer is **refuse**: see DR-25.
 - `isToRowCountry()` at `:342` comes from the Phase 2 `CountryCode` constants, not from capabilities.
 - **Retype `canUseMultiCollo()`** (`MagentoCollection.php:648`, called from `:441` and
   `src/Observer/NewShipment.php:111`) and **add the API key as a second argument**, since
@@ -1078,6 +1605,43 @@ file is a ~3KB `$ref` root stitching in `common.yaml` and `commonProperties.yaml
 bundle is real plumbing. Timebox it; if it fights back, read the serialised payload against the spec
 by hand once per fixture. Do not add snapshots as a consolation prize.
 
+**What 6b landed.** `TrackTraceHolder` is gone. In its place:
+`Model\Shipment\{ShipmentBuilder, BuiltShipment, CustomsDeclarationBuilder, ShipmentValidator}` and
+`Service\Export\{ShipmentApiProvider, ShipmentExportService, ExportReport, LabelPdfMerger}`.
+
+**`BuiltShipment` is the piece the plan did not name.** A v11 `Shipment` carries neither the API key
+nor the Magento track, and the observer paired them by array position, reversed. Pairing them in one
+object is what makes both TR-000006's correlation rule and per-key routing fall out rather than be
+arranged.
+
+**Five things the plan assumed and got wrong**, each its own decision record: the pickup divergence
+was already closed and only the answer was open (DR-25); the reference identifier could not stay the
+bare shipment entity id (DR-26); DR-7 was only half fixed by Phase 3 (DR-27); the customs country
+setter cannot be called at all (DR-28); and `Shipment::valid()` does not recurse, so it replaces
+almost nothing of what `$consignment->validate()` did (DR-29).
+
+**`LabelPdfMerger` moved up from 6c**, because removing `MyParcelCollection` removes
+`setPdfOfLabels()` with it, and leaving the download broken across four commits is what the standing
+runnable rule forbids. 6c keeps the track & trace links.
+
+**Three duplications closed while passing through.** `setPdfOfLabels()`, `downloadPdfOfLabels()` and
+`setLatestData()` were identical in both collection subclasses and now live once on the base;
+`getLocalCountryCode()` is `Model\Shipment\Carrier::localCountryCodeFor()` rather than a throwaway
+consignment, which also removes the last `ConsignmentFactory` call outside the fulfilment path.
+
+**Found and not fixed:** the customs `classification` is still cast through `(int)`, which drops the
+leading zero of an HS code such as `0901`. Real, pre-existing, and correcting it changes what ships
+for every ROW order — so it is carried verbatim and recorded here rather than folded into a
+behaviour-preserving port.
+
+**Check at 6b close.** `vendor/bin/pest` green on **beta.31** — **533 passed, 0 todos, 0 failures**. It read 580 on beta.15 before the pin moved; the difference is the 47 parity tests DR-32 deletes, whose subject the bump removes.
+Both `->todo()` markers are gone for real: the customs double-add and DR-7. Every assertion in the
+six moved test files is unchanged except `ShipmentBuilderWeightTest`'s, which reads the returned
+weight where it used to read the mutated consignment — the expected numbers are identical.
+`MagentoCollectionMultiColloTest` is the sanctioned retype. `DefaultOptionsPackageTypeTest` was left
+alone, because the behaviour it pins turned out to be correct rather than a stopgap — see Phase 3. `setup:di:compile` succeeds. The choke-point grep returns exactly one
+`ShipmentApiFactory` call site.
+
 **The DR-20 removal has no automated signal at all** — the shim was never covered by a test. Export a
 domestic order insured at **€137**, an amount that was never a tier, and confirm the API accepts it.
 That is an exit criterion for this phase, not a nice-to-have.
@@ -1091,9 +1655,9 @@ That is an exit criterion for this phase, not a nice-to-have.
 
 **Check:** export two orders from two stores in PPS mode; each lands in the right account with only its own order lines; cron updates both.
 
-### Phase 9 — Bump the pin, remove dead code · *Not started*
+### Phase 9 — Remove dead code · *Pin already bumped at 6b*
 
-- `composer.json`: `"myparcelnl/sdk": "11.0.0-beta.31@beta"`, add `"setasign/fpdi": "^2.6"`.
+- ~~`composer.json`: `"myparcelnl/sdk": "11.0.0-beta.31@beta"`, add `"setasign/fpdi": "^2.6"`.~~ **Both done at 6b** — the pin because `ShipmentCreateService::create()` cannot succeed at beta.15 (DR-30), fpdi because `Service\Export\LabelPdfMerger` now uses it directly.
 - ~~Delete dead/broken imports: `BaseConsignment`, `CarrierFactory` ×2, `CarrierConfigurationFactory`, `CarrierConfiguration`.~~ **Done in Phase 2**, along with twelve other unused imports found in the same sweep.
 - `Model\PrinterlessReturnRequest` constructor is now `(string $apiKey, int $consignmentId)`.
 - Carrier `::CONSIGNMENT` constants and `getConsignmentClass()` are gone; `TYPE_B2C`/`TYPE_B2B` moved to `AbstractCarrier`.
@@ -1102,8 +1666,10 @@ That is an exit criterion for this phase, not a nice-to-have.
   value objects, so it is live and no longer SDK-coupled. Nothing to retire.
 - **Remove `extra_assurance` from `Adapter\DeliveryOptions\ShipmentOptions`.** It has no reader
   anywhere in the module, no `ShipmentOption` constant, no `AbstractConsignment` setter, and no
-  entry in `ShipmentOptionsTransformer`'s map. It only survives because `DeliveryOptionsEquivalenceTest`
-  compares all thirteen `toArray()` keys against the SDK adapter, and that test goes here.
+  entry in `ShipmentOptionsTransformer`'s map. It only survived because `DeliveryOptionsEquivalenceTest`
+  compared all thirteen `toArray()` keys against the SDK adapter. **That test is gone (DR-32), so this
+  is unblocked** — but `toArray()` key order is a persisted format, so removing a key is a data
+  question, not a tidy-up.
 - Note in TR-000005 that `AccountWebService`, `CarrierOptionsWebService` and `OrderCollection` are now `@internal`.
 
 **Check:** `composer update myparcelnl/sdk`, then the full verification below.
@@ -1132,7 +1698,7 @@ Tracking is this matrix plus each document's own Traceability section (house con
 | **6b** — Shipment building and per-key export | **FR-000006**, **FR-000007**, TR-000005, TR-000006 | US-000007, US-000009. Former Phase 7 merged in — DR-23 |
 | **6c** — Merged label PDF, track & trace links | **FR-000006**, **FR-000007**, TR-000006 | US-000008 |
 | **8** — Fulfilment (PPS) alignment | **FR-000006**, **FR-000007** | US-000011 |
-| **9** — Bump the pin, remove dead code | BR-000003 | The phase that actually satisfies the business requirement |
+| **9** — Bump the pin, remove dead code | BR-000003 | ~~Bump~~ **done at 6b** (DR-30, DR-32). What remains is the dead-code sweep the pin did not force |
 
 Two things this makes visible:
 
@@ -1175,6 +1741,12 @@ Manual end-to-end, on `*.acceptance.myparcel.nl` credentials only — never prod
 12. **A delivery type the old SDK map lacked (Phase 3, DR-13).** Export an order stored with `early_morning` or `same_day`. It ships as that delivery type; before Phase 3 it silently shipped and charged as standard.
 13. **Receipt code on a non-standard delivery (Phase 3, DR-14).** Turn receipt code on as the PostNL default. Export an NL **evening** order: it ships without receipt code and keeps signature and only recipient. A **standard** order still gets receipt code. Before Phase 3 the evening order got receipt code and silently lost the other two options. Check the fulfilment (PPS) path as well as the label path — it never had the SDK's pickup guard.
 14. **Label description placeholders (Phase 3).** Print a label for an order whose label description uses `%delivery_date%`. The date still renders; the resolver now reads it from the parsed delivery options rather than decoding the order column itself.
+15. ~~**Rejection attribution (DR-29, DR-31).**~~ **Done on acceptance 2026-08-28.** The API rejects
+    atomically, so the validator stays and chunk size doubles as failure granularity. The response is
+    RFC 9457, not the documented shape; the offending order is now named with the API's own sentence
+    and the field it objected to, and the other orders in the chunk are told they did not ship
+    without being blamed. Re-check only if the `rejection body` log line stops matching the shape in
+    DR-31.
 
 ---
 
@@ -1183,7 +1755,7 @@ Manual end-to-end, on `*.acceptance.myparcel.nl` credentials only — never prod
 - **Capability parity (Phases 4–5) is the least certain part**, though the PDK removes most of the design risk. Expect gaps needing an SDK/API answer. Raise them as questions **and** keep moving with a documented assumption recorded in TR-000005 — do not block a phase on an upstream answer, and do not bury the guess either. Where PDK and the OpenAPI spec disagree, trust an observed acceptance response over either.
 - **We diverge from the PDK on purpose, in three places** — DR-3, DR-4 and FR-000010 each own one. Enumerated with their reasoning in [TR-000005](../technical-requirements/TR-000005-sdk-v11-api-mapping.md), so nobody "aligns with the PDK" later without re-reading the argument.
 - **Loose coupling has a cost to accept knowingly**, stated in [FR-000010](../functional-requirements/FR-000010-graceful-degradation-on-capability-changes.md): the API error at export replaces the greyed-out checkbox, and the trade only holds while that error reaches the admin legibly. Check explicitly in Phase 6b.
-- **Three SDK defects are raised in Phase 4 and are not fixed by us.** Until they land, `src/Model/Shipment/Capabilities` carries glue duplicating what `CapabilitiesService` should do, and defect 1 means capabilities is broken for every SDK consumer on beta.25–31 — expect other integrations to hit it.
+- **Four SDK defects are raised and not fixed by us** — three at Phase 4, a fourth at Phase 6b. Until 1–3 land, `src/Model/Shipment/Capabilities` carries glue duplicating what `CapabilitiesService` should do, and defect 1 means capabilities is broken for every SDK consumer on beta.25–31 — expect other integrations to hit it. Defect 4 is the labels separator, worked around in `Service\Export\LabelHttpClient`. All four are listed in the Phase 4 table and should be raised together before this PR closes.
 - The generated `Client\Generated\OrderApi\Model\*` enums the REST transformers bind to are the highest-churn SDK surface; `ShipmentOptionsTransformerTest` asserts `attributeMap()` keys verbatim.
 - `MultiColloShipmentService` takes no API key while our capabilities client is per key — the asymmetry that makes per-key client construction easy to get wrong. Rule in [TR-000006](../technical-requirements/TR-000006-per-api-key-export-batching.md).
 - Worth raising an ADR in [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) for "the Magento module owns its shipment domain layer", since that boundary is now permanent rather than borrowed from the SDK.

@@ -59,10 +59,18 @@ it('changes nothing on a second run', function () {
 });
 
 it('survives a read-only app/etc instead of failing the upgrade', function () {
+    // The message keeps the remedy, because that is what an admin reading the log has to act on.
+    // Why it failed rides along in the context instead of being spliced into the sentence.
     $logger = mockLoggerFacade();
     $logger->shouldReceive('warning')
         ->once()
-        ->with(Mockery::pattern('/cache:enable myparcelnl_capabilities/'));
+        ->with(
+            Mockery::pattern('/cache:enable myparcelnl_capabilities/'),
+            Mockery::on(static function (array $context): bool {
+                return $context['error'] instanceof RuntimeException
+                    && 'read-only file system' === $context['error']->getMessage();
+            })
+        );
 
     expect(runEnableCapabilitiesCache([], new RuntimeException('read-only file system')))->toBe([]);
 });

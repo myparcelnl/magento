@@ -186,7 +186,6 @@ class UpdateStatus
         $this->orderCollection->setNewMagentoShipment(false)
                               ->setMagentoTrack()
                               ->setNewMyParcelTracks()
-                              ->setLatestData()
                               ->updateMagentoTrack();
 
         return $this;
@@ -202,9 +201,7 @@ class UpdateStatus
     {
         $this->setOrdersToUpdate();
         $this->orderCollection
-            ->syncMagentoToMyparcel()
             ->setNewMyParcelTracks()
-            ->setLatestData()
             ->updateMagentoTrack();
 
         return $this;
