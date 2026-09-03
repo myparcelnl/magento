@@ -1,4 +1,4 @@
-/* eslint-disable max-len,no-unused-vars */
+/* eslint-disable @stylistic/max-len,no-unused-vars */
 
 /**
  * Override Magento classes.
