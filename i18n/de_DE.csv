@@ -415,7 +415,7 @@ The minimum amount from when signature is active.,"Der Mindestbetrag, ab dem die
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,"Dies bestimmt, wie der Lieferpreis dem Kunden über die Lieferoptionen angezeigt wird. Der Preis kann als Gesamtpreis für jede Lieferoption oder als Aufschlag auf den regulären Versandpreis angezeigt werden."
 This setting applies to domestic shipments only,Diese Einstellung gilt nur für Inlandssendungen
 This will be added to or subtracted from the regular shipping price,Dies wird zum regulären Versandpreis hinzuaddiert oder davon abgezogen
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Prozentsatz des Gesamtbestellwerts für die Versicherung verwenden. Nach der Berechnung wird die nächste verfügbare Preisstufe ausgewählt.
+Use percentage of total order amount for insurance.,Prozentsatz des Gesamtbestellwerts für die Versicherung verwenden.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wenn aktiviert, werden Paketautomaten von den Abholorten für alle Produkte ausgeschlossen. Es werden nur physische Abholpunkte angezeigt."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Mit 'Gesamte Bestellung exportieren' exportiert MyParcel jede Bestellung vollständig in das Backoffice zur weiteren Verarbeitung.
 
@@ -440,3 +440,16 @@ A token is currently configured at this scope.,Für diesen Bereich ist derzeit e
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Gilt für jede Store-View in dieser Website, die nicht separat auf Store-View-Ebene ein eigenes Token hat. Durch Ausstellen dieses Tokens werden diese Stores aus dem Sichtbereich des Standard-Scope-Tokens entfernt; eine Store-View mit eigenem dediziertem Token bleibt für dieses Token unsichtbar."
 Covers every store not tokened separately at website or store-view scope.,Gilt für jeden Store der nicht separat auf Website- oder Store-View-Ebene ein eigenes Token hat.
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Ihr API-Schlüssel wurde gespeichert, aber die MyParcel-Kontoeinstellungen konnten nicht importiert werden: %1. Prüfen Sie den API-Schlüssel und verwenden Sie dann die Schaltfläche MyParcel-Backoffice-Einstellungen importieren."
+"MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel konnte nicht bestätigen, welche Optionen dieses Konto hat. Daher werden alle Optionen angezeigt. Eine Option, die das Konto nicht hat, wird beim Export der Sendung abgelehnt."
+No standard weight,Kein Standardgewicht
+0 - 20 gram,0 - 20 Gramm
+20 - 50 gram,20 - 50 Gramm
+50 - 350 gram,50 - 350 Gramm
+350 - 2000 gram,350 - 2000 Gramm
+Create MyParcel consignment,MyParcel Sendung erstellen
+Export Entire Order,Gesamte Bestellung exportieren
+Label amount:,Anzahl Etiketten:
+Letter,Unfrankiert
+Return if no answer,Bei Nichtannahme zurücksenden
+24 hour priority,Prio-Lieferung
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Wenn aktiviert, wird das Kontrollkästchen Prio-Lieferung im Checkout angezeigt, wenn dieses Produkt im Warenkorb liegt, auch wenn die allgemeine Einstellung für Prio-Lieferung ausgeschaltet ist."

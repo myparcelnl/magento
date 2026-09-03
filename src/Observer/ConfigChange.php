@@ -2,19 +2,24 @@
 
 namespace MyParcelNL\Magento\Observer;
 
-use Magento\Framework\App\Cache\Frontend\Pool;
 use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Event\Observer as EventObserver;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Phrase;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Facade\Logger;
+use InvalidArgumentException;
+use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
+use MyParcelNL\Magento\Model\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\Settings;
 use Throwable;
 
@@ -24,34 +29,49 @@ class ConfigChange implements ObserverInterface
     private RequestInterface           $request;
     private WriterInterface            $configWriter;
     private TypeListInterface          $cacheTypeList;
-    private Pool                       $cacheFrontendPool;
     private Settings                   $dynamicSettingsConfig;
     private ManagerInterface           $messageManager;
     private ScopeConfigInterface       $scopeConfig;
+    private ReinitableConfigInterface  $appConfig;
     private Importer                   $accountSettingsImporter;
     private AccountSettingsMaintenance $accountSettingsMaintenance;
+
+    /** @var SettingValidatorInterface[] declared in etc/di.xml, one per kind of setting */
+    private array $validators;
 
     public function __construct(
         RequestInterface           $request,
         WriterInterface            $configWriter,
         TypeListInterface          $cacheTypeList,
-        Pool                       $cacheFrontendPool,
         Settings                   $dynamicSettingsConfig,
         ManagerInterface           $messageManager,
         ScopeConfigInterface       $scopeConfig,
+        ReinitableConfigInterface  $appConfig,
         Importer                   $accountSettingsImporter,
-        AccountSettingsMaintenance $accountSettingsMaintenance
+        AccountSettingsMaintenance $accountSettingsMaintenance,
+        array                      $validators = []
     )
     {
+        foreach ($validators as $validator) {
+            if (! $validator instanceof SettingValidatorInterface) {
+                throw new InvalidArgumentException(sprintf(
+                    'Setting validators must implement %s, %s given.',
+                    SettingValidatorInterface::class,
+                    is_object($validator) ? get_class($validator) : gettype($validator)
+                ));
+            }
+        }
+
         $this->request                    = $request;
         $this->configWriter               = $configWriter;
         $this->cacheTypeList              = $cacheTypeList;
-        $this->cacheFrontendPool          = $cacheFrontendPool;
         $this->dynamicSettingsConfig      = $dynamicSettingsConfig;
         $this->messageManager             = $messageManager;
         $this->scopeConfig                = $scopeConfig;
+        $this->appConfig                  = $appConfig;
         $this->accountSettingsImporter    = $accountSettingsImporter;
         $this->accountSettingsMaintenance = $accountSettingsMaintenance;
+        $this->validators                 = $validators;
     }
 
     /**
@@ -66,6 +86,13 @@ class ConfigChange implements ObserverInterface
         $configData = $request->getParam('config', []);
         $validPaths = $this->dynamicSettingsConfig->getAllFieldPaths();
 
+        // Every field is posted on every submit, and each write costs a select, an update and a
+        // message-queue poison-pill write of its own. Read the rows once and write only what moved.
+        $stored = $this->dynamicSettingsConfig->storedValuesAtScope($validPaths, $scope, $scopeId);
+
+        /** @var string[] the paths this save actually wrote or deleted */
+        $changed = [];
+
         try {
             foreach ($configData as $path => $postedParams) {
                 if (! in_array($path, $validPaths, true)) {
@@ -74,10 +101,14 @@ class ConfigChange implements ObserverInterface
 
                 $value   = $postedParams['value'] ?? null;
                 $inherit = '1' === ($postedParams['inherit'] ?? '');
+                $hasRow  = array_key_exists($path, $stored);
 
                 // Handle checkbox "use default" - if inherit is set, delete the value for this scope
                 if ($scope !== ScopeConfigInterface::SCOPE_TYPE_DEFAULT && $inherit) {
-                    $this->configWriter->delete($path, $scope, $scopeId);
+                    if ($hasRow) {
+                        $this->configWriter->delete($path, $scope, $scopeId);
+                        $changed[] = $path;
+                    }
                     continue;
                 }
 
@@ -85,16 +116,36 @@ class ConfigChange implements ObserverInterface
                     $value = implode(',', $value);
                 }
 
+                $rejection = $this->rejectionFor($path, $value, $scope, $scopeId);
+
+                // Refuse this one field rather than the whole save: the form posts every field on
+                // every submit, so failing the lot would make one bad value block every other change.
+                if (null !== $rejection) {
+                    $this->messageManager->addErrorMessage($rejection);
+                    continue;
+                }
+
+                // Validated first, so a stored value that has since become invalid is still reported
+                // even though this save leaves it alone.
+                if ($hasRow && (string) $stored[$path] === (string) $value) {
+                    continue;
+                }
+
                 if ($scope === ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
                     $this->configWriter->save($path, $value);
                 } else {
                     $this->configWriter->save($path, $value, $scope, $scopeId);
                 }
+
+                $changed[] = $path;
             }
 
-            $this->clearConfigCache();
+            // A save that moved nothing has nothing to reload, and the reload is the expensive half.
+            if ([] !== $changed) {
+                $this->reinitConfig(in_array(Config::XML_PATH_API_KEY, $changed, true));
+            }
 
-            // After the flush, or a stale cache hands us the pre-save key.
+            // reinit() reset the in-memory config too, so this is the post-save key, not a cached one.
             $apiKey = trim((string) ($this->scopeConfig->getValue(Config::XML_PATH_API_KEY, $scope, $scopeId) ?? ''));
 
             // Whether the key changed is not worth detecting: an unchanged key already has its row, and
@@ -103,7 +154,8 @@ class ConfigChange implements ObserverInterface
             if ('' !== $apiKey && ! $this->accountSettingsImporter->hasSettingsFor($apiKey)) {
                 // Before reconcile(), which deletes rows for unconfigured keys.
                 $this->importAccountSettings($apiKey);
-                $this->clearConfigCache();
+                // The import wrote a row of its own, so the merged config has to pick it up.
+                $this->appConfig->reinit();
             }
 
             $this->accountSettingsMaintenance->reconcile();
@@ -112,6 +164,30 @@ class ConfigChange implements ObserverInterface
         }
 
         return $this;
+    }
+
+    /**
+     * The first reason any validator gives to refuse this field, or null when every one that claims
+     * the path is satisfied. A path no validator claims is saved unexamined, which is every setting
+     * in the form but the few that have a validator.
+     *
+     * @param mixed $value
+     */
+    private function rejectionFor(string $path, $value, string $scopeName, int $scopeId): ?Phrase
+    {
+        foreach ($this->validators as $validator) {
+            if (! $validator->handles($path)) {
+                continue;
+            }
+
+            $rejection = $validator->validate($path, $value, $scopeName, $scopeId);
+
+            if (null !== $rejection) {
+                return $rejection;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -124,7 +200,7 @@ class ConfigChange implements ObserverInterface
         try {
             $this->accountSettingsImporter->importFor($apiKey);
         } catch (Throwable $e) {
-            Logger::warning('Could not import MyParcel account settings after an api key change.', ['exception' => $e]);
+            Logger::warning('Could not import MyParcel account settings after an api key change.', LogContext::of($e));
             $this->messageManager->addWarningMessage(
                 __(
                     'Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.',
@@ -155,16 +231,28 @@ class ConfigChange implements ObserverInterface
     }
 
     /**
-     * Clear the configuration cache.
+     * Reloads what this save wrote, and nothing else.
      *
-     * @return void
+     * reinit() is the same call Magento's own config save makes: it drops the merged config values —
+     * cache tag `config_scopes` — and pre-warms them under a lock. cleanType('config') would empty
+     * the whole cache type instead, discarding the merged system.xml structure that lives in it, and
+     * every following request would rebuild that from every module's system.xml.
+     *
+     * Capability entries are keyed on the api key and stored without expiry, so nothing but an api
+     * key change can invalidate them; dropping them for any other setting buys an API round trip.
+     *
+     * Rendered output can still hold a stale setting, so those types are marked invalid rather than
+     * flushed: a flag write costs nothing, and the admin gets Magento's own invalidated-cache notice
+     * to refresh them when it suits.
      */
-    private function clearConfigCache(): void
+    private function reinitConfig(bool $apiKeyChanged): void
     {
-        $this->cacheTypeList->cleanType('config');
+        $this->appConfig->reinit();
 
-        foreach ($this->cacheFrontendPool as $cacheFrontend) {
-            $cacheFrontend->getBackend()->clean();
+        if ($apiKeyChanged) {
+            $this->cacheTypeList->cleanType(CapabilitiesCache::TYPE_IDENTIFIER);
         }
+
+        $this->cacheTypeList->invalidate(['block_html', 'full_page']);
     }
 }

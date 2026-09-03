@@ -9,9 +9,10 @@ use Magento\Sales\Api\Data\OrderExtensionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
+use MyParcelNL\Magento\Service\LogContext;
 
 
 /**
@@ -26,7 +27,7 @@ use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
  *
  * How it works:
  * - After an order is loaded via OrderRepository::get(), the plugin unserializes the MyParcel delivery options
- *   from the order data, creates a DeliveryOptionsAdapter, and attaches the serialized options to the order's
+ *   from the order data, creates a DeliveryOptions, and attaches the serialized options to the order's
  *   extension attributes.
  * - After a list of orders is loaded via OrderRepository::getList(), the plugin performs the same process for
  *   each order in the result, attaching the delivery options as an array to the extension attributes.
@@ -75,9 +76,12 @@ class OrderInformationUpdate
         try {
             /** @var object $data Data from checkout */
             $data = $this->jsonSerializer->unserialize($deliveryOptionsString);
-            $deliveryOptions = DeliveryOptionsAdapterFactory::create((array) $data);
+            $deliveryOptions = DeliveryOptionsFactory::create((array) $data);
         } catch (\Exception $e) {
-            Logger::warning("Invalid delivery options data for order ID {$order->getEntityId()}.");
+            Logger::warning(
+                "Invalid delivery options data for order ID {$order->getEntityId()}.",
+                LogContext::of($e, ['delivery_options' => $deliveryOptionsString])
+            );
 
             return;
         }

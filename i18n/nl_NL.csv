@@ -71,7 +71,7 @@ Automate 'Insurance € 250',Automatiseer 'Verzekerd tot €250'
 Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
 Automate 'Insure shipments to Belgium',Automatiseer 'Verzeker zendingen naar België'
 Automate Priority delivery (mailbox),Automatiseer Prio levering (brievenbus)
-Automatically enable priority delivery for mailbox packages during export,Automatisch prioriteitslevering inschakelen voor brievenbuspakketten tijdens export
+Automatically enable priority delivery for mailbox packages during export,Automatisch prio levering inschakelen voor brievenbuspakketten tijdens export
 Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Let op: Maandagbezorging is alleen mogelijk als het pakket op zaterdag voor 15.00 uur is afgeleverd op de daarvoor bestemde PostNL locaties.
 'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscontrole is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ dient te tonen door middel van een identiteitsbewijs. Bij deze verzendoptie zijn handtekening voor ontvangst en alleen ontvanger inbegrepen. De leeftijd van 18+ is verder uitgesloten van de bezorgopties 's morgens en 's avonds.
@@ -310,7 +310,7 @@ packet_title,Klein pakket
 package_title,Pakket
 signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
-priority_delivery_title,Prioriteitslevering
+priority_delivery_title,Prio levering
 only_recipient_title,Alleen ontvanger
 monday_delivery_title,Maandag bezorging
 saturday_delivery,Zaterdag bezorging
@@ -427,7 +427,7 @@ The minimum amount from when signature is active.,Het minimale bedrag vanaf wann
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Dit bepaalt hoe de bezorgkosten aan de klant worden getoond via de bezorgopties. De prijs kan worden weergegeven als totaal voor elke bezorgoptie of als toeslag bovenop de normale verzendkosten.
 This setting applies to domestic shipments only,Deze instelling geldt alleen voor binnenlandse zendingen
 This will be added to or subtracted from the regular shipping price,Dit wordt opgeteld bij of afgetrokken van de normale verzendkosten
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Gebruik percentage van het totale orderbedrag voor verzekering. Na de berekening wordt de eerstvolgende beschikbare prijsschaal geselecteerd.
+Use percentage of total order amount for insurance.,Gebruik percentage van het totale orderbedrag voor verzekering.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wanneer ingeschakeld, worden pakketkluizen uitgesloten van ophaallocaties voor alle producten. Alleen fysieke afhaalpunten worden getoond."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Met 'Exporteer hele bestelling' exporteert MyParcel elke bestelling volledig naar de backoffice voor verdere verwerking.
 
@@ -450,6 +450,21 @@ A token is currently configured at this scope.,Er is op dit bereik momenteel een
 "Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.","Dekt uitsluitend deze store. Door dit token uit te geven wordt deze store verwijderd uit het zicht van het token op standaardbereik en van elk token op bovenliggend websitebereik: vanaf nu hoort deze store exclusief bij dit token op store-view-bereik."
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dekt elke store-view binnen deze website die niet apart op store-view-bereik een eigen token heeft. Door dit token uit te geven worden deze stores verwijderd uit het zicht van het token op standaardbereik; een store-view binnen deze website met een eigen token blijft onzichtbaar voor dit token."
 Covers every store not tokened separately at website or store-view scope.,Dekt elke store die niet apart op website- of store-view-bereik een eigen token heeft.
-24 hour priority,24 uur prio
-"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Indien ingeschakeld wordt de checkbox 24 uur prio in de checkout getoond wanneer dit product in de winkelwagen zit, ook als de algemene prio-instelling uit staat."
+24 hour priority,Prio levering
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Indien ingeschakeld wordt de checkbox prio levering in de checkout getoond wanneer dit product in de winkelwagen zit, ook als de algemene prio levering instelling uit staat."
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Uw API key is opgeslagen, maar de MyParcel-accountinstellingen konden niet worden geïmporteerd: %1. Controleer de API key en gebruik daarna de knop MyParcel Backoffice-instellingen importeren."
+"MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel kon niet vaststellen welke opties dit account heeft, daarom worden alle opties getoond. Een optie die het account niet heeft, wordt geweigerd bij het exporteren van de zending."
+No standard weight,Geen standaardgewicht
+Create MyParcel consignment,MyParcel zending aanmaken
+Export Entire Order,Volledige bestelling exporteren
+Label amount:,Aantal labels:
+Letter,Ongefrankeerd
+Return if no answer,Retour bij geen gehoor
+Your contract allows € %1 to € %2. Enter 0 to switch insurance off.,Uw contract staat € %1 tot € %2 toe. Vul 0 in om de verzekering uit te zetten.
+"The permitted range could not be retrieved, so any amount is accepted here and MyParcel decides. Enter 0 to switch insurance off.",Het toegestane bereik kon niet worden opgehaald. Elk bedrag wordt hier geaccepteerd en MyParcel beslist. Vul 0 in om de verzekering uit te zetten.
+Insurance amount %1 was not saved: your contract allows € %2 to € %3.,Verzekeringsbedrag %1 is niet opgeslagen: uw contract staat € %2 tot € %3 toe.
+Importing the MyParcel Backoffice settings failed:,Het importeren van de MyParcel Backoffice-instellingen is mislukt:
+Importing the MyParcel Backoffice settings failed. Check the log for details.,Het importeren van de MyParcel Backoffice-instellingen is mislukt. Bekijk het logbestand voor details.
+"Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Uw contract staat € %1 tot € %2 toe. Verzekering is verplicht voor deze vervoerder en kan niet worden uitgezet."
+"Insurance amount ""%1"" was not saved: enter a whole number of euros.","Verzekeringsbedrag ""%1"" is niet opgeslagen: vul een heel bedrag in euro's in."
+MyParcel Backoffice settings imported.,MyParcel Backoffice-instellingen zijn geïmporteerd.

@@ -415,7 +415,7 @@ The minimum amount from when signature is active.,"Minimalna kwota, od której p
 This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.,Określa sposób wyświetlania ceny dostawy klientowi poprzez opcje dostawy. Cena może być wyświetlana jako łączna dla każdej opcji dostawy lub jako dopłata do standardowej ceny wysyłki.
 This setting applies to domestic shipments only,To ustawienie dotyczy tylko przesyłek krajowych
 This will be added to or subtracted from the regular shipping price,To zostanie dodane do lub odjęte od standardowej ceny wysyłki
-"Use percentage of total order amount for insurance. After the calculation, the next available price scale is selected.",Użyj procentu całkowitej kwoty zamówienia dla ubezpieczenia. Po obliczeniu zostaje wybrana kolejna dostępna skala cenowa.
+Use percentage of total order amount for insurance.,Użyj procentu całkowitej kwoty zamówienia dla ubezpieczenia.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Po włączeniu, automaty paczkowe zostaną wykluczone z miejsc odbioru dla wszystkich produktów. Wyświetlane będą tylko fizyczne punkty odbioru."
 "With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Z opcją 'Eksportuj całe zamówienie', MyParcel wyeksportuje każde zamówienie w całości do biura zaplecza do dalszego przetwarzania."
 
@@ -440,3 +440,16 @@ A token is currently configured at this scope.,W tym zakresie jest aktualnie sko
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dotyczy każdego widoku sklepu w tej witrynie, który nie ma oddzielnego tokena na poziomie widoku sklepu. Wydanie tego tokena usuwa te sklepy z widoku tokena zakresu domyślnego; widok sklepu z własnym dedykowanym tokenem pozostaje niewidoczny dla tego tokena."
 Covers every store not tokened separately at website or store-view scope.,Dotyczy każdego sklepu który nie ma oddzielnego tokena na poziomie witryny lub widoku sklepu.
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Twój API key został zapisany, ale nie udało się zaimportować ustawień konta MyParcel: %1. Sprawdź API key, a następnie użyj przycisku Importuj ustawienia Backoffice MyParcel."
+"MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel nie mógł potwierdzić, które opcje ma to konto, dlatego wyświetlane są wszystkie opcje. Opcja, której konto nie posiada, zostanie odrzucona przy eksporcie przesyłki."
+No standard weight,Brak standardowej wagi
+0 - 20 gram,0 - 20 g
+20 - 50 gram,20 - 50 g
+50 - 350 gram,50 - 350 g
+350 - 2000 gram,350 - 2000 g
+Create MyParcel consignment,Utwórz przesyłkę MyParcel
+Export Entire Order,Eksportuj całe zamówienie
+Label amount:,Liczba etykiet:
+Letter,Bez opłaty
+Return if no answer,Zwróć w razie braku odpowiedzi
+24 hour priority,Dostawa priorytetowa
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Gdy ta opcja jest włączona, pole wyboru Dostawa priorytetowa jest wyświetlane w kasie, gdy ten produkt znajduje się w koszyku, nawet jeśli ogólne ustawienie dostawy priorytetowej jest wyłączone."

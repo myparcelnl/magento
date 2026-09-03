@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Cache/etc/cache.xsd">
+    <type name="myparcelnl_capabilities" translate="label,description"
+          instance="MyParcelNL\Magento\Model\Cache\Type\Capabilities">
+        <label>MyParcel carrier capabilities</label>
+        <description>Per-account carrier capability answers from the MyParcel API</description>
+    </type>
+</config>

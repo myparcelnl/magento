@@ -17,7 +17,6 @@ namespace MyParcelNL\Magento\Model\Sales;
 use Exception;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
-use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\LocalizedException;
@@ -38,13 +37,18 @@ use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
-use MyParcelNL\Sdk\Exception\AccountNotActiveException;
-use MyParcelNL\Sdk\Exception\ApiException;
-use MyParcelNL\Sdk\Exception\MissingFieldException;
-use MyParcelNL\Sdk\Helper\MyParcelCollection;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
-use MyParcelNL\Sdk\Model\Consignment\BaseConsignment;
+use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
+use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
+use MyParcelNL\Magento\Service\Export\LabelPositions;
+use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
+use MyParcelNL\Magento\Service\Export\ShipmentExportService;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
+use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
+use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
+use MyParcelNL\Sdk\Model\Shipment\Shipment as SdkShipment;
+use MyParcelNL\Sdk\Services\MultiCollo\MultiColloShipmentService;
 use Throwable;
 
 /**
@@ -65,18 +69,20 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     private const PATH_ORDER_TRACK_COLLECTION = '\Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection';
 
 
-    public MyParcelCollection          $myParcelCollection;
-    public ?RequestInterface           $request = null;
-    protected Manager                  $moduleManager;
-    protected SourceItem               $sourceItem;
-    protected TrackSender              $trackSender;
-    protected ObjectManagerInterface   $objectManager;
-    protected ProductMetadataInterface $productMetadata;
-    protected Track                    $modelTrack;
-    protected AreaList                 $areaList;
-    protected ManagerInterface         $messageManager;
-    protected Config                   $config;
-    protected Weight                   $weight;
+    /** @var BuiltShipment[] built and ready to send; replaces MyParcelCollection */
+    public array                     $builtShipments = [];
+    protected ShipmentExportService  $exportService;
+    public ?RequestInterface         $request = null;
+    protected Manager                $moduleManager;
+    protected SourceItem             $sourceItem;
+    protected TrackSender            $trackSender;
+    protected ObjectManagerInterface $objectManager;
+    protected Track                  $modelTrack;
+    protected AreaList               $areaList;
+    protected ManagerInterface       $messageManager;
+    protected Config                 $config;
+    protected Weight                 $weight;
+    protected LabelPositions         $labelPositions;
 
     protected array $options
         = [
@@ -116,21 +122,16 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $this->areaList = $areaList;
         }
 
-        $this->objectManager      = $objectManager;
-        $this->moduleManager      = $objectManager->get(Manager::class);
-        $this->productMetadata    = $objectManager->get(ProductMetadataInterface::class);
-        $this->request            = $request;
-        $this->trackSender        = $objectManager->get(TrackSender::class);
-        $this->config             = $objectManager->get(Config::class);
-        $this->weight             = $objectManager->get(Weight::class);
-        $this->modelTrack         = $objectManager->create(self::PATH_ORDER_TRACK);
-        $this->messageManager     = $objectManager->create(self::PATH_MANAGER_INTERFACE);
-        $this->myParcelCollection = (new MyParcelCollection())->setUserAgents(
-            [
-                'Magento2' => $this->productMetadata->getVersion(),
-                'MyParcel-Magento2' => $this->config->getVersion(),
-            ]
-        );
+        $this->objectManager  = $objectManager;
+        $this->moduleManager  = $objectManager->get(Manager::class);
+        $this->request        = $request;
+        $this->trackSender    = $objectManager->get(TrackSender::class);
+        $this->config         = $objectManager->get(Config::class);
+        $this->weight         = $objectManager->get(Weight::class);
+        $this->modelTrack     = $objectManager->create(self::PATH_ORDER_TRACK);
+        $this->messageManager = $objectManager->create(self::PATH_MANAGER_INTERFACE);
+        $this->exportService  = $objectManager->get(ShipmentExportService::class);
+        $this->labelPositions = $objectManager->get(LabelPositions::class);
 
         $this->setSourceItemWhenInventoryApiEnabled();
     }
@@ -163,8 +164,14 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $this->options['label_amount'] = $label_amount;
         }
 
-        // Remove position if paper size == A6
-        if ($this->request->getParam('mypa_paper_size', 'A6') !== 'A4') {
+        // A paper size only arrives from the modal, where the admin picked one. Without it — the
+        // grid's direct action, a row action — the configured paper type decides, or every such
+        // print would be A6 whatever the setting says.
+        $paperSize = $this->request->getParam('mypa_paper_size');
+
+        if (null === $paperSize) {
+            $this->options['positions'] = $this->labelPositions->configured();
+        } elseif ('A4' !== $paperSize) {
             $this->options['positions'] = null;
         }
 
@@ -318,39 +325,13 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      *
      * @param Track $magentoTrack
      *
-     * @return TrackTraceHolder $myParcelTrack
+     * @return BuiltShipment
      * @throws LocalizedException
      */
-    protected function createConsignmentAndGetTrackTraceHolder($magentoTrack): TrackTraceHolder
+    protected function buildShipment($magentoTrack, int $colloNumber = 1): BuiltShipment
     {
-        $trackTraceHolder = new TrackTraceHolder(
-            $this->objectManager,
-            $magentoTrack->getShipment()->getOrder()
-        );
-        $trackTraceHolder->convertDataFromMagentoToApi($magentoTrack, $this->options);
-
-        return $trackTraceHolder;
-    }
-
-    /**
-     * @return self
-     */
-    public function syncMagentoToMyparcel(): self
-    {
-        $consignmentIdsByApiKey = $this->getMyparcelConsignmentIdsByApiKey();
-
-        foreach ($consignmentIdsByApiKey as $apiKey => $consignmentIds) {
-            try {
-                $this->myParcelCollection->addConsignmentByConsignmentIds(
-                    $consignmentIds,
-                    $apiKey
-                );
-            } catch (Throwable $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
-            }
-        }
-
-        return $this;
+        return (new ShipmentBuilder($this->objectManager, $magentoTrack->getShipment()->getOrder()))
+            ->build($magentoTrack, $this->options, $colloNumber);
     }
 
     /**
@@ -359,19 +340,81 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function createMyParcelConcepts(): self
     {
-        if (! count($this->myParcelCollection)) {
-            $this->messageManager->addWarningMessage(__('No MyParcel shipments to process.'));
+        if (! $this->builtShipments) {
+            // Nothing built is not the same as nothing to do: a selection of orders that already
+            // carry labels is a reprint, and warning there reads as a failure.
+            if (! $this->getMyparcelConsignmentIdsByApiKey()) {
+                $this->messageManager->addWarningMessage(__('No MyParcel shipments to process.'));
+            }
+
             return $this;
         }
 
-        try {
-            $this->myParcelCollection->createConcepts();
-        } catch (Throwable $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
-            return $this;
+        // Only the API's own failures are rendered here — build failures were shown where they
+        // happened, so that every caller of setNewMyParcelTracks() sees them, not only this one.
+        $report = $this->exportService->createConcepts($this->builtShipments);
+
+        foreach ($report->failureMessages() as $message) {
+            $this->messageManager->addErrorMessage($message);
         }
 
-        $this->myParcelCollection->setLatestData();
+        return $this;
+    }
+
+    public function getExportService(): ShipmentExportService
+    {
+        return $this->exportService;
+    }
+
+    /**
+     * The Magento shipments that actually carry a MyParcel shipment id, for the page that will fetch
+     * their labels. Order ids would be too wide: an order shipped in two halves would reprint the
+     * older half's labels along with the new ones, and a failed export would still claim labels.
+     *
+     * @return int[] Magento shipment entity ids
+     */
+    public function getExportedShipmentIds(): array
+    {
+        $shipmentIds = [];
+
+        foreach ($this->getShipmentsCollection() as $shipment) {
+            foreach ($shipment->getAllTracks() as $track) {
+                if (0 < (int) $track->getData('myparcel_consignment_id')) {
+                    $shipmentIds[] = (int) $shipment->getEntityId();
+                    break;
+                }
+            }
+        }
+
+        return array_values(array_unique($shipmentIds));
+    }
+
+
+    /**
+     * A return label per exported shipment, mailed to the customer, against that shipment's own
+     * account — the consignment path used the first order's key for all of them (FR-000007).
+     */
+    public function sendReturnLabelMails(): self
+    {
+        $idsByApiKey = $this->getMyparcelConsignmentIdsByApiKey();
+        $latest      = $this->exportService->fetchLatest($idsByApiKey);
+        $rows        = [];
+
+        foreach ($idsByApiKey as $apiKey => $shipmentIds) {
+            foreach ($shipmentIds as $shipmentId) {
+                $shipment = $latest[$shipmentId] ?? null;
+
+                if (null === $shipment) {
+                    continue;
+                }
+
+                $rows[$apiKey][] = ['parent' => (int) $shipmentId, 'carrier' => $shipment->getCarrier()];
+            }
+        }
+
+        foreach ($this->exportService->createReturns($rows, true) as $error) {
+            $this->messageManager->addErrorMessage($error);
+        }
 
         return $this;
     }
@@ -386,7 +429,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     {
         $shipments = $this->getShipmentsCollection();
 
-        $multiColloConsignments = [];
+        $multiColloConsignments = []; // parent shipment id => built shipment + collo count
         /**
          * @var Order\Shipment $shipment
          * @var Track          $magentoTrack
@@ -405,103 +448,123 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
                 if (isset($multiColloConsignments[$parentId])) {
                     $multiColloConsignments[$parentId]['colli']++;
+                    // Kept, not just counted: each collo must pair with its own track row, or every
+                    // returned shipment id lands on the first row and the others stay id-less.
+                    $multiColloConsignments[$parentId]['tracks'][] = $magentoTrack;
                     continue;
                 }
 
                 try {
-                    $consignment = $this->createConsignmentAndGetTrackTraceHolder($magentoTrack)->consignment;
-                    $consignment->validate();
+                    $built = $this->buildShipment($magentoTrack);
                 } catch (\Throwable $e) {
-                    $this->messageManager->addErrorMessage("{$shipment->getOrder()->getIncrementId()}: {$e->getMessage()}");
+                    // The order is named here, not by the builder — one prefix, one owner.
+                    $incrementId = (string) $shipment->getOrder()->getIncrementId();
+                    $this->messageManager->addErrorMessage(sprintf('%s: %s', $incrementId, $e->getMessage()));
                     continue;
                 }
 
                 $multiColloConsignments[$parentId] = [
-                    'consignment' => $consignment,
-                    'colli'       => 1,
+                    'built'  => $built,
+                    'tracks' => [$magentoTrack],
+                    'colli'  => 1,
                 ];
             }
         }
 
-        return $this->addGroupedConsignments($multiColloConsignments);
+        return $this->addGroupedShipments($multiColloConsignments);
     }
 
     /**
-     * @param array $multiColloConsignments
-     *
-     * @return self
+     * @param array<int,array{built:BuiltShipment,tracks:Track[],colli:int}> $multiColloConsignments
      */
-    protected function addGroupedConsignments(array $multiColloConsignments): self
+    protected function addGroupedShipments(array $multiColloConsignments): self
     {
-        foreach ($multiColloConsignments as $multiColloConsignment) {
-            $consignment = $multiColloConsignment['consignment'];
-            $quantity    = $multiColloConsignment['colli'];
+        foreach ($multiColloConsignments as $group) {
+            /** @var BuiltShipment $built */
+            $built    = $group['built'];
+            $quantity = (int) $group['colli'];
 
-            if (1 < $quantity && $this->canUseMultiCollo($consignment)) {
-                $this->myParcelCollection->addMultiCollo($consignment, $quantity);
+            if (1 < $quantity && $this->canUseMultiCollo($built->shipment(), $built->apiKey())) {
+                // splitShipment() clones, divides the weight and fills secondary_shipments; it takes
+                // no API key and throws on a quantity of 1, which the guard above already excludes.
+                $this->builtShipments[] = $built->withShipment(
+                    (new MultiColloShipmentService())->splitShipment($built->shipment(), $quantity)
+                );
                 continue;
             }
 
-            $this->addConsignmentMultipleTimes($consignment, $quantity);
+            $this->addShipmentMultipleTimes($built, $group['tracks']);
         }
 
         return $this;
     }
 
     /**
-     * @param AbstractConsignment $consignment
-     * @param int                 $quantity
+     * One Shipment per collo, each built afresh against its *own* track row. Sharing the first track
+     * would make persist() write every returned shipment id onto one row, leaving the other rows
+     * id-less — unprintable, and re-exported as new billable shipments by the next mass action.
      *
-     * @throws MissingFieldException
+     * @param Track[] $tracks the shipment's id-less tracks, first one already built
      */
-    protected function addConsignmentMultipleTimes(AbstractConsignment $consignment, int $quantity): void
+    protected function addShipmentMultipleTimes(BuiltShipment $built, array $tracks): void
     {
-        $i = 0;
+        $this->builtShipments[] = $built;
 
-        while ($i < $quantity) {
+        foreach (array_slice($tracks, 1) as $index => $track) {
             try {
-                $this->myParcelCollection->addConsignment($consignment);
+                $this->builtShipments[] = $this->buildShipment($track, $index + 2);
             } catch (Throwable $e) {
+                $this->messageManager->addErrorMessage($e->getMessage());
+
                 return;
             }
-
-            ++$i;
         }
     }
 
     /**
-     * @throws AccountNotActiveException
-     * @throws ApiException
-     * @throws MissingFieldException
+     * A return label alongside each outbound shipment, created against that shipment's own account.
+     *
+     * The v11 call takes rows naming a parent shipment id, so the returns can only be made after the
+     * outbound create has answered. NO_OPTIONS still means a bare label — the options are simply
+     * omitted rather than set to false.
      */
     public function addReturnInTheBox(string $returnOptions): void
     {
-        $this->myParcelCollection
-            ->generateReturnConsignments(
-                false,
-                function (
-                    AbstractConsignment $returnConsignment,
-                    AbstractConsignment $parent
-                ) use ($returnOptions): AbstractConsignment {
-                    $returnConsignment->setLabelDescription(
-                        'Return: ' . $parent->getLabelDescription() .
-                        ' This label is valid until: ' . date("d-m-Y", strtotime("+ 28 days"))
-                    );
-                    $returnConsignment->setReferenceIdentifier($parent->getReferenceIdentifier());
+        $rows = [];
 
-                    if (ReturnInTheBox::NO_OPTIONS === $returnOptions) {
-                        $returnConsignment->setOnlyRecipient(false);
-                        $returnConsignment->setSignature(false);
-                        $returnConsignment->setAgeCheck(false);
-                        $returnConsignment->setReturn(false);
-                        $returnConsignment->setLargeFormat(false);
-                        $returnConsignment->setInsurance(0);
-                    }
+        foreach ($this->builtShipments as $built) {
+            $shipmentId = (int) $built->track()->getData('myparcel_consignment_id');
 
-                    return $returnConsignment;
-                }
-            )
-        ;
+            if (0 === $shipmentId) {
+                continue;
+            }
+
+            $row = [
+                'parent'  => $shipmentId,
+                'carrier' => $built->shipment()->getCarrier(),
+            ];
+
+            if (ReturnInTheBox::NO_OPTIONS !== $returnOptions) {
+                $row['options'] = ['label_description' => $this->returnLabelDescription($built)];
+            }
+
+            $rows[$built->apiKey()][] = $row;
+        }
+
+        foreach ($this->exportService->createReturns($rows, false) as $error) {
+            $this->messageManager->addErrorMessage($error);
+        }
+    }
+
+    private function returnLabelDescription(BuiltShipment $built): string
+    {
+        $parentDescription = (string) $built->shipment()->getOptions()->getLabelDescription();
+
+        return sprintf(
+            'Return: %s This label is valid until: %s',
+            $parentDescription,
+            date('d-m-Y', strtotime('+ 28 days'))
+        );
     }
 
     /**
@@ -510,35 +573,25 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function updateMagentoTrack(): self
     {
-        $shipments = $this->getShipmentsCollection();
+        // The shipment id is already on each track — the export service wrote it per chunk — so this
+        // only refreshes status and barcode. Nothing is paired by position any more.
+        $latest = $this->exportService->fetchLatest($this->getMyparcelConsignmentIdsByApiKey());
 
-        foreach ($shipments as $shipment) {
-            $consignments    = $this->myParcelCollection->getConsignmentsByReferenceId($shipment->getEntityId());
-            $trackCollection = $this->getTrackByShipment($shipment)->getItems();
+        foreach ($this->getShipmentsCollection() as $shipment) {
+            foreach ($this->getTrackByShipment($shipment)->getItems() as $magentoTrack) {
+                $shipmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+                $myParcelShipment = $latest[$shipmentId] ?? null;
 
-            foreach ($trackCollection as $magentoTrack) {
-                $myParcelTrack = $this->myParcelCollection->getConsignmentByApiId(
-                    $magentoTrack->getData('myparcel_consignment_id')
-                );
-
-                if (! $myParcelTrack) {
-                    if ($consignments->isEmpty()) {
-                        continue;
-                    }
-                    $myParcelTrack = $consignments->pop();
-
-                    if (! $myParcelTrack->getConsignmentId()) {
-                        continue;
-                    }
-                    $magentoTrack->setData('myparcel_consignment_id', $myParcelTrack->getConsignmentId());
+                if (null === $myParcelShipment) {
+                    continue;
                 }
 
-                if ($myParcelTrack->getStatus()) {
-                    $magentoTrack->setData('myparcel_status', $myParcelTrack->getStatus());
+                if ($myParcelShipment->getStatus()) {
+                    $magentoTrack->setData('myparcel_status', $myParcelShipment->getStatus());
                 }
 
-                if ($myParcelTrack->getBarcode()) {
-                    $magentoTrack->setTrackNumber($myParcelTrack->getBarcode());
+                if ($myParcelShipment->getBarcode()) {
+                    $magentoTrack->setTrackNumber($myParcelShipment->getBarcode());
                 }
 
                 $magentoTrack->save();
@@ -550,15 +603,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
     /**
      * @return self
-     * @throws AccountNotActiveException
-     * @throws ApiException
-     * @throws MissingFieldException
      */
     public function addReturnShipments(): self
     {
         $returnInTheBoxOptions = $this->options['return_in_the_box'] ?? null;
 
-        if ($returnInTheBoxOptions && $this->myParcelCollection->isNotEmpty()) {
+        if ($returnInTheBoxOptions && $this->builtShipments) {
             $this->addReturnInTheBox($returnInTheBoxOptions);
         }
 
@@ -614,42 +664,65 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @return array
+     * @return array<string,int[]> MyParcel shipment ids grouped by resolved API key
      */
     protected function getMyparcelConsignmentIdsByApiKey(): array
     {
-        $shipments = $this->getShipmentsCollection();
-
-        $consignmentIds = [];
-
-        /** @var $shipment \Magento\Sales\Model\Order\Shipment */
-        foreach ($shipments as $shipment) {
-            $trackCollection = $shipment->getAllTracks();
-            $apiKey          = $this->config->getGeneralConfig('api/key', (int) $shipment->getOrder()->getStoreId());
-            foreach ($trackCollection as $magentoTrack) {
-                $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
-                if ($consignmentId) {
-                    $consignmentIds[$apiKey][] = $consignmentId;
-                }
-            }
-        }
-        return $consignmentIds;
+        return $this->objectManager->get(ShipmentApiProvider::class)
+                                   ->consignmentIdsByApiKey($this->getShipmentsCollection());
     }
 
     /**
-     * @param AbstractConsignment $consignment
+     * Whether this shipment may be sent as one multicollo shipment rather than as separate ones.
      *
-     * @return bool whether $consignment properties allow for multicollo shipments
+     * The rule is unchanged; only where the facts come from is. A v11 Shipment carries no API key,
+     * so it is passed alongside, and carrier and package type are ids that have to be named before
+     * capabilities can be asked about them.
      */
-    public function canUseMultiCollo(AbstractConsignment $consignment): bool
+    public function canUseMultiCollo(SdkShipment $shipment, string $apiKey): bool
     {
-        $carrier = $consignment->getCarrierId();
-        $country = $consignment->getCountry();
-        $package = $consignment->getPackageType();
+        $carrier     = $this->carrierNameOf($shipment);
+        $country     = $shipment->getRecipient() ? $shipment->getRecipient()->getCc() : null;
+        $options     = $shipment->getOptions();
+        $packageType = $options ? PackageType::nameFromIdOrNull($options->getPackageType()) : null;
 
-        return ($consignment::CC_NL === $country || $consignment::CC_BE === $country)
-               && CarrierPostNL::ID === $carrier
-               && $consignment::PACKAGE_TYPE_PACKAGE === $package;
+        if (null === $carrier || null === $country || null === $packageType || '' === $apiKey) {
+            return false;
+        }
+
+        $v2PackageType = PackageType::toV2Name($packageType);
+
+        if (null === $v2PackageType) {
+            return false;
+        }
+
+        $capabilities = $this->getCapabilitiesRepository()->forApiKey(
+            $apiKey,
+            CapabilitiesRequest::forCountry($country)->withPackageType($v2PackageType)
+        );
+
+        return 1 < (int) $capabilities->colloMaxFor($carrier, $packageType);
+    }
+
+    /** The module's own carrier name, via the Core API name, from the id the Shipment holds. */
+    private function carrierNameOf(SdkShipment $shipment): ?string
+    {
+        $carrierId = $shipment->getCarrier();
+
+        if (! is_int($carrierId)) {
+            return null;
+        }
+
+        try {
+            return ShipmentCarrier::fromV2Name(SdkCarrier::fromId($carrierId));
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
+    private function getCapabilitiesRepository(): CapabilitiesRepository
+    {
+        return $this->objectManager->get(CapabilitiesRepository::class);
     }
 
     /**

@@ -22,7 +22,9 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
+use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
+use MyParcelNL\Sdk\Services\MultiCollo\MultiColloShipmentService;
 use MyParcelNL\Magento\Service\Config;
 
 class NewShipment implements ObserverInterface
@@ -94,38 +96,42 @@ class NewShipment implements ObserverInterface
             unset($options['carrier']);
         }
 
-        $amount = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
+        $amount = (int) ($options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT);
 
-        /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
-        $trackTraceHolders = [];
-        $i                 = 1;
-        $useMultiCollo     = false;
+        $builder = new ShipmentBuilder($this->objectManager, $shipment->getOrder());
 
-        while ($i <= $amount) {
-            // Set MyParcel options
-            $trackTraceHolder = (new TrackTraceHolder($this->objectManager, $shipment->getOrder()))
-                ->createTrackTraceFromShipment($shipment)
-            ;
-            $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
+        /** @var BuiltShipment[] $builtShipments */
+        $builtShipments = [];
 
-            if (1 === $i && $this->orderCollection->canUseMultiCollo($trackTraceHolder->consignment)) {
-                $useMultiCollo = true;
+        for ($collo = 1; $collo <= $amount; $collo++) {
+            $track = $builder->createTrackForShipment($shipment);
+
+            try {
+                $builtShipments[] = $builder->build($track, $options, $collo);
+            } catch (\Throwable $e) {
+                // The builder says what went wrong; naming the order is the reporting layer's job,
+                // here and in MagentoCollection::setNewMyParcelTracks().
+                $this->messageManager->addErrorMessage(
+                    sprintf('%s: %s', $shipment->getOrder()->getIncrementId(), $e->getMessage())
+                );
+
+                return;
             }
 
-            if (! $useMultiCollo) {
-                $this->orderCollection->myParcelCollection->addConsignment($trackTraceHolder->consignment);
+            // splitShipment() throws on a quantity of one, so one collo is never a multicollo — the
+            // guard MagentoCollection::addGroupedShipments() has and this loop used to lack.
+            // One track for the whole multicollo: the SDK's parseCreateResponse() drops the response's
+            // secondary_shipments, so colli 2..N have no id to store (SDK issue 5 in the design doc).
+            if (1 < $amount
+                && 1 === $collo
+                && $this->orderCollection->canUseMultiCollo($builtShipments[0]->shipment(), $builtShipments[0]->apiKey())) {
+                $builtShipments = [
+                    $builtShipments[0]->withShipment(
+                        (new MultiColloShipmentService())->splitShipment($builtShipments[0]->shipment(), $amount)
+                    ),
+                ];
+                break;
             }
-
-            $trackTraceHolders[] = $trackTraceHolder;
-            $i++;
-        }
-
-        if ($useMultiCollo) {
-            $firstTrackTraceHolder = $trackTraceHolders[0];
-            $this->orderCollection->myParcelCollection->addMultiCollo(
-                $firstTrackTraceHolder->consignment,
-                $amount
-            );
         }
 
         if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
@@ -135,18 +141,19 @@ class NewShipment implements ObserverInterface
             return;
         }
 
-        $this->orderCollection->myParcelCollection
-            ->createConcepts()
-            ->setLatestData()
-        ;
+        $report = $this->orderCollection->getExportService()->createConcepts($builtShipments);
 
-        foreach ($this->orderCollection->myParcelCollection as $consignment) {
-            $trackTraceHolder = array_pop($trackTraceHolders);
-            $trackTraceHolder->mageTrack
-                ->setData('myparcel_consignment_id', $consignment->getConsignmentId())
-                ->setData('myparcel_status', 1)
-            ;
-            $shipment->addTrack($trackTraceHolder->mageTrack);
+        foreach ($report->failureMessages() as $message) {
+            $this->messageManager->addErrorMessage($message);
+        }
+
+        // Each built shipment carries its own track, so nothing is paired by position any more.
+        foreach ($builtShipments as $built) {
+            if (! $built->track()->getData('myparcel_consignment_id')) {
+                continue;
+            }
+
+            $shipment->addTrack($built->track());
         }
 
         $this->updateTrackGrid($shipment, false);

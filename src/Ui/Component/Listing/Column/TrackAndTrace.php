@@ -7,8 +7,8 @@ namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
 use Magento\Ui\Component\Listing\Columns\Column;
-use MyParcelNL\Sdk\Helper\TrackTraceUrl;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Service\TrackTraceUrl;
 
 class TrackAndTrace extends Column
 {
@@ -94,7 +94,7 @@ class TrackAndTrace extends Column
             return $html;
         }
 
-        $countryId = $shippingAddress->getCountryId() ?? AbstractConsignment::CC_NL;
+        $countryId = $shippingAddress->getCountryId() ?? CountryCode::CC_NL;
         $postCode  = $shippingAddress->getPostcode();
         if (! $postCode) {
             return $html;
