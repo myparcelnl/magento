@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.10.0](https://github.com/myparcelnl/magento/compare/v5.9.0...v5.10.0) (2026-09-07)
+
+
+### :sparkles: New Features
+
+* hash api key in path and cleanup scoped account settings ([#967](https://github.com/myparcelnl/magento/issues/967)) ([7563dbd](https://github.com/myparcelnl/magento/commit/7563dbdfdbbf1efc0ae76a934546997ca7eb6959))
+
+
+### :bug: Bug Fixes
+
+* prevent xss by postal code and leaking order info ([#968](https://github.com/myparcelnl/magento/issues/968)) ([1dc15aa](https://github.com/myparcelnl/magento/commit/1dc15aaaea53946e9af15fa7be591bad34fd2152))
+
 ## [5.9.0](https://github.com/myparcelnl/magento/compare/v5.8.1...v5.9.0) (2026-08-10)
 
 
