@@ -10,10 +10,19 @@
   },
   "license": "MIT",
   "main": "index.js",
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
   "devDependencies": {
-    "@myparcel-dev/eslint-config": "^1.4.0",
+    "@eslint/eslintrc": "^3.3.7",
+    "@eslint/js": "^10.0.1",
+    "@myparcel-dev/eslint-config-esnext": "^1.4.0",
+    "@myparcel-dev/eslint-config-node": "^1.4.0",
     "@myparcel-dev/semantic-release-config": "^6.0.12",
-    "@types/knockout": "^3.4.77"
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@types/knockout": "^3.4.77",
+    "eslint": "^10.9.1"
   },
   "resolutions": {
     "tar": "7.5.11"
