@@ -10,6 +10,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
+use MyParcelNL\Magento\Service\LogContext;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -115,7 +116,8 @@ class Maintenance
             $coordinates = $this->config->getScopeCoordinates();
         } catch (Throwable $e) {
             $this->logger->warning(
-                'Could not enumerate scopes while reconciling MyParcel account settings: ' . $e->getMessage()
+                'Could not enumerate scopes while reconciling MyParcel account settings',
+                LogContext::of($e)
             );
             return [];
         }

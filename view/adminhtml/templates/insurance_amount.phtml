@@ -1,0 +1,20 @@
+<?php
+/**
+ * One insurance amount field. The contract range goes through the note slot in
+ * dynamic_settings.phtml, so the tooltip stays this input's immediate sibling.
+ *
+ * @var \MyParcelNL\Magento\Block\System\Config\Form\InsuranceAmount $block
+ * @var \Magento\Framework\Escaper                                   $escaper
+ */
+
+$range = $block->getRange();
+?>
+<input type="number"
+       min="<?= (int) ($range ? $range->lowestAccepted() : 0) ?>"
+       <?php if ($range): ?>max="<?= (int) $range->max() ?>"<?php endif; ?>
+       step="1"
+       id="<?= $escaper->escapeHtmlAttr($block->getFieldHtmlId()) ?>"
+       name="<?= $escaper->escapeHtmlAttr($block->getFieldName()) ?>[value]"
+       value="<?= $escaper->escapeHtmlAttr($block->getValue()) ?>"
+       class="admin__control-text <?= $escaper->escapeHtmlAttr($block->getValidationClass()) ?>"
+    <?= $block->isDisabled() ? 'disabled="disabled"' : '' ?>/>

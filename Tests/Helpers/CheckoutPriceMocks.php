@@ -5,11 +5,12 @@ declare(strict_types=1);
 use Magento\Quote\Model\Quote;
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\Tax;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /**
  * A Config mock for the checkout prices: only $carrier is active, with every delivery type and option on.
@@ -47,7 +48,7 @@ function checkoutPriceConfig(bool $totalView, array $floatConfig = [], array $co
 function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $deliveryCosts, Quote $quote, string $carrier = 'postnl'): array
 {
     $package = Mockery::mock(PackageRepository::class)->shouldIgnoreMissing();
-    $package->shouldReceive('selectPackageType')->andReturn(AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME);
+    $package->shouldReceive('selectPackageType')->andReturn(PackageType::PACKAGE_NAME);
     $package->shouldReceive('getAgeCheck')->andReturn(false);
     $package->shouldReceive('getPriorityDelivery')->andReturn(false);
     $package->deliveryOptionsDisabled = false;
@@ -58,8 +59,9 @@ function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $delive
     setPrivateProperty($checkout, 'deliveryCosts', $deliveryCosts);
     setPrivateProperty($checkout, 'package', $package);
     setPrivateProperty($checkout, 'quote', $quote);
+    setPrivateProperty($checkout, 'capabilityLookup', capabilityLookupWith(CapabilitySet::permissive(), 'NL', 1));
 
-    $data = invokePrivateMethod($checkout, 'getDeliveryData', [AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME, 'NL']);
+    $data = invokePrivateMethod($checkout, 'getDeliveryData', [PackageType::PACKAGE_NAME, 'NL']);
 
     return $data['carrierSettings'][$carrier];
 }

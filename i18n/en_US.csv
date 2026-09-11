@@ -34,3 +34,5 @@ error3516, Country is not supported by carrier.
 error3517, Not available for this country.
 error3707, Invalid package type.
 error3728, No delivery options found.
+24 hour priority,Priority delivery
+"When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","When enabled, the priority delivery checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off."

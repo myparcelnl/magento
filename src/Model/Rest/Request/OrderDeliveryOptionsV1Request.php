@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Rest\Request;
 
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Model\Rest\Transformer\CarrierTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\DateTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\DeliveryTypeTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\PackageTypeTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\PickupLocationTransformer;
 use MyParcelNL\Magento\Model\Rest\Transformer\ShipmentOptionsTransformer;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractDeliveryOptionsAdapter;
 
 class OrderDeliveryOptionsV1Request
 {
@@ -37,7 +37,7 @@ class OrderDeliveryOptionsV1Request
         $this->pickupLocationTransformer = $pickupLocationTransformer;
     }
 
-    public function transform(AbstractDeliveryOptionsAdapter $adapter): array
+    public function transform(DeliveryOptions $adapter): array
     {
         return [
             'carrier'         => $this->carrierTransformer->transform($adapter->getCarrier()),
