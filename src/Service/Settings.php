@@ -133,6 +133,39 @@ class Settings
     }
 
     /**
+     * The values stored at exactly this (scope, scopeId), keyed by path.
+     *
+     * Row coordinates, never inheritance: a path missing from the result has no row here, which is
+     * not the same as having no value. A save compares against this to skip fields nobody changed,
+     * and a cascaded read would answer "unchanged" for a scope that is only inheriting — which is
+     * precisely the case that has to be written.
+     *
+     * One query for the whole form, so the comparison costs less than the writes it avoids.
+     *
+     * @param  string[] $paths
+     * @return array<string, string|null>
+     */
+    public function storedValuesAtScope(array $paths, string $scope, int $scopeId): array
+    {
+        if ([] === $paths) {
+            return [];
+        }
+
+        $collection = $this->scopeCollectionFactory->create()
+            ->addFieldToFilter('path', ['in' => array_values(array_unique($paths))])
+            ->addFieldToFilter('scope', $scope)
+            ->addFieldToFilter('scope_id', $scopeId);
+
+        $values = [];
+
+        foreach ($collection as $row) {
+            $values[(string) $row->getData('path')] = $row->getData('value');
+        }
+
+        return $values;
+    }
+
+    /**
      * Inheritance-aware: default scope always "owns" its value (config.xml fallback),
      * otherwise true if and only if an override row exists at the exact (scope, scopeId).
      */
