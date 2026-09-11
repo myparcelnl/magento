@@ -73,45 +73,8 @@ class MagentoShipmentCollection extends MagentoCollection
         return $this;
     }
 
-    /**
-     * Set PDF content and convert status 'Concept' to 'Registered'
-     *
-     * @return self
-     * @throws \Exception
-     */
-    public function setPdfOfLabels(): self
-    {
-        $this->myParcelCollection->setPdfOfLabels($this->options['positions']);
 
-        return $this;
-    }
 
-    /**
-     * Download PDF directly
-     *
-     * @return self
-     * @throws \Exception
-     */
-    public function downloadPdfOfLabels(): self
-    {
-        $inlineDownload = $this->options['request_type'] === 'open_new_tab';
-        $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
-
-        return $this;
-    }
-
-    /**
-     * Update MyParcel collection
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    public function setLatestData()
-    {
-        $this->myParcelCollection->setLatestData();
-
-        return $this;
-    }
 
     /**
      * Send shipment email with Track and trace variable

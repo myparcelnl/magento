@@ -31,19 +31,12 @@ use Magento\Quote\Model\Quote\Address\RateResult\MethodFactory;
 use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\ShipmentOptionsV3Adapter;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
 use Psr\Log\LoggerInterface;
 
 class Carrier extends AbstractCarrier implements CarrierInterface
@@ -55,16 +48,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     protected $_code = self::CODE; // $_code is a mandatory property for a Magento carrier
     protected $_name;
     protected $_title;
-
-    public const ALLOWED_CARRIER_CLASSES = [
-        CarrierPostNL::class,
-        CarrierDHLForYou::class,
-        CarrierDHLEuroplus::class,
-        CarrierDHLParcelConnect::class,
-        CarrierUPSStandard::class,
-        CarrierDPD::class,
-        CarrierTrunkrs::class,
-    ];
 
     private const DELIVERY_TYPE_TITLES = [
         'standard' => 'Standard Delivery',
@@ -180,13 +163,13 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
         $configPath      = Config::CARRIERS_XML_PATH_MAP[$deliveryOptions->getCarrier()] ?? '';
-        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
+        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::none();
         $shipmentFees    = [
             "{$deliveryOptions->getDeliveryType()}/fee" => true,
             'delivery/only_recipient_fee'               => $shipmentOptions->hasOnlyRecipient(),
             'delivery/signature_fee'                    => $shipmentOptions->hasSignature(),
             'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
-            'mailbox/priority_delivery_fee'            => $shipmentOptions->isPriorityDelivery(),
+            'mailbox/priority_delivery_fee'            => $shipmentOptions->hasPriorityDelivery(),
         ];
 
         $amount = $this->deliveryCosts->getBasePrice($quote);
@@ -205,7 +188,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private function getMethodTitle(Quote $quote): string
     {
         $deliveryOptions = $this->getDeliveryOptionsFromQuote($quote);
-        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? new ShipmentOptionsV3Adapter([]);
+        $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::none();
         $carrierName     = $deliveryOptions->getCarrier();
 
         if (null === $carrierName || '0' === $this->config->getGeneralConfig('shipping_methods/show_details_in_summary')) {

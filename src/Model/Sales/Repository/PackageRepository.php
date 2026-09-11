@@ -20,9 +20,11 @@ namespace MyParcelNL\Magento\Model\Sales\Repository;
 
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 /**
  * Class PackageRepository
@@ -38,7 +40,7 @@ class PackageRepository extends Package
     /**
      * @var bool
      */
-    public $deliveryOptionsDisabled = false;
+    public bool $deliveryOptionsDisabled = false;
 
     /**
      * @param array  $products
@@ -91,18 +93,18 @@ class PackageRepository extends Package
         $this->setWeight($weight);
 
         if ($digitalStamp && $this->fitInDigitalStamp()) {
-            return AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP_NAME;
+            return PackageType::DIGITAL_STAMP_NAME;
         }
 
         if ($this->fitInMailbox($carrierName)) {
-            return AbstractConsignment::PACKAGE_TYPE_MAILBOX_NAME;
+            return PackageType::MAILBOX_NAME;
         }
 
         if ($this->fitInPackageSmall()) {
-            return AbstractConsignment::PACKAGE_TYPE_PACKAGE_SMALL_NAME;
+            return PackageType::PACKAGE_SMALL_NAME;
         }
 
-        return AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
+        return PackageType::PACKAGE_NAME;
     }
 
     /**
@@ -129,9 +131,9 @@ class PackageRepository extends Package
      */
     public function fitInMailbox(string $carrierName): bool
     {
-        $mailboxAllowedToCountry = AbstractConsignment::CC_NL === $this->getCurrentCountry();
+        $mailboxAllowedToCountry = CountryCode::CC_NL === $this->getCurrentCountry();
         if (! $mailboxAllowedToCountry && CarrierPostNL::NAME === $carrierName) {
-            $account = (new AccountSettings((string) $this->getGeneralConfig('api/key')))->getAccount();
+            $account = (new AccountSettings((string) $this->getGeneralConfig('api/key', $this->getStoreId())))->getAccount();
             if ($account) {
                 $mailboxAllowedToCountry = $account->getGeneralSettings()->hasPostnlMailboxInternational();
             }
@@ -151,7 +153,7 @@ class PackageRepository extends Package
         $orderWeight               = (new Weight($this))->convertToGrams($this->getWeight());
         $maximumDigitalStampWeight = $this->getMaxDigitalStampWeight();
 
-        return $this->getCurrentCountry() === AbstractConsignment::CC_NL
+        return $this->getCurrentCountry() === CountryCode::CC_NL
             && $this->isDigitalStampActive()
             && $orderWeight <= $maximumDigitalStampWeight;
     }
@@ -166,7 +168,7 @@ class PackageRepository extends Package
      */
     public function setMailboxSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue("{$carrierPath}mailbox");
+        $settings = $this->getConfigValue("{$carrierPath}mailbox", $this->getStoreId());
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
             return $this;
@@ -175,7 +177,7 @@ class PackageRepository extends Package
         $this->setMailboxActive('1' === $settings['active']);
         if (true === $this->isMailboxActive()) {
             $weight = abs((float) str_replace(',', '.', $settings['weight'] ?? ''));
-            $unit   = $this->getGeneralConfig('print/weight_indication');
+            $unit   = $this->getGeneralConfig('print/weight_indication', $this->getStoreId());
 
             if ('kilo' === $unit) {
                 $epsilon = 0.00001;
@@ -189,7 +191,7 @@ class PackageRepository extends Package
                 $this->setMaxMailboxWeight($weight ?: self::DEFAULT_MAXIMUM_MAILBOX_WEIGHT);
             }
 
-            $pickupMailbox = (bool) $this->getConfigValue("{$carrierPath}mailbox/pickup_mailbox");
+            $pickupMailbox = (bool) $this->getConfigValue("{$carrierPath}mailbox/pickup_mailbox", $this->getStoreId());
             $this->setPickupMailboxActive($pickupMailbox);
         }
 
@@ -240,15 +242,48 @@ class PackageRepository extends Package
      */
     public function getAgeCheck(array $products, string $carrierPath): bool
     {
-        foreach ($products as $product) {
-            $productAgeCheck  = (bool) $this->getAttributesProductsOptions($product, 'age_check');
+        return $this->optionForcedOn($products, $carrierPath, ShipmentOption::AGE_CHECK);
+    }
 
-            if ($productAgeCheck) {
+    /**
+     * The limiting options this order carries whatever the shopper picks, so a package type that
+     * cannot carry one of them is not a candidate.
+     *
+     * @param  \Magento\Quote\Model\Quote\Item[] $products
+     *
+     * @return string[]
+     */
+    public function forcedLimitingOptions(array $products, string $carrierPath): array
+    {
+        return array_values(array_filter(
+            ShipmentOption::LIMIT_PACKAGE_TYPE,
+            function (string $option) use ($products, $carrierPath): bool {
+                return $this->optionForcedOn($products, $carrierPath, $option);
+            }
+        ));
+    }
+
+    /**
+     * Both tiers are always read. A future option may have only one of them: a product attribute
+     * that does not exist and a config path that does not exist both answer no.
+     *
+     * Compared against '1' rather than cast: large_format_active ships as the literal 'No' and can
+     * hold 'price', and both of those cast to true.
+     *
+     * @param \Magento\Quote\Model\Quote\Item[] $products
+     */
+    private function optionForcedOn(array $products, string $carrierPath, string $option): bool
+    {
+        foreach ($products as $product) {
+            if ((bool) $this->getAttributesProductsOptions($product, $option)) {
                 return true;
             }
         }
 
-        return (bool) $this->getConfigValue($carrierPath . 'default_options/age_check_active');
+        return '1' === (string) $this->getConfigValue(
+            $carrierPath . 'default_options/' . $option . '_active',
+            $this->getStoreId()
+        );
     }
 
     /**
@@ -263,7 +298,7 @@ class PackageRepository extends Package
     {
         try {
             // Check if general setting is enabled
-            $generalExclude = (bool) $this->getGeneralConfig('shipping_methods/exclude_parcel_lockers');
+            $generalExclude = (bool) $this->getGeneralConfig('shipping_methods/exclude_parcel_lockers', $this->getStoreId());
             if ($generalExclude) {
                 return true;
             }
@@ -297,7 +332,7 @@ class PackageRepository extends Package
      */
     public function getPriorityDelivery(array $products, string $carrierPath): bool
     {
-        if ((bool) $this->getConfigValue($carrierPath . 'mailbox/priority_delivery_active')) {
+        if ((bool) $this->getConfigValue($carrierPath . 'mailbox/priority_delivery_active', $this->getStoreId())) {
             return true;
         }
 
@@ -329,7 +364,7 @@ class PackageRepository extends Package
      */
     public function setDigitalStampSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue("{$carrierPath}digital_stamp");
+        $settings = $this->getConfigValue("{$carrierPath}digital_stamp", $this->getStoreId());
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
             return $this;
@@ -353,7 +388,7 @@ class PackageRepository extends Package
      */
     public function setPackageSmallSettings(string $carrierPath = self::XML_PATH_POSTNL_SETTINGS): PackageRepository
     {
-        $settings = $this->getConfigValue("{$carrierPath}package_small");
+        $settings = $this->getConfigValue("{$carrierPath}package_small", $this->getStoreId());
 
         if (null === $settings || ! array_key_exists('active', $settings)) {
             return $this;
@@ -362,7 +397,7 @@ class PackageRepository extends Package
         $this->setPackageSmallActive('1' === $settings['active']);
         if ($this->isPackageSmallActive()) {
             $weight = abs((float) str_replace(',', '.', $settings['weight'] ?? ''));
-            $unit   = $this->getGeneralConfig('print/weight_indication');
+            $unit   = $this->getGeneralConfig('print/weight_indication', $this->getStoreId());
 
             if ('kilo' === $unit) {
                 $epsilon = 0.00001;
@@ -395,7 +430,7 @@ class PackageRepository extends Package
      *
      * @return null|int
      */
-    private function getAttributesProductsOptions($product, string $column): ?int
+    protected function getAttributesProductsOptions($product, string $column): ?int
     {
         $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $column);
         if (empty($attributeValue)) {

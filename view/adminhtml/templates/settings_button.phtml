@@ -3,48 +3,40 @@
 declare(strict_types=1);
 
 /* @var \MyParcelNL\Magento\Block\System\Config\Form\SettingsButton $block */
+/* @var \Magento\Framework\Escaper $escaper */
 
 use Magento\Framework\Exception\LocalizedException;
+use MyParcelNL\Magento\Block\System\Config\Form\SettingsButton;
 
+[$scopeName, $scopeId] = $block->getCurrentScope();
+
+$mageInit = [
+    'MyParcelNL_Magento/js/account-settings-import' => [
+        'ajaxUrl'       => $block->getAjaxUrl(),
+        'buttonId'      => SettingsButton::BUTTON_ID,
+        'apiKeyFieldId' => $block->getApiKeyFieldId(),
+        'scopeName'     => $scopeName,
+        'scopeId'       => (int) $scopeId,
+        'successLabel'  => (string) __('MyParcel Backoffice settings imported.'),
+        'failurePrefix' => (string) __('Importing the MyParcel Backoffice settings failed:'),
+        'failureLabel'  => (string) __('Importing the MyParcel Backoffice settings failed. Check the log for details.'),
+    ],
+];
 ?>
-<script>
-    require([], function () {
-        const input = document.getElementById('myparcelnl_magento_general_api_key'),
-            button = document.getElementById('myparcel-account-settings-button');
-        if (input.hasAttribute('disabled') && input.getAttribute('disabled') === 'disabled') {
-            button.setAttribute('disabled', 'disabled');
-        } else {
-            button.removeAttribute('disabled');
-        }
-        button.addEventListener('click', function () {
-            const path = window.location.pathname.split('/');
-            let params = {};
-            if (path.indexOf('website') !== -1) {
-                path.splice(0, path.indexOf('website'));
-                params = {
-                    scope: 'website',
-                    scopeId: parseInt(path[1])
-                };
-            }
-            if (path.indexOf('store') !== -1) {
-                path.splice(0, path.indexOf('store'));
-                params = {
-                    scope: 'store',
-                    scopeId: parseInt(path[1])
-                };
-            }
-            new Ajax.Request('<?php echo $block->getAjaxUrl() ?>', {
-                parameters: params,
-                loaderArea: true,
-                asynchronous: true,
-            });
-        });
-    });
-</script>
 
-<?php
-try {
-    echo $block->getButtonHtml();
-} catch (LocalizedException $e) {
-    echo $e->getMessage();
-} ?>
+<div class="myparcel-account-settings-import"
+     data-mage-init="<?= $escaper->escapeHtmlAttr(json_encode($mageInit)) ?>">
+    <?php
+    try {
+        echo $block->getButtonHtml();
+    } catch (LocalizedException $e) {
+        echo $escaper->escapeHtml($e->getMessage());
+    }
+    ?>
+
+    <div class="message"
+         data-role="import-notice"
+         role="alert"
+         aria-live="polite"
+         hidden></div>
+</div>

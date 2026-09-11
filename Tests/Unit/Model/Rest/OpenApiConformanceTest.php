@@ -76,7 +76,7 @@ function buildRequestHandler(): OrderDeliveryOptionsV1Request
 
 it('full response validates against the DeliveryOptions schema', function () {
     $handler  = buildRequestHandler();
-    $response = $handler->transform(mockFullAdapter());
+    $response = $handler->transform(fullDeliveryOptions());
 
     $errors = validateAgainstSpec($response);
 
@@ -84,18 +84,18 @@ it('full response validates against the DeliveryOptions schema', function () {
 });
 
 it('response with all boolean shipment options enabled validates', function () {
-    $response = buildRequestHandler()->transform(mockFullAdapter([
-        'hasAgeCheck'        => true,
-        'hasSignature'       => true,
-        'hasOnlyRecipient'   => true,
-        'hasLargeFormat'     => true,
-        'isReturn'           => true,
-        'hasHideSender'      => true,
-        'isPriorityDelivery' => true,
-        'hasReceiptCode'     => true,
-        'isSameDayDelivery'  => true,
-        'hasCollect'         => true,
-        'getInsurance'       => 100,
+    $response = buildRequestHandler()->transform(fullDeliveryOptions([
+        'hasAgeCheck'         => true,
+        'hasSignature'        => true,
+        'hasOnlyRecipient'    => true,
+        'hasLargeFormat'      => true,
+        'hasReturn'           => true,
+        'hasHideSender'       => true,
+        'hasPriorityDelivery' => true,
+        'hasReceiptCode'      => true,
+        'hasSameDayDelivery'  => true,
+        'hasCollect'          => true,
+        'getInsurance'        => 100,
         'getLabelDescription' => 'Test label',
     ]));
 
@@ -117,7 +117,7 @@ it('error response validates against the ProblemDetails schema', function (int $
 
 it('rejects an unknown carrier enum value', function () {
     $handler  = buildRequestHandler();
-    $response = $handler->transform(mockFullAdapter());
+    $response = $handler->transform(fullDeliveryOptions());
 
     $response['carrier'] = 'INVALID_CARRIER';
 
