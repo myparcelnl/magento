@@ -4,24 +4,45 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Ui\Component\Listing\Column;
 
-use Magento\Framework\App\ObjectManager;
-use Magento\Sales\Model\Order;
+use Magento\Framework\View\Element\UiComponent\ContextInterface;
+use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
-use MyParcelNL\Sdk\Helper\TrackTraceUrl;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
 
 class TrackAndTrace extends Column
 {
-    public const  NAME          = 'track_number';
-    public const  VALUE_EMPTY   = '–';
-    public const  VALUE_PRINTED = 'printed';
-    public const  VALUE_CONCEPT = 'concept';
-    private const KEY_POSTCODE  = 0;
+    public const NAME          = 'track_number';
+    public const VALUE_EMPTY   = '–';
+    public const VALUE_PRINTED = 'printed';
+    public const VALUE_CONCEPT = 'concept';
+
+    /**
+     * Values that stand in for a barcode without being one. A track holding one of these is still
+     * waiting, which is what the status cron selects on.
+     *
+     * @var string[]
+     */
+    public const PLACEHOLDERS = [self::VALUE_EMPTY, self::VALUE_PRINTED];
 
     /**
      * Script tag to unbind the click event from the td wrapping the barcode link.
      */
     private const SCRIPT_UNBIND_CLICK = "<script type='text/javascript'>jQuery('.myparcel-barcode-link').closest('td').unbind('click');</script>";
+
+    private LinkResolver $links;
+
+    public function __construct(
+        ContextInterface   $context,
+        UiComponentFactory $uiComponentFactory,
+        LinkResolver       $links,
+        array              $components = [],
+        array              $data = []
+    )
+    {
+        parent::__construct($context, $uiComponentFactory, $components, $data);
+
+        $this->links = $links;
+    }
 
     /**
      * Set column MyParcel barcode to order grid
@@ -38,103 +59,27 @@ class TrackAndTrace extends Column
             return $dataSource;
         }
 
-        /**
-         * @var Order                  $order
-         * @var Order\Shipment\Track[] $tracks
-         */
+        $orderIds = array_filter(
+            array_map(
+                static fn(array $item): int => (int) ($item['entity_id'] ?? 0),
+                $dataSource['data']['items']
+            )
+        );
+
+        $linksByOrder = $this->links->forOrders($orderIds);
+        $name         = $this->getData('name');
+
         foreach ($dataSource['data']['items'] as & $item) {
-            $addressParts = explode(',', $item['shipping_address'] ?? '');
+            $html = $this->links->html($linksByOrder[(int) ($item['entity_id'] ?? 0)] ?? []);
 
-            if (count($addressParts) < 3) {
+            if ('' === $html) {
                 continue;
             }
-
-            $postalCode = array_slice($addressParts, -1)[self::KEY_POSTCODE];
-
-            // Stop if either the barcode or postal code is missing.
-            if (! $item['track_number'] || ! $postalCode) {
-                continue;
-            }
-
-            $order = $this->getOrderByEntityId((int) $item['entity_id']);
-            $name  = $this->getData('name');
 
             // Render the T&T as a link and add the script to remove the click handler.
-            $item[$name] = self::getTrackAndTraceLinksAsHtml($order);
-            $item[$name] .= self::SCRIPT_UNBIND_CLICK;
+            $item[$name] = $html . self::SCRIPT_UNBIND_CLICK;
         }
 
         return $dataSource;
-    }
-
-    /**
-     * @param int $entityId
-     *
-     * @return \Magento\Sales\Model\Order
-     */
-    public function getOrderByEntityId(int $entityId): Order
-    {
-        return (ObjectManager::getInstance())->create(Order::class)->load($entityId);
-    }
-
-    /**
-     * Returns raw HTML on purpose: the grid renders it through a Knockout `html:` binding and
-     * order_view.phtml echoes it unescaped. Callers must NOT escape it — every interpolated value
-     * is escaped here.
-     *
-     * @param \Magento\Sales\Model\Order $order
-     *
-     * @return string
-     */
-    public static function getTrackAndTraceLinksAsHtml(Order $order): string
-    {
-        $html            = '';
-        $shippingAddress = $order->getShippingAddress();
-        if (! $shippingAddress) {
-            return $html;
-        }
-
-        $countryId = $shippingAddress->getCountryId() ?? AbstractConsignment::CC_NL;
-        $postCode  = $shippingAddress->getPostcode();
-        if (! $postCode) {
-            return $html;
-        }
-
-        $trackData    = $order->getData('track_number') ?? '';
-        // JSON_BIGINT_AS_STRING prevents numeric tracking numbers that were stored as single number (not as array) from being misrepresented as floats.
-        $trackNumbers = json_decode($trackData, true, 2, JSON_BIGINT_AS_STRING) ?? $trackData;
-
-        // older shipments are stored with '<br>' as separator between trackNumbers
-        if (! is_array($trackNumbers)) {
-            $trackNumbers = explode('<br>', (string) $trackNumbers);
-        }
-
-        foreach ($trackNumbers as $trackNumber) {
-            switch ($trackNumber) {
-                case null:
-                case self::VALUE_EMPTY:
-                    $html .= '-<br/>';
-                    break;
-                case self::VALUE_PRINTED:
-                    $html .= $trackNumber . '<br/>';
-                    break;
-                default:
-                    $barcode = (string) $trackNumber;
-
-                    $trackTrace = TrackTraceUrl::create(
-                        rawurlencode($barcode),
-                        rawurlencode(str_replace(' ', '', (string) $postCode)),
-                        rawurlencode((string) $countryId)
-                    );
-
-                    $html .= sprintf(
-                        '<a class="myparcel-barcode-link" target="_blank" href="%1$s">%2$s</a><br/>',
-                        htmlspecialchars($trackTrace, ENT_QUOTES, 'UTF-8'),
-                        htmlspecialchars($barcode, ENT_QUOTES, 'UTF-8')
-                    );
-            }
-        }
-
-        return $html;
     }
 }

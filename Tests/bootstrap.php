@@ -35,6 +35,11 @@ $knownStubConstants = [
         'SCOPE_WEBSITES' => 'websites',
         'SCOPE_STORES'   => 'stores',
     ],
+    'Magento\\Sales\\Api\\Data\\ShipmentTrackInterface' => [
+        'ORDER_ID'     => 'order_id',
+        'TRACK_NUMBER' => 'track_number',
+        'CARRIER_CODE' => 'carrier_code',
+    ],
     'Magento\\Authorization\\Model\\UserContextInterface' => [
         'USER_TYPE_INTEGRATION' => 1,
         'USER_TYPE_ADMIN'       => 2,

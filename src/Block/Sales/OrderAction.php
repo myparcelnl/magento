@@ -16,7 +16,6 @@ namespace MyParcelNL\Magento\Block\Sales;
 
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Registry;
-use MyParcelNL\Sdk\Model\Consignment\BaseConsignment;
 
 class OrderAction extends OrdersAction
 {
@@ -24,27 +23,20 @@ class OrderAction extends OrdersAction
      * @var \Magento\Sales\Model\Order
      */
     private $order;
-    /**
-     * @var \MyParcelNL\Sdk\Model\Consignment\BaseConsignment
-     */
-    private $consignment;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Registry $registry
-     * @param \MyParcelNL\Sdk\Model\Consignment\BaseConsignment $consignment
      * @param array $data
      */
     public function __construct(
         Context $context,
         Registry $registry,
-        BaseConsignment $consignment,
         array $data = []
     ) {
         // Set order
         $this->order = $registry->registry('sales_order');
         parent::__construct($context, $data);
-        $this->consignment = $consignment;
     }
 
     /**
@@ -75,14 +67,5 @@ class OrderAction extends OrdersAction
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
-    }
-
-    /**
-     * Check if the address is outside the EU
-     * @return bool
-     */
-    public function isToRowCountry(): bool
-    {
-        return $this->consignment->isToRowCountry();
     }
 }

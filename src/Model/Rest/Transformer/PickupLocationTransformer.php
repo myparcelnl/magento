@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Rest\Transformer;
 
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\AbstractPickupLocationAdapter;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\PickupLocation;
 
 class PickupLocationTransformer
 {
-    public function transform(?AbstractPickupLocationAdapter $pickupLocation): ?\stdClass
+    public function transform(?PickupLocation $pickupLocation): ?\stdClass
     {
         if ($pickupLocation === null) {
             return null;

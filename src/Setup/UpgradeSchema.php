@@ -204,6 +204,27 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]
             );
         }
+        $tableTrack = $setup->getTable('sales_shipment_track');
+
+        // Length above 255 makes this a TEXT column, not a varchar(1023): Magento maps TYPE_TEXT to
+        // varchar only up to 255. Deliberate — a tokenised portal link must not be truncated, and
+        // nothing indexes or filters on it.
+        if (
+            version_compare($context->getVersion(), '5.11.0', '<')
+            && $setup->getConnection()->isTableExists($tableTrack)
+            && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_tracktrace_url')
+        ) {
+            $setup->getConnection()->addColumn(
+                $tableTrack,
+                'myparcel_tracktrace_url',
+                [
+                    'type'     => Table::TYPE_TEXT,
+                    'length'   => 1023,
+                    'nullable' => true,
+                    'comment'  => 'MyParcel consumer portal link as received from the api',
+                ]
+            );
+        }
         $setup->endSetup();
     }
 }

@@ -4,10 +4,13 @@ define(
         'Magento_Ui/js/modal/confirm',
         'text!MyParcelNL_Magento/template/grid/order_massaction.html',
         'Magento_Ui/js/modal/alert',
-        'loadingPopup',
+        'uiRegistry',
+        'MyParcelNL_Magento/js/admin-messages',
+        'MyParcelNL_Magento/js/label-download',
+        'mage/loader',
         'mage/translate'
     ],
-    function ($, confirmation, template, alert) {
+    function ($, confirmation, template, alert, registry, messages, downloadLabels) {
         'use strict';
 
         return function MassAction(
@@ -27,6 +30,9 @@ define(
                     this.element = element;
                     this.selectedIds = [];
                     this._setMyParcelMassAction();
+                    // The native mass action in sales_order_grid.xml names this, so that entry point
+                    // runs the export the same way instead of submitting a form at the controller.
+                    registry.set('myparcel_grid_massaction', this);
                     return this;
                 },
 
@@ -117,9 +123,7 @@ define(
                             },
                             actions: {
                                 confirm: function () {
-                                    parentThis
-                                        ._startLoading()
-                                        ._createConsignment();
+                                    parentThis._createConsignment();
                                 }
                             }
                         }
@@ -335,22 +339,153 @@ define(
                 },
 
                 /**
-                 * Create consignment
+                 * Exports without leaving the page, so the grid keeps its selection and fetches its
+                 * rows once — after the labels have minted the barcodes rather than against them.
                  *
                  * @protected
                  */
                 _createConsignment: function () {
-                    var url = this.options.url + '?' + $("#mypa-options-form").serialize();
-                    if ($('#mypa_request_type-open_new_tab').prop('checked')) {
-                        window.open(url);
-                    } else {
-                        window.location.href = url;
-                    }
+                    // Opened here because this is still the click. A tab opened once the labels
+                    // arrive is a popup, and the browser blocks it.
+                    var tab = $('#mypa_request_type-open_new_tab').prop('checked')
+                        ? window.open('', '_blank')
+                        : null;
+
+                    this._runExport(this.options.url + '?' + $("#mypa-options-form").serialize(), tab);
                 },
 
-                _startLoading: function () {
-                    $('body').loadingPopup();
-                    return this;
+                /**
+                 * The grid's own "Print MyParcel labels directly" action, which skips the modal and
+                 * exports with the configured defaults. Named as a callback by sales_order_grid.xml,
+                 * so it arrives here with the grid's selection rather than as a form submit.
+                 *
+                 * request_type defaults to download, so there is no tab to open.
+                 *
+                 * @protected
+                 */
+                exportSelected: function (action, data) {
+                    var ids = data.selected || [];
+
+                    // Selecting every page sets excludeMode and no ids, which this cannot express.
+                    if (!ids.length) {
+                        alert({title: $.mage.__('Please select an item from the list')});
+
+                        return;
+                    }
+
+                    this._runExport(action.url + '?selected_ids=' + ids.join(','), null);
+                },
+
+                /**
+                 * One row's export action, named as a callback by TrackActions. The URL it was given
+                 * already carries that order's id and package type.
+                 *
+                 * @protected
+                 */
+                exportRow: function (actionIndex, recordId, action) {
+                    this._runExport(action.href, null);
+                },
+
+                /**
+                 * One row's "Download label", named as a callback by TrackActions. Not _runExport:
+                 * the happy answer here is the PDF itself, which response.json() would destroy.
+                 * downloadLabels reads the stream and reports a JSON failure beside the grid.
+                 *
+                 * @protected
+                 */
+                downloadLabelRow: function (actionIndex, recordId, action) {
+                    var parentThis = this;
+
+                    messages.clear();
+                    $('body').trigger('processStart');
+
+                    downloadLabels({
+                        url: action.href,
+                        failureLabel: $.mage.__('The MyParcel labels could not be downloaded.')
+                    }, null)
+                        .then(function (delivered) {
+                            // The label fetch mints the barcodes, so the grid has new data to show.
+                            parentThis._refresh(!delivered);
+                        })
+                        .finally(function () {
+                            $('body').trigger('processStop');
+                        });
+                },
+
+                /**
+                 * @param {String}      url - the export, with its options already in the query.
+                 * @param {Window|null} tab - a tab opened during the click, for the PDF to fill.
+                 *
+                 * @protected
+                 */
+                _runExport: function (url, tab) {
+                    var parentThis = this;
+                    var failed = false;
+
+                    messages.clear();
+                    $('body').trigger('processStart');
+
+                    fetch(url, {credentials: 'same-origin'})
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (answer) {
+                            failed = messages.render(answer.messages);
+
+                            if (!answer.labels) {
+                                if (tab) {
+                                    tab.close();
+                                }
+
+                                return null;
+                            }
+
+                            return downloadLabels(answer.labels, tab).then(function (delivered) {
+                                failed = failed || !delivered;
+                            });
+                        })
+                        .catch(function () {
+                            // A dropped connection, or an error page where JSON was expected.
+                            if (tab) {
+                                tab.close();
+                            }
+
+                            failed = true;
+                            messages.error($.mage.__('The MyParcel export could not be completed.'));
+                        })
+                        .finally(function () {
+                            parentThis._refresh(failed);
+                            $('body').trigger('processStop');
+                        });
+                },
+
+                /**
+                 * Shows what the export just changed.
+                 *
+                 * On a grid, refresh: true is not optional — without it the provider serves its
+                 * cached rows and the export appears to have changed nothing.
+                 *
+                 * A single order or shipment page has no grid, so it reloads instead. Not after a
+                 * failure: the reload would take the message explaining it along too.
+                 *
+                 * @protected
+                 */
+                _refresh: function (failed) {
+                    // The messages sit at the top of the page, and an export is started from a row
+                    // that can be well below the fold.
+                    window.scrollTo({top: 0, behavior: 'smooth'});
+
+                    if (this.options['grid_data_source']) {
+                        registry.get(this.options['grid_data_source'], function (provider) {
+                            provider.reload({refresh: true});
+                        });
+
+                        return;
+                    }
+
+                    if (!failed) {
+                        window.location.reload();
+                    }
                 }
             };
 

@@ -6,18 +6,25 @@ namespace MyParcelNL\Magento\Service\AccountSettings;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
-use MyParcelNL\Sdk\Model\Account\CarrierOptions;
+use MyParcelNL\Magento\Service\LogContext;
+use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Services\Web\AccountWebService;
-use MyParcelNL\Sdk\Services\Web\CarrierOptionsWebService;
 use MyParcelNL\Sdk\Support\Collection;
 use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Fetches a MyParcel account's settings and caches them under the api key's fingerprint (see
  * Config::XML_PATH_ACCOUNT_SETTINGS for why that is the key). Shared by the *Import MyParcel Backoffice
  * settings* button and the automatic import on an api key change.
+ *
+ * Two sources, one row: the account and its shop come from the SDK's account web service, the
+ * contract definitions from the capabilities client, one call per configured carrier.
  *
  * Throws whatever the SDK throws: an invalid key must surface, but must not abort a config save, so the
  * observer catches it.
@@ -28,17 +35,23 @@ class Importer
     private ScopeConfigInterface $scopeConfig;
     private Fingerprint          $fingerprint;
     private LoggerInterface      $logger;
+    private Client               $client;
+    private UserAgent            $userAgent;
 
     public function __construct(
         WriterInterface      $configWriter,
         ScopeConfigInterface $scopeConfig,
         Fingerprint          $fingerprint,
-        LoggerInterface      $logger
+        LoggerInterface      $logger,
+        Client               $client,
+        UserAgent            $userAgent
     ) {
         $this->configWriter = $configWriter;
         $this->scopeConfig  = $scopeConfig;
         $this->fingerprint  = $fingerprint;
         $this->logger       = $logger;
+        $this->client       = $client;
+        $this->userAgent    = $userAgent;
     }
 
     /**
@@ -87,24 +100,67 @@ class Importer
      */
     private function fetchConfigurations(string $apiKey): Collection
     {
-        $accountService = (new AccountWebService())->setApiKey($apiKey);
+        $accountService = (new AccountWebService())->setUserAgents($this->userAgent->map())
+                                                   ->setApiKey($apiKey);
 
         // each api key points to a specific shop in an account, so we can just take the first one.
         $account = $accountService->getAccount();
         $shop    = $account->getShops()
                            ->first()
         ;
-        $shopId                     = $shop->getId();
-        $optionConfigurationService = (new CarrierOptionsWebService())->setApiKey($apiKey);
-        $optionConfiguration        = $optionConfigurationService->getCarrierOptions($shopId);
 
         return new Collection(
             [
-                'shop'            => $shop,
-                'account'         => $account,
-                'carrier_options' => $optionConfiguration,
+                'shop'                 => $shop,
+                'account'              => $account,
+                'contract_definitions' => $this->fetchContractDefinitions($apiKey),
             ]
         );
+    }
+
+    /**
+     * One call per carrier the module has settings for, flattened: every item names its own carrier,
+     * so the stored list is exactly what CapabilitySet::fromContractDefinitionItems() reads.
+     *
+     * A carrier the account has no contract for must not fail the import — it is the normal case for
+     * most accounts, and FR-000010 asks that we degrade to what we do know.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function fetchContractDefinitions(string $apiKey): array
+    {
+        $definitions = [];
+
+        foreach (array_keys(Config::CARRIERS_XML_PATH_MAP) as $carrierName) {
+            $v2Carrier = Carrier::toV2Name((string) $carrierName);
+
+            if (null === $v2Carrier) {
+                Logger::notice(sprintf('No v2 name for carrier "%s"; contract definitions skipped.', $carrierName));
+                continue;
+            }
+
+            try {
+                foreach ($this->client->sendContractDefinitions($apiKey, $v2Carrier) as $item) {
+                    if (is_array($item)) {
+                        $definitions[] = $item;
+                    }
+                }
+            } catch (Throwable $e) {
+                Logger::notice(
+                    sprintf('No contract definitions for carrier "%s"', $carrierName),
+                    LogContext::of($e)
+                );
+            }
+        }
+
+        if ([] === $definitions) {
+            Logger::warning(
+                'No contract definitions could be fetched for any carrier; capability-bounded admin '
+                . 'screens will fall open until the next import.'
+            );
+        }
+
+        return $definitions;
     }
 
     /**
@@ -118,29 +174,16 @@ class Importer
         $shop = $settings->get('shop');
         /** @var \MyParcelNL\Sdk\Model\Account\Account $account */
         $account = $settings->get('account');
-        /** @var \MyParcelNL\Sdk\Model\Account\CarrierOptions[]|Collection $carrierOptions */
-        $carrierOptions = $settings->get('carrier_options');
 
         return [
-            'shop'            => [
+            'shop'                 => [
                 'id'   => $shop->getId(),
                 'name' => $shop->getName(),
             ],
-            'account'         => $account->toArray(),
-            'carrier_options' => array_map(static function (CarrierOptions $carrierOptions) {
-                $carrier = $carrierOptions->getCarrier();
-                return [
-                    'carrier'  => [
-                        'human' => $carrier->getHuman(),
-                        'id'    => $carrier->getId(),
-                        'name'  => $carrier->getName(),
-                    ],
-                    'enabled'  => $carrierOptions->isEnabled(),
-                    'label'    => $carrierOptions->getLabel(),
-                    'optional' => $carrierOptions->isOptional(),
-                    'type'     => $carrierOptions->getType(),
-                ];
-            }, $carrierOptions->all()),
+            'account'              => $account->toArray(),
+            // Stored verbatim: a generated model is an allow-list and would drop the insurance
+            // bounds the settings screen reads.
+            'contract_definitions' => $settings->get('contract_definitions'),
         ];
     }
 }
