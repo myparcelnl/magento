@@ -6,7 +6,6 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Block\System\Config\Form\ApiAccessTokenButton;
-use MyParcelNL\Magento\Service\Settings;
 
 /**
  * Subclass exposing a stub getCurrentScope() so we can exercise getScopeComment()
