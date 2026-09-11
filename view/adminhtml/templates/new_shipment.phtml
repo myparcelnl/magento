@@ -1,8 +1,13 @@
 <?php
 /** @var \MyParcelNL\Magento\Block\Sales\NewShipment $block */
+/** @var \Magento\Framework\Escaper $escaper */
 
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+// Resolved first: the notice below reports on it, and every loop reads from it.
+$carriers = $block->getFormCarriers();
+$form     = $block->getNewShipmentForm();
 
+// Do not change the nesting depth of the carrier and package-type wrappers. new-shipment.js walks
+// element.parentNode.parentNode to find the data-for_mypa_carrier element it belongs to.
 ?>
 <input name="mypa_extra_options_checkboxes_in_form" value="1" type="hidden" /><!-- MyParcel options -->
 <div class="field choice admin__field admin__field-option field-mypa_create_from_observer mypa_create_from_observer-toggle">
@@ -14,212 +19,153 @@ use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
         type="checkbox"
         checked="checked" />
     <label class="admin__field-label" for="mypa_create_from_observer">
-        <span><?= ($block->isOrderManagementEnabled()) ? __('Export Entire Order') : __('Create MyParcel consignment') ?></span>
+        <span><?= $block->isOrderManagementEnabled() ? __('Export Entire Order') : __('Create MyParcel consignment') ?></span>
     </label>
 </div>
-<?php
-$form = $block->getNewShipmentForm();
-foreach ($form->getCarrierSpecificAbstractConsignments() as $abstractConsignment) {
-    $abstractConsignment->setCountry($block->getCountry());
-    $carrier      = $abstractConsignment->getCarrier();
-    $carrierName  = $carrier->getName();
-    $carrierHuman = $carrier->getHuman();
-    ?>
-    <div class="field field-mypa_carrier_<?= $carrierName ?> mypa_carrier-toggle js--mypa-options" style="margin-top:
-    10px;">
+<?php if ($block->hasUnverifiedCapabilities()): ?>
+    <div class="message message-warning warning js--mypa-options" style="margin: 10px 0;">
+        <div><?= __(
+            'MyParcel could not confirm which options this account has, so every option is shown. '
+            . 'An option the account does not carry is refused when the shipment is exported.'
+        ) ?></div>
+    </div>
+<?php endif; ?>
+<?php foreach ($carriers as $carrier): ?>
+    <div
+        class="field field-mypa_carrier_<?= $escaper->escapeHtmlAttr($carrier['name']) ?> mypa_carrier-toggle js--mypa-options"
+        style="margin-top: 10px;">
         <div class="admin__field-control">
             <div class="admin__field admin__field-option">
                 <input
                     type="radio"
                     class="admin__control-radio"
-                    id="mypa_carrier_<?= $carrierName ?>"
+                    id="mypa_carrier_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"
                     name="mypa_carrier"
-                    value="<?= $carrierName ?>">
-                <label class="admin__field-label" for="mypa_carrier_<?= $carrierName ?>"><?= __(
-                        $carrierHuman
-                    ) ?></label>
+                    value="<?= $escaper->escapeHtmlAttr($carrier['name']) ?>">
+                <label
+                    class="admin__field-label"
+                    for="mypa_carrier_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"><?= __($carrier['human']) ?></label>
             </div>
         </div>
     </div>
     <div
         class="field field-mypa_package_type js--mypa-options"
-        data-for_mypa_carrier="<?= $carrierName ?>"
+        data-for_mypa_carrier="<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"
         style="margin: 10px 0 0 30px;">
         <div class="admin__field-control">
-            <?php
-            $country = $block->getCountry();
-            foreach ($abstractConsignment->getAllowedPackageTypes() as $packageTypeName) {
-                $packageTypeId = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName];
-                if (AbstractConsignment::CC_NL !== $country) {
-                    if ($packageTypeId === AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP) {
-                        continue;
-                    }
-                    if ($packageTypeId === AbstractConsignment::PACKAGE_TYPE_MAILBOX && $carrierName !== 'postnl') {
-                        continue;
-                    }
-                }
-                $packageTypeHuman = $form::PACKAGE_TYPE_HUMAN_MAP[$packageTypeId] ?? $packageTypeName;
+            <?php foreach ($carrier['packageTypes'] as $packageType):
+                $suffix = $escaper->escapeHtmlAttr($carrier['name'] . '_' . $packageType['id']);
+                $ptName = $escaper->escapeHtmlAttr($packageType['name']);
                 ?>
                 <div class="admin__field admin__field-option">
                     <input
                         type="radio"
                         class="admin__control-radio"
-                        id="mypa_package_type-<?= $packageTypeName ?>_<?= $carrierName ?>"
+                        id="mypa_package_type-<?= $ptName ?>_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"
                         name="mypa_package_type"
-                        value="<?= $packageTypeName ?>">
+                        value="<?= $ptName ?>">
                     <label
                         class="admin__field-label"
-                        for="mypa_package_type-<?= $packageTypeName ?>_<?= $carrierName ?>"><?= __(
-                            $packageTypeHuman
-                        ) ?></label>
-                    <?php
-                    if (AbstractConsignment::PACKAGE_TYPE_DIGITAL_STAMP === $packageTypeId) {
-                        $weight = $block->getDigitalStampWeight(); ?>
-                        <span data-for_mypa_package_type="<?= $packageTypeName ?>" data-weight="<?= $weight ?>">
+                        for="mypa_package_type-<?= $ptName ?>_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"><?= __($packageType['human']) ?></label>
+                    <?php if (null !== $packageType['weights']): ?>
+                        <span data-for_mypa_package_type="<?= $ptName ?>" data-weight="<?= (int) $block->getDigitalStampWeight() ?>">
                             <select
                                 name="mypa_digital_stamp_weight"
-                                id="mypa_digital_stamp_weight_<?= $carrierName ?>"
+                                id="mypa_digital_stamp_weight_<?= $escaper->escapeHtmlAttr($carrier['name']) ?>"
                                 class="required product-custom-option admin__control-select"
                                 style="margin: 10px 0 0 30px"
                                 title="">
-                                <option value="0">No standard weight</option>
-                                <option
-                                    value="20" <?= 20 >= $weight
-                                    ? 'selected="selected"'
-                                    : '' ?> >0 - 20 gram
-                                </option>
-                                <option
-                                    value="50" <?= 50 >= $weight && 20 < $weight
-                                    ? 'selected="selected"'
-                                    : '' ?> >20 - 50 gram
-                                </option>
-                                <option
-                                    value="100" <?= 100 >= $weight && 50 < $weight
-                                    ? 'selected="selected"'
-                                    : '' ?> >50 - 100 gram
-                                </option>
-                                <option
-                                    value="350" <?= 350 >= $weight && 100 < $weight
-                                    ? 'selected="selected"'
-                                    : '' ?> >100 - 350 gram
-                                </option>
-                                <option
-                                    value="2000" <?= 2000 >= $weight && 350 < $weight
-                                    ? 'selected="selected"'
-                                    : '' ?> >350 - 2000 gram
-                                </option>
+                                <?php foreach ($packageType['weights'] as $weight): ?>
+                                    <option
+                                        value="<?= (int) $weight['value'] ?>"
+                                        <?= $weight['selected'] ? 'selected="selected"' : '' ?>><?= $escaper->escapeHtml($weight['label']) ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </span>
-                        <?php
-                    } // end only digital stamp
-                    ?>
+                    <?php endif; ?>
                 </div>
 
                 <div
-                    class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle
-    mypa-option-toggle" style="padding-left: 30px;" data-for_mypa_package_type="<?= $packageTypeName ?>">
-                    <label
-                        class="admin__field-label"
-                        for="mypa_label_amount_<?= $carrierName ?>_<?= $packageTypeId ?>"
-                        style="display: block">
+                    class="field choice admin__field admin__field-option field-mypa_label_amount mypa_package-toggle mypa-option-toggle"
+                    style="padding-left: 30px;"
+                    data-for_mypa_package_type="<?= $ptName ?>">
+                    <label class="admin__field-label" for="mypa_label_amount_<?= $suffix ?>" style="display: block">
                         <span><?= __('Label amount:') ?></span>
                     </label>
-                    <?php $label_amount = 1; ?>
                     <select
                         name="mypa_label_amount"
-                        id="mypa_label_amount_<?= $carrierName ?>_<?= $packageTypeId ?>"
+                        id="mypa_label_amount_<?= $suffix ?>"
                         class="required product-custom-option admin__control-select"
                         title="">
-                        <?php
-                        while ($label_amount <= 10) {
-                            echo '<option value="', $label_amount, '" >', __($label_amount), '</option>';
-                            $label_amount++;
-                        }
-                        ?>
+                        <?php for ($amount = 1; $amount <= 10; $amount++): ?>
+                            <option value="<?= $amount ?>"><?= __((string) $amount) ?></option>
+                        <?php endfor; ?>
                     </select>
                 </div>
-                <?php
-                try {
-                    $abstractConsignment->setPackageType($packageTypeId);
-                } catch (\Exception $e) {
-                    continue;
-                }
-                foreach ($abstractConsignment->getAllowedShipmentOptions() as $shipmentOption) {
-                    if (AbstractConsignment::SHIPMENT_OPTION_INSURANCE === $shipmentOption
-                        || ! $block->consignmentHasShipmentOption($abstractConsignment, $shipmentOption)
-                    ) {
-                        continue;
-                    }
+
+                <?php foreach ($packageType['options'] as $option):
+                    $optionId = 'mypa_' . $escaper->escapeHtmlAttr($option) . '_' . $suffix;
                     ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
-                        data-for_mypa_package_type="<?= $packageTypeName ?>"
+                        data-for_mypa_package_type="<?= $ptName ?>"
                         style="padding-left:30px;">
                         <input
-                            id="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>"
+                            id="<?= $optionId ?>"
                             class="admin__control-checkbox"
-                            name="mypa_<?= $shipmentOption ?>"
+                            name="mypa_<?= $escaper->escapeHtmlAttr($option) ?>"
                             value="1"
                             type="checkbox"
-                            <?= $block->hasDefaultOption($shipmentOption, $carrierName)
-                                ? 'checked="checked"'
-                                : '' ?>
-                        />
-                        <label
-                            class="admin__field-label"
-                            for="mypa_<?= $shipmentOption ?>_<?= $carrierName ?>_<?= $packageTypeId ?>">
-                            <span><?= $form->getShipmentOptionsHumanMap()[$shipmentOption] ?? $shipmentOption ?></span>
+                            <?= $block->hasDefaultOption($option, $carrier['name']) ? 'checked="checked"' : '' ?> />
+                        <label class="admin__field-label" for="<?= $optionId ?>">
+                            <span><?= $form->getShipmentOptionsHumanMap()[$option] ?? $escaper->escapeHtml($option) ?></span>
                         </label>
                     </div>
+                <?php endforeach; ?>
 
-                    <?php
-                }
-
-                if ($abstractConsignment->canHaveShipmentOption(AbstractConsignment::SHIPMENT_OPTION_INSURANCE)) {
-                    ?>
+                <?php if (null !== $packageType['insurance']): ?>
                     <div
                         class="field choice admin__field admin__field-option field-mypa_insurance mypa_package-toggle mypa-option-toggle"
-                        data-for_mypa_package_type="<?= $packageTypeName ?>"
+                        data-for_mypa_package_type="<?= $ptName ?>"
                         style="padding-left:30px;">
                         <label class="admin__field-label" for="mypa_insurance" style="display: block">
-                            <span><?= __('Insured up to:') ?></span>
+                            <span><?= $escaper->escapeHtml(__('Insured up to:')) ?></span>
                         </label>
-                        <?php $defaultInsurance = $block->getDefaultInsurance($carrierName); ?>
-                        <select
+                        <input
+                            type="number"
                             name="mypa_insurance"
                             id="mypa_insurance"
-                            class="required product-custom-option admin__control-select"
-                            title="">
-                            <option value="0"><?= __('No insurance') ?></option>
-                            <?php
-                            foreach ($abstractConsignment->getInsurancePossibilities($block->getCountry()) as $insuranceAmount) {
-                                printf(
-                                    '<option value="%1$s" %2$s>€ %1$s</option>',
-                                    $insuranceAmount,
-                                    $insuranceAmount === $defaultInsurance
-                                        ? 'selected="selected"'
-                                        : ''
-                                );
-                            }
-                            ?>
-                        </select>
+                            step="1"
+                            min="<?= (int) $packageType['insurance']['floor'] ?>"
+                            <?php if (null !== $packageType['insurance']['max']): ?>
+                                max="<?= (int) $packageType['insurance']['max'] ?>"
+                            <?php endif; ?>
+                            value="<?= (int) $packageType['insurance']['default'] ?>"
+                            class="required product-custom-option admin__control-text"
+                            title=""/>
+                        <?php if (null !== $packageType['insurance']['max']): ?>
+                            <p class="note admin__field-note">
+                                <span><?= $escaper->escapeHtml(__(
+                                    $packageType['insurance']['required']
+                                        ? 'Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.'
+                                        : 'Your contract allows € %1 to € %2. Enter 0 to switch insurance off.',
+                                    (int) $packageType['insurance']['min'],
+                                    (int) $packageType['insurance']['max']
+                                )) ?></span>
+                            </p>
+                        <?php endif; ?>
                     </div>
-
-                    <?php
-                } // end can have insurance
-            } // end foreach packageType
-            ?>
+                <?php endif; ?>
+            <?php endforeach; ?>
         </div>
     </div>
-    <?php
-} // end foreach carrier
-?>
+<?php endforeach; ?>
 <script type="text/x-magento-init">
 {
     ".page-footer": {
         "myparcelnl_newshipment": {
-            "carrier": "<?= $block->getCarrier() ?>",
-            "packageType":"<?= array_flip(AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP)[$block->getPackageType()] ?>"}
+            "carrier": "<?= $escaper->escapeJs($block->getCarrier()) ?>",
+            "packageType": "<?= $escaper->escapeJs($block->getPackageTypeName()) ?>"}
     }
 }
 </script>

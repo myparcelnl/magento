@@ -22,18 +22,15 @@ use Psr\Log\LoggerInterface;
  */
 function accountSettingsScopeConfig(array $apiKeyByCoordinate): ScopeConfigInterface
 {
-    $config = Mockery::mock(ScopeConfigInterface::class);
-    $config->shouldReceive('getValue')->andReturnUsing(
-        function (string $path, string $scope = 'default', $scopeId = null) use ($apiKeyByCoordinate) {
-            if (Config::XML_PATH_API_KEY !== $path) {
-                return null;
-            }
-
-            $coordinate = 'default' === $scope ? 'default' : $scope . ':' . (int) $scopeId;
-
-            return $apiKeyByCoordinate[$coordinate] ?? null;
+    $config = mockScopeConfig([], function (string $path, string $scope = 'default', $scopeId = null) use ($apiKeyByCoordinate) {
+        if (Config::XML_PATH_API_KEY !== $path) {
+            return null;
         }
-    );
+
+        $coordinate = 'default' === $scope ? 'default' : $scope . ':' . (int) $scopeId;
+
+        return $apiKeyByCoordinate[$coordinate] ?? null;
+    });
 
     return $config;
 }

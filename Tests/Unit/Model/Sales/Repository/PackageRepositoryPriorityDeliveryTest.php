@@ -10,13 +10,12 @@ use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
  */
 function createPackageRepository(bool $generalActive, array $productFlags): PackageRepository
 {
-    /** @var PackageRepository|Mockery\MockInterface $repository */
-    $repository = Mockery::mock(PackageRepository::class)
-        ->makePartial()
-        ->shouldAllowMockingProtectedMethods();
+    $repository = makePackageRepository();
 
+    // The second argument is the store the package is scoped to; null on a repository nobody has
+    // called setStoreId() on, which means "resolve against the ambient store".
     $repository->shouldReceive('getConfigValue')
-        ->with('myparcelnl_magento_postnl_settings/mailbox/priority_delivery_active')
+        ->with('myparcelnl_magento_postnl_settings/mailbox/priority_delivery_active', null)
         ->andReturn($generalActive ? '1' : '0');
 
     $repository->shouldReceive('getProductPriorityDelivery')

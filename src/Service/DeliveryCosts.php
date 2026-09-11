@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCosts
@@ -75,8 +76,8 @@ class DeliveryCosts
         $defaultOptions = new DefaultOptions($quote);
 
         $carrierName = $carrierName ?? $defaultOptions->getCarrierName();
-        $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
-        $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
+        $packageType = PackageType::NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
+        $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? CountryCode::CC_NL;
         $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
                        + $this->weight->getQuoteWeightInGrams($quote);
 
@@ -216,12 +217,15 @@ class DeliveryCosts
 
 
     /**
+     * Rounded, not truncated: 0.29 * 100 is 28.999999999999996 in binary floating point, and a cast
+     * would make 29 cents into 28 — on a customs value, a delivery cost and an insured amount alike.
+     *
      * @param float $price in Euros
      *
      * @return int price in cents
      */
     public static function getPriceInCents(float $price): int
     {
-        return (int) ($price * 100);
+        return (int) round($price * 100);
     }
 }

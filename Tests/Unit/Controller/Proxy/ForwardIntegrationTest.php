@@ -2,10 +2,6 @@
 
 declare(strict_types=1);
 
-use GuzzleHttp\Client as GuzzleClient;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Magento\Framework\App\RequestInterface;
@@ -16,7 +12,6 @@ use MyParcelNL\Magento\Service\Proxy\Client;
 use MyParcelNL\Magento\Service\Proxy\CorsHandler;
 use MyParcelNL\Magento\Service\Proxy\Forwarder;
 use MyParcelNL\Magento\Tests\Stub\RequestWithHeaders;
-use Psr\Log\LoggerInterface;
 
 /**
  * Build the real Forward + CorsHandler + Forwarder + Client graph, with
@@ -34,18 +29,9 @@ function makeForwardStack(
     $config = Mockery::mock(Config::class);
     $config->shouldReceive('getGeneralConfig')->with('api/key')->andReturn($apiKey);
 
-    $logger = Mockery::mock(LoggerInterface::class);
-    foreach (['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug', 'log'] as $level) {
-        $logger->shouldReceive($level)->byDefault();
-    }
+    $http = makeGuzzleWithHistory($responses);
 
-    $history     = [];
-    $mockHandler = new MockHandler($responses);
-    $stack       = HandlerStack::create($mockHandler);
-    $stack->push(Middleware::history($history));
-    $httpClient  = new GuzzleClient(['handler' => $stack]);
-
-    $client       = new Client($config, $logger, $httpClient);
+    $client       = new Client($config, makePermissiveLogger(), $http['client']);
     $bag          = captureRawResult();
     $rawFactory   = mockRawFactoryReturning($bag['raw']);
     $storeManager = mockStoreManagerWithBaseUrls($storeBaseUrls);
@@ -54,7 +40,7 @@ function makeForwardStack(
 
     return [
         'controller' => new Forward($request, $forwarder, $cors),
-        'history'    => &$history,
+        'history'    => &$http['history'],
         'bag'        => $bag,
     ];
 }
