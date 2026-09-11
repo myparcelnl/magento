@@ -4,20 +4,8 @@ declare(strict_types=1);
 
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item as QuoteItem;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Weight;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
-
-function createConfig(array $values = []): Config
-{
-    $config = Mockery::mock(Config::class);
-    $config->shouldReceive('getGeneralConfig')
-        ->andReturnUsing(function (string $code) use ($values) {
-            return $values[$code] ?? null;
-        });
-
-    return $config;
-}
 
 function createQuoteItem(float $weight, float $qty): QuoteItem
 {
@@ -64,14 +52,14 @@ it('returns configured weight for package type', function () {
     $config = createConfig(['empty_package_weight/package' => '200']);
     $weight = new Weight($config);
 
-    expect($weight->getEmptyPackageWeightInGrams(AbstractConsignment::PACKAGE_TYPE_PACKAGE))->toBe(200);
+    expect($weight->getEmptyPackageWeightInGrams(PackageType::PACKAGE))->toBe(200);
 });
 
 it('returns configured weight for mailbox type', function () {
     $config = createConfig(['empty_package_weight/mailbox' => '50']);
     $weight = new Weight($config);
 
-    expect($weight->getEmptyPackageWeightInGrams(AbstractConsignment::PACKAGE_TYPE_MAILBOX))->toBe(50);
+    expect($weight->getEmptyPackageWeightInGrams(PackageType::MAILBOX))->toBe(50);
 });
 
 it('returns 0 for invalid package type', function () {
@@ -142,4 +130,17 @@ it('returns DEFAULT_WEIGHT for empty quote', function () {
     $quote->shouldReceive('getAllItems')->andReturn([]);
 
     expect($weight->getQuoteWeightInGrams($quote))->toBe(Weight::DEFAULT_WEIGHT);
+});
+
+/**
+ * Pallet and envelope are valid ids now but have no empty_package_weight setting, so the answer
+ * must stay 0 — widening the vocabulary was meant to be inert here.
+ */
+it('returns 0 for package types that have no empty weight configured', function () {
+    $config = createConfig(['empty_package_weight/package' => '200']);
+    $weight = new Weight($config);
+
+    expect($weight->getEmptyPackageWeightInGrams(PackageType::PALLET))->toBe(0)
+        ->and($weight->getEmptyPackageWeightInGrams(PackageType::ENVELOPE))->toBe(0)
+        ->and($weight->getEmptyPackageWeightInGrams(PackageType::PACKAGE))->toBe(200);
 });
