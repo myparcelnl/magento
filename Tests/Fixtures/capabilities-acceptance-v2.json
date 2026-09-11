@@ -1,0 +1,484 @@
+[
+    {
+        "carrier": "POSTNL",
+        "packageTypes": [
+            "PACKAGE"
+        ],
+        "deliveryTypes": [
+            "STANDARD_DELIVERY",
+            "MORNING_DELIVERY",
+            "EVENING_DELIVERY",
+            "PICKUP_DELIVERY"
+        ],
+        "options": {
+            "requiresAgeVerification": {
+                "requires": [
+                    "recipientOnlyDelivery",
+                    "requiresSignature"
+                ],
+                "excludes": [
+                    "printReturnLabelAtDropOff",
+                    "requiresReceiptCode"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "insurance": {
+                "requires": [
+                    "requiresSignature",
+                    "recipientOnlyDelivery"
+                ],
+                "excludes": [
+                    "printReturnLabelAtDropOff"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false,
+                "default": {
+                    "amount": 0,
+                    "currency": "EUR"
+                },
+                "max": {
+                    "amount": 500000,
+                    "currency": "EUR"
+                },
+                "min": {
+                    "amount": 0,
+                    "currency": "EUR"
+                },
+                "insuredAmount": {
+                    "default": {
+                        "amount": 0,
+                        "currency": "EUR"
+                    },
+                    "max": {
+                        "amount": 500000,
+                        "currency": "EUR"
+                    },
+                    "min": {
+                        "amount": 0,
+                        "currency": "EUR"
+                    }
+                }
+            },
+            "recipientOnlyDelivery": {
+                "requires": [],
+                "excludes": [
+                    "printReturnLabelAtDropOff",
+                    "requiresReceiptCode"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "requiresReceiptCode": {
+                "requires": [
+                    "insurance"
+                ],
+                "excludes": [
+                    "requiresAgeVerification",
+                    "recipientOnlyDelivery",
+                    "printReturnLabelAtDropOff",
+                    "returnOnFirstFailedDelivery",
+                    "requiresSignature"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "returnOnFirstFailedDelivery": {
+                "requires": [],
+                "excludes": [
+                    "printReturnLabelAtDropOff",
+                    "requiresReceiptCode"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "requiresSignature": {
+                "requires": [],
+                "excludes": [
+                    "printReturnLabelAtDropOff",
+                    "requiresReceiptCode"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "oversizedPackage": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            }
+        },
+        "collo": {
+            "max": 20
+        }
+    },
+    {
+        "carrier": "UPS_STANDARD",
+        "packageTypes": [
+            "PACKAGE"
+        ],
+        "deliveryTypes": [
+            "STANDARD_DELIVERY",
+            "PICKUP_DELIVERY"
+        ],
+        "options": {
+            "insurance": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false,
+                "default": {
+                    "amount": 8500,
+                    "currency": "EUR"
+                },
+                "max": {
+                    "amount": 500000,
+                    "currency": "EUR"
+                },
+                "min": {
+                    "amount": 8500,
+                    "currency": "EUR"
+                },
+                "insuredAmount": {
+                    "default": {
+                        "amount": 8500,
+                        "currency": "EUR"
+                    },
+                    "max": {
+                        "amount": 500000,
+                        "currency": "EUR"
+                    },
+                    "min": {
+                        "amount": 8500,
+                        "currency": "EUR"
+                    }
+                }
+            },
+            "requiresSignature": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "recipientOnlyDelivery": {
+                "requires": [],
+                "excludes": [
+                    "requiresAgeVerification"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "requiresAgeVerification": {
+                "requires": [
+                    "requiresSignature"
+                ],
+                "excludes": [
+                    "recipientOnlyDelivery"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "scheduledCollection": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            }
+        },
+        "collo": {
+            "max": 20
+        }
+    },
+    {
+        "carrier": "UPS_EXPRESS_SAVER",
+        "packageTypes": [
+            "PACKAGE"
+        ],
+        "deliveryTypes": [
+            "EXPRESS_DELIVERY",
+            "PICKUP_DELIVERY"
+        ],
+        "options": {
+            "insurance": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false,
+                "default": {
+                    "amount": 8500,
+                    "currency": "EUR"
+                },
+                "max": {
+                    "amount": 500000,
+                    "currency": "EUR"
+                },
+                "min": {
+                    "amount": 8500,
+                    "currency": "EUR"
+                },
+                "insuredAmount": {
+                    "default": {
+                        "amount": 8500,
+                        "currency": "EUR"
+                    },
+                    "max": {
+                        "amount": 500000,
+                        "currency": "EUR"
+                    },
+                    "min": {
+                        "amount": 8500,
+                        "currency": "EUR"
+                    }
+                }
+            },
+            "requiresSignature": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "recipientOnlyDelivery": {
+                "requires": [],
+                "excludes": [
+                    "requiresAgeVerification"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "requiresAgeVerification": {
+                "requires": [
+                    "requiresSignature"
+                ],
+                "excludes": [
+                    "recipientOnlyDelivery"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "scheduledCollection": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            }
+        },
+        "collo": {
+            "max": 20
+        }
+    },
+    {
+        "carrier": "DHL_EUROPLUS",
+        "packageTypes": [
+            "PACKAGE"
+        ],
+        "deliveryTypes": [
+            "STANDARD_DELIVERY",
+            "MORNING_DELIVERY"
+        ],
+        "options": {
+            "hideSender": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "insurance": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false,
+                "default": {
+                    "amount": 0,
+                    "currency": "EUR"
+                },
+                "max": {
+                    "amount": 500000,
+                    "currency": "EUR"
+                },
+                "min": {
+                    "amount": 0,
+                    "currency": "EUR"
+                },
+                "insuredAmount": {
+                    "default": {
+                        "amount": 0,
+                        "currency": "EUR"
+                    },
+                    "max": {
+                        "amount": 500000,
+                        "currency": "EUR"
+                    },
+                    "min": {
+                        "amount": 0,
+                        "currency": "EUR"
+                    }
+                }
+            },
+            "saturdayDelivery": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "requiresSignature": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": true,
+                "isRequired": true
+            }
+        },
+        "collo": {
+            "max": 1
+        }
+    },
+    {
+        "carrier": "DHL_FOR_YOU",
+        "packageTypes": [
+            "PACKAGE"
+        ],
+        "deliveryTypes": [
+            "STANDARD_DELIVERY",
+            "EVENING_DELIVERY",
+            "PICKUP_DELIVERY"
+        ],
+        "options": {
+            "requiresAgeVerification": {
+                "requires": [],
+                "excludes": [
+                    "recipientOnlyDelivery",
+                    "printReturnLabelAtDropOff"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "hideSender": {
+                "requires": [],
+                "excludes": [
+                    "printReturnLabelAtDropOff",
+                    "insurance"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "insurance": {
+                "requires": [
+                    "requiresSignature"
+                ],
+                "excludes": [
+                    "hideSender",
+                    "printReturnLabelAtDropOff"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false,
+                "default": {
+                    "amount": 0,
+                    "currency": "EUR"
+                },
+                "max": {
+                    "amount": 500000,
+                    "currency": "EUR"
+                },
+                "min": {
+                    "amount": 0,
+                    "currency": "EUR"
+                },
+                "insuredAmount": {
+                    "default": {
+                        "amount": 0,
+                        "currency": "EUR"
+                    },
+                    "max": {
+                        "amount": 500000,
+                        "currency": "EUR"
+                    },
+                    "min": {
+                        "amount": 0,
+                        "currency": "EUR"
+                    }
+                }
+            },
+            "recipientOnlyDelivery": {
+                "requires": [],
+                "excludes": [
+                    "printReturnLabelAtDropOff",
+                    "requiresAgeVerification"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "sameDayDelivery": {
+                "requires": [],
+                "excludes": [
+                    "saturdayDelivery",
+                    "printReturnLabelAtDropOff"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            },
+            "requiresSignature": {
+                "requires": [],
+                "excludes": [
+                    "printReturnLabelAtDropOff"
+                ],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            }
+        },
+        "collo": {
+            "max": 1
+        }
+    },
+    {
+        "carrier": "DPD",
+        "packageTypes": [
+            "PACKAGE"
+        ],
+        "deliveryTypes": [
+            "STANDARD_DELIVERY",
+            "PICKUP_DELIVERY"
+        ],
+        "options": {
+            "insurance": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": true,
+                "isRequired": true,
+                "default": {
+                    "amount": 52000,
+                    "currency": "EUR"
+                },
+                "max": {
+                    "amount": 52000,
+                    "currency": "EUR"
+                },
+                "min": {
+                    "amount": 52000,
+                    "currency": "EUR"
+                },
+                "insuredAmount": {
+                    "default": {
+                        "amount": 52000,
+                        "currency": "EUR"
+                    },
+                    "max": {
+                        "amount": 52000,
+                        "currency": "EUR"
+                    },
+                    "min": {
+                        "amount": 52000,
+                        "currency": "EUR"
+                    }
+                }
+            },
+            "saturdayDelivery": {
+                "requires": [],
+                "excludes": [],
+                "isSelectedByDefault": false,
+                "isRequired": false
+            }
+        },
+        "collo": {
+            "max": 1
+        }
+    }
+]

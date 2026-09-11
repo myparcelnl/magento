@@ -207,6 +207,9 @@
 
         <myparcelnl_magento_ups_settings>
             <default_options>
+                <insurance_from_price>0</insurance_from_price>
+                <insurance_local_amount>0</insurance_local_amount>
+                <insurance_percentage>0</insurance_percentage>
                 <delivery_fee>0</delivery_fee>
             </default_options>
             <general>

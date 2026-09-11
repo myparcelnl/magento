@@ -14,68 +14,17 @@
 
 namespace MyParcelNL\Magento\Block\Sales;
 
-use Magento\Backend\Block\Template;
-use Magento\Backend\Block\Template\Context;
-use Magento\Framework\App\ObjectManager;
-use MyParcelNL\Magento\Service\Config;
-
-class ShipmentsAction extends Template
+/**
+ * The shipment grid's MyParcel actions.
+ *
+ * Everything it needs is OrdersAction's, which OrderAction and ShipmentAction already extend for the
+ * same reason. It differs only in which grid it renders on, and therefore which grid the export
+ * refreshes.
+ */
+class ShipmentsAction extends OrdersAction
 {
-    private Config $config;
-
-    /**
-     * @param Context $context
-     * @param array   $data
-     */
-    public function __construct(
-        Context $context,
-        array   $data = []
-    )
+    public function getGridDataSource(): string
     {
-        $this->config = (ObjectManager::getInstance())->get(Config::class);
-
-        parent::__construct($context, $data);
-    }
-
-    /**
-     * Get url to create and print MyParcel track
-     *
-     * @return string
-     */
-    public function getOrderAjaxUrl(): string
-    {
-        return $this->_urlBuilder->getUrl('myparcel/order/CreateAndPrintMyParcelTrack');
-    }
-
-    /**
-     * Get url to create and print MyParcel track
-     *
-     * @return string
-     */
-    public function getShipmentAjaxUrl(): string
-    {
-        return $this->_urlBuilder->getUrl('myparcel/shipment/CreateAndPrintMyParcelTrack');
-    }
-
-    /**
-     * Get url to send a mail with a return label
-     *
-     * @return string
-     */
-    public function getAjaxUrlSendReturnMail(): string
-    {
-        return $this->_urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail');
-    }
-
-    /**
-     * Get print settings
-     *
-     * @return string
-     */
-    public function getPrintSettings(): string
-    {
-        $settings = $this->config->getGeneralConfig('print');
-
-        return json_encode($settings);
+        return 'sales_order_shipment_grid.sales_order_shipment_grid_data_source';
     }
 }
