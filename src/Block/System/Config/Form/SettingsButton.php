@@ -8,9 +8,13 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Backend\Block\Widget\Button;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Settings;
 
 class SettingsButton extends Field
 {
+    public const BUTTON_ID = 'myparcel-account-settings-button';
+
     /**
      * Path to template file in theme.
      *
@@ -18,9 +22,28 @@ class SettingsButton extends Field
      */
     protected $_template = 'MyParcelNL_Magento::settings_button.phtml';
 
-    public function __construct(Context $context, array $data = [])
+    private Settings $settings;
+
+    public function __construct(Context $context, Settings $settings, array $data = [])
     {
         parent::__construct($context, $data);
+        $this->settings = $settings;
+    }
+
+    /**
+     * The scope the admin is editing, resolved here rather than parsed out of the URL in JavaScript.
+     *
+     * @return array{0: string, 1: int}
+     */
+    public function getCurrentScope(): array
+    {
+        return $this->settings->getCurrentScopeFromRequest($this->getRequest());
+    }
+
+    /** The api key input this button depends on, by the id the config form gives it. */
+    public function getApiKeyFieldId(): string
+    {
+        return str_replace('/', '_', Config::XML_PATH_API_KEY);
     }
 
     /**
@@ -69,7 +92,7 @@ class SettingsButton extends Field
         $button = $this->getLayout()
             ->createBlock(Button::class)
             ->setData([
-                'id'    => 'myparcel-account-settings-button',
+                'id'    => self::BUTTON_ID,
                 'label' => __('Import'),
             ]);
         return $button->toHtml();

@@ -9,6 +9,7 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\Serializer\Json;
+use MyParcelNL\Magento\Block\System\Config\Form\NoteProviderInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Settings;
 
@@ -24,6 +25,9 @@ class DynamicSettings extends Template
     private Config                 $config;
 
     private ?array $currentScope = null;
+
+    /** @var array<string, \Magento\Framework\View\Element\AbstractBlock> keyed by frontend model and field path */
+    private array $frontendModelBlocks = [];
 
     public function __construct(
         ObjectManagerInterface $objectManager,
@@ -185,6 +189,7 @@ class DynamicSettings extends Template
             $block = $this->getLayout()->createBlock($frontendModel);
             if ($block) {
                 $block->setData('field', $field);
+                $this->frontendModelBlocks[$this->frontendModelKey($frontendModel, $field)] = $block;
 
                 return $block->toHtml();
             }
@@ -193,6 +198,28 @@ class DynamicSettings extends Template
         }
 
         return '';
+    }
+
+    /**
+     * The note a frontend model computes at render time, for the template's note slot.
+     *
+     * Only answers after renderFrontendModel() has run for the same field: it reads the block that
+     * call kept, so a block that failed to build yields no note instead of a second exception.
+     *
+     * @param string $frontendModel
+     * @param array  $field
+     * @return string
+     */
+    public function getFrontendModelNote(string $frontendModel, array $field = []): string
+    {
+        $block = $this->frontendModelBlocks[$this->frontendModelKey($frontendModel, $field)] ?? null;
+
+        return $block instanceof NoteProviderInterface ? $block->getNote() : '';
+    }
+
+    private function frontendModelKey(string $frontendModel, array $field): string
+    {
+        return $frontendModel . '|' . ($field['path'] ?? '');
     }
 
     /**
