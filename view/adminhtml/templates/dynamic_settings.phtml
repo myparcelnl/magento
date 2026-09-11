@@ -80,6 +80,8 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                             $hasOwnValue     = $block->hasOwnValue($field);
                                             $hasDependencies = ! empty($field['depends']);
                                             $dependenciesMet = $block->areDependenciesMet($field);
+                                            // Filled by the frontend_model branch below, so it must reset per field.
+                                            $frontendModelNote = '';
                                             ?>
 
                                             <div class="admin__field field field-<?= $escaper->escapeHtmlAttr($field['id']) ?> <?= $hasDependencies && ! $dependenciesMet ? 'hidden-by-dependency' : '' ?>"
@@ -119,6 +121,7 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                     <?php if (isset($field['frontend_model'])): ?>
                                                         <!-- Custom frontend model -->
                                                         <?= $block->renderFrontendModel($field['frontend_model'], $field) ?>
+                                                        <?php $frontendModelNote = $block->getFrontendModelNote($field['frontend_model'], $field); ?>
                                                         <?php if ('delivery_costs_ui' === $field['id']): ?>
                                                             <!-- hidden default field for scoping -->
                                                             <input type="hidden"
@@ -235,9 +238,14 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                         </div>
                                                     <?php endif; ?>
 
-                                                    <?php if (! empty($field['comment'])): ?>
+                                                    <?php
+                                                    $note = '' !== $frontendModelNote
+                                                        ? $frontendModelNote
+                                                        : (empty($field['comment']) ? '' : (string) __($field['comment']));
+                                                    ?>
+                                                    <?php if ('' !== $note): ?>
                                                         <div class="admin__field-note">
-                                                            <?= $escaper->escapeHtml(__($field['comment'])) ?>
+                                                            <?= $escaper->escapeHtml($note) ?>
                                                         </div>
                                                     <?php endif; ?>
                                                 </div>
