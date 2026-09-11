@@ -6,14 +6,15 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\OrderAmount;
 use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Magento\Service\Weight;
-use MyParcelNL\Sdk\Adapter\DeliveryOptions\DeliveryOptionsV3Adapter;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 
 // End to end: the real DeliveryCosts, Checkout::getDeliveryData() and Carrier::getMethodAmount() on one matrix.
 
@@ -100,17 +101,17 @@ function parityOrderAmount(Config $config, float $orderAmount, string $deliveryT
 
     $checkoutData = [
         'carrier'         => $carrier,
-        'packageType'     => AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME,
+        'packageType'     => PackageType::PACKAGE_NAME,
         'deliveryType'    => $deliveryType,
         'shipmentOptions' => $shipmentOptions,
     ];
-    if (AbstractConsignment::DELIVERY_TYPE_PICKUP_NAME === $deliveryType) {
+    if (DeliveryType::PICKUP_NAME === $deliveryType) {
         $checkoutData['pickupLocation'] = [
             'location_name' => 'Shop', 'location_code' => 'X1', 'street' => 'Main',
             'number' => '1', 'postal_code' => '1000AA', 'city' => 'Amsterdam', 'cc' => 'NL',
         ];
     }
-    setPrivateProperty($method, 'deliveryOptions', new DeliveryOptionsV3Adapter($checkoutData));
+    setPrivateProperty($method, 'deliveryOptions', DeliveryOptions::fromCheckoutData($checkoutData));
 
     return invokePrivateMethod($method, 'getMethodAmount', [$quote]);
 }

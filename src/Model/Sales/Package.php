@@ -18,6 +18,7 @@
 
 namespace MyParcelNL\Magento\Model\Sales;
 
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Service\Config;
 
 class Package extends Config implements PackageInterface
@@ -70,7 +71,14 @@ class Package extends Config implements PackageInterface
     /**
      * @var string
      */
-    private $currentCountry = 'NL';
+    private $currentCountry = CountryCode::CC_NL;
+
+    /**
+     * Null resolves against the ambient store, which is only right in a storefront request.
+     *
+     * @var int|null
+     */
+    private $storeId = null;
 
     /**
      * @var int
@@ -258,6 +266,16 @@ class Package extends Config implements PackageInterface
     public function getCurrentCountry(): string
     {
         return $this->currentCountry;
+    }
+
+    public function getStoreId(): ?int
+    {
+        return $this->storeId;
+    }
+
+    public function setStoreId(?int $storeId): void
+    {
+        $this->storeId = $storeId;
     }
 
     /**

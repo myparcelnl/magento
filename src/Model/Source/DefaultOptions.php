@@ -16,14 +16,16 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Source;
 
-use Exception;
 use Magento\Framework\App\ObjectManager;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
+use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
+use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use Throwable;
 
 class DefaultOptions
@@ -40,6 +42,9 @@ class DefaultOptions
     private        $quote;
     private array  $chosenOptions;
 
+    /** @var array<string,array<string,mixed>> default_options per carrier; the form asks per option */
+    private array $settingsByCarrier = [];
+
     /**
      * In Magento both Order and Quote have getData() and getShippingAddress() methods.
      * However, they do not share an interface (?!), so we cannot type hint for both.
@@ -53,7 +58,7 @@ class DefaultOptions
         $this->config  = $objectManager->get(Config::class);
         $this->quote   = $quote;
         try {
-            $this->chosenOptions = DeliveryOptionsAdapterFactory::create(
+            $this->chosenOptions = DeliveryOptionsFactory::create(
                 (array) json_decode($quote->getData(Config::FIELD_DELIVERY_OPTIONS), true, 4, JSON_THROW_ON_ERROR)
             )->toArray();
         } catch (Throwable $e) {
@@ -62,16 +67,12 @@ class DefaultOptions
     }
 
     /**
-     * Get default of the option
-     *
-     * @param string $option 'only_recipient'|'signature'|'collect'|'receipt_code'|'return'|'large_format'
-     * @param string $carrier
-     *
-     * @return bool
+     * The order's default for an option: the checkout's choice, then what the products force
+     * (age check), then the carrier setting. The New Shipment page and the export both read this.
      */
     public function hasOptionSet(string $option, string $carrier): bool
     {
-        if (AbstractConsignment::SHIPMENT_OPTION_LARGE_FORMAT === $option) {
+        if (ShipmentOption::LARGE_FORMAT === $option) {
             return $this->hasDefaultLargeFormat($carrier, $option);
         }
 
@@ -81,6 +82,14 @@ class DefaultOptions
             $this->chosenOptions['shipmentOptions'][$option]
         ) {
             return true;
+        }
+
+        if (ShipmentOption::AGE_CHECK === $option) {
+            $fromProducts = ShipmentOptionsResolver::getAgeCheckFromProduct($this->quote->getItems() ?? []);
+
+            if (null !== $fromProducts) {
+                return $fromProducts;
+            }
         }
 
         return $this->hasDefaultOption($carrier, $option);
@@ -98,7 +107,7 @@ class DefaultOptions
     {
         $price = $this->quote->getGrandTotal();
 
-        $settings  = $this->config->getCarrierConfig($carrier, 'default_options', (int) $this->quote->getStoreId());
+        $settings  = $this->settingsFor($carrier);
         $activeKey = "{$option}_active";
 
         return isset($settings[$activeKey]) &&
@@ -114,7 +123,7 @@ class DefaultOptions
      */
     public function hasDefaultOption(string $carrier, string $option): bool
     {
-        $settings = $this->config->getCarrierConfig($carrier, 'default_options', (int) $this->quote->getStoreId());
+        $settings = $this->settingsFor($carrier);
 
         if ('1' !== ($settings["{$option}_active"] ?? null)) {
             return false;
@@ -127,40 +136,46 @@ class DefaultOptions
     }
 
     /**
-     * Get default value of insurance based on order grand total
+     * What the merchant's configuration asks for on this order, in whole euros.
      *
-     * @param string $carrier
+     * The destination decides which of the four configured caps applies. It does **not** bound the
+     * amount against the account's contract: that is one clamp, in ShipmentOptionsResolver, so the
+     * posted admin override goes through it too.
      *
-     * @return int
      * @throws \Exception
      */
     public function getDefaultInsurance(string $carrier): int
     {
         $shippingAddress = $this->quote->getShippingAddress();
-        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : AbstractConsignment::CC_NL;
+        $shippingCountry = $shippingAddress ? $shippingAddress->getCountryId() : CountryCode::CC_NL;
 
-        if (AbstractConsignment::CC_NL === $shippingCountry) {
-            return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT, $shippingCountry);
+        if (CountryCode::CC_NL === $shippingCountry) {
+            return $this->getInsurance($carrier, self::INSURANCE_LOCAL_AMOUNT);
         }
 
-        if (AbstractConsignment::CC_BE === $shippingCountry) {
-            return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT, $shippingCountry);
+        if (CountryCode::CC_BE === $shippingCountry) {
+            return $this->getInsurance($carrier, self::INSURANCE_BELGIUM_AMOUNT);
         }
 
-        if (in_array($shippingCountry, AbstractConsignment::EURO_COUNTRIES)) {
-            return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT, $shippingCountry);
+        if (CountryCode::isEu($shippingCountry)) {
+            return $this->getInsurance($carrier, self::INSURANCE_EU_AMOUNT);
         }
 
-        return $this->getInsurance($carrier, self::INSURANCE_ROW_AMOUNT, $shippingCountry);
+        return $this->getInsurance($carrier, self::INSURANCE_ROW_AMOUNT);
     }
 
     /**
-     * @throws Exception
+     * The insured value the order earns, never above the configured cap. Rounded up: under-insuring
+     * a parcel is the worse of the two errors.
+     *
+     * A cap of 0 means insurance is off. It is indistinguishable from a contract minimum of 0, which
+     * is a pre-existing ambiguity kept on purpose — reading 0 as "insure at the minimum" would switch
+     * insurance on for every merchant who never configured it.
      */
-    private function getInsurance(string $carrierName, string $priceKey, string $shippingCountry): int
+    private function getInsurance(string $carrierName, string $priceKey): int
     {
         $total                = $this->quote->getGrandTotal();
-        $settings             = $this->config->getCarrierConfig($carrierName, 'default_options');
+        $settings             = $this->settingsFor($carrierName);
         $totalAfterPercentage = $total * ((int) ($settings[self::INSURANCE_PERCENTAGE] ?? 0) / 100);
 
         if (! isset($settings[$priceKey])
@@ -169,22 +184,7 @@ class DefaultOptions
             return 0;
         }
 
-        $carrier        = ConsignmentFactory::createByCarrierName($carrierName);
-        $insuranceTiers = $carrier->getInsurancePossibilities($shippingCountry);
-        sort($insuranceTiers);
-
-        $insurance = 0;
-        foreach ($insuranceTiers as $insuranceTier) {
-            $totalPriceFallsIntoTier = $totalAfterPercentage <= $insuranceTier;
-            $atMaxInsuranceTier      = $insuranceTier >= $settings[$priceKey];
-
-            if ($totalPriceFallsIntoTier || $atMaxInsuranceTier) {
-                $insurance = $insuranceTier;
-                break;
-            }
-        }
-
-        return $insurance;
+        return (int) min(ceil($totalAfterPercentage), (int) $settings[$priceKey]);
     }
 
     /**
@@ -198,19 +198,37 @@ class DefaultOptions
     }
 
     /**
-     * Get package type ID as an int by default
+     * The stored name, unresolved. Use this when showing or passing the value on; getPackageType()
+     * has to answer with an int and therefore has to substitute.
+     *
+     * Customer-influenced, so escape it at the output site.
+     */
+    public function getPackageTypeName(): ?string
+    {
+        $name = $this->chosenOptions['packageType'] ?? null;
+
+        return null === $name ? null : (string) $name;
+    }
+
+    /**
+     * Substitutes the default for a name we do not recognise, and logs when it does.
      *
      * @return int
      */
     public function getPackageType(): int
     {
-        if (isset($this->chosenOptions['packageType'])) {
-            $packageType = $this->chosenOptions['packageType'];
+        $name = $this->chosenOptions['packageType'] ?? null;
+        $id   = PackageType::toIdOrNull($name);
 
-            return AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageType];
+        if (null === $id && null !== $name) {
+            Logger::warning(sprintf(
+                'Unknown package type "%s" in the stored delivery options; falling back to "%s".',
+                (string) $name,
+                PackageType::DEFAULT_NAME
+            ));
         }
 
-        return AbstractConsignment::PACKAGE_TYPE_PACKAGE;
+        return $id ?? PackageType::PACKAGE;
     }
 
     /**
@@ -219,5 +237,27 @@ class DefaultOptions
     public function getCarrierName(): string
     {
         return $this->chosenOptions['carrier'] ?? $this->config->getDefaultCarrierName($this->quote->getShippingAddress(), (int) $this->quote->getStoreId());
+    }
+
+    /**
+     * One carrier's default_options subtree. The admin form asks per package type and per option, so
+     * this runs well over a hundred times per render.
+     *
+     * Empty, never null, for a carrier with no settings: a null would make isset() below miss the
+     * memo on every call for exactly that carrier.
+     *
+     * @return array<string,mixed>
+     */
+    private function settingsFor(string $carrier): array
+    {
+        if (isset($this->settingsByCarrier[$carrier])) {
+            return $this->settingsByCarrier[$carrier];
+        }
+
+        return $this->settingsByCarrier[$carrier] = (array) $this->config->getCarrierConfig(
+            $carrier,
+            'default_options',
+            (int) $this->quote->getStoreId()
+        );
     }
 }
