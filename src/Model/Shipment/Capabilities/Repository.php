@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 
+use Magento\Framework\Lock\LockManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Service\Config;
@@ -40,25 +41,28 @@ class Repository
      */
     private const FAILURE_LIFETIME_SECONDS = 60;
 
-    private Client            $client;
-    private CapabilitiesCache $cache;
-    private Config            $config;
-    private Fingerprint       $fingerprint;
+    private Client              $client;
+    private CapabilitiesCache   $cache;
+    private Config              $config;
+    private Fingerprint         $fingerprint;
+    private LockManagerInterface $lockManager;
 
     /** @var array<string,CapabilitySet> per-request memo, so one page render decodes once */
     private array $memo = [];
 
     public function __construct(
-        Client            $client,
-        CapabilitiesCache $cache,
-        Config            $config,
-        Fingerprint       $fingerprint
+        Client               $client,
+        CapabilitiesCache    $cache,
+        Config               $config,
+        Fingerprint          $fingerprint,
+        LockManagerInterface $lockManager
     )
     {
         $this->client      = $client;
         $this->cache       = $cache;
         $this->config      = $config;
         $this->fingerprint = $fingerprint;
+        $this->lockManager = $lockManager;
     }
 
     /**
@@ -113,6 +117,17 @@ class Repository
             return $this->memo[$cacheId] = CapabilitySet::permissive();
         }
 
+        // One fetch per shape at a time. After a deploy or cache:clean every concurrent checkout
+        // misses the same shape at once, and without this each one calls out. Waiting is not the
+        // alternative — that queues them all behind one request — so the rest answer permissively,
+        // exactly as they would if the fetch had failed.
+        $lockName = self::CACHE_ID_PREFIX . 'fetch_' . $shape;
+
+        // 0: try once and move on. Waiting is the thing being avoided.
+        if (! $this->lockManager->lock($lockName, 0)) {
+            return $this->memo[$cacheId] = CapabilitySet::permissive();
+        }
+
         try {
             $results = $this->client->send($apiKey, $body);
         } catch (Throwable $e) {
@@ -120,6 +135,8 @@ class Repository
             $this->cache->save('1', $failureId, [], self::FAILURE_LIFETIME_SECONDS);
 
             return $this->memo[$cacheId] = CapabilitySet::permissive();
+        } finally {
+            $this->lockManager->unlock($lockName);
         }
 
         $this->cache->save((string) json_encode($results), $cacheId, [], null);

@@ -163,7 +163,7 @@ class UpdateStatus
 
                 if (! $incrementId
                     || isset($fulfilment[$incrementId])
-                    || ! in_array($incrementId, $orderIdsToCheck, true)) {
+                    || ! isset($orderIdsToCheck[$incrementId])) {
                     continue;
                 }
 
@@ -502,11 +502,12 @@ class UpdateStatus
             }
 
             $incrementId = (string) $orderRow['increment_id'];
-            // Keyed by value: the same increment id can appear twice in the row set.
+            // Keyed by value: the same increment id can appear twice in the row set, and the
+            // caller looks each returned order up rather than walking the list per order.
             $grouped[$apiKey][$incrementId] = $incrementId;
         }
 
-        return array_map('array_values', $grouped);
+        return $grouped;
     }
 
     /**

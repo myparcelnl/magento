@@ -351,7 +351,7 @@ define(
                         ? window.open('', '_blank')
                         : null;
 
-                    this._runExport(this.options.url + '?' + $("#mypa-options-form").serialize(), tab);
+                    this._runExport(this.options.url, tab, $("#mypa-options-form").serialize());
                 },
 
                 /**
@@ -373,7 +373,7 @@ define(
                         return;
                     }
 
-                    this._runExport(action.url + '?selected_ids=' + ids.join(','), null);
+                    this._runExport(action.url, null, {selected_ids: ids.join(',')});
                 },
 
                 /**
@@ -413,19 +413,36 @@ define(
                 },
 
                 /**
-                 * @param {String}      url - the export, with its options already in the query.
-                 * @param {Window|null} tab - a tab opened during the click, for the PDF to fill.
+                 * POSTed, never GETed: the export creates billable shipments and can mail the
+                 * customer, and a bulk selection is long enough to push an admin URL past what a
+                 * web server accepts. An admin POST is also form-key checked, where a GET is not.
+                 *
+                 * @param {String}                 url    - the export.
+                 * @param {Window|null}            tab    - a tab opened during the click, for the
+                 *                                          PDF to fill.
+                 * @param {Object|String}          params - what the export needs, for the body. A
+                 *                                          ready-made href carries its own query
+                 *                                          and passes none.
                  *
                  * @protected
                  */
-                _runExport: function (url, tab) {
+                _runExport: function (url, tab, params) {
                     var parentThis = this;
                     var failed = false;
+                    var body = new URLSearchParams(params || {});
+
+                    // Admin POSTs are rejected without it.
+                    body.set('form_key', window.FORM_KEY);
 
                     messages.clear();
                     $('body').trigger('processStart');
 
-                    fetch(url, {credentials: 'same-origin'})
+                    fetch(url, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: body.toString()
+                    })
                         .then(function (response) {
                             return response.json();
                         })

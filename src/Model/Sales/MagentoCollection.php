@@ -25,6 +25,7 @@ use Magento\Sales\Model\Order\Shipment\Track;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Collection as ShipmentCollection;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Source\PaperType;
@@ -32,6 +33,7 @@ use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
@@ -660,7 +662,16 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 // sets a field the response actually carried, and a save of an unchanged model is
                 // still a transaction.
                 if ($magentoTrack->hasDataChanges()) {
-                    $magentoTrack->save();
+                    try {
+                        $magentoTrack->save();
+                    } catch (Throwable $e) {
+                        // The cron selects on status without excluding a row that failed before, so
+                        // one unsaveable track would take every order behind it down with it, tick
+                        // after tick. Skip the row instead; its colli wait for the parent to save.
+                        Logger::warning('MyParcel: could not update one track', LogContext::of($e));
+
+                        continue;
+                    }
                 }
 
                 // Collected, not created here: setNewMagentoTrack() saves, and adding rows to a

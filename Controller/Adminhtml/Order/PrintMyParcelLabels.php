@@ -6,7 +6,6 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\Action\HttpGetActionInterface;
 use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
@@ -36,7 +35,7 @@ use MyParcelNL\Magento\Service\IdList;
  * export POSTs its shipment id list, which is too long for a URL. Drop either interface and
  * HttpMethodValidator answers that half with a 404 it logs at debug level only.
  */
-class PrintMyParcelLabels extends Action implements HttpGetActionInterface, HttpPostActionInterface
+class PrintMyParcelLabels extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Magento_Sales::shipment';
 

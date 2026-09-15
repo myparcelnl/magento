@@ -45,6 +45,9 @@ class DefaultOptions
     /** @var array<string,array<string,mixed>> default_options per carrier; the form asks per option */
     private array $settingsByCarrier = [];
 
+    /** @var array<string,bool|null> what the quote's products force, by option; null is "no opinion" */
+    private array $fromProducts = [];
+
     /**
      * In Magento both Order and Quote have getData() and getShippingAddress() methods.
      * However, they do not share an interface (?!), so we cannot type hint for both.
@@ -85,10 +88,15 @@ class DefaultOptions
         }
 
         if (ShipmentOption::AGE_CHECK === $option) {
-            $fromProducts = ShipmentOptionsResolver::getAgeCheckFromProduct($this->quote->getItems() ?? []);
+            // Memoised, false included: the answer is the quote's and cannot change while this
+            // instance lives, and the New Shipment form asks once per carrier and package type.
+            if (! array_key_exists('ageCheck', $this->fromProducts)) {
+                $this->fromProducts['ageCheck'] =
+                    ShipmentOptionsResolver::getAgeCheckFromProduct($this->quote->getItems() ?? []);
+            }
 
-            if (null !== $fromProducts) {
-                return $fromProducts;
+            if (null !== $this->fromProducts['ageCheck']) {
+                return $this->fromProducts['ageCheck'];
             }
         }
 

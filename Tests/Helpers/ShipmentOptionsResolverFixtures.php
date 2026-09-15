@@ -96,14 +96,31 @@ function storedDeliveryOptions(?array $stored): DeliveryOptions
 function createLabelDescriptionResolver(?int $shipmentId, string $template, array $rows = []): array
 {
     $recorder = new class {
-        public string $table   = '';
-        public array  $columns = [];
-        public array  $wheres  = [];
+        public string $table     = '';
+        public array  $columns   = [];
+        public array  $wheres    = [];
+        public array  $from      = [];
+        public ?int   $limit     = null;
+        public string $order     = '';
+        public int    $fetchAlls = 0;
     };
 
     $select = Mockery::mock();
-    $select->shouldReceive('from')->andReturnUsing(function (array $from) use (&$select, $recorder) {
-        $recorder->table = (string) reset($from);
+    $select->shouldReceive('from')->andReturnUsing(
+        function (array $from, $columns = null) use (&$select, $recorder) {
+            $recorder->table = (string) reset($from);
+            $recorder->from  = null === $columns ? [] : (array) $columns;
+
+            return $select;
+        }
+    );
+    $select->shouldReceive('order')->andReturnUsing(function (string $order) use (&$select, $recorder) {
+        $recorder->order = $order;
+
+        return $select;
+    });
+    $select->shouldReceive('limit')->andReturnUsing(function (int $limit) use (&$select, $recorder) {
+        $recorder->limit = $limit;
 
         return $select;
     });
@@ -120,7 +137,11 @@ function createLabelDescriptionResolver(?int $shipmentId, string $template, arra
 
     $connection = Mockery::mock(AdapterInterface::class);
     $connection->shouldReceive('select')->andReturn($select);
-    $connection->shouldReceive('fetchAll')->andReturn($rows);
+    $connection->shouldReceive('fetchAll')->andReturnUsing(static function () use ($rows, $recorder) {
+        $recorder->fetchAlls++;
+
+        return $rows;
+    });
 
     $resource = Mockery::mock(ResourceConnection::class);
     $resource->shouldReceive('getConnection')->andReturn($connection);
@@ -130,7 +151,7 @@ function createLabelDescriptionResolver(?int $shipmentId, string $template, arra
     $objectManager->shouldReceive('get')
         ->with(Config::class)
         ->andReturn(createConfig(['print/label_description' => $template]));
-    $objectManager->shouldReceive('create')->with(ResourceConnection::class)->andReturn($resource);
+    $objectManager->shouldReceive('get')->with(ResourceConnection::class)->andReturn($resource);
 
     $resolver = new ShipmentOptionsResolver(
         Mockery::mock(DefaultOptions::class),
