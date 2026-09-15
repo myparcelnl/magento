@@ -34,10 +34,9 @@ class Repository
     /**
      * How long a failed shape is remembered as failed.
      *
-     * The one place a lifetime belongs. Successful entries never expire, but a failure must:
-     * without it, an admin form that fans out over several package types repeats the whole burst on
-     * every reload, which is exactly the load a 429 asks us to stop applying. Short enough that a
-     * merchant is not left on permissive answers after an incident passes.
+     * Successful entries never expire, but a failure must: without it, an admin form that fans out
+     * over several package types repeats the whole burst on every reload, which is exactly the load
+     * a 429 asks us to stop applying.
      */
     private const FAILURE_LIFETIME_SECONDS = 60;
 

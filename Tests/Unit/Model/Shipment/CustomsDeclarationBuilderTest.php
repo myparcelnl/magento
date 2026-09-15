@@ -2,10 +2,6 @@
 
 declare(strict_types=1);
 
-use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
-use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\DB\Adapter\AdapterInterface;
-use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
@@ -22,35 +18,13 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
  */
 function createCustomsDeclarationBuilder(string $classification = '61', int $productId = 99): CustomsDeclarationBuilder
 {
-    $select = Mockery::mock();
-    $select->shouldReceive('from')->andReturnSelf();
-    $select->shouldReceive('where')->andReturnSelf();
-
-    $connection = Mockery::mock(AdapterInterface::class);
-    $connection->shouldReceive('select')->andReturn($select);
-    $connection->shouldReceive('fetchOne')->andReturn('137'); // the classification attribute id
-    $connection->shouldReceive('fetchPairs')->andReturn([$productId => $classification]);
-
-    $resource = Mockery::mock(ResourceConnection::class);
-    $resource->shouldReceive('getConnection')->andReturn($connection);
-    $resource->shouldReceive('getTableName')->andReturnUsing(fn (string $name) => $name);
-
-    $product = Mockery::mock();
-    $product->shouldReceive('getId')->andReturn($productId);
-    $product->shouldReceive('getCountryOfManufacture')->andReturn('CN');
-
-    $productCollection = Mockery::mock(ProductCollection::class);
-    $productCollection->shouldReceive('addIdFilter')->andReturnSelf();
-    $productCollection->shouldReceive('addAttributeToSelect')->andReturnSelf();
-    $productCollection->shouldReceive('getItems')->andReturn([$product]);
-
-    $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('get')->with(ResourceConnection::class)->andReturn($resource);
-    $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($productCollection);
-
     $config = createConfig(['print/weight_indication' => 'gram']);
 
-    return new CustomsDeclarationBuilder($objectManager, $config, new Weight($config));
+    return new CustomsDeclarationBuilder(
+        customsObjectManager([$productId => $classification], [$productId => 'CN'], $config),
+        $config,
+        new Weight($config)
+    );
 }
 
 /** @return array{0: Shipment, 1: array} */

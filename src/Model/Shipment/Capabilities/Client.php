@@ -34,8 +34,6 @@ use Throwable;
  *
  * serialize() and send() are separate because the request body is also what the cache id hashes.
  * Building it twice would map the request twice and log the dropped options twice.
- *
- * @todo revisit when myparcelnl/sdk issues 1-3 land; this layer may shrink to a thin wrapper.
  */
 class Client
 {
