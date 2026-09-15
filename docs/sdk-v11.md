@@ -43,6 +43,19 @@ Three rules run through the result:
 3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
    module truth.
 
+**When capabilities cannot be had, the module offers everything.** `Capabilities\Repository` answers
+a permissive set in five cases: a store with no API key, a request that will not serialise, a shape
+that failed within the last 60 seconds, a failed fetch, and a shape another request is already
+fetching. The last one is a lock taken with a zero wait, not a queue — after `cache:clean` every
+concurrent render misses the same shape at once, and making them wait for one call is the cost being
+avoided, not the fix.
+
+`Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
+ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
+render pays is one connect timeout per *distinct* shape it asks about: `ShapeLookup` memoises per
+store, country, package type and carrier, and the Repository memoises per request shape on top of
+that.
+
 ## Deliberate divergences from `myparcelnl/pdk`
 
 Four, all deliberate. A reader who finds them should treat them as decisions, not omissions.
@@ -175,10 +188,20 @@ never by id.
 - **Capability parity** is the least certain part. Where PDK and the OpenAPI spec disagree, an
   observed acceptance response wins.
 - **The loose-coupling trade** holds only while the API's error reaches the admin legibly. Anything
-  that swallows or flattens a rejection breaks it.
+  that swallows or flattens a rejection breaks it. **The log is the deliberate exception**:
+  `Rejection::shapeOf()` records the body's keys and field pointers and never its values, because
+  the API names the field it refused in text that quotes what was sent — on an address, the
+  consumer's own data. The admin's per-order message still comes from `Rejection::reasons()` and is
+  unchanged.
 - **The SDK defects above** leave workaround code in place until they land.
 - **The REST transformers** bind to the generated Order API enums, the highest-churn SDK surface.
   `ShipmentOptionsTransformerTest` asserts the `attributeMap()` keys verbatim.
+- **The PPS status poll asks for every order the account has.** `OrderCollection::query()` is given
+  no parameters, so the API answers with its own default page and the increment ids are matched in
+  PHP afterwards — an order past that page never matches, and the call is made once per API key per
+  tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
+  spec names a filter for the external identifier, so the parameter name has to come from the API
+  team before this can be narrowed. Defect 6 covers the missing user agent on the same call.
 - **`MultiColloShipmentService` takes no API key** while every other export service does.
 - **`extra_assurance`** stays in `Adapter\DeliveryOptions\ShipmentOptions`'s key list with no reader:
   the key order is a persisted format, so removing it is a data question, not a code question.
