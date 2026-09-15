@@ -70,7 +70,10 @@ class LinkResolver
     {
         $stored = (string) $track->getData('myparcel_tracktrace_url');
 
-        if ('' !== $stored) {
+        // Through the same allow-list the grid applies: this column holds whatever the api sent,
+        // and the customer email is the one reader that does not go through html(). A value that
+        // fails it is treated as absent, so the fallback below answers rather than nothing at all.
+        if ('' !== $stored && self::isLinkable($stored)) {
             return $stored;
         }
 
@@ -143,14 +146,17 @@ class LinkResolver
      */
     private static function safeHref(string $url): ?string
     {
+        return self::isLinkable($url) ? htmlspecialchars($url, ENT_QUOTES, 'UTF-8') : null;
+    }
+
+    /** Whether we will link to this url at all. Separate from safeHref(): the email escapes its own. */
+    private static function isLinkable(string $url): bool
+    {
         $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
 
-        if ('http' !== $scheme && 'https' !== $scheme) {
-            return null;
-        }
-
-        return htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+        return 'http' === $scheme || 'https' === $scheme;
     }
+
     /**
      * The order's shipping address, for a fallback URL. $orderIdColumn is a column name this class
      * supplies, never input.

@@ -152,6 +152,28 @@ it('takes a single track its own stored link without touching the database', fun
     expect(makeLinkResolver([])->forTrack($track))->toBe('https://myparcel.me/track-trace/stored');
 });
 
+/**
+ * The customer email takes forTrack() straight into an href, where html() would have run the same
+ * value through safeHref(). One allow-list, both readers.
+ */
+it('refuses a stored link whose scheme we do not follow, and falls back', function () {
+    $track = Mockery::mock(Track::class);
+    $track->shouldReceive('getData')->with('myparcel_tracktrace_url')->andReturn('javascript:alert(1)');
+    $track->shouldReceive('getOrderId')->andReturn(7);
+    $track->shouldReceive('getNumber')->andReturn('3STBJG999999999');
+
+    expect(makeLinkResolver([trackRow()])->forTrack($track))
+        ->toBe('https://myparcel.me/track-trace/3STBJG999999999/2131BC/NL');
+});
+
+it('answers nothing rather than a bad scheme when there is no fallback either', function () {
+    $track = Mockery::mock(Track::class);
+    $track->shouldReceive('getData')->with('myparcel_tracktrace_url')->andReturn('data:text/html,<script>');
+    $track->shouldReceive('getOrderId')->andReturn(7);
+
+    expect(makeLinkResolver([])->forTrack($track))->toBe('');
+});
+
 it('builds a single track its link from its own barcode', function () {
     $track = Mockery::mock(Track::class);
     $track->shouldReceive('getData')->with('myparcel_tracktrace_url')->andReturn(null);

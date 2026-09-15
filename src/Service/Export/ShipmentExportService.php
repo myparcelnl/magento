@@ -331,9 +331,10 @@ class ShipmentExportService
         $body = Rejection::bodyOf($e);
 
         if ('' !== $body) {
-            // Logged whole and once: the shape is not the documented one, so this line is how the
-            // next divergence becomes visible rather than silently unattributed.
-            Logger::warning('MyParcel export: rejection body ' . $body);
+            // By shape, not whole: the API's error text quotes the field it refused, which on an
+            // address is consumer data and does not belong in a log. The keys and pointers still
+            // make the next divergence from the documented shape visible.
+            Logger::warning('MyParcel export: rejection body ' . Rejection::shapeOf($body));
         }
 
         $rejection = Rejection::fromApiException($e, $chunk);

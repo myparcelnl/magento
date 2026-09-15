@@ -72,3 +72,28 @@ it('falls back to the exception message when the body carries no summary', funct
     expect(Rejection::fromApiException(new ApiException('transport exploded', 0), [])->summary())
         ->toBe('transport exploded');
 });
+
+/**
+ * The line that keeps the undocumented body shape visible must not reproduce it: the API quotes the
+ * field it refused, and on an address that is the consumer's data.
+ */
+it('describes a rejection body by its shape, never by its values', function () {
+    $shape = Rejection::shapeOf(json_encode([
+        'type'   => 'https://api.myparcel.nl/errors/validation',
+        'detail' => "postal code '1234 AB' is not valid for NL",
+        'errors' => [
+            ['title' => 'Invalid postal code', 'detail' => "'1234 AB' is not valid",
+             'instance' => '/data/shipments/0/recipient/postal_code'],
+        ],
+    ]));
+
+    expect($shape)->toContain('type,detail,errors')
+        ->toContain('/data/shipments/0/recipient/postal_code')
+        ->and($shape)->not->toContain('1234 AB')
+        ->and($shape)->not->toContain('is not valid');
+});
+
+it('says so when a rejection body does not parse, without echoing it', function () {
+    expect(Rejection::shapeOf('<html>Gateway Timeout for 1234 AB</html>'))
+        ->toBe('(unparsable, 40 bytes)');
+});
