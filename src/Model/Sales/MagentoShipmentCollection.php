@@ -46,6 +46,7 @@ class MagentoShipmentCollection extends MagentoCollection
     ): self
     {
         $this->shipments = $shipmentCollection;
+        $this->forgetTracks();
 
         return $this;
     }

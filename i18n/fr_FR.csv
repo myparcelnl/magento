@@ -461,3 +461,5 @@ Return if no answer,Retour si absence
 "Importing the MyParcel Backoffice settings failed:","L'importation des paramètres MyParcel Backoffice a échoué :"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","L'importation des paramètres MyParcel Backoffice a échoué. Consultez le journal pour plus de détails."
 "MyParcel Backoffice settings imported.","Les paramètres MyParcel Backoffice ont été importés."
+Records per export request,Enregistrements par requête d'export
+How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Combien d'envois ou de commandes sont envoyés à MyParcel en une requête. Laissez vide pour 20. Réduisez cette valeur si les exports volumineux expirent. Le maximum est 100.

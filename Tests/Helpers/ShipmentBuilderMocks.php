@@ -2,11 +2,13 @@
 
 declare(strict_types=1);
 
+use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
+use Psr\Log\LoggerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Model\Shipment\OrderShipmentOptions;
@@ -119,28 +121,50 @@ function createConvertibleShipmentBuilder(
 }
 
 /**
- * Stubs the static ObjectManager the EAV lookups resolve through — the static
- * singleton, never the instance one injected into the class under test. Both
- * round-trips return $value; callers only use the second.
+ * Stubs the static ObjectManager the product attribute reads resolve through — the static
+ * singleton, never the instance one injected into the class under test.
+ *
+ * Whatever ids ProductAttributes filters on come back as products, each answering $value for every
+ * attribute. An empty string is a product that says nothing, which is how the "no opinion" tier is
+ * exercised.
  *
  * @param array<class-string, mixed> $alsoBind extra bindings resolved from the same singleton
  */
 function mockAttributeValueLookup(string $value, array $alsoBind = []): void
 {
-    $select = Mockery::mock();
-    $select->shouldReceive('from')->andReturnSelf();
-    $select->shouldReceive('where')->andReturnSelf();
+    $filtered = [];
 
-    $connection = Mockery::mock(AdapterInterface::class);
-    $connection->shouldReceive('select')->andReturn($select);
-    $connection->shouldReceive('fetchOne')->andReturn($value);
+    $collection = Mockery::mock(ProductCollection::class);
+    $collection->shouldReceive('addIdFilter')->andReturnUsing(
+        static function (array $ids) use (&$filtered, $collection) {
+            $filtered = $ids;
 
-    $resource = Mockery::mock(ResourceConnection::class);
-    $resource->shouldReceive('getConnection')->andReturn($connection);
-    $resource->shouldReceive('getTableName')->andReturnUsing(fn (string $name) => $name);
+            return $collection;
+        }
+    );
+    $collection->shouldReceive('addAttributeToSelect')->andReturnSelf();
+    $collection->shouldReceive('getItems')->andReturnUsing(
+        static function () use (&$filtered, $value): array {
+            $products = [];
+
+            foreach ($filtered as $id) {
+                $product = Mockery::mock();
+                $product->shouldReceive('getId')->andReturn($id);
+                $product->shouldReceive('getData')->andReturn($value);
+                $products[] = $product;
+            }
+
+            return $products;
+        }
+    );
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
-    $objectManager->shouldReceive('get')->with(ResourceConnection::class)->andReturn($resource);
+    $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($collection);
+
+    // This helper owns the singleton, so mockLoggerFacade() cannot also be called. An order with no
+    // resolvable insurance range logs a notice, and that has to land somewhere.
+    $objectManager->shouldReceive('get')->with(LoggerInterface::class)
+        ->andReturn(Mockery::mock(LoggerInterface::class)->shouldIgnoreMissing());
 
     foreach ($alsoBind as $class => $instance) {
         $objectManager->shouldReceive('get')->with($class)->andReturn($instance);

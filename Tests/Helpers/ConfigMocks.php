@@ -44,6 +44,23 @@ function createConfig(
         ->andReturnUsing(function (string $path, string $scopeName = 'default', $scopeId = null) use ($scopedValues) {
             return $scopedValues[$scopeName][(int) $scopeId][$path] ?? null;
         });
+    // Kept in step with the real method rather than stubbed to a constant: both export paths chunk
+    // by it, and a test that sets print/export_chunk_size means the chunking, not the reading.
+    $config->shouldReceive('getExportChunkSize')
+        ->andReturnUsing(function ($storeId = null) use ($values, $perStoreValues): int {
+            $configured = null !== $storeId && isset($perStoreValues[$storeId]['print/export_chunk_size'])
+                ? $perStoreValues[$storeId]['print/export_chunk_size']
+                : ($values['print/export_chunk_size'] ?? null);
+
+            if (! is_numeric($configured)) {
+                return Config::DEFAULT_EXPORT_CHUNK_SIZE;
+            }
+
+            $size = (int) $configured;
+
+            return 1 <= $size && $size <= 100 ? $size : Config::DEFAULT_EXPORT_CHUNK_SIZE;
+        });
+
     // The module version, which UserAgent reads. byDefault() so a test can name its own.
     $config->shouldReceive('getVersion')->andReturn('5.9.0')->byDefault();
 

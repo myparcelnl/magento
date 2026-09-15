@@ -102,18 +102,34 @@ class ShipmentOptionsResolver
      */
     private function clampInsurance(int $amount): int
     {
+        $range = $this->insuranceRange();
+
+        if (null === $range) {
+            return $amount;
+        }
+
         // Zero is not an insured amount of nothing — it means the option is left out of the request
         // entirely, which is why the encoders guard on it before writing anything. So it survives a
         // contract whose minimum is above zero: that minimum bounds what an insured parcel may be
         // insured for, not whether a parcel is insured at all. An order below the configured
-        // insurance_from_price still ships uninsured.
+        // insurance_from_price still ships uninsured. A contract that compels insurance is the one
+        // case where it cannot.
         if (0 === $amount) {
-            return 0;
+            if (! $range->isRequired()) {
+                return 0;
+            }
+
+            Logger::notice(sprintf(
+                'Insurance for order %s raised to %d, the minimum %s requires.',
+                $this->order->getIncrementId(),
+                $range->min(),
+                $this->carrier
+            ));
+
+            return $range->min();
         }
 
-        $range = $this->insuranceRange();
-
-        if (null === $range || $range->contains($amount)) {
+        if ($range->contains($amount)) {
             return $amount;
         }
 
@@ -243,43 +259,33 @@ class ShipmentOptionsResolver
      */
     public static function getAgeCheckFromProduct($products): ?bool
     {
-        $hasAgeCheck = null;
+        $productIds = [];
 
         foreach ($products as $product) {
-            $productAgeCheck = self::getAttributeValue(
-                'catalog_product_entity_varchar',
-                $product['product_id'],
-                ShipmentOption::AGE_CHECK
-            );
+            $productIds[] = (int) $product['product_id'];
+        }
+
+        // One read for the whole quote. Per product it built its own reader, so nothing it memoised
+        // ever survived an iteration and an N-line quote paid 3N queries on the checkout path.
+        $ageChecks   = (new ProductAttributes(ObjectManager::getInstance()))
+            ->column($productIds, ShipmentOption::AGE_CHECK);
+        $hasAgeCheck = null;
+
+        foreach ($productIds as $productId) {
+            $productAgeCheck = $ageChecks[$productId] ?? null;
 
             if ('1' === $productAgeCheck) {
                 return true;
             }
 
-            if (isset($productAgeCheck) && '' !== $productAgeCheck) {
+            // A product with no value is absent from the map, which is the same "no opinion" the
+            // per-product read expressed as null.
+            if (null !== $productAgeCheck) {
                 $hasAgeCheck = false;
             }
         }
 
         return $hasAgeCheck;
-    }
-
-    /**
-     * Static because the callers are static too; the reading itself is ProductAttributeReader's,
-     * shared with PackageRepository so the pair of queries exists once.
-     */
-    public static function getAttributeValue(string $valueTable, string $entityId, string $column): ?string
-    {
-        return self::attributeReader()->value($valueTable, $entityId, $column);
-    }
-
-    /**
-     * Built from the ResourceConnection rather than asked of the container, so a caller that has
-     * already resolved one can hand it over and keep the reader's memo (see PackageRepository).
-     */
-    private static function attributeReader(): ProductAttributeReader
-    {
-        return new ProductAttributeReader(ObjectManager::getInstance()->get(ResourceConnection::class));
     }
 
     public function hasLargeFormat(): bool

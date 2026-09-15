@@ -188,11 +188,11 @@
               "id": "export_chunk_size",
               "path": "myparcelnl_magento_general/print/export_chunk_size",
               "type": "text",
-              "label": "Shipments per export request",
+              "label": "Records per export request",
               "showInDefault": true,
               "showInWebsite": true,
               "showInStore": true,
-              "tooltip": "How many shipments are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.",
+              "tooltip": "How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.",
               "validate": "validate-digits validate-digits-range digits-range-1-100"
             }
           ]

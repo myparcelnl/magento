@@ -29,16 +29,30 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
  * Only the plumbing is shared: every writer must return the track so the production chains keep
  * working, which is the part that is easy to get wrong. Each caller records into its own shape.
  *
+ * getData() answers with what setData() wrote, because production code reads a field back to decide
+ * whether it still needs fetching. A caller's own getData() answers the keys nothing wrote.
+ *
  * @param array<string,callable> $handlers keyed by method: setTrackNumber, setData, save
  * @param array<string,mixed>    $getters  keyed by method; a Closure is used as the answer
  */
 function recordingTrack(array $handlers, array $getters = []): Track
 {
-    $track = Mockery::mock(Track::class);
+    $track   = Mockery::mock(Track::class);
+    $written = [];
 
     // Callers skip a save of an unchanged model, so the double has to answer this. True unless a
     // test says otherwise: a track a test bothered to build is one it expects to be written.
     $getters += ['hasDataChanges' => true];
+
+    $supplied = $getters['getData'] ?? null;
+
+    $getters['getData'] = static function (?string $key = null) use (&$written, $supplied) {
+        if (null !== $key && array_key_exists($key, $written)) {
+            return $written[$key];
+        }
+
+        return $supplied instanceof Closure ? $supplied($key) : $supplied;
+    };
 
     foreach ($getters as $method => $answer) {
         $expectation = $track->shouldReceive($method);
@@ -51,7 +65,12 @@ function recordingTrack(array $handlers, array $getters = []): Track
         $handler = $handlers[$method] ?? null;
 
         $track->shouldReceive($method)->andReturnUsing(
-            static function (...$args) use ($track, $handler) {
+            static function (...$args) use ($track, $handler, $method, &$written) {
+                // Only the two-argument form: nothing in this module hands setData() an array.
+                if ('setData' === $method && 2 === count($args)) {
+                    $written[$args[0]] = $args[1];
+                }
+
                 if (null !== $handler) {
                     $handler(...$args);
                 }
