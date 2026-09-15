@@ -103,10 +103,56 @@ final class Rejection
         );
     }
 
-    /** The response body, for the caller to log whole: the shape is not the documented one. */
+    /** The response body. Describe it with shapeOf() before logging it: it carries recipient data. */
     public static function bodyOf(Throwable $e): string
     {
         return $e instanceof ApiException ? (string) $e->getResponseBody() : '';
+    }
+
+    /**
+     * The body's shape, without its values.
+     *
+     * The shape is not the documented one, so a divergence has to stay visible — but `title` and
+     * `detail` are free text from the API and quote the field they refused, which on an address is
+     * the consumer's. Keys and JSON Pointers name fields and carry no values, and they are what the
+     * next divergence is actually read from.
+     */
+    public static function shapeOf(string $body): string
+    {
+        $decoded = json_decode($body, true);
+
+        if (! is_array($decoded)) {
+            return sprintf('(unparsable, %d bytes)', strlen($body));
+        }
+
+        $errorKeys = [];
+        $pointers  = [];
+        $errors    = is_array($decoded['errors'] ?? null) ? $decoded['errors'] : [];
+
+        foreach ($errors as $error) {
+            if (! is_array($error)) {
+                continue;
+            }
+
+            $errorKeys += array_flip(array_keys($error));
+            $pointer   = (string) ($error['instance'] ?? '');
+
+            if ('' !== $pointer) {
+                $pointers[] = $pointer;
+            }
+        }
+
+        $parts = ['keys: ' . implode(',', array_keys($decoded))];
+
+        if ($errorKeys) {
+            $parts[] = 'error keys: ' . implode(',', array_keys($errorKeys));
+        }
+
+        if ($pointers) {
+            $parts[] = 'pointers: ' . implode(' ', array_unique($pointers));
+        }
+
+        return implode('; ', $parts);
     }
 
     public function blames(string $incrementId): bool

@@ -43,6 +43,15 @@ class Client
     private const CONTENT_TYPE    = 'application/json;charset=utf-8';
     private const TIMEOUT_SECONDS = 10;
 
+    /**
+     * Separate from the read timeout, and much shorter.
+     *
+     * An unreachable host is the outage that costs a customer real time: checkout asks two shapes
+     * per request, so one budget each is what the page waits. A slow-but-answering API still gets
+     * the full read timeout.
+     */
+    private const CONNECT_TIMEOUT_SECONDS = 2;
+
     /** Statuses that mean "ask again", as opposed to "this request is wrong". */
     private const RETRYABLE_STATUSES = [429, 503, 529];
 
@@ -192,7 +201,7 @@ class Client
                 RequestOptions::HTTP_ERRORS     => false,
                 RequestOptions::ALLOW_REDIRECTS => false,
                 RequestOptions::TIMEOUT         => self::TIMEOUT_SECONDS,
-                RequestOptions::CONNECT_TIMEOUT => self::TIMEOUT_SECONDS,
+                RequestOptions::CONNECT_TIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
             ]);
         } catch (Throwable $e) {
             // A timeout is deliberately not retried: it has already spent the whole budget, and a

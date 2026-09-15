@@ -243,3 +243,27 @@ it('prefers a previous good answer over a recent failure', function () {
         ->and($set->carriers())->toBe([Carrier::POSTNL])
         ->and($both['history'])->toHaveCount(0);
 });
+
+/**
+ * After a deploy or cache:clean every concurrent request misses the same shape at once. Waiting for
+ * the holder would queue them all behind one API call, so the rest answer as a failure would.
+ */
+it('does not call out for a shape another request is already fetching', function () {
+    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r['store']->lockHeld = true;
+
+    $set = $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+
+    expect($r['history'])->toHaveCount(0)
+        ->and($set->isPermissive())->toBeTrue();
+});
+
+it('releases the fetch lock once it has the answer', function () {
+    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+
+    $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+
+    expect($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
+});

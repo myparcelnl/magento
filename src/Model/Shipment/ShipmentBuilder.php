@@ -37,6 +37,9 @@ class ShipmentBuilder
     private ShipmentValidator         $validator;
     private CustomsDeclarationBuilder $customsBuilder;
 
+    /** @var array<string,OrderShipmentOptions> by shipment and option set; a multicollo order asks per collo */
+    private array $shipmentOptions = [];
+
     public function __construct(ObjectManagerInterface $objectManager, Order $order)
     {
         $this->objectManager  = $objectManager;
@@ -45,6 +48,25 @@ class ShipmentBuilder
         $this->validator      = $objectManager->get(ShipmentValidator::class);
         $this->customsBuilder = $objectManager->get(CustomsDeclarationBuilder::class);
         $this->defaultOptions = new DefaultOptions($order);
+    }
+
+    /**
+     * Resolved once per shipment and option set, not once per collo: each instance re-reads the
+     * order's delivery options and, for a label description that names a product, its items.
+     *
+     * Keyed on the options too — the New Shipment form can hand a different set for one shipment.
+     */
+    private function shipmentOptionsFor(Order $order, array $options, int $shipmentId): OrderShipmentOptions
+    {
+        $key = $shipmentId . '|' . md5(serialize($options));
+
+        return $this->shipmentOptions[$key] ?? $this->shipmentOptions[$key] = new OrderShipmentOptions(
+            $this->objectManager,
+            $order,
+            $options,
+            $this->defaultOptions,
+            $shipmentId
+        );
     }
 
     /**
@@ -64,13 +86,7 @@ class ShipmentBuilder
         $incrementId = (string) $order->getIncrementId();
         $apiKey      = $this->apiProvider->apiKeyForStore((int) $order->getStoreId());
 
-        $shipmentOptions = new OrderShipmentOptions(
-            $this->objectManager,
-            $order,
-            $options,
-            $this->defaultOptions,
-            (int) $magentoShipment->getEntityId()
-        );
+        $shipmentOptions = $this->shipmentOptionsFor($order, $options, (int) $magentoShipment->getEntityId());
         $deliveryOptions = $shipmentOptions->deliveryOptions();
         $packageType     = $shipmentOptions->packageType();
         $weight          = $this->weightInGrams($magentoTrack, $options, $packageType);

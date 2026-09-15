@@ -6,14 +6,18 @@ namespace MyParcelNL\Magento\Controller\Adminhtml;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Service\Export\ExportResponse;
 use MyParcelNL\Magento\Service\LogContext;
+use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\Exception\ApiException;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
+use MyParcelNL\Sdk\Exception\ValidationException;
+use Throwable;
 
 /**
  * Shared shell of the two grid export controllers (orders and shipments).
@@ -22,7 +26,7 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
  * AJAX so the page stays put and the labels are fetched by a second request — a response can be a
  * PDF or JSON, not both.
  */
-abstract class LabelExportAction extends Action
+abstract class LabelExportAction extends Action implements HttpPostActionInterface
 {
     /** Without this, Action falls back to Magento_Backend::admin — the ACL root, which any granted role passes. */
     public const ADMIN_RESOURCE = 'Magento_Sales::shipment';
@@ -42,11 +46,16 @@ abstract class LabelExportAction extends Action
 
         try {
             $labels = $this->massAction();
-        } catch (ApiException|MissingFieldException $e) {
+        } catch (AccountNotActiveException|ApiException|MissingFieldException|ValidationException $e) {
             Logger::critical('MyParcel export failed', LogContext::of($e));
             $this->messageManager->addErrorMessage($e->getMessage());
         } catch (LocalizedException $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
+        } catch (Throwable $e) {
+            // Anything else is a bug: its message would put internals in front of the admin, and
+            // letting it escape would answer the grid's AJAX call with an error page instead of JSON.
+            Logger::critical('MyParcel export: unexpected error', LogContext::of($e));
+            $this->messageManager->addErrorMessage(__('The MyParcel export failed. Please check the log.'));
         }
 
         return $this->response->json($labels);

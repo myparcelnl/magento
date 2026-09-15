@@ -5,6 +5,7 @@ declare(strict_types=1);
 use GuzzleHttp\Client as RealGuzzleClient;
 use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client as CapabilitiesClient;
+use Magento\Framework\Lock\LockManagerInterface;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
@@ -125,6 +126,9 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
         public array $entries = [];
         public array $savedTags = [];
         public int $cleans = 0;
+        public bool $lockHeld = false;
+        public array $lockedNames = [];
+        public array $unlockedNames = [];
     };
 
     $cache = Mockery::mock(CapabilitiesCache::class);
@@ -142,8 +146,22 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
 
     $config = createConfig(['api/key' => $apiKey]);
 
+    // Granted unless a test says otherwise: the lock only keeps concurrent requests off one fetch,
+    // and a single-threaded test is never the second holder. Set $store->lockHeld to refuse it.
+    $lockManager = Mockery::mock(LockManagerInterface::class);
+    $lockManager->shouldReceive('lock')->andReturnUsing(static function (string $name) use ($store): bool {
+        $store->lockedNames[] = $name;
+
+        return ! $store->lockHeld;
+    });
+    $lockManager->shouldReceive('unlock')->andReturnUsing(static function (string $name) use ($store): bool {
+        $store->unlockedNames[] = $name;
+
+        return true;
+    });
+
     return [
-        'repository' => new CapabilitiesRepository($client['client'], $cache, $config, new Fingerprint()),
+        'repository' => new CapabilitiesRepository($client['client'], $cache, $config, new Fingerprint(), $lockManager),
         'history'    => &$client['history'],
         'store'      => $store,
         'config'     => $config,
