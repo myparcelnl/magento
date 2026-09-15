@@ -12,9 +12,6 @@ use Magento\Framework\App\ResourceConnection;
  * Not the product repository: the callers hold a quote item or an order item and want a single
  * `myparcel_*` column, and loading the product model for it costs far more than the column is worth.
  *
- * Shared because ShipmentOptionsResolver and PackageRepository each carried their own copy of this
- * pair of queries, and had already drifted — only one of them memoised the attribute id.
- *
  * The attribute lookup is scoped to catalog_product. Without it an attribute of the same code on
  * another entity type could win the row, which is a silent wrong answer rather than an error.
  */
@@ -70,9 +67,6 @@ class ProductAttributeReader
 
         $connection = $this->resource->getConnection();
 
-        // The column is named explicitly. The old copies passed 'entity_type_id' to select(), which
-        // takes no arguments, so the query was SELECT * and fetchOne() returned whatever column came
-        // first — attribute_id, but by position rather than by name.
         $select = $connection->select()
             ->from($this->resource->getTableName('eav_attribute'), ['attribute_id'])
             ->where('attribute_code = ?', self::ATTRIBUTE_PREFIX . $column)

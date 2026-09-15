@@ -12,8 +12,6 @@ use InvalidArgumentException;
  * A stored type may be one we do not know: it comes from the checkout widget or an old order, and
  * which types exist belongs to the merchant's account. So nothing here substitutes a default — each
  * accessor says what it answers for an unresolved value.
- *
- * It is a class rather than a union return type because PHP 7.4 has no union types.
  */
 final class TypeValue
 {
