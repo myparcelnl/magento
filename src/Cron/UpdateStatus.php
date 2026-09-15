@@ -93,10 +93,15 @@ class UpdateStatus
      */
     public function execute(): self
     {
+        // PPS only acquires barcodes, and drops an order the moment one arrives. The poll below is
+        // what carries a shipment on from there, and it selects on the track's own status, so it
+        // suits either export mode. The two overlap by an order or so per tick, which costs ids in
+        // a call that is made anyway, not a call.
         if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
-            return $this->updateStatusPPS();
+            $this->updateStatusPPS();
         }
-        return $this->updateStatusShipments();
+
+        return $this->pollShipmentStatuses();
     }
 
     /**
@@ -505,12 +510,16 @@ class UpdateStatus
     }
 
     /**
-     * Handles orders that have regular shipments, first removes any lingering orders in $this->orderCollection
+     * Carries every exported shipment on to its next status, whatever export mode made it.
+     *
+     * It selects on the track rather than on the order — a MyParcel shipment id and a status that
+     * is not final yet — and a PPS shipment answers to both. setOrdersToUpdate() replaces the
+     * collection the PPS pass left behind.
      *
      * @throws LocalizedException
      * @throws Exception
      */
-    private function updateStatusShipments(): self
+    private function pollShipmentStatuses(): self
     {
         // setNewMyParcelTracks() is deliberately absent, as it is in the PPS branch above: it
         // builds a v11 Shipment per id-less track — capabilities, customs, validation — for a
