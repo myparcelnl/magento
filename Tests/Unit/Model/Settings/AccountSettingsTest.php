@@ -93,9 +93,15 @@ it('reads the general settings a complete row carries', function () {
     expect($account->getGeneralSettings()->hasPostnlMailboxInternational())->toBeTrue();
 });
 
-it('alerts with a redacted api key when a row cannot be used', function () {
-    $made = accountSettingsFor('live-key-1234567890', [
-        settingsPathFor('live-key-1234567890') => accountSettingsRow([], ['account' => ['id' => 7]]),
+/**
+ * @param string $key   the api key the row is stored under
+ * @param string $label the fingerprint prefix the alert must name instead of the key
+ * @param string $leak  a fragment of the key that must not appear
+ */
+function expectAlertNames(string $key, string $label, string $leak): void
+{
+    $made = accountSettingsFor($key, [
+        settingsPathFor($key) => accountSettingsRow([], ['account' => ['id' => 7]]),
     ]);
 
     expect($made['settings']->getAccount())->toBeNull();
@@ -104,6 +110,20 @@ it('alerts with a redacted api key when a row cannot be used', function () {
                    ->once()
                    ->with(Mockery::on(static fn ($message): bool => is_string($message)
                        && str_contains($message, 'Account settings are incomplete')
-                       && str_contains($message, 'live***********7890')
-                       && ! str_contains($message, 'live-key-1234567890')));
+                       && str_contains($message, $label)
+                       && ! str_contains($message, $key)
+                       && ! str_contains($message, $leak)));
+}
+
+it('alerts with the key fingerprint when a row cannot be used', function () {
+    expectAlertNames('live-key-1234567890', '15c46c5c1e25', 'live');
+});
+
+/**
+ * The mask this replaced was substr(0,4) . str_repeat('*', strlen - 8) . substr(-4), which produces
+ * no stars at all once the key is eight characters or shorter — so it printed the key whole,
+ * precisely when a truncated key is the thing being reported.
+ */
+it('does not print a short api key either', function () {
+    expectAlertNames('abcd1234', 'e9cee71ab932', 'abcd1234');
 });
