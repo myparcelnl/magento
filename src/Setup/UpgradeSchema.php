@@ -279,8 +279,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
      * Earns its place only where PPS is the exception: ordersAwaitingBarcode() then starts from the
      * few orders carrying a uuid instead of every order of the last fortnight, which is all
      * created_at can narrow it to. Where PPS is the normal export mode the condition matches almost
-     * every row and the optimiser ignores this index — kept anyway, because one prefix index on a
-     * nullable column is a small price for covering the other case, and the shops differ.
+     * every row and the optimiser ignores this index.
      *
      * `notnull` is a range MySQL can read from an index, so a prefix is enough; the column is never
      * queried by equality.

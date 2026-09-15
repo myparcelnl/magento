@@ -8,13 +8,7 @@ use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ApiException;
 use Throwable;
 
-/**
- * Why the API refused a chunk, and which orders it named.
- *
- * The export's loose coupling holds only while a rejection reaches the admin legibly, so the parse
- * that turns one batch error into a per-order reason is worth reading and testing on its own rather
- * than being an array threaded through four methods of the orchestrator.
- */
+/** Why the API refused a chunk, and which orders it named. */
 final class Rejection
 {
     /** @var array<string,string[]> increment id => every reason the API gave for it */
@@ -51,8 +45,6 @@ final class Rejection
      *
      * `instance` is a JSON Pointer — `/data/shipments/0/recipient/postal_code` — and the index in it
      * is the position in the request, which is this chunk's own order.
-     *
-     * @param BuiltShipment[] $chunk in request order, which is what an index in a pointer refers to
      *
      * @param BuiltShipment[] $chunk in request order, which is what an index in a pointer refers to
      */
