@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Shipment;
 
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
-use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
-use MyParcelNL\Magento\Service\ProductAttributeReader;
+use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Support\Str;
 
@@ -37,8 +36,7 @@ class CustomsItems
     private Config                 $config;
     private Weight                 $weight;
 
-    /** The `myparcel_classification` EAV attribute id; the same for every product, so fetched once. */
-    private ?string $classificationAttributeId = null;
+    private ?ProductAttributes $attributes = null;
 
     public function __construct(ObjectManagerInterface $objectManager, Config $config, Weight $weight)
     {
@@ -48,27 +46,25 @@ class CustomsItems
     }
 
     /**
-     * HS codes from the varchar table: up to 18 characters, digits and dots (6109.10). The int table
-     * it moved from dropped leading zeroes and dots.
+     * HS codes: up to 18 characters, digits and dots (6109.10). The int column they moved from
+     * dropped leading zeroes and dots.
      *
      * @param  int[] $productIds
      * @return array<int,string> product id => HS code
      */
     public function classificationsFor(array $productIds): array
     {
-        $resource   = $this->objectManager->get(ResourceConnection::class);
-        $connection = $resource->getConnection();
+        return $this->attributes()->column($productIds, 'classification');
+    }
 
-        if (null === $this->classificationAttributeId) {
-            $this->classificationAttributeId = (new ProductAttributeReader($resource))->attributeId('classification');
+    /** Held for the instance, which is what keeps a multi-item declaration to one product load. */
+    private function attributes(): ProductAttributes
+    {
+        if (null === $this->attributes) {
+            $this->attributes = new ProductAttributes($this->objectManager);
         }
 
-        $select = $connection->select()
-                             ->from($resource->getTableName('catalog_product_entity_varchar'), ['entity_id', 'value'])
-                             ->where('attribute_id = ?', $this->classificationAttributeId)
-                             ->where('entity_id IN (?)', $productIds);
-
-        return array_map('strval', $connection->fetchPairs($select));
+        return $this->attributes;
     }
 
     /**
