@@ -28,6 +28,12 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 
+/**
+ * Exports a shipment to MyParcel as Magento saves it.
+ *
+ * Fires on every sales_order_shipment_save_before in the shop, so it guards out the shipments that
+ * are none of its business first.
+ */
 class NewShipment implements ObserverInterface
 {
     const DEFAULT_LABEL_AMOUNT = 1;
@@ -202,7 +208,7 @@ class NewShipment implements ObserverInterface
      */
     private function updateTrackGrid($shipment, $entireOrder): void
     {
-        $columns = $this->orderCollection()->getHtmlForGridColumnsByTracks($shipment->getTracksCollection());
+        $columns = $this->gridColumns->htmlForTracks($shipment->getTracksCollection());
 
         if ($entireOrder) {
             $columns['track_status'] = UpdateStatus::ORDER_STATUS_EXPORTED;

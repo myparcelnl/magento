@@ -12,9 +12,6 @@ use Magento\Framework\Phrase;
  * The admin settings form posts every field on every submit and Observer\ConfigChange writes them,
  * so a validator answers about one path at a time and a rejection costs that field only, never the
  * whole submission.
- *
- * handles() is deliberately separate from validate(): a reader of the observer can see that a
- * validator is asked whether a path is its business before the value is judged at all.
  */
 interface SettingValidatorInterface
 {

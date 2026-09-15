@@ -47,11 +47,15 @@ class OrderShipmentOptions
     private ?DeliveryOptions $deliveryOptions = null;
     private ?ResolvedOptions $resolved        = null;
 
+    /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
+    private ?int $shipmentId;
+
     public function __construct(
         ObjectManagerInterface $objectManager,
         Order                  $order,
         array                  $options,
-        DefaultOptions         $defaultOptions
+        DefaultOptions         $defaultOptions,
+        ?int                   $shipmentId = null
     )
     {
         $this->objectManager  = $objectManager;
@@ -59,6 +63,7 @@ class OrderShipmentOptions
         $this->order          = $order;
         $this->options        = $options;
         $this->defaultOptions = $defaultOptions;
+        $this->shipmentId     = $shipmentId;
     }
 
     /** @throws RuntimeException when the order cannot be exported as stored */
@@ -95,7 +100,8 @@ class OrderShipmentOptions
             $this->deliveryOptions(),
             $this->objectManager,
             $this->carrierName(),
-            $this->options
+            $this->options,
+            $this->shipmentId
         ))->resolve());
     }
 

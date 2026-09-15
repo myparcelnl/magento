@@ -8,6 +8,7 @@ use Exception;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\ResourceModel\Order\Status\History\Collection as OrderStatusHistoryCollection;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
@@ -16,9 +17,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
-use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
-use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderNotesCollection;
@@ -213,12 +212,27 @@ class MagentoOrderCollection extends MagentoCollection
 
     private function saveOrderNotes(OrderCollection $savedOrders): void
     {
-        $savedOrders->each(function (FulfilmentOrder $order) {
+        $incrementIds = [];
 
-            // Only this one reaches the wire; getAllNotesForOrder()'s collection is iterated into it.
-            $notes = (new OrderNotesCollection())->setUserAgents($this->userAgent->map());
+        $savedOrders->each(function (FulfilmentOrder $order) use (&$incrementIds) {
+            $incrementIds[] = (string) $order->getExternalIdentifier();
+        });
 
-            $this->getAllNotesForOrder($order)->each(function (OrderNote $note) use ($notes) {
+        $commentsByIncrementId = $this->orderCommentsByIncrementId($incrementIds);
+
+        $savedOrders->each(function (FulfilmentOrder $order) use ($commentsByIncrementId) {
+
+            // Only this one reaches the wire.
+            $notes    = (new OrderNotesCollection())->setUserAgents($this->userAgent->map());
+            $comments = $commentsByIncrementId[(string) $order->getExternalIdentifier()] ?? [];
+
+            foreach ($comments as $comment) {
+                $note = new OrderNote([
+                    'orderUuid' => $order->getUuid(),
+                    'note'      => $comment,
+                    'author'    => 'webshop',
+                ]);
+
                 try {
                     $note->validate();
                     $notes->push($note);
@@ -231,37 +245,57 @@ class MagentoOrderCollection extends MagentoCollection
                         )
                     );
                 }
-            });
+            }
 
             $notes->save($order->getApiKey());
         });
     }
 
-    private function getAllNotesForOrder(FulfilmentOrder $fulfilmentOrder): OrderNotesCollection
+    /**
+     * Every order's status-history comments, for the whole batch in two queries.
+     *
+     * Newest first, which is the order getStatusHistoryCollection() returns them in.
+     *
+     * @param  string[] $incrementIds
+     * @return array<string,string[]> increment id => comments
+     */
+    protected function orderCommentsByIncrementId(array $incrementIds): array
     {
-        $notes        = new OrderNotesCollection();
-        $orderUuid    = $fulfilmentOrder->getUuid();
-        $magentoOrder = $this->objectManager->create(Order::class)
-                                            ->loadByIncrementId($fulfilmentOrder->getExternalIdentifier())
-        ;
+        if (! $incrementIds) {
+            return [];
+        }
 
-        foreach ($magentoOrder->getStatusHistoryCollection() as $status) {
-            if (! $status->getComment()) {
+        $orders = $this->objectManager->create(self::PATH_MODEL_ORDER_COLLECTION);
+        $orders->addFieldToFilter('increment_id', ['in' => $incrementIds]);
+
+        $incrementIdByEntityId = [];
+
+        foreach ($orders as $magentoOrder) {
+            $incrementIdByEntityId[(int) $magentoOrder->getEntityId()] = (string) $magentoOrder->getIncrementId();
+        }
+
+        if (! $incrementIdByEntityId) {
+            return [];
+        }
+
+        $history = $this->objectManager->create(OrderStatusHistoryCollection::class);
+        $history->addFieldToFilter('parent_id', ['in' => array_keys($incrementIdByEntityId)]);
+        $history->setOrder('created_at', 'DESC');
+        $history->setOrder('entity_id', 'DESC');
+
+        $comments = [];
+
+        foreach ($history as $status) {
+            $comment = $status->getComment();
+
+            if (! $comment) {
                 continue;
             }
 
-            $notes->push(
-                new OrderNote(
-                    [
-                        'orderUuid' => $orderUuid,
-                        'note'      => $status->getComment(),
-                        'author'    => 'webshop',
-                    ]
-                )
-            );
+            $comments[$incrementIdByEntityId[(int) $status->getParentId()]][] = (string) $comment;
         }
 
-        return $notes;
+        return $comments;
     }
 
     /**
