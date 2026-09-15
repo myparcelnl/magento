@@ -34,29 +34,24 @@ class ShipmentOptionsResolver
     private const PRODUCT_NAME      = '%product_name%';
     private const PRODUCT_QTY       = '%product_qty%';
 
-    /** @var string */
-    private $carrier;
+    private string $carrier;
 
-    /** @var DefaultOptions */
-    private $defaultOptions;
+    private DefaultOptions $defaultOptions;
 
-    /** @var ObjectManagerInterface */
-    private $objectManager;
+    private ObjectManagerInterface $objectManager;
 
-    /** @var array */
-    private $options;
+    private array $options;
 
-    /** @var Config */
-    private $config;
+    private Config $config;
 
-    /** @var Order */
-    private $order;
+    private Order $order;
 
-    /** @var DeliveryOptions */
-    private $deliveryOptions;
+    private DeliveryOptions $deliveryOptions;
 
-    /** @var string|null */
     private ?string $cc;
+
+    /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
+    private ?int $shipmentId;
 
     /**
      * @param DefaultOptions         $defaultOptions
@@ -72,7 +67,8 @@ class ShipmentOptionsResolver
         DeliveryOptions        $deliveryOptions,
         ObjectManagerInterface $objectManager,
         string                 $carrier,
-        array                  $options = []
+        array                  $options = [],
+        ?int                   $shipmentId = null
     )
     {
         $this->defaultOptions  = $defaultOptions;
@@ -83,6 +79,7 @@ class ShipmentOptionsResolver
         $this->carrier        = $carrier;
         $this->options        = $options;
         $this->cc             = $order->getShippingAddress() ? $order->getShippingAddress()->getCountryId() : null;
+        $this->shipmentId     = $shipmentId;
     }
 
     /**
@@ -163,7 +160,6 @@ class ShipmentOptionsResolver
         );
     }
 
-    /** @return bool */
     public function hasSignature(): bool
     {
         if (CountryCode::CC_BE === $this->cc && $this->hasOnlyRecipient()) {
@@ -196,19 +192,16 @@ class ShipmentOptionsResolver
         return $this->optionIsEnabled(ShipmentOption::RECEIPT_CODE);
     }
 
-    /** @return bool */
     public function hasOnlyRecipient(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::ONLY_RECIPIENT);
     }
 
-    /** @return bool */
     public function hasSameDayDelivery(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::SAME_DAY_DELIVERY);
     }
 
-    /** @return bool */
     public function hasReturn(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::RETURN);
@@ -289,7 +282,6 @@ class ShipmentOptionsResolver
         return new ProductAttributeReader(ObjectManager::getInstance()->get(ResourceConnection::class));
     }
 
-    /** @return bool */
     public function hasLargeFormat(): bool
     {
         if (CountryCode::isRow($this->cc)) {
@@ -299,7 +291,6 @@ class ShipmentOptionsResolver
         return $this->optionIsEnabled(ShipmentOption::LARGE_FORMAT);
     }
 
-    /** @return string */
     public function getLabelDescription(): string
     {
         $labelDescription = $this->config->getGeneralConfig(
@@ -312,7 +303,7 @@ class ShipmentOptionsResolver
         }
 
         $checkoutDate     = $this->deliveryOptions->getDate();
-        $productInfo      = $this->getItemsCollectionByShipmentId($this->order->getId());
+        $productInfo      = $this->labelProductRows();
         $labelDescription = str_replace(
             [
                 self::ORDER_NUMBER,
@@ -350,21 +341,26 @@ class ShipmentOptionsResolver
     }
 
     /**
-     * @param $shipmentId
+     * The rows %product_id%, %product_name% and %product_qty% read from.
      *
-     * @return array
+     * sales_shipment_item.parent_id is the *shipment* entity id, never the order id. A fulfilment
+     * order has no shipment yet, so that path reads the order's own items instead.
      */
-    public function getItemsCollectionByShipmentId($shipmentId): array
+    private function labelProductRows(): array
     {
         /** @var ResourceConnection $connection */
         $connection = $this->objectManager->create(ResourceConnection::class);
         $conn       = $connection->getConnection();
-        $select     = $conn->select()
-                           ->from(
-                               ['main_table' => $connection->getTableName('sales_shipment_item')]
-                           )
-                           ->where('main_table.parent_id=?', $shipmentId)
-        ;
+
+        $select = null === $this->shipmentId
+            ? $conn->select()
+                   ->from(['main_table' => $connection->getTableName('sales_order_item')])
+                   ->columns(['qty' => 'main_table.qty_ordered'])
+                   ->where('main_table.order_id=?', (int) $this->order->getId())
+            : $conn->select()
+                   ->from(['main_table' => $connection->getTableName('sales_shipment_item')])
+                   ->where('main_table.parent_id=?', $this->shipmentId);
+
         return $conn->fetchAll($select);
     }
 

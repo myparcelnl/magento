@@ -51,9 +51,10 @@ use Throwable;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 
 /**
- * Class MagentoOrderCollection
+ * One export run: the shipments built from a Magento order or shipment selection, and the tracks
+ * they write back.
  *
- * @package MyParcelNL\Magento\Model\Sales
+ * Read tracks through tracksByShipmentId(), never off a Shipment — see the note there.
  */
 abstract class MagentoCollection implements MagentoCollectionInterface
 {
@@ -240,16 +241,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->options[$option] = $value;
 
         return $this;
-    }
-
-    /**
-     * @param Track[]|Collection $tracks
-     *
-     * @return string[]
-     */
-    public function getHtmlForGridColumnsByTracks($tracks): array
-    {
-        return $this->gridColumns->htmlForTracks($tracks);
     }
 
     /**
