@@ -82,11 +82,20 @@ it('leaves out an order whose store has no api key rather than borrowing another
 });
 
 
-it('answers both request methods the label download uses', function () {
-    // label-download.js GETs the grid row's ready-made href and POSTs an export's shipment id list,
-    // which is too long for a URL. Drop either and HttpMethodValidator answers that half with a 404
-    // it logs at debug level only, so the admin sees "could not be downloaded" and the log nothing.
+it('answers POST only, because fetching a label writes and mails', function () {
+    // Fetching the labels mints the barcodes, writes them back and, with notify, mails the customer.
+    // On POST the admin validates form_key; on GET it falls back to the secret key, which is a
+    // config toggle and rides in the href. label-download.js POSTs every request, so nothing needs
+    // the GET half — and re-adding it would hand a link-follower a real side effect.
     expect(class_implements(MyParcelNL\Magento\Controller\Adminhtml\Order\PrintMyParcelLabels::class))
-        ->toContain(Magento\Framework\App\Action\HttpGetActionInterface::class)
-        ->toContain(Magento\Framework\App\Action\HttpPostActionInterface::class);
+        ->toContain(Magento\Framework\App\Action\HttpPostActionInterface::class)
+        ->not->toContain(Magento\Framework\App\Action\HttpGetActionInterface::class);
+});
+
+it('exports over POST as well, so a bulk selection never rides in the query string', function () {
+    // HttpMethodValidator only constrains an action that implements one of the markers, so the
+    // marker is what makes the GET 404 rather than silently creating billable shipments.
+    expect(class_implements(MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction::class))
+        ->toContain(Magento\Framework\App\Action\HttpPostActionInterface::class)
+        ->not->toContain(Magento\Framework\App\Action\HttpGetActionInterface::class);
 });
