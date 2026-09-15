@@ -62,6 +62,7 @@ class MagentoOrderCollection extends MagentoCollection
     {
         $this->orders    = $orderCollection;
         $this->shipments = null;
+        $this->forgetTracks();
 
         return $this;
     }
@@ -132,7 +133,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Export every order in the collection as a PPS order, one call per API key.
+     * Export every order in the collection as a PPS order, grouped by API key and chunked.
      *
      * The grouping looks redundant — OrderCollection::save() groups too — but its grouped calls are
      * one method: an exception on the second account escapes before the first account's orders are
@@ -142,46 +143,67 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setFulfilment(): self
     {
-        $builder = new FulfilmentOrderBuilder($this->objectManager);
+        $builder   = new FulfilmentOrderBuilder($this->objectManager);
+        $chunkSize = $this->config->getExportChunkSize();
 
         foreach ($this->ordersByApiKey() as $magentoOrders) {
-            $orderCollection = (new OrderCollection())->setUserAgents($this->userAgent->map());
-            $exported        = [];
-
-            foreach ($magentoOrders as $magentoOrder) {
-                try {
-                    $orderCollection->push($builder->build($magentoOrder, $this->options));
-                    $exported[] = $magentoOrder;
-                } catch (Throwable $e) {
-                    $this->messageManager->addErrorMessage(
-                        sprintf('%s: %s', $magentoOrder->getIncrementId(), $e->getMessage())
-                    );
-                }
-            }
-
-            if ($orderCollection->isEmpty()) {
-                continue;
-            }
-
-            try {
-                $savedOrders = $orderCollection->save();
-            } catch (Throwable $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
-                continue;
-            }
-
-            // Before the next account is called: an order that exists in the API but carries no
-            // exported status is created again by the next run, as a second billable order.
-            $this->setMagentoOrdersAsExported($exported, $savedOrders);
-
-            try {
-                $this->saveOrderNotes($savedOrders);
-            } catch (Throwable $e) {
-                $this->messageManager->addErrorMessage($e->getMessage());
+            foreach (array_chunk($magentoOrders, $chunkSize) as $chunk) {
+                $this->exportFulfilmentChunk($builder, $chunk);
             }
         }
 
         return $this;
+    }
+
+    /**
+     * One request, whose orders are marked exported before the next request goes out.
+     *
+     * A chunk that fails is reported and skipped rather than abandoning the account: the remaining
+     * chunks are still worth sending, the same way one order failing to build does not stop the
+     * others in its chunk.
+     *
+     * Protected rather than private so the chunking above can be tested without a live API: every
+     * path through this method ends in an HTTP call the SDK builds its own cURL handle for.
+     *
+     * @param Order[] $magentoOrders
+     */
+    protected function exportFulfilmentChunk(FulfilmentOrderBuilder $builder, array $magentoOrders): void
+    {
+        $orderCollection = (new OrderCollection())->setUserAgents($this->userAgent->map());
+        $exported        = [];
+
+        foreach ($magentoOrders as $magentoOrder) {
+            try {
+                $orderCollection->push($builder->build($magentoOrder, $this->options));
+                $exported[] = $magentoOrder;
+            } catch (Throwable $e) {
+                $this->messageManager->addErrorMessage(
+                    sprintf('%s: %s', $magentoOrder->getIncrementId(), $e->getMessage())
+                );
+            }
+        }
+
+        if ($orderCollection->isEmpty()) {
+            return;
+        }
+
+        try {
+            $savedOrders = $orderCollection->save();
+        } catch (Throwable $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+
+            return;
+        }
+
+        // Before the next request is made: an order that exists in the API but carries no exported
+        // status is created again by the next run, as a second billable order.
+        $this->setMagentoOrdersAsExported($exported, $savedOrders);
+
+        try {
+            $this->saveOrderNotes($savedOrders);
+        } catch (Throwable $e) {
+            $this->messageManager->addErrorMessage($e->getMessage());
+        }
     }
 
     /**

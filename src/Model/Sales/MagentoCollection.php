@@ -285,6 +285,16 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         return $this->trackMemo = $this->readTracksByShipmentId();
     }
 
+    /**
+     * Forget what was read for the collection being replaced. Every setter that swaps the
+     * collection out owes this call: the memo is keyed by shipment id, so left standing it answers
+     * the new collection with the old one's rows.
+     */
+    protected function forgetTracks(): void
+    {
+        $this->trackMemo = null;
+    }
+
     /** @return array<int,Track[]> */
     private function readTracksByShipmentId(): array
     {
@@ -664,7 +674,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             }
         }
 
-        $this->addSecondaryShipmentTracks($secondary, $claimedIds, $spare);
+        $this->fillColloLinks($this->addSecondaryShipmentTracks($secondary, $claimedIds, $spare));
 
         return $this->updateOrderGrid();
     }
@@ -675,17 +685,22 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      * A multicollo is created as one shipment carrying secondary_shipments, and the module keeps
      * one Track for the whole of it — the SDK's create response drops the secondaries, so colli
      * 2..N never had an id to store. The query response does carry them, each a full shipment with
-     * its own id, barcode, status and consumer portal link, so the rows are made here instead
-     *. From the next run on each is an ordinary track and refreshes itself.
+     * its own id, barcode and status, so the rows are made here instead. From the next run on
+     * each is an ordinary track and refreshes itself.
      *
      * @param array<int,array{shipment: Order\Shipment, parentId: int, collo: object}> $secondary
      * @param array<int,true>                                                          $claimedIds ids already on a track
      * @param array<int,Track[]>                                                       $spare rows persist() parked on
      *        the parent's id, by parent id — reused before a row is added, so an order keeps the
      *        label_amount rows it was given rather than gaining one per collo
+     *
+     * @return array<int,array{shipment: Order\Shipment, track: Track}> the rows that came out of this
+     *         still without a link, keyed by collo id
      */
-    private function addSecondaryShipmentTracks(array $secondary, array $claimedIds, array $spare = []): void
+    private function addSecondaryShipmentTracks(array $secondary, array $claimedIds, array $spare = []): array
     {
+        $needLink = [];
+
         foreach ($secondary as $entry) {
             $collo   = $entry['collo'];
             $colloId = (int) $collo->getId();
@@ -704,6 +719,56 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $magentoTrack->save();
 
             $claimedIds[$colloId] = true;
+
+            if ('' === (string) $magentoTrack->getData('myparcel_tracktrace_url')) {
+                $needLink[$colloId] = ['shipment' => $entry['shipment'], 'track' => $magentoTrack];
+            }
+        }
+
+        return $needLink;
+    }
+
+    /**
+     * The consumer portal link a collo is missing.
+     *
+     * The api fills link_consumer_portal in only for a shipment asked for by id, never for one
+     * nested in a parent's secondary_shipments — so a collo reaches here without it. Each now has a
+     * track carrying its own id, which is all the grouping below needs to ask about it.
+     *
+     * Only the colli are asked for: their parents were read moments ago and nothing about them has
+     * changed. A collo whose nested entry did carry a link is not here at all, so the day the api
+     * starts sending them this call stops happening.
+     *
+     * @param array<int,array{shipment: Order\Shipment, track: Track}> $colli keyed by collo id
+     */
+    private function fillColloLinks(array $colli): void
+    {
+        if (! $colli) {
+            return;
+        }
+
+        $tracksByShipmentId = [];
+
+        foreach ($colli as $entry) {
+            $tracksByShipmentId[(int) $entry['shipment']->getId()][] = $entry['track'];
+        }
+
+        $latest = $this->exportService->fetchLatest(
+            $this->getMyparcelConsignmentIdsByApiKey($tracksByShipmentId)
+        );
+
+        foreach ($colli as $colloId => $entry) {
+            $myParcelShipment = $latest[$colloId] ?? null;
+
+            if (null === $myParcelShipment) {
+                continue;
+            }
+
+            $this->writeShipmentToTrack($entry['track'], $myParcelShipment);
+
+            if ($entry['track']->hasDataChanges()) {
+                $entry['track']->save();
+            }
         }
     }
 
