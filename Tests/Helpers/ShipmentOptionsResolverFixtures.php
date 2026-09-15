@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
@@ -83,4 +86,61 @@ function storedDeliveryOptions(?array $stored): DeliveryOptions
     }
 
     return DeliveryOptionsFactory::create($stored);
+}
+
+/**
+ * Resolver wired to a connection that records the select getLabelDescription() builds.
+ *
+ * @return array{resolver: ShipmentOptionsResolver, select: object}
+ */
+function createLabelDescriptionResolver(?int $shipmentId, string $template, array $rows = []): array
+{
+    $recorder = new class {
+        public string $table   = '';
+        public array  $columns = [];
+        public array  $wheres  = [];
+    };
+
+    $select = Mockery::mock();
+    $select->shouldReceive('from')->andReturnUsing(function (array $from) use (&$select, $recorder) {
+        $recorder->table = (string) reset($from);
+
+        return $select;
+    });
+    $select->shouldReceive('columns')->andReturnUsing(function (array $columns) use (&$select, $recorder) {
+        $recorder->columns = $columns;
+
+        return $select;
+    });
+    $select->shouldReceive('where')->andReturnUsing(function (string $cond, $value = null) use (&$select, $recorder) {
+        $recorder->wheres[$cond] = $value;
+
+        return $select;
+    });
+
+    $connection = Mockery::mock(AdapterInterface::class);
+    $connection->shouldReceive('select')->andReturn($select);
+    $connection->shouldReceive('fetchAll')->andReturn($rows);
+
+    $resource = Mockery::mock(ResourceConnection::class);
+    $resource->shouldReceive('getConnection')->andReturn($connection);
+    $resource->shouldReceive('getTableName')->andReturnUsing(fn (string $name) => $name);
+
+    $objectManager = Mockery::mock(ObjectManagerInterface::class);
+    $objectManager->shouldReceive('get')
+        ->with(Config::class)
+        ->andReturn(createConfig(['print/label_description' => $template]));
+    $objectManager->shouldReceive('create')->with(ResourceConnection::class)->andReturn($resource);
+
+    $resolver = new ShipmentOptionsResolver(
+        Mockery::mock(DefaultOptions::class),
+        createOrder(['getId' => 7]),
+        storedDeliveryOptions(null),
+        $objectManager,
+        Carrier::POSTNL,
+        [],
+        $shipmentId
+    );
+
+    return ['resolver' => $resolver, 'select' => $recorder];
 }

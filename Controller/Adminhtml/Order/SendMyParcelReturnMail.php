@@ -27,6 +27,8 @@ use MyParcelNL\Magento\Service\LogContext;
  */
 class SendMyParcelReturnMail extends Action
 {
+    public const ADMIN_RESOURCE = 'Magento_Sales::shipment';
+
     const PATH_URI_ORDER_INDEX = 'sales/order/index';
 
     private MagentoOrderCollection $orderCollection;

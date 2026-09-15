@@ -38,6 +38,12 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 
+/**
+ * The admin New Shipment form, resolved from the account's capabilities per carrier and package type.
+ *
+ * getFormCarriers() is what performs those lookups, so the template must call it before asking
+ * hasUnverifiedCapabilities(), which otherwise answers about a render that has not happened.
+ */
 class NewShipment extends AbstractItems
 {
     /**
@@ -276,8 +282,7 @@ class NewShipment extends AbstractItems
      * Whether any answer this render used was a fallback rather than the account's own.
      *
      * Only meaningful once the form data has been resolved, which is why the template asks for
-     * getFormCarriers() first. A partial failure is the case that matters: some package types
-     * answered, others fell back and are therefore offering everything.
+     * getFormCarriers() first.
      */
     public function hasUnverifiedCapabilities(): bool
     {

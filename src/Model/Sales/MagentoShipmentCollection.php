@@ -24,13 +24,13 @@ class MagentoShipmentCollection extends MagentoCollection
     {
         return $this->getShipmentsCollection();
     }
-    /**
-     * Get all Magento shipments
-     *
-     * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
-     */
+    /** @throws \RuntimeException when setShipmentCollection() has not run yet */
     protected function getShipmentsCollection(): \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
     {
+        if (null === $this->shipments) {
+            throw new \RuntimeException('No shipment collection was set on this export');
+        }
+
         return $this->shipments;
     }
 

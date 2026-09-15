@@ -17,8 +17,7 @@ use MyParcelNL\Sdk\Services\CoreApi\ShipmentApiFactory;
  * It exists because an empty key does not fail in the SDK: ShipmentApiFactory::resolveApiKey()
  * falls back to getenv('API_KEY'), then API_KEY_NL, then API_KEY_BE, so a store with no key
  * configured silently ships to whatever account the environment names. The guard below has to run
- * before the factory, every time — which is only enforceable while there is one call site. A second
- * one reopens the hole.
+ * before the factory, every time; a second call site reopens the hole.
  *
  * Clients are memoised per key so the six per-key services share one.
  */

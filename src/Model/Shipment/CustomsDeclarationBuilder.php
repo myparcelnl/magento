@@ -4,19 +4,13 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment;
 
-use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
-use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\Order\Shipment;
-use MyParcelNL\Magento\Service\ProductAttributeReader;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\DeliveryCosts;
-use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclaration;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclarationItem;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
-use MyParcelNL\Sdk\Support\Str;
 
 /**
  * Builds a v11 RefShipmentCustomsDeclaration for a ROW shipment. Stateless; shared across a batch.
@@ -31,28 +25,14 @@ use MyParcelNL\Sdk\Support\Str;
  */
 class CustomsDeclarationBuilder
 {
-    /** Sent by the legacy encoder for every shipment; the module never chose another value. */
-    private const CONTENTS_COMMERCIAL_GOODS = 1;
+    private const MAX_ITEMS  = 100;
+    private const MAX_AMOUNT = 99999;
 
-    private const MAX_DESCRIPTION_LENGTH = 50;
-    private const MAX_ITEMS              = 100;
-    private const MAX_AMOUNT             = 99999;
-
-    /** The HS code attribute's own cap; the API declares no maximum of its own. */
-    private const MAX_CLASSIFICATION_LENGTH = 18;
-
-    private ObjectManagerInterface $objectManager;
-    private Config                 $config;
-    private Weight                 $weight;
-
-    /** The `myparcel_classification` EAV attribute id; the same for every product, so fetched once. */
-    private ?string $classificationAttributeId = null;
+    private CustomsItems $items;
 
     public function __construct(ObjectManagerInterface $objectManager, Config $config, Weight $weight)
     {
-        $this->objectManager = $objectManager;
-        $this->config        = $config;
-        $this->weight        = $weight;
+        $this->items = new CustomsItems($objectManager, $config, $weight);
     }
 
     /**
@@ -80,8 +60,8 @@ class CustomsDeclarationBuilder
         }
 
         $productIds      = array_map(static fn($item): int => (int) $item->getProductId(), $shipmentItems);
-        $classifications = $this->classificationsFor($productIds);
-        $countries       = $this->countriesOfOriginFor($productIds);
+        $classifications = $this->items->classificationsFor($productIds);
+        $countries       = $this->items->countriesOfOriginFor($productIds);
 
         $items = [];
 
@@ -99,7 +79,7 @@ class CustomsDeclarationBuilder
         }
 
         return (new RefShipmentCustomsDeclaration())
-            ->setContents(self::CONTENTS_COMMERCIAL_GOODS)
+            ->setContents(CustomsItems::CONTENTS_COMMERCIAL_GOODS)
             ->setWeight($totalWeightInGrams)
             ->setInvoice($invoice)
             ->setItems($items);
@@ -116,72 +96,17 @@ class CustomsDeclarationBuilder
     {
         $amount = max(1, min(self::MAX_AMOUNT, $qty));
 
-        // A zero-gram customs item is refused by the API, so an item with no weight set counts as 1.
-        $weightInGrams = $this->weight->convertToGrams($unitWeight * $qty) ?: 1;
-
-        // Weight and value are both line-level, while amount carries the count: a qty of three
-        // declares three pieces, three times the weight and three times the value. Cents are
-        // multiplied rather than euros, so one rounding happens instead of one per line.
         $itemValue = (new RefTypesMoney())
             ->setCurrency(RefTypesMoney::CURRENCY_EUR)
-            ->setAmount(DeliveryCosts::getPriceInCents($unitPrice) * $amount);
+            ->setAmount($this->items->lineValueInCents($unitPrice, (float) $amount));
 
         return (new RefShipmentCustomsDeclarationItem(['country' => $countryOfOrigin]))
-            ->setDescription(Str::limit($name, self::MAX_DESCRIPTION_LENGTH))
+            ->setDescription($this->items->description($name))
             ->setAmount($amount)
-            ->setWeight($weightInGrams)
+            ->setWeight($this->items->lineWeightInGrams($unitWeight, (float) $amount))
             ->setItemValue($itemValue)
-            ->setClassification(substr($classification, 0, self::MAX_CLASSIFICATION_LENGTH));
+            ->setClassification($this->items->classification($classification));
     }
 
-    /**
-     * HS codes for all products at once, from the varchar table: a string of up to 18 characters,
-     * digits and dots (6109.10). The int table it moved from dropped leading zeroes and dots.
-     *
-     * @param int[] $productIds
-     *
-     * @return array<int,string> product id => HS code
-     */
-    private function classificationsFor(array $productIds): array
-    {
-        $resource   = $this->objectManager->get(ResourceConnection::class);
-        $connection = $resource->getConnection();
 
-        if (null === $this->classificationAttributeId) {
-            $this->classificationAttributeId = (new ProductAttributeReader($resource))->attributeId('classification');
-        }
-
-        $select = $connection->select()
-                             ->from($resource->getTableName('catalog_product_entity_varchar'), ['entity_id', 'value'])
-                             ->where('attribute_id = ?', $this->classificationAttributeId)
-                             ->where('entity_id IN (?)', $productIds);
-
-        return array_map('strval', $connection->fetchPairs($select));
-    }
-
-    /**
-     * Product setting first, MyParcel setting second — resolved per product, fetched as one query.
-     *
-     * @param int[] $productIds
-     *
-     * @return array<int,string> product id => ISO country
-     */
-    private function countriesOfOriginFor(array $productIds): array
-    {
-        $fallback = (string) $this->config->getGeneralConfig('print/country_of_origin');
-
-        /** @var ProductCollection $collection */
-        $collection = $this->objectManager->create(ProductCollection::class);
-        $collection->addIdFilter($productIds)
-                   ->addAttributeToSelect('country_of_manufacture');
-
-        $countries = [];
-
-        foreach ($collection->getItems() as $product) {
-            $countries[(int) $product->getId()] = (string) ($product->getCountryOfManufacture() ?: $fallback);
-        }
-
-        // A product that no longer exists still needs a country on its customs item.
-        return $countries + array_fill_keys($productIds, $fallback);
-    }
 }
