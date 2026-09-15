@@ -132,3 +132,63 @@ it('adds a row when a multicollo has more colli than spare rows', function () {
     expect($saved->created)->toHaveCount(1)
         ->and($saved->created[0]['data']['myparcel_consignment_id'])->toBe(4243);
 });
+it('asks for a collo by id, so the link its nested entry lacked arrives', function () {
+    // The api fills link_consumer_portal in only for a shipment asked for by id. A collo read out of
+    // secondary_shipments has none, and in PPS mode nothing ever asks again: ordersAwaitingBarcode()
+    // drops the order the moment it has a barcode, so the grid falls back to a built url for good.
+    [$collection, $saved] = collectionRefreshing(4242, [
+        4242 => apiShipmentWithColli(4242, '3SMAIN', [apiCollo(4243, '3SCOLLO2')]),
+        4243 => apiShipment(4243, '3SCOLLO2', 'https://myparcel.me/track-trace/3SCOLLO2/1234AB/NL'),
+    ]);
+
+    $collection->updateMagentoTrack();
+
+    expect($saved->created[0]['data']['myparcel_tracktrace_url'])
+        ->toBe('https://myparcel.me/track-trace/3SCOLLO2/1234AB/NL');
+});
+
+it('asks about the colli alone, never about the parent again', function () {
+    // The parents were read moments ago and nothing about them has changed.
+    [$collection, $saved] = collectionRefreshing(4242, [
+        4242 => apiShipmentWithColli(4242, '3SMAIN', [apiCollo(4243, '3SCOLLO2'), apiCollo(4244, '3SCOLLO3')]),
+    ]);
+
+    $collection->updateMagentoTrack();
+
+    expect($saved->fetched)->toHaveCount(2)
+        ->and($saved->fetched[1])->toBe(['key' => [4243, 4244]]);
+});
+
+it('asks nothing more when the nested entries carried their links', function () {
+    // The day the api sends them, this call stops happening on its own.
+    [$collection, $saved] = collectionRefreshing(4242, [
+        4242 => apiShipmentWithColli(4242, '3SMAIN', [
+            apiCollo(4243, '3SCOLLO2', 'https://myparcel.me/track-trace/3SCOLLO2/1234AB/NL'),
+        ]),
+    ]);
+
+    $collection->updateMagentoTrack();
+
+    expect($saved->fetched)->toHaveCount(1);
+});
+
+it('asks nothing more for an order that is no multicollo', function () {
+    [$collection, $saved] = collectionRefreshing(4242, [4242 => apiShipment(4242, '3SMYPA123', null)]);
+
+    $collection->updateMagentoTrack();
+
+    expect($saved->fetched)->toHaveCount(1);
+});
+
+it('gives a spare row its link as well', function () {
+    // The spare path writes no link either: it is handed the same nested collo.
+    [$collection, $saved] = collectionRefreshingTracks([4242, 4242], [
+        4242 => apiShipmentWithColli(4242, '3SMAIN', [apiCollo(4243, '3SCOLLO2')]),
+        4243 => apiShipment(4243, '3SCOLLO2', 'https://myparcel.me/track-trace/3SCOLLO2/1234AB/NL'),
+    ]);
+
+    $collection->updateMagentoTrack();
+
+    expect($saved->rows[1]['data']['myparcel_tracktrace_url'])
+        ->toBe('https://myparcel.me/track-trace/3SCOLLO2/1234AB/NL');
+});

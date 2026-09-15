@@ -468,3 +468,5 @@ Importing the MyParcel Backoffice settings failed. Check the log for details.,He
 "Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Uw contract staat € %1 tot € %2 toe. Verzekering is verplicht voor deze vervoerder en kan niet worden uitgezet."
 "Insurance amount ""%1"" was not saved: enter a whole number of euros.","Verzekeringsbedrag ""%1"" is niet opgeslagen: vul een heel bedrag in euro's in."
 MyParcel Backoffice settings imported.,MyParcel Backoffice-instellingen zijn geïmporteerd.
+Records per export request,Records per exportverzoek
+How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Hoeveel zendingen of orders in een verzoek naar MyParcel gaan. Laat leeg voor 20. Verlaag dit als grote exports een time-out geven. Het maximum is 100.
