@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\Export\ShipmentExportService;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\SecondaryShipmentResource;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsShipment;
@@ -38,6 +39,52 @@ function partialOrderCollection(array $shipmentList): MagentoOrderCollection
 }
 
 /**
+ * A ShipmentExportService double answering every fetch from one map, recording what was asked for.
+ *
+ * One map for every call: a test that wants the second fetch — the one fillColloLinks() makes — to
+ * succeed puts the collo's own top-level shipment in it beside the parent.
+ */
+function recordingExportService(array $latest, object $saved): ShipmentExportService
+{
+    $exportService = Mockery::mock(ShipmentExportService::class);
+    $exportService->shouldReceive('fetchLatest')->andReturnUsing(
+        static function (array $idsByApiKey) use ($saved, $latest) {
+            $saved->fetched[] = $idsByApiKey;
+
+            return $latest;
+        }
+    );
+
+    return $exportService;
+}
+
+/**
+ * getMyparcelConsignmentIdsByApiKey() as the real one answers: off the tracks the caller hands in,
+ * or off the collection's own rows when it hands in none. Both shapes are used, and a stub that
+ * answered the same either way could not show which ids fillColloLinks() asks about.
+ *
+ * @param int[] $ownIds
+ */
+function consignmentIdsStub(array $ownIds): Closure
+{
+    return static function (?array $tracksByShipmentId = null) use ($ownIds): array {
+        $ids = $ownIds;
+
+        if (null !== $tracksByShipmentId) {
+            $ids = [];
+
+            foreach ($tracksByShipmentId as $rows) {
+                foreach ($rows as $row) {
+                    $ids[] = (int) $row->getData('myparcel_consignment_id');
+                }
+            }
+        }
+
+        return $ids ? ['key' => array_values(array_unique($ids))] : [];
+    };
+}
+
+/**
  * updateMagentoTrack() is what puts the consumer portal link on the track, and nothing covered it —
  * which is why PPS orders went without one unnoticed. There is no PPS-specific link path:
  * once a track carries myparcel_consignment_id it refreshes through here like any other.
@@ -52,6 +99,8 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
         public array $numbers = [];
         public array $data    = [];
         public int   $saves   = 0;
+        /** @var array<int,array<string,int[]>> one per fetchLatest call, in order */
+        public array $fetched = [];
         /** @var array<int,array{number: string|null, data: array}> one per track this run created */
         public array $created = [];
     };
@@ -79,12 +128,12 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
 
     $shipment = createShipment();
 
-    $exportService = Mockery::mock(MyParcelNL\Magento\Service\Export\ShipmentExportService::class);
-    $exportService->shouldReceive('fetchLatest')->andReturn($latest);
+    $exportService = recordingExportService($latest, $saved);
 
     $collection = partialOrderCollection([$shipment]);
     $collection->shouldReceive('tracksByShipmentId')->andReturn([(int) $shipment->getId() => [$track]]);
-    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')->andReturn(['key' => [$consignmentId]]);
+    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')
+               ->andReturnUsing(consignmentIdsStub([$consignmentId]));
     $collection->shouldReceive('updateOrderGrid')->andReturnSelf();
     $collection->shouldReceive('setNewMagentoTrack')->andReturnUsing(static function () use ($saved) {
         $made = ['number' => null, 'data' => []];
@@ -120,6 +169,8 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
 function collectionRefreshingTracks(array $consignmentIds, array $latest): array
 {
     $saved = new class {
+        /** @var array<int,array<string,int[]>> one per fetchLatest call, in order */
+        public array $fetched = [];
         /** @var array<int,array{number: string|null, data: array}> pre-existing rows, in order */
         public array $rows = [];
         /** @var array<int,array{number: string|null, data: array}> rows this run created */
@@ -148,13 +199,12 @@ function collectionRefreshingTracks(array $consignmentIds, array $latest): array
 
     $shipment = createShipment();
 
-    $exportService = Mockery::mock(MyParcelNL\Magento\Service\Export\ShipmentExportService::class);
-    $exportService->shouldReceive('fetchLatest')->andReturn($latest);
+    $exportService = recordingExportService($latest, $saved);
 
     $collection = partialOrderCollection([$shipment]);
     $collection->shouldReceive('tracksByShipmentId')->andReturn([(int) $shipment->getId() => $existing]);
     $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')
-               ->andReturn(['key' => array_values(array_unique($consignmentIds))]);
+               ->andReturnUsing(consignmentIdsStub($consignmentIds));
     $collection->shouldReceive('updateOrderGrid')->andReturnSelf();
     $collection->shouldReceive('setNewMagentoTrack')->andReturnUsing(static function () use ($saved) {
         $key = array_push($saved->created, ['number' => null, 'data' => []]) - 1;

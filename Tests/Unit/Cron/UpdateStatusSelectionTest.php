@@ -133,3 +133,84 @@ it('only counts this module carrier tracks', function () {
 
     expect(array_column($bound, 1))->toContain(Carrier::CODE);
 });
+
+/**
+ * Runs execute() with nothing awaiting a barcode, so the PPS pass returns at once and only the
+ * status poll can reach the collection.
+ *
+ * @return object the recorder: whether updateMagentoTrack() was reached
+ */
+function runCronInMode(string $exportMode): object
+{
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('debug', 'notice', 'warning')->andReturnNull();
+
+    $reached = new class {
+        public bool $polled = false;
+    };
+
+    $fluent = static function (string $class, array $methods, array $answers = []) {
+        $mock = Mockery::mock($class);
+
+        foreach ($methods as $method) {
+            $mock->shouldReceive($method)->andReturnSelf();
+        }
+
+        foreach ($answers as $method => $answer) {
+            $mock->shouldReceive($method)->andReturn($answer);
+        }
+
+        return $mock;
+    };
+
+    $objectManager = Mockery::mock(Magento\Framework\ObjectManagerInterface::class);
+    $objectManager->shouldReceive('get')
+        ->with(MyParcelNL\Magento\Service\Export\ShipmentApiProvider::class)
+        ->andReturn(Mockery::mock(MyParcelNL\Magento\Service\Export\ShipmentApiProvider::class));
+    $objectManager->shouldReceive('get')
+        ->with(UpdateStatus::PATH_MODEL_ORDER_TRACK)
+        ->andReturn($fluent(
+            Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection::class,
+            ['addFieldToSelect', 'addAttributeToFilter', 'setPageSize', 'setOrder'],
+            ['getData' => []]
+        ));
+    $objectManager->shouldReceive('create')
+        ->with(MagentoCollection::PATH_MODEL_ORDER_COLLECTION)
+        ->andReturn($fluent(
+            Magento\Sales\Model\ResourceModel\Order\Collection::class,
+            ['addAttributeToFilter', 'addFieldToFilter']
+        ));
+
+    $orderCollection = Mockery::mock(MyParcelNL\Magento\Model\Sales\MagentoOrderCollection::class);
+    $orderCollection->shouldReceive('setOrderCollection')->andReturnSelf();
+    $orderCollection->shouldReceive('updateMagentoTrack')->andReturnUsing(
+        static function () use ($orderCollection, $reached) {
+            $reached->polled = true;
+
+            return $orderCollection;
+        }
+    );
+
+    $config = Mockery::mock(MyParcelNL\Magento\Service\Config::class);
+    $config->shouldReceive('getExportMode')->andReturn($exportMode);
+
+    $cron = newInstanceWithoutConstructor(MyParcelNL\Magento\Tests\Stub\RecordingUpdateStatus::class);
+    setPrivateProperty($cron, 'objectManager', $objectManager);
+    setPrivateProperty($cron, 'orderCollection', $orderCollection);
+    setPrivateProperty($cron, 'config', $config);
+    $cron->orderRows = [];
+
+    $cron->execute();
+
+    return $reached;
+}
+
+it('polls shipment statuses in shipments mode', function () {
+    expect(runCronInMode('shipments')->polled)->toBeTrue();
+});
+
+it('polls shipment statuses in PPS mode as well', function () {
+    // PPS acquires barcodes and drops an order the moment it has one, so without this pass a PPS
+    // order's myparcel_status stays at whatever its barcode pass wrote, for good.
+    expect(runCronInMode(MyParcelNL\Magento\Service\Config::EXPORT_MODE_PPS)->polled)->toBeTrue();
+});

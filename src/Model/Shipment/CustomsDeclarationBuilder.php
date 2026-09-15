@@ -94,7 +94,19 @@ class CustomsDeclarationBuilder
         string $countryOfOrigin
     ): RefShipmentCustomsDeclarationItem
     {
-        $amount = max(1, min(self::MAX_AMOUNT, $qty));
+        // Truncating would under-declare the pieces, the weight and the value at once, because
+        // $amount feeds all three.
+        if (self::MAX_AMOUNT < $qty) {
+            throw new \RuntimeException(sprintf(
+                'Customs item "%s" has %d pieces; the maximum per item is %d',
+                $name,
+                $qty,
+                self::MAX_AMOUNT
+            ));
+        }
+
+        // A zero-quantity line is not an error, it is a line the API refuses.
+        $amount = max(1, $qty);
 
         $itemValue = (new RefTypesMoney())
             ->setCurrency(RefTypesMoney::CURRENCY_EUR)

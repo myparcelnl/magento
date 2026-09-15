@@ -28,15 +28,15 @@ use MyParcelNL\Magento\Service\IdList;
  */
 class ShipmentExportService
 {
-    public const DEFAULT_CHUNK_SIZE = 20;
-
-    /** Imposed by the SDK's generated request model, which throws above it. */
-    private const MAX_CHUNK_SIZE = 100;
+    /**
+     * The shipments-per-request default, which Config owns because the PPS export chunks by the
+     * same setting. The SDK's generated request model throws above 100, and the admin field will
+     * not accept more, so the bound is enforced there rather than here.
+     */
+    public const DEFAULT_CHUNK_SIZE = Config::DEFAULT_EXPORT_CHUNK_SIZE;
 
     /** Label ids per request. See ShipmentQuery::CHUNK_SIZE — same URL limit, same multiple of four. */
     private const LABEL_CHUNK_SIZE = 100;
-
-    private const XML_PATH_CHUNK_SIZE = 'print/export_chunk_size';
 
     private ShipmentApiProvider $apiProvider;
     private Config              $config;
@@ -532,14 +532,6 @@ class ShipmentExportService
     /** Anything outside 1..100 — including a configured 0, which would loop forever — falls back. */
     private function chunkSize(): int
     {
-        $configured = $this->config->getGeneralConfig(self::XML_PATH_CHUNK_SIZE);
-
-        if (! is_numeric($configured)) {
-            return self::DEFAULT_CHUNK_SIZE;
-        }
-
-        $size = (int) $configured;
-
-        return 1 <= $size && $size <= self::MAX_CHUNK_SIZE ? $size : self::DEFAULT_CHUNK_SIZE;
+        return $this->config->getExportChunkSize();
     }
 }
