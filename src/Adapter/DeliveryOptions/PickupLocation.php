@@ -17,29 +17,21 @@ use InvalidArgumentException;
  */
 final class PickupLocation
 {
-    /** @var string */
-    private $locationName;
+    private string $locationName;
 
-    /** @var string */
-    private $locationCode;
+    private string $locationCode;
 
-    /** @var string|null */
-    private $retailNetworkId;
+    private ?string $retailNetworkId;
 
-    /** @var string */
-    private $street;
+    private string $street;
 
-    /** @var string */
-    private $number;
+    private string $number;
 
-    /** @var string */
-    private $postalCode;
+    private string $postalCode;
 
-    /** @var string */
-    private $city;
+    private string $city;
 
-    /** @var string */
-    private $cc;
+    private string $cc;
 
     private function __construct(
         string $locationName,

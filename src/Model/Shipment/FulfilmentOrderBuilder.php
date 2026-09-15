@@ -188,22 +188,18 @@ class FulfilmentOrderBuilder
             throw new RuntimeException('This order is a pickup but carries no pickup location');
         }
 
-        return new PickupLocation([
-            'cc'                => $location->getCountry(),
-            'city'              => $location->getCity(),
-            'postal_code'       => $location->getPostalCode(),
-            'street'            => $location->getStreet(),
-            'number'            => $location->getNumber(),
-            'location_name'     => $location->getLocationName(),
-            'location_code'     => $location->getLocationCode(),
-            'retail_network_id' => $location->getRetailNetworkId(),
-        ]);
+        return new PickupLocation($location->toArray());
     }
 
     private function localCreatedAtDate(Order $magentoOrder, string $format = 'Y-m-d H:i:s'): string
     {
         $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
-        $datetime    = DateTime::createFromFormat('Y-m-d H:i:s', $magentoOrder->getCreatedAt());
+        $datetime    = DateTime::createFromFormat('Y-m-d H:i:s', (string) $magentoOrder->getCreatedAt());
+
+        if (false === $datetime) {
+            return (string) $magentoOrder->getCreatedAt();
+        }
+
         $timezone    = $scopeConfig->getValue(
             'general/locale/timezone',
             ScopeInterface::SCOPE_STORES,
