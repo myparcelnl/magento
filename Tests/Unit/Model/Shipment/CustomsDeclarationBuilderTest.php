@@ -76,6 +76,35 @@ it('declares a multi-quantity line at line level, not per unit', function () {
     expect(customsItemValue($items[0]))->toBe(['amount' => 3702, 'currency' => RefTypesMoney::CURRENCY_EUR]);
 });
 
+it('carries a line at the API maximum of 99999 pieces', function () {
+    $item = createShipmentItem([
+        'name'       => 'Widget',
+        'qty'        => 99999,
+        'weight'     => 1.0,
+        'price'      => 0.01,
+        'product_id' => 99,
+    ]);
+
+    [, $items] = buildCustomsFor([$item]);
+
+    expect($items[0]->getAmount())->toBe(99999);
+});
+
+it('refuses a line above the API maximum rather than truncating it', function () {
+    // Truncating under-declared the pieces, the weight and the value at once, because amount
+    // feeds all three. The name is in the message so the admin can find the offending line.
+    $item = createShipmentItem([
+        'name'       => 'Widget',
+        'qty'        => 100000,
+        'weight'     => 1.0,
+        'price'      => 0.01,
+        'product_id' => 99,
+    ]);
+
+    expect(fn() => buildCustomsFor([$item]))
+        ->toThrow(RuntimeException::class, 'Customs item "Widget" has 100000 pieces; the maximum per item is 99999');
+});
+
 it('adds each shipment item to the consignment exactly once', function () {
     // convertDataForCdCountry() looped the shipment items twice — once via
     // getData('items'), once via getItems() — and added every item on both

@@ -29,7 +29,7 @@ it('returns true when the general priority setting is enabled', function () {
     $repository = createPackageRepository(true, [null, null]);
 
     expect($repository->getPriorityDelivery(
-        ['productA', 'productB'],
+        [quoteItemFor(1), quoteItemFor(2)],
         'myparcelnl_magento_postnl_settings/'
     ))->toBeTrue();
 });
@@ -45,7 +45,7 @@ it('returns true when the general setting is off but one product has priority en
     $repository = createPackageRepository(false, [null, 1]);
 
     expect($repository->getPriorityDelivery(
-        ['productA', 'productB'],
+        [quoteItemFor(1), quoteItemFor(2)],
         'myparcelnl_magento_postnl_settings/'
     ))->toBeTrue();
 });
@@ -55,7 +55,7 @@ it('returns false when the general setting is off and no product has priority en
     $repository = createPackageRepository(false, [null, 0]);
 
     expect($repository->getPriorityDelivery(
-        ['productA', 'productB'],
+        [quoteItemFor(1), quoteItemFor(2)],
         'myparcelnl_magento_postnl_settings/'
     ))->toBeFalse();
 });
