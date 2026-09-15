@@ -173,3 +173,11 @@ it('reads past the truncation in the exception message', function () {
     expect(implode('; ', $report->failureReasons()['000000114']))->toContain('Country is required')
         ->and($report->succeeded())->toHaveKey('000000115');
 });
+
+it('still lists an order the API refused without any text', function () {
+    $report = new MyParcelNL\Magento\Service\Export\ExportReport();
+    $report->fail('100000001', '   ');
+
+    expect(array_map('strval', array_keys($report->failureReasons())))->toBe(['100000001'])
+        ->and($report->failureReasons()['100000001'][0])->not->toBe('');
+});

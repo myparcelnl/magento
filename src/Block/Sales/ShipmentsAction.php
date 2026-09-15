@@ -17,8 +17,7 @@ namespace MyParcelNL\Magento\Block\Sales;
 /**
  * The shipment grid's MyParcel actions.
  *
- * Everything it needs is OrdersAction's, which OrderAction and ShipmentAction already extend for the
- * same reason. It differs only in which grid it renders on, and therefore which grid the export
+ * Differs from OrdersAction only in which grid it renders on, and therefore which grid the export
  * refreshes.
  */
 class ShipmentsAction extends OrdersAction

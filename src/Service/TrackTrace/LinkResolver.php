@@ -7,7 +7,6 @@ namespace MyParcelNL\Magento\Service\TrackTrace;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
-use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Service\TrackTraceUrl;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;

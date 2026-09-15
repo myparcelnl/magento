@@ -27,12 +27,10 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Api\Data\ShipmentTrackInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\Shipment\Track\Collection;
 use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Magento\Facade\Logger;
-use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Config;
@@ -47,6 +45,13 @@ use MyParcelNL\Sdk\Exception\MissingFieldException;
 use Throwable;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 
+/**
+ * Brings MyParcel shipment status, barcode and track & trace back into Magento.
+ *
+ * Polls once per API key, grouped by each order's own store, and skips a store that has none: it
+ * never lends one store another store's key. It only reads — nothing here creates a shipment
+ * upstream.
+ */
 class UpdateStatus
 {
     public const ORDER_ID_NOT_TO_PROCESS = '000000000';

@@ -26,23 +26,17 @@ final class DeliveryOptions
     private const DEFAULT_DATE          = '';
     private const DEFAULT_DELIVERY_TYPE = DeliveryType::STANDARD_NAME;
 
-    /** @var string|null */
-    private $carrier;
+    private ?string $carrier;
 
-    /** @var string|null */
-    private $date;
+    private ?string $date;
 
-    /** @var \MyParcelNL\Magento\Model\Shipment\TypeValue */
-    private $deliveryType;
+    private TypeValue $deliveryType;
 
-    /** @var \MyParcelNL\Magento\Model\Shipment\TypeValue */
-    private $packageType;
+    private TypeValue $packageType;
 
-    /** @var \MyParcelNL\Magento\Adapter\DeliveryOptions\PickupLocation|null */
-    private $pickupLocation;
+    private ?PickupLocation $pickupLocation;
 
-    /** @var \MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions|null */
-    private $shipmentOptions;
+    private ?ShipmentOptions $shipmentOptions;
 
     /**
      * @param string|int|null $deliveryType

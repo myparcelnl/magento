@@ -279,9 +279,8 @@ class PackageRepository extends Package
      * Compared against '1' rather than cast: an *_active path need not be a Yes/No. LargeFormatOptions
      * offers 'price' and '0', and 'price' casts to true without ever meaning 1.
      *
-     * The products are part of the memo key. Today one instance only ever sees one quote's items, so
-     * leaving them out happened to work; a reused instance would have answered a second order from
-     * the first order's products, and an 18+ item would have forced age_check on an unrelated one.
+     * The products are part of the memo key: a reused instance would otherwise answer a second order
+     * from the first order's products, forcing age_check on an unrelated one.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $products
      */
