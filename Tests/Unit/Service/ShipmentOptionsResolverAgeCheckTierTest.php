@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
+use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 
 /**
@@ -51,6 +52,12 @@ function ageCheckProductTierQuote(array $values, ?array &$loads = null): array
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($collection);
+
+    // One reader for the request, as di gives the resolver: a reader per call memoised nothing.
+    $objectManager->shouldReceive('get')
+                  ->with(ProductAttributes::class)
+                  ->andReturn(new ProductAttributes($objectManager));
+
     ObjectManager::setInstance($objectManager);
 
     $items = [];
