@@ -9,9 +9,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
  *
  * One declaration for both consumers — the admin default-weight setting
  * ({@see \MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions}) and the admin New Shipment
- * form. They held separate lists until 2026-08, and the form's still offered 100 and 350: values
- * that `Setup\Migrations\ReplaceDpzRange` had already retired from the setting when v5 merged
- * 50-100 and 100-350 into one range.
+ * form.
  *
  * `value` is not the upper bound. The merged range sends 200, which sits inside 50-350 rather than
  * on a boundary, so read a range with `max` and send `value`. Labels are translated here because
