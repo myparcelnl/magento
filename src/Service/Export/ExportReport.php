@@ -60,7 +60,9 @@ class ExportReport
         $reason = trim($reason);
 
         if ('' === $reason) {
-            return;
+            // The API named this order but gave no text. Dropping it here left the order in neither
+            // the success nor the failure list.
+            $reason = (string) __('The MyParcel API refused this order without giving a reason.');
         }
 
         unset($this->collateral[$incrementId]);
