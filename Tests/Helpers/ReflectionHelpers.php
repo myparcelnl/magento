@@ -43,6 +43,20 @@ function setPrivateProperty(object $object, string $property, $value): void
  * constructor pulls in collaborators (live ObjectManager singletons, heavy
  * SDK setup) that are irrelevant to the single method under test.
  */
+function getPrivateProperty(object $object, string $property)
+{
+    for ($class = new ReflectionClass($object); $class; $class = $class->getParentClass()) {
+        if ($class->hasProperty($property)) {
+            $reflected = $class->getProperty($property);
+            $reflected->setAccessible(true);
+
+            return $reflected->getValue($object);
+        }
+    }
+
+    throw new ReflectionException(sprintf('Property %s::$%s does not exist', get_class($object), $property));
+}
+
 function newInstanceWithoutConstructor(string $class): object
 {
     return (new ReflectionClass($class))->newInstanceWithoutConstructor();

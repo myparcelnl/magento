@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\App\Action\HttpPostActionInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Phrase;
@@ -30,8 +31,12 @@ use MyParcelNL\Magento\Service\IdList;
  * the first moment a barcode exists to put in them.
  *
  * It creates nothing: shipments without a MyParcel shipment id are skipped, never exported.
+ *
+ * Both request methods, and both are used: the grid row's "Download label" is a GET, while an
+ * export POSTs its shipment id list, which is too long for a URL. Drop either interface and
+ * HttpMethodValidator answers that half with a 404 it logs at debug level only.
  */
-class PrintMyParcelLabels extends Action implements HttpGetActionInterface
+class PrintMyParcelLabels extends Action implements HttpGetActionInterface, HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Magento_Sales::shipment';
 
