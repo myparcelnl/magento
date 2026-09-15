@@ -18,9 +18,8 @@
 
 namespace MyParcelNL\Magento\Model\Sales\Repository;
 
-use MyParcelNL\Magento\Service\ProductAttributeReader;
+use MyParcelNL\Magento\Service\ProductAttributes;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\ResourceConnection;
 use MyParcelNL\Magento\Model\Sales\Package;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
@@ -53,6 +52,7 @@ class PackageRepository extends Package
      */
     public function selectPackageType(array $products, string $carrierName): string
     {
+        $this->warmAttributes($products);
         $this->setMailboxPercentage(0);
         $weight       = 0;
         $digitalStamp = true;
@@ -117,6 +117,8 @@ class PackageRepository extends Package
      */
     public function productWithoutDeliveryOptions(array $products): PackageRepository
     {
+        $this->warmAttributes($products);
+
         foreach ($products as $product) {
             $this->isDeliveryOptionsDisabled($product);
         }
@@ -224,6 +226,7 @@ class PackageRepository extends Package
      */
     public function getProductDropOffDelay(array $products): ?int
     {
+        $this->warmAttributes($products);
         $highestDropOffDelay = null;
 
         foreach ($products as $product) {
@@ -269,7 +272,7 @@ class PackageRepository extends Package
     /** @var array<string,bool> memo for optionForcedOn(), per request */
     private array $forcedOptions = [];
 
-    private ?ProductAttributeReader $attributeReader = null;
+    private ?ProductAttributes $attributes = null;
 
 
     /**
@@ -318,6 +321,8 @@ class PackageRepository extends Package
 
     private function resolveOptionForcedOn(array $products, string $carrierPath, string $option): bool
     {
+        $this->warmAttributes($products);
+
         foreach ($products as $product) {
             if ((bool) $this->getAttributesProductsOptions($product, $option)) {
                 return true;
@@ -341,6 +346,8 @@ class PackageRepository extends Package
     public function getExcludeParcelLockers(array $products, string $carrierPath): bool
     {
         try {
+            $this->warmAttributes($products);
+
             // Check if general setting is enabled
             $generalExclude = (bool) $this->getGeneralConfig('shipping_methods/exclude_parcel_lockers', $this->getStoreId());
             if ($generalExclude) {
@@ -379,6 +386,8 @@ class PackageRepository extends Package
         if ((bool) $this->getConfigValue($carrierPath . 'mailbox/priority_delivery_active', $this->getStoreId())) {
             return true;
         }
+
+        $this->warmAttributes($products);
 
         foreach ($products as $product) {
             if ((bool) $this->getProductPriorityDelivery($product)) {
@@ -476,40 +485,58 @@ class PackageRepository extends Package
      */
     protected function getAttributesProductsOptions($product, string $column): ?int
     {
-        $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_varchar', $product, $column);
-        if (empty($attributeValue)) {
-            $attributeValue = $this->getAttributesFromProduct('catalog_product_entity_int', $product, $column);
+        $productId = self::productIdOf($product);
+
+        if (null === $productId) {
+            return null;
         }
 
-        if (isset($attributeValue)) {
-            return (int) $attributeValue;
-        }
+        $value = $this->attributes()->value($productId, $column);
 
-        return null;
+        return null === $value ? null : (int) $value;
     }
 
     /**
-     * @param string                          $tableName
-     * @param \Magento\Quote\Model\Quote\Item $product
-     * @param string                          $column
+     * A quote item whose catalogue product is gone has no attributes to read, and an order that
+     * outlives its catalogue is ordinary. Null rather than a fatal.
      *
-     * @return null|string
+     * @param \Magento\Quote\Model\Quote\Item $product
      */
-    private function getAttributesFromProduct(string $valueTable, $product, string $column): ?string
+    private static function productIdOf($product): ?int
     {
-        return $this->attributeReader()
-                    ->value($valueTable, (string) $product->getProduct()->getEntityId(), $column);
+        $catalogProduct = $product->getProduct();
+
+        return $catalogProduct ? (int) $catalogProduct->getId() : null;
     }
 
-    /** Held for the instance's lifetime, which is what keeps the attribute id out of a per-product query. */
-    private function attributeReader(): ProductAttributeReader
+    /**
+     * One product load for a whole quote, paid before the per-product reads rather than during
+     * them. Call it from anything that loops a product list.
+     *
+     * @param \Magento\Quote\Model\Quote\Item[] $products
+     */
+    private function warmAttributes(array $products): void
     {
-        if (null === $this->attributeReader) {
-            $this->attributeReader = new ProductAttributeReader(
-                ObjectManager::getInstance()->get(ResourceConnection::class)
-            );
+        $productIds = [];
+
+        foreach ($products as $product) {
+            $productId = self::productIdOf($product);
+
+            if (null !== $productId) {
+                $productIds[] = $productId;
+            }
         }
 
-        return $this->attributeReader;
+        $this->attributes()->warm($productIds);
+    }
+
+    /** Held for the instance's lifetime, which is what keeps the warmed batch warm. */
+    private function attributes(): ProductAttributes
+    {
+        if (null === $this->attributes) {
+            $this->attributes = new ProductAttributes(ObjectManager::getInstance());
+        }
+
+        return $this->attributes;
     }
 }
