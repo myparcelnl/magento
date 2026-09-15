@@ -2,13 +2,10 @@
 
 declare(strict_types=1);
 
-use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Eav\Setup\EavSetup;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Adapter\AdapterInterface;
-use Magento\Framework\EntityManager\EntityMetadataInterface;
-use Magento\Framework\EntityManager\MetadataPool;
 use MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar;
 
 /**
@@ -51,11 +48,7 @@ function runClassificationToVarchar(?int $attributeId = 137, string $linkField =
     $resource->shouldReceive('getConnection')->andReturn($connection);
     $resource->shouldReceive('getTableName')->andReturnUsing(static fn(string $name): string => $name);
 
-    $metadata = Mockery::mock(EntityMetadataInterface::class);
-    $metadata->shouldReceive('getLinkField')->andReturn($linkField);
-
-    $metadataPool = Mockery::mock(MetadataPool::class);
-    $metadataPool->shouldReceive('getMetadata')->with(ProductInterface::class)->andReturn($metadata);
+    $metadataPool = productMetadataPool($linkField);
 
     $eavSetup = Mockery::mock(EavSetup::class);
     $eavSetup->shouldReceive('getAttributeId')
