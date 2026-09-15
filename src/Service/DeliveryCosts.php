@@ -226,6 +226,19 @@ class DeliveryCosts
      */
     public static function getPriceInCents(float $price): int
     {
-        return (int) round($price * 100);
+        return self::roundHalfUp($price * 100);
+    }
+
+    /**
+     * Half up, spelled out rather than left to round().
+     *
+     * round() pre-rounded a value within epsilon of a .5 boundary up to it until PHP 8.3 and no
+     * longer does, so 1.005 * 100, which is really 100.49999999999999, answered 101 on three PHP
+     * versions and 100 on the fourth. Money may not depend on the PHP version, so every cent the
+     * module rounds comes through here.
+     */
+    public static function roundHalfUp(float $value): int
+    {
+        return (int) floor($value + 0.5);
     }
 }
