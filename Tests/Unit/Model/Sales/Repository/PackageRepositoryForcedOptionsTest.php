@@ -33,7 +33,7 @@ const FORCED_AGE_CHECK_PATH = 'myparcelnl_magento_postnl_settings/default_option
 it('finds nothing forced when neither the product nor the export setting says so', function () {
     $repository = createForcedOptionsRepository([FORCED_AGE_CHECK_PATH => '0']);
 
-    expect($repository->forcedLimitingOptions([new stdClass()], 'myparcelnl_magento_postnl_settings/'))->toBe([]);
+    expect($repository->forcedLimitingOptions([quoteItemFor()], 'myparcelnl_magento_postnl_settings/'))->toBe([]);
 });
 
 it('reads a forced option from the export settings', function () {
@@ -49,7 +49,7 @@ it('reads a forced option from a product, even with the export setting off', fun
         [ShipmentOption::AGE_CHECK => 1]
     );
 
-    expect($repository->forcedLimitingOptions([new stdClass()], 'myparcelnl_magento_postnl_settings/'))
+    expect($repository->forcedLimitingOptions([quoteItemFor()], 'myparcelnl_magento_postnl_settings/'))
         ->toBe([ShipmentOption::AGE_CHECK]);
 });
 
@@ -98,7 +98,7 @@ it('reads the product tier once per carrier and option', function () {
         }
     );
 
-    $products = [new stdClass(), new stdClass()];
+    $products = [quoteItemFor(1), quoteItemFor(2)];
 
     foreach ([1, 2, 3] as $ignored) {
         $repository->forcedLimitingOptions($products, 'myparcelnl_magento_postnl_settings/');
