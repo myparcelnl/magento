@@ -120,6 +120,6 @@ class CustomsItems
     /** Cents are multiplied rather than euros, so one rounding happens instead of one per line. */
     public function lineValueInCents(float $unitPrice, float $quantity): int
     {
-        return (int) round(DeliveryCosts::getPriceInCents($unitPrice) * $quantity);
+        return DeliveryCosts::roundHalfUp(DeliveryCosts::getPriceInCents($unitPrice) * $quantity);
     }
 }
