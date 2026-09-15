@@ -37,10 +37,12 @@ class AccountSettings extends BaseModel
         $scopeConfig   = $objectManager->get(ScopeConfigInterface::class);
         $fingerprint   = $objectManager->get(Fingerprint::class);
 
-        $settings = $scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint->of($apiKey));
+        $hash     = $fingerprint->of($apiKey);
+        $label    = substr($hash, 0, Fingerprint::LABEL_LENGTH);
+        $settings = $scopeConfig->getValue(Config::XML_PATH_ACCOUNT_SETTINGS . $hash);
 
         if (! is_string($settings) || '' === $settings) {
-            $this->alert('No account settings found', $apiKey);
+            $this->alert('No account settings found', $label);
             return;
         }
 
@@ -48,14 +50,14 @@ class AccountSettings extends BaseModel
         $decoded = json_decode($settings, true);
 
         if (! is_array($decoded)) {
-            $this->alert('Account settings could not be read', $apiKey);
+            $this->alert('Account settings could not be read', $label);
             return;
         }
 
         $account = $this->accountFrom($decoded);
 
         if (null === $account) {
-            $this->alert('Account settings are incomplete', $apiKey);
+            $this->alert('Account settings are incomplete', $label);
             return;
         }
 
@@ -105,14 +107,17 @@ class AccountSettings extends BaseModel
         ]);
     }
 
-    private function alert(string $what, string $apiKey): void
+    /**
+     * @param string $label the key's fingerprint, never the key: a mask built from the key itself
+     *                      showed all of a short one and eight characters of any other, and these
+     *                      lines fire on ordinary grid renders.
+     */
+    private function alert(string $what, string $label): void
     {
-        $redacted = substr($apiKey, 0, 4) . str_repeat('*', max(0, strlen($apiKey) - 8)) . substr($apiKey, -4);
-
         Logger::alert(sprintf(
-            '%s for api key: %s. Shops -> Configurations -> MyParcel -> General -> Import MyParcel Backoffice settings.',
+            '%s for api key %s. Shops -> Configurations -> MyParcel -> General -> Import MyParcel Backoffice settings.',
             $what,
-            $redacted
+            $label
         ));
     }
 }

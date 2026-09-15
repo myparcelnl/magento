@@ -53,6 +53,9 @@ class ShipmentOptionsResolver
     /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
     private ?int $shipmentId;
 
+    /** @var array|null the label's product row, read at most once per resolver */
+    private ?array $labelProductRows = null;
+
     /**
      * @param DefaultOptions         $defaultOptions
      * @param Order                  $order
@@ -265,9 +268,11 @@ class ShipmentOptionsResolver
             $productIds[] = (int) $product['product_id'];
         }
 
-        // One read for the whole quote. Per product it built its own reader, so nothing it memoised
-        // ever survived an iteration and an N-line quote paid 3N queries on the checkout path.
-        $ageChecks   = (new ProductAttributes(ObjectManager::getInstance()))
+        // One read for the whole quote, through the request's shared reader. Building one here threw
+        // its memo away on every call, so an N-line quote paid 3N queries on the checkout path and
+        // the New Shipment modal paid one load per carrier and package type it offered.
+        $ageChecks   = ObjectManager::getInstance()
+            ->get(ProductAttributes::class)
             ->column($productIds, ShipmentOption::AGE_CHECK);
         $hasAgeCheck = null;
 
@@ -309,7 +314,7 @@ class ShipmentOptionsResolver
         }
 
         $checkoutDate     = $this->deliveryOptions->getDate();
-        $productInfo      = $this->labelProductRows();
+        $productInfo      = self::namesAProduct($labelDescription) ? $this->labelProductRows() : [];
         $labelDescription = str_replace(
             [
                 self::ORDER_NUMBER,
@@ -346,28 +351,50 @@ class ShipmentOptionsResolver
         return null;
     }
 
+    /** Whether the template asks for a product at all, so a label that names none costs no query. */
+    private static function namesAProduct(string $labelDescription): bool
+    {
+        foreach ([self::PRODUCT_ID, self::PRODUCT_NAME, self::PRODUCT_QTY] as $placeholder) {
+            if (false !== strpos($labelDescription, $placeholder)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
-     * The rows %product_id%, %product_name% and %product_qty% read from.
+     * The row %product_id%, %product_name% and %product_qty% read from.
      *
      * sales_shipment_item.parent_id is the *shipment* entity id, never the order id. A fulfilment
      * order has no shipment yet, so that path reads the order's own items instead.
+     *
+     * Ordered and limited: only the first row is ever read, and without an order which row that is
+     * would be the database's choice.
      */
     private function labelProductRows(): array
     {
+        if (null !== $this->labelProductRows) {
+            return $this->labelProductRows;
+        }
+
         /** @var ResourceConnection $connection */
-        $connection = $this->objectManager->create(ResourceConnection::class);
+        $connection = $this->objectManager->get(ResourceConnection::class);
         $conn       = $connection->getConnection();
 
         $select = null === $this->shipmentId
             ? $conn->select()
-                   ->from(['main_table' => $connection->getTableName('sales_order_item')])
+                   ->from(['main_table' => $connection->getTableName('sales_order_item')], ['product_id', 'name'])
                    ->columns(['qty' => 'main_table.qty_ordered'])
                    ->where('main_table.order_id=?', (int) $this->order->getId())
             : $conn->select()
-                   ->from(['main_table' => $connection->getTableName('sales_shipment_item')])
+                   ->from(
+                       ['main_table' => $connection->getTableName('sales_shipment_item')],
+                       ['product_id', 'name', 'qty']
+                   )
                    ->where('main_table.parent_id=?', $this->shipmentId);
 
-        return $conn->fetchAll($select);
+        return $this->labelProductRows = $conn->fetchAll($select->order('main_table.entity_id ASC')->limit(1));
     }
 
     /**
