@@ -23,6 +23,12 @@ use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
+/**
+ * The delivery options the checkout widget is offered for the current quote.
+ *
+ * The one place a package type is ruled out because an option the order forces cannot ride on it
+ * (checkPackageType()); the API stays the validator. A permissive capability set restricts nothing.
+ */
 class Checkout
 {
     use NeedsQuoteProps;

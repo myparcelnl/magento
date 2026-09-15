@@ -16,7 +16,7 @@ final class IdList
     /**
      * @param array<mixed> $ids
      *
-     * @return int[] positive ids, each once, renumbered from zero
+     * @return int[] non-zero ids, each once, renumbered from zero
      */
     public static function ints(array $ids): array
     {
