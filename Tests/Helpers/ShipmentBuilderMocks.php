@@ -16,6 +16,7 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Model\Shipment\ShipmentValidator;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
@@ -160,6 +161,12 @@ function mockAttributeValueLookup(string $value, array $alsoBind = []): void
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($collection);
+
+    // The age check reads through the request's shared reader, so the singleton has to answer for
+    // it: building one per call is what this replaced.
+    $objectManager->shouldReceive('get')
+                  ->with(ProductAttributes::class)
+                  ->andReturn(new ProductAttributes($objectManager));
 
     // This helper owns the singleton, so mockLoggerFacade() cannot also be called. An order with no
     // resolvable insurance range logs a notice, and that has to land somewhere.
