@@ -64,7 +64,13 @@ class ShipmentBuilder
         $incrementId = (string) $order->getIncrementId();
         $apiKey      = $this->apiProvider->apiKeyForStore((int) $order->getStoreId());
 
-        $shipmentOptions = new OrderShipmentOptions($this->objectManager, $order, $options, $this->defaultOptions);
+        $shipmentOptions = new OrderShipmentOptions(
+            $this->objectManager,
+            $order,
+            $options,
+            $this->defaultOptions,
+            (int) $magentoShipment->getEntityId()
+        );
         $deliveryOptions = $shipmentOptions->deliveryOptions();
         $packageType     = $shipmentOptions->packageType();
         $weight          = $this->weightInGrams($magentoTrack, $options, $packageType);
