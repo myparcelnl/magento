@@ -204,6 +204,111 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]
             );
         }
+        $tableTrack = $setup->getTable('sales_shipment_track');
+
+        // Length above 255 makes this a TEXT column, not a varchar(1023): Magento maps TYPE_TEXT to
+        // varchar only up to 255. Deliberate — a tokenised portal link must not be truncated, and
+        // nothing indexes or filters on it.
+        if (
+            version_compare($context->getVersion(), '5.11.0', '<')
+            && $setup->getConnection()->isTableExists($tableTrack)
+            && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_tracktrace_url')
+        ) {
+            $setup->getConnection()->addColumn(
+                $tableTrack,
+                'myparcel_tracktrace_url',
+                [
+                    'type'     => Table::TYPE_TEXT,
+                    'length'   => 1023,
+                    'nullable' => true,
+                    'comment'  => 'MyParcel consumer portal link as received from the api',
+                ]
+            );
+        }
+
+        // getOrderIdFromTrackToUpdate() selects order_id by carrier plus status on every cron tick,
+        // over the whole table — there is no order to narrow it first — and had no index to start
+        // from. carrier_code leads because it is the equality; myparcel_status is the IN().
+        //
+        // No index on myparcel_consignment_id: that query already filters it, but only alongside
+        // these two, and nothing else filters it at all. A second index would just be maintained.
+        // The EXISTS subqueries in ordersAwaitingBarcode() correlate on order_id, which core's own
+        // SALES_SHIPMENT_TRACK_ORDER_ID already covers.
+        if (
+            version_compare($context->getVersion(), '5.11.0', '<')
+            && $setup->getConnection()->isTableExists($tableTrack)
+        ) {
+            $this->addIndexOnce($setup, $tableTrack, ['carrier_code', 'myparcel_status']);
+        }
+
+        if (version_compare($context->getVersion(), '5.11.0', '<')) {
+            $this->addUuidPrefixIndex($setup, $tableSalesOrder);
+        }
+
         $setup->endSetup();
+    }
+
+    /**
+     * Adds an index unless a column it needs is missing or the index is already there, so upgrade()
+     * stays re-runnable and an install that never got the columns does not fail here.
+     *
+     * @param string[] $columns
+     */
+    private function addIndexOnce(SchemaSetupInterface $setup, string $table, array $columns): void
+    {
+        $connection = $setup->getConnection();
+
+        foreach ($columns as $column) {
+            if (false === $connection->tableColumnExists($table, $column)) {
+                return;
+            }
+        }
+
+        $name = $setup->getIdxName($table, $columns);
+
+        if (isset($connection->getIndexList($table)[strtoupper($name)])) {
+            return;
+        }
+
+        $connection->addIndex($table, $name, $columns);
+    }
+
+    /**
+     * Indexes sales_order.myparcel_uuid on its first 36 characters, a whole UUID.
+     *
+     * Earns its place only where PPS is the exception: ordersAwaitingBarcode() then starts from the
+     * few orders carrying a uuid instead of every order of the last fortnight, which is all
+     * created_at can narrow it to. Where PPS is the normal export mode the condition matches almost
+     * every row and the optimiser ignores this index.
+     *
+     * `notnull` is a range MySQL can read from an index, so a prefix is enough; the column is never
+     * queried by equality.
+     *
+     * Raw DDL because addIndex() cannot express a prefix length, and a prefix is what a TEXT column
+     * needs. Retyping to varchar(36) would let addIndex() do it, but that rebuilds sales_order;
+     * ADD INDEX is in-place and non-locking in InnoDB.
+     */
+    private function addUuidPrefixIndex(SchemaSetupInterface $setup, string $table): void
+    {
+        $connection = $setup->getConnection();
+
+        if (
+            false === $connection->isTableExists($table)
+            || false === $connection->tableColumnExists($table, 'myparcel_uuid')
+        ) {
+            return;
+        }
+
+        $name = $setup->getIdxName($table, ['myparcel_uuid']);
+
+        if (isset($connection->getIndexList($table)[strtoupper($name)])) {
+            return;
+        }
+
+        $connection->query(sprintf(
+            'ALTER TABLE %s ADD INDEX %s (myparcel_uuid(36))',
+            $connection->quoteIdentifier($table),
+            $connection->quoteIdentifier($name)
+        ));
     }
 }

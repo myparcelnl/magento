@@ -4,46 +4,27 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Sales;
 
-use BadMethodCallException;
-use DateTime;
-use DateTimeZone;
 use Exception;
-use Magento\Framework\App\Config\ScopeConfigInterface;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\ResourceModel\Order\Status\History\Collection as OrderStatusHistoryCollection;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\ResourceModel\Order\Shipment as ShipmentResource;
-use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Magento\Model\Settings\AccountSettings;
-use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
+use Magento\Shipping\Model\ShipmentNotifier;
 use MyParcelNL\Magento\Cron\UpdateStatus;
-use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
-use MyParcelNL\Magento\Helper\ShipmentOptions;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\LogContext;
+use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderNotesCollection;
-use MyParcelNL\Sdk\Exception\AccountNotActiveException;
-use MyParcelNL\Sdk\Exception\ApiException;
-use MyParcelNL\Sdk\Exception\MissingFieldException;
-use MyParcelNL\Sdk\Factory\ConsignmentFactory;
-use MyParcelNL\Sdk\Factory\DeliveryOptionsAdapterFactory;
-use MyParcelNL\Sdk\Helper\SplitStreet;
-use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 use MyParcelNL\Sdk\Model\Fulfilment\OrderNote;
-use MyParcelNL\Sdk\Model\PickupLocation;
-use MyParcelNL\Sdk\Model\Recipient;
-use MyParcelNL\Sdk\Support\Collection;
 use MyParcelNL\Sdk\Support\Str;
 use Throwable;
-use Psr\Log\LoggerInterface;
-use Magento\Shipping\Model\ShipmentNotifier;
 
 /**
  * Class MagentoOrderCollection
@@ -56,10 +37,9 @@ class MagentoOrderCollection extends MagentoCollection
      * @var null|OrderResource\Collection|Order[]
      */
     private $orders = null;
-    private Order $order;
-    private Recipient $billingRecipient;
-    private Recipient $shippingRecipient;
-    private Ordercollection $fulfilmentCollection;
+
+    /** @var ShipmentResource\Collection|null loaded once; setOrderCollection() drops it */
+    private $shipments = null;
 
     /**
      * Get all Magento orders
@@ -80,29 +60,26 @@ class MagentoOrderCollection extends MagentoCollection
      */
     public function setOrderCollection($orderCollection): self
     {
-        $this->orders = $orderCollection;
+        $this->orders    = $orderCollection;
+        $this->shipments = null;
+        $this->forgetTracks();
 
         return $this;
     }
 
     /**
-     * Set Magento collection
+     * Re-read the orders, after new Magento shipments were created for them.
+     *
+     * One filtered collection, not an Order::load() each: a page of fifty orders was fifty loads.
      *
      * @return $this
      */
     public function reload(): self
     {
-        $ids = $this->orders->getAllIds();
+        $orders = $this->objectManager->create(OrderResource\Collection::class);
+        $orders->addFieldToFilter('entity_id', ['in' => $this->orders->getAllIds()]);
 
-        $orders = [];
-        foreach ($ids as $orderId) {
-            $objectManager = ObjectManager::getInstance();
-            $orders[]      = $objectManager->create(Order::class)->load($orderId);
-        }
-
-        $this->setOrderCollection($orders);
-
-        return $this;
+        return $this->setOrderCollection($orders);
     }
 
     /**
@@ -136,11 +113,13 @@ class MagentoOrderCollection extends MagentoCollection
         /**
          * @var Shipment $shipment
          */
+        $tracks = $this->tracksByShipmentId();
+
         foreach ($this->getShipmentsCollection() as $shipment) {
             $i = 1;
 
             if (
-                $this->shipmentHasTrack($shipment) === false ||
+                ! ($tracks[(int) $shipment->getId()] ?? []) ||
                 $this->getOption('create_track_if_one_already_exist')
             ) {
                 while ($i <= $this->getOption('label_amount')) {
@@ -150,127 +129,132 @@ class MagentoOrderCollection extends MagentoCollection
             }
         }
 
-        $this->save();
+        return $this;
+    }
+
+    /**
+     * Export every order in the collection as a PPS order, grouped by API key and chunked.
+     *
+     * The grouping looks redundant — OrderCollection::save() groups too — but its grouped calls are
+     * one method: an exception on the second account escapes before the first account's orders are
+     * marked exported, and the next run creates them again.
+     *
+     * @return $this
+     */
+    public function setFulfilment(): self
+    {
+        $builder   = new FulfilmentOrderBuilder($this->objectManager);
+        $chunkSize = $this->config->getExportChunkSize();
+
+        foreach ($this->ordersByApiKey() as $magentoOrders) {
+            foreach (array_chunk($magentoOrders, $chunkSize) as $chunk) {
+                $this->exportFulfilmentChunk($builder, $chunk);
+            }
+        }
 
         return $this;
     }
 
     /**
-     * @return $this
-     * @throws Exception
+     * One request, whose orders are marked exported before the next request goes out.
      *
+     * A chunk that fails is reported and skipped rather than abandoning the account: the remaining
+     * chunks are still worth sending, the same way one order failing to build does not stop the
+     * others in its chunk.
+     *
+     * Protected rather than private so the chunking above can be tested without a live API: every
+     * path through this method ends in an HTTP call the SDK builds its own cURL handle for.
+     *
+     * @param Order[] $magentoOrders
      */
-    public function setFulfilment(): self
+    protected function exportFulfilmentChunk(FulfilmentOrderBuilder $builder, array $magentoOrders): void
     {
-        $orderCollection = new OrderCollection();
-        $orderLines      = new Collection();
+        $orderCollection = (new OrderCollection())->setUserAgents($this->userAgent->map());
+        $exported        = [];
 
-        foreach ($this->getOrders() as $magentoOrder) {
-            $defaultOptions          = new DefaultOptions($magentoOrder);
-            $myparcelDeliveryOptions = $magentoOrder[Config::FIELD_DELIVERY_OPTIONS] ?? '';
-            $deliveryOptions         = json_decode($myparcelDeliveryOptions, true);
-            $selectedCarrier         = $deliveryOptions['carrier'] ?? $this->options['carrier'] ?? CarrierPostNL::NAME;
-            $shipmentOptionsHelper   = new ShipmentOptions(
-                $defaultOptions,
-                $magentoOrder,
-                $this->objectManager,
-                $selectedCarrier,
-                $this->options
-            );
-
-            if ($deliveryOptions && $deliveryOptions['isPickup']) {
-                $deliveryOptions['packageType'] = AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-            }
-
-            $deliveryOptions['shipmentOptions'] = $shipmentOptionsHelper->getShipmentOptions();
-            $deliveryOptions['carrier']         = $selectedCarrier;
-
+        foreach ($magentoOrders as $magentoOrder) {
             try {
-                // create new instance from known json
-                $deliveryOptionsAdapter = DeliveryOptionsAdapterFactory::create((array) $deliveryOptions);
-            } catch (BadMethodCallException $e) {
-                // create new instance from unknown json data
-                $deliveryOptions['packageType']  = $deliveryOptions['packageType'] ?? AbstractConsignment::PACKAGE_TYPE_PACKAGE_NAME;
-                $deliveryOptions['deliveryType'] = $deliveryOptions['deliveryType'] ?? AbstractConsignment::DELIVERY_TYPE_STANDARD_NAME;
-                $deliveryOptionsAdapter          = DeliveryOptionsAdapterFactory::create($deliveryOptions);
-            }
-
-            $this->order = $magentoOrder;
-
-            $this->setBillingRecipient();
-            $this->setShippingRecipient();
-
-            $apiKey = $this->config->getGeneralConfig('api/key', (int) $magentoOrder->getStoreId());
-
-            $order = (new FulfilmentOrder())
-                ->setApiKey($apiKey)
-                ->setStatus($this->order->getStatus())
-                ->setDeliveryOptions($deliveryOptionsAdapter)
-                ->setInvoiceAddress($this->getBillingRecipient())
-                ->setRecipient($this->getShippingRecipient())
-                ->setOrderDate($this->getLocalCreatedAtDate())
-                ->setExternalIdentifier($this->order->getIncrementId())
-            ;
-
-            if ($deliveryOptionsAdapter->isPickup()
-                && ($pickupData = $deliveryOptionsAdapter->getPickupLocation())
-            ) {
-                $pickupLocation = new PickupLocation(
-                    [
-                        'cc'                => $pickupData->getCountry(),
-                        'city'              => $pickupData->getCity(),
-                        'postal_code'       => $pickupData->getPostalCode(),
-                        'street'            => $pickupData->getStreet(),
-                        'number'            => $pickupData->getNumber(),
-                        'location_name'     => $pickupData->getLocationName(),
-                        'location_code'     => $pickupData->getLocationCode(),
-                        'retail_network_id' => $pickupData->getRetailNetworkId(),
-                    ]
+                $orderCollection->push($builder->build($magentoOrder, $this->options));
+                $exported[] = $magentoOrder;
+            } catch (Throwable $e) {
+                $this->messageManager->addErrorMessage(
+                    sprintf('%s: %s', $magentoOrder->getIncrementId(), $e->getMessage())
                 );
-                $order->setPickupLocation($pickupLocation);
             }
+        }
 
-            foreach ($this->order->getItems() as $magentoOrderItem) {
-                $orderLine = new OrderLineOptionsFromOrderAdapter($magentoOrderItem);
-
-                $orderLines->push($orderLine);
-            }
-
-            $order->setOrderLines($orderLines);
-
-            if (! in_array($this->shippingRecipient->getCc(), AbstractConsignment::EURO_COUNTRIES, true)) {
-                $customsDeclarationAdapter = new CustomsDeclarationFromOrder($this->order);
-                $customsDeclaration        = $customsDeclarationAdapter->createCustomsDeclaration();
-                $order->setCustomsDeclaration($customsDeclaration);
-            }
-
-            $order->setWeight($this->getTotalWeight());
-            $orderCollection->push($order);
+        if ($orderCollection->isEmpty()) {
+            return;
         }
 
         try {
-            $this->fulfilmentCollection = $orderCollection->save();
-            $this->setMagentoOrdersAsExported();
+            $savedOrders = $orderCollection->save();
         } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
+
+            return;
         }
+
+        // Before the next request is made: an order that exists in the API but carries no exported
+        // status is created again by the next run, as a second billable order.
+        $this->setMagentoOrdersAsExported($exported, $savedOrders);
 
         try {
-            $this->saveOrderNotes();
+            $this->saveOrderNotes($savedOrders);
         } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
         }
-
-        return $this;
     }
 
-    private function saveOrderNotes(): void
+    /**
+     * The orders grouped by their own store's API key. A store with no key is reported and skipped,
+     * never lent another store's key.
+     *
+     * @return array<string,Order[]>
+     */
+    private function ordersByApiKey(): array
     {
-        $this->fulfilmentCollection->each(function (FulfilmentOrder $order) {
+        $grouped = [];
 
-            $notes = new OrderNotesCollection();
+        foreach ($this->getOrders() as $magentoOrder) {
+            try {
+                $apiKey = $this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId());
+            } catch (Throwable $e) {
+                $this->messageManager->addErrorMessage(
+                    sprintf('%s: %s', $magentoOrder->getIncrementId(), $e->getMessage())
+                );
+                continue;
+            }
 
-            $this->getAllNotesForOrder($order)->each(function (OrderNote $note) use ($notes) {
+            $grouped[$apiKey][] = $magentoOrder;
+        }
+
+        return $grouped;
+    }
+
+    private function saveOrderNotes(OrderCollection $savedOrders): void
+    {
+        $incrementIds = [];
+
+        $savedOrders->each(function (FulfilmentOrder $order) use (&$incrementIds) {
+            $incrementIds[] = (string) $order->getExternalIdentifier();
+        });
+
+        $commentsByIncrementId = $this->orderCommentsByIncrementId($incrementIds);
+
+        $savedOrders->each(function (FulfilmentOrder $order) use ($commentsByIncrementId) {
+
+            // Only this one reaches the wire.
+            $notes    = (new OrderNotesCollection())->setUserAgents($this->userAgent->map());
+            $comments = $commentsByIncrementId[(string) $order->getExternalIdentifier()] ?? [];
+
+            foreach ($comments as $comment) {
+                $note = new OrderNote([
+                    'orderUuid' => $order->getUuid(),
+                    'note'      => $comment,
+                    'author'    => 'webshop',
+                ]);
+
                 try {
                     $note->validate();
                     $notes->push($note);
@@ -283,47 +267,74 @@ class MagentoOrderCollection extends MagentoCollection
                         )
                     );
                 }
-            });
+            }
 
             $notes->save($order->getApiKey());
         });
     }
 
-    private function getAllNotesForOrder(FulfilmentOrder $fulfilmentOrder): OrderNotesCollection
+    /**
+     * Every order's status-history comments, for the whole batch in two queries.
+     *
+     * Newest first, which is the order getStatusHistoryCollection() returns them in.
+     *
+     * @param  string[] $incrementIds
+     * @return array<string,string[]> increment id => comments
+     */
+    protected function orderCommentsByIncrementId(array $incrementIds): array
     {
-        $notes        = new OrderNotesCollection();
-        $orderUuid    = $fulfilmentOrder->getUuid();
-        $magentoOrder = $this->objectManager->create(Order::class)
-                                            ->loadByIncrementId($fulfilmentOrder->getExternalIdentifier())
-        ;
+        if (! $incrementIds) {
+            return [];
+        }
 
-        foreach ($magentoOrder->getStatusHistoryCollection() as $status) {
-            if (! $status->getComment()) {
+        $orders = $this->objectManager->create(self::PATH_MODEL_ORDER_COLLECTION);
+        $orders->addFieldToFilter('increment_id', ['in' => $incrementIds]);
+
+        $incrementIdByEntityId = [];
+
+        foreach ($orders as $magentoOrder) {
+            $incrementIdByEntityId[(int) $magentoOrder->getEntityId()] = (string) $magentoOrder->getIncrementId();
+        }
+
+        if (! $incrementIdByEntityId) {
+            return [];
+        }
+
+        $history = $this->objectManager->create(OrderStatusHistoryCollection::class);
+        $history->addFieldToFilter('parent_id', ['in' => array_keys($incrementIdByEntityId)]);
+        $history->setOrder('created_at', 'DESC');
+        $history->setOrder('entity_id', 'DESC');
+
+        $comments = [];
+
+        foreach ($history as $status) {
+            $comment = $status->getComment();
+
+            if (! $comment) {
                 continue;
             }
 
-            $notes->push(
-                new OrderNote(
-                    [
-                        'orderUuid' => $orderUuid,
-                        'note'      => $status->getComment(),
-                        'author'    => 'webshop',
-                    ]
-                )
-            );
+            $comments[$incrementIdByEntityId[(int) $status->getParentId()]][] = (string) $comment;
         }
 
-        return $notes;
+        return $comments;
     }
 
-    private function setMagentoOrdersAsExported(): void
+    /**
+     * @param Order[] $magentoOrders the orders this account's call actually carried
+     */
+    private function setMagentoOrdersAsExported(array $magentoOrders, OrderCollection $savedOrders): void
     {
-        foreach ($this->getOrders() as $magentoOrder) {
+        $byExternalIdentifier = [];
+
+        foreach ($savedOrders as $savedOrder) {
+            $byExternalIdentifier[(string) $savedOrder->getExternalIdentifier()] = $savedOrder;
+        }
+
+        foreach ($magentoOrders as $magentoOrder) {
             $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
 
-            $fulfilmentOrder = $this->fulfilmentCollection->first(function (FulfilmentOrder $order) use ($magentoOrder) {
-                return $order->getExternalIdentifier() === $magentoOrder->getIncrementId();
-            });
+            $fulfilmentOrder = $byExternalIdentifier[(string) $magentoOrder->getIncrementId()] ?? null;
 
             if ($fulfilmentOrder) {
                 $magentoOrder->setData('myparcel_uuid', $fulfilmentOrder->getUuid());
@@ -335,213 +346,154 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @return int weight in grams
+     * Give every shipped fulfilment shipment its own Magento track: the barcode, and the MyParcel
+     * shipment id when the response carries one.
+     *
+     * The shipment path gets both from updateMagentoTrack(), which refreshes by
+     * myparcel_consignment_id. A PPS order has no id until this runs, so without it the track keeps
+     * its placeholder and never joins the status or track & trace refresh at all.
+     *
+     * The id is read defensively: it is not in the SDK's model — order_shipments passes through as
+     * a raw array — so an absent one is logged, because it is the one case where the status and the
+     * link can never arrive.
+     *
+     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilmentByIncrementId
      */
-    private function getTotalWeight(): int
+    public function setFulfilmentTrackData(array $fulfilmentByIncrementId): self
     {
-        $totalWeight = 0;
+        $tracks = $this->tracksByShipmentId();
 
-        foreach ($this->order->getItems() as $item) {
-            $product = $item->getProduct();
+        foreach ($this->shipmentsByIncrementId() as $incrementId => $magentoShipments) {
+            $fulfilment = $fulfilmentByIncrementId[$incrementId] ?? null;
 
-            if (! $product) {
+            if (null === $fulfilment) {
                 continue;
             }
 
-            $totalWeight += $product->getWeight() * $item->getQtyOrdered();
+            $this->allocateTracks((string) $incrementId, $magentoShipments, $fulfilment, $tracks);
         }
 
-        return $this->weight->convertToGrams($totalWeight);
+        return $this;
     }
 
     /**
-     * @param string $format
+     * The collection's Magento shipments grouped by their order's increment id.
      *
-     * @return string
-     */
-    public function getLocalCreatedAtDate(string $format = 'Y-m-d H:i:s'): string
-    {
-        $scopeConfig = $this->objectManager->create(ScopeConfigInterface::class);
-        $datetime    = DateTime::createFromFormat('Y-m-d H:i:s', $this->order->getCreatedAt());
-        $timezone    = $scopeConfig->getValue(
-            'general/locale/timezone',
-            ScopeInterface::SCOPE_STORES,
-            $this->order->getStoreId()
-        );
-
-        if ($timezone) {
-            $storeTime = new DateTimeZone($timezone);
-            $datetime->setTimezone($storeTime);
-        }
-
-        return $datetime->format($format);
-    }
-
-    /**
-     * @return self
-     */
-    public function setBillingRecipient(): self
-    {
-        $billingAddress = $this->order->getBillingAddress();
-
-        if (! $billingAddress) {
-            return $this;
-        }
-
-        $this->billingRecipient = (new Recipient())
-            ->setCc($billingAddress->getCountryId())
-            ->setCity($billingAddress->getCity())
-            ->setCompany($billingAddress->getCompany())
-            ->setEmail($billingAddress->getEmail())
-            ->setPerson($this->getFullCustomerName())
-            ->setPhone($billingAddress->getTelephone())
-            ->setPostalCode($billingAddress->getPostcode())
-            ->setStreet(implode(' ', $billingAddress->getStreet() ?? []))
-        ;
-
-        return $this;
-    }
-
-    /**
-     * @return Recipient|null
-     */
-    public function getBillingRecipient(): ?Recipient
-    {
-        return $this->billingRecipient;
-    }
-
-    /**
-     * @return self
-     * @throws Exception
-     */
-    public function setShippingRecipient(): self
-    {
-        $shippingAddress = $this->order->getShippingAddress();
-
-        if (! $shippingAddress) {
-            return $this;
-        }
-
-        $carrier = ConsignmentFactory::createByCarrierName(CarrierPostNL::NAME);
-        $street  = implode(
-            ' ',
-            $shippingAddress->getStreet() ?? []
-        );
-
-        $country     = $shippingAddress->getCountryId();
-        $streetParts = SplitStreet::splitStreet($street, $carrier->getLocalCountryCode(), $country);
-
-        $this->shippingRecipient = (new Recipient())
-            ->setCc($country)
-            ->setCity($shippingAddress->getCity())
-            ->setCompany($shippingAddress->getCompany())
-            ->setEmail($shippingAddress->getEmail())
-            ->setPerson($this->getFullCustomerName())
-            ->setPostalCode($shippingAddress->getPostcode())
-            ->setStreet($streetParts->getStreet())
-            ->setNumber((string) $streetParts->getNumber())
-            ->setNumberSuffix((string) $streetParts->getNumberSuffix())
-            ->setBoxNumber((string) $streetParts->getBoxNumber())
-            ->setPhone($shippingAddress->getTelephone())
-        ;
-
-        return $this;
-    }
-
-    /**
-     * @return Recipient|null
-     */
-    public function getShippingRecipient(): ?Recipient
-    {
-        return $this->shippingRecipient;
-    }
-
-    /**
-     * @return string
-     */
-    public function getFullCustomerName(): string
-    {
-        $billingAddress = $this->order->getBillingAddress();
-
-        if (! $billingAddress) {
-            return '';
-        }
-
-        $firstName  = $billingAddress->getFirstname();
-        $middleName = $billingAddress->getMiddlename();
-        $lastName   = $billingAddress->getLastname();
-
-        return "$firstName $middleName $lastName";
-    }
-
-    /**
-     * Set PDF content and convert status 'Concept' to 'Registered'
+     * Allocation is per order, never per Magento shipment. An order shipped partly by hand before
+     * PPS ran has two Magento shipments, and looking the fulfilment data up once per shipment wrote
+     * the same barcode and the same shipment id onto a placeholder track of each.
      *
-     * @return $this
-     * @throws Exception
+     * @return array<string,Shipment[]>
      */
-    public function setPdfOfLabels(): self
+    private function shipmentsByIncrementId(): array
     {
-        $this->myParcelCollection->setPdfOfLabels($this->options['positions']);
+        $incrementIdByOrderId = [];
 
-        return $this;
-    }
-
-    /**
-     * Download PDF directly
-     *
-     * @return $this
-     * @throws Exception
-     */
-    public function downloadPdfOfLabels(): self
-    {
-        $inlineDownload = 'open_new_tab' === $this->options['request_type'];
-        $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
-
-        return $this;
-    }
-
-    /**
-     * Update MyParcel collection
-     *
-     * @return $this
-     * @throws Exception
-     */
-    public function setLatestData(): self
-    {
-        if ($this->myParcelCollection->isEmpty()) {
-            return $this;
-        }
-
-        $this->myParcelCollection->setLatestData();
-
-        return $this;
-    }
-
-    /**
-     * @return $this
-     * @throws ApiException
-     * @throws MissingFieldException|AccountNotActiveException
-     */
-    public function sendReturnLabelMails()
-    {
-        $this->myParcelCollection->generateReturnConsignments(true);
-
-        return $this;
-    }
-
-    /**
-     * Send multiple shipment emails with Track and trace variable
-     *
-     * @return $this
-     */
-    public function sendTrackEmails()
-    {
         foreach ($this->getOrders() as $order) {
-            $this->sendTrackEmailFromOrder($order);
+            $incrementIdByOrderId[(int) $order->getId()] = (string) $order->getIncrementId();
         }
 
-        return $this;
+        $grouped = [];
+
+        foreach ($this->getShipmentsCollection() as $shipment) {
+            // getOrder() loads the order through the repository; the collection these shipments were
+            // filtered by already holds every increment id. Fall back only for a shipment outside it.
+            $incrementId = $incrementIdByOrderId[(int) $shipment->getOrderId()]
+                ?? (string) $shipment->getOrder()->getIncrementId();
+
+            $grouped[$incrementId][] = $shipment;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * One track per fulfilment shipment, for one Magento order.
+     *
+     * Three rules, in order: a shipment already on a track is left alone, so a re-run writes
+     * nothing; otherwise it takes a placeholder track nothing has claimed; and only if none is free
+     * does it get a new one. That last step needs an id or a real barcode — a shipment carrying
+     * neither can never be recognised again, so it would earn another row on every run.
+     *
+     * @param Shipment[]                                              $magentoShipments all of one order's
+     * @param array<int,array{barcode: string, shipmentId: int|null}> $fulfilmentShipments
+     * @param array<int,\Magento\Sales\Model\Order\Shipment\Track[]> $tracksByShipmentId the whole collection's
+     */
+    private function allocateTracks(
+        string $incrementId,
+        array $magentoShipments,
+        array $fulfilmentShipments,
+        array $tracksByShipmentId
+    ): void {
+        $claimedIds = [];
+        $free       = [];
+        $host       = null;
+
+        foreach ($magentoShipments as $magentoShipment) {
+            foreach ($tracksByShipmentId[(int) $magentoShipment->getId()] ?? [] as $magentoTrack) {
+                if (Carrier::CODE !== $magentoTrack->getCarrierCode()) {
+                    continue;
+                }
+
+                $host          = $host ?? $magentoShipment;
+                $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+
+                if (0 !== $consignmentId) {
+                    $claimedIds[$consignmentId] = true;
+                    continue;
+                }
+
+                if (TrackAndTrace::isPlaceholder($magentoTrack->getTrackNumber())) {
+                    $free[] = $magentoTrack;
+                }
+            }
+        }
+
+        $host    = $host ?? end($magentoShipments);
+        $written = 0;
+
+        foreach ($fulfilmentShipments as $fulfilment) {
+            $shipmentId = $fulfilment['shipmentId'];
+
+            if (null !== $shipmentId && isset($claimedIds[$shipmentId])) {
+                continue;
+            }
+
+            $hasIdentity = null !== $shipmentId
+                || TrackAndTrace::isRealBarcode($fulfilment['barcode']);
+
+            if (! $free && ! $hasIdentity) {
+                continue;
+            }
+
+            $magentoTrack = $free ? array_shift($free) : $this->setNewMagentoTrack($host);
+
+            $magentoTrack->setTrackNumber($fulfilment['barcode']);
+
+            if (null !== $shipmentId) {
+                $magentoTrack->setData('myparcel_consignment_id', $shipmentId);
+                $claimedIds[$shipmentId] = true;
+            } else {
+                // Without the id updateMagentoTrack() can never refresh this track, so it keeps
+                // this barcode and gets no status and no consumer portal link, ever.
+                Logger::warning(sprintf(
+                    'MyParcel: fulfilment order %s came back with no shipment id for barcode %s, so its track gets no status or track & trace link',
+                    $incrementId,
+                    $fulfilment['barcode']
+                ));
+            }
+
+            $magentoTrack->save();
+            $written++;
+        }
+
+        if (1 < $written) {
+            Logger::notice(sprintf(
+                'MyParcel: order %s carries %d shipments, each on its own track',
+                $incrementId,
+                $written
+            ));
+        }
     }
 
     /**
@@ -561,56 +513,45 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * @return ShipmentResource\Collection
+     * Loaded once per set of orders. No shipment row is created after setNewMagentoShipment(), and
+     * tracks are read through tracksByShipmentId() rather than off these objects, so nothing here
+     * goes stale within a run. setOrderCollection() — which reload() goes through — drops it.
      */
     protected function getShipmentsCollection(): ShipmentResource\Collection
     {
+        if (null !== $this->shipments) {
+            return $this->shipments;
+        }
+
         $orderIds = [];
         foreach ($this->getOrders() as $order) {
             $orderIds[] = $order->getEntityId();
         }
 
-        $shipmentsCollection = $this->objectManager->get(MagentoShipmentCollection::PATH_MODEL_SHIPMENT_COLLECTION);
+        $shipmentsCollection = $this->objectManager->create(MagentoShipmentCollection::PATH_MODEL_SHIPMENT_COLLECTION);
         $shipmentsCollection->addAttributeToFilter('order_id', ['in' => $orderIds]);
 
-        return $shipmentsCollection;
+        return $this->shipments = $shipmentsCollection;
     }
 
     /**
-     * return void
+     * Only the orders this pass actually changed.
+     *
+     * AbstractDb::save() opens and commits a transaction before it notices an unmodified model, so
+     * an untouched order still cost a round trip each way — two hundred of them on a mass action
+     * that changed none.
      */
     private function save(): void
     {
         $resourceManager = $this->objectManager->get(OrderResource::class);
 
         foreach ($this->getOrders() as $order) {
+            if (! $order->hasDataChanges()) {
+                continue;
+            }
+
             $resourceManager->save($order);
         }
-    }
-
-    /**
-     * Send shipment email with Track and trace variable
-     *
-     * @param Order $order
-     *
-     * @return $this
-     */
-    private function sendTrackEmailFromOrder(Order $order): self
-    {
-        /**
-         * @var Shipment $shipment
-         */
-        if (! $this->trackSender->isEnabled()) {
-            return $this;
-        }
-
-        foreach ($order->getShipmentsCollection() as $shipment) {
-            if ($shipment->getEmailSent() == null) {
-                $this->trackSender->send($shipment);
-            }
-        }
-
-        return $this;
     }
 
     /**
@@ -619,7 +560,9 @@ class MagentoOrderCollection extends MagentoCollection
     public function createMagentoShipment(Order $order, bool $notifyClientByEmail = true): bool
     {
         $convertOrder = $this->objectManager->create('Magento\Sales\Model\Convert\Order');
-        /** @var Shipment $shipment */
+        /**
+         * @var Shipment $shipment
+         */
         $shipment = $convertOrder->toShipment($order);
 
         $shipmentAttributes = $shipment->getExtensionAttributes();
@@ -660,7 +603,7 @@ class MagentoOrderCollection extends MagentoCollection
             }
             $this->objectManager->get(OrderResource::class)->save($shipment->getOrder());
 
-            $this->objectManager->get(LoggerInterface::class)->critical($e);
+            Logger::critical('MyParcel: the Magento shipment could not be saved', LogContext::of($e));
 
             return false; // well that didn’t work
         }

@@ -1,0 +1,290 @@
+<?php
+
+declare(strict_types=1);
+
+use GuzzleHttp\Client as RealGuzzleClient;
+use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Client as CapabilitiesClient;
+use Magento\Framework\Lock\LockManagerInterface;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Proxy\ProxyConfig;
+use PHPUnit\Framework\Assert;
+use MyParcelNL\Magento\Service\Hash\Fingerprint;
+
+const CAPABILITIES_TEST_API_KEY = 'test-api-key-do-not-log';
+
+/**
+ * The `options` object both endpoints return, in cents. Shared so a change to the insurance shape
+ * lands in one place.
+ */
+function capabilityOptions(array $overrides = []): array
+{
+    return array_replace([
+        'requiresSignature'     => ['isRequired' => false, 'isSelectedByDefault' => false],
+        'recipientOnlyDelivery' => ['isRequired' => false, 'isSelectedByDefault' => false],
+        'insurance'             => [
+            'isRequired' => false,
+            'min'        => ['amount' => 0, 'currency' => 'EUR'],
+            'max'        => ['amount' => 500000, 'currency' => 'EUR'],
+            'default'    => ['amount' => 10000, 'currency' => 'EUR'],
+        ],
+    ], $overrides);
+}
+
+/**
+ * One `results` entry, shaped like the V2 response: camelCase wire keys, `carrier` a bare enum
+ * string, option values carrying their own properties.
+ */
+function capabilityResult(array $overrides = []): array
+{
+    return array_replace([
+        'carrier'       => 'POSTNL',
+        'contract'      => ['id' => 1],
+        'packageTypes'  => ['PACKAGE', 'MAILBOX', 'DIGITAL_STAMP', 'SMALL_PACKAGE'],
+        'deliveryTypes' => ['STANDARD_DELIVERY', 'MORNING_DELIVERY', 'EVENING_DELIVERY', 'PICKUP_DELIVERY'],
+        'options'       => capabilityOptions(),
+        'collo'         => ['max' => 10],
+    ], $overrides);
+}
+
+/**
+ * One `items` entry from the contract-definitions endpoint. Same wire keys as a `results` entry
+ * minus `contract` and `physicalProperties`, which is why one parser reads both.
+ */
+function contractDefinitionItem(array $overrides = []): array
+{
+    return array_replace([
+        'carrier'          => 'POSTNL',
+        'packageTypes'     => ['PACKAGE', 'MAILBOX', 'DIGITAL_STAMP', 'SMALL_PACKAGE'],
+        'deliveryTypes'    => ['STANDARD_DELIVERY', 'PICKUP_DELIVERY'],
+        'transactionTypes' => ['DELIVERY'],
+        'options'          => capabilityOptions(),
+        'collo'            => ['max' => 10],
+    ], $overrides);
+}
+
+/** The whole response envelope, JSON-encoded, ready for a MockHandler Response body. */
+function capabilitiesBody(array $results): string
+{
+    return (string) json_encode(['results' => $results]);
+}
+
+/** The contract-definitions envelope. `items`, not `results` — the one shape difference. */
+function contractDefinitionsBody(array $items): string
+{
+    return (string) json_encode(['items' => $items]);
+}
+
+/**
+ * The stored account settings row Importer writes and both readers decode.
+ *
+ * $overrides replaces whole top-level keys, so a caller can hand back a row missing or breaking one
+ * of them — the shapes AccountSettings has to survive.
+ *
+ * @param array<string, mixed> $overrides
+ */
+function accountSettingsRow(array $items, array $overrides = []): string
+{
+    return (string) json_encode(array_replace([
+        'shop'                 => ['id' => 42, 'name' => 'Test Shop'],
+        'account'              => ['id' => 7, 'platform_id' => 1],
+        'contract_definitions' => $items,
+    ], $overrides));
+}
+
+/**
+ * @param  \GuzzleHttp\Psr7\Response[]|\Throwable[] $responses
+ * @return array{client: CapabilitiesClient, history: array, handler: \GuzzleHttp\Handler\MockHandler}
+ */
+function makeCapabilitiesClient(array $responses = [], ?string $host = null): array
+{
+    $http = makeGuzzleWithHistory($responses);
+
+    return [
+        'client'  => new CapabilitiesClient($http['client'], createUserAgent(), null, $host),
+        'history' => &$http['history'],
+        'handler' => $http['handler'],
+    ];
+}
+
+/**
+ * A Repository over an in-memory cache double, so cache hits and misses are observable.
+ *
+ * @param  \GuzzleHttp\Psr7\Response[]|\Throwable[] $responses
+ * @return array{repository: CapabilitiesRepository, history: array, store: object, config: Config}
+ */
+function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAPABILITIES_TEST_API_KEY): array
+{
+    $client = makeCapabilitiesClient($responses);
+
+    $store = new class {
+        public array $entries = [];
+        public array $savedTags = [];
+        public int $cleans = 0;
+        public bool $lockHeld = false;
+        public array $lockedNames = [];
+        public array $unlockedNames = [];
+    };
+
+    $cache = Mockery::mock(CapabilitiesCache::class);
+    $cache->shouldReceive('load')->andReturnUsing(static function (string $id) use ($store) {
+        return $store->entries[$id] ?? false;
+    });
+    $cache->shouldReceive('save')->andReturnUsing(
+        static function ($data, string $id, array $tags = [], $lifeTime = null) use ($store): bool {
+            $store->entries[$id]   = (string) $data;
+            $store->savedTags[$id] = ['tags' => $tags, 'lifeTime' => $lifeTime];
+
+            return true;
+        }
+    );
+
+    $config = createConfig(['api/key' => $apiKey]);
+
+    // Granted unless a test says otherwise: the lock only keeps concurrent requests off one fetch,
+    // and a single-threaded test is never the second holder. Set $store->lockHeld to refuse it.
+    $lockManager = Mockery::mock(LockManagerInterface::class);
+    $lockManager->shouldReceive('lock')->andReturnUsing(static function (string $name) use ($store): bool {
+        $store->lockedNames[] = $name;
+
+        return ! $store->lockHeld;
+    });
+    $lockManager->shouldReceive('unlock')->andReturnUsing(static function (string $name) use ($store): bool {
+        $store->unlockedNames[] = $name;
+
+        return true;
+    });
+
+    return [
+        'repository' => new CapabilitiesRepository($client['client'], $cache, $config, new Fingerprint(), $lockManager),
+        'history'    => &$client['history'],
+        'store'      => $store,
+        'config'     => $config,
+    ];
+}
+
+/**
+ * The captured acceptance response InsuranceShapeConformanceTest reads. Written by that file's live
+ * case, which is the only supported way to refresh it.
+ */
+function acceptanceCapabilitiesFixturePath(): string
+{
+    return __DIR__ . '/../Fixtures/capabilities-acceptance-v2.json';
+}
+
+/**
+ * A real response reduced to the five keys CarrierCapability::fromResult() reads. An allow-list, so a
+ * key naming the account it came from cannot reach the committed fixture.
+ */
+function scrubCapabilitiesResults(array $results): array
+{
+    return array_values(array_map(
+        static fn(array $result): array => array_intersect_key(
+            $result,
+            array_flip(['carrier', 'packageTypes', 'deliveryTypes', 'collo', 'options'])
+        ),
+        $results
+    ));
+}
+
+/**
+ * A capabilities client that really calls acceptance. Only InsuranceShapeConformanceTest's live case
+ * builds one; every other capabilities test goes through makeCapabilitiesClient()'s MockHandler.
+ */
+function makeAcceptanceCapabilitiesClient(): CapabilitiesClient
+{
+    return new CapabilitiesClient(
+        new RealGuzzleClient(),
+        createUserAgent(),
+        null,
+        ProxyConfig::HOSTS[ProxyConfig::HOST_CORE][ProxyConfig::KEY_ACCEPTANCE_URL]
+    );
+}
+
+/**
+ * Asserts that every insurance option in a capabilities response carries the flat Money properties
+ * InsuranceRange reads, and that InsuranceRange still parses them. Shared by the fixture case and the
+ * live case so the two cannot drift.
+ *
+ * The deprecated `insuredAmount` wrapper may ride along beside the flat properties; InsuranceRange
+ * ignores it, so its presence is not a failure. A missing flat property is. Every message names the
+ * carrier and the keys the option actually carried, because that is the whole diagnostic when the
+ * shape moves.
+ */
+function assertFlatInsuranceShape(array $results): void
+{
+    expect($results)->not->toBeEmpty();
+
+    $seen = 0;
+
+    foreach ($results as $result) {
+        $insurance = $result['options']['insurance'] ?? null;
+
+        if (! is_array($insurance)) {
+            continue;
+        }
+
+        $seen++;
+
+        $where = sprintf(
+            '%s insurance option carries: %s',
+            (string) ($result['carrier'] ?? 'unknown carrier'),
+            implode(', ', array_keys($insurance))
+        );
+
+        Assert::assertTrue(
+            isset($insurance['max']['amount']) && is_numeric($insurance['max']['amount']),
+            "No flat max Money property. $where"
+        );
+
+        foreach (['min', 'default'] as $key) {
+            if (array_key_exists($key, $insurance)) {
+                Assert::assertTrue(
+                    isset($insurance[$key]['amount']) && is_numeric($insurance[$key]['amount']),
+                    "Flat $key is not a Money object. $where"
+                );
+            }
+        }
+
+        // The assertion that matters: the wire shape and the parser still agree.
+        Assert::assertNotNull(
+            InsuranceRange::fromOptionValue($insurance),
+            "InsuranceRange read no range from this shape. $where"
+        );
+    }
+
+    expect($seen)->toBeGreaterThan(0);
+}
+
+/**
+ * A ShapeLookup that already holds its answers, so the repository is never reached — reaching it
+ * fatals, and that is the assertion that the code asked only the shapes the test seeded.
+ *
+ * Shapes are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a
+ * single CapabilitySet to seed every shape at once, for a test the shape distinction is not about.
+ *
+ * @param CapabilitySet|array<string,CapabilitySet> $answers
+ */
+function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1): ShapeLookup
+{
+    if ($answers instanceof CapabilitySet) {
+        $answers = array_fill_keys(array_merge([''], array_keys(PackageType::NAMES_IDS_MAP)), $answers);
+    }
+
+    $seeded = [];
+
+    foreach ($answers as $packageType => $set) {
+        // Same shape as ShapeLookup::answer() builds: scope, country, package type, carrier.
+        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|'] = $set;
+    }
+
+    $lookup = newInstanceWithoutConstructor(ShapeLookup::class);
+    setPrivateProperty($lookup, 'answers', $seeded);
+
+    return $lookup;
+}
