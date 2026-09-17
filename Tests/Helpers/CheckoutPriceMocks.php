@@ -67,7 +67,7 @@ function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $delive
         'cartRules'        => $cartRules,
         'quote'            => $quote,
         'storeId'          => 1,
-        'capabilityLookup' => capabilityLookupWith(CapabilitySet::permissive(), 'NL', 1),
+        'capabilityLookup' => capabilityLookupWith(CapabilitySet::permissive(), 'NL'),
     ]);
 
     return carrierSettingsOf($checkout, PackageType::PACKAGE_NAME, $carrier);
