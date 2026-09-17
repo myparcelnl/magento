@@ -4,18 +4,19 @@ declare(strict_types=1);
 
 use Magento\Quote\Model\Quote;
 use MyParcelNL\Magento\Model\Quote\Checkout;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\CartShippingRules;
+use MyParcelNL\Magento\Service\PackageTypeResolver;
 
 // capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php.
 
 /**
  * The constructor is skipped: it reads the checkout session. checkPackageType() needs only the
- * quote, the config, the package repository and the memoised capabilities.
+ * quote, the config, the two cart services and the memoised capabilities.
  *
  * capabilityLookupWith() seeds the shapes; see its doc block for the key shape and for what an
  * unseeded shape does.
@@ -23,27 +24,29 @@ use MyParcelNL\Magento\Service\Config;
  * $forced is what the order carries whatever the shopper picks; an empty list is the ordinary
  * order, which never reaches a narrowed lookup.
  *
- * @return array{checkout: Checkout, package: PackageRepository, calls: object}
+ * What used to be three setters on a shared package object is now one PackageTypeCandidates handed
+ * to the resolver, so the cases below read that instead.
+ *
+ * @return array{checkout: Checkout, packageTypes: PackageTypeResolver, cartRules: CartShippingRules, calls: object}
  */
 function createCheckoutWith(array $capabilities, string $country = 'NL', array $forced = []): array
 {
     $calls = new class {
-        public array $activated = [];
+        public ?PackageTypeCandidates $candidates = null;
     };
 
-    $package = Mockery::mock(PackageRepository::class);
-    foreach (['setMailboxSettings', 'setDigitalStampSettings', 'setPackageSmallSettings', 'setCurrentCountry'] as $noop) {
-        $package->shouldReceive($noop)->byDefault();
-    }
-    foreach (['setMailboxActive', 'setDigitalStampActive', 'setPackageSmallActive'] as $setter) {
-        $package->shouldReceive($setter)->andReturnUsing(
-            static function ($on) use ($calls, $setter) {
-                $calls->activated[$setter] = (bool) $on;
-            }
-        )->byDefault();
-    }
-    $package->shouldReceive('selectPackageType')->andReturn(PackageType::PACKAGE_NAME)->byDefault();
-    $package->shouldReceive('forcedLimitingOptions')->andReturn($forced)->byDefault();
+    $packageTypes = Mockery::mock(PackageTypeResolver::class);
+    $packageTypes->shouldReceive('resolve')->andReturnUsing(
+        static function (array $items, string $carrierName, string $country, PackageTypeCandidates $candidates) use ($calls): string {
+            $calls->candidates = $candidates;
+
+            return PackageType::PACKAGE_NAME;
+        }
+    )->byDefault();
+
+    $cartRules = Mockery::mock(CartShippingRules::class);
+    $cartRules->shouldReceive('forcedLimitingOptions')->andReturn($forced)->byDefault();
+    $cartRules->shouldReceive('hidesDeliveryOptions')->andReturn(false)->byDefault();
 
     $config = createPermissiveConfig();
 
@@ -52,12 +55,25 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
     $quote->shouldReceive('getStoreId')->andReturn(1)->byDefault();
 
     $checkout = newInstanceWithoutConstructor(Checkout::class);
-    setPrivateProperty($checkout, 'package', $package);
+    setPrivateProperty($checkout, 'packageTypes', $packageTypes);
+    setPrivateProperty($checkout, 'cartRules', $cartRules);
     setPrivateProperty($checkout, 'config', $config);
     setPrivateProperty($checkout, 'quote', $quote);
+    setPrivateProperty($checkout, 'storeId', 1);
     setPrivateProperty($checkout, 'capabilityLookup', capabilityLookupWith($capabilities, $country, 1));
 
-    return ['checkout' => $checkout, 'package' => $package, 'calls' => $calls];
+    return [
+        'checkout'     => $checkout,
+        'packageTypes' => $packageTypes,
+        'cartRules'    => $cartRules,
+        'calls'        => $calls,
+    ];
+}
+
+/** Whether the candidates the resolver was handed include one package type. */
+function candidateWasOffered(object $calls, string $packageTypeName): bool
+{
+    return null !== $calls->candidates && $calls->candidates->has($packageTypeName);
 }
 
 it('turns off a package type the account does not have, whatever configuration says', function () {
@@ -69,18 +85,18 @@ it('turns off a package type the account does not have, whatever configuration s
     $c = createCheckoutWith(['' => $mailboxOnly]);
     $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
 
-    expect($c['calls']->activated['setMailboxActive'])->toBeTrue()
-        ->and($c['calls']->activated['setDigitalStampActive'])->toBeFalse()
-        ->and($c['calls']->activated['setPackageSmallActive'])->toBeFalse();
+    expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeTrue()
+        ->and(candidateWasOffered($c['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeFalse()
+        ->and(candidateWasOffered($c['calls'], PackageType::PACKAGE_SMALL_NAME))->toBeFalse();
 });
 
 it('leaves the decision to configuration when capabilities could not be reached', function () {
     $c = createCheckoutWith(['' => CapabilitySet::permissive()]);
     $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
 
-    expect($c['calls']->activated['setMailboxActive'])->toBeTrue()
-        ->and($c['calls']->activated['setDigitalStampActive'])->toBeTrue()
-        ->and($c['calls']->activated['setPackageSmallActive'])->toBeTrue();
+    expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeTrue()
+        ->and(candidateWasOffered($c['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeTrue()
+        ->and(candidateWasOffered($c['calls'], PackageType::PACKAGE_SMALL_NAME))->toBeTrue();
 });
 
 it('asks only the package-type-agnostic question when the order forces nothing', function () {
@@ -104,8 +120,8 @@ it('answers per carrier, not once for the store', function () {
     $dpd = createCheckoutWith(['' => $set]);
     $dpd['checkout']->checkPackageType(Carrier::DPD, 'NL');
 
-    expect($postnl['calls']->activated['setDigitalStampActive'])->toBeTrue()
-        ->and($dpd['calls']->activated['setDigitalStampActive'])->toBeFalse();
+    expect(candidateWasOffered($postnl['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeTrue()
+        ->and(candidateWasOffered($dpd['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeFalse();
 });
 
 it('rules out a package type that cannot carry an option the order forces on', function () {
@@ -124,7 +140,7 @@ it('rules out a package type that cannot carry an option the order forces on', f
 
     $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
 
-    expect($c['calls']->activated['setMailboxActive'])->toBeFalse();
+    expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeFalse();
 });
 
 it('keeps a package type that can carry the forced option', function () {
@@ -141,7 +157,7 @@ it('keeps a package type that can carry the forced option', function () {
 
     $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
 
-    expect($c['calls']->activated['setMailboxActive'])->toBeTrue();
+    expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeTrue();
 });
 
 it('answers the forced-option question per carrier', function () {
@@ -168,8 +184,8 @@ it('answers the forced-option question per carrier', function () {
     $dpd = createCheckoutWith($capabilities, 'NL', [ShipmentOption::AGE_CHECK]);
     $dpd['checkout']->checkPackageType(Carrier::DPD, 'NL');
 
-    expect($postnl['calls']->activated['setMailboxActive'])->toBeFalse()
-        ->and($dpd['calls']->activated['setMailboxActive'])->toBeTrue();
+    expect(candidateWasOffered($postnl['calls'], PackageType::MAILBOX_NAME))->toBeFalse()
+        ->and(candidateWasOffered($dpd['calls'], PackageType::MAILBOX_NAME))->toBeTrue();
 });
 
 it('restricts nothing when capabilities could not be reached, even with a forced option', function () {
@@ -181,7 +197,7 @@ it('restricts nothing when capabilities could not be reached, even with a forced
 
     $c['checkout']->checkPackageType(Carrier::POSTNL, 'NL');
 
-    expect($c['calls']->activated['setMailboxActive'])->toBeTrue();
+    expect(candidateWasOffered($c['calls'], PackageType::MAILBOX_NAME))->toBeTrue();
 });
 
 /**
@@ -190,15 +206,16 @@ it('restricts nothing when capabilities could not be reached, even with a forced
  */
 function deliveryDataAllowsOptionsFor(string $carrierName, array $capabilities, array $forced): bool
 {
-    [$checkout, $package] = array_values(createCheckoutWith($capabilities, 'NL', $forced));
+    $c            = createCheckoutWith($capabilities, 'NL', $forced);
+    $checkout     = $c['checkout'];
+    $packageTypes = $c['packageTypes'];
+    $cartRules    = $c['cartRules'];
 
-    $package->shouldReceive('setMailboxSettings')->byDefault();
-    $package->shouldReceive('getMaxMailboxWeight')->andReturn(2000)->byDefault();
-    $package->shouldReceive('getWeight')->andReturn(100)->byDefault();
-    $package->shouldReceive('getPriorityDelivery')->andReturn(false)->byDefault();
-    $package->shouldReceive('getAgeCheck')->andReturn(in_array(ShipmentOption::AGE_CHECK, $forced, true))->byDefault();
-    $package->shouldReceive('getExcludeParcelLockers')->andReturn(false)->byDefault();
-    setPrivateProperty($package, 'deliveryOptionsDisabled', false);
+    $packageTypes->shouldReceive('maxMailboxWeight')->andReturn(2000.0)->byDefault();
+    $packageTypes->shouldReceive('cartWeight')->andReturn(100.0)->byDefault();
+    $cartRules->shouldReceive('allowsPriorityDelivery')->andReturn(false)->byDefault();
+    $cartRules->shouldReceive('forcesAgeCheck')->andReturn(in_array(ShipmentOption::AGE_CHECK, $forced, true))->byDefault();
+    $cartRules->shouldReceive('excludesParcelLockers')->andReturn(false)->byDefault();
 
     $tax = Mockery::mock(MyParcelNL\Magento\Service\Tax::class);
     $tax->shouldReceive('shippingPrice')->andReturn(0.0)->byDefault();
