@@ -76,7 +76,9 @@ class PackageRepository extends Package
                 continue;
             }
 
-            $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox');
+            // No row means the attribute's own default, which UpgradeData sets to -1. Without this,
+            // null reaches the division below and PHP 8 throws DivisionByZeroError in the checkout.
+            $mailboxQty = $this->getAttributesProductsOptions($product, 'fit_in_mailbox') ?? -1;
 
             if (-1 === $mailboxQty) {
                 $this->setMailboxPercentage(101);
