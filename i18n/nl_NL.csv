@@ -106,7 +106,7 @@ Receipt code,Ontvangstcode
 Receipt code fee,Ontvangstcode kosten
 Collect package,Pakket laten ophalen
 Digital stamp settings,Digitalepostzegel instellingen
-"Fill in weight in grams, regardless of ‘weight type’ settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Vul het gewicht in gram in, ongeacht de ‘eenheid voor gewicht’ instellingen. Dit gewicht wordt opgeteld bij het ordergewicht. Uitzondering: digitalepostzegel zal de staffel exact gebruiken wanneer gespecificeerd."
+"Fill in weight in grams, regardless of 'weight type' settings. This weight is added to the order weight. Exception: digital stamp will use the range class exactly when specified.","Vul het gewicht in gram in, ongeacht de ‘eenheid voor gewicht’ instellingen. Dit gewicht wordt opgeteld bij het ordergewicht. Uitzondering: digitalepostzegel zal de staffel exact gebruiken wanneer gespecificeerd."
 Automate digital stamp,Automatiseer digitalepostzegel
 Default weight,Standaard gewicht
 Digital stamp fee,Digitalepostzegel kosten
@@ -470,3 +470,5 @@ Importing the MyParcel Backoffice settings failed. Check the log for details.,He
 MyParcel Backoffice settings imported.,MyParcel Backoffice-instellingen zijn geïmporteerd.
 Records per export request,Records per exportverzoek
 How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Hoeveel zendingen of orders in een verzoek naar MyParcel gaan. Laat leeg voor 20. Verlaag dit als grote exports een time-out geven. Het maximum is 100.
+"MyParcel reads every product weight with this one unit, so this setting exists in default scope only.","MyParcel leest elk productgewicht met deze ene eenheid, daarom staat deze instelling alleen op standaard scope."
+"Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.","Let op: gewicht is in deze installatie geen globaal attribuut, dus een product kan per scope een ander getal wegen. MyParcel leest ze allemaal met de eenheid hierboven."

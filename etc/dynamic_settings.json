@@ -179,10 +179,11 @@
               "type": "select",
               "label": "I use the following weight type",
               "showInDefault": true,
-              "showInWebsite": true,
-              "showInStore": true,
+              "showInWebsite": false,
+              "showInStore": false,
               "tooltip": "This is the type of weight that I use with my products.",
-              "source_model": "MyParcelNL\\Magento\\Model\\Source\\WeightType"
+              "source_model": "MyParcelNL\\Magento\\Model\\Source\\WeightType",
+              "note_model": "MyParcelNL\\Magento\\Block\\System\\Config\\Form\\WeightUnitNote"
             },
             {
               "id": "export_chunk_size",
