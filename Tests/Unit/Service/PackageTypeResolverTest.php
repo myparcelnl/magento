@@ -29,8 +29,10 @@ function packageTypeConfigFor(array $map): Config
 }
 
 /**
- * Runs one case of packageTypeCases() against the resolver. This is the AFTER half of the pair; the
- * BEFORE half runs the same array against PackageRepository.
+ * Runs one case of packageTypeCases() against the resolver.
+ *
+ * The table was written against the class this replaced and ran green on both, which is what makes
+ * it a record of behaviour rather than of intent. See its own doc block.
  *
  * The candidates are built here the way Checkout builds them: the capability verdict AND the
  * carrier's own config toggle, with the country choosing which mailbox toggle applies.

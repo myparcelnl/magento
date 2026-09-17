@@ -6,11 +6,12 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * One table of package-type decisions, consumed by two drivers: the PackageRepository one that
- * exists before the rewrite and the PackageTypeResolver one that exists after it.
+ * One table of package-type decisions.
  *
- * The expected values are written once. "Behaviour did not change" is therefore a property of the
- * table rather than of two transcriptions that could drift apart.
+ * It was written against PackageRepository and run green there before PackageTypeResolver existed,
+ * then run unchanged against the resolver. Because the expected values were never transcribed a
+ * second time, the table records what the module did, not what the rewrite intended it to do. Treat
+ * a change to an expected value as a behaviour change that needs saying out loud.
  *
  * Each case:
  *   items      - qty, weight and the myparcel_* attributes the product carries. An attribute left
