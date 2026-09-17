@@ -34,7 +34,9 @@ use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
 use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
+use MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
+use MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication;
 
 /**
  * Upgrade Data script
@@ -109,6 +111,16 @@ class UpgradeData implements UpgradeDataInterface
     private $classificationToVarchar;
 
     /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication
+     */
+    private $unscopeWeightIndication;
+
+    /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows
+     */
+    private $removePickupMailboxRows;
+
+    /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                     $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                              $eavSetupFactory
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
@@ -117,6 +129,8 @@ class UpgradeData implements UpgradeDataInterface
      * @param  \MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths
      * @param  \MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache $enableCapabilitiesCache
      * @param  \MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar $classificationToVarchar
+     * @param  \MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication $unscopeWeightIndication
+     * @param  \MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows $removePickupMailboxRows
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -126,7 +140,9 @@ class UpgradeData implements UpgradeDataInterface
         ReplaceDpzRange $replaceDpzRange,
         FingerprintAccountSettingsPaths $fingerprintAccountSettingsPaths,
         EnableCapabilitiesCache $enableCapabilitiesCache,
-        ClassificationToVarchar $classificationToVarchar
+        ClassificationToVarchar $classificationToVarchar,
+        UnscopeWeightIndication $unscopeWeightIndication,
+        RemovePickupMailboxRows $removePickupMailboxRows
     ) {
         $this->categorySetupFactory            = $categorySetupFactory;
         $this->eavSetupFactory                 = $eavSetupFactory;
@@ -136,6 +152,8 @@ class UpgradeData implements UpgradeDataInterface
         $this->fingerprintAccountSettingsPaths = $fingerprintAccountSettingsPaths;
         $this->enableCapabilitiesCache         = $enableCapabilitiesCache;
         $this->classificationToVarchar         = $classificationToVarchar;
+        $this->unscopeWeightIndication         = $unscopeWeightIndication;
+        $this->removePickupMailboxRows         = $removePickupMailboxRows;
     }
 
     /**
@@ -1069,6 +1087,8 @@ class UpgradeData implements UpgradeDataInterface
         if (version_compare($context->getVersion(), '6.0.0', '<')) {
             $this->enableCapabilitiesCache->run();
             $this->classificationToVarchar->run($eavSetup);
+            $this->unscopeWeightIndication->run();
+            $this->removePickupMailboxRows->run();
         }
 
         $setup->endSetup();
