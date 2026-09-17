@@ -64,7 +64,7 @@ Magento Order → Adapter → SDK Consignment → MyParcel API
 - **Config** (`src/Service/Config.php`): Central configuration access with `CARRIERS_XML_PATH_MAP` for carrier-specific settings
 - **Checkout** (`src/Model/Checkout/DeliveryOptions.php`): Delivery options logic for frontend; frontend JS uses RequireJS + Knockout.js
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`): Bridge Magento orders/shipments to SDK for batch API operations
-- **Package** (`src/Model/Sales/Package.php`): Complex package type determination (mailbox, digital stamp, package) based on weight, carrier, and config
+- **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`): Package type determination (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, plus what the cart's own products say about how it may ship. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way
 
 ### Extension Points
 

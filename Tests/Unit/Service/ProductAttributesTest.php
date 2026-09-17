@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 /**
  * These cases pin the two things that matter to the callers: the map is keyed by public product id,
- * and a batch costs one load. The collection double itself lives in Tests/Helpers, because
- * PackageRepository needs it without the service wrapped around it.
+ * and a batch costs one load. The collection double itself lives in Tests/Helpers, which several
+ * service tests build their attribute rows with.
  */
 it('answers a column keyed by the public product id', function () {
     $attributes = productAttributesFor([

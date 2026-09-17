@@ -100,7 +100,6 @@
                 <other_options>1</other_options>
                 <weight>2000</weight>
                 <fee>3.50</fee>
-                <pickup_mailbox>1</pickup_mailbox>
             </mailbox>
             <morning>
                 <active>1</active>
@@ -149,7 +148,6 @@
                 <other_options>1</other_options>
                 <weight>2000</weight>
                 <fee>3.50</fee>
-                <pickup_mailbox>1</pickup_mailbox>
             </mailbox>
             <pickup>
                 <active>1</active>
@@ -249,7 +247,6 @@
                 <other_options>1</other_options>
                 <weight>2000</weight>
                 <fee>3.50</fee>
-                <pickup_mailbox>1</pickup_mailbox>
             </mailbox>
         </myparcelnl_magento_dpd_settings>
 
