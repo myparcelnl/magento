@@ -217,6 +217,41 @@ class DynamicSettings extends Template
         return $block instanceof NoteProviderInterface ? $block->getNote() : '';
     }
 
+    /**
+     * The note of a field that has no frontend model of its own.
+     *
+     * A frontend model replaces the control it belongs to, so a field that only needs a computed
+     * note cannot use one without re-rendering its own input. `note_model` names a block that
+     * renders nothing and answers a note; the field keeps whatever control its type gives it.
+     *
+     * Never throws: a note is not worth failing a settings screen over.
+     *
+     * @param array $field
+     * @return string
+     */
+    public function getNoteFor(array $field): string
+    {
+        $noteModel = (string) ($field['note_model'] ?? '');
+
+        if ('' === $noteModel) {
+            return '';
+        }
+
+        try {
+            $block = $this->getLayout()->createBlock($noteModel);
+
+            if ($block instanceof NoteProviderInterface) {
+                $block->setData('field', $field);
+
+                return $block->getNote();
+            }
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        return '';
+    }
+
     private function frontendModelKey(string $frontendModel, array $field): string
     {
         return $frontendModel . '|' . ($field['path'] ?? '');
