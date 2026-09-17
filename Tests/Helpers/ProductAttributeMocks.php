@@ -9,10 +9,6 @@ use MyParcelNL\Magento\Service\ProductAttributes;
 /**
  * A product collection answering the given rows, recording each id filter it was given.
  *
- * Kept separate from productAttributesFor() because PackageRepository builds its own
- * ProductAttributes off the static ObjectManager, so a caller stubbing that singleton needs the
- * collection rather than the service.
- *
  * @param array<int,array<string,string|null>> $rows product id => attribute code => value
  * @param null|array                           $loads receives one entry per load, each the ids asked for
  */
@@ -70,4 +66,27 @@ function productAttributesFor(array $rows, ?array &$loads = null): ProductAttrib
     $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($collection);
 
     return new ProductAttributes($objectManager);
+}
+
+/**
+ * A quote item carrying one catalogue product id — the minimum a cart service reads off an item
+ * before it warms the product attributes.
+ *
+ * Pass null for an item whose product was deleted, which the repository has to survive.
+ */
+function quoteItemFor(?int $productId = 1, float $qty = 1.0, float $weight = 0.0): object
+{
+    $catalogProduct = null;
+
+    if (null !== $productId) {
+        $catalogProduct = Mockery::mock();
+        $catalogProduct->shouldReceive('getId')->andReturn($productId);
+    }
+
+    $item = Mockery::mock();
+    $item->shouldReceive('getProduct')->andReturn($catalogProduct);
+    $item->shouldReceive('getQty')->andReturn($qty);
+    $item->shouldReceive('getWeight')->andReturn($weight);
+
+    return $item;
 }

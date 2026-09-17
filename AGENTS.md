@@ -56,6 +56,7 @@ Magento order -> Adapter -> SDK consignment -> MyParcel API
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
 - **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
+- **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`) decides the package type (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, and from what the products in the cart allow. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way.
 - **Insurance** is a range per carrier from the account's capabilities (`Model\Shipment\Capabilities\InsuranceRange`). `Model\Settings\Validator\InsuranceAmount` checks each insurance amount setting against it on save.
 
 ### REST API (`src/Model/Rest/`)
