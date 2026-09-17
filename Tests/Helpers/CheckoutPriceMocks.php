@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 use Magento\Quote\Model\Quote;
 use MyParcelNL\Magento\Model\Quote\Checkout;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
+use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\PackageTypeResolver;
 use MyParcelNL\Magento\Service\Tax;
 
 /**
@@ -47,18 +48,25 @@ function checkoutPriceConfig(bool $totalView, array $floatConfig = [], array $co
 /** The real Checkout with only the collaborators getDeliveryData() reads; returns the settings of one carrier. */
 function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $deliveryCosts, Quote $quote, string $carrier = 'postnl'): array
 {
-    $package = Mockery::mock(PackageRepository::class)->shouldIgnoreMissing();
-    $package->shouldReceive('selectPackageType')->andReturn(PackageType::PACKAGE_NAME);
-    $package->shouldReceive('getAgeCheck')->andReturn(false);
-    $package->shouldReceive('getPriorityDelivery')->andReturn(false);
-    $package->deliveryOptionsDisabled = false;
+    $packageTypes = Mockery::mock(PackageTypeResolver::class);
+    $packageTypes->shouldReceive('resolve')->andReturn(PackageType::PACKAGE_NAME)->byDefault();
+    $packageTypes->shouldReceive('maxMailboxWeight')->andReturn(2000.0)->byDefault();
+    $packageTypes->shouldReceive('cartWeight')->andReturn(100.0)->byDefault();
+
+    $cartRules = Mockery::mock(CartShippingRules::class);
+    foreach (['forcedLimitingOptions' => [], 'hidesDeliveryOptions' => false, 'allowsPriorityDelivery' => false,
+              'excludesParcelLockers' => false, 'forcesAgeCheck' => false, 'dropOffDelay' => null] as $method => $answer) {
+        $cartRules->shouldReceive($method)->andReturn($answer)->byDefault();
+    }
 
     $checkout = checkoutWith([
         'config'           => $config,
         'tax'              => $tax,
         'deliveryCosts'    => $deliveryCosts,
-        'package'          => $package,
+        'packageTypes'     => $packageTypes,
+        'cartRules'        => $cartRules,
         'quote'            => $quote,
+        'storeId'          => 1,
         'capabilityLookup' => capabilityLookupWith(CapabilitySet::permissive(), 'NL', 1),
     ]);
 
