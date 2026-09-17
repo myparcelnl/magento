@@ -52,7 +52,7 @@ class PackageRepository extends Package
      */
     public function selectPackageType(array $products, string $carrierName): string
     {
-        $this->warmAttributes($products);
+        $this->preloadAttributes($products);
         $this->setMailboxPercentage(0);
         $weight       = 0;
         $digitalStamp = true;
@@ -119,7 +119,7 @@ class PackageRepository extends Package
      */
     public function productWithoutDeliveryOptions(array $products): PackageRepository
     {
-        $this->warmAttributes($products);
+        $this->preloadAttributes($products);
 
         foreach ($products as $product) {
             $this->isDeliveryOptionsDisabled($product);
@@ -228,7 +228,7 @@ class PackageRepository extends Package
      */
     public function getProductDropOffDelay(array $products): ?int
     {
-        $this->warmAttributes($products);
+        $this->preloadAttributes($products);
         $highestDropOffDelay = null;
 
         foreach ($products as $product) {
@@ -323,7 +323,7 @@ class PackageRepository extends Package
 
     private function resolveOptionForcedOn(array $products, string $carrierPath, string $option): bool
     {
-        $this->warmAttributes($products);
+        $this->preloadAttributes($products);
 
         foreach ($products as $product) {
             if ((bool) $this->getAttributesProductsOptions($product, $option)) {
@@ -348,7 +348,7 @@ class PackageRepository extends Package
     public function getExcludeParcelLockers(array $products, string $carrierPath): bool
     {
         try {
-            $this->warmAttributes($products);
+            $this->preloadAttributes($products);
 
             // Check if general setting is enabled
             $generalExclude = (bool) $this->getGeneralConfig('shipping_methods/exclude_parcel_lockers', $this->getStoreId());
@@ -389,7 +389,7 @@ class PackageRepository extends Package
             return true;
         }
 
-        $this->warmAttributes($products);
+        $this->preloadAttributes($products);
 
         foreach ($products as $product) {
             if ((bool) $this->getProductPriorityDelivery($product)) {
@@ -517,7 +517,7 @@ class PackageRepository extends Package
      *
      * @param \Magento\Quote\Model\Quote\Item[] $products
      */
-    private function warmAttributes(array $products): void
+    private function preloadAttributes(array $products): void
     {
         $productIds = [];
 
