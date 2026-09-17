@@ -463,3 +463,5 @@ Return if no answer,Retour si absence
 "MyParcel Backoffice settings imported.","Les paramètres MyParcel Backoffice ont été importés."
 Records per export request,Enregistrements par requête d'export
 How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Combien d'envois ou de commandes sont envoyés à MyParcel en une requête. Laissez vide pour 20. Réduisez cette valeur si les exports volumineux expirent. Le maximum est 100.
+"MyParcel reads every product weight with this one unit, so this setting exists in default scope only.","MyParcel lit chaque poids de produit avec cette seule unité, donc ce paramètre n'existe qu'au niveau par défaut."
+"Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.","Attention : le poids n'est pas un attribut global dans cette installation, donc un produit peut peser un nombre différent selon la portée. MyParcel les lit tous avec l'unité ci-dessus."
