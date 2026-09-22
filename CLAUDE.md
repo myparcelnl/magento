@@ -95,6 +95,7 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 - **ADRs**: Architectural Decision Records live in the engineering-wide [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) repo, not in this module.
 - **SDK v11** ([`docs/sdk-v11.md`](docs/sdk-v11.md)): why the module owns its shipment domain layer, the deliberate divergences from `myparcelnl/pdk`, which vocabulary each boundary takes, the three money scales, and the SDK defects the module works around. Read it before touching `src/Model/Shipment/` or `src/Service/Export/`.
+- **Capabilities-driven settings** ([`docs/design/capabilities-driven-settings.md`](docs/design/capabilities-driven-settings.md)): the INT-1289 stack that replaces `etc/dynamic_settings.json` with a settings form generated per scope from account capabilities. PR 1 of 6 has landed. Read it before touching `etc/dynamic_settings.json` or `Config::CARRIERS_XML_PATH_MAP`.
 - **FRs** (`docs/functional-requirements/`): Functional requirement specifications
 - **TRs** (`docs/technical-requirements/`): Technical requirement specifications
 - **OpenAPI** — Core API spec: `https://api.myparcel.nl/openapi.min.json`; Order API spec (enums, ShipmentOptions): `https://order.api.myparcel.nl/openapi.json`
