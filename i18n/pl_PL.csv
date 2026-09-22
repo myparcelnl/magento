@@ -461,3 +461,5 @@ Return if no answer,Zwróć w razie braku odpowiedzi
 "Importing the MyParcel Backoffice settings failed:","Importowanie ustawień MyParcel Backoffice nie powiodło się:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","Importowanie ustawień MyParcel Backoffice nie powiodło się. Szczegóły znajdziesz w logu."
 "MyParcel Backoffice settings imported.","Zaimportowano ustawienia MyParcel Backoffice."
+"MyParcel reads every product weight with this one unit, so this setting exists in default scope only.","MyParcel odczytuje każdą wagę produktu w tej jednej jednostce, dlatego to ustawienie istnieje tylko w zakresie domyślnym."
+"Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.","Uwaga: waga nie jest atrybutem globalnym w tej instalacji, więc produkt może ważyć inną liczbę w każdym zakresie. MyParcel odczytuje je wszystkie w jednostce powyżej."
