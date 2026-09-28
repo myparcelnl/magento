@@ -47,3 +47,24 @@ it('keeps the error even when a caller names a key the same', function () {
 
     expect($context['error'])->toBeInstanceOf(RuntimeException::class);
 });
+
+it('describes a payload without its values', function (?string $payload, string $expected) {
+    expect(LogContext::shapeOf($payload))->toBe($expected);
+})->with([
+    'empty'    => ['', '(empty)'],
+    'null'     => [null, '(empty)'],
+    'not JSON' => ['{"carrier":', '11 bytes, not JSON: Syntax error'],
+    'a scalar' => ['"postnl"', '8 bytes, a JSON string'],
+]);
+
+it('leaves the pickup address out of a delivery options payload', function () {
+    $payload = json_encode([
+        'carrier'        => 'postnl',
+        'isPickup'       => true,
+        'pickupLocation' => ['street' => 'Hoofdstraat', 'number' => '1'],
+    ]);
+
+    expect(LogContext::shapeOf($payload))
+        ->toBe(strlen($payload) . ' bytes, keys: carrier,isPickup,pickupLocation')
+        ->not->toContain('Hoofdstraat');
+});
