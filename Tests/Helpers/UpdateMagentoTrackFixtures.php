@@ -29,6 +29,17 @@ function partialOrderCollection(array $shipmentList): MagentoOrderCollection
             return new ArrayIterator($shipmentList);
         }
     );
+    $shipments->shouldReceive('getItemById')->andReturnUsing(
+        static function ($id) use ($shipmentList) {
+            foreach ($shipmentList as $shipment) {
+                if ((int) $shipment->getId() === (int) $id) {
+                    return $shipment;
+                }
+            }
+
+            return null;
+        }
+    );
 
     $collection = Mockery::mock(MagentoOrderCollection::class)
         ->makePartial()
