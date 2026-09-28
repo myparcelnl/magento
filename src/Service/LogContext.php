@@ -25,22 +25,23 @@ class LogContext
         return array_replace($extra, ['error' => $e, 'trace' => $e->getTraceAsString()]);
     }
 
-    /**
-     * A payload described for the log without being reproduced in it.
-     *
-     * Delivery options carry a pickup address, so the whole blob does not belong in a log file. The
-     * first bytes plus the length are what a parse failure is actually diagnosed from.
-     */
-    public static function excerpt(?string $payload, int $keep = 200): string
+    /** A payload described for the log by its length and keys; its values carry a pickup address. */
+    public static function shapeOf(?string $payload): string
     {
         if (null === $payload || '' === $payload) {
             return '(empty)';
         }
 
-        $length = strlen($payload);
+        $decoded = json_decode($payload, true);
 
-        return $length <= $keep
-            ? $payload
-            : substr($payload, 0, $keep) . sprintf('… (%d bytes total)', $length);
+        if (JSON_ERROR_NONE !== json_last_error()) {
+            return sprintf('%d bytes, not JSON: %s', strlen($payload), json_last_error_msg());
+        }
+
+        if (! is_array($decoded)) {
+            return sprintf('%d bytes, a JSON %s', strlen($payload), gettype($decoded));
+        }
+
+        return sprintf('%d bytes, keys: %s', strlen($payload), implode(',', array_keys($decoded)));
     }
 }
