@@ -3,55 +3,43 @@
 namespace MyParcelNL\Magento\Helper;
 
 use Exception;
-use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Catalog\Model\Product;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Model\Shipment\CustomsItems;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
-use MyParcelNL\Sdk\Support\Str;
 
+/**
+ * Builds the Order v1 customs declaration for the PPS fulfilment path.
+ *
+ * Declares what was ordered, at product weight and price, in the order's own currency — where the
+ * v11 shipment path declares what was shipped, at item weight and price. The lookups and the line
+ * arithmetic are shared through CustomsItems.
+ */
 class CustomsDeclarationFromOrder
 {
     private const CURRENCY_EURO = 'EUR';
 
-    /**
-     * @var mixed
-     */
-    private $helper;
-
-    /**
-     * @var ObjectManager
-     */
-    private $objectManager;
-
-    /**
-     * @var Order
-     */
+    /** @var Order */
     private $order;
 
-    /**
-     * @var Weight
-     */
-    private $weightService;
+    private CustomsItems $items;
 
-    /**
-     * @param Order $order
-     */
     public function __construct(Order $order)
     {
-        $objectManager       = ObjectManager::getInstance();
-        $this->order         = $order;
-        $this->objectManager = $objectManager;
-        $this->weightService = $objectManager->get(Weight::class);
+        $objectManager = ObjectManager::getInstance();
+        $this->order   = $order;
+        $this->items   = new CustomsItems(
+            $objectManager,
+            $objectManager->get(Config::class),
+            $objectManager->get(Weight::class)
+        );
     }
 
     /**
-     * @return CustomsDeclaration
      * @throws MissingFieldException
      * @throws Exception
      */
@@ -59,6 +47,7 @@ class CustomsDeclarationFromOrder
     {
         $customsDeclaration = new CustomsDeclaration();
         $totalWeight        = 0;
+        $lines              = [];
 
         foreach ($this->order->getItems() as $item) {
             $product = $item->getProduct();
@@ -67,61 +56,52 @@ class CustomsDeclarationFromOrder
                 continue;
             }
 
-            $amount      = (float) $item->getQtyShipped() ? $item->getQtyShipped() : $item->getQtyOrdered();
-            $totalWeight += $this->weightService->convertToGrams($product->getWeight() * $amount);
-            $description = Str::limit($product->getName(), AbstractConsignment::CUSTOMS_DECLARATION_DESCRIPTION_MAX_LENGTH);
+            $lines[] = [
+                'product' => $product,
+                'amount'  => (float) $item->getQtyShipped() ?: $item->getQtyOrdered(),
+            ];
+        }
 
-            $customsItem = (new MyParcelCustomsItem())
-                ->setDescription($description)
-                ->setAmount($amount)
-                ->setWeight($this->weightService->convertToGrams($product->getWeight()))
-                ->setItemValueArray([
-                                        'amount'   => DeliveryCosts::getPriceInCents($product->getPrice()),
-                                        'currency' => $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO,
-                                    ])
-                ->setCountry($this->getCountryOfOrigin($product))
-                ->setClassification($this->getHsCode($product))
-            ;
+        $productIds      = array_map(static fn(array $line): int => (int) $line['product']->getId(), $lines);
+        $classifications = $productIds ? $this->items->classificationsFor($productIds) : [];
+        $countries       = $productIds ? $this->items->countriesOfOriginFor($productIds) : [];
+        $currency        = $this->order->getOrderCurrency()->getCode() ?? self::CURRENCY_EURO;
 
-            $customsDeclaration->addCustomsItem($customsItem);
+        foreach ($lines as $line) {
+            $product   = $line['product'];
+            $productId = (int) $product->getId();
+            $amount    = (float) $line['amount'];
+
+            // Computed once and reused for the declaration total, which is the sum of the line
+            // weights and must agree with them.
+            $lineWeight   = $this->items->lineWeightInGrams((float) $product->getWeight(), $amount);
+            $totalWeight += $lineWeight;
+
+            $customsDeclaration->addCustomsItem(
+                (new MyParcelCustomsItem())
+                    ->setDescription($this->items->description((string) $product->getName()))
+                    ->setAmount($line['amount'])
+                    ->setWeight($lineWeight)
+                    ->setItemValueArray([
+                                            'amount'   => $this->items->lineValueInCents(
+                                                (float) $product->getPrice(),
+                                                $amount
+                                            ),
+                                            'currency' => $currency,
+                                        ])
+                    ->setCountry((string) ($countries[$productId] ?? ''))
+                    // setClassification() cuts to 10 inside the SDK, so a longer code is truncated
+                    // here where the v11 shipment path carries it whole. Raised with the SDK.
+                    ->setClassification($this->items->classification((string) ($classifications[$productId] ?? '')))
+            );
         }
 
         $customsDeclaration
-            ->setContents(AbstractConsignment::PACKAGE_CONTENTS_COMMERCIAL_GOODS)
+            ->setContents(CustomsItems::CONTENTS_COMMERCIAL_GOODS)
             ->setInvoice($this->order->getIncrementId())
             ->setWeight($totalWeight)
         ;
 
         return $customsDeclaration;
-    }
-
-    /**
-     * @param Product $product
-     *
-     * @return string
-     */
-    private function getCountryOfOrigin(Product $product): string
-    {
-        $productCountryOfOrigin = $this->objectManager
-            ->get(ProductRepositoryInterface::class)
-            ->getById($product->getId())
-            ->getCountryOfManufacture()
-        ;
-
-        return $productCountryOfOrigin ?? AbstractConsignment::CC_NL;
-    }
-
-    /**
-     * @param Product $product
-     *
-     * @return int
-     */
-    private function getHsCode(Product $product): int
-    {
-        return (int) ShipmentOptions::getAttributeValue(
-            'catalog_product_entity_int',
-            $product->getId(),
-            'classification'
-        );
     }
 }

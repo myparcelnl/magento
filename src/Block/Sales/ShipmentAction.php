@@ -17,7 +17,6 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Registry;
 use Magento\Sales\Model\Order\Shipment;
-use MyParcelNL\Sdk\Model\Consignment\BaseConsignment;
 
 class ShipmentAction extends OrdersAction
 {
@@ -29,23 +28,17 @@ class ShipmentAction extends OrdersAction
      * @var \Magento\Sales\Model\Order\Shipment
      */
     private $shipment;
-    /**
-     * @var \MyParcelNL\Sdk\Model\Consignment\BaseConsignment
-     */
-    private $consignment;
 
     /**
      * @param Context $context
      * @param \Magento\Framework\Registry $registry
      * @param \Magento\Sales\Model\Order\Shipment $shipment
-     * @param \MyParcelNL\Sdk\Model\Consignment\BaseConsignment $consignment
      * @param array $data
      */
     public function __construct(
         Context $context,
         Registry $registry,
         Shipment $shipment,
-        BaseConsignment $consignment,
         array $data = []
     ) {
         // Set shipment and order
@@ -54,7 +47,6 @@ class ShipmentAction extends OrdersAction
 
         $this->order = $this->shipment->getOrder();
         parent::__construct($context, $data);
-        $this->consignment = $consignment;
     }
 
     public function getEntityId()
@@ -90,14 +82,5 @@ class ShipmentAction extends OrdersAction
     public function getCountry()
     {
         return $this->order->getShippingAddress()->getCountryId();
-    }
-
-    /**
-     * Check if the address is outside the EU
-     * @return bool
-     */
-    public function isToRowCountry()
-    {
-        return $this->consignment->isToRowCountry();
     }
 }

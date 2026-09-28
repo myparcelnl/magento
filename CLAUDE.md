@@ -94,6 +94,7 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 ### Documentation (`docs/`)
 
 - **ADRs**: Architectural Decision Records live in the engineering-wide [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) repo, not in this module.
+- **SDK v11** ([`docs/sdk-v11.md`](docs/sdk-v11.md)): why the module owns its shipment domain layer, the deliberate divergences from `myparcelnl/pdk`, which vocabulary each boundary takes, the three money scales, and the SDK defects the module works around. Read it before touching `src/Model/Shipment/` or `src/Service/Export/`.
 - **FRs** (`docs/functional-requirements/`): Functional requirement specifications
 - **TRs** (`docs/technical-requirements/`): Technical requirement specifications
 - **OpenAPI** — Core API spec: `https://api.myparcel.nl/openapi.min.json`; Order API spec (enums, ShipmentOptions): `https://order.api.myparcel.nl/openapi.json`
@@ -131,6 +132,16 @@ Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_da
 1. Add admin settings and defaults in `etc/dynamic_settings.json`
 2. Add virtual types for insurance in `etc/di.xml`
 3. Update carrier detection in relevant services
+
+## Adding a Shipment Option
+
+The New Shipment form and the export both read `ShipmentOption::TO_CHECK`, so a checkbox option needs only:
+
+1. A constant in `src/Model/Shipment/ShipmentOption.php`, added to `TO_CHECK` and `V2_NAMES_MAP` (the capabilities name).
+2. A form label in `src/Block/Sales/NewShipmentForm.php`, and its translation in `i18n/`.
+3. Only if the option has a country, delivery type or combination rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. Every other option is taken as chosen.
+
+The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `TO_CHECK` does not reach the shipment the API receives. Do not add the option by hand to `MagentoCollection::$options`, `resolve()` or the setter loop in `OrderShipmentOptions`.
 
 ## Dependencies
 
