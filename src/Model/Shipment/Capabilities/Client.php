@@ -109,23 +109,21 @@ class Client
     }
 
     /**
-     * Contract definitions for one carrier. The request carries no country and the response no zone,
-     * so this answers what the account's contract allows at all — not what a shipment may have.
+     * Every contract definition the account has, in one call.
      *
-     * The body is built here rather than through the SDK: CapabilitiesPostContractDefinitionsRequestV2
-     * is a single string property, so there is no domain knowledge to borrow, and
-     * postCapabilitiesContractDefinitions() carries the same reversed-argument defect as
-     * postCapabilities().
+     * Sent through this client's own transport rather than the generated
+     * postCapabilitiesContractDefinitions(), so both capability calls share the error mapping and
+     * the 429 retry. The generated method itself is fine: the reversed-argument defect is in
+     * HttpCapabilitiesClient, which has no contract-definitions method.
      *
-     * @param  string $v2Carrier the V2 wire name, from Carrier::toV2Name()
      * @return array the response's `items` entries, verbatim
      * @throws \RuntimeException on a transport failure, a non-2xx status or an undecodable body
      */
-    public function sendContractDefinitions(string $apiKey, string $v2Carrier): array
+    public function sendContractDefinitions(string $apiKey): array
     {
         return $this->post(
             $apiKey,
-            (string) json_encode(['carrier' => $v2Carrier]),
+            '{}',
             self::PATH_CONTRACTS,
             'items',
             'contract definitions'

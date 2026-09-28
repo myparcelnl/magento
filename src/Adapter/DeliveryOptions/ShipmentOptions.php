@@ -40,16 +40,24 @@ final class ShipmentOptions
             ShipmentOption::HIDE_SENDER,
             'extra_assurance',
             ShipmentOption::PRIORITY_DELIVERY,
+            ShipmentOption::FRESH_FOOD,
+            ShipmentOption::FROZEN,
         ];
 
-    /** @var array<string,mixed> every KEYS entry, in that order; null where nothing was stored */
+    /** @var array<string,mixed> every keys() entry, in that order; null where nothing was stored */
     private $values = [];
 
     private function __construct(array $values)
     {
-        foreach (self::KEYS as $key) {
+        foreach (self::keys() as $key) {
             $this->values[$key] = $values[$key] ?? null;
         }
+    }
+
+    /** KEYS, then any checkbox it does not name yet: appended, so the persisted order holds. */
+    private static function keys(): array
+    {
+        return array_values(array_unique(array_merge(self::KEYS, ShipmentOption::TO_CHECK)));
     }
 
     /**
@@ -77,24 +85,18 @@ final class ShipmentOptions
     }
 
     /**
-     * Admin New Shipment form or mass action. Absent means 'not chosen' here, not 'unknown', so it
-     * flattens to false and insurance to 0. The four options this form never carries stay null.
+     * Admin New Shipment form or mass action. Absent means 'not chosen' here, not 'unknown', so every
+     * checkbox flattens to false and insurance to 0. What the form never carries stays null.
      */
     public static function fromMagentoOptions(array $options): self
     {
-        return new self(
-            [
-                ShipmentOption::SIGNATURE         => (bool) ($options[ShipmentOption::SIGNATURE] ?? false),
-                ShipmentOption::COLLECT           => (bool) ($options[ShipmentOption::COLLECT] ?? false),
-                ShipmentOption::RECEIPT_CODE      => (bool) ($options[ShipmentOption::RECEIPT_CODE] ?? false),
-                ShipmentOption::ONLY_RECIPIENT    => (bool) ($options[ShipmentOption::ONLY_RECIPIENT] ?? false),
-                ShipmentOption::LARGE_FORMAT      => (bool) ($options[ShipmentOption::LARGE_FORMAT] ?? false),
-                ShipmentOption::AGE_CHECK         => (bool) ($options[ShipmentOption::AGE_CHECK] ?? false),
-                ShipmentOption::RETURN            => (bool) ($options[ShipmentOption::RETURN] ?? false),
-                ShipmentOption::PRIORITY_DELIVERY => (bool) ($options[ShipmentOption::PRIORITY_DELIVERY] ?? false),
-                ShipmentOption::INSURANCE         => (int) ($options[ShipmentOption::INSURANCE] ?? self::DEFAULT_INSURANCE),
-            ]
-        );
+        $values = [ShipmentOption::INSURANCE => (int) ($options[ShipmentOption::INSURANCE] ?? self::DEFAULT_INSURANCE)];
+
+        foreach (ShipmentOption::TO_CHECK as $option) {
+            $values[$option] = (bool) ($options[$option] ?? false);
+        }
+
+        return new self($values);
     }
 
     public function hasSignature(): ?bool
@@ -146,6 +148,16 @@ final class ShipmentOptions
     public function hasPriorityDelivery(): ?bool
     {
         return $this->values[ShipmentOption::PRIORITY_DELIVERY];
+    }
+
+    public function hasFreshFood(): ?bool
+    {
+        return $this->values[ShipmentOption::FRESH_FOOD];
+    }
+
+    public function hasFrozen(): ?bool
+    {
+        return $this->values[ShipmentOption::FROZEN];
     }
 
     public function getInsurance(): ?int
