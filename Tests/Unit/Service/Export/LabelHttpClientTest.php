@@ -35,7 +35,7 @@ it('hands a PDF through with the body still readable', function () {
     expect((string) $response->getBody())->toBe($pdf);
 });
 
-it('logs the status, content type and body when the answer is not a PDF', function () {
+it('logs the status, content type and body shape when the answer is not a PDF', function () {
     $logged = null;
     mockLoggerFacade()->shouldReceive('warning')->once()->andReturnUsing(
         function (string $message) use (&$logged): void {
@@ -52,8 +52,9 @@ it('logs the status, content type and body when the answer is not a PDF', functi
     expect($logged)
         ->toContain('HTTP 500')
         ->toContain('application/json')
-        ->toContain('shipment is not processed yet')
-        ->toContain('/shipment_labels/123');
+        ->toContain('error keys: detail')
+        ->toContain('/shipment_labels/123')
+        ->not->toContain('shipment is not processed yet');
 });
 
 it('leaves a non-PDF body readable too, so the SDK still sees what it refused', function () {
