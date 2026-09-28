@@ -80,7 +80,7 @@ class OrderInformationUpdate
         } catch (\Exception $e) {
             Logger::warning(
                 "Invalid delivery options data for order ID {$order->getEntityId()}.",
-                LogContext::of($e, ['delivery_options' => LogContext::excerpt($deliveryOptionsString)])
+                LogContext::of($e, ['delivery_options' => LogContext::shapeOf($deliveryOptionsString)])
             );
 
             return;
