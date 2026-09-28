@@ -267,3 +267,16 @@ it('releases the fetch lock once it has the answer', function () {
 
     expect($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
 });
+
+it('fails open when the cache or the lock backend throws', function (string $call) {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('warning')->once()->with(Mockery::pattern('/Capabilities lookup failed.*refused the ' . $call . '/'));
+    $logger->shouldReceive('notice')->byDefault();
+
+    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r['store']->throwOn = $call;
+
+    expect($r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue()
+        // Releases the lock it took, and only that one.
+        ->and($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
+})->with(['load', 'lock', 'save']);
