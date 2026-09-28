@@ -35,7 +35,6 @@
                 <label_description>%order_nr%</label_description>
                 <country_of_origin>NL</country_of_origin>
                 <create_concept_after_invoice>0</create_concept_after_invoice>
-                <return_in_the_box>0</return_in_the_box>
                 <priority_delivery_active>0</priority_delivery_active>
             </print>
             <delivery_titles>
