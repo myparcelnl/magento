@@ -18,14 +18,13 @@ use Psr\Http\Message\ResponseInterface;
  *
  * Outbound it restores the `;` separators — shipment ids in the path, A4 positions in the query —
  * that the generated client encodes to `%3B` (SDK issue 4 — the endpoint answers 500 to either).
- * Inbound it logs a non-PDF body before the
- * SDK throws it away. A real PDF is never copied: only the first bytes are read, and only a response
- * already known not to be a PDF is materialised. The Authorization header is never touched or logged.
+ * Inbound it logs the shape of a non-PDF body before the SDK throws it away; the values are left out,
+ * as they can quote recipient data. A real PDF is never copied: only the first bytes are read, and only
+ * a response already known not to be a PDF is materialised. The Authorization header is never touched
+ * or logged.
  */
 class LabelHttpClient implements ClientInterface
 {
-    private const EXCERPT_LENGTH = 500;
-
     /** Enough for the `%PDF-1` signature the SDK matches on. */
     private const SIGNATURE_LENGTH = 8;
 
@@ -66,7 +65,7 @@ class LabelHttpClient implements ClientInterface
             $uri->getPath() . ('' !== $uri->getQuery() ? '?' . $uri->getQuery() : ''),
             $response->getStatusCode(),
             $response->getHeaderLine('Content-Type') ?: 'none',
-            substr($body, 0, self::EXCERPT_LENGTH)
+            Rejection::shapeOf($body)
         ));
 
         return $this->restored($response, $body);
