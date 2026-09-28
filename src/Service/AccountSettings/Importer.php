@@ -8,7 +8,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Magento\Service\LogContext;
@@ -24,7 +23,7 @@ use Throwable;
  * settings* button and the automatic import on an api key change.
  *
  * Two sources, one row: the account and its shop come from the SDK's account web service, the
- * contract definitions from the capabilities client, one call per configured carrier.
+ * contract definitions from the capabilities client in a single unfiltered call.
  *
  * Throws whatever the SDK throws: an invalid key must surface, but must not abort a config save, so the
  * observer catches it.
@@ -119,11 +118,11 @@ class Importer
     }
 
     /**
-     * One call per carrier the module has settings for, flattened: every item names its own carrier,
-     * so the stored list is exactly what CapabilitySet::fromContractDefinitionItems() reads.
+     * Every carrier in one call: each item names its own carrier, so the stored list is exactly what
+     * CapabilitySet::fromContractDefinitionItems() reads.
      *
-     * A carrier the account has no contract for must not fail the import — it is the normal case for
-     * most accounts, so the import degrades to what it does know.
+     * An account with no contracts at all must not fail the import, so a refusal degrades to the
+     * empty list and the admin screens fall open rather than lock shut.
      *
      * @return array<int, array<string, mixed>>
      */
@@ -131,26 +130,14 @@ class Importer
     {
         $definitions = [];
 
-        foreach (array_keys(Config::CARRIERS_XML_PATH_MAP) as $carrierName) {
-            $v2Carrier = Carrier::toV2Name((string) $carrierName);
-
-            if (null === $v2Carrier) {
-                Logger::notice(sprintf('No v2 name for carrier "%s"; contract definitions skipped.', $carrierName));
-                continue;
-            }
-
-            try {
-                foreach ($this->client->sendContractDefinitions($apiKey, $v2Carrier) as $item) {
-                    if (is_array($item)) {
-                        $definitions[] = $item;
-                    }
+        try {
+            foreach ($this->client->sendContractDefinitions($apiKey) as $item) {
+                if (is_array($item)) {
+                    $definitions[] = $item;
                 }
-            } catch (Throwable $e) {
-                Logger::notice(
-                    sprintf('No contract definitions for carrier "%s"', $carrierName),
-                    LogContext::of($e)
-                );
             }
+        } catch (Throwable $e) {
+            Logger::notice('No contract definitions could be fetched', LogContext::of($e));
         }
 
         if ([] === $definitions) {

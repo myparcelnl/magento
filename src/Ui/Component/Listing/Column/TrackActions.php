@@ -150,10 +150,16 @@ class TrackActions extends Column
                     ],
                 ];
 
+                // The callback keeps this a POST. Without one the column navigates to the href,
+                // which would create a return label and mail the consumer over a GET.
                 $actions['action-myparcel_send_return_mail'] = [
-                    'href'   => $this->urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail', ['selected_ids' => $entityId]),
-                    'label'  => __('Send return label'),
-                    'hidden' => $orderManagementActivated,
+                    'href'     => $this->urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail', ['selected_ids' => $entityId]),
+                    'label'    => __('Send return label'),
+                    'hidden'   => $orderManagementActivated,
+                    'callback' => [
+                        'provider' => 'myparcel_grid_massaction',
+                        'target'   => 'exportRow',
+                    ],
                 ];
             }
 
