@@ -89,7 +89,7 @@ it('leaves the date and pickup location null when the stored data has neither', 
         ->and($options->isPickup())->toBeFalse();
 });
 
-/** Not posted means 'not chosen' here, so false — except the four the form never carries at all. */
+/** Not posted means 'not chosen' here, so false — except the three the form never carries at all. */
 it('flattens the options an admin posts and leaves the rest unsaid', function () {
     expect(ShipmentOptions::fromMagentoOptions([])->toArray())->toBe([
         'signature'         => false,
@@ -102,9 +102,11 @@ it('flattens the options an admin posts and leaves the rest unsaid', function ()
         'same_day_delivery' => null,
         'large_format'      => false,
         'label_description' => null,
-        'hide_sender'       => null,
+        'hide_sender'       => false,
         'extra_assurance'   => null,
         'priority_delivery' => false,
+        'fresh_food'        => false,
+        'frozen'            => false,
     ]);
 });
 
