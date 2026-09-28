@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
 
 use BadMethodCallException;
 use InvalidArgumentException;
+use LogicException;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use Magento\Sales\Model\Order;
@@ -101,8 +102,25 @@ class OrderShipmentOptions
             $this->objectManager,
             $this->carrierName(),
             $this->options,
-            $this->shipmentId
+            $this->shipmentId,
+            $this->effectivePackageTypeName()
         ))->resolve());
+    }
+
+    /**
+     * The type the shipment will carry, as a name, for the capability lookups the resolver makes.
+     *
+     * Null on a stored type that resolves to nothing: packageType() fails the shipment over that,
+     * but this is a read for a bound, and failing here would move the throw to whichever caller
+     * happened to ask for the options first.
+     */
+    private function effectivePackageTypeName(): ?string
+    {
+        try {
+            return PackageType::nameFromIdOrNull($this->packageType());
+        } catch (RuntimeException $e) {
+            return null;
+        }
     }
 
     /**
@@ -156,16 +174,23 @@ class OrderShipmentOptions
             ->setPackageType($packageType)
             ->setDeliveryType($this->deliveryTypeId($deliveryOptions))
             ->setLabelDescription(Str::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
-            // Receipt code first: it blocks the options below it.
-            ->setReceiptCode($this->flag($resolved->hasReceiptCode()))
-            ->setOnlyRecipient($this->flag($resolved->hasOnlyRecipient()))
-            ->setSignature($this->flag($resolved->hasSignature()))
-            ->setCollect($this->flag($resolved->hasCollect()))
-            ->setReturn($this->flag($deliveryOptions->isPickup() ? false : $resolved->hasReturn()))
-            ->setSameDayDelivery($this->flag($resolved->hasSameDayDelivery()))
-            ->setLargeFormat($this->flag($resolved->hasLargeFormat()))
-            ->setAgeCheck($this->flag($resolved->hasAgeCheck()))
-            ->setPriorityDelivery($this->flag($resolved->hasPriorityDelivery()));
+            ->setSameDayDelivery($this->flag($resolved->hasSameDayDelivery()));
+
+        $values = $resolved->toArray();
+
+        foreach (ShipmentOption::TO_CHECK as $option) {
+            $setter = SdkShipmentOptions::setters()[$option] ?? null;
+
+            if (null === $setter) {
+                throw new LogicException(sprintf('The SDK has no setter for shipment option "%s".', $option));
+            }
+
+            $options->{$setter}($this->flag($values[$option] ?? null));
+        }
+
+        if ($deliveryOptions->isPickup()) {
+            $options->setReturn(0);
+        }
 
         $deliveryDate = $this->deliveryDate($deliveryOptions, $packageType, $address);
 
