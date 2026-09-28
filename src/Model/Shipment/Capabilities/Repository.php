@@ -94,6 +94,18 @@ class Repository
             return CapabilitySet::permissive();
         }
 
+        // The cache and the lock can throw too, and the first rule above covers them as well.
+        try {
+            return $this->lookup($apiKey, $body);
+        } catch (Throwable $e) {
+            $this->logFailure($apiKey, $e->getMessage());
+
+            return CapabilitySet::permissive();
+        }
+    }
+
+    private function lookup(string $apiKey, string $body): CapabilitySet
+    {
         $shape     = $this->fingerprint->of($apiKey . '|' . $body);
         $cacheId   = self::CACHE_ID_PREFIX . $shape;
         $failureId = self::FAILURE_ID_PREFIX . $shape;
