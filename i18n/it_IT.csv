@@ -261,7 +261,6 @@ Sunday,Domenica
 Mailbox,Pacco buca lettere
 Digital stamp,Francobollo digitale
 Small package,Piccolo pacco
-Print return label directly,Stampa direttamente l'etichetta di reso
 I use the following weight type,Utilizzo la seguente unità di misura del peso
 This is the type of weight that I use with my products.,Questa è l'unità di misura del peso che utilizzi per i tuoi prodotti.
 Default,Predefinito
@@ -278,11 +277,8 @@ error3517,Non disponibile per questo paese.
 error3707,Tipo di pacco non valido.
 error3728,Nessuna opzione di consegna trovata.
 
-Without options,Senza opzioni
-Options equal to shipment,Opzioni uguali alla spedizione
 Export to MyParcel,Esporta su MyParcel
 Already exported,Già esportato
-Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,"Abilitando questa impostazione viene creata automaticamente una spedizione di reso correlata per ogni spedizione esportata. Quando si scaricano le etichette di spedizione, verranno incluse anche le corrispondenti etichette di reso."
 Show details in summary,Mostra dettagli nel riepilogo
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Dove viene mostrato il metodo di spedizione, mostra i dettagli attualmente noti (sì) o il titolo del metodo (no)."
 
@@ -461,3 +457,4 @@ Return if no answer,Restituisci se nessuna risposta
 "Importing the MyParcel Backoffice settings failed:","L'importazione delle impostazioni MyParcel Backoffice non è riuscita:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","L'importazione delle impostazioni MyParcel Backoffice non è riuscita. Controlla il log per i dettagli."
 "MyParcel Backoffice settings imported.","Impostazioni MyParcel Backoffice importate."
+Return label sent,Etichetta di reso inviata

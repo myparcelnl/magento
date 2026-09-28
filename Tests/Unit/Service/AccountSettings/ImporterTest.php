@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -33,19 +32,25 @@ function importerFor(array $rowsByPath, ?Client $client = null): Importer
     );
 }
 
-/** A client answering one item per carrier it is asked about, and nothing for the rest. */
-function importerClientAnswering(array $itemsByV2Carrier): Client
+/**
+ * A client answering one unfiltered call with the given items, whatever carriers they name.
+ *
+ * @param array<int, array<string, mixed>> $items
+ */
+function importerClientAnswering(array $items): Client
 {
     $client = Mockery::mock(Client::class);
-    $client->shouldReceive('sendContractDefinitions')->andReturnUsing(
-        static function (string $apiKey, string $v2Carrier) use ($itemsByV2Carrier): array {
-            if (! array_key_exists($v2Carrier, $itemsByV2Carrier)) {
-                throw new RuntimeException('contract definitions responded 404');
-            }
+    $client->shouldReceive('sendContractDefinitions')->andReturn($items);
 
-            return $itemsByV2Carrier[$v2Carrier];
-        }
-    );
+    return $client;
+}
+
+/** A client that cannot answer at all, so the import has to degrade. */
+function importerClientRefusing(): Client
+{
+    $client = Mockery::mock(Client::class);
+    $client->shouldReceive('sendContractDefinitions')
+           ->andThrow(new RuntimeException('contract definitions responded 500'));
 
     return $client;
 }
@@ -72,33 +77,26 @@ it('treats an empty stored value as absent', function () {
     expect($importer->hasSettingsFor('live-key'))->toBeFalse();
 });
 
-it('asks for contract definitions once per configured carrier', function () {
+it('asks for contract definitions exactly once, with no carrier filter', function () {
     $logger = mockLoggerFacade();
     $logger->shouldReceive('notice')->zeroOrMoreTimes();
-    // Every carrier answering nothing leaves the admin screens unbounded, which only the log says.
+    // An answer carrying nothing leaves the admin screens unbounded, which only the log says.
     $logger->shouldReceive('warning')->once();
 
-    $asked  = [];
     $client = Mockery::mock(Client::class);
-    $client->shouldReceive('sendContractDefinitions')->andReturnUsing(
-        static function (string $apiKey, string $v2Carrier) use (&$asked): array {
-            $asked[] = $v2Carrier;
-
-            return [];
-        }
-    );
+    // One argument, one call: the filter cost a request per carrier and the response names each
+    // item's carrier anyway.
+    $client->shouldReceive('sendContractDefinitions')->once()->with('live-key')->andReturn([]);
 
     invokePrivateMethod(importerFor([], $client), 'fetchContractDefinitions', ['live-key']);
-
-    expect($asked)->toBe(array_values(Carrier::V2_NAMES_MAP));
 });
 
-it('flattens every carrier answer into one list', function () {
+it('keeps a mixed-carrier answer as one list, in the order it arrived', function () {
     mockLoggerFacade()->shouldReceive('notice')->zeroOrMoreTimes();
 
     $client = importerClientAnswering([
-        'POSTNL'      => [contractDefinitionItem(['carrier' => 'POSTNL'])],
-        'DHL_FOR_YOU' => [contractDefinitionItem(['carrier' => 'DHL_FOR_YOU'])],
+        contractDefinitionItem(['carrier' => 'POSTNL']),
+        contractDefinitionItem(['carrier' => 'DHL_FOR_YOU']),
     ]);
 
     $definitions = invokePrivateMethod(importerFor([], $client), 'fetchContractDefinitions', ['live-key']);
@@ -107,20 +105,24 @@ it('flattens every carrier answer into one list', function () {
         ->and(array_column($definitions, 'carrier'))->toBe(['POSTNL', 'DHL_FOR_YOU']);
 });
 
-it('keeps the carriers it could reach when one has no contract', function () {
-    mockLoggerFacade()->shouldReceive('notice')->atLeast()->once();
+it('degrades to nothing when the call is refused, rather than failing the import', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('notice')->atLeast()->once();
+    $logger->shouldReceive('warning')->once();
 
-    $client = importerClientAnswering(['POSTNL' => [contractDefinitionItem()]]);
+    $definitions = invokePrivateMethod(
+        importerFor([], importerClientRefusing()),
+        'fetchContractDefinitions',
+        ['live-key']
+    );
 
-    $definitions = invokePrivateMethod(importerFor([], $client), 'fetchContractDefinitions', ['live-key']);
-
-    expect($definitions)->toHaveCount(1);
+    expect($definitions)->toBe([]);
 });
 
 it('keeps insurance bounds verbatim on the way into storage', function () {
     mockLoggerFacade()->shouldReceive('notice')->zeroOrMoreTimes();
 
-    $client = importerClientAnswering(['POSTNL' => [contractDefinitionItem()]]);
+    $client = importerClientAnswering([contractDefinitionItem()]);
 
     $definitions = invokePrivateMethod(importerFor([], $client), 'fetchContractDefinitions', ['live-key']);
 

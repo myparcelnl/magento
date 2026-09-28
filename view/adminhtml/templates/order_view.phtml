@@ -46,4 +46,11 @@
 <?php /* @noEscape */ /* Server-set statuses, joined with <br>. */ echo $order->getData('track_status');?>
         </div>
     </div>
+    <?php $returnShipmentIds = $block->getReturnShipmentIds($order); ?>
+    <?php if ($returnShipmentIds): ?>
+        <div class="admin__page-section-item-content" style="clear: both;">
+            <?= $block->escapeHtml(__('Return label sent')) ?>
+            (<?= $block->escapeHtml(implode(', ', $returnShipmentIds)) ?>)
+        </div>
+    <?php endif; ?>
 </div>

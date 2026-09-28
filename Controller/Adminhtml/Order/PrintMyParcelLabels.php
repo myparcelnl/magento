@@ -14,10 +14,6 @@ use Magento\Sales\Model\ResourceModel\Order\Shipment\Collection as ShipmentColle
 use Magento\Sales\Model\ResourceModel\Order\Shipment\CollectionFactory as ShipmentCollectionFactory;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\LogContext;
-use MyParcelNL\Sdk\Exception\ValidationException;
-use MyParcelNL\Sdk\Exception\MissingFieldException;
-use MyParcelNL\Sdk\Exception\ApiException;
-use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Magento\Model\Sales\MagentoShipmentCollection;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
@@ -31,9 +27,9 @@ use MyParcelNL\Magento\Service\IdList;
  *
  * It creates nothing: shipments without a MyParcel shipment id are skipped, never exported.
  *
- * Both request methods, and both are used: the grid row's "Download label" is a GET, while an
- * export POSTs its shipment id list, which is too long for a URL. Drop either interface and
- * HttpMethodValidator answers that half with a 404 it logs at debug level only.
+ * POST only. Both callers already POST: the export sends its shipment id list, which is too long
+ * for a URL, and the grid row's "Download label" goes through label-download.js like every other
+ * label request. A GET marker would hand a link-follower a request that writes and mails.
  */
 class PrintMyParcelLabels extends Action implements HttpPostActionInterface
 {
@@ -78,12 +74,7 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
                 $collection->getMyparcelConsignmentIdsByApiKey(),
                 $this->labelPositions->decode($this->getRequest()->getParam('positions'))
             );
-        } catch (AccountNotActiveException|ApiException|MissingFieldException|ValidationException $e) {
-            Logger::warning('MyParcel labels: could not be fetched', LogContext::of($e));
-
-            return $this->failure(__('The MyParcel labels could not be fetched. %1', $e->getMessage()));
         } catch (Throwable $e) {
-            // Anything else is a bug: its message would put internals in front of the admin.
             Logger::critical('MyParcel labels: unexpected error', LogContext::of($e));
 
             return $this->failure(__('The MyParcel labels could not be fetched. Please check the log.'));

@@ -69,7 +69,12 @@ class ExportResponse
      *
      * @return array{url: string, params: array<string,string|int>, failureLabel: string}|null
      */
-    public function labels(array $shipmentIds, string $requestType, $positions, bool $notify = false): ?array
+    public function labels(
+        array  $shipmentIds,
+        string $requestType,
+               $positions,
+        bool   $notify = false
+    ): ?array
     {
         if (! $shipmentIds) {
             return null;
