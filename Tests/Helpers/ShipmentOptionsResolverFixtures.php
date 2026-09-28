@@ -26,7 +26,8 @@ function createShipmentOptions(
     bool                    $defaultOptionSet = false,
     ?array                  $storedDeliveryOptions = null,
     ?CapabilitiesRepository $capabilities = null,
-    ?DefaultOptions         $defaultOptions = null
+    ?DefaultOptions         $defaultOptions = null,
+    ?string                 $exportedPackageType = null
 ): ShipmentOptionsResolver
 {
     $order = createOrder([
@@ -55,13 +56,20 @@ function createShipmentOptions(
     $defaultOptions->shouldReceive('hasDefaultOption')->andReturn($defaultOptionSet)->byDefault();
     $defaultOptions->shouldReceive('getDefaultInsurance')->andReturn(0)->byDefault();
 
+    $deliveryOptions = storedDeliveryOptions($storedDeliveryOptions);
+
     return new ShipmentOptionsResolver(
         $defaultOptions,
         $order,
-        storedDeliveryOptions($storedDeliveryOptions),
+        $deliveryOptions,
         $objectManager,
         $carrier,
-        $options
+        $options,
+        null,
+        // Production reads this off OrderShipmentOptions::packageType(), which prefers the admin
+        // override. Defaulting to the stored type keeps a test that varies only the checkout honest;
+        // a test about the override passes the two apart.
+        $exportedPackageType ?? $deliveryOptions->getPackageType()
     );
 }
 

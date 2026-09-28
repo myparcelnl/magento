@@ -50,7 +50,12 @@ define(
                             "click",
                             function () {
                                 parentThis._setSelectedIds();
-                                window.location.href = parentThis.options.url_send_return_mail + '?selected_ids=' + parentThis.selectedIds.join(';');
+                                // Joined with a comma, which is what the controller splits on.
+                                parentThis._runExport(
+                                    parentThis.options.url_send_return_mail,
+                                    null,
+                                    {selected_ids: parentThis.selectedIds.join(',')}
+                                );
                             }
                         );
                     }
@@ -377,8 +382,9 @@ define(
                 },
 
                 /**
-                 * One row's export action, named as a callback by TrackActions. The URL it was given
-                 * already carries that order's id and package type.
+                 * One row's action that answers export JSON, named as a callback by TrackActions.
+                 * The URL it was given already carries that order's id and whatever else the action
+                 * needs, so nothing is added to the body but the form key.
                  *
                  * @protected
                  */

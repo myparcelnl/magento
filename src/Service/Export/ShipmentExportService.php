@@ -15,6 +15,7 @@ use MyParcelNL\Sdk\Services\Labels\ShipmentLabelsService;
 use MyParcelNL\Sdk\Services\Returns\ReturnShipmentService;
 use MyParcelNL\Sdk\Services\Shipment\ShipmentCreateService;
 use MyParcelNL\Sdk\Services\Shipment\ShipmentDeleteService;
+use Psr\Http\Client\ClientInterface as PsrClientInterface;
 use Throwable;
 use MyParcelNL\Magento\Service\IdList;
 
@@ -42,6 +43,9 @@ class ShipmentExportService
     private Config              $config;
     private LabelPdfMerger      $labelPdfMerger;
     private UserAgent           $userAgent;
+
+    /** Null in production, so the SDK builds its own client; a test sets one to answer offline. */
+    private ?PsrClientInterface $returnHttpClient = null;
 
     public function __construct(
         ShipmentApiProvider $apiProvider,
@@ -83,15 +87,31 @@ class ShipmentExportService
     /**
      * Status and barcode for shipments that already exist, one call per key.
      *
+     * For a caller that only refreshes what it can and lets the rest keep its stored values. A
+     * caller that acts on the answer wants fetchLatestWithErrors(): an unreachable account is
+     * indistinguishable from an empty answer here.
+     *
      * @param array<string,int[]> $shipmentIdsByApiKey
      *
      * @return array<int,object> MyParcel shipment id => ShipmentDefsShipment
      */
     public function fetchLatest(array $shipmentIdsByApiKey): array
     {
+        return $this->fetchLatestWithErrors($shipmentIdsByApiKey)['shipments'];
+    }
+
+    /**
+     * The same refresh, with the per-account failures alongside it.
+     *
+     * @param array<string,int[]> $shipmentIdsByApiKey
+     *
+     * @return array{shipments: array<int,object>, errors: string[]}
+     */
+    public function fetchLatestWithErrors(array $shipmentIdsByApiKey): array
+    {
         $latest = [];
 
-        $this->perKey(
+        $errors = $this->perKey(
             array_map([$this, 'normalizeIds'], $shipmentIdsByApiKey),
             'refresh shipments',
             function (string $apiKey, array $shipmentIds) use (&$latest): void {
@@ -103,7 +123,7 @@ class ShipmentExportService
             }
         );
 
-        return $latest;
+        return ['shipments' => $latest, 'errors' => $errors];
     }
 
     /**
@@ -173,24 +193,44 @@ class ShipmentExportService
     }
 
     /**
-     * Return shipments against each parent shipment's own account.
+     * Return shipments against each parent shipment's own account, each mailed to the customer.
+     *
+     * Each row must carry its parent id as `reference_identifier`: the answer names no parent, so
+     * the echoed reference is the only way to tell which shipment a return belongs to.
      *
      * @param array<string,array<int,array>> $rowsByApiKey rows as ReturnShipmentService takes them
-     * @param bool                           $sendMail     mail each label to the customer
      *
-     * @return string[] error messages, one per failing account, for the caller to render
+     * @return array{returns: array<string,array<int,int>>, errors: string[]} per account, new
+     *         return shipment id => parent shipment id; one error message per failing account
      */
-    public function createReturns(array $rowsByApiKey, bool $sendMail): array
+    public function createReturns(array $rowsByApiKey): array
     {
-        return $this->perKey(
+        $returns = [];
+
+        $errors = $this->perKey(
             $rowsByApiKey,
             'create return shipments',
-            function (string $apiKey, array $rows) use ($sendMail): void {
-                $this->tagged($apiKey, static function (string $key, $client) {
-                    return new ReturnShipmentService($key, $client);
-                })->createRelated($rows, $sendMail);
+            function (string $apiKey, array $rows) use (&$returns): void {
+                $answer = $this->tagged($apiKey, function (string $key, $client) {
+                    return new ReturnShipmentService($key, $client, $this->returnHttpClient);
+                })->createRelated($rows, true);
+
+                foreach ($answer as $returnId => $parentId) {
+                    if (! (int) $parentId) {
+                        Logger::warning(
+                            'MyParcel export: a return shipment came back without its parent reference',
+                            ['return_shipment_id' => (int) $returnId]
+                        );
+
+                        continue;
+                    }
+
+                    $returns[$apiKey][(int) $returnId] = (int) $parentId;
+                }
             }
         );
+
+        return ['returns' => $returns, 'errors' => $errors];
     }
 
     /**
