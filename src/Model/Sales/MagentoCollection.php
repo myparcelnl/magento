@@ -44,6 +44,7 @@ use MyParcelNL\Magento\Service\Export\ShipmentExportService;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesCarrierReturns;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\Shipment as SdkShipment;
 use MyParcelNL\Sdk\Services\MultiCollo\MultiColloShipmentService;
@@ -405,6 +406,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $idsByApiKey = $this->getMyparcelConsignmentIdsByApiKey();
         $lookup      = $this->exportService->fetchLatestWithErrors($idsByApiKey);
         $rows        = [];
+        $reported    = false;
 
         foreach ($lookup['errors'] as $error) {
             $this->messageManager->addErrorMessage($error);
@@ -415,6 +417,27 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 $shipment = $lookup['shipments'][$shipmentId] ?? null;
 
                 if (null === $shipment) {
+                    // A lookup error already names its account; only a silent miss needs a message.
+                    if (! $lookup['errors']) {
+                        $reported = true;
+                        $this->messageManager->addErrorMessage($this->shipmentMessage(
+                            (int) $shipmentId,
+                            static fn (string $name) => __('MyParcel does not know shipment %1 for the API key of this store.', $name)
+                        ));
+                    }
+
+                    continue;
+                }
+
+                // The SDK throws on a carrier outside this enum, which fails the whole account.
+                if (! in_array((int) $shipment->getCarrierId(), RefTypesCarrierReturns::getAllowableEnumValues(), true)) {
+                    $reported = true;
+                    $this->messageManager->addErrorMessage($this->shipmentMessage(
+                        (int) $shipmentId,
+                        static fn (string $name) => __('The carrier of shipment %1 does not support return labels.', $name),
+                        $shipment->getBarcode()
+                    ));
+
                     continue;
                 }
 
@@ -429,7 +452,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         }
 
         if (! $rows) {
-            if (! $lookup['errors']) {
+            if (! $lookup['errors'] && ! $reported) {
                 $this->messageManager->addErrorMessage(
                     __('No MyParcel shipments were found to make a return label for.')
                 );
@@ -449,6 +472,42 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         // createReturns() reports one error per failing account, so an error for every account it
         // was given means nothing was mailed.
         return count($answer['errors']) < count($rows);
+    }
+
+    /**
+     * An error about one MyParcel shipment, prefixed with its order and naming it by barcode.
+     *
+     * The phrase comes in as a callable so its __() keeps a literal, which i18n:collect-phrases needs.
+     *
+     * @param callable(string): \Magento\Framework\Phrase $phrase  receives the barcode, or the id without one
+     * @param string|null                                $barcode the API's, when it answered; else the track's
+     */
+    private function shipmentMessage(int $shipmentId, callable $phrase, ?string $barcode = null): string
+    {
+        $track    = $this->firstTrackByMyParcelId()[$shipmentId] ?? null;
+        $shipment = $track ? $this->getShipmentsCollection()->getItemById((int) $track->getData('parent_id')) : null;
+        $message  = (string) $phrase((string) ($barcode ?: ($track ? $track->getData('track_number') : '') ?: $shipmentId));
+
+        return $shipment ? sprintf('%s: %s', $shipment->getOrder()->getIncrementId(), $message) : $message;
+    }
+
+    /**
+     * Only the first track per id: colli can share their parent's id until a query names them.
+     *
+     * @return array<int,Track> keyed by MyParcel shipment id
+     */
+    private function firstTrackByMyParcelId(): array
+    {
+        $trackOf = [];
+
+        foreach ($this->tracksByShipmentId() as $tracks) {
+            foreach ($tracks as $track) {
+                $shipmentId           = (int) $track->getData('myparcel_consignment_id');
+                $trackOf[$shipmentId] = $trackOf[$shipmentId] ?? $track;
+            }
+        }
+
+        return $trackOf;
     }
 
     /**
@@ -475,8 +534,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * Adds each return shipment id to the track of the shipment it was made for.
      *
-     * Only the first track per parent id: colli can share their parent's id until a query names them.
-     *
      * @param array<int,int> $returns return shipment id => parent shipment id
      */
     private function recordReturns(array $returns): void
@@ -485,15 +542,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             return;
         }
 
-        $trackOf = [];
-
-        foreach ($this->tracksByShipmentId() as $tracks) {
-            foreach ($tracks as $track) {
-                $parentId           = (int) $track->getData('myparcel_consignment_id');
-                $trackOf[$parentId] = $trackOf[$parentId] ?? $track;
-            }
-        }
-
+        $trackOf = $this->firstTrackByMyParcelId();
         $changed = [];
 
         foreach ($returns as $returnId => $parentId) {
