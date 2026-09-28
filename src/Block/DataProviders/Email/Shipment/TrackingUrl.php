@@ -5,6 +5,7 @@ namespace MyParcelNL\Magento\Block\DataProviders\Email\Shipment;
 use Magento\Framework\App\ObjectManager;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
+use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 
 /**
  * Shared by the two conditional declarations below, which cannot be collapsed because one extends
@@ -18,6 +19,11 @@ trait BuildsTrackingUrl
      */
     public function getUrl(Track $track): string
     {
+        // The email lists every carrier's tracks; a MyParcel portal link for another carrier's barcode is wrong.
+        if (! MyParcelTracks::isOwn($track)) {
+            return $this->foreignUrl($track);
+        }
+
         return ObjectManager::getInstance()
             ->get(LinkResolver::class)
             ->forTrack($track);
@@ -30,6 +36,12 @@ if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl'
     class TrackingUrl extends \Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl
     {
         use BuildsTrackingUrl;
+
+        /** Magento's own popup link, as the other carriers get without this module. */
+        protected function foreignUrl(Track $track): string
+        {
+            return parent::getUrl($track);
+        }
     }
 
 } else {
@@ -37,5 +49,11 @@ if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl'
     class TrackingUrl
     {
         use BuildsTrackingUrl;
+
+        /** No Magento provider to delegate to before 2.3.2. */
+        protected function foreignUrl(Track $track): string
+        {
+            return '';
+        }
     }
 }
