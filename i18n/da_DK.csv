@@ -454,3 +454,6 @@ Return if no answer,Returner hvis intet svar
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","Import af MyParcel Backoffice-indstillingerne mislykkedes. Se loggen for detaljer."
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-indstillingerne er importeret."
 Return label sent,Returlabel sendt
+MyParcel does not know shipment %1 for the API key of this store.,MyParcel kender ikke forsendelse %1 under API-nøglen for denne butik.
+The carrier of shipment %1 does not support return labels.,Transportøren af forsendelse %1 understøtter ikke returlabels.
+No MyParcel shipments were found to make a return label for.,Der blev ikke fundet nogen MyParcel-forsendelser at lave en returlabel til.
