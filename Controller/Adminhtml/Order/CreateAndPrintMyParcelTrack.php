@@ -85,8 +85,6 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
             return null;
         }
 
-        $this->orderCollection->addReturnShipments();
-
         return $this->labelsFor($this->orderCollection, true);
     }
 
