@@ -7,9 +7,9 @@ namespace MyParcelNL\Magento\Service;
 /**
  * Cleans a list of entity ids coming off a request, a grid selection or a track row.
  *
- * The four call sites that each spelled this out had drifted apart on whether a zero and a
- * non-numeric value survive. They do not: an id of zero identifies no row, and passing one to a
- * batch API call asks it about a shipment nobody owns.
+ * A zero is dropped: it identifies no row, and passing one to a batch API call asks it about a
+ * shipment nobody owns. Values go through intval(), so `7abc` becomes 7; the ids are values
+ * Magento rendered, so a malformed one does not arrive.
  */
 final class IdList
 {
