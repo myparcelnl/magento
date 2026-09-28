@@ -112,6 +112,13 @@ function makeCapabilitiesClient(array $responses = [], ?string $host = null): ar
     ];
 }
 
+function failCapabilitiesBackendIfAsked(object $store, string $call): void
+{
+    if ($call === $store->throwOn) {
+        throw new RuntimeException("cache backend refused the $call");
+    }
+}
+
 /**
  * A Repository over an in-memory cache double, so cache hits and misses are observable.
  *
@@ -129,14 +136,19 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
         public bool $lockHeld = false;
         public array $lockedNames = [];
         public array $unlockedNames = [];
+        /** 'load', 'save' or 'lock': that backend call throws, as an unreachable or full backend does. */
+        public ?string $throwOn = null;
     };
 
     $cache = Mockery::mock(CapabilitiesCache::class);
     $cache->shouldReceive('load')->andReturnUsing(static function (string $id) use ($store) {
+        failCapabilitiesBackendIfAsked($store, 'load');
+
         return $store->entries[$id] ?? false;
     });
     $cache->shouldReceive('save')->andReturnUsing(
         static function ($data, string $id, array $tags = [], $lifeTime = null) use ($store): bool {
+            failCapabilitiesBackendIfAsked($store, 'save');
             $store->entries[$id]   = (string) $data;
             $store->savedTags[$id] = ['tags' => $tags, 'lifeTime' => $lifeTime];
 
@@ -150,6 +162,7 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
     // and a single-threaded test is never the second holder. Set $store->lockHeld to refuse it.
     $lockManager = Mockery::mock(LockManagerInterface::class);
     $lockManager->shouldReceive('lock')->andReturnUsing(static function (string $name) use ($store): bool {
+        failCapabilitiesBackendIfAsked($store, 'lock');
         $store->lockedNames[] = $name;
 
         return ! $store->lockHeld;
