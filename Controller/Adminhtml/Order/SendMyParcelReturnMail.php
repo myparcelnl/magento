@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
-use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Exception\LocalizedException;
-use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction;
+use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\LogContext;
 
 /**
- * Action to send mails with a return label
+ * Creates a return label for each selected order and mails it to the consumer.
+ *
+ * POST only, like the exports it sits beside: it makes billable shipments and mails the consumer,
+ * and an admin POST is form-key checked where a GET is not. It answers the grid's JSON instead of
+ * redirecting, so its messages travel with the answer.
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -25,98 +26,52 @@ use MyParcelNL\Magento\Service\LogContext;
  * @link        https://github.com/myparcelnl/magento
  * @since       File available since Release v0.1.0
  */
-class SendMyParcelReturnMail extends Action
+class SendMyParcelReturnMail extends LabelExportAction
 {
-    public const ADMIN_RESOURCE = 'Magento_Sales::shipment';
-
-    const PATH_URI_ORDER_INDEX = 'sales/order/index';
-
     private MagentoOrderCollection $orderCollection;
-    private Config                 $config;
 
-    /**
-     * CreateAndPrintMyParcelTrack constructor.
-     *
-     * @param Context $context
-     */
     public function __construct(Context $context)
     {
         parent::__construct($context);
 
-        $this->config                = $context->getObjectManager()->get(Config::class);
-        $this->resultRedirectFactory = $context->getResultRedirectFactory();
-        $this->orderCollection       = new MagentoOrderCollection(
-            $context->getObjectManager(),
+        $this->orderCollection = new MagentoOrderCollection(
+            $this->_objectManager,
             $this->getRequest()
         );
     }
 
     /**
-     * Dispatch request
+     * Always null: the return label is mailed, never downloaded, so there is no PDF to fetch after.
      *
-     * @return \Magento\Framework\Controller\ResultInterface|ResponseInterface
-     * @throws \Magento\Framework\Exception\LocalizedException
-     */
-    public function execute()
-    {
-        $this->sendReturnMail();
-
-        return $this->resultRedirectFactory->create()->setPath(self::PATH_URI_ORDER_INDEX);
-    }
-
-    /**
-     * Get selected items and process them
-     *
-     * @return $this
      * @throws LocalizedException
      */
-    private function sendReturnMail()
+    protected function massAction(): ?array
     {
-        if ($this->getRequest()->getParam('selected_ids')) {
-            $orderIds = explode(',', $this->getRequest()->getParam('selected_ids'));
-        } else {
-            $orderIds = $this->getRequest()->getParam('selected');
-        }
-
-        if (empty($orderIds)) {
-            throw new LocalizedException(__('No items selected'));
-        }
-
-        $this->addOrdersToCollection($orderIds);
+        $this->addOrdersToCollection($this->selectedIds());
 
         if (! $this->orderCollection->hasShipment()) {
-            $this->messageManager->addErrorMessage(__(MagentoOrderCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
-            return $this;
+            $this->messageManager->addErrorMessage(__(MagentoCollection::ERROR_ORDER_HAS_NO_SHIPMENT));
+
+            return null;
         }
 
-        try {
-            $this->orderCollection
-                ->setNewMyParcelTracks()
-                ->sendReturnLabelMails()
-            ;
-        } catch (\Exception $e) {
-            if (count($this->messageManager->getMessages()->getItems()) == 0) {
-                $this->messageManager->addErrorMessage(__('An error has occurred while sending mails with a return label. Please contact MyParcel.'));
-                Logger::critical('MyParcel return label mails could not be sent', LogContext::of($e));
-            }
+        $this->orderCollection->setNewMyParcelTracks();
 
-            return $this;
+        // Only on a run that reached an account. sendReturnLabelMails() has already said what went
+        // wrong, and a success beside that error is the report the reviewer caught.
+        if ($this->orderCollection->sendReturnLabelMails()) {
+            $this->messageManager->addSuccessMessage(__('Return label mail is send to customer.'));
         }
 
-        $message = 'Return label mail is send to customer.';
-        $this->messageManager->addSuccessMessage(__($message));
-
-        return $this;
+        return null;
     }
 
     /**
-     * @param $orderIds int[]
+     * @param string[] $orderIds
      */
-    private function addOrdersToCollection($orderIds)
+    private function addOrdersToCollection(array $orderIds): void
     {
-        /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
-         */
+        /** @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection */
         $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
