@@ -261,7 +261,6 @@ Sunday,Dimanche
 Mailbox,Colis boîte aux lettres
 Digital stamp,Timbre numérique
 Small package,Colis petit format
-Print return label directly,Imprimer directement l'étiquette de retour
 I use the following weight type,J'utilise le type de poids suivant
 This is the type of weight that I use with my products.,C'est le type de poids que j'utilise pour mes produits.
 Default,Par défaut
@@ -278,11 +277,8 @@ error3517,Non disponible pour ce pays.
 error3707,Type de colis invalide.
 error3728,Aucune option de livraison trouvée.
 
-Without options,Sans options
-Options equal to shipment,Options identiques à l'envoi
 Export to MyParcel,Exporter vers MyParcel
 Already exported,Déjà exporté
-Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,"L'activation de ce paramètre crée automatiquement un envoi de retour associé pour chaque envoi exporté. Lors du téléchargement des étiquettes d'expédition, les étiquettes de retour correspondantes seront incluses."
 Show details in summary,Afficher les détails dans le résumé
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Lorsque le mode d'expédition est affiché, montrez les détails actuellement connus (oui) ou le titre du mode (non)."
 
@@ -463,3 +459,4 @@ Return if no answer,Retour si absence
 "MyParcel Backoffice settings imported.","Les paramètres MyParcel Backoffice ont été importés."
 Records per export request,Enregistrements par requête d'export
 How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Combien d'envois ou de commandes sont envoyés à MyParcel en une requête. Laissez vide pour 20. Réduisez cette valeur si les exports volumineux expirent. Le maximum est 100.
+Return label sent,Étiquette de retour envoyée

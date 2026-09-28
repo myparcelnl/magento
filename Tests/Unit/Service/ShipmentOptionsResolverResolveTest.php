@@ -19,7 +19,7 @@ it('resolves every option to a non-null value', function () {
     unset($resolved['extra_assurance']);
 
     expect($resolved)->not->toContain(null)
-        ->and(array_keys($resolved))->toHaveCount(12);
+        ->and(array_keys($resolved))->toHaveCount(14);
 });
 
 it('resolves every option to a non-null value outside NL too', function () {
@@ -40,5 +40,7 @@ it('types every resolved option as the setters expect', function () {
         ->and($resolved->hasSignature())->toBeBool()
         ->and($resolved->hasAgeCheck())->toBeBool()
         ->and($resolved->hasReceiptCode())->toBeBool()
-        ->and($resolved->hasPriorityDelivery())->toBeBool();
+        ->and($resolved->hasPriorityDelivery())->toBeBool()
+        ->and($resolved->hasFreshFood())->toBeBool()
+        ->and($resolved->hasFrozen())->toBeBool();
 });

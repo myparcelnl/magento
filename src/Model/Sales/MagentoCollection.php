@@ -29,7 +29,6 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Order\Email\Sender\TrackSender;
 use MyParcelNL\Magento\Model\Source\PaperType;
-use MyParcelNL\Magento\Model\Source\ReturnInTheBox;
 use MyParcelNL\Magento\Model\Source\SourceItem;
 use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
@@ -37,8 +36,8 @@ use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
-use MyParcelNL\Magento\Model\Shipment\OrderShipmentOptions;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
@@ -48,9 +47,9 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\Shipment as SdkShipment;
 use MyParcelNL\Sdk\Services\MultiCollo\MultiColloShipmentService;
-use MyParcelNL\Sdk\Support\Str;
 use Throwable;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
+use MyParcelNL\Magento\Service\TrackTrace\ReturnIds;
 
 /**
  * One export run: the shipments built from a Magento order or shipment selection, and the tracks
@@ -65,12 +64,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     public const ERROR_ORDER_HAS_NO_SHIPMENT       = 'No shipment can be made with this order. Shipments can not be created if the status is On Hold or if the product is digital.';
     public const ERROR_ORDER_HAS_NO_SOURCE         = 'Creating shipments via bulk actions is not possible for orders without a source. Go to the details of the order and process the shipment manually.';
     public const DEFAULT_ERROR_ORDER_HAS_NO_SOURCE = 'Source item not found by source code';
-
-    /**
-     * What is left of the label description field for the parent's own description: the whole
-     * field minus 'Retour ', ' t/m ' and a d-m-Y date. Pinned by a test rather than computed here.
-     */
-    private const RETURN_DESCRIPTION_PARENT_LENGTH = OrderShipmentOptions::LABEL_DESCRIPTION_MAX_LENGTH - 22;
 
     private const PATH_ORDER_TRACK            = '\Magento\Sales\Model\Order\Shipment\Track';
     private const PATH_MANAGER_INTERFACE      = '\Magento\Framework\Message\ManagerInterface';
@@ -103,10 +96,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      * already visible through the memo.
      */
     private ?array $trackMemo = null;
+
     protected ManagerInterface       $messageManager;
     protected Config                 $config;
     protected LabelPositions         $labelPositions;
 
+    /** Every checkbox in ShipmentOption::TO_CHECK is added by setOptionsFromParameters(). */
     protected array $options
         = [
             'create_track_if_one_already_exist' => true,
@@ -114,18 +109,9 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             'package_type'                      => 'default',
             'carrier'                           => null,
             'positions'                         => null,
-            'signature'                         => null,
-            'collect'                           => null,
-            'receipt_code'                      => null,
-            'only_recipient'                    => null,
-            'priority_delivery'                 => null,
-            'return'                            => null,
-            'large_format'                      => null,
-            'age_check'                         => null,
             'insurance'                         => null,
             'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
             'digital_stamp_weight'              => null,
-            'return_in_the_box'                 => false,
             'same_day_delivery'                 => false,
         ];
 
@@ -162,8 +148,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function setOptionsFromParameters()
     {
-        // If options isset
-        foreach (array_keys($this->options) as $option) {
+        foreach (array_keys($this->options + array_fill_keys(ShipmentOption::TO_CHECK, null)) as $option) {
             if ($this->request->getParam('mypa_' . $option) === null) {
                 if ($this->request->getParam('mypa_extra_options_checkboxes_in_form') === null) {
                     // Use default options
@@ -200,11 +185,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         if ($this->request->getParam('mypa_request_type') !== 'concept') {
             $this->options['create_track_if_one_already_exist'] = false;
-        }
-
-        $returnInTheBox = $this->config->getGeneralConfig('print/return_in_the_box');
-        if (ReturnInTheBox::NO_OPTIONS === $returnInTheBox || ReturnInTheBox::EQUAL_TO_SHIPMENT === $returnInTheBox) {
-            $this->options['return_in_the_box'] = $returnInTheBox;
         }
 
         return $this;
@@ -415,30 +395,134 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * A return label per exported shipment, mailed to the customer, against that shipment's own
      * account — the consignment path used the first order's key for all of them.
+     *
+     * @return bool whether any account was actually asked and answered. False is not "nothing to
+     *              do": a lookup that failed leaves its shipments out of the answer and would
+     *              otherwise read as a successful run that mailed nobody.
      */
-    public function sendReturnLabelMails(): self
+    public function sendReturnLabelMails(): bool
     {
         $idsByApiKey = $this->getMyparcelConsignmentIdsByApiKey();
-        $latest      = $this->exportService->fetchLatest($idsByApiKey);
+        $lookup      = $this->exportService->fetchLatestWithErrors($idsByApiKey);
         $rows        = [];
+
+        foreach ($lookup['errors'] as $error) {
+            $this->messageManager->addErrorMessage($error);
+        }
 
         foreach ($idsByApiKey as $apiKey => $shipmentIds) {
             foreach ($shipmentIds as $shipmentId) {
-                $shipment = $latest[$shipmentId] ?? null;
+                $shipment = $lookup['shipments'][$shipmentId] ?? null;
 
                 if (null === $shipment) {
                     continue;
                 }
 
-                $rows[$apiKey][] = ['parent' => (int) $shipmentId, 'carrier' => $shipment->getCarrier()];
+                // getCarrierId(), not getCarrier(): a queried shipment is a ShipmentDefsShipment,
+                // which spells it differently from the one the export builds.
+                $rows[$apiKey][] = $this->returnRow(
+                    (int) $shipmentId,
+                    (int) $shipment->getCarrierId(),
+                    $shipment->getRecipient()
+                );
             }
         }
 
-        foreach ($this->exportService->createReturns($rows, true) as $error) {
+        if (! $rows) {
+            if (! $lookup['errors']) {
+                $this->messageManager->addErrorMessage(
+                    __('No MyParcel shipments were found to make a return label for.')
+                );
+            }
+
+            return false;
+        }
+
+        $answer = $this->exportService->createReturns($rows);
+
+        foreach ($answer['errors'] as $error) {
             $this->messageManager->addErrorMessage($error);
         }
 
-        return $this;
+        $this->recordReturns(array_replace([], ...array_values($answer['returns'])));
+
+        // createReturns() reports one error per failing account, so an error for every account it
+        // was given means nothing was mailed.
+        return count($answer['errors']) < count($rows);
+    }
+
+    /**
+     * One row for the return-shipments endpoint.
+     *
+     * email and name are required beside parent and carrier — the API refuses the row without them
+     * — and they come off the parent's recipient, because the return goes back to that same person.
+     * The parent id is repeated as reference_identifier: the answer echoes only that, not the parent.
+     *
+     * @param object|null $recipient any recipient model carrying getEmail() and getPerson(); the
+     *                               queried and the built shipment each have their own class
+     */
+    private function returnRow(int $parentShipmentId, int $carrier, $recipient): array
+    {
+        return [
+            'parent'               => $parentShipmentId,
+            'reference_identifier' => $parentShipmentId,
+            'carrier'              => $carrier,
+            'email'                => null === $recipient ? '' : (string) $recipient->getEmail(),
+            'name'                 => null === $recipient ? '' : (string) $recipient->getPerson(),
+        ];
+    }
+
+    /**
+     * Adds each return shipment id to the track of the shipment it was made for.
+     *
+     * Only the first track per parent id: colli can share their parent's id until a query names them.
+     *
+     * @param array<int,int> $returns return shipment id => parent shipment id
+     */
+    private function recordReturns(array $returns): void
+    {
+        if (! $returns) {
+            return;
+        }
+
+        $trackOf = [];
+
+        foreach ($this->tracksByShipmentId() as $tracks) {
+            foreach ($tracks as $track) {
+                $parentId           = (int) $track->getData('myparcel_consignment_id');
+                $trackOf[$parentId] = $trackOf[$parentId] ?? $track;
+            }
+        }
+
+        $changed = [];
+
+        foreach ($returns as $returnId => $parentId) {
+            $track = $trackOf[$parentId] ?? null;
+
+            if (null === $track) {
+                Logger::warning('MyParcel: no track found for a return shipment', [
+                    'return_shipment_id' => $returnId,
+                    'parent_shipment_id' => $parentId,
+                ]);
+
+                continue;
+            }
+
+            $track->setData(
+                ReturnIds::FIELD,
+                json_encode(array_merge(ReturnIds::of($track), [$returnId]))
+            );
+            $changed[$parentId] = $track;
+        }
+
+        foreach ($changed as $track) {
+            try {
+                $track->save();
+            } catch (Throwable $e) {
+                // The mail is already sent; losing the record is the smaller problem.
+                Logger::warning('MyParcel: could not record a return shipment on its track', LogContext::of($e));
+            }
+        }
     }
 
     /**
@@ -560,58 +644,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 return;
             }
         }
-    }
-
-    /**
-     * A return label alongside each outbound shipment, created against that shipment's own account.
-     *
-     * The v11 call takes rows naming a parent shipment id, so the returns can only be made after the
-     * outbound create has answered. NO_OPTIONS still means a bare label — the options are simply
-     * omitted rather than set to false.
-     */
-    public function addReturnInTheBox(string $returnOptions): void
-    {
-        $rows = [];
-
-        foreach ($this->builtShipments as $built) {
-            $shipmentId = (int) $built->track()->getData('myparcel_consignment_id');
-
-            if (0 === $shipmentId) {
-                continue;
-            }
-
-            $row = [
-                'parent'  => $shipmentId,
-                'carrier' => $built->shipment()->getCarrier(),
-            ];
-
-            if (ReturnInTheBox::NO_OPTIONS !== $returnOptions) {
-                $row['options'] = ['label_description' => $this->returnLabelDescription($built)];
-            }
-
-            $rows[$built->apiKey()][] = $row;
-        }
-
-        foreach ($this->exportService->createReturns($rows, false) as $error) {
-            $this->messageManager->addErrorMessage($error);
-        }
-    }
-
-    /**
-     * Only the parent description is truncated, so the validity date always survives. The old
-     * wording could not fit at all — it was 46 characters before the parent description was even
-     * added, against a 45-character field, and nothing on this path clips it.
-     */
-    private function returnLabelDescription(BuiltShipment $built): string
-    {
-        $parentDescription = (string) $built->shipment()->getOptions()->getLabelDescription();
-
-        return implode(' ', array_filter([
-            'Retour',
-            Str::limit($parentDescription, self::RETURN_DESCRIPTION_PARENT_LENGTH),
-            't/m',
-            date('d-m-Y', strtotime('+ 28 days')),
-        ]));
     }
 
     /**
@@ -808,20 +840,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 $myParcelShipment->getLinkConsumerPortal()
             );
         }
-    }
-
-    /**
-     * @return self
-     */
-    public function addReturnShipments(): self
-    {
-        $returnInTheBoxOptions = $this->options['return_in_the_box'] ?? null;
-
-        if ($returnInTheBoxOptions && $this->builtShipments) {
-            $this->addReturnInTheBox($returnInTheBoxOptions);
-        }
-
-        return $this;
     }
 
     /**

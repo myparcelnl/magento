@@ -209,19 +209,21 @@ it('does not retry a timeout, which has already spent the whole budget', functio
         ->and($c['history'])->toHaveCount(1);
 });
 
-it('asks contract definitions on their own path, with the carrier as the whole body', function () {
+it('asks contract definitions on their own path, unfiltered, in one call', function () {
     $c = makeCapabilitiesClient([
         new GuzzleResponse(200, [], contractDefinitionsBody([contractDefinitionItem()])),
     ]);
 
-    $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY, 'POSTNL');
+    $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY);
 
     /** @var GuzzleRequest $sent */
     $sent = $c['history'][0]['request'];
 
     expect((string) $sent->getUri())
         ->toBe('https://api.myparcel.nl/shipments/capabilities/contract-definitions')
-        ->and((string) $sent->getBody())->toBe('{"carrier":"POSTNL"}')
+        // No carrier filter: one call answers for every carrier the account has, and each item
+        // names its own. Filtering cost a request per carrier.
+        ->and((string) $sent->getBody())->toBe('{}')
         ->and($sent->getHeaderLine('Accept'))->toBe('application/json;charset=utf-8;version=2')
         ->and($sent->getHeaderLine('Authorization'))
         ->toBe('Bearer ' . base64_encode(CAPABILITIES_TEST_API_KEY));
@@ -232,7 +234,7 @@ it('reads contract definitions out of items, not results', function () {
         new GuzzleResponse(200, [], contractDefinitionsBody([contractDefinitionItem()])),
     ]);
 
-    $items = $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY, 'POSTNL');
+    $items = $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY);
 
     expect($items)->toHaveCount(1)
         ->and($items[0]['options']['insurance']['max']['amount'])->toBe(500000);
@@ -243,14 +245,14 @@ it('refuses a contract-definitions body carrying a results array instead of item
         new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()])),
     ]);
 
-    expect(fn () => $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY, 'POSTNL'))
+    expect(fn () => $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY))
         ->toThrow(RuntimeException::class, 'contract definitions response carried no items array');
 });
 
 it('names contract definitions in its own error, not capabilities', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(500, [], '')]);
 
-    expect(fn () => $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY, 'POSTNL'))
+    expect(fn () => $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY))
         ->toThrow(RuntimeException::class, 'contract definitions responded 500');
 });
 
@@ -262,7 +264,7 @@ it('retries a throttled contract-definitions call on the same ladder', function 
         new GuzzleResponse(200, [], contractDefinitionsBody([contractDefinitionItem()])),
     ]);
 
-    $items = $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY, 'POSTNL');
+    $items = $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY);
 
     expect($items)->toHaveCount(1)
         ->and($c['history'])->toHaveCount(2);
