@@ -467,3 +467,6 @@ MyParcel Backoffice settings imported.,MyParcel Backoffice-instellingen zijn ge√
 Records per export request,Records per exportverzoek
 How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,Hoeveel zendingen of orders in een verzoek naar MyParcel gaan. Laat leeg voor 20. Verlaag dit als grote exports een time-out geven. Het maximum is 100.
 Return label sent,Retourlabel verstuurd
+MyParcel does not know shipment %1 for the API key of this store.,MyParcel kent zending %1 niet onder de API key van deze store.
+The carrier of shipment %1 does not support return labels.,De vervoerder van zending %1 ondersteunt geen retourlabels.
+No MyParcel shipments were found to make a return label for.,Er zijn geen MyParcel-zendingen gevonden om een retourlabel voor te maken.
