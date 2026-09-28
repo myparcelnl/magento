@@ -81,7 +81,7 @@ trait NeedsQuoteProps
             } catch (\Throwable $e) {
                 Logger::warning(
                     "Failed to retrieve delivery options from quote {$quote->getId()}",
-                    LogContext::of($e, ['delivery_options' => LogContext::excerpt($deliveryOptions)])
+                    LogContext::of($e, ['delivery_options' => LogContext::shapeOf($deliveryOptions)])
                 );
                 $this->deliveryOptions = DeliveryOptions::defaults();
             }
