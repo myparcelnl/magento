@@ -261,7 +261,6 @@ Sunday,Niedziela
 Mailbox,Paczka skrzynkowa
 Digital stamp,Cyfrowy znaczek
 Small package,Mała paczka
-Print return label directly,Drukuj etykietę zwrotną bezpośrednio
 I use the following weight type,Używam następującej jednostki wagi
 This is the type of weight that I use with my products.,"To jest jednostka wagi, której używasz dla swoich produktów."
 Default,Domyślne
@@ -278,11 +277,8 @@ error3517,Niedostępne dla tego kraju.
 error3707,Nieprawidłowy typ paczki.
 error3728,Nie znaleziono opcji dostawy.
 
-Without options,Bez opcji
-Options equal to shipment,Opcje takie same jak przesyłka
 Export to MyParcel,Eksportuj do MyParcel
 Already exported,Już wyeksportowane
-Enabling this setting automatically creates a related return shipment for any shipment you export. When downloading the shipment labels the corresponding return shipment labels will be included.,Włączenie tego ustawienia automatycznie tworzy powiązaną przesyłkę zwrotną dla każdej eksportowanej przesyłki. Podczas pobierania etykiet wysyłkowych dołączane są odpowiednie etykiety zwrotne.
 Show details in summary,Pokaż szczegóły w podsumowaniu
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no).","Gdzie wyświetlana jest metoda wysyłki, pokaż aktualnie znane szczegóły (tak) lub tytuł metody (nie)."
 
@@ -461,3 +457,4 @@ Return if no answer,Zwróć w razie braku odpowiedzi
 "Importing the MyParcel Backoffice settings failed:","Importowanie ustawień MyParcel Backoffice nie powiodło się:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","Importowanie ustawień MyParcel Backoffice nie powiodło się. Szczegóły znajdziesz w logu."
 "MyParcel Backoffice settings imported.","Zaimportowano ustawienia MyParcel Backoffice."
+Return label sent,Etykieta zwrotna wysłana
