@@ -75,6 +75,16 @@ Admin settings are in `etc/dynamic_settings.json`, a temporary solution until th
 
 A new carrier also needs insurance virtual types in `etc/di.xml`, one per region, as the existing carriers have.
 
+### Adding a shipment option
+
+The New Shipment form and the export both read `ShipmentOption::TO_CHECK`, so a checkbox option needs only:
+
+1. A constant in `src/Model/Shipment/ShipmentOption.php`, added to `TO_CHECK` and `V2_NAMES_MAP` (the capabilities name).
+2. A form label in `src/Block/Sales/NewShipmentForm.php`, and its translation in `i18n/`.
+3. Only if the option has a country, delivery type or combination rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. Every other option is taken as chosen.
+
+The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `TO_CHECK` does not reach the shipment the API receives. Do not add the option by hand to `MagentoCollection::$options`, `resolve()` or the setter loop in `OrderShipmentOptions`.
+
 ## Module rules
 
 These rules are specific to this module. A reviewer can not read them from the code.

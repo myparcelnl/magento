@@ -162,3 +162,36 @@ it('does not ask at all for a package type it cannot name on the wire', function
     expect($resolver->getInsurance())->toBe(9000)
         ->and($capabilities['history'])->toBeEmpty();
 });
+
+it('clamps against the type the admin switched to, not the one the checkout stored', function () {
+    // Nothing is clamped, so nothing is logged. Asking with the stored type would clamp and notice.
+    mockLoggerFacade()->shouldReceive('notice')->never();
+
+    // Two shapes in one answer, because the contracts differ: mailbox caps at EUR 100 where package
+    // caps at EUR 500. Asking with the stored type shipped a package insured for the mailbox bound.
+    $repository = makeCapabilitiesRepository([
+        new GuzzleResponse(200, [], capabilitiesBody([
+            capabilityResult([
+                'packageTypes' => ['MAILBOX'],
+                'options'      => capabilityOptions(['insurance' => bounds(0, 10000)]),
+            ]),
+            capabilityResult([
+                'packageTypes' => ['PACKAGE'],
+                'options'      => capabilityOptions(['insurance' => bounds(0, 50000)]),
+            ]),
+        ])),
+    ])['repository'];
+
+    $resolver = createShipmentOptions(
+        'NL',
+        Carrier::POSTNL,
+        ['insurance' => 500],
+        false,
+        ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => PackageType::MAILBOX_NAME],
+        $repository,
+        null,
+        PackageType::PACKAGE_NAME
+    );
+
+    expect($resolver->getInsurance())->toBe(500);
+});
