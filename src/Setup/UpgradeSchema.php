@@ -226,6 +226,24 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
         }
 
+        // A JSON list: every return mail sent for this track adds the return shipment it created.
+        if (
+            version_compare($context->getVersion(), '5.11.0', '<')
+            && $setup->getConnection()->isTableExists($tableTrack)
+            && false === $setup->getConnection()->tableColumnExists($tableTrack, 'myparcel_return_ids')
+        ) {
+            $setup->getConnection()->addColumn(
+                $tableTrack,
+                'myparcel_return_ids',
+                [
+                    'type'     => Table::TYPE_TEXT,
+                    'length'   => 1023,
+                    'nullable' => true,
+                    'comment'  => 'MyParcel return shipment ids created by the return mail',
+                ]
+            );
+        }
+
         // getOrderIdFromTrackToUpdate() selects order_id by carrier plus status on every cron tick,
         // over the whole table — there is no order to narrow it first — and had no index to start
         // from. carrier_code leads because it is the equality; myparcel_status is the IN().

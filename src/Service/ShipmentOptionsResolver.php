@@ -28,6 +28,16 @@ class ShipmentOptionsResolver
     // Not a ShipmentOption: a label field, not a toggle the carrier offers.
     private const LABEL_DESCRIPTION = 'label_description';
 
+    /**
+     * The checkboxes with a rule of their own; every other one in ShipmentOption::TO_CHECK is taken
+     * as chosen. Add an entry only when an option needs one.
+     */
+    private const RULES = [
+        ShipmentOption::SIGNATURE    => 'hasSignature',
+        ShipmentOption::RECEIPT_CODE => 'hasReceiptCode',
+        ShipmentOption::LARGE_FORMAT => 'hasLargeFormat',
+    ];
+
     private const ORDER_NUMBER      = '%order_nr%';
     private const DELIVERY_DATE     = '%delivery_date%';
     private const PRODUCT_ID        = '%product_id%';
@@ -53,6 +63,12 @@ class ShipmentOptionsResolver
     /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
     private ?int $shipmentId;
 
+    /**
+     * The type the shipment will actually carry, which is not always the one the checkout stored:
+     * the admin form may have changed it. Null narrows nothing, so no capability bound applies.
+     */
+    private ?string $packageType;
+
     /** @var array|null the label's product row, read at most once per resolver */
     private ?array $labelProductRows = null;
 
@@ -71,7 +87,8 @@ class ShipmentOptionsResolver
         ObjectManagerInterface $objectManager,
         string                 $carrier,
         array                  $options = [],
-        ?int                   $shipmentId = null
+        ?int                   $shipmentId = null,
+        ?string                $packageType = null
     )
     {
         $this->defaultOptions  = $defaultOptions;
@@ -83,6 +100,7 @@ class ShipmentOptionsResolver
         $this->options        = $options;
         $this->cc             = $order->getShippingAddress() ? $order->getShippingAddress()->getCountryId() : null;
         $this->shipmentId     = $shipmentId;
+        $this->packageType    = $packageType;
     }
 
     /**
@@ -153,7 +171,9 @@ class ShipmentOptionsResolver
 
     private function insuranceRange(): ?InsuranceRange
     {
-        $packageType = $this->deliveryOptions->getPackageType();
+        // The exported type, not the stored one. An admin who switches a mailbox order to a package
+        // would otherwise be clamped to the mailbox contract and ship under-insured.
+        $packageType = $this->packageType;
 
         // Both are needed to ask a question narrow enough to trust: without the package type the
         // answer is a union across package types, and a union bound is not this shipment's bound.
@@ -230,11 +250,6 @@ class ShipmentOptionsResolver
     public function hasAgeCheck(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::AGE_CHECK);
-    }
-
-    public function hasHideSender(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::HIDE_SENDER);
     }
 
     /**
@@ -414,21 +429,18 @@ class ShipmentOptionsResolver
     /** Every option here is non-null, except extra_assurance, which nothing decides. */
     public function resolve(): ShipmentOptions
     {
-        return ShipmentOptions::of(
-            [
-                ShipmentOption::INSURANCE         => $this->getInsurance(),
-                ShipmentOption::RETURN            => $this->hasReturn(),
-                ShipmentOption::ONLY_RECIPIENT    => $this->hasOnlyRecipient(),
-                ShipmentOption::SIGNATURE         => $this->hasSignature(),
-                ShipmentOption::COLLECT           => $this->hasCollect(),
-                ShipmentOption::RECEIPT_CODE      => $this->hasReceiptCode(),
-                ShipmentOption::AGE_CHECK         => $this->hasAgeCheck(),
-                ShipmentOption::LARGE_FORMAT      => $this->hasLargeFormat(),
-                self::LABEL_DESCRIPTION           => $this->getLabelDescription(),
-                ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
-                ShipmentOption::HIDE_SENDER       => $this->hasHideSender(),
-                ShipmentOption::PRIORITY_DELIVERY => $this->hasPriorityDelivery(),
-            ]
-        );
+        $values = [
+            ShipmentOption::INSURANCE         => $this->getInsurance(),
+            self::LABEL_DESCRIPTION           => $this->getLabelDescription(),
+            ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
+        ];
+
+        foreach (ShipmentOption::TO_CHECK as $option) {
+            $values[$option] = isset(self::RULES[$option])
+                ? $this->{self::RULES[$option]}()
+                : $this->optionIsEnabled($option);
+        }
+
+        return ShipmentOptions::of($values);
     }
 }

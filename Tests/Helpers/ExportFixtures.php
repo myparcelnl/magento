@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\App\RequestInterface;
 use Magento\Sales\Model\Order\Shipment\Track;
+use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Magento\Service\Export\LabelPdfMerger;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
@@ -289,4 +291,27 @@ function makeTimingOutShipmentApi(array &$calls): ShipmentApi
 function makeLabelPositions(?string $paperType = null): LabelPositions
 {
     return new LabelPositions(createConfig(['print/paper_type' => $paperType]));
+}
+
+/**
+ * The options an export ends up with for a given POST, through the real setOptionsFromParameters().
+ *
+ * The constructor is skipped: it builds half a dozen services, while setOptionsFromParameters()
+ * reads only the request and the label positions.
+ *
+ * @param array<string,mixed> $params
+ */
+function optionsFromParams(array $params, ?string $paperType = null): array
+{
+    $request = Mockery::mock(RequestInterface::class);
+    $request->shouldReceive('getParam')
+        ->andReturnUsing(static function (string $name, $default = null) use ($params) {
+            return $params[$name] ?? $default;
+        });
+
+    $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
+    setPrivateProperty($collection, 'request', $request);
+    setPrivateProperty($collection, 'labelPositions', makeLabelPositions($paperType));
+
+    return $collection->setOptionsFromParameters()->getOptions();
 }

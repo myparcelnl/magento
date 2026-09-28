@@ -32,6 +32,7 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
+use MyParcelNL\Magento\Service\TrackTrace\ReturnIds;
 use Throwable;
 
 class View extends AbstractOrder
@@ -57,6 +58,18 @@ class View extends AbstractOrder
     public function getTrackAndTraceLinksHtml(Order $order): string
     {
         return $this->links->htmlForOrder((int) $order->getId());
+    }
+
+    /** @return int[] the return shipments mailed for this order, oldest first */
+    public function getReturnShipmentIds(Order $order): array
+    {
+        $lists = [];
+
+        foreach ($order->getTracksCollection() as $track) {
+            $lists[] = ReturnIds::of($track);
+        }
+
+        return array_merge([], ...$lists);
     }
 
     /**
