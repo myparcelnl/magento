@@ -1121,8 +1121,9 @@ class UpgradeData implements UpgradeDataInterface
             $this->enableCapabilitiesCache->run();
             $this->classificationToVarchar->run($eavSetup);
             $this->unscopeWeightIndication->run();
-            $this->removePickupMailboxRows->run();
+            // Rename first: the removal reads the carrier map, which only knows the new UPS path.
             $this->renameUpsSettingsPath->run();
+            $this->removePickupMailboxRows->run();
         }
 
         $setup->endSetup();
