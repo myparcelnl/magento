@@ -624,6 +624,12 @@ Neutral defaults: `*_active` → `'0'`, `*_fee` → `'0'`, `*_from_price` → `'
 `large_format_active` → `'No'`, `mailbox`/`package_small` weight → `'2000'`,
 `drop_off_days/cutoff_time_N` → `'15,30,00'`, insurance → `'0'`, `*_title` → `''`.
 
+Validation: `Field::toArray()` must emit the `validate` key of each field that has one in
+`etc/dynamic_settings.json` today. The four `myparcelnl_magento_general/empty_package_weight/*`
+fields are whole grams and need `validate-digits`. If that key is lost, the form accepts "1.000" again,
+and `Weight::getEmptyPackageWeightInGrams()` reads it as 1. The fee and the mailbox or package-small
+weight fields need no validation: `Config::parseDecimal()` reads them in any notation.
+
 ### Money fields are opt-in, not opt-out
 
 Counted across every carrier section, **only three shipment options carry a checkout fee today**:
