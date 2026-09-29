@@ -4,7 +4,7 @@ define(['jquery', 'mage/loader'], function ($) {
     /**
      * Bound via data-mage-init on the settings_button.phtml root div.
      * config keys: ajaxUrl, buttonId, apiKeyFieldId, scopeName, scopeId,
-     *              successLabel, failurePrefix, failureLabel.
+     *              successLabel, failurePrefix, failureLabel, unsavedLabel.
      *
      * The button is disabled while there is no api key to import against, and again for the duration
      * of the request: the import is the only place an invalid key surfaces, so the outcome has to be
@@ -19,6 +19,8 @@ define(['jquery', 'mage/loader'], function ($) {
         const button = document.getElementById(config.buttonId);
         const input  = document.getElementById(config.apiKeyFieldId);
         const notice = element.querySelector('[data-role="import-notice"]');
+        // The import reads the saved key, so a key typed since the page loaded is not the one it uses.
+        const savedKey = input ? input.value : '';
 
         if (!button) {
             return;
@@ -43,6 +45,12 @@ define(['jquery', 'mage/loader'], function ($) {
         }
 
         button.addEventListener('click', function () {
+            if (input && input.value !== savedKey) {
+                report('message-warning', config.unsavedLabel);
+
+                return;
+            }
+
             notice.hidden = true;
             button.setAttribute('disabled', 'disabled');
             $('body').trigger('processStart');
