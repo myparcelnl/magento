@@ -45,7 +45,11 @@ class Config extends AbstractHelper
     public const XML_PATH_GLS_SETTINGS              = 'myparcelnl_magento_gls_settings/';
     public const XML_PATH_TRUNKRS_SETTINGS          = 'myparcelnl_magento_trunkrs_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
-    public const FIELD_DROP_OFF_DAY                 = 'drop_off_day';
+
+    /** API feature flags, as headers; see Confluence "API feature flags". Enables noTracking. */
+    public const API_FEATURE_FLAGS                  = ['x-dmp-no-tracking' => 'true'];
+
+    public const FIELD_DROP_OFF_DAY                = 'drop_off_day';
     public const FIELD_MYPARCEL_CARRIER             = 'myparcel_carrier';
     public const FIELD_DELIVERY_OPTIONS             = 'myparcel_delivery_options';
     public const FIELD_TRACK_STATUS                 = 'track_status';
