@@ -1,7 +1,8 @@
 # Capability option dependencies
 
-Findings for the PR that makes the module honour `requires` and `excludes`. Nothing here is
-implemented: the data arrives, is parsed, and is discarded.
+Findings for the PR that makes the module honour `requires` and `excludes`, PR 3 of INT-1289. Where
+the implementation departs from them, the status block of
+[capabilities-driven-settings.md](capabilities-driven-settings.md) says so.
 
 ## The data is already there
 

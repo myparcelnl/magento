@@ -6,8 +6,11 @@ The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::set
 does not know the option, update the SDK first. The wire key comes from the SDK's
 `ShipmentOptionMapper`; the module keeps no alias.
 
-Which carrier offers the option for which package type comes from capabilities. Add code only for
-what capabilities cannot say.
+Which carrier offers the option for which package type comes from capabilities. An option that
+capabilities offer reaches the export without code: `ShipmentOptionsResolver::resolve()` decides it,
+and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the
+capabilities `requires` and `excludes`, which `resolve()` applies. Add code only for what
+capabilities cannot say.
 
 ### A row in `ShipmentOption::DEFINITIONS`
 
@@ -38,7 +41,8 @@ its price from `delivery/<name>_fee`, as `signature` does.
 ### A rule that capabilities do not give
 
 Add a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. A delivery type rule goes
-in `ShipmentOption::LIMIT_DELIVERY_TYPE`.
+in `ShipmentOption::LIMIT_DELIVERY_TYPE`. Do not add a `RULES` entry for a combination rule: the
+capabilities `requires` and `excludes` give those.
 
 ### A toggle on the product
 
