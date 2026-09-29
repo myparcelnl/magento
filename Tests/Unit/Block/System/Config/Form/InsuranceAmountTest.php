@@ -132,7 +132,7 @@ it('validates as a plain number when no bound could be resolved', function () {
 });
 
 it('resolves the carrier from the path, not from the path segment', function () {
-    $upsPath = 'myparcelnl_magento_ups_settings/default_options/insurance_local_amount';
+    $upsPath = 'myparcelnl_magento_upsstandard_settings/default_options/insurance_local_amount';
 
     $block = insuranceAmountBlock($upsPath, [
         settingsPathFor('live-key') => accountSettingsRow([
