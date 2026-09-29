@@ -138,7 +138,7 @@ final class CarrierCapability
     public function unknownValues(): array
     {
         return [
-            'carrier'      => null === $this->carrier && '' !== $this->v2Carrier ? [$this->v2Carrier] : [],
+            'carrier'      => '' !== $this->v2Carrier && ! Carrier::knowsV2Name($this->v2Carrier) ? [$this->v2Carrier] : [],
             'packageType'  => $this->unknownPackageTypes,
             'deliveryType' => $this->unknownDeliveryTypes,
             'option'       => $this->options->unknownKeys(),
