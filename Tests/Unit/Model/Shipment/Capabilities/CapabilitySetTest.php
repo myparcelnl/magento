@@ -69,6 +69,13 @@ it('reports a value the SDK does not know, and offers no option the SDK does not
         ->and($set->optionsFor(Carrier::POSTNL))->toBe([ShipmentOption::SIGNATURE]);
 });
 
+it('names a carrier it has no settings for, and still reports it', function () {
+    $set = CapabilitySet::fromApiResults([capabilityResult(['carrier' => 'HOOPLA'])]);
+
+    expect($set->carriers())->toBe(['hoopla'])
+        ->and($set->unknownValues()['carrier'])->toBe(['HOOPLA']);
+});
+
 it('reads an option value verbatim, so insurance bounds survive', function () {
     $set = CapabilitySet::fromApiResults([capabilityResult()]);
 
