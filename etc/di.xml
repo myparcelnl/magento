@@ -82,6 +82,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="insurance_amount" xsi:type="object">MyParcelNL\Magento\Model\Settings\Validator\InsuranceAmount</item>
+                <item name="excluded_default_option" xsi:type="object">MyParcelNL\Magento\Model\Settings\Validator\ExcludedDefaultOption</item>
             </argument>
         </arguments>
     </type>
