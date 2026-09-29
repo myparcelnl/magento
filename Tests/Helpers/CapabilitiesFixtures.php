@@ -190,6 +190,28 @@ function acceptanceCapabilitiesFixturePath(): string
     return __DIR__ . '/../Fixtures/capabilities-acceptance-v2.json';
 }
 
+/** The acceptance response, parsed. */
+function acceptanceCapabilitiesResults(): array
+{
+    return json_decode((string) file_get_contents(acceptanceCapabilitiesFixturePath()), true);
+}
+
+/**
+ * One carrier's option graph from the acceptance response, with its real requires and excludes.
+ * PostNL's: age check requires signature and only recipient, receipt code requires insurance and
+ * excludes both of those.
+ */
+function acceptanceOptionsFor(string $v2Carrier, array $overrides = []): array
+{
+    foreach (acceptanceCapabilitiesResults() as $result) {
+        if ($v2Carrier === $result['carrier']) {
+            return array_replace_recursive($result['options'], $overrides);
+        }
+    }
+
+    throw new LogicException("The acceptance fixture has no $v2Carrier result.");
+}
+
 /**
  * A real response reduced to the five keys CarrierCapability::fromResult() reads. An allow-list, so a
  * key naming the account it came from cannot reach the committed fixture.
