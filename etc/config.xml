@@ -202,7 +202,7 @@
             </pickup>
         </myparcelnl_magento_dhlparcelconnect_settings>
 
-        <myparcelnl_magento_ups_settings>
+        <myparcelnl_magento_upsstandard_settings>
             <default_options>
                 <insurance_from_price>0</insurance_from_price>
                 <insurance_local_amount>0</insurance_local_amount>
@@ -220,7 +220,7 @@
             <delivery>
                 <active>1</active>
             </delivery>
-        </myparcelnl_magento_ups_settings>
+        </myparcelnl_magento_upsstandard_settings>
 
         <myparcelnl_magento_dpd_settings>
             <default_options>
