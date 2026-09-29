@@ -8,8 +8,11 @@ A `toggle` option needs its snake_case key in `RefShipmentShipmentOptions::sette
 know the option, update the SDK first. The key in the request body comes from `ShipmentOptionMapper`;
 the module keeps no alias.
 
-Which carrier offers the option for which package type comes from capabilities. Add code only for
-what capabilities cannot say.
+Which carrier offers the option for which package type comes from capabilities. An option that
+capabilities offer reaches the export without code: `ShipmentOptionsResolver::resolve()` decides it,
+and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the
+capabilities `requires` and `excludes`, which `resolve()` applies. Add code only for what
+capabilities cannot say.
 
 ### A row in `ShipmentOption::DEFINITIONS`
 
@@ -45,9 +48,9 @@ and `Model\Quote\Checkout` must switch it on: add its `allow<Name>` key, from `h
 
 ### A rule that capabilities do not give
 
-Add a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. `RULES` applies only to an
-option with `toggle`. A delivery type rule goes
-in `ShipmentOption::LIMIT_DELIVERY_TYPE`.
+Add a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. `RULES` applies only to an option with `toggle`. A delivery type rule goes
+in `ShipmentOption::LIMIT_DELIVERY_TYPE`. Do not add a `RULES` entry for a combination rule: the
+capabilities `requires` and `excludes` give those.
 
 ### A toggle on the product
 
