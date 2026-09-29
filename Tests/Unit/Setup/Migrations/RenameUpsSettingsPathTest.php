@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows;
 use MyParcelNL\Magento\Setup\Migrations\RenameUpsSettingsPath;
 use MyParcelNL\Magento\Tests\Helpers\MyParcelTokenLifecycleHarness;
 
@@ -59,4 +60,14 @@ it('is a no-op on a second run', function () {
     renameUpsSettingsPath($harness)->run();
 
     expect($harness->rows)->toBe($afterFirst);
+});
+
+it('leaves no old ups pickup mailbox row when the removal runs after it, as UpgradeData orders them', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $harness->save('myparcelnl_magento_ups_settings/mailbox/pickup_mailbox', '1', 'default', 0);
+
+    renameUpsSettingsPath($harness)->run();
+    (new RemovePickupMailboxRows($harness->collectionFactory(), $harness->writer()))->run();
+
+    expect($harness->rows)->toBe([]);
 });
