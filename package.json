@@ -12,7 +12,7 @@
   "main": "index.js",
   "devDependencies": {
     "@myparcel-dev/eslint-config": "^1.4.0",
-    "@myparcel-dev/semantic-release-config": "^6.0.12",
+    "@myparcel-dev/semantic-release-config": "^7.0.1",
     "@types/knockout": "^3.4.77"
   },
   "resolutions": {
