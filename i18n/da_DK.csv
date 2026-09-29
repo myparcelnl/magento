@@ -460,6 +460,7 @@ Return if no answer,Returner hvis intet svar
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-indstillingerne er importeret."
 Records per export request,Poster pr. eksportanmodning
 How many shipments or orders are sent to MyParcel in one request. Leave empty for 20. Lower this if large exports time out. The maximum is 100.,"Hvor mange forsendelser eller ordrer der sendes til MyParcel i én anmodning. Lad feltet være tomt for 20. Sænk værdien, hvis store eksporter får timeout. Maksimum er 100."
+"Save the configuration first. The import uses the saved API key.","Gem konfigurationen først. Importen bruger den gemte API-nøgle."
 Return label sent,Returlabel sendt
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel kender ikke forsendelse %1 under API-nøglen for denne butik.
 The carrier of shipment %1 does not support return labels.,Transportøren af forsendelse %1 understøtter ikke returlabels.
