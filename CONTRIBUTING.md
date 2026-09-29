@@ -6,11 +6,14 @@ The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::set
 does not know the option, update the SDK first. The wire key comes from the SDK's
 `ShipmentOptionMapper`; the module keeps no alias.
 
-Which carrier offers the option for which package type comes from capabilities. An option that
-capabilities offer reaches the export without code: `ShipmentOptionsResolver::resolve()` decides it,
-and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the
-capabilities `requires` and `excludes`, which `resolve()` applies. Add code only for what
-capabilities cannot say.
+An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module
+name from the wire key (`noTracking` becomes `no_tracking`). The New Shipment form renders it under a
+label read from that name, and `MagentoCollection` reads its checkbox through
+`mypa_rendered_options[]`. `ShipmentOptionsResolver::resolve()` decides it, and
+`OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the
+capabilities `requires` and `excludes`, which `resolve()` applies.
+
+Add code only for what capabilities cannot say.
 
 ### A row in `ShipmentOption::DEFINITIONS`
 
@@ -22,15 +25,12 @@ what each fact does.
   name, translated through `i18n/`. The shipping method title shows the label when the option is on.
 - **A checkout fee:** `checkout`. The rate then adds the fee from `delivery/<name>_fee`.
 - **A mailbox option:** `mailbox`. The rate then adds the fee from `mailbox/<name>_fee`.
-- **A place in the New Shipment form:** `toggle`. Each toggle is also a key stored on every order.
+- **A place in the fail-open form:** `toggle`. The New Shipment form shows these options when
+  capabilities could not be read. Each toggle is also a key stored on every order.
   `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when a toggle does not reach the
   shipment that the API receives.
 
 The row order is the order of the settings form.
-
-### The New Shipment form
-
-Add the option's label to `Block\Sales\NewShipmentForm`, and its translation in `i18n/`.
 
 ### An option in the checkout
 
