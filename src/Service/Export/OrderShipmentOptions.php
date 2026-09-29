@@ -14,6 +14,7 @@ use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions as ResolvedOptions;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
@@ -186,6 +187,24 @@ class OrderShipmentOptions
             }
 
             $options->{$setter}($this->flag($resolved->option($option)));
+        }
+
+        foreach ($resolved->discovered() as $option => $chosen) {
+            $setter = SdkShipmentOptions::setters()[$option] ?? null;
+
+            if (null !== $setter) {
+                $options->{$setter}($this->flag($chosen));
+
+                continue;
+            }
+
+            if ($chosen) {
+                Logger::notice(sprintf(
+                    'Shipment option "%s" left off order %s: the SDK cannot send it yet.',
+                    $option,
+                    $this->order->getIncrementId()
+                ));
+            }
         }
 
         if ($deliveryOptions->isPickup()) {
