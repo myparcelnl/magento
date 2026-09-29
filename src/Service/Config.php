@@ -174,7 +174,35 @@ class Config extends AbstractHelper
 
     public function getFloatConfig(string $path, string $key): float
     {
-        return (float) $this->getConfigValue("$path$key");
+        return self::parseDecimal((string) $this->getConfigValue("$path$key"));
+    }
+
+    /**
+     * Reads a number as a merchant types it: "5,95", "1.234,56", "1 234.56".
+     *
+     * A lone "." or "," is the decimal separator, so "1.234" stays 1.234. Only a repeated separator,
+     * or one that comes before the other kind, groups thousands.
+     */
+    public static function parseDecimal(string $value): float
+    {
+        $value     = preg_replace('/[\s\x{00A0}\x{202F}]+/u', '', $value) ?? trim($value);
+        $lastComma = strrpos($value, ',');
+        $lastDot   = strrpos($value, '.');
+        $decimalAt = null;
+
+        if (false !== $lastComma && false !== $lastDot) {
+            $decimalAt = max($lastComma, $lastDot);
+        } elseif (1 === substr_count($value, ',') + substr_count($value, '.')) {
+            $decimalAt = false !== $lastComma ? $lastComma : $lastDot;
+        }
+
+        if (null === $decimalAt) {
+            return (float) str_replace([',', '.'], '', $value);
+        }
+
+        $whole = str_replace([',', '.'], '', substr($value, 0, $decimalAt));
+
+        return (float) ($whole . '.' . substr($value, $decimalAt + 1));
     }
 
     public function getTimeConfig(string $carrier, string $key): string
