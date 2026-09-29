@@ -2879,7 +2879,7 @@
       ]
     },
     {
-      "id": "myparcelnl_magento_ups_settings",
+      "id": "myparcelnl_magento_upsstandard_settings",
       "label": "UPS Standard settings",
       "showInDefault": true,
       "showInWebsite": true,
@@ -2895,7 +2895,7 @@
           "fields": [
             {
               "id": "active",
-              "path": "myparcelnl_magento_ups_settings/delivery/active",
+              "path": "myparcelnl_magento_upsstandard_settings/delivery/active",
               "type": "select",
               "label": "Delivery enabled",
               "showInDefault": true,
@@ -2905,7 +2905,7 @@
             },
             {
               "id": "signature_active",
-              "path": "myparcelnl_magento_ups_settings/delivery/signature_active",
+              "path": "myparcelnl_magento_upsstandard_settings/delivery/signature_active",
               "type": "select",
               "label": "Signature on receipt",
               "showInDefault": true,
@@ -2914,14 +2914,14 @@
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/delivery/active",
+                  "field": "myparcelnl_magento_upsstandard_settings/delivery/active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "signature_fee",
-              "path": "myparcelnl_magento_ups_settings/delivery/signature_fee",
+              "path": "myparcelnl_magento_upsstandard_settings/delivery/signature_fee",
               "type": "text",
               "label": "Signature on receipt fee",
               "showInDefault": true,
@@ -2930,18 +2930,18 @@
               "tooltip": "This will be added to the regular shipping price",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/delivery/active",
+                  "field": "myparcelnl_magento_upsstandard_settings/delivery/active",
                   "value": "1"
                 },
                 {
-                  "field": "myparcelnl_magento_ups_settings/delivery/signature_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/delivery/signature_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "only_recipient_active",
-              "path": "myparcelnl_magento_ups_settings/delivery/only_recipient_active",
+              "path": "myparcelnl_magento_upsstandard_settings/delivery/only_recipient_active",
               "type": "select",
               "label": "Only recipient",
               "showInDefault": true,
@@ -2950,14 +2950,14 @@
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/delivery/active",
+                  "field": "myparcelnl_magento_upsstandard_settings/delivery/active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "only_recipient_fee",
-              "path": "myparcelnl_magento_ups_settings/delivery/only_recipient_fee",
+              "path": "myparcelnl_magento_upsstandard_settings/delivery/only_recipient_fee",
               "type": "text",
               "label": "Only recipient fee",
               "showInDefault": true,
@@ -2966,11 +2966,11 @@
               "tooltip": "This will be added to the regular shipping price",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/delivery/active",
+                  "field": "myparcelnl_magento_upsstandard_settings/delivery/active",
                   "value": "1"
                 },
                 {
-                  "field": "myparcelnl_magento_ups_settings/delivery/only_recipient_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/delivery/only_recipient_active",
                   "value": "1"
                 }
               ]
@@ -2987,7 +2987,7 @@
           "fields": [
             {
               "id": "day_1_active",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/day_1_active",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_1_active",
               "type": "select",
               "label": "Monday",
               "showInDefault": true,
@@ -2998,7 +2998,7 @@
             },
             {
               "id": "cutoff_time_1",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/cutoff_time_1",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/cutoff_time_1",
               "type": "time",
               "label": "Cut-off time",
               "showInDefault": true,
@@ -3007,14 +3007,14 @@
               "tooltip": "For orders before this time, the drop-off is considered done on this day.",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/drop_off_days/day_1_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_1_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "day_2_active",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/day_2_active",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_2_active",
               "type": "select",
               "label": "Tuesday",
               "showInDefault": true,
@@ -3025,7 +3025,7 @@
             },
             {
               "id": "cutoff_time_2",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/cutoff_time_2",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/cutoff_time_2",
               "type": "time",
               "label": "Cut-off time",
               "showInDefault": true,
@@ -3034,14 +3034,14 @@
               "tooltip": "For orders before this time, the drop-off is considered done on this day.",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/drop_off_days/day_2_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_2_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "day_3_active",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/day_3_active",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_3_active",
               "type": "select",
               "label": "Wednesday",
               "showInDefault": true,
@@ -3052,7 +3052,7 @@
             },
             {
               "id": "cutoff_time_3",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/cutoff_time_3",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/cutoff_time_3",
               "type": "time",
               "label": "Cut-off time",
               "showInDefault": true,
@@ -3061,14 +3061,14 @@
               "tooltip": "For orders before this time, the drop-off is considered done on this day.",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/drop_off_days/day_3_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_3_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "day_4_active",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/day_4_active",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_4_active",
               "type": "select",
               "label": "Thursday",
               "showInDefault": true,
@@ -3079,7 +3079,7 @@
             },
             {
               "id": "cutoff_time_4",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/cutoff_time_4",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/cutoff_time_4",
               "type": "time",
               "label": "Cut-off time",
               "showInDefault": true,
@@ -3088,14 +3088,14 @@
               "tooltip": "For orders before this time, the drop-off is considered done on this day.",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/drop_off_days/day_4_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_4_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "day_5_active",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/day_5_active",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_5_active",
               "type": "select",
               "label": "Friday",
               "showInDefault": true,
@@ -3106,7 +3106,7 @@
             },
             {
               "id": "cutoff_time_5",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/cutoff_time_5",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/cutoff_time_5",
               "type": "time",
               "label": "Cut-off time",
               "showInDefault": true,
@@ -3115,14 +3115,14 @@
               "tooltip": "For orders before this time, the drop-off is considered done on this day.",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/drop_off_days/day_5_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_5_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "day_6_active",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/day_6_active",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_6_active",
               "type": "select",
               "label": "Saturday",
               "showInDefault": true,
@@ -3133,7 +3133,7 @@
             },
             {
               "id": "cutoff_time_6",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/cutoff_time_6",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/cutoff_time_6",
               "type": "time",
               "label": "Cut-off time",
               "showInDefault": true,
@@ -3142,14 +3142,14 @@
               "tooltip": "For orders before this time, the drop-off is considered done on this day.",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/drop_off_days/day_6_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_6_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "day_0_active",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/day_0_active",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_0_active",
               "type": "select",
               "label": "Sunday",
               "showInDefault": true,
@@ -3160,7 +3160,7 @@
             },
             {
               "id": "cutoff_time_0",
-              "path": "myparcelnl_magento_ups_settings/drop_off_days/cutoff_time_0",
+              "path": "myparcelnl_magento_upsstandard_settings/drop_off_days/cutoff_time_0",
               "type": "time",
               "label": "Cut-off time",
               "showInDefault": true,
@@ -3169,7 +3169,7 @@
               "tooltip": "For orders before this time, the drop-off is considered done on this day.",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/drop_off_days/day_0_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/drop_off_days/day_0_active",
                   "value": "1"
                 }
               ]
@@ -3186,7 +3186,7 @@
           "fields": [
             {
               "id": "signature_active",
-              "path": "myparcelnl_magento_ups_settings/default_options/signature_active",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/signature_active",
               "type": "select",
               "label": "Automate 'Signature on receipt'",
               "showInDefault": true,
@@ -3196,7 +3196,7 @@
             },
             {
               "id": "signature_from_price",
-              "path": "myparcelnl_magento_ups_settings/default_options/signature_from_price",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/signature_from_price",
               "type": "text",
               "label": "From price",
               "showInDefault": true,
@@ -3206,14 +3206,14 @@
               "validate": "validate-number validate-zero-or-greater",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/default_options/signature_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/default_options/signature_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "collect_active",
-              "path": "myparcelnl_magento_ups_settings/default_options/collect_active",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/collect_active",
               "type": "select",
               "label": "Automate 'Collect package'",
               "showInDefault": true,
@@ -3223,7 +3223,7 @@
             },
             {
               "id": "collect_from_price",
-              "path": "myparcelnl_magento_ups_settings/default_options/collect_from_price",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/collect_from_price",
               "type": "text",
               "label": "From price",
               "showInDefault": true,
@@ -3232,14 +3232,14 @@
               "validate": "validate-number validate-zero-or-greater",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/default_options/collect_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/default_options/collect_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "only_recipient_active",
-              "path": "myparcelnl_magento_ups_settings/default_options/only_recipient_active",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/only_recipient_active",
               "type": "select",
               "label": "Automate 'Only recipient'",
               "showInDefault": true,
@@ -3249,7 +3249,7 @@
             },
             {
               "id": "only_recipient_from_price",
-              "path": "myparcelnl_magento_ups_settings/default_options/only_recipient_from_price",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/only_recipient_from_price",
               "type": "text",
               "label": "From price",
               "showInDefault": true,
@@ -3259,14 +3259,14 @@
               "validate": "validate-number validate-zero-or-greater",
               "depends": [
                 {
-                  "field": "myparcelnl_magento_ups_settings/default_options/only_recipient_active",
+                  "field": "myparcelnl_magento_upsstandard_settings/default_options/only_recipient_active",
                   "value": "1"
                 }
               ]
             },
             {
               "id": "age_check_active",
-              "path": "myparcelnl_magento_ups_settings/default_options/age_check_active",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/age_check_active",
               "type": "select",
               "label": "Automate 'Age check 18+'",
               "showInDefault": true,
@@ -3276,7 +3276,7 @@
             },
             {
               "id": "insurance_from_price",
-              "path": "myparcelnl_magento_ups_settings/default_options/insurance_from_price",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/insurance_from_price",
               "type": "text",
               "label": "Insure orders from (€)",
               "showInDefault": true,
@@ -3287,7 +3287,7 @@
             },
             {
               "id": "insurance_local_amount",
-              "path": "myparcelnl_magento_ups_settings/default_options/insurance_local_amount",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/insurance_local_amount",
               "type": "text",
               "label": "Insure orders up to",
               "showInDefault": true,
@@ -3298,7 +3298,7 @@
             },
             {
               "id": "insurance_percentage",
-              "path": "myparcelnl_magento_ups_settings/default_options/insurance_percentage",
+              "path": "myparcelnl_magento_upsstandard_settings/default_options/insurance_percentage",
               "type": "text",
               "label": "Insure orders for percentage",
               "showInDefault": true,
