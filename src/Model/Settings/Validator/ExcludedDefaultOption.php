@@ -59,7 +59,7 @@ class ExcludedDefaultOption implements SettingValidatorInterface
         $option      = $match[1];
         $wasOnBefore = '1' === $this->storedValue($path, $scopeName, $scopeId);
 
-        foreach ($capabilities->allOptionsFor($carrier) as $other) {
+        foreach ($capabilities->optionsFor($carrier) as $other) {
             $excluded = in_array($other, $capabilities->excludesFor($carrier, null, $option), true)
                         || in_array($option, $capabilities->excludesFor($carrier, null, $other), true);
 

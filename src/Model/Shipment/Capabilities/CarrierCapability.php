@@ -134,14 +134,13 @@ final class CarrierCapability
         return $this->colloMax;
     }
 
-    /** @return array{carrier: string[], packageType: string[], deliveryType: string[], option: string[]} */
+    /** @return array{carrier: string[], packageType: string[], deliveryType: string[]} */
     public function unknownValues(): array
     {
         return [
             'carrier'      => '' !== $this->v2Carrier && ! Carrier::knowsV2Name($this->v2Carrier) ? [$this->v2Carrier] : [],
             'packageType'  => $this->unknownPackageTypes,
             'deliveryType' => $this->unknownDeliveryTypes,
-            'option'       => $this->options->unknownKeys(),
         ];
     }
 }

@@ -52,4 +52,10 @@ class NewShipmentForm
     {
         return $this->shipmentOptionsHumanMap;
     }
+
+    /** The option's label; one only capabilities name reads as its name, so `no_tracking` is "No tracking". */
+    public function labelFor(string $option): string
+    {
+        return (string) ($this->shipmentOptionsHumanMap[$option] ?? __(ucfirst(str_replace('_', ' ', $option))));
+    }
 }

@@ -50,7 +50,7 @@ it('answers nothing for a carrier the account has no contract for', function () 
         ->and($set->hasOption(Carrier::DPD, null, ShipmentOption::SIGNATURE))->toBeFalse();
 });
 
-it('keeps an unrecognised value and reports it instead of dropping it', function () {
+it('keeps an unrecognised value and reports it instead of dropping it, and offers a new option', function () {
     $set = CapabilitySet::fromApiResults([
         capabilityResult([
             'packageTypes'  => ['PACKAGE', 'HOVERCRAFT'],
@@ -64,10 +64,10 @@ it('keeps an unrecognised value and reports it instead of dropping it', function
 
     expect($unknown['packageType'])->toBe(['HOVERCRAFT'])
         ->and($unknown['deliveryType'])->toBe(['TELEPORT_DELIVERY'])
-        ->and($unknown['option'])->toBe(['aBrandNewOption'])
+        ->and($unknown)->not->toHaveKey('option')
         ->and($unknown['carrier'])->toBe(['FUTURE_CARRIER'])
         ->and($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME])
-        ->and($set->optionsFor(Carrier::POSTNL))->toBe([ShipmentOption::SIGNATURE]);
+        ->and($set->optionsFor(Carrier::POSTNL))->toBe([ShipmentOption::SIGNATURE, 'a_brand_new_option']);
 });
 
 it('names a carrier it has no settings for, and still reports it', function () {
