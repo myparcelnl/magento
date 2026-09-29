@@ -8,6 +8,7 @@ use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\RequestOptions;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Configuration;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
@@ -194,7 +195,7 @@ class Client
                     'Content-Type'  => self::CONTENT_TYPE,
                     'Accept'        => self::ACCEPT,
                     'User-Agent'    => $this->userAgent->header(),
-                ],
+                ] + Config::API_FEATURE_FLAGS,
                 RequestOptions::BODY            => $body,
                 RequestOptions::HTTP_ERRORS     => false,
                 RequestOptions::ALLOW_REDIRECTS => false,
