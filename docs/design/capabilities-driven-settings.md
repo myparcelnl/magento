@@ -8,7 +8,7 @@
 > | 1 | stateless package type services | `refactor/stateless-package-type-services` | PR open, #970 |
 > | 2 | derive carrier and option names | `refactor/derive-carrier-and-option-names` | draft PR, #980 |
 > | — | settings decimals and import fix | `fix/settings-decimals-and-import` | draft PR, #981 |
-> | 3 | honour capability option dependencies | — | findings in [capability-option-dependencies.md](capability-option-dependencies.md) |
+> | 3 | honour capability option dependencies | `feat/honour-capability-option-dependencies` | in progress |
 > | 4 | generate the settings form | — | not started |
 > | 5 | supply settings defaults | — | not started |
 > | 6 | account-derived export mode and proposition | — | not started |
@@ -27,6 +27,18 @@
 > #981 is not part of INT-1289. It fixes two settings-screen bugs in code that exists only in this
 > stack, so it sits on top of PR 2. **Base PR 3 on `fix/settings-decimals-and-import` (#981)**, not
 > on PR 2.
+>
+> PR 3 departs from the plan in four places:
+>
+> - Excludes are settled before requires. The other order lets receipt code add insurance, then
+>   lose to age check, and leave the insurance behind.
+> - Requires never adds a companion that an option already on excludes. PostNL insurance requires
+>   signature, which receipt code excludes, and receipt code with insurance is a valid shipment.
+> - A required insurance is the configured amount for the destination, with the percentage but
+>   without the from-price, then the contract minimum. With neither, it stays off and is logged.
+> - A dependency name the module does not know is derived, not dropped: the key lists are open, so
+>   the export sends it when the SDK has a setter, and logs it when not. Only an entry that is not a
+>   name is dropped.
 >
 > Everything after this block is the plan as written, unchanged.
 

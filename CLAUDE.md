@@ -142,6 +142,8 @@ The New Shipment form and the export both read `ShipmentOption::TO_CHECK`, so a 
 2. A form label in `src/Block/Sales/NewShipmentForm.php`, and its translation in `i18n/`.
 3. Only if the option has a country, delivery type or combination rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. Every other option is taken as chosen.
 
+An option that capabilities offer but `TO_CHECK` does not name still reaches the export: `ShipmentOptionsResolver::resolve()` decides it like any other, and `OrderShipmentOptions` sends it when the SDK has a setter for it. The steps above are for the form checkbox. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies, so do not add a `RULES` entry for one of those.
+
 The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `TO_CHECK` does not reach the shipment the API receives. Do not add the option by hand to `MagentoCollection::$options`, `resolve()` or the setter loop in `OrderShipmentOptions`.
 
 ## Dependencies
