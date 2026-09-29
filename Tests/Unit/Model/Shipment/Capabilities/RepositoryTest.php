@@ -157,10 +157,10 @@ it('fails open for a store with no api key rather than stopping the page', funct
         ->and($r['history'])->toHaveCount(0);
 });
 
-it('logs each kind of unrecognised value once per fetch', function () {
+it('logs each kind of unrecognised value once per fetch, and no option, which always derives', function () {
     $logger = mockLoggerFacade();
     $logger->shouldReceive('notice')->once()->with(Mockery::pattern('/packageType value\(s\).*HOVERCRAFT/'));
-    $logger->shouldReceive('notice')->once()->with(Mockery::pattern('/option value\(s\).*aBrandNewOption/'));
+    $logger->shouldReceive('notice')->never()->with(Mockery::pattern('/option value/'));
 
     $r = makeCapabilitiesRepository([capabilitiesOk([
         capabilityResult([

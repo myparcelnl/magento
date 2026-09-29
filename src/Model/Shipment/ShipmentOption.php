@@ -28,7 +28,8 @@ final class ShipmentOption
     public const FROZEN             = 'frozen';
 
     /**
-     * The subset the admin New Shipment form asks the carrier about.
+     * The checkboxes the New Shipment form shows when capabilities could not be read, and the fixed
+     * front of the persisted key order. With capabilities, the form shows what they offer instead.
      *
      * @var string[]
      */
@@ -91,29 +92,6 @@ final class ShipmentOption
     }
 
     /**
-     * The options the New Shipment form and the export support.
-     *
-     * @var string[]
-     */
-    private const KNOWN
-        = [
-            self::AGE_CHECK,
-            self::HIDE_SENDER,
-            self::INSURANCE,
-            self::LARGE_FORMAT,
-            self::ONLY_RECIPIENT,
-            self::PRINTERLESS_RETURN,
-            self::RETURN,
-            self::SAME_DAY_DELIVERY,
-            self::SIGNATURE,
-            self::COLLECT,
-            self::RECEIPT_CODE,
-            self::PRIORITY_DELIVERY,
-            self::FRESH_FOOD,
-            self::FROZEN,
-        ];
-
-    /**
      * Stored option names that do not follow from their camelCase wire key.
      *
      * Every other name derives both ways, so a new option needs no row here. These stay because
@@ -145,9 +123,4 @@ final class ShipmentOption
         return false === $name ? strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $v2Name)) : $name;
     }
 
-    /** Whether the wire key names an option the module supports, rather than one it only derives. */
-    public static function knowsV2Name(string $v2Name): bool
-    {
-        return in_array(self::fromV2Name($v2Name), self::KNOWN, true);
-    }
 }

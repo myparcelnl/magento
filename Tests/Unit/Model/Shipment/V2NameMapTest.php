@@ -67,8 +67,7 @@ it('round-trips every stored option name through its wire key', function () {
     expect(moduleOptionNames())->toHaveCount(14);
 
     foreach (moduleOptionNames() as $moduleName) {
-        expect(ShipmentOption::fromV2Name(ShipmentOption::toV2Name($moduleName)))->toBe($moduleName)
-            ->and(ShipmentOption::knowsV2Name(ShipmentOption::toV2Name($moduleName)))->toBeTrue();
+        expect(ShipmentOption::fromV2Name(ShipmentOption::toV2Name($moduleName)))->toBe($moduleName);
     }
 });
 
@@ -84,8 +83,7 @@ it('derives an option name in both directions for a wire key it has never seen',
     expect(ShipmentOption::fromV2Name('noTracking'))->toBe('no_tracking')
         ->and(ShipmentOption::toV2Name('no_tracking'))->toBe('noTracking')
         ->and(ShipmentOption::fromV2Name('requiresFoo'))->toBe('requires_foo')
-        ->and(ShipmentOption::toV2Name('requires_foo'))->toBe('requiresFoo')
-        ->and(ShipmentOption::knowsV2Name('noTracking'))->toBeFalse();
+        ->and(ShipmentOption::toV2Name('requires_foo'))->toBe('requiresFoo');
 });
 
 it('maps every package type to a v2 enum value the SDK allows', function () {
