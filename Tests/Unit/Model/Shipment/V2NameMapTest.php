@@ -34,8 +34,19 @@ function mappedOptionKeys(string $moduleOption): array
 
 // The request model has no setter for these two, so the SDK cannot ask about them. They still
 // appear in a response, so the module keeps reading them; Client logs a request that sends one.
+/** @return string[] every option name the module defines as a constant */
+function moduleOptionNames(): array
+{
+    return array_values(array_filter(
+        (new ReflectionClass(ShipmentOption::class))->getConstants(),
+        'is_string'
+    ));
+}
+
 it('agrees with the SDK request mapper on every option wire key', function () {
-    foreach (ShipmentOption::V2_NAMES_MAP as $moduleName => $v2Key) {
+    foreach (moduleOptionNames() as $moduleName) {
+        $v2Key = ShipmentOption::toV2Name($moduleName);
+
         expect(mappedOptionKeys($moduleName))
             ->toBe([$v2Key], "option '$moduleName' should map to '$v2Key'");
     }
@@ -52,16 +63,29 @@ it('carries fresh food and frozen, which the request model could not always ask 
     }
 });
 
-it('covers every shipment option the module defines', function () {
-    $constants = (new ReflectionClass(ShipmentOption::class))->getConstants();
+it('round-trips every stored option name through its wire key', function () {
+    expect(moduleOptionNames())->toHaveCount(14);
 
-    foreach ($constants as $name => $value) {
-        if (! is_string($value) || 0 === strpos($name, 'EXTRA_') || 'V2_NAMES_MAP' === $name) {
-            continue;
-        }
-
-        expect(ShipmentOption::V2_NAMES_MAP)->toHaveKey($value);
+    foreach (moduleOptionNames() as $moduleName) {
+        expect(ShipmentOption::fromV2Name(ShipmentOption::toV2Name($moduleName)))->toBe($moduleName)
+            ->and(ShipmentOption::knowsV2Name(ShipmentOption::toV2Name($moduleName)))->toBeTrue();
     }
+});
+
+it('keeps an alias only for a stored name the rule cannot produce', function () {
+    foreach (ShipmentOption::V2_NAMES_MAP as $moduleName => $v2Key) {
+        $derived = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $v2Key));
+
+        expect($derived)->not->toBe($moduleName, "'$moduleName' derives from '$v2Key' and needs no alias");
+    }
+});
+
+it('derives an option name in both directions for a wire key it has never seen', function () {
+    expect(ShipmentOption::fromV2Name('noTracking'))->toBe('no_tracking')
+        ->and(ShipmentOption::toV2Name('no_tracking'))->toBe('noTracking')
+        ->and(ShipmentOption::fromV2Name('requiresFoo'))->toBe('requires_foo')
+        ->and(ShipmentOption::toV2Name('requires_foo'))->toBe('requiresFoo')
+        ->and(ShipmentOption::knowsV2Name('noTracking'))->toBeFalse();
 });
 
 it('maps every package type to a v2 enum value the SDK allows', function () {
@@ -91,8 +115,16 @@ it('maps every carrier to a v2 enum value the SDK allows', function () {
 
     foreach (Carrier::V2_NAMES_MAP as $name => $v2Name) {
         expect($allowed)->toContain($v2Name)
-            ->and(Carrier::fromV2Name($v2Name))->toBe($name);
+            ->and(Carrier::fromV2Name($v2Name))->toBe($name)
+            ->and(Carrier::knowsV2Name($v2Name))->toBeTrue();
     }
+});
+
+it('derives a carrier name from any v2 name, and knows only its own', function () {
+    expect(Carrier::fromV2Name('HOOPLA'))->toBe('hoopla')
+        ->and(Carrier::fromV2Name('UPS_EXPRESS_SAVER'))->toBe('upsexpresssaver')
+        ->and(Carrier::knowsV2Name('HOOPLA'))->toBeFalse()
+        ->and(Carrier::toV2Name('hoopla'))->toBeNull();
 });
 
 it('names every carrier the module has settings for', function () {
@@ -115,10 +147,7 @@ it('takes every carrier name from the sdk registry', function () {
         ->and(Carrier::humanFor('nonexistent'))->toBe('nonexistent');
 });
 
-it('answers null for a value it does not know rather than inventing one', function () {
+it('answers null for a package or delivery type it does not know rather than inventing one', function () {
     expect(PackageType::fromV2Name('HOVERCRAFT'))->toBeNull()
-        ->and(DeliveryType::fromV2Name('TELEPORT_DELIVERY'))->toBeNull()
-        ->and(Carrier::fromV2Name('FUTURE_CARRIER'))->toBeNull()
-        ->and(ShipmentOption::fromV2Name('aBrandNewOption'))->toBeNull()
-        ->and(Carrier::toV2Name('nope'))->toBeNull();
+        ->and(DeliveryType::fromV2Name('TELEPORT_DELIVERY'))->toBeNull();
 });
