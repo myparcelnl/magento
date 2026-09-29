@@ -35,6 +35,15 @@ it('leaves the mailbox settings that are still read', function () {
         ->and($harness->rowAt('myparcelnl_magento_postnl_settings/mailbox/weight'))->not->toBeNull();
 });
 
+it('leaves a row of another module that ends the same way', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $harness->save('other_module_section/mailbox/pickup_mailbox', '1', 'default', 0);
+
+    removePickupMailboxRows($harness)->run();
+
+    expect($harness->rowAt('other_module_section/mailbox/pickup_mailbox'))->not->toBeNull();
+});
+
 it('is a no-op on a second run', function () {
     $harness = new MyParcelTokenLifecycleHarness();
     $harness->save('myparcelnl_magento_postnl_settings/mailbox/pickup_mailbox', '1', 'default', 0);
