@@ -28,7 +28,7 @@
 > stack, so it sits on top of PR 2. **Base PR 3 on `fix/settings-decimals-and-import` (#981)**, not
 > on PR 2.
 >
-> PR 3 departs from the plan in four places:
+> PR 3 departs from the plan in five places:
 >
 > - Excludes are settled before requires. The other order lets receipt code add insurance, then
 >   lose to age check, and leave the insurance behind.
@@ -39,6 +39,10 @@
 > - A dependency name the module does not know is derived, not dropped: the key lists are open, so
 >   the export sends it when the SDK has a setter, and logs it when not. Only an entry that is not a
 >   name is dropped.
+> - PR 3 also opens the New Shipment form, which step 3 gave to PR 2: it renders what
+>   `optionsFor()` offers, and `ShipmentOption::KNOWN` and `knowsV2Name()` are gone. `TO_CHECK` is
+>   not deleted, because it is what the form shows when capabilities could not be read. The
+>   unknown-values notice no longer reports options, because every option name derives.
 >
 > Everything after this block is the plan as written, unchanged.
 
