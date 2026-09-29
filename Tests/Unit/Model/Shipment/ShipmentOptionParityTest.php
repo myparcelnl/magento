@@ -25,6 +25,7 @@ function sdkOptionsFor(ResolvedOptions $resolved, array $storedDeliveryOptions =
 
     return createOrderShipmentOptions([
         'options'         => [],
+        'order'           => createOrder(),
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback($storedDeliveryOptions),
         'resolved'        => $resolved,
@@ -62,4 +63,27 @@ it('never sends return on a pickup, whatever was chosen', function () {
     );
 
     expect($options->getReturn())->toBe(0);
+});
+
+it('sends an option only capabilities named, when the SDK can set it', function () {
+    $options = sdkOptionsFor(ResolvedOptions::resolved(['no_tracking' => true]));
+
+    expect($options->getNoTracking())->toBe(1);
+});
+
+it('skips a chosen option the SDK cannot set, and says so', function () {
+    mockLoggerFacade()->shouldReceive('notice')->once()->with(Mockery::pattern('/"hovercraft".*100000001/'));
+
+    sdkOptionsFor(ResolvedOptions::resolved(['hovercraft' => true]));
+});
+
+it('keeps an option only capabilities named after the persisted keys', function () {
+    $keys = array_keys(ResolvedOptions::resolved(['no_tracking' => false])->toArray());
+
+    expect(end($keys))->toBe('no_tracking')
+        ->and(ResolvedOptions::resolved(['no_tracking' => false])->discovered())->toBe(['no_tracking' => false]);
+});
+
+it('drops a key it does not name from stored checkout data', function () {
+    expect(ResolvedOptions::of(['no_tracking' => true])->toArray())->not->toHaveKey('no_tracking');
 });

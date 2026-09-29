@@ -120,6 +120,43 @@ final class CapabilitySet
         });
     }
 
+    /**
+     * optionsFor(), plus the options the module only derives a name for. The export reads this, so a
+     * newly offered option reaches the shipment without a module change.
+     *
+     * @return string[] module option names
+     */
+    public function allOptionsFor(string $carrier, ?string $packageType = null): array
+    {
+        return $this->union($carrier, $packageType, static function (CarrierCapability $c): array {
+            return $c->options()->allNames();
+        });
+    }
+
+    /**
+     * Empty when permissive: an account we could not read forces no companion on.
+     *
+     * @return string[] module option names
+     */
+    public function requiresFor(string $carrier, ?string $packageType, string $option): array
+    {
+        return $this->union($carrier, $packageType, static function (CarrierCapability $c) use ($option): array {
+            return $c->options()->requiresFor($option);
+        });
+    }
+
+    /**
+     * Empty when permissive, for the same reason requiresFor() is.
+     *
+     * @return string[] module option names
+     */
+    public function excludesFor(string $carrier, ?string $packageType, string $option): array
+    {
+        return $this->union($carrier, $packageType, static function (CarrierCapability $c) use ($option): array {
+            return $c->options()->excludesFor($option);
+        });
+    }
+
     /** Permissive answers yes, for the same reason hasOption() does. */
     public function hasPackageType(string $carrier, string $packageType): bool
     {
