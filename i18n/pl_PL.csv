@@ -461,3 +461,5 @@ Return label sent,Etykieta zwrotna wysłana
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel nie zna przesyłki %1 dla API key tego sklepu.
 The carrier of shipment %1 does not support return labels.,Przewoźnik przesyłki %1 nie obsługuje etykiet zwrotnych.
 No MyParcel shipments were found to make a return label for.,"Nie znaleziono przesyłek MyParcel, dla których można utworzyć etykietę zwrotną."
+"MyParcel reads every product weight with this one unit, so this setting exists in default scope only.","MyParcel odczytuje każdą wagę produktu w tej jednej jednostce, dlatego to ustawienie istnieje tylko w zakresie domyślnym."
+"Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.","Uwaga: waga nie jest atrybutem globalnym w tej instalacji, więc produkt może ważyć inną liczbę w każdym zakresie. MyParcel odczytuje je wszystkie w jednostce powyżej."
