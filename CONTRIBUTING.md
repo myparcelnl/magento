@@ -8,11 +8,14 @@ A `toggle` option needs its snake_case key in `RefShipmentShipmentOptions::sette
 know the option, update the SDK first. The key in the request body comes from `ShipmentOptionMapper`;
 the module keeps no alias.
 
-Which carrier offers the option for which package type comes from capabilities. An option that
-capabilities offer reaches the export without code: `ShipmentOptionsResolver::resolve()` decides it,
-and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the
-capabilities `requires` and `excludes`, which `resolve()` applies. Add code only for what
-capabilities cannot say.
+An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module
+name from the wire key (`noTracking` becomes `no_tracking`). The New Shipment form renders it under a
+label read from that name, and `MagentoCollection` reads its checkbox through
+`mypa_rendered_options[]`. `ShipmentOptionsResolver::resolve()` decides it, and
+`OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the
+capabilities `requires` and `excludes`, which `resolve()` applies.
+
+Add code only for what capabilities cannot say.
 
 ### A row in `ShipmentOption::DEFINITIONS`
 
@@ -26,18 +29,13 @@ what each fact does.
   widget shows it as `price<Name>` (`only_recipient` is `priceOnlyRecipient`).
 - **A mailbox option:** `mailbox`. The same, with the fee from `mailbox/<name>_fee`. Add that
   setting to `etc/dynamic_settings.json`.
-- **A yes/no option of the shipment:** `toggle`. The New Shipment form shows the toggles when
-  capabilities cannot be read; otherwise it shows the options that capabilities give. Each toggle is
-  also a key stored on every order.
+- **A place in the fail-open form:** `toggle`. The New Shipment form shows these options when
+  capabilities could not be read. Each toggle is also a key stored on every order.
   `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when a toggle does not reach the
   shipment that the API receives.
 
 The row order is the order of every option list: the REST v1 `shipmentOptions` and the New Shipment
 form.
-
-### The New Shipment form
-
-The form shows the `label` of the option's row. Add its translation to every locale file in `i18n/` except `en_US.csv`.
 
 ### An option in the checkout
 

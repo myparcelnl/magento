@@ -64,12 +64,11 @@ it('drops a dependency entry that is not an option the SDK knows', function () {
         ->and($set->hasOption(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBeTrue();
 });
 
-it('lists every offered option, including one the module does not know', function () {
+it('lists every offered option, including one the module has no constant for', function () {
     $set = CapabilitySet::fromApiResults([
         capabilityResult(['options' => ['requiresSignature' => [], 'noTracking' => []]]),
     ]);
 
     // In the SDK model's property order, not the response's.
-    expect($set->allOptionsFor(Carrier::POSTNL, null))->toEqualCanonicalizing([ShipmentOption::SIGNATURE, 'no_tracking'])
-        ->and($set->optionsFor(Carrier::POSTNL, null))->toBe([ShipmentOption::SIGNATURE]);
+    expect($set->optionsFor(Carrier::POSTNL, null))->toEqualCanonicalizing([ShipmentOption::SIGNATURE, 'no_tracking']);
 });

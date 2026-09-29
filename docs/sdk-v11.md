@@ -106,10 +106,12 @@ boundary the one it expects.
 One map per kind, on the facade that owns the names. `Carrier::V2_NAMES_MAP` is keyed by the SDK's
 own carrier names; the map itself is the module's. `Carrier::V2_NAMES_MAP`,
 `PackageType::V2_NAMES_MAP` and `DeliveryType::V2_NAMES_MAP` each have a `toV2*()` and a
-`fromV2*()`. Shipment option names come from the SDK's `ShipmentOptionMapper`. **`fromV2*()` returns
-null for a value the module does not know, and the caller leaves it out** rather than substituting
-one. `CapabilitySet::unknownValues()` reports a carrier, package type or delivery type that the SDK's
-generated enums do not know, as a sign that the SDK needs an update.
+`fromV2*()`. Shipment option names come from the SDK's `ShipmentOptionMapper`.
+**`PackageType::fromV2Name()` and `DeliveryType::fromV2Name()` return null for a value the module
+does not know, and the caller leaves it out** rather than substituting one. `Carrier` and
+`ShipmentOption` derive a name for every value (INT-1289). `CapabilitySet::unknownValues()` reports
+a carrier, package type or delivery type that the SDK's generated enums do not know, as a sign that
+the SDK needs an update.
 
 `Tests/Unit/Model/Shipment/V2NameMapTest.php` round-trips every option entry through the SDK's own
 `mapToCoreApi()`: the key the module reads from a capabilities response must be the key the SDK

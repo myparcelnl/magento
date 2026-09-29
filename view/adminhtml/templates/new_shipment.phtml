@@ -107,6 +107,7 @@ $form     = $block->getNewShipmentForm();
                         class="field choice admin__field admin__field-option field-mypa_signature mypa_package-toggle mypa-option-toggle"
                         data-for_mypa_package_type="<?= $ptName ?>"
                         style="padding-left:30px;">
+                        <input type="hidden" name="mypa_rendered_options[]" value="<?= $escaper->escapeHtmlAttr($option) ?>" />
                         <input
                             id="<?= $optionId ?>"
                             class="admin__control-checkbox"
