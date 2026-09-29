@@ -43,7 +43,7 @@ final class ShipmentOption
     /** @var array<string,string[]> having() per flag */
     private static $having = [];
 
-    /** @var array<string,string|null> toV2Name() per name */
+    /** @var array<string,string> toV2Name() per name */
     private static $v2Names = [];
 
     /** What the module knows about an option, one row per option, in settings form order. */
@@ -152,27 +152,41 @@ final class ShipmentOption
         return in_array($deliveryType ?? DeliveryType::DEFAULT_NAME, $allowed, true);
     }
 
-    /** Module option name to the camelCase key a capabilities response uses, or null when the SDK has none. */
-    public static function toV2Name(string $name): ?string
+    /** Module option name to the camelCase key a capabilities response uses. The SDK names the aliases. */
+    public static function toV2Name(string $name): string
     {
-        if (! array_key_exists($name, self::$v2Names)) {
+        if (! isset(self::$v2Names[$name])) {
             $property = (new ShipmentOptionMapper())->v2PropertyFromName($name);
 
-            self::$v2Names[$name] = null === $property ? null : CapabilitiesOptionsV2::attributeMap()[$property];
+            self::$v2Names[$name] = null === $property
+                ? lcfirst(str_replace('_', '', ucwords($name, '_')))
+                : CapabilitiesOptionsV2::attributeMap()[$property];
         }
 
         return self::$v2Names[$name];
     }
 
-    /** Null for a v2 name the module does not know; the caller logs it rather than inventing one. */
-    public static function fromV2Name(string $v2Name): ?string
+    /** A wire key back to the module name: a known option by its alias, any other by snake_case. */
+    public static function fromV2Name(string $v2Name): string
     {
-        foreach (array_merge(array_keys(self::DEFINITIONS), [self::INSURANCE]) as $name) {
+        foreach (self::knownNames() as $name) {
             if (self::toV2Name($name) === $v2Name) {
                 return $name;
             }
         }
 
-        return null;
+        return strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $v2Name));
+    }
+
+    /** Whether the wire key names an option the module supports, rather than one it only derives. */
+    public static function knowsV2Name(string $v2Name): bool
+    {
+        return in_array(self::fromV2Name($v2Name), self::knownNames(), true);
+    }
+
+    /** @return string[] the options with a row, and insurance */
+    private static function knownNames(): array
+    {
+        return array_merge(array_keys(self::DEFINITIONS), [self::INSURANCE]);
     }
 }
