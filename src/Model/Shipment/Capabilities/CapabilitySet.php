@@ -121,7 +121,7 @@ class CapabilitySet
     }
 
     /**
-     * Get every option offered that the SDK and the module know, in the order of ShipmentOption::DEFINITIONS.
+     * Get every option offered that the SDK knows, in the order of ShipmentOption::DEFINITIONS.
      *
      * @return string[] module option names
      */
@@ -132,37 +132,13 @@ class CapabilitySet
             $names   = [];
 
             foreach (null === $options ? [] : $options::getters() as $property => $getter) {
-                $v2Name = $options::attributeMap()[$property];
-
-                if (null !== $options->$getter() && ShipmentOption::knowsV2Name($v2Name)) {
-                    $names[] = ShipmentOption::fromV2Name($v2Name);
-                }
-            }
-
-            return $names;
-        }));
-    }
-
-    /**
-     * optionsFor(), plus the options the module only derives a name for. The export reads this, so a
-     * newly offered option reaches the shipment without a module change.
-     *
-     * @return string[] module option names
-     */
-    public function allOptionsFor(string $carrier, ?string $packageType = null): array
-    {
-        return $this->union($carrier, $packageType, static function (ModelInterface $result): array {
-            $options = $result->getOptions();
-            $names   = [];
-
-            foreach (null === $options ? [] : $options::getters() as $property => $getter) {
                 if (null !== $options->$getter()) {
                     $names[] = ShipmentOption::fromV2Name($options::attributeMap()[$property]);
                 }
             }
 
             return $names;
-        });
+        }));
     }
 
     /**
