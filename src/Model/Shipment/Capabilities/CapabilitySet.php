@@ -112,24 +112,16 @@ final class CapabilitySet
         });
     }
 
-    /** @return string[] module option names */
+    /**
+     * Every option offered, a newly added one included, so it reaches the form and the export
+     * without a module change.
+     *
+     * @return string[] module option names
+     */
     public function optionsFor(string $carrier, ?string $packageType = null): array
     {
         return $this->union($carrier, $packageType, static function (CarrierCapability $c): array {
             return $c->options()->moduleNames();
-        });
-    }
-
-    /**
-     * optionsFor(), plus the options the module only derives a name for. The export reads this, so a
-     * newly offered option reaches the shipment without a module change.
-     *
-     * @return string[] module option names
-     */
-    public function allOptionsFor(string $carrier, ?string $packageType = null): array
-    {
-        return $this->union($carrier, $packageType, static function (CarrierCapability $c): array {
-            return $c->options()->allNames();
         });
     }
 
@@ -229,7 +221,7 @@ final class CapabilitySet
      */
     public function unknownValues(): array
     {
-        $unknown = ['carrier' => [], 'packageType' => [], 'deliveryType' => [], 'option' => []];
+        $unknown = ['carrier' => [], 'packageType' => [], 'deliveryType' => []];
 
         foreach ($this->capabilities as $capability) {
             foreach ($capability->unknownValues() as $kind => $values) {
