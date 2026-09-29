@@ -494,7 +494,7 @@ class ShipmentOptionsResolver
             return ShipmentOptions::resolved($values);
         }
 
-        foreach ($capabilities->allOptionsFor($this->carrier, $this->packageType) as $option) {
+        foreach ($capabilities->optionsFor($this->carrier, $this->packageType) as $option) {
             if (! array_key_exists($option, $values)) {
                 $values[$option] = $this->optionIsEnabled($option);
             }

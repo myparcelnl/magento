@@ -92,8 +92,10 @@ Four vocabularies for the same five facts. Hand each boundary the one it expects
 One map per kind, on the facade that owns the names. `Carrier::V2_NAMES_MAP` is keyed by the SDK's
 own carrier names; the map itself is the module's. `Carrier::V2_NAMES_MAP`,
 `PackageType::V2_NAMES_MAP`, `DeliveryType::V2_NAMES_MAP`, `ShipmentOption::V2_NAMES_MAP`. Each has
-a `toV2*()` and a `fromV2*()`. **`fromV2*()` returns null for a value the module does not know, and
-the caller logs it** rather than substituting one.
+a `toV2*()` and a `fromV2*()`. **`PackageType::fromV2Name()` and `DeliveryType::fromV2Name()`
+return null for a value the module does not know, and the caller logs it** rather than substituting
+one. `Carrier` and `ShipmentOption` derive a name for every value (INT-1289), so a carrier is
+reported only when it is not in its map, and an option is never reported.
 
 `Tests/Unit/Model/Shipment/V2NameMapTest.php` round-trips every option entry through the SDK's own
 `mapToCoreApi()`, because `CapabilitiesMapper::KNOWN_OPTION_SETTERS` is private and the map is
