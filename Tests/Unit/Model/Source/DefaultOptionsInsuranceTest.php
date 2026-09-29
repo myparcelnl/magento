@@ -95,3 +95,17 @@ it('falls back to the domestic cap for an order with no shipping address', funct
 
     expect($options->getDefaultInsurance(Carrier::POSTNL))->toBe(5000);
 });
+
+// getRequiredInsurance: the amount when another option requires insurance
+
+it('insures a required companion below the from-price', function () {
+    $options = defaultOptionsFor(insuranceSettings(['insurance_from_price' => 500]), 400.00);
+
+    expect($options->getRequiredInsurance(Carrier::POSTNL))->toBe(400);
+});
+
+it('applies the percentage and the cap to a required companion', function () {
+    expect(defaultOptionsFor(insuranceSettings(['insurance_percentage' => 50]), 400.00)->getRequiredInsurance(Carrier::POSTNL))->toBe(200)
+        ->and(defaultOptionsFor(insuranceSettings(['insurance_local_amount' => 250]), 9000.00)->getRequiredInsurance(Carrier::POSTNL))->toBe(250)
+        ->and(defaultOptionsFor(insuranceSettings(['insurance_local_amount' => 0]), 400.00)->getRequiredInsurance(Carrier::POSTNL))->toBe(0);
+});

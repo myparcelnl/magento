@@ -18,7 +18,7 @@ function unknownValuesResults(): array
             'packageTypes'  => ['PACKAGE', 'HOVERCRATE'],
             'deliveryTypes' => ['STANDARD_DELIVERY', 'DRONE_DELIVERY'],
             'options'       => capabilityOptions([
-                'requiresSignature' => ['isRequired' => false],
+                'requiresSignature' => ['isRequired' => false, 'requires' => ['teleport'], 'excludes' => []],
                 'teleport'          => ['isRequired' => true],
             ]),
         ]),
@@ -57,6 +57,7 @@ it('caches an answer with values the SDK does not know, and reads it back', func
             ->and($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME])
             // Not offered until an SDK update: the module cannot send it.
             ->and($set->optionsFor(Carrier::POSTNL))->not->toContain('teleport')
-            ->and($set->hasOption(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBeTrue();
+            ->and($set->hasOption(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBeTrue()
+            ->and($set->requiresFor(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBe([]);
     }
 });
