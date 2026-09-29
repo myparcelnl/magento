@@ -7,6 +7,8 @@ namespace MyParcelNL\Magento\Setup\Migrations;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Service\Config;
 use Psr\Log\LoggerInterface;
 
@@ -19,8 +21,9 @@ use Psr\Log\LoggerInterface;
  *
  * Deleting the scoped rows outright would silently change the unit for a merchant who only ever
  * configured it below default, and a wrong unit is a factor of 1000 on every mailbox decision. So a
- * value the scoped rows agree on is promoted to default first; rows that disagree are logged before
- * they go, because no automatic choice between them is defensible.
+ * unit that every store view reads, its inherited value included, is promoted to default first. When
+ * the store views disagree, the rows are logged before they go, because no automatic choice between
+ * them is defensible.
  *
  * Idempotent: once no non-default row is left, a second run does nothing.
  */
@@ -28,18 +31,25 @@ class UnscopeWeightIndication
 {
     public const PATH = Config::XML_PATH_GENERAL . 'print/weight_indication';
 
-    private CollectionFactory $collectionFactory;
-    private WriterInterface   $configWriter;
-    private LoggerInterface   $logger;
+    /** The readers take anything but this as grams, an absent value included. */
+    private const KILO = 'kilo';
+    private const GRAM = 'gram';
+
+    private CollectionFactory     $collectionFactory;
+    private WriterInterface       $configWriter;
+    private LoggerInterface       $logger;
+    private StoreManagerInterface $storeManager;
 
     public function __construct(
-        CollectionFactory $collectionFactory,
-        WriterInterface   $configWriter,
-        LoggerInterface   $logger
+        CollectionFactory     $collectionFactory,
+        WriterInterface       $configWriter,
+        LoggerInterface       $logger,
+        StoreManagerInterface $storeManager
     ) {
         $this->collectionFactory = $collectionFactory;
         $this->configWriter      = $configWriter;
         $this->logger            = $logger;
+        $this->storeManager      = $storeManager;
     }
 
     public function run(): void
@@ -72,17 +82,14 @@ class UnscopeWeightIndication
      */
     private function promoteOrReport(array $scoped, ?string $default): void
     {
-        $values = array_values(array_unique(array_map(
-            static fn($row): string => (string) $row->getData('value'),
-            $scoped
-        )));
+        $units = array_values(array_unique($this->unitPerStore($scoped, $default)));
 
-        if (1 === count($values)) {
-            if ($values[0] !== $default) {
-                $this->configWriter->save(self::PATH, $values[0]);
+        if (1 === count($units)) {
+            if ($units[0] !== self::unitOf($default)) {
+                $this->configWriter->save(self::PATH, $units[0]);
                 $this->logger->notice(sprintf(
-                    'MyParcel weight type is no longer a scoped setting. Every scope agreed on "%s", so that is now the one setting.',
-                    $values[0]
+                    'MyParcel weight type is no longer a scoped setting. Every store view read "%s", so that is now the one setting.',
+                    $units[0]
                 ));
             }
 
@@ -98,6 +105,39 @@ class UnscopeWeightIndication
                 (string) $default
             ));
         }
+    }
+
+    /**
+     * The unit each store view reads: its own row, else its website's, else the default. A row for a
+     * store or website that no longer exists is read by nobody, so it takes no part.
+     *
+     * @param  \Magento\Framework\DataObject[] $scoped
+     * @return array<int, string>
+     */
+    private function unitPerStore(array $scoped, ?string $default): array
+    {
+        $byScope = [];
+
+        foreach ($scoped as $row) {
+            $byScope[(string) $row->getData('scope')][(int) $row->getData('scope_id')] = (string) $row->getData('value');
+        }
+
+        $units = [];
+
+        foreach ($this->storeManager->getStores() as $store) {
+            $units[(int) $store->getId()] = self::unitOf(
+                $byScope[ScopeInterface::SCOPE_STORES][(int) $store->getId()]
+                ?? $byScope[ScopeInterface::SCOPE_WEBSITES][(int) $store->getWebsiteId()]
+                ?? $default
+            );
+        }
+
+        return $units;
+    }
+
+    private static function unitOf(?string $value): string
+    {
+        return self::KILO === $value ? self::KILO : self::GRAM;
     }
 
     private function isDefaultScope($row): bool
