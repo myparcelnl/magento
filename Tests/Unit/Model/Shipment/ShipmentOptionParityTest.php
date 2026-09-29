@@ -87,3 +87,31 @@ it('keeps an option only capabilities named after the persisted keys', function 
 it('drops a key it does not name from stored checkout data', function () {
     expect(ResolvedOptions::of(['no_tracking' => true])->toArray())->not->toHaveKey('no_tracking');
 });
+
+it('reads an option only capabilities name when the form rendered its checkbox', function () {
+    $ticked = optionsFromParams([
+        'mypa_extra_options_checkboxes_in_form' => '1',
+        'mypa_rendered_options'                 => ['no_tracking'],
+        'mypa_no_tracking'                      => '1',
+    ]);
+    $unticked = optionsFromParams([
+        'mypa_extra_options_checkboxes_in_form' => '1',
+        'mypa_rendered_options'                 => ['no_tracking'],
+    ]);
+
+    expect($ticked['no_tracking'] ?? null)->toBe('1')
+        ->and($unticked)->toHaveKey('no_tracking')
+        ->and($unticked['no_tracking'])->toBeFalse();
+});
+
+it('reads no option the form did not render, and no name that is not option-shaped', function () {
+    $options = optionsFromParams([
+        'mypa_extra_options_checkboxes_in_form' => '1',
+        'mypa_rendered_options'                 => ['Not An Option', '../x'],
+        'mypa_no_tracking'                      => '1',
+    ]);
+
+    expect($options)->not->toHaveKey('no_tracking')
+        ->and($options)->not->toHaveKey('Not An Option')
+        ->and($options)->not->toHaveKey('../x');
+});
