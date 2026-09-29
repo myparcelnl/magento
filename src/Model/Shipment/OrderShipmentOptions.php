@@ -13,6 +13,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions as ResolvedOptions;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
@@ -186,6 +187,24 @@ class OrderShipmentOptions
             }
 
             $options->{$setter}($this->flag($values[$option] ?? null));
+        }
+
+        foreach ($resolved->discovered() as $option => $chosen) {
+            $setter = SdkShipmentOptions::setters()[$option] ?? null;
+
+            if (null !== $setter) {
+                $options->{$setter}($this->flag($chosen));
+
+                continue;
+            }
+
+            if ($chosen) {
+                Logger::notice(sprintf(
+                    'Shipment option "%s" left off order %s: the SDK cannot send it yet.',
+                    $option,
+                    $this->order->getIncrementId()
+                ));
+            }
         }
 
         if ($deliveryOptions->isPickup()) {
