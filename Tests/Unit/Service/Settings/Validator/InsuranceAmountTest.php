@@ -31,9 +31,11 @@ it('claims the four insurance amount paths and nothing else', function () {
         ->and($validator->handles('myparcelnl_magento_general/api/key'))->toBeFalse();
 });
 
-it('does not claim an insurance field for a carrier the module has no settings path for', function () {
-    expect(insuranceValidator()->handles('myparcelnl_magento_nonsense_settings/default_options/insurance_local_amount'))
-        ->toBeFalse();
+it('claims an insurance field for a carrier the module has no settings of its own for', function () {
+    $path = 'myparcelnl_magento_hoopla_settings/default_options/insurance_local_amount';
+
+    expect(insuranceValidator()->handles($path))->toBeTrue()
+        ->and((string) insuranceValidator()->validate($path, 'abc', 'default', 0))->toContain('whole number');
 });
 
 it('accepts an amount inside the contract range', function () {

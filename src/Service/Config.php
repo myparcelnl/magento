@@ -61,6 +61,9 @@ class Config extends AbstractHelper
     private const MAX_EXPORT_CHUNK_SIZE      = 100;
     private const XML_PATH_EXPORT_CHUNK_SIZE = 'print/export_chunk_size';
 
+    private const CARRIER_PATH_PREFIX = 'myparcelnl_magento_';
+    private const CARRIER_PATH_SUFFIX = '_settings';
+
     public const CARRIERS_XML_PATH_MAP
         = [
             CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
@@ -197,6 +200,21 @@ class Config extends AbstractHelper
         return (int) $this->getConfigValue("$path$key");
     }
 
+    /** The config path prefix of a carrier's settings section, for any carrier name. */
+    public static function carrierPath(string $carrier): string
+    {
+        return self::CARRIER_PATH_PREFIX . $carrier . self::CARRIER_PATH_SUFFIX . '/';
+    }
+
+    /** The carrier whose settings section holds this path, or null for a path outside one. */
+    public static function carrierFromPath(string $path): ?string
+    {
+        $section = strstr($path, '/', true);
+        $carrier = (string) substr((string) $section, strlen(self::CARRIER_PATH_PREFIX), -strlen(self::CARRIER_PATH_SUFFIX));
+
+        return '' !== $carrier && self::carrierPath($carrier) === "$section/" ? $carrier : null;
+    }
+
     /**
      * Get setting for carrier
      *
@@ -207,11 +225,7 @@ class Config extends AbstractHelper
      */
     public function getCarrierConfig(string $carrier, string $code = '', ?int $storeId = null)
     {
-        $path = self::CARRIERS_XML_PATH_MAP[$carrier] ?? null;
-
-        if (null === $path) {
-            return null;
-        }
+        $path = self::carrierPath($carrier);
 
         return $this->getConfigValue("$path$code", $storeId);
     }
