@@ -6,9 +6,10 @@ namespace MyParcelNL\Magento\Setup\Migrations;
 
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use MyParcelNL\Magento\Service\Config;
 
 /**
- * Deletes the stored `<carrier>/mailbox/pickup_mailbox` rows.
+ * Deletes the stored `mailbox/pickup_mailbox` row of every carrier in Config::CARRIERS_XML_PATH_MAP.
  *
  * The setting was dead end to end: its value was written onto the package object and never read
  * back, and no admin field ever offered it. The defaults went with Package.php, and these rows are
@@ -18,7 +19,7 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
  */
 class RemovePickupMailboxRows
 {
-    private const SUFFIX = '/mailbox/pickup_mailbox';
+    private const FIELD = 'mailbox/pickup_mailbox';
 
     private CollectionFactory $collectionFactory;
     private WriterInterface   $configWriter;
@@ -31,20 +32,20 @@ class RemovePickupMailboxRows
 
     public function run(): void
     {
+        $paths = array_map(static function (string $carrierPath): string {
+            return $carrierPath . self::FIELD;
+        }, array_values(Config::CARRIERS_XML_PATH_MAP));
+
         $items = $this->collectionFactory->create()
-            ->addFieldToFilter('path', ['like' => '%' . self::SUFFIX])
+            ->addFieldToFilter('path', ['in' => $paths])
             ->getItems();
 
         foreach ($items as $row) {
-            $path = (string) $row->getData('path');
-
-            // The LIKE only narrows the query: SQL reads the underscores as single-character
-            // wildcards, so the suffix is checked again here.
-            if (self::SUFFIX !== substr($path, -strlen(self::SUFFIX))) {
-                continue;
-            }
-
-            $this->configWriter->delete($path, (string) $row->getData('scope'), (int) $row->getData('scope_id'));
+            $this->configWriter->delete(
+                (string) $row->getData('path'),
+                (string) $row->getData('scope'),
+                (int) $row->getData('scope_id')
+            );
         }
     }
 }
