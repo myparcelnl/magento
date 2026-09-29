@@ -51,6 +51,15 @@ class Carrier
     /** The carriers whose local country is not NL. */
     private const LOCAL_COUNTRY_MAP = [self::DPD => CountryCodes::CC_BE];
 
+    /**
+     * The module name for any v2 carrier name. The rule reproduces every name in V2_NAMES_MAP; it is
+     * one-way, so toV2Name() cannot use it: `upsstandard` could have been `UPS_STANDARD` or `UPSSTANDARD`.
+     */
+    public static function fromV2Name(string $v2Name): string
+    {
+        return strtolower(str_replace('_', '', $v2Name));
+    }
+
     /** Get the carrier's local country: BE for DPD, NL for every other carrier. */
     public static function localCountryCodeFor(?string $name): string
     {
