@@ -454,6 +454,7 @@ Return if no answer,Restituisci se nessuna risposta
 "Insurance amount %1 was not saved: your contract allows € %2 to € %3.","L'importo dell'assicurazione %1 non è stato salvato: il tuo contratto consente da € %2 a € %3."
 "Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Il tuo contratto consente da € %1 a € %2. L'assicurazione è obbligatoria per questo corriere e non può essere disattivata."
 "Insurance amount ""%1"" was not saved: enter a whole number of euros.","L'importo dell'assicurazione ""%1"" non è stato salvato: inserisci un importo intero in euro."
+"Automate ""%1"" was not saved: it cannot ship together with ""%2"", which is already automated.","L’automazione di ""%1"" non è stata salvata: non può essere spedita insieme a ""%2"", che è già automatizzato."
 "Importing the MyParcel Backoffice settings failed:","L'importazione delle impostazioni MyParcel Backoffice non è riuscita:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","L'importazione delle impostazioni MyParcel Backoffice non è riuscita. Controlla il log per i dettagli."
 "MyParcel Backoffice settings imported.","Impostazioni MyParcel Backoffice importate."
