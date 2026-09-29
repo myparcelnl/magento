@@ -10,36 +10,23 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 /**
  * The `options` object of one capabilities result.
  *
- * Holds every key the response carried, translated on read rather than on parse: a key the module
- * has no option for is kept and reported through unknownKeys(), never dropped. Presence of a key
- * means the option is available; its value carries isRequired, isSelectedByDefault and, for
- * insurance, min/max/default.
+ * Holds every key the response carried, translated on read rather than on parse. Every key derives
+ * a module name, so none is unknown. Presence of a key means the option is available; its value
+ * carries requires, excludes, isRequired, isSelectedByDefault and, for insurance, min/max/default.
  */
 final class OptionSet
 {
     /** @var array<string,mixed> keyed by the response's own camelCase key */
     private array $raw;
 
-    /** @var string[] response keys with no module option */
-    private array $unknownKeys;
-
-    private function __construct(array $raw, array $unknownKeys)
+    private function __construct(array $raw)
     {
-        $this->raw         = $raw;
-        $this->unknownKeys = $unknownKeys;
+        $this->raw = $raw;
     }
 
     public static function fromArray(array $options): self
     {
-        $unknown = [];
-
-        foreach (array_keys($options) as $key) {
-            if (! ShipmentOption::knowsV2Name((string) $key)) {
-                $unknown[] = (string) $key;
-            }
-        }
-
-        return new self($options, $unknown);
+        return new self($options);
     }
 
     public function has(string $moduleOptionName): bool
@@ -64,29 +51,11 @@ final class OptionSet
     }
 
     /**
-     * Module names for every option the response listed and we recognise.
+     * Module names for every option the response listed.
      *
      * @return string[]
      */
     public function moduleNames(): array
-    {
-        $names = [];
-
-        foreach (array_keys($this->raw) as $key) {
-            if (ShipmentOption::knowsV2Name((string) $key)) {
-                $names[] = ShipmentOption::fromV2Name((string) $key);
-            }
-        }
-
-        return $names;
-    }
-
-    /**
-     * Module names for every option the response listed, including one the module only derives.
-     *
-     * @return string[]
-     */
-    public function allNames(): array
     {
         return array_map(static function ($key): string {
             return ShipmentOption::fromV2Name((string) $key);
@@ -108,12 +77,6 @@ final class OptionSet
     public function excludesFor(string $moduleOptionName): array
     {
         return $this->dependencies($moduleOptionName, 'excludes');
-    }
-
-    /** @return string[] */
-    public function unknownKeys(): array
-    {
-        return $this->unknownKeys;
     }
 
     /** @return string[] */

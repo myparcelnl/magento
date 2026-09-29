@@ -60,11 +60,10 @@ it('drops each unreadable dependency entry and says so', function () {
     expect($set->excludesFor(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBe([ShipmentOption::ONLY_RECIPIENT]);
 });
 
-it('lists every offered option, including one the module does not know', function () {
+it('lists every offered option, including one the module has no constant for', function () {
     $set = CapabilitySet::fromApiResults([
         capabilityResult(['options' => ['requiresSignature' => [], 'noTracking' => []]]),
     ]);
 
-    expect($set->allOptionsFor(Carrier::POSTNL, null))->toBe([ShipmentOption::SIGNATURE, 'no_tracking'])
-        ->and($set->optionsFor(Carrier::POSTNL, null))->toBe([ShipmentOption::SIGNATURE]);
+    expect($set->optionsFor(Carrier::POSTNL, null))->toBe([ShipmentOption::SIGNATURE, 'no_tracking']);
 });
