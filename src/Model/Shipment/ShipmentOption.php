@@ -12,8 +12,6 @@ namespace MyParcelNL\Magento\Model\Shipment;
  */
 final class ShipmentOption
 {
-    use MapsV2Names;
-
     public const AGE_CHECK          = 'age_check';
     public const HIDE_SENDER        = 'hide_sender';
     public const INSURANCE          = 'insurance';
@@ -93,28 +91,63 @@ final class ShipmentOption
     }
 
     /**
-     * Module option name to the camelCase key a capabilities response uses.
+     * The options the New Shipment form and the export support.
      *
-     * Mirrors CapabilitiesMapper's own request-side mapping, so the two sides cannot disagree on a
-     * wire key. V2NameMapTest asserts that agreement by round-tripping every entry through
-     * mapToCoreApi(). An option the request model gains no setter for is dropped silently, which
-     * is why Client logs what it dropped.
+     * @var string[]
+     */
+    private const KNOWN
+        = [
+            self::AGE_CHECK,
+            self::HIDE_SENDER,
+            self::INSURANCE,
+            self::LARGE_FORMAT,
+            self::ONLY_RECIPIENT,
+            self::PRINTERLESS_RETURN,
+            self::RETURN,
+            self::SAME_DAY_DELIVERY,
+            self::SIGNATURE,
+            self::COLLECT,
+            self::RECEIPT_CODE,
+            self::PRIORITY_DELIVERY,
+            self::FRESH_FOOD,
+            self::FROZEN,
+        ];
+
+    /**
+     * Stored option names that do not follow from their camelCase wire key.
+     *
+     * Every other name derives both ways, so a new option needs no row here. These stay because
+     * core_config_data and the order's delivery options already store them. V2NameMapTest pins each
+     * wire key to the SDK's CapabilitiesMapper.
      */
     public const V2_NAMES_MAP
         = [
             self::AGE_CHECK          => 'requiresAgeVerification',
-            self::HIDE_SENDER        => 'hideSender',
-            self::INSURANCE          => 'insurance',
             self::LARGE_FORMAT       => 'oversizedPackage',
             self::ONLY_RECIPIENT     => 'recipientOnlyDelivery',
             self::PRINTERLESS_RETURN => 'printReturnLabelAtDropOff',
             self::RETURN             => 'returnOnFirstFailedDelivery',
-            self::SAME_DAY_DELIVERY  => 'sameDayDelivery',
             self::SIGNATURE          => 'requiresSignature',
             self::COLLECT            => 'scheduledCollection',
             self::RECEIPT_CODE       => 'requiresReceiptCode',
-            self::PRIORITY_DELIVERY  => 'priorityDelivery',
-            self::FRESH_FOOD         => 'freshFood',
-            self::FROZEN             => 'frozen',
         ];
+
+    /** Module option name to the camelCase key a capabilities response uses. */
+    public static function toV2Name(string $name): string
+    {
+        return self::V2_NAMES_MAP[$name] ?? lcfirst(str_replace('_', '', ucwords($name, '_')));
+    }
+
+    public static function fromV2Name(string $v2Name): string
+    {
+        $name = array_search($v2Name, self::V2_NAMES_MAP, true);
+
+        return false === $name ? strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $v2Name)) : $name;
+    }
+
+    /** Whether the wire key names an option the module supports, rather than one it only derives. */
+    public static function knowsV2Name(string $v2Name): bool
+    {
+        return in_array(self::fromV2Name($v2Name), self::KNOWN, true);
+    }
 }
