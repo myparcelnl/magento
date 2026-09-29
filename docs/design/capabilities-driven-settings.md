@@ -1,6 +1,6 @@
 # Capabilities-driven settings (INT-1289)
 
-> **Status — 2026-09-29.** PR 1 of 6 is open for review; PR 2 is open as a draft.
+> **Status — 2026-09-29.** PR 1 of 6 is open for review; PRs 2 and 3 are open as drafts.
 >
 > | # | PR | branch | state |
 > |---|---|---|---|
@@ -8,7 +8,7 @@
 > | 1 | stateless package type services | `refactor/stateless-package-type-services` | PR open, #970 |
 > | 2 | derive carrier and option names | `refactor/derive-carrier-and-option-names` | draft PR, #980 |
 > | — | settings decimals and import fix | `fix/settings-decimals-and-import` | draft PR, #981 |
-> | 3 | honour capability option dependencies | `feat/honour-capability-option-dependencies` | in progress |
+> | 3 | honour capability option dependencies | `feat/honour-capability-option-dependencies` | draft PR, #982 |
 > | 4 | generate the settings form | — | not started |
 > | 5 | supply settings defaults | — | not started |
 > | 6 | account-derived export mode and proposition | — | not started |
