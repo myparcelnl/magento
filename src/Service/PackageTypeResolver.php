@@ -207,7 +207,7 @@ class PackageTypeResolver
 
     private function configuredWeight($configured, int $default, ?int $storeId): float
     {
-        $weight = abs((float) str_replace(',', '.', (string) $configured));
+        $weight = abs(Config::parseDecimal((string) $configured));
 
         if ('kilo' === $this->config->getGeneralConfig('print/weight_indication', $storeId)) {
             return $weight < self::KILO_EPSILON ? $default / 1000.0 : $weight;
