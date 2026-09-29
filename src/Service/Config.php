@@ -41,7 +41,7 @@ class Config extends AbstractHelper
     public const XML_PATH_DHLFORYOU_SETTINGS        = 'myparcelnl_magento_dhlforyou_settings/';
     public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
     public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelnl_magento_dhlparcelconnect_settings/';
-    public const XML_PATH_UPS_SETTINGS              = 'myparcelnl_magento_ups_settings/';
+    public const XML_PATH_UPSSTANDARD_SETTINGS      = 'myparcelnl_magento_upsstandard_settings/';
     public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
     public const XML_PATH_GLS_SETTINGS              = 'myparcelnl_magento_gls_settings/';
     public const XML_PATH_TRUNKRS_SETTINGS          = 'myparcelnl_magento_trunkrs_settings/';
@@ -65,7 +65,7 @@ class Config extends AbstractHelper
             CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
             CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
             CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
-            CarrierUPSStandard::NAME      => self::XML_PATH_UPS_SETTINGS,
+            CarrierUPSStandard::NAME      => self::XML_PATH_UPSSTANDARD_SETTINGS,
             CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
             CarrierGLS::NAME              => self::XML_PATH_GLS_SETTINGS,
             CarrierTrunkrs::NAME          => self::XML_PATH_TRUNKRS_SETTINGS,
