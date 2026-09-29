@@ -32,9 +32,19 @@ it('sends the request the API expects: v2 keys, version=2 accept, the given key'
         // This call builds its own header rather than going through the SDK trait, so it is the one
         // that silently drifts. It used to send a format of its own: MyParcelMagento/5.9.0; PHP/8.x.
         ->and($sent->getHeaderLine('User-Agent'))->toBe(createUserAgent()->header())
+        // Without it the API answers `tracked` and never offers `noTracking`.
+        ->and($sent->getHeaderLine('x-dmp-no-tracking'))->toBe('true')
         ->and($body['recipient']['countryCode'])->toBe('NL')
         ->and($body['carrier'])->toBe('POSTNL')
         ->and($body['packageType'])->toBe('PACKAGE');
+});
+
+it('sends the feature flags on the contract definitions request too', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], contractDefinitionsBody([contractDefinitionItem()]))]);
+
+    $c['client']->sendContractDefinitions(CAPABILITIES_TEST_API_KEY);
+
+    expect($c['history'][0]['request']->getHeaderLine('x-dmp-no-tracking'))->toBe('true');
 });
 
 it('returns the results array verbatim, keys the SDK does not declare included', function () {

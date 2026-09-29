@@ -111,8 +111,14 @@ class ShipmentApiProvider
         }
 
         // The third argument is the transport User-Agent the generated client sends; without it
-        // every Core API call goes out under the OpenAPI generator's default.
+        // every Core API call goes out under the OpenAPI generator's default. The fourth needs an
+        // SDK release after 11.0.0-beta.35; an older SDK ignores it.
         return $this->clients[$apiKey]
-            ?? ($this->clients[$apiKey] = ShipmentApiFactory::make($apiKey, null, $this->userAgent->header()));
+            ?? ($this->clients[$apiKey] = ShipmentApiFactory::make(
+                $apiKey,
+                null,
+                $this->userAgent->header(),
+                Config::API_FEATURE_FLAGS
+            ));
     }
 }
