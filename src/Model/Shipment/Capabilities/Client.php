@@ -261,7 +261,7 @@ class Client
         foreach (array_keys($sent) as $name) {
             $key = ShipmentOption::toV2Name((string) $name);
 
-            if (null === $key || ! array_key_exists($key, $mapped)) {
+            if (! array_key_exists($key, $mapped)) {
                 $dropped[] = (string) $name;
             }
         }

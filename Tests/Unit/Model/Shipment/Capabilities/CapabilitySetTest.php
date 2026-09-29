@@ -66,7 +66,15 @@ it('keeps an unrecognised value and reports it instead of dropping it', function
         ->and($unknown['deliveryType'])->toBe(['TELEPORT_DELIVERY'])
         ->and($unknown['option'])->toBe(['aBrandNewOption'])
         ->and($unknown['carrier'])->toBe(['FUTURE_CARRIER'])
-        ->and($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME]);
+        ->and($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME])
+        ->and($set->optionsFor(Carrier::POSTNL))->toBe([ShipmentOption::SIGNATURE]);
+});
+
+it('names a carrier it has no settings for, and still reports it', function () {
+    $set = CapabilitySet::fromApiResults([capabilityResult(['carrier' => 'HOOPLA'])]);
+
+    expect($set->carriers())->toBe(['hoopla'])
+        ->and($set->unknownValues()['carrier'])->toBe(['HOOPLA']);
 });
 
 it('reads an option value verbatim, so insurance bounds survive', function () {
