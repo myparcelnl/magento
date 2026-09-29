@@ -23,4 +23,9 @@ trait MapsV2Names
 
         return false === $name ? null : $name;
     }
+
+    public static function knowsV2Name(string $v2Name): bool
+    {
+        return in_array($v2Name, self::V2_NAMES_MAP, true);
+    }
 }
