@@ -200,7 +200,7 @@ final class Catalogue
     private static function deliveryGroup(string $carrier, CarrierShape $shape, bool $exportable): Group
     {
         $path   = Config::carrierPath($carrier) . 'delivery/';
-        $active = self::activation(Field::select($path . 'active', 'Delivery enabled', Yesno::class), $exportable);
+        $active = self::activation(Field::select($path . 'active', 'Delivery enabled', Yesno::class)->withDefault('0'), $exportable);
         $fields = [$active];
 
         foreach ($shape->checkoutOptions() as $option) {
@@ -224,7 +224,7 @@ final class Catalogue
      */
     private static function toggleWithFee(string $path, Field $parent, string $name, string $label, bool $withFee): array
     {
-        $toggle = Field::select("{$path}{$name}_active", $label, Yesno::class)->dependsOn($parent);
+        $toggle = Field::select("{$path}{$name}_active", $label, Yesno::class)->withDefault('0')->dependsOn($parent);
 
         if (! $withFee) {
             return [$toggle];
@@ -234,6 +234,7 @@ final class Catalogue
             $toggle,
             Field::text("{$path}{$name}_fee", "$label fee")
                 ->withTooltip(self::FEE_TOOLTIP)
+                ->withDefault('0')
                 ->dependsOn($parent)
                 ->dependsOn($toggle),
         ];
@@ -252,10 +253,12 @@ final class Catalogue
 
         foreach ($days as $number => $day) {
             $active   = Field::select("{$path}day_{$number}_active", $day, Yesno::class)
-                ->withTooltip('Whether you drop off packages on this day.');
+                ->withTooltip('Whether you drop off packages on this day.')
+                ->withDefault('0');
             $fields[] = $active;
             $fields[] = Field::time("{$path}cutoff_time_{$number}", 'Cut-off time')
                 ->withTooltip('For orders before this time, the drop-off is considered done on this day.')
+                ->withDefault('15,30,00')
                 ->dependsOn($active);
         }
 
@@ -310,7 +313,7 @@ final class Catalogue
             "{$path}{$option}_active",
             "Automate '$label'",
             $largeFormat ? LargeFormatOptions::class : Yesno::class
-        );
+        )->withDefault('0');
 
         if (isset(self::OPTION_TOOLTIPS[$option])) {
             $toggle = $toggle->withTooltip(self::OPTION_TOOLTIPS[$option]);
@@ -322,6 +325,7 @@ final class Catalogue
 
         $fromPrice = Field::text("{$path}{$option}_from_price", 'From price')
             ->withValidate(self::PRICE_VALIDATE)
+            ->withDefault('1')
             ->dependsOn($toggle, $largeFormat ? 'price' : '1');
 
         if (in_array($option, self::FROM_PRICE_TOOLTIP_OPTIONS, true)) {
@@ -344,19 +348,22 @@ final class Catalogue
         $fields = [
             Field::text($path . 'insurance_from_price', 'Insure orders from (€)')
                 ->withTooltip('The minimum amount from when insurance is active.')
-                ->withValidate(self::PRICE_VALIDATE),
+                ->withValidate(self::PRICE_VALIDATE)
+                ->withDefault('0'),
         ];
 
         foreach (self::INSURANCE_ZONES as $zone) {
             [$label, $tooltip] = $zones[$zone];
             $fields[]          = Field::text("{$path}insurance_{$zone}_amount", $label)
                 ->withTooltip($tooltip)
-                ->withFrontendModel(InsuranceAmount::class);
+                ->withFrontendModel(InsuranceAmount::class)
+                ->withDefault('0');
         }
 
         $fields[] = Field::text($path . 'insurance_percentage', 'Insure orders for percentage')
             ->withTooltip('Use percentage of total order amount for insurance.')
-            ->withValidate('validate-number validate-number-range number-range-0-100');
+            ->withValidate('validate-number validate-number-range number-range-0-100')
+            ->withDefault('0');
 
         return $fields;
     }
@@ -364,12 +371,14 @@ final class Catalogue
     private static function digitalStampGroup(string $path): Group
     {
         $active = Field::select($path . 'active', 'Automate digital stamp', Yesno::class)
-            ->withTooltip('Select automatically digital stamp packages based on weight');
+            ->withTooltip('Select automatically digital stamp packages based on weight')
+            ->withDefault('0');
 
         return new Group('digital_stamp', 'Digital stamp settings', [
             $active,
             Field::select($path . 'default_weight', 'Default weight', DigitalStampWeightOptions::class)
                 ->withTooltip('Price depends on the weight. Are the weights correctly filled in for all products? Choose \'No standard weight\' to let MyParcel calculate the weight itself. Select a standard weight here when the products do not contain correct weights.')
+                ->withDefault('0')
                 ->dependsOn($active),
         ]);
     }
@@ -377,11 +386,13 @@ final class Catalogue
     private static function mailboxGroup(CarrierShape $shape, string $path, bool $international): Group
     {
         $active = Field::select($path . 'active', 'Automate mailbox', Yesno::class)
-            ->withTooltip('Select automatically mailbox packages based on weight or volume');
+            ->withTooltip('Select automatically mailbox packages based on weight or volume')
+            ->withDefault('0');
         $fields = [
             $active,
             Field::text($path . 'weight', 'Mailbox weight')
                 ->withTooltip('To use this optimally, set a weight or \'Fit in mailbox\' volume of each product. Regardless, shipments heavier than the weight specified here will not be mailbox.')
+                ->withDefault('2000')
                 ->dependsOn($active),
         ];
 
@@ -393,6 +404,7 @@ final class Catalogue
         if ($international) {
             $fields[] = Field::select($path . 'international_active', 'International mailbox', Yesno::class)
                 ->withTooltip('Only available for certain contracts. If this is not in your contract, the setting has no effect.')
+                ->withDefault('0')
                 ->dependsOn($active);
         }
 
@@ -402,12 +414,14 @@ final class Catalogue
     private static function packageSmallGroup(string $path): Group
     {
         $active = Field::select($path . 'active', 'Automate Small Package', Yesno::class)
-            ->withTooltip('Automatically select package type \'Small Package\' for orders under 2000 grams. Package type will be \'Small Package\' when a product has setting \'Fit in mailbox\' set to 0 and the weight is under 2000 grams.');
+            ->withTooltip('Automatically select package type \'Small Package\' for orders under 2000 grams. Package type will be \'Small Package\' when a product has setting \'Fit in mailbox\' set to 0 and the weight is under 2000 grams.')
+            ->withDefault('0');
 
         return new Group('package_small', 'Small Package settings', [
             $active,
             Field::text($path . 'weight', 'Small Package weight')
                 ->withTooltip('Shipments heavier than the weight specified here will not be of package type \'Small Package\'.')
+                ->withDefault('2000')
                 ->dependsOn($active),
         ]);
     }
@@ -415,24 +429,27 @@ final class Catalogue
     private static function timedDeliveryGroup(string $path, string $id, string $label): Group
     {
         $active = Field::select($path . 'active', "$label active", AgeCheckNo::class)
-            ->withTooltip("If age check is active then the $id delivery is not possible");
+            ->withTooltip("If age check is active then the $id delivery is not possible")
+            ->withDefault('0');
 
         return new Group($id, $label, [
             $active,
             Field::text($path . 'fee', "$label fee")
                 ->withTooltip(self::FEE_TOOLTIP)
+                ->withDefault('0')
                 ->dependsOn($active),
         ]);
     }
 
     private static function pickupGroup(string $path, bool $exportable): Group
     {
-        $active = self::activation(Field::select($path . 'active', 'Pickup active', Yesno::class), $exportable);
+        $active = self::activation(Field::select($path . 'active', 'Pickup active', Yesno::class)->withDefault('0'), $exportable);
 
         return new Group('pickup', 'Pickup locations', [
             $active,
             Field::text($path . 'fee', 'Pickup fee')
                 ->withTooltip(self::PICKUP_FEE_TOOLTIP)
+                ->withDefault('0')
                 ->dependsOn($active),
         ]);
     }
@@ -476,7 +493,8 @@ final class Catalogue
                 ->withFrontendModel(DeliveryCostsMatrix::class),
             Field::textarea($path . 'delivery_costs', ''),
             Field::select($path . 'use_free_shipping', 'Use Free Shipping', Yesno::class)
-                ->withTooltip('Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.'),
+                ->withTooltip('Whether the MyParcel delivery costs are 0 when the Free Shipping delivery method is available.')
+                ->withDefault('1'),
         ]);
     }
 
@@ -486,9 +504,11 @@ final class Catalogue
 
         return new Group('date_settings', 'Date settings', [
             Field::select($path . 'deliverydays_window', 'Number of days', NumberOfDays::class)
-                ->withTooltip('Amount of days in the future customers can choose from in the checkout.'),
+                ->withTooltip('Amount of days in the future customers can choose from in the checkout.')
+                ->withDefault('7'),
             Field::select($path . 'dropoff_delay', 'Drop-off delay', DropOffDelayDays::class)
-                ->withTooltip('This option allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.'),
+                ->withTooltip('This option allows you to set the number of days it takes you to pick, pack and hand in your parcels when ordered before the cutoff time.')
+                ->withDefault('0'),
         ]);
     }
 
@@ -501,13 +521,17 @@ final class Catalogue
                 ->withTooltip('With \'Export entire order\', MyParcel will export every order in its entirety to the back office for further processing.')
                 ->inDefaultScopeOnly(),
             Field::select($path . 'paper_type', 'Paper type', PaperType::class)
-                ->withTooltip('Select a standard orientation for printing labels.'),
+                ->withTooltip('Select a standard orientation for printing labels.')
+                ->withDefault('A4'),
             Field::text($path . 'label_description', 'Label description')
-                ->withTooltip('This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.'),
+                ->withTooltip('This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.')
+                ->withDefault('%order_nr%'),
             Field::text($path . 'country_of_origin', 'Country of origin')
-                ->withTooltip('This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.'),
+                ->withTooltip('This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.')
+                ->withDefault('NL'),
             Field::select($path . 'create_concept_after_invoice', 'Create Concept', Yesno::class)
-                ->withTooltip('Enable create label concept, when invoice is printed.'),
+                ->withTooltip('Enable create label concept, when invoice is printed.')
+                ->withDefault('0'),
             Field::select($path . 'weight_indication', 'I use the following weight type', WeightType::class)
                 ->withTooltip('This is the type of weight that I use with my products.')
                 ->withNoteModel(WeightUnitNote::class)
@@ -541,18 +565,22 @@ final class Catalogue
 
         return new Group('shipping_methods', 'Delivery methods', [
             Field::select($path . 'show_details_in_summary', 'Show details in summary', Yesno::class)
-                ->withTooltip('Where the shipping method is displayed, show the currently known details (yes) or the method title (no).'),
+                ->withTooltip('Where the shipping method is displayed, show the currently known details (yes) or the method title (no).')
+                ->withDefault('1'),
             Field::select($path . 'pickup_locations_view', 'Preferred pickup locations view', PickupLocationsView::class)
                 ->withTooltip('When pickup locations are enabled, the user can choose between map or list view. This setting decides which option will be selected first, upon opening the pickup locations.'),
-            Field::select($path . 'pickup_locations_view_change_allowed', 'Switching the view is allowed', Yesno::class),
+            Field::select($path . 'pickup_locations_view_change_allowed', 'Switching the view is allowed', Yesno::class)
+                ->withDefault('1'),
             Field::select($path . 'delivery_options_prices', 'Price shown in delivery options', PriceDeliveryOptionsView::class)
                 ->withTooltip('This determines the way the price of delivery is shown to the customer through the delivery options. The price can be shown as a total for each delivery option or as a surchage on top of the regular shipping price.'),
             Field::select($path . 'exclude_parcel_lockers', 'Exclude parcel lockers', Yesno::class)
                 ->withTooltip('When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.'),
             Field::select($path . 'compact_view', 'Compact view', Yesno::class)
-                ->withTooltip('When enabled, the delivery options widget is rendered in compact mode.'),
+                ->withTooltip('When enabled, the delivery options widget is rendered in compact mode.')
+                ->withDefault('0'),
             Field::select($path . 'pop_up_map', 'Pop-up map', Yesno::class)
-                ->withTooltip('When enabled, the pickup location map is displayed in a pop-up.'),
+                ->withTooltip('When enabled, the pickup location map is displayed in a pop-up.')
+                ->withDefault('0'),
         ]);
     }
 
