@@ -481,3 +481,5 @@ No MyParcel shipments were found to make a return label for.,Er zijn geen MyParc
 "This carrier needs a module update before orders can ship with it.","Deze vervoerder heeft een module-update nodig voordat er zendingen mee verstuurd kunnen worden."
 "MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel kon de vervoerders van dit account niet lezen, daarom wordt geen vervoerder getoond. Controleer de API key."
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 is niet ingeschakeld: deze vervoerder heeft een module-update nodig voordat er zendingen mee verstuurd kunnen worden."
+"MyParcel Backoffice settings imported.","MyParcel Backoffice-instellingen geïmporteerd."
+"Reloading the page...","De pagina wordt opnieuw geladen..."
