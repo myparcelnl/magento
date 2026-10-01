@@ -474,3 +474,4 @@ No MyParcel shipments were found to make a return label for.,Aucun envoi MyParce
 "This carrier needs a module update before orders can ship with it.","Ce transporteur nécessite une mise à jour du module avant de pouvoir expédier des envois."
 "MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel n'a pas pu lire les transporteurs de ce compte. Aucun transporteur n'est donc affiché. Vérifiez l’API key."
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 n'a pas été activé : ce transporteur nécessite une mise à jour du module avant de pouvoir expédier des envois."
+"Reloading the page...","Rechargement de la page..."
