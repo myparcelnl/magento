@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions as ResolvedOptions;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
@@ -42,7 +41,7 @@ it('reads the option out of the posted parameters', function (string $option) {
 })->with(ShipmentOption::TO_CHECK);
 
 it('resolves the option from the posted options', function (string $option) {
-    $resolved = createShipmentOptions('NL', Carrier::POSTNL, [$option => '1'])->resolve();
+    $resolved = createShipmentOptions('NL', 'postnl', [$option => '1'])->resolve();
 
     expect($resolved->toArray()[$option] ?? null)->toBeTrue();
 })->with(ShipmentOption::TO_CHECK);
