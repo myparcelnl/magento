@@ -72,9 +72,10 @@ An endpoint that must accept an API access token follows [`docs/design/adding-a-
 `Model\Settings\Blueprint\Generator` generates the admin settings per scope from the contract definitions of the scope's API key. Field templates and the module-owned lists are in `Blueprint\Catalogue`. The form's paths at a scope are also the save allow-list in `Observer\ConfigChange`. To add a setting:
 
 1. Add a `Field` to its group in `Blueprint\Catalogue`, and its label and tooltip to `i18n/`. `Tests/Unit/Model/Settings/Blueprint/GeneratorParityTest.php` pins the form against the legacy JSON, so name a moved or changed path there.
-2. For a custom widget, give the field a `frontend_model`: a block in `src/Block/System/Config/Form/`.
-3. Save with `Magento\Framework\App\Config\Storage\WriterInterface::save()`.
-4. To check whether a scope has its own value, use `Settings::hasOwnValue($path, $scope, $scopeId)`. It does not fall back to the parent scope.
+2. Give it a value with `withDefault()` if it needs one before a merchant saves it. A switch or a fee defaults to `'0'`. `etc/config.xml` holds no MyParcel defaults: `App\Config\Source\GeneratedDefaults` supplies them at default scope, below every saved row.
+3. For a custom widget, give the field a `frontend_model`: a block in `src/Block/System/Config/Form/`.
+4. Save with `Magento\Framework\App\Config\Storage\WriterInterface::save()`.
+5. To check whether a scope has its own value, use `Settings::hasOwnValue($path, $scope, $scopeId)`. It does not fall back to the parent scope.
 
 ### Adding a carrier
 
