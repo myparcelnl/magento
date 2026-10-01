@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Service\Config;
 
-it('derives every configured carrier path from the carrier name', function () {
-    foreach (Config::CARRIERS_XML_PATH_MAP as $carrier => $path) {
-        expect(Config::carrierPath($carrier))->toBe($path)
+it('derives every legacy carrier path from the carrier name', function () {
+    foreach (legacyCarriers() as $carrier) {
+        $path = Config::carrierPath($carrier);
+
+        expect($path)->toBe("myparcelnl_magento_{$carrier}_settings/")
             ->and(Config::carrierFromPath($path . 'delivery/active'))->toBe($carrier);
     }
 });

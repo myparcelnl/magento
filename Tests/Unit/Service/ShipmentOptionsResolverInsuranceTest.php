@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -42,7 +41,7 @@ function insuranceResolver(
 
     return createShipmentOptions(
         $countryId,
-        Carrier::POSTNL,
+        'postnl',
         null === $postedAmount ? [] : ['insurance' => $postedAmount],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => $packageType],
@@ -127,7 +126,7 @@ it('asks with the package type set, so the bound is not a union', function () {
 
     $resolver = createShipmentOptions(
         'NL',
-        Carrier::POSTNL,
+        'postnl',
         ['insurance' => 137],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => PackageType::MAILBOX_NAME],
@@ -152,7 +151,7 @@ it('does not ask at all for a package type it cannot name on the wire', function
 
     $resolver = createShipmentOptions(
         'NL',
-        Carrier::POSTNL,
+        'postnl',
         ['insurance' => 9000],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => 'pallet_xl'],
@@ -184,7 +183,7 @@ it('clamps against the type the admin switched to, not the one the checkout stor
 
     $resolver = createShipmentOptions(
         'NL',
-        Carrier::POSTNL,
+        'postnl',
         ['insurance' => 500],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => PackageType::MAILBOX_NAME],

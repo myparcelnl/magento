@@ -6,7 +6,6 @@ use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
@@ -40,8 +39,8 @@ it('fetches once and serves the cache after that', function () {
     $first  = $r['repository']->forStore(1, $request);
     $second = $r['repository']->forStore(1, $request);
 
-    expect($first->carriers())->toBe([Carrier::POSTNL])
-        ->and($second->carriers())->toBe([Carrier::POSTNL])
+    expect($first->carriers())->toBe(['postnl'])
+        ->and($second->carriers())->toBe(['postnl'])
         ->and($r['history'])->toHaveCount(1);
 });
 
@@ -70,8 +69,8 @@ it('keeps two accounts apart, and never serves one from the other', function () 
     $first   = $r['repository']->forApiKey('key-one', $request);
     $second  = $r['repository']->forApiKey('key-two', $request);
 
-    expect($first->carriers())->toBe([Carrier::POSTNL])
-        ->and($second->carriers())->toBe([Carrier::DPD])
+    expect($first->carriers())->toBe(['postnl'])
+        ->and($second->carriers())->toBe(['dpd'])
         ->and($r['history'])->toHaveCount(2);
 });
 
@@ -114,7 +113,7 @@ it('fails open on a 500, a timeout and an undecodable body', function () {
         $set = $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
 
         expect($set->isPermissive())->toBeTrue()
-            ->and($set->hasOption(Carrier::POSTNL, null, ShipmentOption::AGE_CHECK))->toBeTrue();
+            ->and($set->hasOption('postnl', null, ShipmentOption::AGE_CHECK))->toBeTrue();
     }
 });
 
@@ -133,7 +132,7 @@ it('serves the cached answer when a later refresh would fail', function () {
     $set = $again['repository']->forStore(1, $request);
 
     expect($set->isPermissive())->toBeFalse()
-        ->and($set->carriers())->toBe([Carrier::POSTNL])
+        ->and($set->carriers())->toBe(['postnl'])
         ->and($again['history'])->toHaveCount(0);
 });
 
@@ -172,7 +171,7 @@ it('logs each kind of unrecognised value once per fetch, and no option, which al
     $set = $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
 
     // Logged, and still usable: the recognised half of the response survives the unknown half.
-    expect($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME]);
+    expect($set->packageTypesFor('postnl'))->toBe([PackageType::PACKAGE_NAME]);
 });
 
 // ---- not hammering a failing endpoint -------------------------------------
@@ -240,7 +239,7 @@ it('prefers a previous good answer over a recent failure', function () {
     $set = $both['repository']->forStore(1, $request);
 
     expect($set->isPermissive())->toBeFalse()
-        ->and($set->carriers())->toBe([Carrier::POSTNL])
+        ->and($set->carriers())->toBe(['postnl'])
         ->and($both['history'])->toHaveCount(0);
 });
 
