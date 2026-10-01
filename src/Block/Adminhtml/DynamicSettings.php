@@ -98,17 +98,6 @@ class DynamicSettings extends Template
     }
 
     /**
-     * Check if a field should be visible in the current scope.
-     *
-     * @param array $field
-     * @return bool
-     */
-    public function isFieldVisibleInCurrentScope(array $field): bool
-    {
-        return $this->settings->isFieldVisibleInScope($field, $this->getCurrentScopeName());
-    }
-
-    /**
      * Get the current value for a field.
      *
      * @param array $field
