@@ -61,7 +61,7 @@ it('allows multicollo when the account reports room for more than one collo', fu
     $c = createCollectionAnswering([colloResponse(10)]);
 
     expect($c['collection']->canUseMultiCollo(
-        shipmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE), 'a-key'
+        shipmentFor('postnl', 'NL', PackageType::PACKAGE), 'a-key'
     ))->toBeTrue();
 });
 
@@ -71,7 +71,7 @@ it('refuses multicollo when the account reports a maximum of one', function () {
     $c = createCollectionAnswering([colloResponse(1)]);
 
     expect($c['collection']->canUseMultiCollo(
-        shipmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE), 'a-key'
+        shipmentFor('postnl', 'NL', PackageType::PACKAGE), 'a-key'
     ))->toBeFalse();
 });
 
@@ -84,7 +84,7 @@ it('no longer hardcodes PostNL and NL or BE', function () {
     ]))]);
 
     expect($c['collection']->canUseMultiCollo(
-        shipmentFor(Carrier::DPD, 'FR', PackageType::PACKAGE), 'a-key'
+        shipmentFor('dpd', 'FR', PackageType::PACKAGE), 'a-key'
     ))->toBeTrue();
 });
 
@@ -96,7 +96,7 @@ it('refuses rather than fails open when the maximum is unknown', function () {
     $c = createCollectionAnswering([new GuzzleHttp\Psr7\Response(500, [], '')]);
 
     expect($c['collection']->canUseMultiCollo(
-        shipmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE), 'a-key'
+        shipmentFor('postnl', 'NL', PackageType::PACKAGE), 'a-key'
     ))->toBeFalse();
 });
 
@@ -104,11 +104,11 @@ it('asks nothing when the shipment cannot say what it is', function () {
     // An empty response queue: any lookup would exhaust the handler and fail the test.
     $c = createCollectionAnswering([]);
 
-    expect($c['collection']->canUseMultiCollo(shipmentFor(Carrier::POSTNL, null, PackageType::PACKAGE), 'a-key'))
+    expect($c['collection']->canUseMultiCollo(shipmentFor('postnl', null, PackageType::PACKAGE), 'a-key'))
         ->toBeFalse('no country')
-        ->and($c['collection']->canUseMultiCollo(shipmentFor(Carrier::POSTNL, 'NL', 99), 'a-key'))
+        ->and($c['collection']->canUseMultiCollo(shipmentFor('postnl', 'NL', 99), 'a-key'))
         ->toBeFalse('a package type with no name')
-        ->and($c['collection']->canUseMultiCollo(shipmentFor(Carrier::POSTNL, 'NL', PackageType::PACKAGE), ''))
+        ->and($c['collection']->canUseMultiCollo(shipmentFor('postnl', 'NL', PackageType::PACKAGE), ''))
         ->toBeFalse('no api key')
         ->and($c['history'])->toHaveCount(0);
 });
