@@ -52,6 +52,7 @@ function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface
 {
     return new Importer(
         Mockery::spy(WriterInterface::class),
+        mockScopeConfig($rowsByPath),
         new Fingerprint(),
         $logger ?? Mockery::spy(LoggerInterface::class),
         $client ?? Mockery::spy(Client::class),

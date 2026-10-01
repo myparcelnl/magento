@@ -508,3 +508,4 @@ this order is a pickup but carries no pickup location,"denne ordre er en afhentn
 "This carrier needs a module update before orders can ship with it.","Denne transportør kræver en modulopdatering, før der kan sendes forsendelser med den."
 "MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel kunne ikke læse denne kontos transportører, så ingen transportør vises. Kontrollér API-nøglen."
 "%1 needs a module update before orders can ship with it","%1 kræver en modulopdatering, før der kan sendes forsendelser med den"
+"Reloading the page...","Siden genindlæses..."

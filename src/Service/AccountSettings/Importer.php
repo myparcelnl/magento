@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\AccountSettings;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
@@ -27,6 +28,7 @@ use Throwable;
 class Importer
 {
     private WriterInterface      $configWriter;
+    private ScopeConfigInterface $scopeConfig;
     private Fingerprint          $fingerprint;
     private LoggerInterface      $logger;
     private Client               $client;
@@ -35,6 +37,7 @@ class Importer
 
     public function __construct(
         WriterInterface      $configWriter,
+        ScopeConfigInterface $scopeConfig,
         Fingerprint          $fingerprint,
         LoggerInterface      $logger,
         Client               $client,
@@ -42,6 +45,7 @@ class Importer
         ContractDefinitions  $contractDefinitions
     ) {
         $this->configWriter        = $configWriter;
+        $this->scopeConfig         = $scopeConfig;
         $this->fingerprint         = $fingerprint;
         $this->logger              = $logger;
         $this->client              = $client;
@@ -63,18 +67,20 @@ class Importer
      * Fetch the account and replace the stored row. Always costs an API call: to heal a missing row
      * only, check hasSettingsFor() first.
      *
+     * @return bool whether the stored row changed
+     *
      * @throws \MyParcelNL\Sdk\Exception\ApiException
      * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
      * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
      */
-    public function importFor(string $apiKey): void
+    public function importFor(string $apiKey): bool
     {
         $fingerprint = $this->fingerprint->of($apiKey);
+        $path        = Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint;
+        $before      = $this->scopeConfig->getValue($path);
+        $row         = (string) json_encode($this->createArray($this->fetchConfigurations($apiKey)));
 
-        $this->configWriter->save(
-            Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint,
-            json_encode($this->createArray($this->fetchConfigurations($apiKey)))
-        );
+        $this->configWriter->save($path, $row);
 
         // Pairs with the deletion notices in Maintenance, so the log reads as a history of which
         // account's settings were written and removed when.
@@ -84,6 +90,8 @@ class Importer
                 substr($fingerprint, 0, Fingerprint::LABEL_LENGTH)
             )
         );
+
+        return $before !== $row;
     }
 
     /**

@@ -512,3 +512,4 @@ this order is a pickup but carries no pickup location,"questo ordine è un ritir
 "This carrier needs a module update before orders can ship with it.","Questo corriere richiede un aggiornamento del modulo prima di poter spedire con esso."
 "MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel non ha potuto leggere i corrieri di questo account, quindi non viene mostrato nessun corriere. Controlla l’API key."
 "%1 needs a module update before orders can ship with it","%1 richiede un aggiornamento del modulo prima di poter spedire con esso"
+"Reloading the page...","Ricaricamento della pagina..."
