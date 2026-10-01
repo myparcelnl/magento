@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -14,16 +13,16 @@ use MyParcelNL\Magento\Service\Config;
  */
 function optionSourceFor(string $option, array $settings, array $chosen = [], string $productAgeCheck = ''): ?int
 {
-    $config = createConfig([], [Carrier::POSTNL => ['default_options' => $settings]]);
+    $config = createConfig([], ['postnl' => ['default_options' => $settings]]);
 
     mockAttributeValueLookup($productAgeCheck, [Config::class => $config]);
 
     $order = createOrder([
         'getItems'        => [createOrderItem(['product_id' => '7'])],
-        'deliveryOptions' => json_encode(['carrier' => Carrier::POSTNL, 'deliveryType' => 'standard', 'shipmentOptions' => $chosen]),
+        'deliveryOptions' => json_encode(['carrier' => 'postnl', 'deliveryType' => 'standard', 'shipmentOptions' => $chosen]),
     ]);
 
-    return (new DefaultOptions($order))->sourceOf($option, Carrier::POSTNL);
+    return (new DefaultOptions($order))->sourceOf($option, 'postnl');
 }
 
 it('names the configuration when only the carrier setting forces the option', function () {

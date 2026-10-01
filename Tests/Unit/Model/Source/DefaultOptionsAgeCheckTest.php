@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
@@ -18,14 +17,14 @@ use MyParcelNL\Magento\Service\Config;
 function ageCheckDefaultFor(string $productValue, bool $carrierDefault): bool
 {
     $config = createConfig([], [
-        Carrier::POSTNL => ['default_options' => ['age_check_active' => $carrierDefault ? '1' : '0']],
+        'postnl' => ['default_options' => ['age_check_active' => $carrierDefault ? '1' : '0']],
     ]);
 
     mockAttributeValueLookup($productValue, [Config::class => $config]);
 
     $order = createOrder(['getItems' => [createOrderItem(['product_id' => '7'])]]);
 
-    return (new DefaultOptions($order))->hasOptionSet(ShipmentOption::AGE_CHECK, Carrier::POSTNL);
+    return (new DefaultOptions($order))->hasOptionSet(ShipmentOption::AGE_CHECK, 'postnl');
 }
 
 it('is on when a product is 18+, whatever the carrier setting says', function () {
