@@ -8,7 +8,8 @@ namespace MyParcelNL\Magento\Model\Settings\Blueprint;
  * One setting on the generated settings form, serialised to the array dynamic_settings.phtml reads.
  *
  * Immutable: every with*() returns a copy. A dependency holds the Field it points at, never a path
- * string, so it cannot point at a field that does not exist.
+ * string, so it cannot point at a field that does not exist. The default is not part of the form
+ * array: the GeneratedDefaults config source reads it, so it acts as the field's config.xml value.
  */
 final class Field
 {
@@ -36,6 +37,8 @@ final class Field
     private bool $defaultScopeOnly = false;
 
     private bool $disabled = false;
+
+    private ?string $default = null;
 
     private function __construct(string $path, string $type, string $label)
     {
@@ -94,6 +97,15 @@ final class Field
         return $this->with('note_model', $noteModel);
     }
 
+    /** What the path answers until a merchant saves it. */
+    public function withDefault(string $default): self
+    {
+        $copy          = clone $this;
+        $copy->default = $default;
+
+        return $copy;
+    }
+
     /** Shown only while $field holds $value. */
     public function dependsOn(Field $field, string $value = '1'): self
     {
@@ -124,6 +136,11 @@ final class Field
     public function isShownAt(string $scopeName): bool
     {
         return 'default' === $scopeName || ! $this->defaultScopeOnly;
+    }
+
+    public function default(): ?string
+    {
+        return $this->default;
     }
 
     public function path(): string
