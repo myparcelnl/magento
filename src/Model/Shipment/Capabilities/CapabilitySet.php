@@ -9,7 +9,6 @@ use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ModelInterface;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesContractDefinitionsResponseContractDefinitionsV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesResponseCapabilityV2;
@@ -66,22 +65,6 @@ class CapabilitySet
     public function isPermissive(): bool
     {
         return $this->permissive;
-    }
-
-    /**
-     * Get the carriers this module has settings for that the account offers; all of them when permissive.
-     *
-     * @return string[]
-     */
-    public function configuredCarriers(): array
-    {
-        $configured = array_keys(Config::CARRIERS_XML_PATH_MAP);
-
-        if ($this->permissive) {
-            return $configured;
-        }
-
-        return array_values(array_intersect($configured, $this->carriers()));
     }
 
     /**

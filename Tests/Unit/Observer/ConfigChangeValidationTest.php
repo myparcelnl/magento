@@ -15,6 +15,8 @@ use MyParcelNL\Magento\Model\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Observer\ConfigChange;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
+use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Settings;
 
 /**
@@ -66,6 +68,8 @@ function stubValidator(string $handles, ?string $rejection = null, ?callable $on
  * @param  array<string, array<string, string>> $posted
  * @param  SettingValidatorInterface[]          $validators
  * @param  array<string, string|null>           $stored what already sits at this scope, by path
+ * @param  string[]|null                        $offered the form's paths at this scope; null offers every posted one
+ * @param  array{0: string, 1: int}             $scope
  * @return array{writer: WriterInterface, messages: ManagerInterface, caches: TypeListInterface, appConfig: ReinitableConfigInterface}
  */
 function saveDynamicSettings(
@@ -74,17 +78,19 @@ function saveDynamicSettings(
     array                      $stored = [],
     ?ScopeConfigInterface      $scopeConfig = null,
     ?ReinitableConfigInterface $appConfig = null,
-    ?Importer                  $importer = null
+    ?Importer                  $importer = null,
+    ?array                     $offered = null,
+    array                      $scope = ['default', 0]
 ): array {
     $request = Mockery::mock(RequestInterface::class);
-    $request->shouldReceive('getParam')->with('scope', Mockery::any())->andReturn('default');
-    $request->shouldReceive('getParam')->with('scope_id', Mockery::any())->andReturn(0);
+    $request->shouldReceive('getParam')->with('scope', Mockery::any())->andReturn($scope[0]);
+    $request->shouldReceive('getParam')->with('scope_id', Mockery::any())->andReturn($scope[1]);
     $request->shouldReceive('getParam')->with('config', Mockery::any())->andReturn($posted);
 
     $scopeConfig = $scopeConfig ?? mockScopeConfig();
 
     $settings = Mockery::mock(Settings::class);
-    $settings->shouldReceive('getAllFieldPaths')->andReturn(array_keys($posted));
+    $settings->shouldReceive('getAllFieldPaths')->with($scope[0], $scope[1])->andReturn($offered ?? array_keys($posted));
     $settings->shouldReceive('storedValuesAtScope')->andReturn($stored);
 
     $writer    = Mockery::spy(WriterInterface::class);
@@ -313,4 +319,48 @@ it('drops the capability cache once when the api key and another field changed',
     );
 
     $result['caches']->shouldHaveReceived('cleanType')->once();
+});
+
+it('saves against the form of the scope it was posted at', function () {
+    $result = saveDynamicSettings([VALIDATED_PATH => ['value' => '2500']], [], [], null, null, null, null, ['websites', 2]);
+
+    $result['writer']->shouldHaveReceived('save')->with(VALIDATED_PATH, '2500', 'websites', 2);
+});
+
+it('skips a path the form does not offer at this scope, and logs it', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('notice')->once()->with(Mockery::on(static function (string $message): bool {
+        return false !== strpos($message, VALIDATED_PATH) && false !== strpos($message, 'websites 2');
+    }));
+
+    $result = saveDynamicSettings(
+        [VALIDATED_PATH => ['value' => '2500'], OTHER_PATH => ['value' => '80']],
+        [],
+        [],
+        null,
+        null,
+        null,
+        [OTHER_PATH],
+        ['websites', 2]
+    );
+
+    $result['writer']->shouldNotHaveReceived('save', [VALIDATED_PATH, '2500', 'websites', 2]);
+    $result['writer']->shouldHaveReceived('save')->with(OTHER_PATH, '80', 'websites', 2);
+});
+
+it('never writes the stored account row or a token hash, even when the form offers the path', function () {
+    $accountRow = Config::XML_PATH_ACCOUNT_SETTINGS . 'abc123';
+    $logger     = mockLoggerFacade();
+    $logger->shouldReceive('notice')->once();
+
+    // The token button's field path is the hash path, so the form does offer it.
+    $result = saveDynamicSettings([
+        TokenService::CONFIG_PATH => ['value' => 'forged-hash'],
+        $accountRow               => ['value' => '{"contract_definitions":[]}'],
+        OTHER_PATH                => ['value' => '80'],
+    ]);
+
+    $result['writer']->shouldNotHaveReceived('save', [TokenService::CONFIG_PATH, 'forged-hash']);
+    $result['writer']->shouldNotHaveReceived('save', [$accountRow, '{"contract_definitions":[]}']);
+    $result['writer']->shouldHaveReceived('save')->with(OTHER_PATH, '80');
 });

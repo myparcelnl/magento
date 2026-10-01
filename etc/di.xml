@@ -82,6 +82,7 @@
         <arguments>
             <argument name="validators" xsi:type="array">
                 <item name="insurance_amount" xsi:type="object">MyParcelNL\Magento\Model\Settings\Validator\InsuranceAmount</item>
+                <item name="exportable_carrier" xsi:type="object">MyParcelNL\Magento\Model\Settings\Validator\ExportableCarrier</item>
             </argument>
         </arguments>
     </type>

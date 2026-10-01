@@ -9,7 +9,6 @@ use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
@@ -168,7 +167,7 @@ function createLabelDescriptionResolver(?array $shipmentItems, string $template,
         createOrder(['getId' => 7]),
         storedDeliveryOptions(null),
         $objectManager,
-        Carrier::POSTNL,
+        'postnl',
         [],
         null === $shipmentItems ? null : createShipment([
             'getAllItems' => array_map('createShipmentItem', $shipmentItems),

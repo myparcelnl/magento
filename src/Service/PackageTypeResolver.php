@@ -7,12 +7,11 @@ namespace MyParcelNL\Magento\Service;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
  * Resolves the package type one cart ships as with one carrier.
  *
- * resolve() takes a carrier **name**, because the PostNL international check needs it; the other
+ * resolve() takes a carrier **name**, because the international mailbox check needs it; the other
  * methods take a carrier config path, as CartShippingRules does. Holds no state of its own, so one
  * instance serves every carrier in a checkout.
  */
@@ -25,22 +24,22 @@ class PackageTypeResolver
     /** Below this a configured kilo weight counts as unset. */
     private const KILO_EPSILON = 0.00001;
 
-    private Config                     $config;
-    private ProductAttributes          $attributes;
-    private Weight                     $weight;
-    private PostnlMailboxInternational $postnlMailboxInternational;
+    private Config               $config;
+    private ProductAttributes    $attributes;
+    private Weight               $weight;
+    private MailboxInternational $mailboxInternational;
 
     public function __construct(
-        Config                     $config,
-        ProductAttributes          $attributes,
-        Weight                     $weight,
-        PostnlMailboxInternational $postnlMailboxInternational
+        Config               $config,
+        ProductAttributes    $attributes,
+        Weight               $weight,
+        MailboxInternational $mailboxInternational
     )
     {
-        $this->config                     = $config;
-        $this->attributes                 = $attributes;
-        $this->weight                     = $weight;
-        $this->postnlMailboxInternational = $postnlMailboxInternational;
+        $this->config               = $config;
+        $this->attributes           = $attributes;
+        $this->weight               = $weight;
+        $this->mailboxInternational = $mailboxInternational;
     }
 
     /**
@@ -85,7 +84,7 @@ class PackageTypeResolver
         ?int                  $storeId = null
     ): string
     {
-        $carrierPath = Config::CARRIERS_XML_PATH_MAP[$carrierName];
+        $carrierPath = Config::carrierPath($carrierName);
 
         $maxMailboxWeight = $this->maxMailboxWeight($carrierPath, $storeId);
 
@@ -241,6 +240,6 @@ class PackageTypeResolver
             return true;
         }
 
-        return CarrierPostNL::NAME === $carrierName && $this->postnlMailboxInternational->isEnabled($storeId);
+        return $this->mailboxInternational->isEnabledFor($carrierName, $storeId);
     }
 }

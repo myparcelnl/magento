@@ -9,7 +9,7 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * Deletes the stored `mailbox/pickup_mailbox` row of every carrier in Config::CARRIERS_XML_PATH_MAP.
+ * Deletes the stored `mailbox/pickup_mailbox` row of every carrier.
  *
  * Nothing reads the value, and merchants could set it per scope, so rows can exist in every scope.
  *
@@ -30,12 +30,8 @@ class RemovePickupMailboxRows
 
     public function run(): void
     {
-        $paths = array_map(static function (string $carrierPath): string {
-            return $carrierPath . self::FIELD;
-        }, array_values(Config::CARRIERS_XML_PATH_MAP));
-
         $items = $this->collectionFactory->create()
-            ->addFieldToFilter('path', ['in' => $paths])
+            ->addFieldToFilter('path', ['like' => Config::carrierPath('%') . self::FIELD])
             ->getItems();
 
         foreach ($items as $row) {
