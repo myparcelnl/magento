@@ -64,3 +64,11 @@ it('answers for the scope it was asked about', function () {
         ->and(array_column($blueprints->forScope('websites', 2)->toArray()['sections'], 'id'))
         ->toContain('myparcelnl_magento_postnl_settings');
 });
+
+it('leaves a default-only field out of a website scope, so a save there cannot write it', function () {
+    $blueprints = scopeBlueprintsFor(['POSTNL'], mailboxFlagging([]));
+    $weightType = Config::XML_PATH_GENERAL . 'print/weight_indication';
+
+    expect($blueprints->forScope('default', null)->paths())->toContain($weightType)
+        ->and($blueprints->forScope('websites', 2)->paths())->not->toContain($weightType);
+});
