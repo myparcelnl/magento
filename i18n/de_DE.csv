@@ -472,3 +472,4 @@ No MyParcel shipments were found to make a return label for.,"Es wurden keine My
 "This carrier needs a module update before orders can ship with it.","Dieser Versanddienstleister benötigt ein Modul-Update, bevor Sendungen damit verschickt werden können."
 "MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel konnte die Versanddienstleister dieses Kontos nicht lesen. Daher wird kein Versanddienstleister angezeigt. Prüfen Sie den API-Schlüssel."
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 wurde nicht aktiviert: Dieser Versanddienstleister benötigt ein Modul-Update, bevor Sendungen damit verschickt werden können."
+"Reloading the page...","Die Seite wird neu geladen..."

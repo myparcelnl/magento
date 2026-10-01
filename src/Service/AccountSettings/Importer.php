@@ -69,18 +69,20 @@ class Importer
      * replacing whatever was there. Costs one API call every time, so check hasSettingsFor() first
      * when the goal is only to heal a missing row.
      *
+     * @return bool whether the stored row changed
+     *
      * @throws \MyParcelNL\Sdk\Exception\ApiException
      * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
      * @throws \MyParcelNL\Sdk\Exception\MissingFieldException
      */
-    public function importFor(string $apiKey): void
+    public function importFor(string $apiKey): bool
     {
         $fingerprint = $this->fingerprint->of($apiKey);
+        $path        = Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint;
+        $before      = $this->scopeConfig->getValue($path);
+        $row         = (string) json_encode($this->createArray($this->fetchConfigurations($apiKey)));
 
-        $this->configWriter->save(
-            Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint,
-            json_encode($this->createArray($this->fetchConfigurations($apiKey)))
-        );
+        $this->configWriter->save($path, $row);
 
         // Pairs with the deletion notices in Maintenance, so the log reads as a history of which
         // account's settings were written and removed when.
@@ -90,6 +92,8 @@ class Importer
                 substr($fingerprint, 0, Fingerprint::LABEL_LENGTH)
             )
         );
+
+        return $before !== $row;
     }
 
     /**
