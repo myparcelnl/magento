@@ -73,9 +73,6 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                     <div class="admin__fieldset-wrapper-content">
                                         <?php foreach ($group['fields'] ?? [] as $field): ?>
                                             <?php
-                                            if (! $block->isFieldVisibleInCurrentScope($field)) {
-                                                continue;
-                                            }
                                             $fieldHtmlId     = $block->getFieldHtmlId($field);
                                             $fieldName       = $block->getFieldName($field);
                                             $fieldValue      = $block->getFieldValue($field);
