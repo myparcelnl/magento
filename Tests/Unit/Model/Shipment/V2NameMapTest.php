@@ -108,26 +108,33 @@ it('maps every delivery type to a v2 enum value the SDK allows', function () {
     }
 });
 
-it('maps every carrier to a v2 enum value the SDK allows', function () {
+it('round-trips every carrier the SDK knows through its module name', function () {
     $allowed = RefCapabilitiesSharedCarrierV2::getAllowableEnumValues();
 
-    foreach (Carrier::V2_NAMES_MAP as $name => $v2Name) {
-        expect($allowed)->toContain($v2Name)
-            ->and(Carrier::fromV2Name($v2Name))->toBe($name)
+    foreach ($allowed as $v2Name) {
+        expect(Carrier::toV2Name(Carrier::fromV2Name($v2Name)))->toBe($v2Name)
             ->and(Carrier::knowsV2Name($v2Name))->toBeTrue();
     }
 });
 
-it('derives a carrier name from any v2 name, and knows only its own', function () {
+it('keeps the module name every legacy carrier stores its settings under', function () {
+    expect(array_map([Carrier::class, 'toV2Name'], legacyCarriers()))->toBe([
+        'POSTNL', 'DHL_FOR_YOU', 'DHL_EUROPLUS', 'DHL_PARCEL_CONNECT', 'UPS_STANDARD', 'DPD', 'GLS', 'TRUNKRS',
+    ]);
+});
+
+it('resolves the id of a carrier the module has no code for', function () {
+    expect(Carrier::idFor('upsexpresssaver'))->toBe(13)
+        ->and(Carrier::idFor('cheapcargo'))->toBe(3)
+        ->and(Carrier::idFor('postnl'))->toBe(1);
+});
+
+it('derives a carrier name from any v2 name, and knows only the SDK\'s', function () {
     expect(Carrier::fromV2Name('HOOPLA'))->toBe('hoopla')
         ->and(Carrier::fromV2Name('UPS_EXPRESS_SAVER'))->toBe('upsexpresssaver')
         ->and(Carrier::knowsV2Name('HOOPLA'))->toBeFalse()
-        ->and(Carrier::toV2Name('hoopla'))->toBeNull();
-});
-
-it('names every carrier the module has settings for', function () {
-    expect(array_keys(Carrier::V2_NAMES_MAP))
-        ->toBe(array_keys(\MyParcelNL\Magento\Service\Config::CARRIERS_XML_PATH_MAP));
+        ->and(Carrier::toV2Name('hoopla'))->toBeNull()
+        ->and(Carrier::idFor('hoopla'))->toBeNull();
 });
 
 /**
@@ -140,8 +147,8 @@ it('takes every carrier name from the sdk registry', function () {
         \MyParcelNL\Sdk\Model\Carrier\CarrierFactory::CARRIER_CLASSES
     );
 
-    expect(array_diff(array_keys(Carrier::V2_NAMES_MAP), $sdkNames))->toBe([])
-        ->and(Carrier::humanFor(Carrier::DHL_FOR_YOU))->toBe('DHL For You')
+    expect(array_diff(legacyCarriers(), $sdkNames))->toBe([])
+        ->and(Carrier::humanFor('dhlforyou'))->toBe('DHL For You')
         ->and(Carrier::humanFor('nonexistent'))->toBe('nonexistent');
 });
 

@@ -239,7 +239,7 @@ function packageTypeDataset(): array
 /** The carrier's config path for a case's carrier name. */
 function packageTypeCarrierPath(string $carrier): string
 {
-    return Config::CARRIERS_XML_PATH_MAP[$carrier];
+    return Config::carrierPath($carrier);
 }
 
 /**
