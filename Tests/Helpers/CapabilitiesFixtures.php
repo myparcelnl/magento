@@ -18,6 +18,12 @@ use MyParcelNL\Magento\Service\Hash\Fingerprint;
 
 const CAPABILITIES_TEST_API_KEY = 'test-api-key-do-not-log';
 
+/** @return string[] the carriers whose settings merchants have stored, in their old tab order */
+function legacyCarriers(): array
+{
+    return ['postnl', 'dhlforyou', 'dhleuroplus', 'dhlparcelconnect', 'upsstandard', 'dpd', 'gls', 'trunkrs'];
+}
+
 /**
  * The `options` object both endpoints return, in cents. Shared so a change to the insurance shape
  * lands in one place.

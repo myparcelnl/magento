@@ -10,7 +10,6 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Settings;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
@@ -39,24 +38,17 @@ class DeliveryCostsMatrix extends Field
     protected $_template = 'MyParcelNL_Magento::delivery_costs_matrix.phtml';
 
     /**
-     * Every carrier the module has settings for that this account also has a contract for.
+     * The carriers the settings form has a section for at this scope, so the two cannot disagree.
      *
-     * This form configures rates with no shipment in hand, so the filter is contract definitions
-     * rather than the capabilities endpoint. Unresolvable bounds show every configured
-     * carrier: a merchant must not lose the ability to price a lane because we could not confirm it.
+     * Contract definitions, not the capabilities endpoint: rates are set with no shipment in hand.
      */
     public function getCarriers(): array
     {
         [$scopeName, $scopeId] = $this->settings->getCurrentScopeFromRequest($this->getRequest());
 
-        $contracted = $this->contractDefinitions->forScope($scopeName, $scopeId);
-        $carriers   = [];
+        $carriers = [];
 
-        foreach (array_keys(Config::CARRIERS_XML_PATH_MAP) as $carrierName) {
-            if (! $contracted->isPermissive() && ! in_array($carrierName, $contracted->carriers(), true)) {
-                continue;
-            }
-
+        foreach ($this->contractDefinitions->forScope($scopeName, $scopeId)->carriers() as $carrierName) {
             $carriers[$carrierName] = ShipmentCarrier::humanFor($carrierName);
         }
 
