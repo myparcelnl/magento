@@ -205,7 +205,7 @@ final class Catalogue
 
         foreach ($shape->checkoutOptions() as $option) {
             $label  = self::labelFor($option);
-            $fields = array_merge($fields, self::toggleWithFee(
+            array_push($fields, ...self::toggleWithFee(
                 $path,
                 $active,
                 $option,
@@ -274,7 +274,7 @@ final class Catalogue
 
         foreach (self::ordered($shape->defaultOptions()) as $option) {
             if (ShipmentOption::INSURANCE !== $option) {
-                $fields = array_merge($fields, self::automateToggle($path, $option));
+                array_push($fields, ...self::automateToggle($path, $option));
             }
         }
 
@@ -386,7 +386,7 @@ final class Catalogue
         ];
 
         foreach ($shape->mailboxOptions() as $option) {
-            $fields = array_merge($fields, self::toggleWithFee($path, $active, $option, self::labelFor($option), true));
+            array_push($fields, ...self::toggleWithFee($path, $active, $option, self::labelFor($option), true));
         }
 
         // An account flag, not a capability: see InternationalMailbox.
