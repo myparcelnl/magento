@@ -1,6 +1,6 @@
 # Capabilities-driven settings (INT-1289)
 
-> **Status — 2026-10-01.** PR 1 of 6 is open for review; PRs 2, 3 and 4 are open as drafts.
+> **Status — 2026-10-01.** PR 1 of 6 is open for review; PRs 2 to 5 are open as drafts.
 >
 > | # | PR | branch | state |
 > |---|---|---|---|
@@ -10,7 +10,7 @@
 > | — | settings decimals and import fix | `fix/settings-decimals-and-import` | draft PR, #981 |
 > | 3 | honour capability option dependencies | `feat/honour-capability-option-dependencies` | draft PR, #982 |
 > | 4 | generate the settings form | `feat/generate-settings-form` | draft PR, #984 |
-> | 5 | supply settings defaults | `feat/supply-settings-defaults` | spike passed, in progress |
+> | 5 | supply settings defaults | `feat/supply-settings-defaults` | draft PR, #985 |
 > | 6 | account-derived export mode and proposition | — | not started |
 >
 > PR 1 also carried two changes the plan below does not name: the weight unit became one global
