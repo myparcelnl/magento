@@ -72,3 +72,22 @@ it('returns the sections shape and every path', function () {
         ->and($blueprint->paths())->toBe(['general/api/key', 'carrier/delivery/active'])
         ->and($blueprint->isPermissive())->toBeFalse();
 });
+
+it('drops a default-only field at website and store scope, and a group it leaves empty', function () {
+    $blueprint = new Blueprint([
+        new Section('general', 'General', [
+            new Group('print', 'Print', [
+                Field::text('general/print/paper_type', 'Paper type'),
+                Field::text('general/print/weight_indication', 'Weight type')->inDefaultScopeOnly(),
+            ]),
+            new Group('api', 'Api', [
+                Field::text('general/api/key', 'API key')->inDefaultScopeOnly(),
+            ]),
+        ]),
+    ]);
+
+    expect($blueprint->shownAt('default')->paths())
+        ->toBe(['general/print/paper_type', 'general/print/weight_indication', 'general/api/key'])
+        ->and($blueprint->shownAt('websites')->paths())->toBe(['general/print/paper_type'])
+        ->and($blueprint->shownAt('stores')->toArray()['sections'][0]['groups'])->toHaveCount(1);
+});

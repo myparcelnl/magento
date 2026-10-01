@@ -32,6 +32,14 @@ final class Section
         return $this->groups;
     }
 
+    /** A copy without the fields the form hides at this scope, and without a group left empty. */
+    public function shownAt(string $scopeName): self
+    {
+        return new self($this->id, $this->label, array_map(static function (Group $group) use ($scopeName): Group {
+            return $group->shownAt($scopeName);
+        }, $this->groups));
+    }
+
     public function toArray(): array
     {
         return [

@@ -12,7 +12,8 @@ use MyParcelNL\Magento\Service\MailboxInternational;
  * The settings form for one admin scope, built from the account whose api key that scope holds.
  *
  * Reads the stored account settings row, so rendering the form makes no API call. Memoised per
- * scope, because the form asks once per field.
+ * scope, because the form asks once per field. Holds only the fields shown at that scope, so its
+ * paths are also what a save may write there.
  */
 class ScopeBlueprints
 {
@@ -49,7 +50,7 @@ class ScopeBlueprints
                 $international = $this->mailboxInternational->carriersFor($apiKey);
             }
 
-            $this->memo[$key] = Generator::for($capabilities, $international);
+            $this->memo[$key] = Generator::for($capabilities, $international)->shownAt($scopeName);
         }
 
         return $this->memo[$key];
