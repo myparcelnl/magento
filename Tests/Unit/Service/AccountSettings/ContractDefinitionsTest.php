@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use Magento\Store\Model\ScopeInterface;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
@@ -16,7 +15,7 @@ it('reads the stored items into a capability set', function () {
     $set = $reader->forApiKey('live-key');
 
     expect($set->isPermissive())->toBeFalse()
-        ->and($set->carriers())->toBe([Carrier::POSTNL]);
+        ->and($set->carriers())->toBe(['postnl']);
 });
 
 it('keeps the insurance bounds the settings screen needs', function () {
@@ -25,7 +24,7 @@ it('keeps the insurance bounds the settings screen needs', function () {
     ]);
 
     $insurance = $reader->forApiKey('live-key')
-                        ->optionValue(Carrier::POSTNL, null, ShipmentOption::INSURANCE);
+                        ->optionValue('postnl', null, ShipmentOption::INSURANCE);
 
     expect($insurance['min']['amount'])->toBe(0)
         ->and($insurance['max']['amount'])->toBe(500000)
@@ -68,8 +67,8 @@ it('never serves one account the other account answer', function () {
         settingsPathFor('key-b') => accountSettingsRow([contractDefinitionItem(['carrier' => 'GLS'])]),
     ]);
 
-    expect($reader->forApiKey('key-a')->carriers())->toBe([Carrier::POSTNL])
-        ->and($reader->forApiKey('key-b')->carriers())->toBe([Carrier::GLS]);
+    expect($reader->forApiKey('key-a')->carriers())->toBe(['postnl'])
+        ->and($reader->forApiKey('key-b')->carriers())->toBe(['gls']);
 });
 
 it('resolves the api key configured at the asked scope', function () {
@@ -78,7 +77,7 @@ it('resolves the api key configured at the asked scope', function () {
         [ScopeInterface::SCOPE_STORES => [3 => [Config::XML_PATH_API_KEY => ' store-key ']]]
     );
 
-    expect($reader->forScope(ScopeInterface::SCOPE_STORES, 3)->carriers())->toBe([Carrier::GLS])
+    expect($reader->forScope(ScopeInterface::SCOPE_STORES, 3)->carriers())->toBe(['gls'])
         ->and($reader->forScope(ScopeInterface::SCOPE_STORES, 9)->isPermissive())->toBeTrue();
 });
 
@@ -89,5 +88,5 @@ it('narrows nothing by package type, because a contract has no shipment', functi
 
     $set = $reader->forApiKey('live-key');
 
-    expect($set->hasOption(Carrier::POSTNL, PackageType::MAILBOX_NAME, ShipmentOption::INSURANCE))->toBeTrue();
+    expect($set->hasOption('postnl', PackageType::MAILBOX_NAME, ShipmentOption::INSURANCE))->toBeTrue();
 });

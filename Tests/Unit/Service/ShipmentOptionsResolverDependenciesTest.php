@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -40,7 +39,7 @@ function dependencyResolver(
 
     return createShipmentOptions(
         'NL',
-        Carrier::POSTNL,
+        'postnl',
         $posted,
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => PackageType::PACKAGE_NAME],

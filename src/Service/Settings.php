@@ -7,81 +7,48 @@ namespace MyParcelNL\Magento\Service;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
-use Magento\Framework\Module\Dir;
-use Magento\Framework\Module\Dir\Reader as ModuleDirReader;
-use Magento\Framework\Serialize\Serializer\Json;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Model\Settings\Blueprint\ScopeBlueprints;
 
 /**
- * Service to read dynamic settings configuration.
+ * The settings form of one admin scope, and the rows stored for it.
  *
- * This class reads settings from a JSON configuration file and provides methods
- * to filter which settings are available for the current user/context.
- * TODO this functionality must be integrated into the capabilities system (INT-1289)
+ * The form comes from the scope's account, so two scopes with different api keys can offer different
+ * fields. Its paths are also the save allow-list.
  */
 class Settings
 {
-    private ModuleDirReader      $moduleDirReader;
-    private Json                 $json;
-    private ?array               $settingsCache = null;
-    private CollectionFactory    $scopeCollectionFactory;
+    private ScopeBlueprints   $scopeBlueprints;
+    private CollectionFactory $scopeCollectionFactory;
 
     /** @var array<string,array<string,bool>> "scope|scopeId" => path => whether a row exists there */
     private array $rowsAtScope = [];
 
     public function __construct(
-        ModuleDirReader      $moduleDirReader,
-        Json                 $json,
-        CollectionFactory    $scopeCollectionFactory
+        ScopeBlueprints   $scopeBlueprints,
+        CollectionFactory $scopeCollectionFactory
     )
     {
-        $this->moduleDirReader        = $moduleDirReader;
-        $this->json                   = $json;
+        $this->scopeBlueprints        = $scopeBlueprints;
         $this->scopeCollectionFactory = $scopeCollectionFactory;
     }
 
-    /**
-     * Get all settings configuration from JSON file.
-     *
-     * @return array
-     */
-    public function getSettings(): array
+    /** @param string $scopeName 'default', 'websites', or 'stores' */
+    public function getSections(string $scopeName, ?int $scopeId): array
     {
-        if ($this->settingsCache === null) {
-            $this->settingsCache = $this->loadSettingsFromFile();
-        }
-
-        return $this->settingsCache;
+        return $this->scopeBlueprints->forScope($scopeName, $scopeId)->toArray()['sections'];
     }
 
-    /**
-     * Get all sections.
-     *
-     * @return array
-     */
-    public function getSections(): array
+    /** @return string[] every path the form offers at this scope */
+    public function getAllFieldPaths(string $scopeName, ?int $scopeId): array
     {
-        return $this->getSettings()['sections'] ?? [];
+        return $this->scopeBlueprints->forScope($scopeName, $scopeId)->paths();
     }
 
-    /**
-     * Get all field paths from the configuration.
-     *
-     * @return array
-     */
-    public function getAllFieldPaths(): array
+    /** True when the scope's capabilities could not be read, so the form shows no carrier. */
+    public function isPermissive(string $scopeName, ?int $scopeId): bool
     {
-        $paths = [];
-
-        foreach ($this->getSections() as $section) {
-            foreach ($section['groups'] ?? [] as $group) {
-                foreach ($group['fields'] ?? [] as $field) {
-                    $paths[] = $field['path'];
-                }
-            }
-        }
-
-        return $paths;
+        return $this->scopeBlueprints->forScope($scopeName, $scopeId)->isPermissive();
     }
 
     /**
@@ -125,17 +92,17 @@ class Settings
      * Partition-aware: true if and only if a row exists at the exact (scope, scopeId) for this path.
      * Unlike hasOwnValue() this does NOT short-circuit for default scope.
      *
-     * Answered from one read of every path the settings file declares, warmed on the first ask per
+     * Answered from one read of every path the scope's form offers, warmed on the first ask per
      * scope: the form asks once per field and there are hundreds of them, so a COUNT each cost the
-     * page a query per field at website and store scope. A path the file does not declare — an API
-     * token, say — still costs its own.
+     * page a query per field at website and store scope. A path the form does not offer still costs
+     * its own.
      */
     public function hasRowAtScope(string $path, string $scope, int $scopeId): bool
     {
         $key = $scope . '|' . $scopeId;
 
         if (! isset($this->rowsAtScope[$key])) {
-            $paths  = $this->settingPaths();
+            $paths  = $this->getAllFieldPaths($scope, $scopeId);
             $stored = $this->storedValuesAtScope($paths, $scope, $scopeId);
             $known  = [];
 
@@ -157,24 +124,6 @@ class Settings
             ->addFieldToFilter('scope_id', $scopeId);
 
         return $collection->getSize() > 0;
-    }
-
-    /** @return string[] every field path the settings file declares */
-    private function settingPaths(): array
-    {
-        $paths = [];
-
-        foreach ($this->getSections() as $section) {
-            foreach ($section['groups'] ?? [] as $group) {
-                foreach ($group['fields'] ?? [] as $field) {
-                    if (isset($field['path'])) {
-                        $paths[] = (string) $field['path'];
-                    }
-                }
-            }
-        }
-
-        return $paths;
     }
 
     /**
@@ -221,31 +170,5 @@ class Settings
         }
 
         return $this->hasRowAtScope($path, $scopeName, (int) $scopeId);
-    }
-
-    /**
-     * Load settings from the JSON configuration file.
-     *
-     * @return array
-     */
-    private function loadSettingsFromFile(): array
-    {
-        $moduleDir = $this->moduleDirReader->getModuleDir(Dir::MODULE_ETC_DIR, 'MyParcelNL_Magento');
-        $filePath  = $moduleDir . '/dynamic_settings.json';
-
-        if (! file_exists($filePath)) {
-            return ['sections' => []];
-        }
-
-        $content = file_get_contents($filePath);
-        if ($content === false) {
-            return ['sections' => []];
-        }
-
-        try {
-            return $this->json->unserialize($content);
-        } catch (\Exception $e) {
-            return ['sections' => []];
-        }
     }
 }

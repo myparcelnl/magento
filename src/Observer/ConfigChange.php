@@ -18,6 +18,7 @@ use MyParcelNL\Magento\Model\Cache\Type\Capabilities as CapabilitiesCache;
 use MyParcelNL\Magento\Model\Settings\Validator\SettingValidatorInterface;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance as AccountSettingsMaintenance;
+use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\Settings;
@@ -86,8 +87,16 @@ class ConfigChange implements ObserverInterface
         $request    = $this->request;
         $scope      = $this->convertScope($request->getParam('scope', ScopeConfigInterface::SCOPE_TYPE_DEFAULT));
         $scopeId    = (int) $request->getParam('scope_id', 0);
-        $validPaths = $this->dynamicSettingsConfig->getAllFieldPaths();
-        $configData = array_intersect_key($request->getParam('config', []), array_flip($validPaths));
+        $posted     = (array) $request->getParam('config', []);
+        $validPaths = array_values(array_filter(
+            $this->dynamicSettingsConfig->getAllFieldPaths($scope, $scopeId),
+            static function (string $path): bool {
+                return self::isWritable($path);
+            }
+        ));
+        $configData = array_intersect_key($posted, array_flip($validPaths));
+
+        $this->logSkipped(array_keys(array_diff_key($posted, $configData)), $scope, $scopeId);
 
         // Every field is posted on every submit, and each write costs a select, an update and a
         // message-queue poison-pill write of its own. Read the rows once and write only what moved.
@@ -172,6 +181,32 @@ class ConfigChange implements ObserverInterface
     }
 
     /**
+     * The stored account row and a token hash sit under the general section, so a crafted post could
+     * otherwise overwrite them. The token button's own path is the hash path, so the form offers it.
+     */
+    private static function isWritable(string $path): bool
+    {
+        return 0 !== strpos($path, Config::XML_PATH_ACCOUNT_SETTINGS) && TokenService::CONFIG_PATH !== $path;
+    }
+
+    /**
+     * A field that left the form between render and save loses its value, so say which.
+     *
+     * @param string[] $paths
+     */
+    private function logSkipped(array $paths, string $scope, int $scopeId): void
+    {
+        if ([] !== $paths) {
+            Logger::notice(sprintf(
+                'MyParcel settings: not saved, because the form at %s %d does not offer them: %s',
+                $scope,
+                $scopeId,
+                implode(', ', $paths)
+            ));
+        }
+    }
+
+    /**
      * Whether the key changed is not worth detecting: an unchanged key already has its row, and a key
      * that does not is exactly the case worth importing — including a brand new one.
      */
@@ -227,7 +262,7 @@ class ConfigChange implements ObserverInterface
             Logger::warning('Could not import MyParcel account settings after an api key change.', LogContext::of($e));
             $this->messageManager->addWarningMessage(
                 __(
-                    'Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.',
+                    'Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key.',
                     $e->getMessage()
                 )
             );
