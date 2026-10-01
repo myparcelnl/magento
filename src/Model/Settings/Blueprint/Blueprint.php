@@ -30,6 +30,14 @@ final class Blueprint
         return $this->permissive;
     }
 
+    /** The form at one scope: without the fields it hides there, so paths() is that scope's allow-list. */
+    public function shownAt(string $scopeName): self
+    {
+        return new self(array_map(static function (Section $section) use ($scopeName): Section {
+            return $section->shownAt($scopeName);
+        }, $this->sections), $this->permissive);
+    }
+
     /** @return string[] */
     public function paths(): array
     {
