@@ -189,7 +189,6 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         try {
-            // The flags need an SDK release after 11.0.0-beta.35; an older save() ignores them.
             $savedOrders = $orderCollection->save(Config::API_FEATURE_FLAGS);
         } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
