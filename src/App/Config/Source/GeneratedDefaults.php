@@ -111,7 +111,7 @@ class GeneratedDefaults implements ConfigSourceInterface
             $decoded = json_decode((string) $row->getData('value'), true);
 
             if (is_array($decoded['contract_definitions'] ?? null)) {
-                $items = array_merge($items, array_values($decoded['contract_definitions']));
+                array_push($items, ...array_values($decoded['contract_definitions']));
             }
         }
 
