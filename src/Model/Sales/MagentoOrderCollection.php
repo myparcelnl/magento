@@ -17,6 +17,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
@@ -188,7 +189,7 @@ class MagentoOrderCollection extends MagentoCollection
         }
 
         try {
-            $savedOrders = $orderCollection->save();
+            $savedOrders = $orderCollection->save(Config::API_FEATURE_FLAGS);
         } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
 

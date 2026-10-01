@@ -112,11 +112,40 @@ final class CapabilitySet
         });
     }
 
-    /** @return string[] module option names */
+    /**
+     * Every option offered, a newly added one included, so it reaches the form and the export
+     * without a module change.
+     *
+     * @return string[] module option names
+     */
     public function optionsFor(string $carrier, ?string $packageType = null): array
     {
         return $this->union($carrier, $packageType, static function (CarrierCapability $c): array {
             return $c->options()->moduleNames();
+        });
+    }
+
+    /**
+     * Empty when permissive: an account we could not read forces no companion on.
+     *
+     * @return string[] module option names
+     */
+    public function requiresFor(string $carrier, ?string $packageType, string $option): array
+    {
+        return $this->union($carrier, $packageType, static function (CarrierCapability $c) use ($option): array {
+            return $c->options()->requiresFor($option);
+        });
+    }
+
+    /**
+     * Empty when permissive, for the same reason requiresFor() is.
+     *
+     * @return string[] module option names
+     */
+    public function excludesFor(string $carrier, ?string $packageType, string $option): array
+    {
+        return $this->union($carrier, $packageType, static function (CarrierCapability $c) use ($option): array {
+            return $c->options()->excludesFor($option);
         });
     }
 
@@ -192,7 +221,7 @@ final class CapabilitySet
      */
     public function unknownValues(): array
     {
-        $unknown = ['carrier' => [], 'packageType' => [], 'deliveryType' => [], 'option' => []];
+        $unknown = ['carrier' => [], 'packageType' => [], 'deliveryType' => []];
 
         foreach ($this->capabilities as $capability) {
             foreach ($capability->unknownValues() as $kind => $values) {

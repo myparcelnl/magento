@@ -77,85 +77,34 @@ class ConfigChange implements ObserverInterface
     /**
      * Saves every posted dynamic setting, then brings the stored account settings in step: import
      * for an api key that has none, and reconcile away rows for keys configured nowhere.
+     *
+     * The api key is saved and its account settings imported before any other field, because the
+     * validators judge those fields against the contract of the key this save leaves in place.
      */
     public function execute(EventObserver $observer): self
     {
         $request    = $this->request;
         $scope      = $this->convertScope($request->getParam('scope', ScopeConfigInterface::SCOPE_TYPE_DEFAULT));
         $scopeId    = (int) $request->getParam('scope_id', 0);
-        $configData = $request->getParam('config', []);
         $validPaths = $this->dynamicSettingsConfig->getAllFieldPaths();
+        $configData = array_intersect_key($request->getParam('config', []), array_flip($validPaths));
 
         // Every field is posted on every submit, and each write costs a select, an update and a
         // message-queue poison-pill write of its own. Read the rows once and write only what moved.
         $stored = $this->dynamicSettingsConfig->storedValuesAtScope($validPaths, $scope, $scopeId);
 
-        /** @var string[] the paths this save actually wrote or deleted */
-        $changed = [];
+        $apiKeyField = array_intersect_key($configData, [Config::XML_PATH_API_KEY => true]);
 
         try {
-            foreach ($configData as $path => $postedParams) {
-                if (! in_array($path, $validPaths, true)) {
-                    continue;
-                }
-
-                $value   = $postedParams['value'] ?? null;
-                $inherit = '1' === ($postedParams['inherit'] ?? '');
-                $hasRow  = array_key_exists($path, $stored);
-
-                // Handle checkbox "use default" - if inherit is set, delete the value for this scope
-                if ($scope !== ScopeConfigInterface::SCOPE_TYPE_DEFAULT && $inherit) {
-                    if ($hasRow) {
-                        $this->configWriter->delete($path, $scope, $scopeId);
-                        $changed[] = $path;
-                    }
-                    continue;
-                }
-
-                if (is_array($value)) {
-                    $value = implode(',', $value);
-                }
-
-                $rejection = $this->rejectionFor($path, $value, $scope, $scopeId);
-
-                // Refuse this one field rather than the whole save: the form posts every field on
-                // every submit, so failing the lot would make one bad value block every other change.
-                if (null !== $rejection) {
-                    $this->messageManager->addErrorMessage($rejection);
-                    continue;
-                }
-
-                // Validated first, so a stored value that has since become invalid is still reported
-                // even though this save leaves it alone.
-                if ($hasRow && (string) $stored[$path] === (string) $value) {
-                    continue;
-                }
-
-                if ($scope === ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
-                    $this->configWriter->save($path, $value);
-                } else {
-                    $this->configWriter->save($path, $value, $scope, $scopeId);
-                }
-
-                $changed[] = $path;
+            if ([] !== $this->saveFields($apiKeyField, $stored, $scope, $scopeId)) {
+                $this->reinitConfig(true);
             }
+
+            $this->importMissingAccountSettings($scope, $scopeId);
 
             // A save that moved nothing has nothing to reload, and the reload is the expensive half.
-            if ([] !== $changed) {
-                $this->reinitConfig(in_array(Config::XML_PATH_API_KEY, $changed, true));
-            }
-
-            // reinit() reset the in-memory config too, so this is the post-save key, not a cached one.
-            $apiKey = trim((string) ($this->scopeConfig->getValue(Config::XML_PATH_API_KEY, $scope, $scopeId) ?? ''));
-
-            // Whether the key changed is not worth detecting: an unchanged key already has its row, and
-            // a key that does not is exactly the case worth importing — including a brand new one. Note
-            // every field is posted on every save, so presence in $configData proves nothing.
-            if ('' !== $apiKey && ! $this->accountSettingsImporter->hasSettingsFor($apiKey)) {
-                // Before reconcile(), which deletes rows for unconfigured keys.
-                $this->importAccountSettings($apiKey);
-                // The import wrote a row of its own, so the merged config has to pick it up.
-                $this->appConfig->reinit();
+            if ([] !== $this->saveFields(array_diff_key($configData, $apiKeyField), $stored, $scope, $scopeId)) {
+                $this->reinitConfig(false);
             }
 
             $this->accountSettingsMaintenance->reconcile();
@@ -164,6 +113,81 @@ class ConfigChange implements ObserverInterface
         }
 
         return $this;
+    }
+
+    /**
+     * Writes the posted fields that a validator accepts and that differ from their stored row.
+     *
+     * @param  array<string, array>       $fields posted params by path
+     * @param  array<string, string|null> $stored the rows at this scope, by path
+     * @return string[] the paths this call wrote or deleted
+     */
+    private function saveFields(array $fields, array $stored, string $scope, int $scopeId): array
+    {
+        $changed = [];
+
+        foreach ($fields as $path => $postedParams) {
+            $value   = $postedParams['value'] ?? null;
+            $inherit = '1' === ($postedParams['inherit'] ?? '');
+            $hasRow  = array_key_exists($path, $stored);
+
+            // Handle checkbox "use default" - if inherit is set, delete the value for this scope
+            if ($scope !== ScopeConfigInterface::SCOPE_TYPE_DEFAULT && $inherit) {
+                if ($hasRow) {
+                    $this->configWriter->delete($path, $scope, $scopeId);
+                    $changed[] = $path;
+                }
+                continue;
+            }
+
+            if (is_array($value)) {
+                $value = implode(',', $value);
+            }
+
+            $rejection = $this->rejectionFor($path, $value, $scope, $scopeId);
+
+            // Refuse this one field rather than the whole save: the form posts every field on
+            // every submit, so failing the lot would make one bad value block every other change.
+            if (null !== $rejection) {
+                $this->messageManager->addErrorMessage($rejection);
+                continue;
+            }
+
+            // Validated first, so a stored value that has since become invalid is still reported
+            // even though this save leaves it alone.
+            if ($hasRow && (string) $stored[$path] === (string) $value) {
+                continue;
+            }
+
+            if ($scope === ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
+                $this->configWriter->save($path, $value);
+            } else {
+                $this->configWriter->save($path, $value, $scope, $scopeId);
+            }
+
+            $changed[] = $path;
+        }
+
+        return $changed;
+    }
+
+    /**
+     * Whether the key changed is not worth detecting: an unchanged key already has its row, and a key
+     * that does not is exactly the case worth importing — including a brand new one.
+     */
+    private function importMissingAccountSettings(string $scope, int $scopeId): void
+    {
+        // reinit() reset the in-memory config too, so this is the post-save key, not a cached one.
+        $apiKey = trim((string) ($this->scopeConfig->getValue(Config::XML_PATH_API_KEY, $scope, $scopeId) ?? ''));
+
+        if ('' === $apiKey || $this->accountSettingsImporter->hasSettingsFor($apiKey)) {
+            return;
+        }
+
+        // Before reconcile(), which deletes rows for unconfigured keys.
+        $this->importAccountSettings($apiKey);
+        // The import wrote a row of its own, so the merged config has to pick it up.
+        $this->appConfig->reinit();
     }
 
     /**
