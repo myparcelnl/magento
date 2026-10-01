@@ -139,7 +139,7 @@ class Settings
     }
 
     /**
-     * Inheritance-aware: default scope always "owns" its value (config.xml fallback),
+     * Inheritance-aware: default scope always "owns" its value (generated default fallback),
      * otherwise true if and only if an override row exists at the exact (scope, scopeId).
      */
     public function hasOwnValue(string $path, string $scopeName = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, ?int $scopeId = null): bool
