@@ -54,7 +54,7 @@ Magento order -> builder (src/Model/Shipment/) -> SDK v11 Shipment or Fulfilment
 - **Builders** (`src/Model/Shipment/`, `src/Service/Export/`) make SDK models from Magento data. Never pass a Magento object to the SDK directly. `src/Adapter/` holds the delivery options that are stored on the order.
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`) send orders and shipments to the SDK in batches. A new SDK call goes through them: controller or observer, then collection, then builder, then SDK.
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
-- **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
+- **Config** (`src/Service/Config.php`) holds the config path constants. `Config::carrierPath()` derives a carrier's settings prefix from its name. Use the constants, not config paths as strings.
 - **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
 - **Package type** (`src/Service/PackageTypeResolver.php`) decides the package type (digital stamp, mailbox, package small) from weight, carrier config and the products in the cart. `Model\Quote\Checkout` first rules out what capabilities and forced options do not allow. `src/Service/CartShippingRules.php` answers what the cart's products and the carrier's settings force or forbid. Both services hold no state of their own; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way.
 - **Insurance** is a range per carrier from the account's contract definitions (`ContractDefinitions::insuranceRangeFor()`, `Model\Shipment\Capabilities\InsuranceRange`). `Model\Settings\Validator\InsuranceAmount` checks each insurance amount setting against it on save.
@@ -69,14 +69,16 @@ An endpoint that must accept an API access token follows [`docs/design/adding-a-
 
 ### Admin settings
 
-Admin settings are in `etc/dynamic_settings.json`, a temporary solution until the capabilities endpoint replaces it. To add one:
+`Model\Settings\Blueprint\Generator` generates the admin settings per scope from the contract definitions of the scope's API key. Field templates and the module-owned lists are in `Blueprint\Catalogue`. The form's paths at a scope are also the save allow-list in `Observer\ConfigChange`. To add a setting:
 
-1. Add an entry with `id`, `path`, `type`, `label` and the three `showIn*` flags.
-2. For a custom widget, set `frontend_model` to a block in `src/Block/System/Config/Form/`. For a note computed at render time under a plain control, set `note_model` to a block that implements `NoteProviderInterface`.
+1. Add a `Field` to its group in `Blueprint\Catalogue`, and its label and tooltip to `i18n/`. `Tests/Unit/Model/Settings/Blueprint/GeneratorParityTest.php` pins the form against the legacy JSON, so name a moved or changed path there.
+2. For a custom widget, give the field a `frontend_model`: a block in `src/Block/System/Config/Form/`. For a note computed at render time under a plain control, give it a `note_model` (`withNoteModel()`): a block that implements `NoteProviderInterface`.
 3. Save with `Magento\Framework\App\Config\Storage\WriterInterface::save()`.
 4. To check whether a scope has its own value, use `Settings::hasOwnValue($path, $scope, $scopeId)`. It does not fall back to the parent scope.
 
-For insurance, a new carrier needs an amount field for each zone it ships to (`insurance_local_amount`, `insurance_belgium_amount`, `insurance_eu_amount`, `insurance_row_amount`) with the `InsuranceAmount` frontend model in `etc/dynamic_settings.json`. The carrier must be in `Config::CARRIERS_XML_PATH_MAP`, or the validator skips its fields. The range comes from the contract definitions, so `etc/di.xml` needs nothing.
+### Adding a carrier
+
+A carrier that capabilities report needs no code, and the module lists no carrier. Its paths derive from its name through `Config::carrierPath()`, and `Carrier::idFor()` reads its id from the SDK's carrier table, so the settings form, the New Shipment form and the checkout offer it. A carrier the SDK does not know yet renders with its delivery and pickup switches disabled: update the SDK. Do not add a per-carrier exception to `Catalogue`: a fact about a carrier comes from capabilities or from the account's `general_settings`, as the international mailbox flag does.
 
 ### Adding a shipment option
 
