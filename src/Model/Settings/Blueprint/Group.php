@@ -33,6 +33,14 @@ final class Group
         return $this->fields;
     }
 
+    /** A copy without the fields the form hides at this scope. */
+    public function shownAt(string $scopeName): self
+    {
+        return new self($this->id, $this->label, array_filter($this->fields, static function (Field $field) use ($scopeName): bool {
+            return $field->isShownAt($scopeName);
+        }), $this->comment);
+    }
+
     public function isEmpty(): bool
     {
         return [] === $this->fields;
