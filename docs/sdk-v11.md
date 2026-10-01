@@ -18,11 +18,11 @@ delivery types and option names are gone, and there are none to adopt.
 
 **Carriers are the exception.** `MyParcelNL\Sdk\Model\Carrier\` survived beta.22, so
 `Model\Shipment\Carrier` takes each name from the SDK class that owns it
-(`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. What
-stays the module's own is *which* carriers it supports (the eight it has admin settings and
-insurance virtual types for, against the SDK's thirteen) and the two maps the SDK has no
-equivalent of, `V2_NAMES_MAP` and `LOCAL_COUNTRY_MAP`. An account's real set comes from
-capabilities, never from either list.
+(`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. The
+module keeps no carrier list: a module name derives from the v2 name, and `Carrier::toV2Name()` and
+`Carrier::idFor()` read the way back from `ApiMapperService::forCarrier()`. A carrier the SDK knows
+is exportable, and an account's real set comes from capabilities. What stays the module's own,
+until PR 6 of INT-1289, is `LOCAL_COUNTRY_MAP`, the one carrier whose local country is not NL.
 
 Two capabilities went with the deleted stack and are module code now:
 
@@ -98,12 +98,11 @@ Four vocabularies for the same five facts. Hand each boundary the one it expects
 | Versioned REST v1 endpoint | Order API enum name | `Model\Rest\Transformer\PackageTypeTransformer` |
 | `core_config_data`, the order's delivery-options JSON, the checkout widget | **module snake_case** | Persisted data; cannot change without a migration |
 
-One map per kind, on the facade that owns the names. `Carrier::V2_NAMES_MAP` is keyed by the SDK's
-own carrier names; the map itself is the module's. `Carrier::V2_NAMES_MAP`,
-`PackageType::V2_NAMES_MAP` and `DeliveryType::V2_NAMES_MAP` each have a `toV2*()` and a
-`fromV2*()`. Shipment option names come from the SDK's `ShipmentOptionMapper`.
-**`PackageType::fromV2Name()` and `DeliveryType::fromV2Name()` return null for a value the module
-does not know, and the caller leaves it out** rather than substituting one. `Carrier` and
+One map per kind, on the facade that owns the names: `PackageType::V2_NAMES_MAP` and
+`DeliveryType::V2_NAMES_MAP`. `Carrier` has no map and reads the SDK's carrier table instead, and
+shipment option names come from the SDK's `ShipmentOptionMapper`. Each has a `toV2*()` and a
+`fromV2*()`. **`PackageType::fromV2Name()` and `DeliveryType::fromV2Name()` return null for a value
+the module does not know, and the caller leaves it out** rather than substituting one. `Carrier` and
 `ShipmentOption` derive a name for every value (INT-1289). `CapabilitySet::unknownValues()` reports
 a carrier, package type or delivery type that the SDK's generated enums do not know, as a sign that
 the SDK needs an update.
@@ -115,8 +114,8 @@ therefore written out by hand.
 **The REST transformers keep their own maps.** `Model\Rest\Transformer\{Carrier,PackageType,
 DeliveryType}Transformer` bind to **Order API** enums while capabilities is **Core API**. The strings
 match today, but they are two generated contracts that can diverge. There is also a live difference:
-`CarrierTransformer::LEGACY_NAME_MAP` maps `ups` but not `upsstandard`, the name
-`Config::CARRIERS_XML_PATH_MAP` uses, so sharing the map would change a shipped versioned response.
+`CarrierTransformer::LEGACY_NAME_MAP` maps `ups` but not `upsstandard`, the name the settings
+paths use, so sharing the map would change a shipped versioned response.
 Merging them needs a test for that difference first.
 
 ## Money scales
