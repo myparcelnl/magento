@@ -25,8 +25,8 @@ final class Generator
         $facts    = [];
 
         foreach ($capabilities->carriers() as $carrier) {
-            $shape      = CarrierShape::fromCapabilities($capabilities, $carrier);
-            $facts      = array_merge($facts, $shape->facts());
+            $shape = CarrierShape::fromCapabilities($capabilities, $carrier);
+            array_push($facts, ...$shape->facts());
             $sections[] = Catalogue::carrierSection(
                 $carrier,
                 $shape,
