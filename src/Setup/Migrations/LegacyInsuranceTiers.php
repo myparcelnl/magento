@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Setup\Migrations;
 
-use MyParcelNL\Magento\Model\Shipment\Carrier;
-
 /**
  * The insurance tier lists as SDK v11.0.0-beta.15 held them, frozen.
  *
@@ -35,31 +33,31 @@ final class LegacyInsuranceTiers
      * empty list made beta.15 reject every non-zero amount.
      */
     private const TIERS = [
-        Carrier::POSTNL             => [
+        'postnl'           => [
             self::ZONE_LOCAL => self::FROM_100,
             self::ZONE_BE    => self::FROM_100,
             self::ZONE_EU    => self::FIFTY_500,
             self::ZONE_ROW   => self::FIFTY_500,
         ],
-        Carrier::DHL_FOR_YOU       => [
+        'dhlforyou'        => [
             self::ZONE_LOCAL => self::FROM_500,
             self::ZONE_BE    => self::FROM_500,
             self::ZONE_ROW   => self::FROM_100,
         ],
-        Carrier::DHL_EUROPLUS      => [
+        'dhleuroplus'      => [
             self::ZONE_LOCAL => self::FROM_500,
             self::ZONE_BE    => self::FROM_500,
             self::ZONE_EU    => self::FROM_500,
             self::ZONE_ROW   => self::FROM_500,
         ],
-        Carrier::DHL_PARCEL_CONNECT => [
+        'dhlparcelconnect' => [
             self::ZONE_EU  => self::FROM_500,
             self::ZONE_ROW => self::FROM_500,
         ],
-        Carrier::UPS_STANDARD      => [
+        'upsstandard'      => [
             self::ZONE_LOCAL => self::FROM_100,
         ],
-        Carrier::GLS               => [
+        'gls'              => [
             self::ZONE_LOCAL => self::TEN_K,
             self::ZONE_EU    => self::TEN_K,
             self::ZONE_ROW   => self::TEN_K,
