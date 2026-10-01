@@ -7,7 +7,6 @@ namespace MyParcelNL\Magento\Service;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
  * Which package type one cart ships as with one carrier.
@@ -31,21 +30,21 @@ class PackageTypeResolver
     /** Below this a configured kilo weight counts as unset. */
     private const KILO_EPSILON = 0.00001;
 
-    private Config                     $config;
-    private Weight                     $weight;
-    private PostnlMailboxInternational $postnlMailboxInternational;
+    private Config               $config;
+    private Weight               $weight;
+    private MailboxInternational $mailboxInternational;
 
     public function __construct(
-        Config                     $config,
-        ProductAttributes          $attributes,
-        Weight                     $weight,
-        PostnlMailboxInternational $postnlMailboxInternational
+        Config               $config,
+        ProductAttributes    $attributes,
+        Weight               $weight,
+        MailboxInternational $mailboxInternational
     )
     {
-        $this->config                     = $config;
-        $this->attributes                 = $attributes;
-        $this->weight                     = $weight;
-        $this->postnlMailboxInternational = $postnlMailboxInternational;
+        $this->config               = $config;
+        $this->attributes           = $attributes;
+        $this->weight               = $weight;
+        $this->mailboxInternational = $mailboxInternational;
     }
 
     /**
@@ -59,7 +58,7 @@ class PackageTypeResolver
         ?int                  $storeId = null
     ): string
     {
-        $carrierPath = Config::CARRIERS_XML_PATH_MAP[$carrierName];
+        $carrierPath = Config::carrierPath($carrierName);
 
         // Read before the loop and whatever the candidates say: the per-item mailbox count divides
         // by it even when the mailbox was never a candidate.
@@ -217,7 +216,7 @@ class PackageTypeResolver
     }
 
     /**
-     * Asked before the candidates are consulted, so a PostNL order abroad still resolves its account
+     * Asked before the candidates are consulted, so an order abroad still resolves its account
      * even when the mailbox was already ruled out. That read logs when it fails, and losing the log
      * would hide a broken account settings row.
      */
@@ -227,6 +226,6 @@ class PackageTypeResolver
             return true;
         }
 
-        return CarrierPostNL::NAME === $carrierName && $this->postnlMailboxInternational->isEnabled($storeId);
+        return $this->mailboxInternational->isEnabledFor($carrierName, $storeId);
     }
 }

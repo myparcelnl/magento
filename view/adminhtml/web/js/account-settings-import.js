@@ -4,7 +4,7 @@ define(['jquery', 'mage/loader'], function ($) {
     /**
      * Bound via data-mage-init on the settings_button.phtml root div.
      * config keys: ajaxUrl, buttonId, apiKeyFieldId, scopeName, scopeId,
-     *              successLabel, failurePrefix, failureLabel, unsavedLabel.
+     *              successLabel, reloadLabel, failurePrefix, failureLabel, unsavedLabel.
      *
      * The button is disabled while there is no api key to import against, and again for the duration
      * of the request: the import is the only place an invalid key surfaces, so the outcome has to be
@@ -72,7 +72,15 @@ define(['jquery', 'mage/loader'], function ($) {
                         return;
                     }
 
-                    report('message-success', config.successLabel);
+                    if (!answer.changed) {
+                        report('message-success', config.successLabel);
+
+                        return;
+                    }
+
+                    // The carrier sections come from the imported contract, so only a reload shows them.
+                    report('message-success', config.reloadLabel);
+                    window.location.reload();
                 });
             }).catch(function () {
                 // A non-JSON body or a dropped connection: the log is the only place left to look.

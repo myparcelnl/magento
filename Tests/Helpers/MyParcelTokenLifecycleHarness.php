@@ -144,10 +144,23 @@ final class MyParcelTokenLifecycleHarness
     /**
      * `_` matters as much as `%`: a prefix like `account_settings_` is full of underscores, so MySQL
      * matches more loosely than the pattern looks, and a double honouring only `%` would hide that.
+     * `\_` and `\%` are literals, as in MySQL.
      */
     private static function matchesSqlLike(string $value, string $pattern): bool
     {
-        $regex = str_replace(['%', '_'], ['.*', '.'], preg_quote($pattern, '/'));
+        $regex = preg_replace_callback('/\\\\[_%]|[_%]|[^_%\\\\]+|\\\\/', static function (array $token): string {
+            switch ($token[0]) {
+                case '%':
+                    return '.*';
+                case '_':
+                    return '.';
+                case '\\%':
+                case '\\_':
+                    return preg_quote(substr($token[0], 1), '/');
+                default:
+                    return preg_quote($token[0], '/');
+            }
+        }, $pattern);
 
         return 1 === preg_match('/^' . $regex . '$/', $value);
     }
