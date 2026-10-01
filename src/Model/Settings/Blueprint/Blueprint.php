@@ -54,6 +54,24 @@ final class Blueprint
         return $paths;
     }
 
+    /** @return array<string, string> path => default, for every field that has one */
+    public function defaults(): array
+    {
+        $defaults = [];
+
+        foreach ($this->sections as $section) {
+            foreach ($section->groups() as $group) {
+                foreach ($group->fields() as $field) {
+                    if (null !== $field->default()) {
+                        $defaults[$field->path()] = $field->default();
+                    }
+                }
+            }
+        }
+
+        return $defaults;
+    }
+
     /** @return array{sections: array} */
     public function toArray(): array
     {
