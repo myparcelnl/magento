@@ -33,7 +33,8 @@ class RemovePickupMailboxRows
     public function run(): void
     {
         $items = $this->collectionFactory->create()
-            ->addFieldToFilter('path', ['like' => Config::carrierPath('%') . self::FIELD])
+            // `_` is a LIKE wildcard, so escape it; `%` stays the carrier wildcard.
+            ->addFieldToFilter('path', ['like' => str_replace('_', '\\_', Config::carrierPath('%') . self::FIELD)])
             ->getItems();
 
         foreach ($items as $row) {
