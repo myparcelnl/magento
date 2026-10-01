@@ -79,7 +79,7 @@ class CarrierConfigurationImport extends Action
     public function execute()
     {
         try {
-            $this->importer->importFor($this->requestedApiKey());
+            $changed = $this->importer->importFor($this->requestedApiKey());
         } catch (LocalizedException $e) {
             return $this->failure($e->getMessage());
         } catch (AccountNotActiveException|ApiException|MissingFieldException|ValidationException $e) {
@@ -97,11 +97,16 @@ class CarrierConfigurationImport extends Action
         $this->clearCache();
         // After the flush, because it reads config.
         $this->accountSettingsMaintenance->reconcile();
+        // The page reloads when the row changed, so the message waits in the session.
+        if ($changed) {
+            $this->messageManager->addSuccessMessage(__('MyParcel Backoffice settings imported.'));
+        }
 
         return $this->resultFactory->create()
                                    ->setData(
                                        [
                                            'success' => true,
+                                           'changed' => $changed,
                                            'time'    => date('Y-m-d H:i:s'),
                                        ]
                                    )
