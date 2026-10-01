@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Event\Observer as EventObserver;
@@ -26,18 +27,21 @@ const OTHER_PATH     = 'myparcelnl_magento_postnl_settings/default_options/insur
 const API_KEY_PATH   = \MyParcelNL\Magento\Service\Config::XML_PATH_API_KEY;
 
 /** A validator claiming exactly $handles, answering $rejection for every value it is given. */
-function stubValidator(string $handles, ?string $rejection = null): SettingValidatorInterface
+function stubValidator(string $handles, ?string $rejection = null, ?callable $onValidate = null): SettingValidatorInterface
 {
-    return new class($handles, $rejection) implements SettingValidatorInterface {
+    return new class($handles, $rejection, $onValidate) implements SettingValidatorInterface {
         public array $seen = [];
 
         private string  $handles;
         private ?string $rejection;
+        /** @var callable|null */
+        private $onValidate;
 
-        public function __construct(string $handles, ?string $rejection)
+        public function __construct(string $handles, ?string $rejection, ?callable $onValidate)
         {
-            $this->handles   = $handles;
-            $this->rejection = $rejection;
+            $this->handles    = $handles;
+            $this->rejection  = $rejection;
+            $this->onValidate = $onValidate;
         }
 
         public function handles(string $path): bool
@@ -48,6 +52,10 @@ function stubValidator(string $handles, ?string $rejection = null): SettingValid
         public function validate(string $path, $value, string $scopeName, int $scopeId): ?Phrase
         {
             $this->seen[] = $path;
+
+            if (null !== $this->onValidate) {
+                ($this->onValidate)();
+            }
 
             return null === $this->rejection ? null : new Phrase($this->rejection);
         }
@@ -60,14 +68,20 @@ function stubValidator(string $handles, ?string $rejection = null): SettingValid
  * @param  array<string, string|null>           $stored what already sits at this scope, by path
  * @return array{writer: WriterInterface, messages: ManagerInterface, caches: TypeListInterface, appConfig: ReinitableConfigInterface}
  */
-function saveDynamicSettings(array $posted, array $validators = [], array $stored = []): array
-{
+function saveDynamicSettings(
+    array                      $posted,
+    array                      $validators = [],
+    array                      $stored = [],
+    ?ScopeConfigInterface      $scopeConfig = null,
+    ?ReinitableConfigInterface $appConfig = null,
+    ?Importer                  $importer = null
+): array {
     $request = Mockery::mock(RequestInterface::class);
     $request->shouldReceive('getParam')->with('scope', Mockery::any())->andReturn('default');
     $request->shouldReceive('getParam')->with('scope_id', Mockery::any())->andReturn(0);
     $request->shouldReceive('getParam')->with('config', Mockery::any())->andReturn($posted);
 
-    $scopeConfig = mockScopeConfig();
+    $scopeConfig = $scopeConfig ?? mockScopeConfig();
 
     $settings = Mockery::mock(Settings::class);
     $settings->shouldReceive('getAllFieldPaths')->andReturn(array_keys($posted));
@@ -76,10 +90,12 @@ function saveDynamicSettings(array $posted, array $validators = [], array $store
     $writer    = Mockery::spy(WriterInterface::class);
     $messages  = Mockery::spy(ManagerInterface::class);
     $caches    = Mockery::spy(TypeListInterface::class);
-    $appConfig = Mockery::spy(ReinitableConfigInterface::class);
+    $appConfig = $appConfig ?? Mockery::spy(ReinitableConfigInterface::class);
 
-    $importer = Mockery::mock(Importer::class);
-    $importer->shouldReceive('hasSettingsFor')->andReturn(true);
+    if (null === $importer) {
+        $importer = Mockery::mock(Importer::class);
+        $importer->shouldReceive('hasSettingsFor')->andReturn(true);
+    }
 
     (new ConfigChange(
         $request,
@@ -223,4 +239,78 @@ it('drops the capability cache when the api key changed', function () {
     );
 
     $result['caches']->shouldHaveReceived('cleanType')->with(CapabilitiesCache::TYPE_IDENTIFIER);
+});
+
+/**
+ * A config that reads $before for the api key until the first reload, and $after from then on.
+ *
+ * @return array{scopeConfig: ScopeConfigInterface, appConfig: ReinitableConfigInterface}
+ */
+function apiKeyThatChangesOnReload(string $before, string $after, array &$log = []): array
+{
+    $reloaded  = false;
+    $appConfig = Mockery::mock(ReinitableConfigInterface::class);
+    $appConfig->shouldReceive('reinit')->andReturnUsing(function () use (&$reloaded, &$log) {
+        $reloaded = true;
+        $log[]    = 'reinit';
+    });
+
+    $scopeConfig = mockScopeConfig([], function (string $path) use (&$reloaded, $before, $after) {
+        return API_KEY_PATH === $path ? ($reloaded ? $after : $before) : null;
+    });
+
+    return ['scopeConfig' => $scopeConfig, 'appConfig' => $appConfig];
+}
+
+it('validates other fields against the api key this save leaves in place', function () {
+    $config  = apiKeyThatChangesOnReload('old-key', 'new-key');
+    $seenKey = null;
+
+    // The validated field comes first in the post, so the key must be saved ahead of post order.
+    saveDynamicSettings(
+        [VALIDATED_PATH => ['value' => '1'], API_KEY_PATH => ['value' => 'new-key']],
+        [stubValidator(VALIDATED_PATH, null, function () use ($config, &$seenKey) {
+            $seenKey = $config['scopeConfig']->getValue(API_KEY_PATH);
+        })],
+        [API_KEY_PATH => 'old-key'],
+        $config['scopeConfig'],
+        $config['appConfig']
+    );
+
+    expect($seenKey)->toBe('new-key');
+});
+
+it('imports the account settings of a new api key before it validates other fields', function () {
+    $log    = [];
+    $config = apiKeyThatChangesOnReload('old-key', 'new-key', $log);
+
+    $importer = Mockery::mock(Importer::class);
+    $importer->shouldReceive('hasSettingsFor')->with('new-key')->andReturn(false);
+    $importer->shouldReceive('importFor')->with('new-key')->andReturnUsing(function () use (&$log) {
+        $log[] = 'import';
+    });
+
+    saveDynamicSettings(
+        [VALIDATED_PATH => ['value' => '1'], API_KEY_PATH => ['value' => 'new-key']],
+        [stubValidator(VALIDATED_PATH, null, function () use (&$log) {
+            $log[] = 'validate';
+        })],
+        [API_KEY_PATH => 'old-key'],
+        $config['scopeConfig'],
+        $config['appConfig'],
+        $importer
+    );
+
+    // The import writes the row the validators read, and the reload after it makes that row visible.
+    expect(array_slice($log, 0, 4))->toBe(['reinit', 'import', 'reinit', 'validate']);
+});
+
+it('drops the capability cache once when the api key and another field changed', function () {
+    $result = saveDynamicSettings(
+        [API_KEY_PATH => ['value' => 'new-key'], VALIDATED_PATH => ['value' => '3000']],
+        [],
+        [API_KEY_PATH => 'old-key', VALIDATED_PATH => '2500']
+    );
+
+    $result['caches']->shouldHaveReceived('cleanType')->once();
 });
