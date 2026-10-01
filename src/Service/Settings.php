@@ -52,27 +52,6 @@ class Settings
     }
 
     /**
-     * Check if a field should be visible for the given scope.
-     *
-     * @param array  $field
-     * @param string $scopeName 'default', 'websites', or 'stores'
-     * @return bool
-     */
-    public function isFieldVisibleInScope(array $field, string $scopeName): bool
-    {
-        switch ($scopeName) {
-            case ScopeConfigInterface::SCOPE_TYPE_DEFAULT:
-                return $field['showInDefault'] ?? false;
-            case ScopeInterface::SCOPE_WEBSITES:
-                return $field['showInWebsite'] ?? false;
-            case ScopeInterface::SCOPE_STORES:
-                return $field['showInStore'] ?? false;
-            default:
-                return false;
-        }
-    }
-
-    /**
      * Resolve the admin's current scope from request params.
      *
      * @return array{0: string, 1: int} [scopeName, scopeId]
