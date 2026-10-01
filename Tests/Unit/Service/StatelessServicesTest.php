@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
-use MyParcelNL\Magento\Service\PostnlMailboxInternational;
+use MyParcelNL\Magento\Service\MailboxInternational;
 
 /** These services are shared between carriers and carts, so each may hold its injected collaborators only. */
 $statelessServices = [
     PackageTypeResolver::class        => [PackageTypeResolver::class],
     CartShippingRules::class          => [CartShippingRules::class],
-    PostnlMailboxInternational::class => [PostnlMailboxInternational::class],
+    MailboxInternational::class       => [MailboxInternational::class],
 ];
 
 it('holds no property that is not an injected collaborator', function (string $class) {

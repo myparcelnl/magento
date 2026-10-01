@@ -192,6 +192,8 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   #731. INT-1464 can bring it back.
 - The New Shipment form's digital stamp weights 100 and 350 gram. The form now offers the weights of
   the setting: 20, 50, 200 and 2000 gram.
+- PostNL Monday delivery and the GLS Saturday fields. Saturday delivery is the `saturday_delivery`
+  option.
 - A carrier outside the account's contract leaves the checkout, also when its switch is on.
 - The rules that removed an option by destination or carrier: signature on a Belgian "only
   recipient" shipment, large format outside the EU, age check outside NL, and priority delivery and

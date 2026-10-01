@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Magento\Framework\App\Config\ScopeConfigInterface;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
@@ -53,17 +52,17 @@ it('caches an answer with values the SDK does not know, and reads it back', func
 
     foreach ([$fresh, $cached] as $set) {
         expect($set->isPermissive())->toBeFalse()
-            ->and($set->carriers())->toBe([Carrier::POSTNL, 'hoopla'])
+            ->and($set->carriers())->toBe(['postnl', 'hoopla'])
             ->and($set->unknownValues())->toBe([
                 'carrier'      => ['HOOPLA'],
                 'packageType'  => ['HOVERCRATE'],
                 'deliveryType' => ['DRONE_DELIVERY'],
             ])
-            ->and($set->packageTypesFor(Carrier::POSTNL))->toBe([PackageType::PACKAGE_NAME])
+            ->and($set->packageTypesFor('postnl'))->toBe([PackageType::PACKAGE_NAME])
             // Not offered until an SDK update: the module cannot send it.
-            ->and($set->optionsFor(Carrier::POSTNL))->not->toContain('teleport')
-            ->and($set->hasOption(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBeTrue()
-            ->and($set->requiresFor(Carrier::POSTNL, null, ShipmentOption::SIGNATURE))->toBe([]);
+            ->and($set->optionsFor('postnl'))->not->toContain('teleport')
+            ->and($set->hasOption('postnl', null, ShipmentOption::SIGNATURE))->toBeTrue()
+            ->and($set->requiresFor('postnl', null, ShipmentOption::SIGNATURE))->toBe([]);
     }
 });
 
@@ -96,13 +95,13 @@ it('stores contract definitions with values the SDK does not know, and reads the
 
     expect(json_decode($row, true)['contract_definitions'])->toBe($items)
         ->and($set->isPermissive())->toBeFalse()
-        ->and($set->carriers())->toBe([Carrier::POSTNL, 'hoopla'])
+        ->and($set->carriers())->toBe(['postnl', 'hoopla'])
         ->and($set->unknownValues())->toBe([
             'carrier'      => ['HOOPLA'],
             'packageType'  => ['HOVERCRATE'],
             'deliveryType' => ['DRONE_DELIVERY'],
         ])
-        ->and($set->optionsFor(Carrier::POSTNL))->not->toContain('teleport')
-        ->and($contracts->insuranceRangeFor(Carrier::POSTNL, ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0)->max())
+        ->and($set->optionsFor('postnl'))->not->toContain('teleport')
+        ->and($contracts->insuranceRangeFor('postnl', ScopeConfigInterface::SCOPE_TYPE_DEFAULT, 0)->max())
         ->toBe(5000);
 });

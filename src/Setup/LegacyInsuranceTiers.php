@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Setup;
 
-use MyParcelNL\Magento\Model\Shipment\Carrier;
-
 /**
  * The insurance tier lists as SDK v11.0.0-beta.15 held them, frozen, in whole euros.
  *
@@ -24,21 +22,21 @@ class LegacyInsuranceTiers
 
     /** A zone absent from a carrier's entry gets an empty list, and snap() leaves the amount untouched. */
     private const TIERS = [
-        Carrier::POSTNL             => [
+        'postnl'           => [
             self::ZONE_LOCAL => self::FROM_100,
             self::ZONE_BE    => self::FROM_100,
             self::ZONE_EU    => self::FIFTY_500,
         ],
-        Carrier::DHL_FOR_YOU       => [
+        'dhlforyou'        => [
             self::ZONE_LOCAL => self::FROM_500,
             self::ZONE_BE    => self::FROM_500,
         ],
-        Carrier::DHL_EUROPLUS      => [
+        'dhleuroplus'      => [
             self::ZONE_LOCAL => self::FROM_500,
             self::ZONE_BE    => self::FROM_500,
             self::ZONE_EU    => self::FROM_500,
         ],
-        Carrier::DHL_PARCEL_CONNECT => [
+        'dhlparcelconnect' => [
             self::ZONE_EU => self::FROM_500,
         ],
     ];

@@ -46,14 +46,14 @@ function methodAmountFor(
     return invokePrivateMethod($method, 'getMethodAmount', [Mockery::mock(Quote::class)]);
 }
 
-it('adds the fee of the delivery type and of the options to the base price', function () {
-    $path = Config::CARRIERS_XML_PATH_MAP['postnl'];
+it('adds the fees of the delivery type and the options, read under the derived settings path of the carrier', function (string $carrier) {
+    $path = Config::carrierPath($carrier);
 
-    expect(methodAmountFor('postnl', [
+    expect(methodAmountFor($carrier, [
         $path . 'evening/fee'            => '2.5',
         $path . 'delivery/signature_fee' => '1',
     ]))->toBe(8.5);
-});
+})->with(['postnl', 'bpost']);
 
 it('prices the delivery type chosen in the checkout', function () {
     $deliveryCosts = Mockery::mock(DeliveryCosts::class);
@@ -66,7 +66,7 @@ it('prices the delivery type chosen in the checkout', function () {
 });
 
 it('floors the delivery type at 0 before the option fees, as the checkout shows it', function () {
-    $path = Config::CARRIERS_XML_PATH_MAP['postnl'];
+    $path = Config::carrierPath('postnl');
 
     // evening base 3 with an evening fee of -5 is 0 in the checkout, plus the signature fee of 1
     expect(methodAmountFor('postnl', [

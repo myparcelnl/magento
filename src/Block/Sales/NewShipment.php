@@ -24,6 +24,7 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
+use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
@@ -34,6 +35,7 @@ use MyParcelNL\Magento\Service\DigitalStampWeight;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 
@@ -63,6 +65,8 @@ class NewShipment extends AbstractItems
     private CapabilitiesLookup $capabilityLookup;
 
     private DigitalStampWeight $digitalStampWeight;
+
+    private ContractDefinitions $contractDefinitions;
 
     private Weight $weightService;
 
@@ -95,8 +99,9 @@ class NewShipment extends AbstractItems
         $this->configService = $objectManager->get(Config::class);
         $this->form          = new NewShipmentForm();
 
-        $this->capabilityLookup   = $capabilityLookup;
-        $this->digitalStampWeight = $digitalStampWeight;
+        $this->capabilityLookup    = $capabilityLookup;
+        $this->digitalStampWeight  = $digitalStampWeight;
+        $this->contractDefinitions = $objectManager->get(ContractDefinitions::class);
 
         $this->defaultOptions = new DefaultOptions($this->order);
 
@@ -221,14 +226,23 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * Get the carriers to offer. A carrier without settings in this module cannot be offered: it would
-     * have no fee, no active flag and no drop-off days.
+     * Carriers to offer: those the account has a contract for that the module can export, so the
+     * same rule as the settings form. A shipment on any other carrier would fail at label time.
+     *
+     * The live lookup answers permissive on any API failure. Then the stored contract of the order's
+     * store answers instead, so a blip does not block label creation. With neither there is no
+     * carrier, and the form says so.
      *
      * @return string[]
      */
     public function getCarriers(): array
     {
-        return $this->getCapabilities()->configuredCarriers();
+        $capabilities = $this->getCapabilities();
+        $carriers     = $capabilities->isPermissive()
+            ? $this->contractDefinitions->forScope(ScopeInterface::SCOPE_STORES, (int) $this->order->getStoreId())->carriers()
+            : $capabilities->carriers();
+
+        return array_values(array_filter($carriers, [Carrier::class, 'isExportable']));
     }
 
     /**

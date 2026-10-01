@@ -3,8 +3,8 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\MailboxInternational;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
-use MyParcelNL\Magento\Service\PostnlMailboxInternational;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
@@ -13,16 +13,19 @@ use MyParcelNL\Sdk\Services\CountryCodes;
  * resolver can answer case after case.
  *
  * @param array<string,mixed>|ArrayAccess $map
- * @param callable(): bool                $mailboxInternational answers PostnlMailboxInternational::isEnabled()
+ * @param callable(): bool                $mailboxInternational answers MailboxInternational::isEnabledFor() for PostNL
  */
 function packageTypeResolverFor(array|ArrayAccess $map, array $rows, callable $mailboxInternational): PackageTypeResolver
 {
     $config = configAnswering(static fn(string $path) => $map[$path] ?? null);
 
-    $postnl = Mockery::mock(PostnlMailboxInternational::class);
-    $postnl->shouldReceive('isEnabled')->andReturnUsing(static fn(?int $storeId = null): bool => $mailboxInternational());
+    // The cases name PostNL's flag, so only PostNL answers yes.
+    $mailbox = Mockery::mock(MailboxInternational::class);
+    $mailbox->shouldReceive('isEnabledFor')->andReturnUsing(
+        static fn(string $carrier, ?int $storeId = null): bool => 'postnl' === $carrier && $mailboxInternational()
+    );
 
-    return new PackageTypeResolver($config, productAttributesFor($rows), new Weight($config), $postnl);
+    return new PackageTypeResolver($config, productAttributesFor($rows), new Weight($config), $mailbox);
 }
 
 /** Resolve one case of packageTypeCases(), with the candidates built by the resolver itself. */
@@ -85,21 +88,21 @@ it('decides every case on one shared resolver, in both orders, so no call leaves
 
 it('finds a cart within the mailbox maximum light enough, and one above it too heavy', function () {
     $resolver = packageTypeResolverFor(
-        [Config::XML_PATH_POSTNL_SETTINGS . 'mailbox' => ['active' => '1', 'weight' => '2000']],
+        [Config::carrierPath('postnl') . 'mailbox' => ['active' => '1', 'weight' => '2000']],
         [],
         static fn(): bool => false
     );
 
-    expect($resolver->fitsMailboxWeight([quoteItemFor(1, 1.0, 2000.0)], Config::XML_PATH_POSTNL_SETTINGS, 1))->toBeTrue()
-        ->and($resolver->fitsMailboxWeight([quoteItemFor(1, 1.0, 2001.0)], Config::XML_PATH_POSTNL_SETTINGS, 1))->toBeFalse();
+    expect($resolver->fitsMailboxWeight([quoteItemFor(1, 1.0, 2000.0)], Config::carrierPath('postnl'), 1))->toBeTrue()
+        ->and($resolver->fitsMailboxWeight([quoteItemFor(1, 1.0, 2001.0)], Config::carrierPath('postnl'), 1))->toBeFalse();
 });
 
 it('finds no cart light enough for a mailbox group that is switched off, not even a weightless one', function () {
     $resolver = packageTypeResolverFor(
-        [Config::XML_PATH_POSTNL_SETTINGS . 'mailbox' => ['active' => '0', 'weight' => '2000']],
+        [Config::carrierPath('postnl') . 'mailbox' => ['active' => '0', 'weight' => '2000']],
         [],
         static fn(): bool => false
     );
 
-    expect($resolver->fitsMailboxWeight([quoteItemFor(1, 1.0, 0.0)], Config::XML_PATH_POSTNL_SETTINGS, 1))->toBeFalse();
+    expect($resolver->fitsMailboxWeight([quoteItemFor(1, 1.0, 0.0)], Config::carrierPath('postnl'), 1))->toBeFalse();
 });
