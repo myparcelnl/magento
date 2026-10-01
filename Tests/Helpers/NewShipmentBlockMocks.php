@@ -15,8 +15,10 @@ use MyParcelNL\Magento\Service\Weight;
  * unseeded shape does.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $capabilities
+ * @param string[]                                   $contracted v2 carrier names in the order store's
+ *                                                               stored contract; none reads permissive
  */
-function createNewShipmentBlockWith($capabilities, array $orderOverrides = []): NewShipment
+function createNewShipmentBlockWith($capabilities, array $orderOverrides = [], array $contracted = []): NewShipment
 {
     $block = newInstanceWithoutConstructor(NewShipment::class);
 
@@ -31,6 +33,7 @@ function createNewShipmentBlockWith($capabilities, array $orderOverrides = []): 
         (int) $order->getStoreId()
     ));
     setPrivateProperty($block, 'form', new NewShipmentForm());
+    setPrivateProperty($block, 'contractDefinitions', storedContractFor((int) $order->getStoreId(), $contracted));
 
     // getFormCarriers() reaches these whenever a shape reports insurance, which a permissive shape
     // always does.

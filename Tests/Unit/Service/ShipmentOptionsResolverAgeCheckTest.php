@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
@@ -55,7 +54,7 @@ it('reads the non-explicit tiers from DefaultOptions, so the form and the export
 });
 
 it('keeps an explicit age check outside NL; capabilities and the API decide what a carrier carries', function () {
-    $result = createShipmentOptions('BE', Carrier::UPS_STANDARD, [ShipmentOption::AGE_CHECK => true], false)->hasAgeCheck();
+    $result = createShipmentOptions('BE', 'upsstandard', [ShipmentOption::AGE_CHECK => true], false)->hasAgeCheck();
 
     expect($result)->toBeTrue();
 });

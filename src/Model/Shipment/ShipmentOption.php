@@ -123,4 +123,27 @@ final class ShipmentOption
         return false === $name ? strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $v2Name)) : $name;
     }
 
+    /** English labels, which are also the msgids in i18n/. Translate them where they are shown. */
+    public const LABELS
+        = [
+            self::SIGNATURE          => 'Signature on receipt',
+            self::RECEIPT_CODE       => 'Receipt code',
+            self::COLLECT            => 'Collect package',
+            self::ONLY_RECIPIENT     => 'Only recipient',
+            self::AGE_CHECK          => 'Age check 18+',
+            self::HIDE_SENDER        => 'Hide sender',
+            self::LARGE_FORMAT       => 'Large package',
+            self::RETURN             => 'Return if no answer',
+            self::SAME_DAY_DELIVERY  => 'Same day delivery',
+            self::PRINTERLESS_RETURN => 'Printerless return',
+            self::FRESH_FOOD         => 'Fresh food',
+            self::FROZEN             => 'Frozen',
+            self::PRIORITY_DELIVERY  => 'Priority delivery',
+        ];
+
+    /** An option not in LABELS reads as its name, so `no_tracking` is "No tracking". */
+    public static function labelFor(string $option): string
+    {
+        return self::LABELS[$option] ?? ucfirst(str_replace('_', ' ', $option));
+    }
 }
