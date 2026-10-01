@@ -294,6 +294,8 @@ it('imports the account settings of a new api key before it validates other fiel
     $importer->shouldReceive('hasSettingsFor')->with('new-key')->andReturn(false);
     $importer->shouldReceive('importFor')->with('new-key')->andReturnUsing(function () use (&$log) {
         $log[] = 'import';
+
+        return true;
     });
 
     saveDynamicSettings(
