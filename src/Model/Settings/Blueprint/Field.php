@@ -120,6 +120,12 @@ final class Field
         return $copy;
     }
 
+    /** Whether the form shows this field at a scope: 'default', 'websites' or 'stores'. */
+    public function isShownAt(string $scopeName): bool
+    {
+        return 'default' === $scopeName || ! $this->defaultScopeOnly;
+    }
+
     public function path(): string
     {
         return $this->path;
