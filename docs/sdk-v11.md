@@ -11,7 +11,7 @@ them there when you have access.
 
 The module was pinned at `myparcelnl/sdk` `11.0.0-beta.15` because **beta.22 deleted the legacy
 consignment stack** it was built on. No later SDK could be installed: no bug fixes, no regenerated
-clients, no new carriers or options. The pin is now `11.0.0-beta.33`, and the vocabulary maps under
+clients, no new carriers or options. The pin is now `11.0.0-beta.36`, and the vocabulary maps under
 `src/Model/Shipment/` are the module's own: the consignment classes that held package types,
 delivery types and option names are gone, and there are none to adopt.
 
