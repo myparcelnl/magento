@@ -10,7 +10,7 @@
 > | — | settings decimals and import fix | `fix/settings-decimals-and-import` | draft PR, #981 |
 > | 3 | honour capability option dependencies | `feat/honour-capability-option-dependencies` | draft PR, #982 |
 > | 4 | generate the settings form | `feat/generate-settings-form` | draft PR, #984 |
-> | 5 | supply settings defaults | — | not started |
+> | 5 | supply settings defaults | `feat/supply-settings-defaults` | spike passed, in progress |
 > | 6 | account-derived export mode and proposition | — | not started |
 >
 > PR 1 also carried two changes the plan below does not name: the weight unit became one global
@@ -90,6 +90,45 @@
 >   form offers.
 > - `Model\Carrier\Carrier` declares its five properties, which its constructor set as dynamic
 >   properties.
+>
+> PR 5's spike (step 1) passed on 2026-10-01, so sortOrder 5 stands and the fallback is not
+> needed. A throwaway source at sortOrder 5 answered fixed values, and
+> `private/config-source-probe.php` read them back through `ScopeConfigInterface`:
+>
+> | path | source | DB | `config.xml` | resolved | proves |
+> |---|---|---|---|---|---|
+> | `general/spike/probe` | `reached` | — | — | `reached` | the source is reached |
+> | `postnl_settings/delivery/active` | `0` | `1` | `1` | `1` | assertion 4: no carrier switches off |
+> | `postnl_settings/package_small/active` | `1` | `0` | — | `0` | a saved row beats the source |
+> | `general/matrix/use_free_shipping` | `7` | — | `1` | `1` | `config.xml` beats the source |
+> | `general/spike/probe` at store 3 | — | — | — | `reached` | a default-scope value cascades |
+> | `postnl_settings/evening/active` at store 3 | — | `0` default, `1` store 3 | `1` | `1` | a store row still wins |
+>
+> `dev:di:info` listed four sources, and `var/log` showed no recursion. Two corrections to step 1:
+>
+> - `config:show <path>` refuses every `myparcelnl_*` path on this branch ("path doesn't exist"),
+>   while `config:show` without a path lists them. Read values through the probe instead.
+> - `setup:di:compile` builds the `global` area from the cached DI config, so run `cache:flush`
+>   **before** it as well as after. Without that, the first compile dropped the source silently and
+>   assertion 2 looked like a failure.
+>
+> PR 5 departs from the plan in these places:
+>
+> - **`etc/config.xml` holds no MyParcel defaults.** The plan kept it as the grandfather record.
+>   `Setup\Migrations\LegacyConfigDefaults` writes its 124 values for the paths the form still offers
+>   as default-scope rows where an existing install has none, so no existing shop changes. A new
+>   install starts from the generated defaults: every carrier, option and fee off, titles empty, so
+>   `Checkout` shows its translated titles. `GeneratedDefaultsParityTest` names each of the 48 changes.
+> - The 77 orphan defaults are deleted with the rest. None has a reader: the `*/general/*` group is
+>   read only by `UpgradeData` with raw SQL, and `digital_stamp/fee` and `mailbox/fee` are never a
+>   `{deliveryType}/fee`.
+> - The field template carries its default, `Field::withDefault()`, in place of `Field::neutral()`. A
+>   switch or a fee is `'0'`. Every other field keeps its legacy value. A title has none, because
+>   `Checkout` translates an empty one.
+> - `GeneratedDefaults` takes a logger. `RuntimeConfigSource`'s collection already builds one, so it
+>   adds nothing to the graph. The general section is generated without an account, so a database
+>   that cannot be read loses only the carrier defaults, which are off and zero anyway.
+> - `Generator` is static, so it is not a constructor argument.
 >
 > Recorded for PR 6, found while PR 4 was built:
 >

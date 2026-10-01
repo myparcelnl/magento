@@ -111,10 +111,13 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
   1. Add a `Field` to its group in `Blueprint\Catalogue`, and its label and tooltip to `i18n/`.
      `Tests/Unit/Model/Settings/Blueprint/GeneratorParityTest.php` pins the form against the legacy
      JSON, so name a moved or changed path there.
-  2. For non-trivial UI (buttons, custom widgets), give the field a `frontend_model`: a block
+  2. Give it a value with `withDefault()` if it needs one before a merchant saves it. A switch or a
+     fee defaults to `'0'`. `etc/config.xml` holds no MyParcel defaults: `App\Config\Source\GeneratedDefaults`
+     supplies them at default scope, below every saved row.
+  3. For non-trivial UI (buttons, custom widgets), give the field a `frontend_model`: a block
      class in `src/Block/System/Config/Form/`.
-  3. Persist via `Magento\Framework\App\Config\Storage\WriterInterface::save(...)`.
-  4. Read scoped existence via `Settings::hasOwnValue($path, $scope, $scopeId)`
+  4. Persist via `Magento\Framework\App\Config\Storage\WriterInterface::save(...)`.
+  5. Read scoped existence via `Settings::hasOwnValue($path, $scope, $scopeId)`
      (partition semantics — does NOT cascade).
 
 ### Database
