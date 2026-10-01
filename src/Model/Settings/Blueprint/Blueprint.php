@@ -43,12 +43,8 @@ final class Blueprint
     {
         $paths = [];
 
-        foreach ($this->sections as $section) {
-            foreach ($section->groups() as $group) {
-                foreach ($group->fields() as $field) {
-                    $paths[] = $field->path();
-                }
-            }
+        foreach ($this->fields() as $field) {
+            $paths[] = $field->path();
         }
 
         return $paths;
@@ -59,13 +55,9 @@ final class Blueprint
     {
         $defaults = [];
 
-        foreach ($this->sections as $section) {
-            foreach ($section->groups() as $group) {
-                foreach ($group->fields() as $field) {
-                    if (null !== $field->default()) {
-                        $defaults[$field->path()] = $field->default();
-                    }
-                }
+        foreach ($this->fields() as $field) {
+            if (null !== $field->default()) {
+                $defaults[$field->path()] = $field->default();
             }
         }
 
@@ -80,5 +72,15 @@ final class Blueprint
                 return $section->toArray();
             }, $this->sections),
         ];
+    }
+
+    /** @return iterable<Field> every field, in form order */
+    private function fields(): iterable
+    {
+        foreach ($this->sections as $section) {
+            foreach ($section->groups() as $group) {
+                yield from $group->fields();
+            }
+        }
     }
 }
