@@ -38,18 +38,18 @@ jobs:
   rebase:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
           token: ${{ secrets.GH_REPO_TOKEN }}
 
       # TODO: Switch to v3 with app credentials when GitHub apps are allowed to bypass status checks. https://github.com/orgs/community/discussions/43460
-      - uses: myparcelnl/actions/setup-git-credentials@v2
+      - uses: myparcelnl/actions/setup-git-credentials@v4
         with:
           token: ${{ secrets.GH_REPO_TOKEN }}
 
-      - uses: myparcelnl/actions/rebase@v3
+      - uses: myparcelnl/actions/rebase@v4
         with:
           token: ${{ secrets.GH_REPO_TOKEN }}
           target: ${{ github.event.client_payload.target || github.event.inputs.target || inputs.target }}
