@@ -126,8 +126,8 @@ __metadata:
   linkType: hard
 
 "@myparcel-dev/semantic-release-config@npm:^7.0.1":
-  version: 7.0.1
-  resolution: "@myparcel-dev/semantic-release-config@npm:7.0.1"
+  version: 7.0.2
+  resolution: "@myparcel-dev/semantic-release-config@npm:7.0.2"
   dependencies:
     "@iwavesmedia/semantic-release-composer": "npm:^1.0.0"
     "@semantic-release/changelog": "npm:^6.0.1"
@@ -139,7 +139,7 @@ __metadata:
     "@semantic-release/release-notes-generator": "npm:^14.1.1"
     conventional-changelog-conventionalcommits: "npm:^9.0.0"
     semantic-release: "npm:^25.0.9"
-  checksum: e6a20ef929634a2e23de0fb24816582a73f1f8350110bed1c1a38f5af04b01aa86c15f9dc4ef9af87c9a33d8b63aea1b4a5eead66ff65b6ec6b1d5e8535f7600
+  checksum: 77c8e0bd493b0d864b62dda88a39163af10b8e42453fa7e54d32a912952dd7a0169e97e043b0c9610eb20990c0de30e8ed34f3a10a4c58c94fb6990dbe670481
   languageName: node
   linkType: hard
 
@@ -777,9 +777,9 @@ __metadata:
   linkType: hard
 
 "@types/knockout@npm:^3.4.77":
-  version: 3.4.77
-  resolution: "@types/knockout@npm:3.4.77"
-  checksum: ef853d6212e14e574a2c1eea11f00456dccccb7d060d2a06895e1346d345c019ef5366c1dc2588c8941e0b9817ae641031be07aaab522d8f3ce875b8e88aee3c
+  version: 3.4.79
+  resolution: "@types/knockout@npm:3.4.79"
+  checksum: 5a2ae24d7191053d3fc7036120b656692ea7c44118945fe57d0960359e609ee4f3f7c718398b29e6610cebcab466da7d6a1df2e02e6a826408938ba9a20f3ff5
   languageName: node
   linkType: hard
 
