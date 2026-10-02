@@ -3,6 +3,8 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.10.3](https://github.com/myparcelnl/magento/compare/v5.10.2...v5.10.3) (2026-10-02)
+
 ## [5.10.2](https://github.com/myparcelnl/magento/compare/v5.10.1...v5.10.2) (2026-10-01)
 
 ## [5.10.1](https://github.com/myparcelnl/magento/compare/v5.10.0...v5.10.1) (2026-09-29)
