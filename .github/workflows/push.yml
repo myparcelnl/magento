@@ -33,6 +33,8 @@ jobs:
           token: ${{ secrets.GH_REPO_TOKEN }}
 
       - uses: myparcelnl/actions/yarn-install@v3
+        with:
+          node-version: 24
 
       - uses: myparcelnl/actions/semantic-release@v3
         with:
