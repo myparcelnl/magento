@@ -15,7 +15,7 @@ use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\OrderLineOptionsFromOrderAdapter;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Helper\SplitStreet;
@@ -40,14 +40,14 @@ class FulfilmentOrderBuilder
     private ObjectManagerInterface $objectManager;
     private Weight                 $weight;
     private ShipmentApiProvider    $apiProvider;
-    private AccountProposition     $accountProposition;
+    private StoredAccount          $storedAccount;
 
     public function __construct(ObjectManagerInterface $objectManager)
     {
-        $this->objectManager      = $objectManager;
-        $this->weight             = $objectManager->get(Weight::class);
-        $this->apiProvider        = $objectManager->get(ShipmentApiProvider::class);
-        $this->accountProposition = $objectManager->get(AccountProposition::class);
+        $this->objectManager = $objectManager;
+        $this->weight        = $objectManager->get(Weight::class);
+        $this->apiProvider   = $objectManager->get(ShipmentApiProvider::class);
+        $this->storedAccount = $objectManager->get(StoredAccount::class);
     }
 
     /**
@@ -65,7 +65,7 @@ class FulfilmentOrderBuilder
 
         $apiKey            = $this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId());
         $deliveryOptions   = $shipmentOptions->deliveryOptions();
-        $shippingRecipient = $this->shippingRecipient($magentoOrder, $this->accountProposition->homeCountryForApiKey($apiKey));
+        $shippingRecipient = $this->shippingRecipient($magentoOrder, $this->storedAccount->homeCountryForApiKey($apiKey));
 
         $order = (new FulfilmentOrder())
             ->setApiKey($apiKey)
