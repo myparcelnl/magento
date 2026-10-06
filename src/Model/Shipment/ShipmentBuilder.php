@@ -97,7 +97,7 @@ class ShipmentBuilder
         $shipment = (new Shipment())
             ->setCarrier($shipmentOptions->carrierId())
             ->setReferenceIdentifier(self::referenceIdentifierFor((int) $magentoShipment->getEntityId(), $colloNumber))
-            ->setRecipient($this->recipient($address, $this->accountProposition->homeCountryForStore((int) $order->getStoreId())))
+            ->setRecipient($this->recipient($address, $this->accountProposition->homeCountryForApiKey($apiKey)))
             ->setPhysicalProperties(['weight' => $weight])
             ->setOptions($shipmentOptions->shipmentOptions($address));
 

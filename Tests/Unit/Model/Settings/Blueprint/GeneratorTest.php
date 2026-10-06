@@ -106,12 +106,15 @@ it('offers no delivery day that is not a capability', function () {
     ]);
 });
 
-it('offers every insurance zone for every carrier', function () {
+it('offers three insurance zones for every carrier when the proposition is unknown', function () {
     $fields = generatedFields([contractDefinitionItem(['carrier' => 'UPS_STANDARD'])]);
+    $path   = Config::carrierPath('upsstandard') . 'default_options/';
 
-    foreach (['local', 'belgium', 'eu', 'row'] as $zone) {
-        expect($fields)->toHaveKey(Config::carrierPath('upsstandard') . "default_options/insurance_{$zone}_amount");
+    foreach (['local', 'eu', 'row'] as $zone) {
+        expect($fields)->toHaveKey("{$path}insurance_{$zone}_amount");
     }
+
+    expect($fields)->not->toHaveKey("{$path}insurance_belgium_amount");
 });
 
 it('builds groups from package types and delivery types', function () {

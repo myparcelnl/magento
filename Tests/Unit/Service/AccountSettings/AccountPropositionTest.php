@@ -6,10 +6,10 @@ use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 
 /**
- * The proposition behind a store's api key.
+ * The proposition of the account behind an api key, or behind a store's api key.
  *
- * Read once per store while the order grid renders, so a keyless store and a row that cannot be read
- * at all must both answer null instead of throwing, and one store must cost one read.
+ * Read while the order grid renders, so a keyless store and a row that cannot be read at all must
+ * both answer null instead of throwing, and one account must cost one read.
  *
  * stubAccountSettingsReader() and settingsPathFor() live in Tests/Helpers/AccountSettingsHelpers.php,
  * accountSettingsRow() in Tests/Helpers/CapabilitiesFixtures.php.
@@ -60,7 +60,7 @@ it('answers null and warns once when the account names a proposition the module 
     $logger = stubAccountSettingsReader([
         settingsPathFor('live-key') => accountSettingsRow([], ['account' => ['id' => 7, 'proposition_id' => 99]]),
     ]);
-    $proposition = makeAccountProposition('live-key');
+    $proposition = makeAccountProposition('live-key', 2);
 
     expect($proposition->forStore(1))->toBeNull()
         ->and($proposition->forStore(1))->toBeNull();
@@ -79,12 +79,23 @@ it('gives the home country of the store its proposition, or the default one', fu
         ->and(makeAccountProposition(null)->homeCountryForStore(1))->toBe('NL');
 });
 
-it('reads a store once, so a broken row costs one alert per page and not one per row', function () {
+it('reads the proposition and home country of an api key without asking for a store', function () {
+    stubAccountSettingsReader([
+        settingsPathFor('be-key') => accountSettingsRow([], ['account' => ['id' => 7, 'proposition_id' => 3]]),
+    ]);
+    $proposition = makeAccountProposition('unused', 0);
+
+    expect($proposition->forApiKey('be-key')->getId())->toBe(3)
+        ->and($proposition->homeCountryForApiKey('be-key'))->toBe('BE')
+        ->and($proposition->homeCountryForApiKey('unknown-key'))->toBe('NL');
+});
+
+it('reads an account once, so stores that share its key cost one alert per page and not one per row', function () {
     $logger      = stubAccountSettingsReader([], unreadableSettings());
-    $proposition = makeAccountProposition('live-key');
+    $proposition = makeAccountProposition('live-key', 2);
 
     $proposition->forStore(1);
-    $proposition->forStore(1);
+    $proposition->forStore(2);
 
     $logger->shouldHaveReceived('alert')->once();
 });

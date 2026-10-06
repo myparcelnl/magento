@@ -59,8 +59,6 @@ final class Catalogue
     /** Mailbox options, which go in the mailbox group instead of `default_options`. */
     public const MAILBOX_OPTIONS = [ShipmentOption::PRIORITY_DELIVERY];
 
-    public const INSURANCE_ZONES = ['local', 'belgium', 'eu', 'row'];
-
     /** The order the Automate toggles show in. An option not listed follows, in capabilities order. */
     private const DEFAULT_OPTIONS_ORDER = [
         ShipmentOption::SIGNATURE,
@@ -147,14 +145,15 @@ final class Catalogue
         string       $carrier,
         CarrierShape $shape,
         bool         $exportable,
-        bool         $internationalMailbox
+        bool         $internationalMailbox,
+        array        $insuranceZones
     ): Section
     {
         $path   = Config::carrierPath($carrier);
         $groups = [
             self::deliveryGroup($carrier, $shape, $exportable),
             self::dropOffDaysGroup($path . 'drop_off_days/'),
-            self::defaultOptionsGroup($carrier, $shape),
+            self::defaultOptionsGroup($carrier, $shape, $insuranceZones),
         ];
 
         if ($shape->hasPackageType(PackageType::DIGITAL_STAMP_NAME)) {
@@ -269,7 +268,7 @@ final class Catalogue
         );
     }
 
-    private static function defaultOptionsGroup(string $carrier, CarrierShape $shape): Group
+    private static function defaultOptionsGroup(string $carrier, CarrierShape $shape, array $insuranceZones): Group
     {
         $path   = Config::carrierPath($carrier) . 'default_options/';
         $fields = [];
@@ -281,7 +280,7 @@ final class Catalogue
         }
 
         if ($shape->hasInsurance()) {
-            $fields = array_merge($fields, self::insuranceFields($path));
+            $fields = array_merge($fields, self::insuranceFields($path, $insuranceZones));
         }
 
         return new Group(
@@ -335,9 +334,9 @@ final class Catalogue
     }
 
     /** @return Field[] */
-    private static function insuranceFields(string $path): array
+    private static function insuranceFields(string $path, array $zones): array
     {
-        $zones = [
+        $zoneTexts = [
             'local'   => ['Insure orders up to', 'This setting applies to domestic shipments only'],
             'belgium' => ['Insure orders up to (BE)', 'A custom be insurance price within a range of possibilities.'],
             'eu'      => ['Insure orders up to (EU)', 'A custom eu insurance price within a range of possibilities.'],
@@ -351,8 +350,8 @@ final class Catalogue
                 ->withDefault('0'),
         ];
 
-        foreach (self::INSURANCE_ZONES as $zone) {
-            [$label, $tooltip] = $zones[$zone];
+        foreach ($zones as $zone) {
+            [$label, $tooltip] = $zoneTexts[$zone];
             $fields[]          = Field::text("{$path}insurance_{$zone}_amount", $label)
                 ->withTooltip($tooltip)
                 ->withFrontendModel(InsuranceAmount::class)
