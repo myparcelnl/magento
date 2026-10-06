@@ -53,3 +53,42 @@ it('declares weight and value at line level, multiplied by the quantity', functi
     expect($items[0]->getWeight())->toBe(300)
         ->and($items[0]->getItemValue()['amount'])->toBe(3000);
 });
+
+/*
+ * A configurable product is ordered as a parent item and a variant item. Product 4 is the parent,
+ * 9 the variant.
+ */
+
+function ppsConfigurableCustomsItems(array $classifications, array $countries): array
+{
+    $parent = createOrderItem(['item_id' => 314, 'product_id' => 4, 'product_type' => 'configurable'], ['id' => 4]);
+    $child  = createOrderItem(
+        ['item_id' => 315, 'product_id' => 9, 'product_type' => 'simple', 'parent_item' => $parent],
+        ['id' => 9, 'name' => 'Caterham Red']
+    );
+    $order  = createOrder([
+        'getItems'         => [$parent, $child],
+        'getIncrementId'   => '100000001',
+        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
+    ]);
+
+    customsObjectManager($classifications, $countries, createConfig(['print/weight_indication' => 'gram']), true);
+
+    return (new CustomsDeclarationFromOrder($order))->createCustomsDeclaration()->items;
+}
+
+it('declares a configurable product once, as the variant', function () {
+    $items = ppsConfigurableCustomsItems([4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ']);
+
+    expect($items)->toHaveCount(1)
+        ->and($items[0]->getDescription())->toBe('Caterham Red')
+        ->and($items[0]->getClassification())->toBe('0090902341')
+        ->and($items[0]->getCountry())->toBe('AQ');
+});
+
+it('falls back to the configurable parent where the variant has no customs data', function () {
+    $items = ppsConfigurableCustomsItems([4 => '6109.10'], [4 => 'CN', 9 => null]);
+
+    expect($items[0]->getClassification())->toBe('6109.10')
+        ->and($items[0]->getCountry())->toBe('CN');
+});
