@@ -10,7 +10,13 @@ use MyParcelNL\Magento\Service\Weight;
  * The PPS customs items of an order holding these rows: each shipped row at its weight and at the price
  * paid in the order's currency. $hsCodes and $countries are what the catalog answers, by product id.
  */
-function customsItemsOf(array $orderItems, array $config = [], array $hsCodes = [7 => '6109.10'], array $countries = [7 => 'CN']): array
+function customsItemsOf(
+    array  $orderItems,
+    array  $config = [],
+    array  $hsCodes = [7 => '6109.10'],
+    array  $countries = [7 => 'CN'],
+    string $homeCountry = 'NL'
+): array
 {
     $order = createOrder([
         'getItems'         => $orderItems,
@@ -19,18 +25,22 @@ function customsItemsOf(array $orderItems, array $config = [], array $hsCodes = 
     ]);
 
     $config        = createConfig($config + ['print/weight_indication' => 'gram']);
-    $objectManager = customsObjectManager($hsCodes, $countries, $config);
+    $objectManager = customsObjectManager($hsCodes, $countries, $config, $homeCountry);
 
     return (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
 }
 
 /** One row of product 7. */
-function ppsCustomsItems(array $productData, array $config = [], array $itemData = []): array
+function ppsCustomsItems(array $productData, array $config = [], array $itemData = [], string $homeCountry = 'NL'): array
 {
     $item = createOrderItem(['product_id' => '7'] + $itemData, ['id' => 7] + $productData);
 
-    return customsItemsOf([$item], $config, [7 => '6109.10'], [7 => $productData['country_of_manufacture'] ?? null]);
+    return customsItemsOf([$item], $config, [7 => '6109.10'], [7 => $productData['country_of_manufacture'] ?? null], $homeCountry);
 }
+
+it('takes the account\'s home country when no country of origin is set', function () {
+    expect(ppsCustomsItems([], [], [], 'BE')[0]->getCountry())->toBe('BE');
+});
 
 it('takes the country of origin from the product when it has one', function () {
     expect(ppsCustomsItems(['country_of_manufacture' => 'CN'])[0]->getCountry())->toBe('CN');

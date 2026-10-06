@@ -52,7 +52,7 @@ class OrderCustomsDeclarationBuilder
 
         $productIds      = array_column($lines, 'productId');
         $classifications = $productIds ? $this->items->classificationsFor($productIds) : [];
-        $countries       = $productIds ? $this->items->countriesOfOriginFor($productIds) : [];
+        $countries       = $productIds ? $this->items->countriesOfOriginFor($productIds, (int) $order->getStoreId()) : [];
         $currency        = $order->getOrderCurrency()->getCode() ?? RefTypesMoney::CURRENCY_EUR;
 
         foreach ($lines as $line) {

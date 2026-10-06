@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Service;
 
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 /**
@@ -28,18 +29,21 @@ class PackageTypeResolver
     private ProductAttributes    $attributes;
     private Weight               $weight;
     private MailboxInternational $mailboxInternational;
+    private AccountProposition   $accountProposition;
 
     public function __construct(
         Config               $config,
         ProductAttributes    $attributes,
         Weight               $weight,
-        MailboxInternational $mailboxInternational
+        MailboxInternational $mailboxInternational,
+        AccountProposition   $accountProposition
     )
     {
         $this->config               = $config;
         $this->attributes           = $attributes;
         $this->weight               = $weight;
         $this->mailboxInternational = $mailboxInternational;
+        $this->accountProposition   = $accountProposition;
     }
 
     /**
@@ -51,7 +55,7 @@ class PackageTypeResolver
      */
     public function candidates(array $allowed, string $carrierPath, string $country, ?int $storeId): PackageTypeCandidates
     {
-        $mailboxToggles = CountryCodes::CC_NL === $country
+        $mailboxToggles = $this->accountProposition->homeCountryForStore($storeId) === $country
             ? ['mailbox/active']
             : ['mailbox/active', 'mailbox/international_active'];
 
@@ -236,7 +240,7 @@ class PackageTypeResolver
 
     private function mailboxAllowedTo(string $country, string $carrierName, ?int $storeId): bool
     {
-        if (CountryCodes::CC_NL === $country) {
+        if ($this->accountProposition->homeCountryForStore($storeId) === $country) {
             return true;
         }
 
