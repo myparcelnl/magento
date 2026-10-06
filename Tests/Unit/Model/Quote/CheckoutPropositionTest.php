@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Magento\Model\Settings\Proposition;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 
 /** The constructor is skipped: it reads the checkout session. */
 function checkoutPropositionNameFor(?int $propositionId): string
 {
-    $accountProposition = Mockery::mock(AccountProposition::class);
-    $accountProposition->shouldReceive('forStore')->with(1)->andReturn(Proposition::forId($propositionId));
+    $storedAccount = Mockery::mock(StoredAccount::class);
+    $storedAccount->shouldReceive('propositionForStore')->with(1)->andReturn(Proposition::forId($propositionId));
 
     $checkout = newInstanceWithoutConstructor(Checkout::class);
     setPrivateProperty($checkout, 'storeId', 1);
-    setPrivateProperty($checkout, 'accountProposition', $accountProposition);
+    setPrivateProperty($checkout, 'storedAccount', $storedAccount);
 
     return invokePrivateMethod($checkout, 'propositionName');
 }
