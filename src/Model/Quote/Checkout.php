@@ -465,7 +465,9 @@ class Checkout
         // Abroad the international toggle decides, so a carrier switched off at home can still ship
         // a mailbox. && short-circuits per entry, so a config key is not read once the capability
         // has already said no.
-        $mailboxActiveKey = CountryCode::CC_NL === $country ? 'mailbox/active' : 'mailbox/international_active';
+        $mailboxActiveKey = $this->accountProposition->homeCountryForStore($this->storeId) === $country
+            ? 'mailbox/active'
+            : 'mailbox/international_active';
 
         $candidates = PackageTypeCandidates::none();
 
