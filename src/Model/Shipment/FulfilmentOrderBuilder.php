@@ -63,15 +63,13 @@ class FulfilmentOrderBuilder
             new DefaultOptions($magentoOrder)
         );
 
+        $apiKey            = $this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId());
         $deliveryOptions   = $shipmentOptions->deliveryOptions();
         $shippingAddress   = $magentoOrder->getShippingAddress();
-        $shippingRecipient = $this->shippingRecipient(
-            $magentoOrder,
-            $this->accountProposition->homeCountryForStore((int) $magentoOrder->getStoreId())
-        );
+        $shippingRecipient = $this->shippingRecipient($magentoOrder, $this->accountProposition->homeCountryForApiKey($apiKey));
 
         $order = (new FulfilmentOrder())
-            ->setApiKey($this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId()))
+            ->setApiKey($apiKey)
             ->setStatus((string) $magentoOrder->getStatus())
             ->setCarrierId($shipmentOptions->carrierId())
             ->setDeliveryOptions($shipmentOptions->shipmentOptions($shippingAddress))
