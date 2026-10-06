@@ -8,7 +8,7 @@ use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Settings\Proposition;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
 use MyParcelNL\Magento\Service\TrackTraceUrl;
 
@@ -38,8 +38,8 @@ function makeLinkResolver(array $rows, ?int $propositionId = 1, array &$wheres =
     $resource->shouldReceive('getConnection')->andReturn($connection);
     $resource->shouldReceive('getTableName')->andReturnUsing(static fn(string $table): string => $table);
 
-    $proposition = Mockery::mock(AccountProposition::class);
-    $proposition->shouldReceive('forStore')->andReturn(Proposition::forId($propositionId));
+    $proposition = Mockery::mock(StoredAccount::class);
+    $proposition->shouldReceive('propositionForStore')->andReturn(Proposition::forId($propositionId));
 
     return new LinkResolver(
         $resource,

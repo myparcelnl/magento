@@ -18,7 +18,7 @@ function scopeBlueprintsFor(array $contracted, MailboxInternational $mailbox, st
     $config   = createConfig([], [], [], ['websites' => [2 => [Config::XML_PATH_API_KEY => 'live-key']]]);
     $contract = new ContractDefinitions(mockScopeConfig(contractRowsFor($contracted)), new Fingerprint(), $config);
 
-    return new ScopeBlueprints($contract, $config, $mailbox, accountPropositionAt($homeCountry));
+    return new ScopeBlueprints($contract, $config, $mailbox, storedAccountAt($homeCountry));
 }
 
 /** @param string[] $carriers the carriers the account flag names for 'live-key' */
