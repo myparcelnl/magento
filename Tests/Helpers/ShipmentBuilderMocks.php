@@ -10,6 +10,7 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
+use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Model\Shipment\OrderShipmentOptions;
@@ -63,10 +64,23 @@ function createExportConfig(?string $apiKey, ?int $apiKeyStoreId = null, array $
         : createConfig($extraValues, [], [$apiKeyStoreId => ['api/key' => $apiKey]]);
 }
 
-/** An AccountProposition whose every store is at home in $countryCode, with no listed proposition. */
+/** An AccountProposition whose every store and key has the listed proposition at home in $countryCode. */
 function accountPropositionAt(string $countryCode): AccountProposition
 {
-    return Mockery::mock(AccountProposition::class, ['homeCountryForStore' => $countryCode, 'forStore' => null]);
+    $proposition = null;
+
+    foreach (Proposition::ids() as $id) {
+        if ($countryCode === Proposition::forId($id)->getCountryCode()) {
+            $proposition = Proposition::forId($id);
+        }
+    }
+
+    return Mockery::mock(AccountProposition::class, [
+        'forStore'             => $proposition,
+        'forApiKey'            => $proposition,
+        'homeCountryForStore'  => $countryCode,
+        'homeCountryForApiKey' => $countryCode,
+    ]);
 }
 
 /**
@@ -93,7 +107,7 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
     // DefaultOptions, constructed for real inside the builders, reaches for the static
     // ObjectManager singleton rather than the instance injected above: for Config, and for the
     // product age check attribute, which answers "no opinion" here.
-    mockAttributeValueLookup('', [Config::class => $config]);
+    mockAttributeValueLookup('', [Config::class => $config, AccountProposition::class => accountPropositionAt('NL')]);
 
     return $objectManager;
 }
