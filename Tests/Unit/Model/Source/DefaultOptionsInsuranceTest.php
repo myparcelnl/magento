@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 
 /**
@@ -22,7 +22,7 @@ function defaultOptionsFor(
 ): DefaultOptions
 {
     $config = createConfig([], ['postnl' => ['default_options' => $carrierSettings]]);
-    mockLoggerFacade([Config::class => $config, AccountProposition::class => accountPropositionAt($homeCountry)]);
+    mockLoggerFacade([Config::class => $config, StoredAccount::class => storedAccountAt($homeCountry)]);
 
     $address = null;
 
