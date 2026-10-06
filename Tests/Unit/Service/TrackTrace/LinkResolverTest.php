@@ -7,7 +7,8 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
-use MyParcelNL\Magento\Service\TrackTrace\AccountProposition;
+use MyParcelNL\Magento\Model\Settings\Proposition;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
 use MyParcelNL\Magento\Service\TrackTrace\TrackTraceUrl;
 
@@ -16,7 +17,7 @@ use MyParcelNL\Magento\Service\TrackTrace\TrackTraceUrl;
  * not, and no link at all where nothing can be constructed honestly.
  */
 /** @param array $orderRows what the order-row query answers, for orders without a real barcode on a MyParcel track */
-function makeLinkResolver(array $rows, ?int $propositionId = null, array &$wheres = [], array $orderRows = []): LinkResolver
+function makeLinkResolver(array $rows, ?int $propositionId = 1, array &$wheres = [], array $orderRows = []): LinkResolver
 {
     $select = Mockery::mock(Select::class);
     $select->shouldReceive('from', 'joinLeft', 'order')->andReturnSelf();
@@ -39,12 +40,12 @@ function makeLinkResolver(array $rows, ?int $propositionId = null, array &$where
     $resource->shouldReceive('getTableName')->andReturnUsing(static fn(string $table): string => $table);
 
     $proposition = Mockery::mock(AccountProposition::class);
-    $proposition->shouldReceive('forStore')->andReturn($propositionId);
+    $proposition->shouldReceive('forStore')->andReturn(Proposition::forId($propositionId));
 
     return new LinkResolver(
         $resource,
         $proposition,
-        new TrackTraceUrl('https://myparcel.me/track-trace/', [3 => 'https://sendmyparcel.me/track-trace/'])
+        new TrackTraceUrl()
     );
 }
 
@@ -79,6 +80,18 @@ it('constructs the belgian host from the store proposition', function () {
 
     expect($links->forOrders([7])[7][0]['url'])
         ->toBe('https://sendmyparcel.me/track-trace/3STBJG123456789/2000/BE');
+});
+
+it('constructs no link for a proposition whose links the api always returns', function () {
+    $links = makeLinkResolver([trackRow(['postcode' => '00100', 'country_id' => 'IT'])], 6);
+
+    expect($links->forOrders([7])[7][0]['url'])->toBe('');
+});
+
+it('constructs no link when the store has no proposition the module lists', function () {
+    $links = makeLinkResolver([trackRow()], null);
+
+    expect($links->forOrders([7])[7][0]['url'])->toBe('');
 });
 
 it('reads an order with no country as dutch', function () {
@@ -220,7 +233,7 @@ it('escapes a stored link before it reaches the href', function () {
 it('asks the database for myparcel tracks only', function () {
     $wheres = [];
 
-    makeLinkResolver([trackRow()], null, $wheres)->forOrders([7]);
+    makeLinkResolver([trackRow()], 1, $wheres)->forOrders([7]);
 
     expect($wheres)->toContain(['track.carrier_code = ?', Carrier::CODE]);
 });
@@ -232,7 +245,7 @@ it('builds a single track its link without reading any track row', function () {
     $track->shouldReceive('getNumber')->andReturn('3STBJG999999999');
 
     $wheres = [];
-    $link   = makeLinkResolver([trackRow()], null, $wheres)->forTrack($track);
+    $link   = makeLinkResolver([trackRow()], 1, $wheres)->forTrack($track);
 
     expect($link)->toBe('https://myparcel.me/track-trace/3STBJG999999999/2131BC/NL')
         ->and($wheres)->toBe([['sales_order.entity_id = ?', 7]]);
@@ -255,7 +268,7 @@ function linkOrderRow(array $overrides = []): array
 
 it('links the barcodes on the order row of an order with no track', function () {
     $wheres = [];
-    $links  = makeLinkResolver([], null, $wheres, [linkOrderRow()]);
+    $links  = makeLinkResolver([], 1, $wheres, [linkOrderRow()]);
 
     expect($links->forOrders([7])[7])->toBe([
         ['number' => '3SMYPA111', 'url' => 'https://myparcel.me/track-trace/3SMYPA111/2131BC/NL'],
@@ -266,7 +279,7 @@ it('links the barcodes on the order row of an order with no track', function () 
 it('shows the order row barcodes on the order view', function () {
     $wheres = [];
 
-    expect(makeLinkResolver([], null, $wheres, [linkOrderRow()])->htmlForOrder(7))
+    expect(makeLinkResolver([], 1, $wheres, [linkOrderRow()])->htmlForOrder(7))
         ->toContain('href="https://myparcel.me/track-trace/3SMYPA111/2131BC/NL"');
 });
 
