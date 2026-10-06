@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service;
 
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
@@ -113,7 +112,6 @@ class PackageTypeResolver
 
         if ($digitalStamp
             && $candidates->has(PackageType::DIGITAL_STAMP_NAME)
-            && CountryCode::CC_NL === $country
             && $this->weight->convertToGrams($weight) <= $this->maxDigitalStampWeight($carrierPath, $storeId)
         ) {
             return PackageType::DIGITAL_STAMP_NAME;
