@@ -9,8 +9,8 @@ namespace MyParcelNL\Magento\Service\TrackTrace;
  * before the module read that link, a PPS track without a shipment id, or a barcode on the order row.
  *
  * The host follows the account's proposition: a Belgian account's consumer portal is not myparcel.me.
- * Proposition ids are the API's platform ids (AccountDefsPlatformId); an unmapped or unknown one
- * keeps the Dutch host. Both values live in etc/di.xml.
+ * Proposition ids are the API's own (AccountDefsPlatformId); an unmapped or unknown one keeps the Dutch
+ * host. Both values live in etc/di.xml.
  */
 class TrackTraceUrl
 {
@@ -27,7 +27,7 @@ class TrackTraceUrl
         array  $baseUrlsByProposition = []
     )
     {
-        $this->defaultBaseUrl     = $defaultBaseUrl;
+        $this->defaultBaseUrl        = $defaultBaseUrl;
         $this->baseUrlsByProposition = $baseUrlsByProposition;
     }
 
