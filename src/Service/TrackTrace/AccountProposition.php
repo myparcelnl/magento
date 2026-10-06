@@ -11,7 +11,7 @@ use MyParcelNL\Magento\Service\LogContext;
 use Throwable;
 
 /**
- * The platform id behind a store's api key, read from stored account settings — no API call.
+ * The proposition id behind a store's api key, read from stored account settings — no API call.
  *
  * Answers null when the store has no api key, its settings were never imported, or the stored row
  * cannot be read at all, which the fallback url reads as "use the default host". Never throws: the
@@ -20,7 +20,7 @@ use Throwable;
  * Memoised per request: a grid page may hold orders from many stores, and the same store's settings
  * must not be deserialised once per row. A null is memoised too, or one broken row logs once per row.
  */
-class AccountPlatform
+class AccountProposition
 {
     private ShipmentApiProvider $apiProvider;
 
@@ -60,7 +60,7 @@ class AccountPlatform
         } catch (Throwable $e) {
             Logger::alert(
                 sprintf(
-                    'Could not establish the account platform for store %d; the default track & trace host is used.',
+                    'Could not establish the account proposition for store %d; the default track & trace host is used.',
                     $storeId
                 ),
                 LogContext::of($e)
