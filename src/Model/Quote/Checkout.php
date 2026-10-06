@@ -20,8 +20,8 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
@@ -51,7 +51,7 @@ class Checkout
     private StoreManagerInterface $storeManager;
     private ShapeLookup           $capabilityLookup;
     private ContractDefinitions   $contractDefinitions;
-    private AccountProposition    $accountProposition;
+    private StoredAccount         $storedAccount;
 
     /** The quote's store. Every config read this class delegates carries it, rather than relying on
      *  the ambient store of the request. */
@@ -71,7 +71,7 @@ class Checkout
      * @param StoreManagerInterface $storeManager
      * @param ShapeLookup           $capabilityLookup
      * @param ContractDefinitions   $contractDefinitions
-     * @param AccountProposition    $accountProposition
+     * @param StoredAccount         $storedAccount
      */
     public function __construct(
         Tax                   $tax,
@@ -82,7 +82,7 @@ class Checkout
         StoreManagerInterface $storeManager,
         ShapeLookup           $capabilityLookup,
         ContractDefinitions   $contractDefinitions,
-        AccountProposition    $accountProposition
+        StoredAccount         $storedAccount
     )
     {
         $this->tax                 = $tax;
@@ -93,7 +93,7 @@ class Checkout
         $this->storeManager        = $storeManager;
         $this->capabilityLookup    = $capabilityLookup;
         $this->contractDefinitions = $contractDefinitions;
-        $this->accountProposition  = $accountProposition;
+        $this->storedAccount       = $storedAccount;
         $this->quote               = $this->getQuoteFromCurrentSession();
         // Cast kept: a quote with no store id resolves as store 0, which is not the same as null.
         $this->storeId             = (int) $this->quote->getStoreId();
@@ -174,7 +174,7 @@ class Checkout
     /** The widget needs a proposition, so a store without a listed one gets the default. */
     private function propositionName(): string
     {
-        return ($this->accountProposition->forStore($this->storeId) ?? Proposition::default())->getName();
+        return ($this->storedAccount->propositionForStore($this->storeId) ?? Proposition::default())->getName();
     }
 
     /**
@@ -465,7 +465,7 @@ class Checkout
         // Abroad the international toggle decides, so a carrier switched off at home can still ship
         // a mailbox. && short-circuits per entry, so a config key is not read once the capability
         // has already said no.
-        $mailboxActiveKey = $this->accountProposition->homeCountryForStore($this->storeId) === $country
+        $mailboxActiveKey = $this->storedAccount->homeCountryForStore($this->storeId) === $country
             ? 'mailbox/active'
             : 'mailbox/international_active';
 
