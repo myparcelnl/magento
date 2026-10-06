@@ -15,6 +15,7 @@ use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Helper\SplitStreet;
@@ -40,16 +41,18 @@ class FulfilmentOrderBuilder
     private ObjectManagerInterface $objectManager;
     private Weight                 $weight;
     private ShipmentApiProvider    $apiProvider;
+    private AccountProposition     $accountProposition;
     private RecipientFields        $recipientFields;
     private CountryService         $countryService;
 
     public function __construct(ObjectManagerInterface $objectManager)
     {
-        $this->objectManager   = $objectManager;
-        $this->weight          = $objectManager->get(Weight::class);
-        $this->apiProvider     = $objectManager->get(ShipmentApiProvider::class);
-        $this->recipientFields = $objectManager->get(RecipientFields::class);
-        $this->countryService  = $objectManager->get(CountryService::class);
+        $this->objectManager      = $objectManager;
+        $this->weight             = $objectManager->get(Weight::class);
+        $this->apiProvider        = $objectManager->get(ShipmentApiProvider::class);
+        $this->recipientFields    = $objectManager->get(RecipientFields::class);
+        $this->accountProposition = $objectManager->get(AccountProposition::class);
+        $this->countryService     = $objectManager->get(CountryService::class);
     }
 
     /**
@@ -67,7 +70,10 @@ class FulfilmentOrderBuilder
 
         $deliveryOptions   = $shipmentOptions->deliveryOptions();
         $shippingAddress   = $magentoOrder->getShippingAddress();
-        $shippingRecipient = $this->shippingRecipient($magentoOrder, $shipmentOptions->carrierName());
+        $shippingRecipient = $this->shippingRecipient(
+            $magentoOrder,
+            $this->accountProposition->homeCountryForStore((int) $magentoOrder->getStoreId())
+        );
 
         $order = (new FulfilmentOrder())
             ->setApiKey($this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId()))
@@ -177,12 +183,12 @@ class FulfilmentOrderBuilder
     }
 
     /**
-     * The first country SplitStreet takes is the carrier's, which picks the split rule; the second
-     * is the destination's.
+     * The first country SplitStreet takes is the account's home country, which picks the split rule;
+     * the second is the destination's.
      *
      * @throws RuntimeException when the order has no shipping address
      */
-    private function shippingRecipient(Order $magentoOrder, ?string $carrier): Recipient
+    private function shippingRecipient(Order $magentoOrder, string $localCountry): Recipient
     {
         $shippingAddress = $magentoOrder->getShippingAddress();
 
@@ -193,7 +199,7 @@ class FulfilmentOrderBuilder
         $country     = $shippingAddress->getCountryId();
         $streetParts = SplitStreet::splitStreet(
             implode(' ', $shippingAddress->getStreet() ?? []),
-            Carrier::localCountryCodeFor($carrier),
+            $localCountry,
             $country
         );
 

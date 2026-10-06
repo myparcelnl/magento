@@ -15,6 +15,7 @@ use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Magento\Service\Weight;
@@ -40,6 +41,7 @@ class ShipmentBuilder
     private ShipmentApiProvider       $apiProvider;
     private ShipmentValidator         $validator;
     private CustomsDeclarationBuilder $customsBuilder;
+    private AccountProposition        $accountProposition;
     private RecipientFields           $recipientFields;
     private CountryService            $countryService;
 
@@ -48,14 +50,15 @@ class ShipmentBuilder
 
     public function __construct(ObjectManagerInterface $objectManager, Order $order)
     {
-        $this->objectManager  = $objectManager;
-        $this->weight         = $objectManager->get(Weight::class);
-        $this->apiProvider    = $objectManager->get(ShipmentApiProvider::class);
-        $this->validator      = $objectManager->get(ShipmentValidator::class);
-        $this->customsBuilder = $objectManager->get(CustomsDeclarationBuilder::class);
+        $this->objectManager      = $objectManager;
+        $this->weight             = $objectManager->get(Weight::class);
+        $this->apiProvider        = $objectManager->get(ShipmentApiProvider::class);
+        $this->validator          = $objectManager->get(ShipmentValidator::class);
+        $this->customsBuilder     = $objectManager->get(CustomsDeclarationBuilder::class);
         $this->recipientFields = $objectManager->get(RecipientFields::class);
-        $this->countryService = $objectManager->get(CountryService::class);
-        $this->defaultOptions = new DefaultOptions($order);
+        $this->accountProposition = $objectManager->get(AccountProposition::class);
+        $this->countryService     = $objectManager->get(CountryService::class);
+        $this->defaultOptions     = new DefaultOptions($order);
     }
 
     /**
@@ -100,7 +103,7 @@ class ShipmentBuilder
         $shipment = (new Shipment())
             ->setCarrier($shipmentOptions->carrierId())
             ->setReferenceIdentifier(self::referenceIdentifierFor((string) ($shipmentId ?? $incrementId), $colloNumber))
-            ->setRecipient($this->recipient($address, $shipmentOptions->carrierName()))
+            ->setRecipient($this->recipient($address, $this->accountProposition->homeCountryForStore((int) $order->getStoreId())))
             ->setPhysicalProperties(['weight' => $weight])
             ->setOptions($shipmentOptions->shipmentOptions($address))
             ->setGeneralSettings((new GeneralSettings())->setSaveRecipientAddress(0));
@@ -153,11 +156,11 @@ class ShipmentBuilder
             ->setTrackNumber(TrackNumber::EMPTY);
     }
 
-    private function recipient($address, ?string $carrier): array
+    private function recipient($address, string $localCountry): array
     {
         $street = SplitStreet::splitStreet(
             implode(' ', $address->getStreet() ?? []),
-            Carrier::localCountryCodeFor($carrier),
+            $localCountry,
             (string) $address->getCountryId()
         );
 

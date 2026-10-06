@@ -6,18 +6,20 @@ use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
-use Psr\Log\LoggerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Export\OrderShipmentOptions;
 use MyParcelNL\Magento\Service\Export\RecipientFields;
+use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Export\ShipmentBuilder;
 use MyParcelNL\Magento\Service\Export\ShipmentValidator;
-use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Services\CountryCodes;
 use MyParcelNL\Sdk\Services\CountryService;
+use Psr\Log\LoggerInterface;
 
 /**
  * Builds a ShipmentBuilder past its constructor, which reaches for a live
@@ -49,6 +51,12 @@ function createExportConfig(?string $apiKey, ?int $apiKeyStoreId = null, array $
         : createConfig($extraValues, [], [$apiKeyStoreId => ['api/key' => $apiKey]]);
 }
 
+/** An AccountProposition whose every store is at home in $countryCode. */
+function accountPropositionAt(string $countryCode): AccountProposition
+{
+    return Mockery::mock(AccountProposition::class, ['homeCountryForStore' => $countryCode]);
+}
+
 /**
  * The object manager both export builders resolve their collaborators through, and the static
  * singleton their DefaultOptions reaches for. Returned so a caller can add its own expectations.
@@ -62,6 +70,7 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
     $objectManager->shouldReceive('get')->with(ShipmentApiProvider::class)
         ->andReturn(new ShipmentApiProvider($config, createUserAgent()));
     $objectManager->shouldReceive('get')->with(ShipmentValidator::class)->andReturn(new ShipmentValidator());
+    $objectManager->shouldReceive('get')->with(AccountProposition::class)->andReturn(accountPropositionAt(CountryCodes::CC_NL));
     $objectManager->shouldReceive('get')->with(RecipientFields::class)->andReturn(new RecipientFields());
     $objectManager->shouldReceive('get')->with(CountryService::class)->andReturn(new CountryService());
     // Never reached from a German address (customs is ROW-only), but the constructor fetches it.
