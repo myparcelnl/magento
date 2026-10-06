@@ -97,7 +97,8 @@
             </argument>
         </arguments>
     </type>
-    <!-- Fallback track & trace url. Keys are the account's proposition id; one not listed keeps the default. -->
+    <!-- Fallback track & trace url, used only for shipments stored before the module read the link
+         from the API. Keys are the API's proposition ids (3 is belgie). A proposition not listed keeps the default. -->
     <type name="MyParcelNL\Magento\Service\TrackTraceUrl">
         <arguments>
             <argument name="defaultBaseUrl" xsi:type="string">https://myparcel.me/track-trace/</argument>

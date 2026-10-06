@@ -29,7 +29,7 @@ function unreadableSettings(): callable
 
 it('reads the proposition id behind a store its api key', function () {
     stubAccountSettingsReader([
-        settingsPathFor('live-key') => accountSettingsRow([], ['account' => ['id' => 7, 'platform_id' => 3]]),
+        settingsPathFor('live-key') => accountSettingsRow([], ['account' => ['id' => 7, 'proposition_id' => 3]]),
     ]);
 
     expect(makeAccountProposition('live-key')->forStore(1))->toBe(3);
@@ -54,7 +54,7 @@ it('answers null rather than throwing when the row cannot be read', function () 
 });
 
 it('reads a store once, so a broken row costs one warning per page and not one per row', function () {
-    $logger   = stubAccountSettingsReader([], unreadableSettings());
+    $logger      = stubAccountSettingsReader([], unreadableSettings());
     $proposition = makeAccountProposition('live-key');
 
     expect($proposition->forStore(1))->toBeNull()
