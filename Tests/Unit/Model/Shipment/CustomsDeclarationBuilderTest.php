@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\DataObject;
 use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
@@ -150,4 +151,37 @@ it('sends a dotted HS code as digits', function () {
 
 it('cuts a national tariff code to its ten digit parent', function () {
     expect(classificationOf('6109.10.00.10.123'))->toBe('6109100010');
+});
+
+/*
+ * A configurable product ships as one item of its parent; the variant is in the order item's
+ * children. Product 4 is the parent, 9 the variant.
+ */
+
+function configurableCustomsLine(array $classifications, array $countries): array
+{
+    $config  = createConfig(['print/weight_indication' => 'gram']);
+    $builder = new CustomsDeclarationBuilder(customsObjectManager($classifications, $countries, $config), $config, new Weight($config));
+    $item    = createShipmentItem([
+        'product_id' => 4,
+        'order_item' => new DataObject([
+            'product_type'   => 'configurable',
+            'children_items' => [new DataObject(['product_id' => 9])],
+        ]),
+    ]);
+
+    $declaration = $builder->build(createShipment(['items' => [$item]]), 1000, '100000001');
+    $line        = builtShipmentCustomsItems((new Shipment())->setCustomsDeclaration($declaration))[0];
+
+    return ['classification' => $line->getClassification(), 'country' => $line->getCountry()];
+}
+
+it('declares a configurable item with the customs data of the variant that ships', function () {
+    expect(configurableCustomsLine([4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ']))
+        ->toBe(['classification' => '0090902341', 'country' => 'AQ']);
+});
+
+it('falls back to the parent where the variant has no customs data', function () {
+    expect(configurableCustomsLine([4 => '6109.10'], [4 => 'CN', 9 => null]))
+        ->toBe(['classification' => '610910', 'country' => 'CN']);
 });
