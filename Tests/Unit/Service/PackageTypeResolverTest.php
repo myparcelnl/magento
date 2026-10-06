@@ -53,7 +53,8 @@ function runPackageTypeCaseOnResolver(array $case): string
         $config,
         productAttributesFor(packageTypeProductRows($case['items'])),
         new Weight($config),
-        $postnl
+        $postnl,
+        accountPropositionAt('NL')
     );
 
     $isActive   = static fn(string $key): bool => '1' === ($map[$carrierPath . $key] ?? null);
@@ -91,14 +92,34 @@ it('answers the same twice, so nothing carried over from the first call', functi
 })->with(packageTypeDataset());
 
 it('sums the cart weight without consulting any configuration', function () {
-    $resolver = new PackageTypeResolver(
-        packageTypeConfigFor([]),
-        productAttributesFor([]),
-        new Weight(packageTypeConfigFor([])),
-        Mockery::mock(MailboxInternational::class)
-    );
+    $resolver = resolverAtHomeIn('NL', Mockery::mock(MailboxInternational::class));
 
     $items = [quoteItemFor(1, 2.0, 1.5), quoteItemFor(2, 0.0, 99.0), quoteItemFor(3, 1.0, 0.0)];
 
     expect($resolver->cartWeight($items))->toBe(3.0);
+});
+
+function resolverAtHomeIn(string $homeCountry, MailboxInternational $international): PackageTypeResolver
+{
+    return new PackageTypeResolver(
+        packageTypeConfigFor([]),
+        productAttributesFor([]),
+        new Weight(packageTypeConfigFor([])),
+        $international,
+        accountPropositionAt($homeCountry)
+    );
+}
+
+it('allows a mailbox to the account its home country without asking the international flag', function () {
+    $international = Mockery::mock(MailboxInternational::class);
+    $international->shouldNotReceive('isEnabledFor');
+
+    expect(invokePrivateMethod(resolverAtHomeIn('BE', $international), 'mailboxAllowedTo', ['BE', 'bpost', 1]))->toBeTrue();
+});
+
+it('asks the international flag for the netherlands when the account is at home in belgium', function () {
+    $international = Mockery::mock(MailboxInternational::class);
+    $international->shouldReceive('isEnabledFor')->once()->with('postnl', 1)->andReturn(false);
+
+    expect(invokePrivateMethod(resolverAtHomeIn('BE', $international), 'mailboxAllowedTo', ['NL', 'postnl', 1]))->toBeFalse();
 });
