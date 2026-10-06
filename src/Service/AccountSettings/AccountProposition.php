@@ -46,6 +46,12 @@ class AccountProposition
         return $this->byStore[$storeId];
     }
 
+    /** The store's home country, or the default proposition's for a store without a listed one. */
+    public function homeCountryForStore(?int $storeId): string
+    {
+        return ($this->forStore($storeId) ?? Proposition::default())->getCountryCode();
+    }
+
     private function read(int $storeId): ?Proposition
     {
         try {
