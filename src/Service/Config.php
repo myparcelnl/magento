@@ -17,7 +17,6 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 class Config extends AbstractHelper
 {
     public const MODULE_NAME                        = 'MyParcelNL_Magento';
-    public const PLATFORM                           = 'myparcel';
     public const XML_PATH_MAGENTO_CARRIER           = 'carriers/' . Carrier::CODE . '/';
     public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
     public const XML_PATH_API_KEY                   = self::XML_PATH_GENERAL . 'api/key';
