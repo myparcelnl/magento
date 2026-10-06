@@ -6,7 +6,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
 
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\ProductAttributes;
@@ -92,7 +92,7 @@ class CustomsItems
         $classifications = $productIds ? $this->classificationsFor($productIds) : [];
         $countries       = $productIds ? $this->manufacturingCountriesFor($productIds) : [];
         $fallback        = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
-            ?: $this->objectManager->get(AccountProposition::class)->homeCountryForStore($storeId);
+            ?: $this->objectManager->get(StoredAccount::class)->homeCountryForStore($storeId);
 
         $data = [];
 

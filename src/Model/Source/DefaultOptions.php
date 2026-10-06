@@ -25,7 +25,7 @@ use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
 use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 use Throwable;
@@ -196,7 +196,7 @@ class DefaultOptions
 
         return InsuranceAmountSetting::fieldFor(
             $shippingAddress ? $shippingAddress->getCountryId() : null,
-            ObjectManager::getInstance()->get(AccountProposition::class)->forStore((int) $this->quote->getStoreId())
+            ObjectManager::getInstance()->get(StoredAccount::class)->propositionForStore((int) $this->quote->getStoreId())
         );
     }
 
