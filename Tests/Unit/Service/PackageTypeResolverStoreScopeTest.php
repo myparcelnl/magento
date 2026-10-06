@@ -27,7 +27,7 @@ function createScopedResolver(array $groupsByStore): PackageTypeResolver
         productAttributesFor([]),
         new Weight($config),
         Mockery::mock(MailboxInternational::class),
-        accountPropositionAt('NL')
+        storedAccountAt('NL')
     );
 }
 

@@ -19,8 +19,8 @@ use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
@@ -50,7 +50,7 @@ class Checkout
     private StoreManagerInterface $storeManager;
     private CapabilitiesLookup    $capabilityLookup;
     private ContractDefinitions   $contractDefinitions;
-    private AccountProposition    $accountProposition;
+    private StoredAccount         $storedAccount;
 
     /** The quote's store, passed to every store-scoped config read this class delegates. */
     private int $storeId;
@@ -69,7 +69,7 @@ class Checkout
      * @param StoreManagerInterface $storeManager
      * @param CapabilitiesLookup    $capabilityLookup
      * @param ContractDefinitions   $contractDefinitions
-     * @param AccountProposition    $accountProposition
+     * @param StoredAccount         $storedAccount
      */
     public function __construct(
         Tax                   $tax,
@@ -80,7 +80,7 @@ class Checkout
         StoreManagerInterface $storeManager,
         CapabilitiesLookup    $capabilityLookup,
         ContractDefinitions   $contractDefinitions,
-        AccountProposition    $accountProposition
+        StoredAccount         $storedAccount
     )
     {
         $this->tax                 = $tax;
@@ -91,7 +91,7 @@ class Checkout
         $this->storeManager        = $storeManager;
         $this->capabilityLookup    = $capabilityLookup;
         $this->contractDefinitions = $contractDefinitions;
-        $this->accountProposition  = $accountProposition;
+        $this->storedAccount       = $storedAccount;
         $this->quote               = $this->getQuoteFromCurrentSession();
         // A quote without a store id resolves as store 0, which is not the same as null.
         $this->storeId             = (int) $this->quote->getStoreId();
@@ -172,7 +172,7 @@ class Checkout
     /** The widget needs a proposition, so a store without a listed one gets the default. */
     private function propositionName(): string
     {
-        return ($this->accountProposition->forStore($this->storeId) ?? Proposition::default())->getName();
+        return ($this->storedAccount->propositionForStore($this->storeId) ?? Proposition::default())->getName();
     }
 
     /**

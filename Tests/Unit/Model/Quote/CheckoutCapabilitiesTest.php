@@ -63,7 +63,7 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
         'quote'               => $quote,
         'storeId'             => 1,
         'capabilityLookup'    => capabilityLookupWith($capabilities, $country),
-        'accountProposition'  => accountPropositionAt('NL'),
+        'storedAccount'       => storedAccountAt('NL'),
         'contractDefinitions' => contractFor($capabilities),
     ]);
 

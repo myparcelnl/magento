@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 
@@ -51,7 +51,7 @@ function customsObjectManager(
     $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($productCollection);
     $objectManager->shouldReceive('get')->with(Config::class)->andReturn($config);
     $objectManager->shouldReceive('get')->with(Weight::class)->andReturn(new Weight($config));
-    $objectManager->shouldReceive('get')->with(AccountProposition::class)->andReturn(accountPropositionAt($homeCountry));
+    $objectManager->shouldReceive('get')->with(StoredAccount::class)->andReturn(storedAccountAt($homeCountry));
 
     return $objectManager;
 }

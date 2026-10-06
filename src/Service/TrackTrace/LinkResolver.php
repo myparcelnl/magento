@@ -8,7 +8,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Magento\Service\TrackTraceUrl;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
@@ -24,17 +24,17 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 class LinkResolver
 {
     private ResourceConnection $resource;
-    private AccountProposition $proposition;
+    private StoredAccount      $storedAccount;
     private TrackTraceUrl      $trackTraceUrl;
 
     public function __construct(
         ResourceConnection $resource,
-        AccountProposition $proposition,
+        StoredAccount      $storedAccount,
         TrackTraceUrl      $trackTraceUrl
     )
     {
         $this->resource      = $resource;
-        $this->proposition   = $proposition;
+        $this->storedAccount = $storedAccount;
         $this->trackTraceUrl = $trackTraceUrl;
     }
 
@@ -235,7 +235,7 @@ class LinkResolver
         }
 
         return $this->trackTraceUrl->create(
-            $this->proposition->forStore(isset($row['store_id']) ? (int) $row['store_id'] : null),
+            $this->storedAccount->propositionForStore(isset($row['store_id']) ? (int) $row['store_id'] : null),
             $barcode,
             $postcode,
             // an order without a country on its shipping address counts as Dutch: the portal needs
