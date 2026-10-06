@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
 
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\ProductAttributes;
@@ -68,14 +69,16 @@ class CustomsItems
     }
 
     /**
-     * Product setting first, the `print/country_of_origin` setting second.
+     * Product setting first, the store's `print/country_of_origin` setting second, the account's home
+     * country last.
      *
      * @param  int[] $productIds
      * @return array<int,string> product id => ISO country
      */
-    public function countriesOfOriginFor(array $productIds): array
+    public function countriesOfOriginFor(array $productIds, int $storeId): array
     {
-        $fallback = (string) $this->config->getGeneralConfig('print/country_of_origin');
+        $fallback = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
+            ?: $this->objectManager->get(AccountProposition::class)->homeCountryForStore($storeId);
 
         /** @var ProductCollection $collection */
         $collection = $this->objectManager->create(ProductCollection::class);

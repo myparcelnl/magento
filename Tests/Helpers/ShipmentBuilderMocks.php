@@ -63,10 +63,10 @@ function createExportConfig(?string $apiKey, ?int $apiKeyStoreId = null, array $
         : createConfig($extraValues, [], [$apiKeyStoreId => ['api/key' => $apiKey]]);
 }
 
-/** An AccountProposition whose every store is at home in $countryCode. */
+/** An AccountProposition whose every store is at home in $countryCode, with no listed proposition. */
 function accountPropositionAt(string $countryCode): AccountProposition
 {
-    return Mockery::mock(AccountProposition::class, ['homeCountryForStore' => $countryCode]);
+    return Mockery::mock(AccountProposition::class, ['homeCountryForStore' => $countryCode, 'forStore' => null]);
 }
 
 /**
