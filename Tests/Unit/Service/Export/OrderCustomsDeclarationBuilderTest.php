@@ -74,14 +74,46 @@ it('declares at least one piece for a fractional quantity, which the API would r
     expect($items[0]->getAmount())->toBe(1);
 });
 
-it('declares a configurable product once and a virtual product not at all, as a label does', function () {
+it('leaves a virtual product out of the declaration', function () {
     $parent  = createOrderItem(['item_id' => 1, 'product_type' => 'configurable', 'name' => 'Shirt'], ['id' => 7]);
     $child   = createOrderItem(['item_id' => 2, 'parent_item' => $parent, 'is_dummy' => true, 'name' => 'Shirt, red'], ['id' => 7]);
     $virtual = createOrderItem(['item_id' => 3, 'is_virtual' => true, 'name' => 'Gift wrap'], ['id' => 7]);
     $items   = customsItemsOf([$parent, $child, $virtual]);
 
     expect($items)->toHaveCount(1)
-        ->and($items[0]->getDescription())->toBe('Shirt');
+        ->and($items[0]->getDescription())->toBe('Shirt, red');
+});
+
+/*
+ * A configurable product is ordered as a parent item and a variant item. Product 4 is the parent,
+ * 9 the variant.
+ */
+
+function ppsConfigurableCustomsItems(array $classifications, array $countries): array
+{
+    $parent = createOrderItem(['item_id' => 314, 'product_id' => 4, 'product_type' => 'configurable'], ['id' => 4]);
+    $child  = createOrderItem(
+        ['item_id' => 315, 'product_id' => 9, 'product_type' => 'simple', 'parent_item' => $parent, 'name' => 'Caterham Red'],
+        ['id' => 9]
+    );
+
+    return customsItemsOf([$parent, $child], [], $classifications, $countries);
+}
+
+it('declares a configurable product once, as the variant', function () {
+    $items = ppsConfigurableCustomsItems([4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ']);
+
+    expect($items)->toHaveCount(1)
+        ->and($items[0]->getDescription())->toBe('Caterham Red')
+        ->and($items[0]->getClassification())->toBe('0090902341')
+        ->and($items[0]->getCountry())->toBe('AQ');
+});
+
+it('falls back to the configurable parent where the variant has no customs data', function () {
+    $items = ppsConfigurableCustomsItems([4 => '6109.10'], [4 => 'CN', 9 => null]);
+
+    expect($items[0]->getClassification())->toBe('610910')
+        ->and($items[0]->getCountry())->toBe('CN');
 });
 
 it('declares the children of a bundle shipped separately, not the bundle', function () {
