@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Settings\Blueprint;
 
+use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
+use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 
@@ -19,10 +21,15 @@ final class Generator
     /**
      * @param string[] $internationalMailbox carriers the account may send mailbox parcels abroad with
      */
-    public static function for(CapabilitySet $capabilities, array $internationalMailbox = []): Blueprint
+    public static function for(
+        CapabilitySet $capabilities,
+        array         $internationalMailbox = [],
+        ?Proposition  $proposition = null
+    ): Blueprint
     {
-        $sections = [];
-        $facts    = [];
+        $sections       = [];
+        $facts          = [];
+        $insuranceZones = InsuranceAmountSetting::zonesFor($proposition);
 
         foreach ($capabilities->carriers() as $carrier) {
             $shape = CarrierShape::fromCapabilities($capabilities, $carrier);
@@ -31,7 +38,8 @@ final class Generator
                 $carrier,
                 $shape,
                 Carrier::isExportable($carrier),
-                in_array($carrier, $internationalMailbox, true)
+                in_array($carrier, $internationalMailbox, true),
+                $insuranceZones
             );
         }
 
