@@ -54,7 +54,7 @@ function runPackageTypeCaseOnResolver(array $case): string
         productAttributesFor(packageTypeProductRows($case['items'])),
         new Weight($config),
         $postnl,
-        accountPropositionAt('NL')
+        storedAccountAt('NL')
     );
 
     $isActive   = static fn(string $key): bool => '1' === ($map[$carrierPath . $key] ?? null);
@@ -106,7 +106,7 @@ function resolverAtHomeIn(string $homeCountry, MailboxInternational $internation
         productAttributesFor([]),
         new Weight(packageTypeConfigFor([])),
         $international,
-        accountPropositionAt($homeCountry)
+        storedAccountAt($homeCountry)
     );
 }
 

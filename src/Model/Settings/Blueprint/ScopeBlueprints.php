@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Settings\Blueprint;
 
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\MailboxInternational;
 
@@ -24,7 +24,7 @@ class ScopeBlueprints
 
     private MailboxInternational $mailboxInternational;
 
-    private AccountProposition $accountProposition;
+    private StoredAccount $storedAccount;
 
     /** @var array<string, Blueprint> keyed by "scope|scopeId" */
     private array $memo = [];
@@ -33,12 +33,12 @@ class ScopeBlueprints
         ContractDefinitions  $contractDefinitions,
         Config               $config,
         MailboxInternational $mailboxInternational,
-        AccountProposition   $accountProposition
+        StoredAccount        $storedAccount
     ) {
         $this->contractDefinitions  = $contractDefinitions;
         $this->config               = $config;
         $this->mailboxInternational = $mailboxInternational;
-        $this->accountProposition   = $accountProposition;
+        $this->storedAccount        = $storedAccount;
     }
 
     public function forScope(string $scopeName, ?int $scopeId): Blueprint
@@ -54,7 +54,7 @@ class ScopeBlueprints
             if (! $capabilities->isPermissive()) {
                 $apiKey        = trim((string) $this->config->getScopedConfig(Config::XML_PATH_API_KEY, $scopeName, $scopeId));
                 $international = $this->mailboxInternational->carriersFor($apiKey);
-                $proposition   = '' === $apiKey ? null : $this->accountProposition->forApiKey($apiKey);
+                $proposition   = '' === $apiKey ? null : $this->storedAccount->propositionForApiKey($apiKey);
             }
 
             $this->memo[$key] = Generator::for($capabilities, $international, $proposition)->shownAt($scopeName);

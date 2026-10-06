@@ -64,7 +64,7 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
     setPrivateProperty($checkout, 'quote', $quote);
     setPrivateProperty($checkout, 'storeId', 1);
     setPrivateProperty($checkout, 'capabilityLookup', capabilityLookupWith($capabilities, $country, 1));
-    setPrivateProperty($checkout, 'accountProposition', accountPropositionAt('NL'));
+    setPrivateProperty($checkout, 'storedAccount', storedAccountAt('NL'));
     setPrivateProperty($checkout, 'contractDefinitions', contractFor($capabilities));
 
     return [
