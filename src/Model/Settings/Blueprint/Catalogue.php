@@ -525,9 +525,9 @@ final class Catalogue
             Field::text($path . 'label_description', 'Label description')
                 ->withTooltip('This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.')
                 ->withDefault('%order_nr%'),
+            // No default: an empty value is the account's home country, read at export.
             Field::text($path . 'country_of_origin', 'Country of origin')
-                ->withTooltip('This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.')
-                ->withDefault('NL'),
+                ->withTooltip('This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.'),
             Field::select($path . 'create_concept_after_invoice', 'Create Concept', Yesno::class)
                 ->withTooltip('Enable create label concept, when invoice is printed.')
                 ->withDefault('0'),
