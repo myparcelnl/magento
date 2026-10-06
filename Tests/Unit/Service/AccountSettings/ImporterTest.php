@@ -134,7 +134,7 @@ it('stores shop, account and contract definitions and nothing else', function ()
         'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
         'account'              => new Account([
             'id'               => 7,
-            'platform_id'      => 1,
+            'proposition_id'   => 1,
             'shops'            => [['id' => 42, 'name' => 'Test Shop']],
             'general_settings' => [],
         ]),
