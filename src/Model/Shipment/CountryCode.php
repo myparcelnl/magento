@@ -16,6 +16,7 @@ final class CountryCode
 {
     public const CC_NL = CountryCodes::CC_NL;
     public const CC_BE = CountryCodes::CC_BE;
+    public const CC_IT = CountryCodes::CC_IT;
 
     public const EU_COUNTRIES = CountryCodes::EU_COUNTRIES;
 
