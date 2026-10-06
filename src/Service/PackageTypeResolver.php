@@ -134,7 +134,6 @@ class PackageTypeResolver
 
         if ($digitalStamp
             && $candidates->has(PackageType::DIGITAL_STAMP_NAME)
-            && CountryCodes::CC_NL === $country
             && $this->weight->convertToGrams($weight) <= $this->maxDigitalStampWeight($carrierPath, $storeId)
         ) {
             return PackageType::DIGITAL_STAMP_NAME;

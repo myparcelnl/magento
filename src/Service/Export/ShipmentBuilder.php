@@ -105,7 +105,7 @@ class ShipmentBuilder
             ->setReferenceIdentifier(self::referenceIdentifierFor((string) ($shipmentId ?? $incrementId), $colloNumber))
             ->setRecipient($this->recipient($address, $this->accountProposition->homeCountryForApiKey($apiKey)))
             ->setPhysicalProperties(['weight' => $weight])
-            ->setOptions($shipmentOptions->shipmentOptions($address))
+            ->setOptions($shipmentOptions->shipmentOptions())
             ->setGeneralSettings((new GeneralSettings())->setSaveRecipientAddress(0));
 
         if ($deliveryOptions->isPickup()) {

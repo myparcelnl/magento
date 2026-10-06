@@ -217,6 +217,12 @@ function packageTypeCases(): array
             'expected' => PackageType::DIGITAL_STAMP_NAME,
         ]),
 
+        'a digital stamp goes abroad as well, where the account offers it' => $case([
+            'items'    => [$item(1.0, 0.0, ['digital_stamp' => '1', 'fit_in_mailbox' => '-1'])],
+            'country'  => 'DE',
+            'expected' => PackageType::DIGITAL_STAMP_NAME,
+        ]),
+
         'an inactive digital stamp group takes digital stamp out of the candidates' => $case([
             'items'      => [$item(1.0, 0.0, ['digital_stamp' => '1', 'fit_in_mailbox' => '-1'])],
             'groups'     => ['digital_stamp' => ['active' => '0']],
