@@ -103,7 +103,7 @@ class ShipmentBuilder
         $shipment = (new Shipment())
             ->setCarrier($shipmentOptions->carrierId())
             ->setReferenceIdentifier(self::referenceIdentifierFor((string) ($shipmentId ?? $incrementId), $colloNumber))
-            ->setRecipient($this->recipient($address, $this->accountProposition->homeCountryForStore((int) $order->getStoreId())))
+            ->setRecipient($this->recipient($address, $this->accountProposition->homeCountryForApiKey($apiKey)))
             ->setPhysicalProperties(['weight' => $weight])
             ->setOptions($shipmentOptions->shipmentOptions($address))
             ->setGeneralSettings((new GeneralSettings())->setSaveRecipientAddress(0));

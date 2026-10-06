@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\Config;
 
 /**
@@ -14,13 +15,15 @@ use MyParcelNL\Magento\Service\Config;
  * @param array<string, mixed> $carrierSettings the carrier's default_options
  */
 function defaultOptionsFor(
-    array $carrierSettings,
-    float $grandTotal,
+    array   $carrierSettings,
+    float   $grandTotal,
     ?string $countryId = 'NL',
-    bool $withAddress = true
-): DefaultOptions {
+    string  $homeCountry = 'NL',
+    bool    $withAddress = true
+): DefaultOptions
+{
     $config = createConfig([], ['postnl' => ['default_options' => $carrierSettings]]);
-    mockLoggerFacade([Config::class => $config]);
+    mockLoggerFacade([Config::class => $config, AccountProposition::class => accountPropositionAt($homeCountry)]);
 
     $address = null;
 
@@ -94,15 +97,15 @@ it('picks the cap belonging to the destination zone', function () {
 });
 
 it('falls back to the domestic cap for an order with no shipping address', function () {
-    $options = defaultOptionsFor(insuranceSettings(), 9000.00, null, false);
+    $options = defaultOptionsFor(insuranceSettings(), 9000.00, null, 'NL', false);
 
     expect($options->getDefaultInsurance('postnl'))->toBe(5000);
 });
 
-it('uses the world cap for a shipping address without a country', function () {
-    $options = defaultOptionsFor(insuranceSettings(['insurance_row_amount' => 100]), 9000.00, null);
+it('uses the domestic cap for a shipping address without a country', function () {
+    $options = defaultOptionsFor(insuranceSettings(), 9000.00, null);
 
-    expect($options->getDefaultInsurance('postnl'))->toBe(100);
+    expect($options->getDefaultInsurance('postnl'))->toBe(5000);
 });
 
 // getRequiredInsurance: the amount when another option requires insurance
@@ -117,4 +120,16 @@ it('applies the percentage and the cap to a required companion', function () {
     expect(defaultOptionsFor(insuranceSettings(['insurance_percentage' => 50]), 400.00)->getRequiredInsurance('postnl'))->toBe(200)
         ->and(defaultOptionsFor(insuranceSettings(['insurance_local_amount' => 250]), 9000.00)->getRequiredInsurance('postnl'))->toBe(250)
         ->and(defaultOptionsFor(insuranceSettings(['insurance_local_amount' => 0]), 400.00)->getRequiredInsurance('postnl'))->toBe(0);
+});
+
+it('caps a Belgian account at its local amount for Belgium, not the Belgian zone', function () {
+    $options = defaultOptionsFor(insuranceSettings(), 9000.00, 'BE', 'BE');
+
+    expect($options->getDefaultInsurance('postnl'))->toBe(5000);
+});
+
+it('caps a Dutch account at the Belgian amount for Belgium', function () {
+    $options = defaultOptionsFor(insuranceSettings(), 9000.00, 'BE', 'NL');
+
+    expect($options->getDefaultInsurance('postnl'))->toBe(2000);
 });
