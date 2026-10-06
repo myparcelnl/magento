@@ -10,6 +10,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
+use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
@@ -19,6 +20,7 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\Config;
@@ -49,6 +51,7 @@ class Checkout
     private StoreManagerInterface $storeManager;
     private ShapeLookup           $capabilityLookup;
     private ContractDefinitions   $contractDefinitions;
+    private AccountProposition    $accountProposition;
 
     /** The quote's store. Every config read this class delegates carries it, rather than relying on
      *  the ambient store of the request. */
@@ -68,6 +71,7 @@ class Checkout
      * @param StoreManagerInterface $storeManager
      * @param ShapeLookup           $capabilityLookup
      * @param ContractDefinitions   $contractDefinitions
+     * @param AccountProposition    $accountProposition
      */
     public function __construct(
         Tax                   $tax,
@@ -77,7 +81,8 @@ class Checkout
         CartShippingRules     $cartRules,
         StoreManagerInterface $storeManager,
         ShapeLookup           $capabilityLookup,
-        ContractDefinitions   $contractDefinitions
+        ContractDefinitions   $contractDefinitions,
+        AccountProposition    $accountProposition
     )
     {
         $this->tax                 = $tax;
@@ -88,6 +93,7 @@ class Checkout
         $this->storeManager        = $storeManager;
         $this->capabilityLookup    = $capabilityLookup;
         $this->contractDefinitions = $contractDefinitions;
+        $this->accountProposition  = $accountProposition;
         $this->quote               = $this->getQuoteFromCurrentSession();
         // Cast kept: a quote with no store id resolves as store 0, which is not the same as null.
         $this->storeId             = (int) $this->quote->getStoreId();
@@ -150,7 +156,7 @@ class Checkout
         $deliveryDaysWindow = $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window');
 
         return [
-            'platform'                          => Config::PLATFORM,
+            'platform'                          => $this->propositionName(),
             'currency'                          => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
             'proxyCapabilities'                 => $this->storeManager->getStore()->getBaseUrl() . 'myparcel/proxy/core/shipments/capabilities',
             'showDeliveryDate'                  => $deliveryDaysWindow > 0,
@@ -163,6 +169,12 @@ class Checkout
             'compactView'                       => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/compact_view'),
             'popUpMap'                          => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pop_up_map'),
         ];
+    }
+
+    /** The widget needs a proposition, so a store without a listed one gets the default. */
+    private function propositionName(): string
+    {
+        return ($this->accountProposition->forStore($this->storeId) ?? Proposition::default())->getName();
     }
 
     /**
