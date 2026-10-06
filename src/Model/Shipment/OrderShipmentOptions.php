@@ -161,10 +161,8 @@ class OrderShipmentOptions
     /**
      * Every boolean is a literal 1 or 0: RefTypesIntBoolean is checked against [0, 1] with a strict
      * in_array during serialization, so true and false both throw at request time.
-     *
-     * @param \Magento\Sales\Model\Order\Address|\Magento\Sales\Model\Order\Shipment\Address $address
      */
-    public function shipmentOptions($address): SdkShipmentOptions
+    public function shipmentOptions(): SdkShipmentOptions
     {
         $deliveryOptions = $this->deliveryOptions();
         $resolved        = $this->resolved();
@@ -210,7 +208,7 @@ class OrderShipmentOptions
             $options->setReturn(0);
         }
 
-        $deliveryDate = $this->deliveryDate($deliveryOptions, $packageType, $address);
+        $deliveryDate = Dating::convertDeliveryDate($deliveryOptions->getDate());
 
         if (null !== $deliveryDate) {
             $options->setDeliveryDate($deliveryDate);
@@ -287,15 +285,6 @@ class OrderShipmentOptions
         } catch (InvalidArgumentException $e) {
             throw new RuntimeException($e->getMessage(), 0, $e);
         }
-    }
-
-    private function deliveryDate(DeliveryOptions $deliveryOptions, int $packageType, $address): ?string
-    {
-        if (PackageType::PACKAGE_SMALL === $packageType && CountryCode::CC_NL !== $address->getCountryId()) {
-            return null;
-        }
-
-        return Dating::convertDeliveryDate($deliveryOptions->getDate());
     }
 
     private function carrierFromOptions(): ?string

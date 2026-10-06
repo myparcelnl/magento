@@ -99,7 +99,7 @@ class ShipmentBuilder
             ->setReferenceIdentifier(self::referenceIdentifierFor((int) $magentoShipment->getEntityId(), $colloNumber))
             ->setRecipient($this->recipient($address, $this->accountProposition->homeCountryForApiKey($apiKey)))
             ->setPhysicalProperties(['weight' => $weight])
-            ->setOptions($shipmentOptions->shipmentOptions($address));
+            ->setOptions($shipmentOptions->shipmentOptions());
 
         if ($deliveryOptions->isPickup()) {
             $shipment->setPickup($this->pickup($deliveryOptions));
