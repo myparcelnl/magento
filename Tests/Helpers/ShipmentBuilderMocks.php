@@ -10,10 +10,12 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Psr\Log\LoggerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Model\Shipment\OrderShipmentOptions;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Model\Shipment\ShipmentValidator;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\ProductAttributes;
@@ -61,6 +63,12 @@ function createExportConfig(?string $apiKey, ?int $apiKeyStoreId = null, array $
         : createConfig($extraValues, [], [$apiKeyStoreId => ['api/key' => $apiKey]]);
 }
 
+/** An AccountProposition whose every store is at home in $countryCode. */
+function accountPropositionAt(string $countryCode): AccountProposition
+{
+    return Mockery::mock(AccountProposition::class, ['homeCountryForStore' => $countryCode]);
+}
+
 /**
  * The object manager both export builders resolve their collaborators through, and the static
  * singleton their DefaultOptions reaches for. Returned so a caller can add its own expectations.
@@ -74,6 +82,7 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
     $objectManager->shouldReceive('get')->with(ShipmentApiProvider::class)
         ->andReturn(new ShipmentApiProvider($config, createUserAgent()));
     $objectManager->shouldReceive('get')->with(ShipmentValidator::class)->andReturn(new ShipmentValidator());
+    $objectManager->shouldReceive('get')->with(AccountProposition::class)->andReturn(accountPropositionAt(CountryCode::CC_NL));
     // Never reached from a German address (customs is ROW-only), but the constructor fetches it.
     $objectManager->shouldReceive('get')->with(CustomsDeclarationBuilder::class)
         ->andReturn(new CustomsDeclarationBuilder($objectManager, $config, new Weight($config)));
