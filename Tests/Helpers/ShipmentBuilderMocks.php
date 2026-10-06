@@ -8,14 +8,14 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use MyParcelNL\Magento\Model\Settings\Proposition;
-use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
-use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Export\OrderShipmentOptions;
-use MyParcelNL\Magento\Service\Export\RecipientFields;
-use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Export\ShipmentBuilder;
 use MyParcelNL\Magento\Service\Export\ShipmentValidator;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
+use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
+use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Export\RecipientFields;
 use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Services\CountryCodes;
@@ -52,8 +52,8 @@ function createExportConfig(?string $apiKey, ?int $apiKeyStoreId = null, array $
         : createConfig($extraValues, [], [$apiKeyStoreId => ['api/key' => $apiKey]]);
 }
 
-/** An AccountProposition whose every store and key has the listed proposition at home in $countryCode. */
-function accountPropositionAt(string $countryCode): AccountProposition
+/** A StoredAccount whose every store and key has the listed proposition at home in $countryCode. */
+function storedAccountAt(string $countryCode): StoredAccount
 {
     $proposition = null;
 
@@ -63,9 +63,9 @@ function accountPropositionAt(string $countryCode): AccountProposition
         }
     }
 
-    return Mockery::mock(AccountProposition::class, [
-        'forStore'             => $proposition,
-        'forApiKey'            => $proposition,
+    return Mockery::mock(StoredAccount::class, [
+        'propositionForStore'  => $proposition,
+        'propositionForApiKey' => $proposition,
         'homeCountryForStore'  => $countryCode,
         'homeCountryForApiKey' => $countryCode,
     ]);
@@ -84,7 +84,7 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
     $objectManager->shouldReceive('get')->with(ShipmentApiProvider::class)
         ->andReturn(new ShipmentApiProvider($config, createUserAgent()));
     $objectManager->shouldReceive('get')->with(ShipmentValidator::class)->andReturn(new ShipmentValidator());
-    $objectManager->shouldReceive('get')->with(AccountProposition::class)->andReturn(accountPropositionAt(CountryCodes::CC_NL));
+    $objectManager->shouldReceive('get')->with(StoredAccount::class)->andReturn(storedAccountAt(CountryCodes::CC_NL));
     $objectManager->shouldReceive('get')->with(RecipientFields::class)->andReturn(new RecipientFields());
     $objectManager->shouldReceive('get')->with(CountryService::class)->andReturn(new CountryService());
     // Never reached from a German address (customs is ROW-only), but the constructor fetches it.
@@ -97,7 +97,7 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
     // DefaultOptions, constructed for real inside the builders, reaches for the static
     // ObjectManager singleton rather than the instance injected above: for Config, and for the
     // product age check attribute, which answers "no opinion" here.
-    mockAttributeValueLookup('', [Config::class => $config, AccountProposition::class => accountPropositionAt('NL')]);
+    mockAttributeValueLookup('', [Config::class => $config, StoredAccount::class => storedAccountAt('NL')]);
 
     return $objectManager;
 }
