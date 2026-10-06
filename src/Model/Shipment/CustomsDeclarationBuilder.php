@@ -42,7 +42,7 @@ class CustomsDeclarationBuilder
 
         $productIds      = array_map(static fn($item): int => (int) $item->getProductId(), $shipmentItems);
         $classifications = $this->items->classificationsFor($productIds);
-        $countries       = $this->items->countriesOfOriginFor($productIds);
+        $countries       = $this->items->countriesOfOriginFor($productIds, (int) $shipment->getStoreId());
 
         $items = [];
 

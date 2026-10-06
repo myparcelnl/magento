@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\MailboxInternational;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
@@ -14,7 +15,12 @@ use MyParcelNL\Magento\Service\Weight;
  * @param array<string,mixed>|ArrayAccess $map
  * @param callable(): bool                $mailboxInternational answers MailboxInternational::isEnabledFor() for PostNL
  */
-function packageTypeResolverFor(array|ArrayAccess $map, array $rows, callable $mailboxInternational): PackageTypeResolver
+function packageTypeResolverFor(
+    array|ArrayAccess $map,
+    array             $rows,
+    callable          $mailboxInternational,
+    string            $homeCountry = 'NL'
+): PackageTypeResolver
 {
     $config = configAnswering(static fn(string $path) => $map[$path] ?? null);
 
@@ -24,7 +30,13 @@ function packageTypeResolverFor(array|ArrayAccess $map, array $rows, callable $m
         static fn(string $carrier, ?int $storeId = null): bool => 'postnl' === $carrier && $mailboxInternational()
     );
 
-    return new PackageTypeResolver($config, productAttributesFor($rows), new Weight($config), $mailbox);
+    return new PackageTypeResolver(
+        $config,
+        productAttributesFor($rows),
+        new Weight($config),
+        $mailbox,
+        accountPropositionAt($homeCountry)
+    );
 }
 
 /** Resolve one case of packageTypeCases(), with the candidates built by the resolver itself. */
@@ -104,4 +116,47 @@ it('finds no cart light enough for a mailbox group that is switched off, not eve
     );
 
     expect($resolver->fitsMailboxWeight([quoteItemFor(1, 1.0, 0.0)], Config::carrierPath('postnl'), 1))->toBeFalse();
+});
+
+function resolverAtHomeIn(string $homeCountry, MailboxInternational $international): PackageTypeResolver
+{
+    $config = configAnswering(static fn() => null);
+
+    return new PackageTypeResolver(
+        $config,
+        productAttributesFor([]),
+        new Weight($config),
+        $international,
+        accountPropositionAt($homeCountry)
+    );
+}
+
+it('reads the home mailbox toggle for the account its home country, not for the netherlands', function () {
+    $resolver = packageTypeResolverFor(
+        [
+            Config::carrierPath('postnl') . 'mailbox/active'               => '1',
+            Config::carrierPath('postnl') . 'mailbox/international_active' => '0',
+        ],
+        [],
+        static fn(): bool => true,
+        'BE'
+    );
+    $allowed  = [PackageType::MAILBOX_NAME => true];
+
+    expect($resolver->candidates($allowed, Config::carrierPath('postnl'), 'BE', 1)->has(PackageType::MAILBOX_NAME))->toBeTrue()
+        ->and($resolver->candidates($allowed, Config::carrierPath('postnl'), 'NL', 1)->has(PackageType::MAILBOX_NAME))->toBeFalse();
+});
+
+it('allows a mailbox to the account its home country without asking the international flag', function () {
+    $international = Mockery::mock(MailboxInternational::class);
+    $international->shouldNotReceive('isEnabledFor');
+
+    expect(invokePrivateMethod(resolverAtHomeIn('BE', $international), 'mailboxAllowedTo', ['BE', 'bpost', 1]))->toBeTrue();
+});
+
+it('asks the international flag for the netherlands when the account is at home in belgium', function () {
+    $international = Mockery::mock(MailboxInternational::class);
+    $international->shouldReceive('isEnabledFor')->once()->with('postnl', 1)->andReturn(false);
+
+    expect(invokePrivateMethod(resolverAtHomeIn('BE', $international), 'mailboxAllowedTo', ['NL', 'postnl', 1]))->toBeFalse();
 });
