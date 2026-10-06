@@ -22,8 +22,8 @@ maps these names to ids and to v2 names; INT-1563 replaces the module maps with 
 (`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. The
 module keeps no carrier list: a module name derives from the v2 name, and `Carrier::toV2Name()` and
 `Carrier::idFor()` read the way back from `ApiMapperService::forCarrier()`. A carrier the SDK knows
-is exportable, and an account's real set comes from capabilities. What stays the module's own,
-until PR 6 of INT-1289, is `LOCAL_COUNTRY_MAP`, the one carrier whose local country is not NL.
+is exportable, and an account's real set comes from capabilities. The local country that picks the
+street split rule is the account's home country, from `Model\Settings\Proposition`.
 
 Two capabilities went with the deleted stack and are module code now:
 
