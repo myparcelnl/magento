@@ -11,6 +11,7 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Magento\Service\AccountSettings\AccountProposition;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
@@ -125,6 +126,7 @@ it('asks the parcel locker rule with no carrier when none is active', function (
     $storeManager = Mockery::mock(StoreManagerInterface::class);
     $storeManager->shouldReceive('getStore')->andReturn($store);
     setPrivateProperty($c['checkout'], 'storeManager', $storeManager);
+    setPrivateProperty($c['checkout'], 'accountProposition', Mockery::mock(AccountProposition::class, ['forStore' => null]));
 
     expect($c['checkout']->getActiveCarriers())->toBe([])
         ->and(invokePrivateMethod($c['checkout'], 'getGeneralData')['excludeParcelLockers'])->toBeTrue();
