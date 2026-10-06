@@ -28,7 +28,7 @@ function labelDescriptionFor(string $description): string
         'resolved'        => ResolvedOptions::of(['label_description' => $description]),
     ]);
 
-    return (string) $subject->shipmentOptions(createAddress(['getCountryId' => 'DE']))->getLabelDescription();
+    return (string) $subject->shipmentOptions()->getLabelDescription();
 }
 
 it('leaves a description that already fits exactly alone', function () {
