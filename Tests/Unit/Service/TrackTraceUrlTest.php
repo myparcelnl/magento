@@ -7,7 +7,7 @@ use MyParcelNL\Magento\Service\TrackTraceUrl;
 /**
  * The fallback url, for shipments stored before the module read the link from the API.
  *
- * The platform cases are the Belgian regression: one build now serves both countries, so the host
+ * The proposition cases are the Belgian regression: one build now serves both countries, so the host
  * follows the account rather than a single configured value.
  */
 function trackTraceUrl(): TrackTraceUrl
@@ -38,17 +38,17 @@ it('answers the belgian portal for a belgian account', function () {
         ->toBe('https://sendmyparcel.me/track-trace/3STBJG123456789/2000/BE');
 });
 
-it('keeps the default host for a platform that has no entry', function () {
+it('keeps the default host for a proposition that has no entry', function () {
     expect(trackTraceUrl()->create('3STBJG123456789', '2131BC', 'NL', 2))
         ->toBe('https://myparcel.me/track-trace/3STBJG123456789/2131BC/NL');
 });
 
-it('keeps the default host when the platform is unknown', function () {
+it('keeps the default host when the proposition is unknown', function () {
     expect(trackTraceUrl()->create('3STBJG123456789', '2131BC', 'NL', null))
         ->toBe('https://myparcel.me/track-trace/3STBJG123456789/2131BC/NL');
 });
 
-it('falls back to the configured default when the platform maps to nothing', function () {
+it('falls back to the configured default when the proposition maps to nothing', function () {
     expect((new TrackTraceUrl('https://myparcel.me/track-trace/'))->create('3STBJG123456789', '2131BC', 'NL', 3))
         ->toBe('https://myparcel.me/track-trace/3STBJG123456789/2131BC/NL');
 });

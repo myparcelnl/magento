@@ -17,24 +17,24 @@ use MyParcelNL\Magento\Service\IdList;
  * Only this carrier's tracks: an order can also carry manual ones, which belong to no portal here.
  *
  * The link the API issued is stored on the track; TrackTraceUrl only fills in for shipments exported
- * before that was so, and its host depends on the account's platform — hence the store id in the
+ * before that was so, and its host depends on the account's proposition — hence the store id in the
  * rows. That lookup is made only when a row actually needs the fallback, so an install with nothing
  * but fresh exports never reads account settings while rendering a grid.
  */
 class LinkResolver
 {
     private ResourceConnection $resource;
-    private AccountPlatform    $platform;
+    private AccountProposition $proposition;
     private TrackTraceUrl      $trackTraceUrl;
 
     public function __construct(
         ResourceConnection $resource,
-        AccountPlatform    $platform,
+        AccountProposition $proposition,
         TrackTraceUrl      $trackTraceUrl
     )
     {
         $this->resource      = $resource;
-        $this->platform      = $platform;
+        $this->proposition   = $proposition;
         $this->trackTraceUrl = $trackTraceUrl;
     }
 
@@ -251,7 +251,7 @@ class LinkResolver
             // An order with no country on its shipping address was read as Dutch before this moved
             // here; the portal needs a country to resolve the barcode.
             (string) ($row['country_id'] ?? '') ?: CountryCode::CC_NL,
-            $this->platform->forStore(isset($row['store_id']) ? (int) $row['store_id'] : null)
+            $this->proposition->forStore(isset($row['store_id']) ? (int) $row['store_id'] : null)
         );
     }
 }

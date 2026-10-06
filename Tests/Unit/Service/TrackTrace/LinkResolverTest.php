@@ -7,7 +7,7 @@ use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
 use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
-use MyParcelNL\Magento\Service\TrackTrace\AccountPlatform;
+use MyParcelNL\Magento\Service\TrackTrace\AccountProposition;
 use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
 use MyParcelNL\Magento\Service\TrackTraceUrl;
 
@@ -15,7 +15,7 @@ use MyParcelNL\Magento\Service\TrackTraceUrl;
  * The link an admin sees: the one the API issued where it is stored, a constructed one where it is
  * not, and no link at all where nothing can be constructed honestly.
  */
-function makeLinkResolver(array $rows, ?int $platformId = null, array &$wheres = []): LinkResolver
+function makeLinkResolver(array $rows, ?int $propositionId = null, array &$wheres = []): LinkResolver
 {
     $select = Mockery::mock(Select::class);
     $select->shouldReceive('from', 'joinLeft', 'order')->andReturnSelf();
@@ -37,12 +37,12 @@ function makeLinkResolver(array $rows, ?int $platformId = null, array &$wheres =
     $resource->shouldReceive('getConnection')->andReturn($connection);
     $resource->shouldReceive('getTableName')->andReturnUsing(static fn(string $table): string => $table);
 
-    $platform = Mockery::mock(AccountPlatform::class);
-    $platform->shouldReceive('forStore')->andReturn($platformId);
+    $proposition = Mockery::mock(AccountProposition::class);
+    $proposition->shouldReceive('forStore')->andReturn($propositionId);
 
     return new LinkResolver(
         $resource,
-        $platform,
+        $proposition,
         new TrackTraceUrl('https://myparcel.me/track-trace/', [3 => 'https://sendmyparcel.me/track-trace/'])
     );
 }
@@ -73,7 +73,7 @@ it('constructs the link when none is stored', function () {
         ->toBe('https://myparcel.me/track-trace/3STBJG123456789/2131BC/NL');
 });
 
-it('constructs the belgian host from the store platform', function () {
+it('constructs the belgian host from the store proposition', function () {
     $links = makeLinkResolver([trackRow(['postcode' => '2000', 'country_id' => 'BE'])], 3);
 
     expect($links->forOrders([7])[7][0]['url'])
