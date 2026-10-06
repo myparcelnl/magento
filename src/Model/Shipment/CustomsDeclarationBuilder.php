@@ -40,15 +40,14 @@ class CustomsDeclarationBuilder
             $shipmentItems[] = $item;
         }
 
-        $productIds      = array_map(static fn($item): int => (int) $item->getProductId(), $shipmentItems);
-        $classifications = $this->items->classificationsFor($productIds);
-        $countries       = $this->items->countriesOfOriginFor($productIds, (int) $shipment->getStoreId());
+        $customsData = $this->items->customsDataFor(
+            array_map([self::class, 'productIdsOf'], $shipmentItems),
+            (int) $shipment->getStoreId()
+        );
 
         $items = [];
 
-        foreach ($shipmentItems as $item) {
-            $productId = (int) $item->getProductId();
-
+        foreach ($shipmentItems as $line => $item) {
             $items[] = $this->buildItem(
                 (string) $item->getName(),
                 $item->getSku(),
@@ -56,8 +55,8 @@ class CustomsDeclarationBuilder
                 (float) $item->getWeight(),
                 // The Core API takes EUR only, so the base price; the order may be in another currency.
                 (float) $item->getOrderItem()->getBasePrice(),
-                (string) ($classifications[$productId] ?? ''),
-                (string) ($countries[$productId] ?? '')
+                $customsData[$line]['classification'],
+                $customsData[$line]['country']
             );
         }
 
@@ -70,6 +69,20 @@ class CustomsDeclarationBuilder
         } catch (\InvalidArgumentException $e) {
             throw new \RuntimeException((string) __('Customs declaration: %1', $e->getMessage()), 0, $e);
         }
+    }
+
+    /** A configurable item ships as its parent; the variant's own customs data comes first. */
+    private static function productIdsOf($shipmentItem): array
+    {
+        $orderItem = $shipmentItem->getOrderItem();
+        $variants  = $orderItem && CustomsItems::CONFIGURABLE === $orderItem->getProductType()
+            ? (array) $orderItem->getChildrenItems()
+            : [];
+
+        return array_merge(
+            array_map(static fn($child): int => (int) $child->getProductId(), $variants),
+            [(int) $shipmentItem->getProductId()]
+        );
     }
 
     private function buildItem(

@@ -52,7 +52,7 @@ it('declares at least one piece for a fractional quantity, which the API would r
     expect($items[0]->getAmount())->toBe(1);
 });
 
-it('declares a configurable product once and a virtual product not at all, as a label does', function () {
+it('leaves a virtual product out of the declaration', function () {
     $parent  = createOrderItem(['item_id' => 1, 'product_type' => 'configurable'], ['id' => 7, 'name' => 'Shirt']);
     $child   = createOrderItem(['item_id' => 2, 'parent_item' => $parent, 'is_dummy' => true], ['id' => 7, 'name' => 'Shirt, red']);
     $virtual = createOrderItem(['item_id' => 3, 'is_virtual' => true], ['id' => 7, 'name' => 'Gift wrap']);
@@ -67,7 +67,47 @@ it('declares a configurable product once and a virtual product not at all, as a 
     $items         = (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
 
     expect($items)->toHaveCount(1)
-        ->and($items[0]->getDescription())->toBe('Shirt');
+        ->and($items[0]->getDescription())->toBe('Shirt, red');
+});
+
+/*
+ * A configurable product is ordered as a parent item and a variant item. Product 4 is the parent,
+ * 9 the variant.
+ */
+
+function ppsConfigurableCustomsItems(array $classifications, array $countries): array
+{
+    $parent = createOrderItem(['item_id' => 314, 'product_id' => 4, 'product_type' => 'configurable'], ['id' => 4]);
+    $child  = createOrderItem(
+        ['item_id' => 315, 'product_id' => 9, 'product_type' => 'simple', 'parent_item' => $parent],
+        ['id' => 9, 'name' => 'Caterham Red']
+    );
+    $order  = createOrder([
+        'getItems'         => [$parent, $child],
+        'getIncrementId'   => '100000001',
+        'getOrderCurrency' => new DataObject(['code' => 'EUR']),
+    ]);
+
+    $config        = createConfig(['print/weight_indication' => 'gram']);
+    $objectManager = customsObjectManager($classifications, $countries, $config);
+
+    return (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
+}
+
+it('declares a configurable product once, as the variant', function () {
+    $items = ppsConfigurableCustomsItems([4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ']);
+
+    expect($items)->toHaveCount(1)
+        ->and($items[0]->getDescription())->toBe('Caterham Red')
+        ->and($items[0]->getClassification())->toBe('0090902341')
+        ->and($items[0]->getCountry())->toBe('AQ');
+});
+
+it('falls back to the configurable parent where the variant has no customs data', function () {
+    $items = ppsConfigurableCustomsItems([4 => '6109.10'], [4 => 'CN', 9 => null]);
+
+    expect($items[0]->getClassification())->toBe('610910')
+        ->and($items[0]->getCountry())->toBe('CN');
 });
 
 it('declares the children of a bundle shipped separately, not the bundle', function () {
