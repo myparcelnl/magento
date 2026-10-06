@@ -181,7 +181,7 @@ never by id.
   sent, a rejected chunk is re-sent once without the orders the API named, and failures are reported
   per order with the API's own sentence and field.
 - The export no longer navigates: the grid keeps its selection and reloads once the labels exist.
-- The track & trace link comes from the API. The fallback host follows the account's platform.
+- The track & trace link comes from the API. The fallback host follows the account's proposition.
 - A dedicated capabilities cache type, enabled once on upgrade when `env.php` does not mention it.
 
 ## Open risks
