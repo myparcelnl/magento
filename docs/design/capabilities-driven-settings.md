@@ -143,10 +143,39 @@
 >   Ask for the map in the SDK rather than copy it. The SDK has split rules for local NL and BE
 >   only, so an IT account gets no split for any destination.
 > - **"Platform" is the old name for "proposition".** `account.platform_id` and
->   `account.proposition_id` carry the same value. Deprecate the platform name where the module
->   owns it: `AccountPlatform`, `TrackTraceUrl`'s `baseUrlsByPlatform` in `etc/di.xml`, and the
->   readers in `LinkResolver` and `AccountSettings`. `Config::PLATFORM` is the widget's own option
->   name, so it stays until the widget renames it.
+>   `account.proposition_id` carry the same value. Use "proposition" everywhere the module owns the
+>   name: `AccountPlatform` (and its test), `TrackTraceUrl`'s `baseUrlsByPlatform` in `etc/di.xml`,
+>   and the readers in `LinkResolver` and `AccountSettings`, with their tests and fixtures. Keep
+>   "platform" only where an outside contract sets it: the widget's `platform` config key, the
+>   `platform_id` fallback in `AccountSettings` while the API still sends it, and the generated SDK
+>   classes. `UserAgent`'s "platform" is Magento, not a proposition. Write no proposition that no
+>   longer exists (flespakket) in code or comments.
+>
+> Recorded for PR 6, found on 2026-10-06 while tracing Belgian checkout errors:
+>
+> - **The checkout sends `platform: 'myparcel'` for every store.** This is step 11. With a Belgian
+>   key, the widget asks `delivery_options` and `pickup_locations` for bpost and DPD on the wrong
+>   proposition, and the API refuses them. A fix is in the stash "PR 6: checkout sends the
+>   account's proposition (step 11)": `Checkout::platform()` maps `AccountPlatform::forStore()` to
+>   a widget name and falls back to `Config::DEFAULT_PLATFORM` (renamed from `PLATFORM`). It still
+>   uses "platform" names and a `platformNames` map in `etc/di.xml`; the two items below replace both.
+>   The widget's names are the API's own (`AccountDefsPlatformName`): `myparcel`, `belgie`, `italy`.
+> - **One registry lists the propositions.** Adding a proposition (for example 7, Canada) must take
+>   one entry, and the whole module must then work with it. Each entry holds the widget name, the
+>   home country and, optionally, a track & trace host. It holds 1 (myparcel, NL, myparcel.me),
+>   3 (belgie, BE, sendmyparcel.me) and 6 (italy, IT, no host: the API always returns the link on
+>   an Italian shipment). It replaces the `platformNames` and `baseUrlsByPlatform` maps in
+>   `etc/di.xml` and `Carrier::LOCAL_COUNTRY_MAP`. A test asserts every entry has a name and a
+>   country. A new name also needs the widget to know it. Ask the SDK to own the map; until then,
+>   the module holds it.
+> - **The home country is NL in code, not read from the proposition.** These read "NL" as the
+>   account's home country and must read the registry: the domestic mailbox key
+>   (`Checkout::checkPackageType()`, `PackageTypeResolver::mailboxAllowedTo()`), the local insurance
+>   cap (`DefaultOptions::insuranceCapKey()`), and the `country_of_origin` default in `Catalogue`.
+> - **Two NL-only checks go.** They test the destination, and both are wrong: a digital stamp is
+>   available outside NL (`PackageTypeResolver::resolve()`; capabilities already decide it per
+>   destination), and a package small takes a delivery date to any country
+>   (`OrderShipmentOptions::deliveryDate()`).
 >
 > Recorded for a follow-up PR, after PR 4:
 >
