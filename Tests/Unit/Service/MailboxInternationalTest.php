@@ -29,7 +29,7 @@ function mailboxInternationalFor(array $rowsByPath, string $apiKey = 'live-key')
 function accountRowWithGeneralSettings(array $generalSettings): string
 {
     return accountSettingsRow([], [
-        'account' => ['id' => 7, 'platform_id' => 1, 'general_settings' => $generalSettings],
+        'account' => ['id' => 7, 'proposition_id' => 1, 'general_settings' => $generalSettings],
     ]);
 }
 
