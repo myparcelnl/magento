@@ -30,6 +30,9 @@ class CustomsItems
 
     public const MAX_DESCRIPTION_LENGTH = 50;
 
+    /** Magento's configurable product type code, without a dependency on Magento_ConfigurableProduct. */
+    public const CONFIGURABLE = 'configurable';
+
     /** The HS code attribute's own cap; the API declares no maximum of its own. */
     private const MAX_CLASSIFICATION_LENGTH = 18;
 
@@ -69,17 +72,43 @@ class CustomsItems
     }
 
     /**
-     * Product setting first, the store's `print/country_of_origin` setting second, the account's home
-     * country last.
+     * The HS code and country of origin of each customs line.
      *
-     * @param  int[] $productIds
-     * @return array<int,string> product id => ISO country
+     * A line lists its products most specific first: a configurable item's variant, then its parent.
+     * The first product with a value wins. A country falls back to the store's `print/country_of_origin`
+     * setting, then to the account's home country; an HS code has no fallback.
+     *
+     * @return array<int|string, array{classification: string, country: string}>
      */
-    public function countriesOfOriginFor(array $productIds, int $storeId): array
+    public function customsDataFor(array $productIdsByLine, int $storeId): array
     {
-        $fallback = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
+        $productIds = [];
+
+        foreach ($productIdsByLine as $ids) {
+            array_push($productIds, ...$ids);
+        }
+
+        $productIds      = array_values(array_unique($productIds));
+        $classifications = $productIds ? $this->classificationsFor($productIds) : [];
+        $countries       = $productIds ? $this->manufacturingCountriesFor($productIds) : [];
+        $fallback        = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
             ?: $this->objectManager->get(AccountProposition::class)->homeCountryForStore($storeId);
 
+        $data = [];
+
+        foreach ($productIdsByLine as $line => $ids) {
+            $data[$line] = [
+                'classification' => self::firstOf($ids, $classifications) ?? '',
+                'country'        => self::firstOf($ids, $countries) ?? $fallback,
+            ];
+        }
+
+        return $data;
+    }
+
+    /** Product id => country of manufacture, only for a product that has one. */
+    private function manufacturingCountriesFor(array $productIds): array
+    {
         /** @var ProductCollection $collection */
         $collection = $this->objectManager->create(ProductCollection::class);
         $collection->addIdFilter($productIds)
@@ -88,11 +117,25 @@ class CustomsItems
         $countries = [];
 
         foreach ($collection->getItems() as $product) {
-            $countries[(int) $product->getId()] = (string) ($product->getCountryOfManufacture() ?: $fallback);
+            $country = (string) $product->getCountryOfManufacture();
+
+            if ('' !== $country) {
+                $countries[(int) $product->getId()] = $country;
+            }
         }
 
-        // A product that no longer exists still needs a country on its customs item.
-        return $countries + array_fill_keys($productIds, $fallback);
+        return $countries;
+    }
+
+    private static function firstOf(array $ids, array $values): ?string
+    {
+        foreach ($ids as $id) {
+            if ('' !== (string) ($values[$id] ?? '')) {
+                return (string) $values[$id];
+            }
+        }
+
+        return null;
     }
 
     public function description(string $name): string
