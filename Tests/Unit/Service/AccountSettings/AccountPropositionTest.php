@@ -70,6 +70,15 @@ it('answers null and warns once when the account names a proposition the module 
     ));
 });
 
+it('gives the home country of the store its proposition, or the default one', function () {
+    stubAccountSettingsReader([
+        settingsPathFor('be-key') => accountSettingsRow([], ['account' => ['id' => 7, 'proposition_id' => 3]]),
+    ]);
+
+    expect(makeAccountProposition('be-key')->homeCountryForStore(1))->toBe('BE')
+        ->and(makeAccountProposition(null)->homeCountryForStore(1))->toBe('NL');
+});
+
 it('reads a store once, so a broken row costs one alert per page and not one per row', function () {
     $logger      = stubAccountSettingsReader([], unreadableSettings());
     $proposition = makeAccountProposition('live-key');

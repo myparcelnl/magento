@@ -16,9 +16,6 @@ use Throwable;
  */
 final class Carrier
 {
-    /** The carriers whose local country is not NL. Goes in PR 6: the local country is the account's. */
-    public const LOCAL_COUNTRY_MAP = ['dpd' => CountryCode::CC_BE];
-
     /** @var array<string, string>|null module name => v2 name, for every carrier the SDK knows */
     private static ?array $v2Names = null;
 
@@ -65,12 +62,6 @@ final class Carrier
     public static function isExportable(string $name): bool
     {
         return null !== self::idFor($name);
-    }
-
-    /** Falls back to NL, which is what every carrier but DPD answers and what the old code hardcoded. */
-    public static function localCountryCodeFor(?string $name): string
-    {
-        return self::LOCAL_COUNTRY_MAP[$name] ?? CountryCode::CC_NL;
     }
 
     /** The carrier's label, from the SDK. Its own name back for one the SDK does not know. */
