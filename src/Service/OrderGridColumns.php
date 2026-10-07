@@ -62,8 +62,7 @@ class OrderGridColumns
     }
 
     /**
-     * The same write for a caller that already holds the tracks. The shipment observer does: its
-     * tracks have no entity id yet, so the query writeFor() runs cannot see them.
+     * The same write for a caller that already holds the columns, from columnsForOrder().
      *
      * @param array{track_status: string, track_number: string} $columns
      *
@@ -100,6 +99,29 @@ class OrderGridColumns
         }
 
         return true;
+    }
+
+    /**
+     * Get the columns for one order from its stored tracks plus the tracks of an unsaved shipment.
+     * Both are needed: from the new shipment alone, a second part shipment replaces the first
+     * one's barcode in the grid.
+     *
+     * @param iterable<\Magento\Sales\Model\Order\Shipment\Track> $unsavedTracks
+     *
+     * @return array{track_status: string, track_number: string}
+     */
+    public function columnsForOrder(int $orderId, iterable $unsavedTracks): array
+    {
+        $tracks = $this->tracksByOrder([$orderId])[$orderId] ?? [];
+
+        foreach ($unsavedTracks as $track) {
+            // A track with an id is already one of the stored rows.
+            if (! $track['entity_id']) {
+                $tracks[] = $track;
+            }
+        }
+
+        return $this->columnsForTracks($tracks);
     }
 
     /**

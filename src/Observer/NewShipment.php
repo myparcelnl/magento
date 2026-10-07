@@ -216,13 +216,12 @@ class NewShipment implements ObserverInterface
      */
     private function updateTrackGrid($shipment, $entireOrder): void
     {
-        $columns = $this->gridColumns->columnsForTracks($shipment->getTracksCollection());
+        $order   = $shipment->getOrder();
+        $columns = $this->gridColumns->columnsForOrder((int) $order->getEntityId(), $shipment->getTracksCollection());
 
         if ($entireOrder) {
             $columns['track_status'] = UpdateStatus::ORDER_STATUS_EXPORTED;
         }
-
-        $order = $shipment->getOrder();
 
         // Keep this instance in step with the column write, as Magento saves it again after this
         // observer. An empty value is left out, as writeColumns() never blanks a column either.
