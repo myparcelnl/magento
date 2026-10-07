@@ -11,6 +11,7 @@ use MyParcelNL\Magento\Block\System\Config\Form\InsuranceAmount;
 use MyParcelNL\Magento\Block\System\Config\Form\OrderManagementInfo;
 use MyParcelNL\Magento\Block\System\Config\Form\SettingsButton;
 use MyParcelNL\Magento\Block\System\Config\Form\WeightUnitNote;
+use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -353,7 +354,7 @@ final class Catalogue
 
         foreach ($zones as $zone) {
             [$label, $tooltip] = $zoneTexts[$zone];
-            $fields[]          = Field::text("{$path}insurance_{$zone}_amount", $label)
+            $fields[]          = Field::text($path . InsuranceAmountSetting::fieldOf($zone), $label)
                 ->withTooltip($tooltip)
                 ->withFrontendModel(InsuranceAmount::class)
                 ->withDefault('0');
