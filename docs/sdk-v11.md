@@ -52,12 +52,16 @@ These rules run through the result:
 3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
    module truth.
 
-**When capabilities cannot be had, the module offers everything.** `Capabilities\CapabilitiesProvider` answers
-a permissive set when a store has no API key, a request will not serialise, the same request failed
-within the last 60 seconds, a fetch fails, the cache or lock backend throws, or another process is
-already fetching the same request. The last one is a lock taken with a zero wait, not a queue: after `cache:clean` every
-concurrent render misses the same request at once, and making them wait for one call is the cost being
-avoided, not the fix.
+**When capabilities cannot be had, the module serves the last answer, else everything.**
+`Capabilities\CapabilitiesProvider` answers a permissive set for a store with no API key and for a request that
+will not serialise. Three more cases serve the request's last good answer from
+`Capabilities\StoredAnswers` (Magento's `flag` table, so it survives `cache:clean` and a Redis
+restart), and a permissive set only when the request was never answered: a request that failed within
+the last 60 seconds, a failed fetch, and a request another one is already fetching. The last one is a
+lock taken with a zero wait, not a queue: after `cache:clean` every concurrent render misses the same
+request at once, and making them wait for one call is the cost being avoided, not the fix.
+`AccountSettings\Maintenance` deletes the stored answers of an API key that is configured nowhere any
+more.
 
 **The SDK decides which options exist.** `Capabilities\Client` sends the request that the generated
 `ShipmentApi` builds, with a 2 s connect timeout, and returns the raw response entries.
