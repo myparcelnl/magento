@@ -28,7 +28,9 @@ class CustomsDeclarationBuilder
     }
 
     /**
-     * One customs item per shipped item. Product data comes from two batch queries, not one per item.
+     * One customs item per shipped item. getAllItems() leaves out what ShipmentFactory marked deleted:
+     * before the save, the shipment still carries a configurable's variant as an item of its own.
+     * Product data comes from two batch queries, not one per item.
      *
      * @throws \RuntimeException when the SDK refuses the declaration, for example no item or more than 100
      */
@@ -36,8 +38,8 @@ class CustomsDeclarationBuilder
     {
         $shipmentItems = [];
 
-        foreach ($shipment->getItems() as $item) {
-            // Before the save, getItems() still holds the configurable child (qty 0) and a bundle parent.
+        foreach ($shipment->getAllItems() as $item) {
+            // getAllItems() drops the deleted configurable child; a bundle parent shipped separately stays.
             if (! CustomsItems::isShippedRow($item->getOrderItem())) {
                 continue;
             }
