@@ -193,9 +193,8 @@
 > - **The cron needs no partition by export mode (step 9's own commit).** `ordersAwaitingBarcode()`
 >   already selects only orders a PPS export marked (`myparcel_uuid`), and `incrementIdsByApiKey()`
 >   asks each order's own account. A partition by the account's *current* mode would stop polling the
->   in-flight orders of an account that moved from order v1 to v2. So the last commit of PR 6 removes
->   the temporary "any store has order v1" gate in `UpdateStatus::execute()` and the cron's
->   `StoredAccount`, and its test asserts both passes always run. A shop without PPS pays one query
+>   in-flight orders of an account that moved from order v1 to v2. So `UpdateStatus::execute()` runs
+>   both passes on every tick, ungated, and its test asserts that. A shop without PPS pays one query
 >   every 15 minutes, which the `myparcel_uuid(36)` index (`UpgradeSchema::addUuidPrefixIndex()`)
 >   answers from an empty range. Not verified: the plan on a large `sales_order`, where the optimiser
 >   could prefer a backward primary-key scan for `ORDER BY entity_id DESC`.
