@@ -115,13 +115,10 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
     /** Whether every selected order's account has order v1; null when the selection mixes both. */
     private function orderV1Of(OrderCollection $orders): ?bool
     {
-        $modes = [];
-
-        foreach (array_unique($orders->getColumnValues('store_id')) as $storeId) {
-            $modes[] = $this->storedAccount->hasOrderV1ForStore((int) $storeId);
-        }
-
-        $modes = array_unique($modes);
+        $modes = array_unique(array_map(
+            fn($storeId): bool => $this->storedAccount->hasOrderV1ForStore((int) $storeId),
+            array_unique($orders->getColumnValues('store_id'))
+        ));
 
         return 1 < count($modes) ? null : (bool) reset($modes);
     }
