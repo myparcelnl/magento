@@ -55,6 +55,10 @@
     <type name="Magento\Sales\Model\Order\Email\Container\ShipmentIdentity">
         <plugin name="MyParcelNL_Magento_Plugin_Magento_Sales_Model_Order_Email_Container_ShipmentIdentity" sortOrder="10" type="MyParcelNL\Magento\Plugin\Magento\Sales\Model\Order\Email\Container\ShipmentIdentity"/>
     </type>
+    <!-- Let config:set and config:show accept the generated settings paths -->
+    <type name="Magento\Config\Model\Config\PathValidator">
+        <plugin name="myparcel-generated-settings-path-validator" type="MyParcelNL\Magento\Plugin\Magento\Config\GeneratedSettingsPathValidator"/>
+    </type>
     <!-- Add field delivery_options to order rest endpoint -->
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
         <plugin name="orderInformationUpdate" type="MyParcelNL\Magento\Plugin\Magento\Sales\Api\Data\OrderInformationUpdate" />
