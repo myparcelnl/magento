@@ -47,6 +47,9 @@ class ShipmentExportService
     /** Null in production, so the SDK builds its own client; a test sets one to answer offline. */
     private ?PsrClientInterface $returnHttpClient = null;
 
+    /** Null in production, so a LabelHttpClient is built; a test sets one to answer offline. */
+    private ?PsrClientInterface $labelHttpClient = null;
+
     public function __construct(
         ShipmentApiProvider $apiProvider,
         Config              $config,
@@ -132,36 +135,49 @@ class ShipmentExportService
      * ShipmentLabelsService keeps a single PDF string per instance, so each key gets its own service
      * and the documents are merged here. Page order follows the order the ids are handed in.
      *
-     * A failing account never costs the other accounts their labels: its error is returned alongside
+     * A failing account or chunk never costs the others their labels: one shipment id the key does
+     * not own makes the API refuse its whole chunk. Each failure's error is returned alongside
      * whatever merged, so the caller can say why the PDF is empty or incomplete instead of guessing.
      *
      * @param array<string,int[]> $shipmentIdsByApiKey
      *
-     * @return array{pdf: string, errors: string[]}
+     * @return array{pdf: string, errors: string[]} errors: one per failed account or chunk
      */
     public function fetchLabelPdf(array $shipmentIdsByApiKey, $positions = 1): array
     {
-        $pdfs = [];
+        $pdfs        = [];
+        $chunkErrors = [];
 
         $errors = $this->perKey(
             array_map([$this, 'normalizeIds'], $shipmentIdsByApiKey),
             'fetch labels',
-            function (string $apiKey, array $shipmentIds) use (&$pdfs, $positions): void {
+            function (string $apiKey, array $shipmentIds) use (&$pdfs, &$chunkErrors, $positions): void {
+                // The third argument is the PSR client the service sends with; LabelHttpClient
+                // exists so a non-PDF answer is visible, since the SDK discards the body it refused.
+                $httpClient = $this->labelHttpClient ?? new LabelHttpClient();
+                $service    = $this->tagged($apiKey, static function (string $key, $client) use ($httpClient) {
+                    return new ShipmentLabelsService($key, $client, $httpClient);
+                });
+
                 // Chunked for the same reason the query is: every id goes into one path segment.
                 // LABEL_CHUNK_SIZE is a multiple of four, so an A4 sheet's four positions still
                 // fall on the same sheet as they would unchunked.
                 foreach (array_chunk($shipmentIds, self::LABEL_CHUNK_SIZE) as $chunk) {
-                    // The third argument is the PSR client the service sends with; LabelHttpClient
-                    // exists so a non-PDF answer is visible, since the SDK discards the body it refused.
-                    $service = $this->tagged($apiKey, static function (string $key, $client) {
-                        return new ShipmentLabelsService($key, $client, new LabelHttpClient());
-                    });
-                    $service->setPdfOfLabels($chunk, $positions);
-
-                    $pdfs[] = $service->getLabelPdf();
+                    try {
+                        $pdfs[] = $service->setPdfOfLabels($chunk, $positions);
+                    } catch (Throwable $e) {
+                        Logger::warning('MyParcel export: could not fetch labels for one chunk', LogContext::of($e));
+                        $chunkErrors[] = (string) __(
+                            '%1 labels could not be fetched. %2',
+                            count($chunk),
+                            $e->getMessage()
+                        );
+                    }
                 }
             }
         );
+
+        $errors = array_merge($errors, $chunkErrors);
 
         try {
             $pdf = $this->labelPdfMerger->merge($pdfs);
