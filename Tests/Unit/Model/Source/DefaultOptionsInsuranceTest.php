@@ -115,14 +115,9 @@ it('applies the percentage and the cap to a required companion', function () {
         ->and(defaultOptionsFor(insuranceSettings(['insurance_local_amount' => 0]), 400.00)->getRequiredInsurance('postnl'))->toBe(0);
 });
 
-it('caps a Belgian account at its local amount for Belgium, not the Belgian zone', function () {
-    $options = defaultOptionsFor(insuranceSettings(), 9000.00, 'BE', 'BE');
-
-    expect($options->getDefaultInsurance('postnl'))->toBe(5000);
-});
-
-it('caps a Dutch account at the Belgian amount for Belgium', function () {
-    $options = defaultOptionsFor(insuranceSettings(), 9000.00, 'BE', 'NL');
-
-    expect($options->getDefaultInsurance('postnl'))->toBe(2000);
-});
+it('caps Belgium by the zone the account its home country puts it in', function (string $homeCountry, int $cap) {
+    expect(defaultOptionsFor(insuranceSettings(), 9000.00, 'BE', $homeCountry)->getDefaultInsurance('postnl'))->toBe($cap);
+})->with([
+    'belgian account, local amount' => ['BE', 5000],
+    'dutch account, belgian amount' => ['NL', 2000],
+]);
