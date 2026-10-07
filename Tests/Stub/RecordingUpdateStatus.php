@@ -26,8 +26,13 @@ class RecordingUpdateStatus extends UpdateStatus
     /** @var array[] sales_order rows the selector would have returned */
     public array $orderRows = [];
 
+    /** Whether the PPS pass asked for the orders awaiting a barcode. */
+    public bool $barcodePassRan = false;
+
     protected function ordersAwaitingBarcode(): array
     {
+        $this->barcodePassRan = true;
+
         return $this->orderRows;
     }
 
