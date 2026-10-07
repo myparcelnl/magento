@@ -57,8 +57,23 @@ function importerClientRefusing(): Client
     return $client;
 }
 
-it('reports settings present when a row exists for the key', function () {
-    $importer = importerFor([settingsPathFor('live-key') => '{"shop":1}']);
+/** The collection fetchConfigurations() hands createArray(): one shop, its account, and what the overrides add. */
+function importedSettings(array $overrides = []): Collection
+{
+    return new Collection(array_replace([
+        'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
+        'account'              => new Account([
+            'id'               => 7,
+            'proposition_id'   => 1,
+            'shops'            => [['id' => 42, 'name' => 'Test Shop']],
+            'general_settings' => [],
+        ]),
+        'contract_definitions' => [],
+    ], $overrides));
+}
+
+it('reports settings present when a row with features exists for the key', function () {
+    $importer = importerFor([settingsPathFor('live-key') => '{"shop":1,"features":[]}']);
 
     expect($importer->hasSettingsFor('live-key'))->toBeTrue();
 });
@@ -67,8 +82,14 @@ it('reports settings absent when no row exists at all', function () {
     expect(importerFor([])->hasSettingsFor('live-key'))->toBeFalse();
 });
 
+it('reports settings absent for a row stored before features were imported, so the next save completes it', function () {
+    $importer = importerFor([settingsPathFor('live-key') => '{"shop":1}']);
+
+    expect($importer->hasSettingsFor('live-key'))->toBeFalse();
+});
+
 it('does not mistake another key\'s row for its own', function () {
-    $importer = importerFor([settingsPathFor('other-key') => '{"shop":9}']);
+    $importer = importerFor([settingsPathFor('other-key') => '{"shop":9,"features":[]}']);
 
     expect($importer->hasSettingsFor('live-key'))->toBeFalse();
 });
@@ -149,18 +170,11 @@ it('answers no features rather than failing the import when whoami fails', funct
 });
 
 it('stores shop, account and contract definitions and nothing else', function () {
-    $settings = new Collection([
-        'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
-        'account'              => new Account([
-            'id'               => 7,
-            'proposition_id'   => 1,
-            'shops'            => [['id' => 42, 'name' => 'Test Shop']],
-            'general_settings' => [],
-        ]),
-        'contract_definitions' => [contractDefinitionItem()],
-    ]);
-
-    $stored = invokePrivateMethod(importerFor([]), 'createArray', [$settings]);
+    $stored = invokePrivateMethod(
+        importerFor([]),
+        'createArray',
+        [importedSettings(['contract_definitions' => [contractDefinitionItem()]])]
+    );
 
     expect(array_keys($stored))->toBe(['shop', 'account', 'contract_definitions'])
         ->and($stored['shop'])->toBe(['id' => 42, 'name' => 'Test Shop'])
@@ -169,17 +183,23 @@ it('stores shop, account and contract definitions and nothing else', function ()
 });
 
 it('stores the features beside the account when whoami answered', function () {
-    $settings = new Collection([
-        'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
-        'account'              => new Account([
-            'id'               => 7,
-            'proposition_id'   => 1,
-            'shops'            => [['id' => 42, 'name' => 'Test Shop']],
-            'general_settings' => [],
-        ]),
-        'contract_definitions' => [],
-        'features'             => ['ORDER_MANAGEMENT'],
-    ]);
+    $stored = invokePrivateMethod(importerFor([]), 'createArray', [importedSettings(['features' => ['ORDER_MANAGEMENT']])]);
 
-    expect(invokePrivateMethod(importerFor([]), 'createArray', [$settings])['features'])->toBe(['ORDER_MANAGEMENT']);
+    expect($stored['features'])->toBe(['ORDER_MANAGEMENT']);
+});
+
+it('keeps the features of the row it replaces when whoami answered nothing', function () {
+    $stored = invokePrivateMethod(importerFor([]), 'createArray', [importedSettings(), ['LEGACY_ORDER_MANAGEMENT']]);
+
+    expect($stored['features'])->toBe(['LEGACY_ORDER_MANAGEMENT']);
+});
+
+it('stores the features whoami answered, not the ones stored before', function () {
+    $stored = invokePrivateMethod(
+        importerFor([]),
+        'createArray',
+        [importedSettings(['features' => ['ORDER_MANAGEMENT']]), ['LEGACY_ORDER_MANAGEMENT']]
+    );
+
+    expect($stored['features'])->toBe(['ORDER_MANAGEMENT']);
 });
