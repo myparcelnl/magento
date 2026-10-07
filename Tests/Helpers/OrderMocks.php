@@ -64,8 +64,8 @@ function createShipmentItem(array $data = []): \Magento\Framework\DataObject
 }
 
 /**
- * `items` (if given) backs BOTH getItems() and getData('items') with the
- * same array, because callers read shipment items through either and a
+ * `items` (if given) backs getItems(), getAllItems() and getData('items') with the
+ * same array, because callers read shipment items through any of them and a
  * fixture that disagreed with itself would pass tests the code fails.
  */
 function createShipment(array $overrides = []): Shipment
@@ -77,6 +77,7 @@ function createShipment(array $overrides = []): Shipment
         'getShippingAddress' => createAddress(),
         'getOrder'           => null,
         'getItems'           => $items,
+        'getAllItems'        => $items,
         'getEntityId'        => 123,
         'getId'              => 123,
         'getOrderId'         => 1,
