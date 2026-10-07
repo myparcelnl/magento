@@ -62,7 +62,7 @@ class ImportAccountSettings
         $keys = [];
 
         foreach ($this->collectionFactory->create()->addFieldToFilter('path', Config::XML_PATH_API_KEY)->getItems() as $row) {
-            $apiKey = trim((string) $row->getData('value'));
+            $apiKey = (string) $row->getData('value');
 
             if ('' !== $apiKey) {
                 $keys[] = $apiKey;

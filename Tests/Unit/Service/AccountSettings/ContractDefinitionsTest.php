@@ -74,7 +74,7 @@ it('never serves one account the other account answer', function () {
 it('resolves the api key configured at the asked scope', function () {
     $reader = contractDefinitionsFor(
         [settingsPathFor('store-key') => accountSettingsRow([contractDefinitionItem(['carrier' => 'GLS'])])],
-        [ScopeInterface::SCOPE_STORES => [3 => [Config::XML_PATH_API_KEY => ' store-key ']]]
+        [ScopeInterface::SCOPE_STORES => [3 => [Config::XML_PATH_API_KEY => 'store-key']]]
     );
 
     expect($reader->forScope(ScopeInterface::SCOPE_STORES, 3)->carriers())->toBe(['gls'])
