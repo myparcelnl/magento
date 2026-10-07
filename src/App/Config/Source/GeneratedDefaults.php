@@ -99,7 +99,7 @@ class GeneratedDefaults implements ConfigSourceInterface
         $paths = [];
 
         foreach ($this->rows(['path' => Config::XML_PATH_API_KEY]) as $row) {
-            $apiKey = trim((string) $row->getData('value'));
+            $apiKey = (string) $row->getData('value');
 
             if ('' !== $apiKey) {
                 $paths[] = Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey);
