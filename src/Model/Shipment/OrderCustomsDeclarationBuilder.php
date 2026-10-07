@@ -49,17 +49,20 @@ class OrderCustomsDeclarationBuilder
                 continue;
             }
 
-            $productIds = [(int) $product->getId()];
+            $productIds     = [(int) $product->getId()];
+            $quantitySource = $item;
 
             if ($isVariant) {
                 $productIds[] = (int) $parent->getProductId();
+                // Magento ships the parent and never registers qty_shipped on the variant.
+                $quantitySource = $parent;
             }
 
             $lines[] = [
                 'product'    => $product,
                 // A zero-quantity line is one the API refuses, and a fractional quantity casts to 0.
-                'amount'     => max(1, (int) ($item->getQtyShipped() ?: $item->getQtyOrdered())),
-                'price'      => (float) $item->getPrice(),
+                'amount'     => max(1, (int) ($quantitySource->getQtyShipped() ?: $quantitySource->getQtyOrdered())),
+                'price'      => (float) $quantitySource->getPrice(),
                 'productIds' => $productIds,
             ];
         }
