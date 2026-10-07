@@ -278,4 +278,103 @@ it('fails open when the cache or the lock backend throws', function (string $cal
     expect($r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue()
         // Releases the lock it took, and only that one.
         ->and($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
-})->with(['load', 'lock', 'save']);
+})->with(['load', 'lock']);
+
+it('fails open when the stored copy cannot be read', function () {
+    $r = makeCapabilitiesRepository([]);
+    $r['store']->lockHeld = true;
+    $r['store']->throwOn  = 'storeLoad';
+
+    expect($r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'))->isPermissive())->toBeTrue();
+});
+
+it('keeps the fetched answer when the cache refuses to save it', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('warning')->once()->with(Mockery::pattern('/refused the save\. Serving the last stored answer/'));
+    $logger->shouldReceive('notice')->byDefault();
+
+    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r['store']->throwOn = 'save';
+
+    $set = $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+
+    expect($set->isPermissive())->toBeFalse()
+        ->and($set->carriers())->toBe(['postnl'])
+        ->and($r['store']->unlockedNames)->toBe($r['store']->lockedNames);
+});
+
+it('stores a copy of every answer it fetches', function () {
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+
+    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+
+    expect($r['store']->stored)->toHaveCount(1)
+        ->and(array_values($r['store']->stored)[0])->toBe([capabilityResult()]);
+});
+
+it('still answers when the copy cannot be stored', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('warning')->once()->with(Mockery::pattern('/Could not store the capabilities answer/'));
+    $logger->shouldReceive('notice')->byDefault();
+
+    $r = makeCapabilitiesRepository([capabilitiesOk()]);
+    $r['store']->throwOn = 'storeSave';
+
+    $set = $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
+
+    expect($set->carriers())->toBe(['postnl'])
+        ->and($r['store']->entries)->toHaveCount(1);
+});
+
+/**
+ * After a cache:clean or a Redis restart only the stored copy is left. Whatever stops the fetch, the
+ * shape gets its last answer rather than everything.
+ */
+it('serves the stored answer when the cache is empty and it cannot fetch', function (Closure $cannotFetch) {
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+    mockLoggerFacade()->shouldReceive('warning')->byDefault();
+
+    $request = CapabilitiesRequest::forCountry('NL');
+    $first   = makeCapabilitiesRepository([capabilitiesOk()]);
+    $first['repository']->forStore(1, $request);
+
+    [$okPrefix] = capabilitiesCacheIdPrefixes();
+    $shape      = substr((string) array_key_first($first['store']->entries), strlen($okPrefix));
+
+    $again = makeCapabilitiesRepository([new GuzzleResponse(500, [], '')]);
+    $again['store']->stored = $first['store']->stored;
+    $cannotFetch($again['store'], $shape);
+
+    $set = $again['repository']->forStore(1, $request);
+
+    expect($set->isPermissive())->toBeFalse()
+        ->and($set->carriers())->toBe(['postnl']);
+})->with([
+    'the fetch fails'          => [static function (): void {}],
+    'another request fetches'  => [static function (object $store): void {
+        $store->lockHeld = true;
+    }],
+    'a failure is remembered'  => [static function (object $store, string $shape): void {
+        [, $failurePrefix] = capabilitiesCacheIdPrefixes();
+        $store->entries[$failurePrefix . $shape] = '1';
+    }],
+    'the cache backend is down' => [static function (object $store): void {
+        $store->throwOn = 'load';
+    }],
+]);
+
+it('says in the log which answer a failed fetch served', function () {
+    mockLoggerFacade()->shouldReceive('notice')->byDefault();
+
+    $request = CapabilitiesRequest::forCountry('NL');
+    $first   = makeCapabilitiesRepository([capabilitiesOk()]);
+    $first['repository']->forStore(1, $request);
+
+    $again = makeCapabilitiesRepository([new GuzzleResponse(500, [], '')]);
+    $again['store']->stored = $first['store']->stored;
+
+    mockLoggerFacade()->shouldReceive('warning')->once()->with(Mockery::pattern('/Serving the last stored answer\.$/'));
+
+    $again['repository']->forStore(1, $request);
+});
