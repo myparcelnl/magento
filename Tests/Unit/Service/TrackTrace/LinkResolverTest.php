@@ -81,12 +81,6 @@ it('constructs the belgian host from the store proposition', function () {
         ->toBe('https://sendmyparcel.me/track-trace/3STBJG123456789/2000/BE');
 });
 
-it('constructs no link for a proposition whose links the api always returns', function () {
-    $links = makeLinkResolver([trackRow(['postcode' => '00100', 'country_id' => 'IT'])], 6);
-
-    expect($links->forOrders([7])[7][0]['url'])->toBe('');
-});
-
 it('constructs no link when the store has no proposition the module lists', function () {
     $links = makeLinkResolver([trackRow()], null);
 

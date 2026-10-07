@@ -102,14 +102,20 @@ function ppsConfigurableCustomsItems(
     return (new OrderCustomsDeclarationBuilder($objectManager, $config, new Weight($config)))->build($order)->items;
 }
 
-it('declares a configurable product once, as the variant', function () {
-    $items = ppsConfigurableCustomsItems([4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ']);
+it('declares a configurable product once, as the variant, and falls back to the parent', function (
+    array $classifications,
+    array $countries,
+    array $expected
+) {
+    $items = ppsConfigurableCustomsItems($classifications, $countries);
 
     expect($items)->toHaveCount(1)
         ->and($items[0]->getDescription())->toBe('Caterham Red')
-        ->and($items[0]->getClassification())->toBe('0090902341')
-        ->and($items[0]->getCountry())->toBe('AQ');
-});
+        ->and([$items[0]->getClassification(), $items[0]->getCountry()])->toBe($expected);
+})->with([
+    'the variant has customs data' => [[4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ'], ['0090902341', 'AQ']],
+    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['610910', 'CN']],
+]);
 
 it('takes a configurable line\'s quantity from the parent, which alone records what shipped', function () {
     $items = ppsConfigurableCustomsItems(
@@ -123,14 +129,6 @@ it('takes a configurable line\'s quantity from the parent, which alone records w
         ->and($items[0]->getWeight())->toBe(100)
         ->and($items[0]->getItemValue()['amount'])->toBe(1000);
 });
-
-it('falls back to the configurable parent where the variant has no customs data', function () {
-    $items = ppsConfigurableCustomsItems([4 => '6109.10'], [4 => 'CN', 9 => null]);
-
-    expect($items[0]->getClassification())->toBe('610910')
-        ->and($items[0]->getCountry())->toBe('CN');
-});
-
 it('declares the children of a bundle shipped separately, not the bundle', function () {
     $bundle = createOrderItem(['item_id' => 1, 'product_type' => 'bundle', 'is_dummy' => true], ['id' => 7, 'name' => 'Gift set']);
     $mug    = createOrderItem(['item_id' => 2, 'parent_item' => $bundle], ['id' => 7, 'name' => 'Mug']);

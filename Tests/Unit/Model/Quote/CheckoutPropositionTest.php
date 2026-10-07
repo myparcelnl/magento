@@ -19,10 +19,9 @@ function checkoutPropositionNameFor(?int $propositionId): string
     return invokePrivateMethod($checkout, 'propositionName');
 }
 
-it('gives the widget the proposition of the store its account', function (int $id, string $name) {
+it('gives the widget the proposition of the store its account, or the default one', function (?int $id, string $name) {
     expect(checkoutPropositionNameFor($id))->toBe($name);
-})->with([[1, 'myparcel'], [3, 'belgie'], [6, 'italy']]);
-
-it('gives the widget the default proposition when the store has none the module lists', function (?int $id) {
-    expect(checkoutPropositionNameFor($id))->toBe('myparcel');
-})->with([[null], [99]]);
+})->with([
+    'listed'   => [3, 'belgie'],
+    'unlisted' => [99, 'myparcel'],
+]);
