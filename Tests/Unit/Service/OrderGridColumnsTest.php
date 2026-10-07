@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\DataObject;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\AreaList;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -237,9 +238,9 @@ it('still reports a real barcode alongside a placeholder', function () {
 });
 
 /**
- * writeColumns() is the same write for a caller that already holds its tracks — the shipment
- * observer, whose tracks have no entity id yet and so cannot be queried. It reads only the current
- * values, which is the fixture's first fetch.
+ * writeColumns() is the same write for a caller that already holds the columns: the shipment
+ * observer, from htmlForOrder(). It reads only the current values, which is the fixture's first
+ * fetch.
  */
 it('writes the columns a caller hands it, without querying the tracks', function () {
     [$columns, $did] = gridColumnsWriter([orderRow(7)], []);
@@ -271,6 +272,27 @@ it('leaves a stored track number alone when the caller has none to offer', funct
 
     expect($did->updates[0]['bind'])->toHaveKey('track_status')
         ->and($did->updates[0]['bind'])->not->toHaveKey('track_number');
+});
+
+/**
+ * A second part shipment: the first one's track is stored, the new one's is not saved yet. From the
+ * new shipment alone, the grid lost the first barcode.
+ */
+it('builds the columns from the order\'s stored tracks and the unsaved ones', function () {
+    [$columns] = gridColumnsWriter([trackRowFor(7, '3SFIRST')], []);
+
+    $html = $columns->htmlForOrder(7, [new DataObject(['track_number' => '3SSECOND', 'myparcel_status' => 2])]);
+
+    expect($html['track_number'])->toBe('["3SFIRST","3SSECOND"]');
+});
+
+it('counts an unsaved track that already has an id only once', function () {
+    $stored = trackRowFor(7, '3SFIRST');
+    [$columns] = gridColumnsWriter([$stored], []);
+
+    $html = $columns->htmlForOrder(7, [new DataObject($stored)]);
+
+    expect($html['track_number'])->toBe('["3SFIRST"]');
 });
 
 /**
