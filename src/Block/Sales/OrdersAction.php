@@ -18,6 +18,7 @@ use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
 use MyParcelNL\Magento\Controller\Adminhtml\Order\PrintMyParcelLabels;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 
 class OrdersAction extends Template
@@ -86,7 +87,12 @@ class OrdersAction extends Template
      */
     public function getPrintSettings(): string
     {
-        $settings = $this->config->getGeneralConfig('print');
+        $settings = (array) $this->config->getGeneralConfig('print');
+
+        // The grid's modal hides the label fields for a PPS export, which it can only know when
+        // every store's account has order v1; the server refuses a mixed selection.
+        $modes                   = ObjectManager::getInstance()->get(StoredAccount::class)->orderV1ByStore();
+        $settings['export_mode'] = $modes && ! in_array(false, $modes, true) ? 'pps' : 'shipments';
 
         return json_encode($settings);
     }
