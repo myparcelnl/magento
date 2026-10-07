@@ -1,4 +1,4 @@
-/* eslint-disable @stylistic/max-len,no-unused-vars */
+/* eslint-disable no-unused-vars,no-var -- Magento merges these files by their var config. */
 
 /**
  * Override Magento classes.
@@ -10,11 +10,6 @@ var config = {
     mixins: {
       'Magento_Checkout/js/view/shipping': {'MyParcelNL_Magento/js/view/shipping': true},
       'Magento_Checkout/js/view/summary/shipping': {'MyParcelNL_Magento/js/view/shipping-summary': true},
-    },
-  },
-  map: {
-    '*': {
-      'Magento_Checkout/js/model/shipping-save-processor/default': 'MyParcelNL_Magento/js/model/shipping-save-processor-default',
     },
   },
   paths: {
