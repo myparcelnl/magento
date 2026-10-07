@@ -177,6 +177,29 @@
 >   destination), and a package small takes a delivery date to any country
 >   (`OrderShipmentOptions::deliveryDate()`).
 >
+> PR 6 departs from the plan in these places:
+>
+> - **No `AccountFlags`, and no `Config::getExportMode()`.** Order v1 is the account's, like the
+>   proposition, so `StoredAccount::hasOrderV1ForStore()` reads both from one memo per api key.
+>   `Config` cannot depend on it: `StoredAccount` needs `ShipmentApiProvider`, which needs `Config`.
+> - **Order v1 comes from whoami, not from `general_settings.order_mode`.** That flag is also
+>   true for an order v2 account, which must export shipments. Only the IAM feature
+>   `LEGACY_ORDER_MANAGEMENT` (order v1) means PPS. The importer stores the features in the row, and
+>   the 5.11 upgrade imports every stored key again, so no PPS shop falls back to shipments silently.
+> - **A grid selection that mixes order v1 accounts and others is refused** with a message. Splitting
+>   it needs a second order collection and two export paths in one request, for a rare case.
+> - **The grid's export modal hides its label fields** only when every store's account has order
+>   v1, because it cannot know which export a selection gets before it is made.
+> - **The cron needs no partition by export mode (step 9's own commit).** `ordersAwaitingBarcode()`
+>   already selects only orders a PPS export marked (`myparcel_uuid`), and `incrementIdsByApiKey()`
+>   asks each order's own account. A partition by the account's *current* mode would stop polling the
+>   in-flight orders of an account that moved from order v1 to v2. So the last commit of PR 6 removes
+>   the temporary "any store has order v1" gate in `UpdateStatus::execute()` and the cron's
+>   `StoredAccount`, and its test asserts both passes always run. A shop without PPS pays one query
+>   every 15 minutes, which the `myparcel_uuid(36)` index (`UpgradeSchema::addUuidPrefixIndex()`)
+>   answers from an empty range. Not verified: the plan on a large `sales_order`, where the optimiser
+>   could prefer a backward primary-key scan for `ORDER BY entity_id DESC`.
+>
 > Recorded for a follow-up PR, after PR 4:
 >
 > - **The order grid's label modal lists carriers by hand.** `view/adminhtml/web/template/grid/order_massaction.html`

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
+use MyParcelNL\Magento\Service\AccountSettings\AccountFeatures;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -18,7 +19,7 @@ use Psr\Log\LoggerInterface;
  *
  * @param array<string, string> $rowsByPath
  */
-function importerFor(array $rowsByPath, ?Client $client = null): Importer
+function importerFor(array $rowsByPath, ?Client $client = null, ?AccountFeatures $features = null): Importer
 {
     $scopeConfig = mockScopeConfig($rowsByPath);
 
@@ -28,7 +29,8 @@ function importerFor(array $rowsByPath, ?Client $client = null): Importer
         new Fingerprint(),
         Mockery::spy(LoggerInterface::class),
         $client ?? Mockery::spy(Client::class),
-        createUserAgent()
+        createUserAgent(),
+        $features ?? Mockery::mock(AccountFeatures::class, ['forApiKey' => []])
     );
 }
 
@@ -129,6 +131,23 @@ it('keeps insurance bounds verbatim on the way into storage', function () {
     expect($definitions[0]['options']['insurance']['max']['amount'])->toBe(500000);
 });
 
+it('fetches the account features from whoami', function () {
+    $features = Mockery::mock(AccountFeatures::class);
+    $features->shouldReceive('forApiKey')->once()->with('live-key')->andReturn(['LEGACY_ORDER_MANAGEMENT']);
+
+    expect(invokePrivateMethod(importerFor([], null, $features), 'fetchFeatures', ['live-key']))
+        ->toBe(['LEGACY_ORDER_MANAGEMENT']);
+});
+
+it('answers no features rather than failing the import when whoami fails', function () {
+    $logger = mockLoggerFacade();
+    $logger->shouldReceive('warning')->once();
+    $features = Mockery::mock(AccountFeatures::class);
+    $features->shouldReceive('forApiKey')->andThrow(new RuntimeException('iam unavailable'));
+
+    expect(invokePrivateMethod(importerFor([], null, $features), 'fetchFeatures', ['live-key']))->toBeNull();
+});
+
 it('stores shop, account and contract definitions and nothing else', function () {
     $settings = new Collection([
         'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
@@ -147,4 +166,20 @@ it('stores shop, account and contract definitions and nothing else', function ()
         ->and($stored['shop'])->toBe(['id' => 42, 'name' => 'Test Shop'])
         ->and($stored['account']['id'])->toBe(7)
         ->and($stored['contract_definitions'][0]['carrier'])->toBe('POSTNL');
+});
+
+it('stores the features beside the account when whoami answered', function () {
+    $settings = new Collection([
+        'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
+        'account'              => new Account([
+            'id'               => 7,
+            'proposition_id'   => 1,
+            'shops'            => [['id' => 42, 'name' => 'Test Shop']],
+            'general_settings' => [],
+        ]),
+        'contract_definitions' => [],
+        'features'             => ['ORDER_MANAGEMENT'],
+    ]);
+
+    expect(invokePrivateMethod(importerFor([]), 'createArray', [$settings])['features'])->toBe(['ORDER_MANAGEMENT']);
 });

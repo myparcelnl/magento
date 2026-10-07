@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\DataObject;
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 
@@ -19,7 +21,19 @@ function makeStoredAccount(?string $apiKey, int $keyLookups = 1): StoredAccount
     $provider = Mockery::mock(ShipmentApiProvider::class);
     $provider->shouldReceive('apiKeyForStoreOrNull')->times($keyLookups)->andReturn($apiKey);
 
-    return new StoredAccount($provider);
+    return new StoredAccount($provider, Mockery::mock(StoreManagerInterface::class));
+}
+
+/** @param array<int, string|null> $keysByStore store id => its api key */
+function storedAccountForStores(array $keysByStore): StoredAccount
+{
+    $provider = Mockery::mock(ShipmentApiProvider::class);
+    $provider->shouldReceive('apiKeyForStoreOrNull')->andReturnUsing(static fn(int $storeId) => $keysByStore[$storeId]);
+
+    $stores = array_map(static fn(int $id) => new DataObject(['id' => $id]), array_keys($keysByStore));
+    $storeManager = Mockery::mock(StoreManagerInterface::class, ['getStores' => $stores]);
+
+    return new StoredAccount($provider, $storeManager);
 }
 
 /** A read that fails, standing for anything between the config row and the SDK throwing. */
@@ -98,4 +112,38 @@ it('reads an account once, so stores that share its key cost one alert per page 
     $account->propositionForStore(2);
 
     $logger->shouldHaveReceived('alert')->once();
+});
+
+it('exports entire orders for order v1 only: not for order v2, and not without features', function () {
+    stubAccountSettingsReader([
+        settingsPathFor('order-key') => accountSettingsRow([], [
+            'account'  => ['id' => 7, 'proposition_id' => 1],
+            'features' => ['LEGACY_ORDER_MANAGEMENT'],
+        ]),
+        settingsPathFor('shipment-key') => accountSettingsRow([], ['account' => ['id' => 8, 'proposition_id' => 1]]),
+        settingsPathFor('v2-key')       => accountSettingsRow([], [
+            'account'  => ['id' => 9, 'proposition_id' => 1, 'general_settings' => ['order_mode' => true]],
+            'features' => ['ORDER_MANAGEMENT'],
+        ]),
+    ]);
+    $account = storedAccountForStores([1 => 'order-key', 2 => 'shipment-key', 3 => null, 4 => 'v2-key']);
+
+    expect($account->hasOrderV1ForStore(1))->toBeTrue()
+        ->and($account->hasOrderV1ForStore(2))->toBeFalse()
+        ->and($account->hasOrderV1ForStore(3))->toBeFalse()
+        ->and($account->hasOrderV1ForStore(null))->toBeFalse()
+        ->and($account->hasOrderV1ForStore(4))->toBeFalse();
+});
+
+it('lists whether every store with an api key has order v1, and only those', function () {
+    stubAccountSettingsReader([
+        settingsPathFor('order-key') => accountSettingsRow([], [
+            'account'  => ['id' => 7, 'proposition_id' => 1],
+            'features' => ['LEGACY_ORDER_MANAGEMENT'],
+        ]),
+        settingsPathFor('shipment-key') => accountSettingsRow([], ['account' => ['id' => 8, 'proposition_id' => 1]]),
+    ]);
+
+    expect(storedAccountForStores([1 => 'order-key', 2 => 'shipment-key', 3 => null])->orderV1ByStore())
+        ->toBe([1 => true, 2 => false]);
 });

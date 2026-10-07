@@ -33,9 +33,11 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar;
 use MyParcelNL\Magento\Setup\Migrations\EnableCapabilitiesCache;
 use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
+use MyParcelNL\Magento\Setup\Migrations\ImportAccountSettings;
 use MyParcelNL\Magento\Setup\Migrations\LegacyConfigDefaults;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
+use MyParcelNL\Magento\Setup\Migrations\RemoveExportModeRows;
 use MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows;
 use MyParcelNL\Magento\Setup\Migrations\RenameUpsSettingsPath;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
@@ -134,6 +136,16 @@ class UpgradeData implements UpgradeDataInterface
     private $legacyConfigDefaults;
 
     /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\RemoveExportModeRows
+     */
+    private $removeExportModeRows;
+
+    /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\ImportAccountSettings
+     */
+    private $importAccountSettings;
+
+    /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                     $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                              $eavSetupFactory
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
@@ -146,6 +158,8 @@ class UpgradeData implements UpgradeDataInterface
      * @param  \MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows $removePickupMailboxRows
      * @param  \MyParcelNL\Magento\Setup\Migrations\RenameUpsSettingsPath $renameUpsSettingsPath
      * @param  \MyParcelNL\Magento\Setup\Migrations\LegacyConfigDefaults $legacyConfigDefaults
+     * @param  \MyParcelNL\Magento\Setup\Migrations\RemoveExportModeRows $removeExportModeRows
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ImportAccountSettings $importAccountSettings
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -159,7 +173,9 @@ class UpgradeData implements UpgradeDataInterface
         UnscopeWeightIndication $unscopeWeightIndication,
         RemovePickupMailboxRows $removePickupMailboxRows,
         RenameUpsSettingsPath $renameUpsSettingsPath,
-        LegacyConfigDefaults $legacyConfigDefaults
+        LegacyConfigDefaults $legacyConfigDefaults,
+        RemoveExportModeRows $removeExportModeRows,
+        ImportAccountSettings $importAccountSettings
     ) {
         $this->categorySetupFactory            = $categorySetupFactory;
         $this->eavSetupFactory                 = $eavSetupFactory;
@@ -173,6 +189,8 @@ class UpgradeData implements UpgradeDataInterface
         $this->removePickupMailboxRows         = $removePickupMailboxRows;
         $this->renameUpsSettingsPath           = $renameUpsSettingsPath;
         $this->legacyConfigDefaults            = $legacyConfigDefaults;
+        $this->removeExportModeRows            = $removeExportModeRows;
+        $this->importAccountSettings           = $importAccountSettings;
     }
 
     /**
@@ -1135,8 +1153,11 @@ class UpgradeData implements UpgradeDataInterface
             // Rename first: the removal reads the carrier map, which only knows the new UPS path.
             $this->renameUpsSettingsPath->run();
             $this->removePickupMailboxRows->run();
+            $this->removeExportModeRows->run();
             if ('' !== (string) $context->getVersion()) {
                 $this->legacyConfigDefaults->run();
+                // The export mode is read from the features, which no row imported before 5.11 has.
+                $this->importAccountSettings->run();
             }
         }
 
