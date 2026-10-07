@@ -42,12 +42,20 @@ class LayoutProcessorPlugin
      *
      * @return array
      */
-    public function afterProcess(LayoutProcessor $subject, array  $jsLayout) {
+    public function afterProcess(LayoutProcessor $subject, array $jsLayout): array
+    {
+        $form = $jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']
+            ['children']['shippingAddress']['children']['before-shipping-method-form'] ?? null;
+
+        // Another module, such as B2B's negotiable quote checkout, can remove the form.
+        if (! is_array($form)) {
+            return $jsLayout;
+        }
+
         $jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']
         ['children']['shippingAddress']['children']['before-shipping-method-form']['children'] =
             array_merge_recursive(
-                $jsLayout['components']['checkout']['children']['steps']['children']['shipping-step']
-                ['children']['shippingAddress']['children']['before-shipping-method-form']['children'],
+                $form['children'] ?? [],
                 [
                     Config::FIELD_DELIVERY_OPTIONS => [
                         'component' => 'Magento_Ui/js/form/element/abstract',
