@@ -415,7 +415,6 @@ This setting applies to domestic shipments only,Ce paramètre s'applique uniquem
 This will be added to or subtracted from the regular shipping price,Ceci sera ajouté ou soustrait du prix de livraison standard
 Use percentage of total order amount for insurance.,Utiliser le pourcentage du montant total de la commande pour l'assurance.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Lorsqu'activé, les casiers à colis seront exclus des points de retrait pour tous les produits. Seuls les points de retrait physiques seront affichés."
-"With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.","Avec 'Exporter la commande entière', MyParcel exportera chaque commande dans sa totalité vers le back-office pour un traitement ultérieur."
 
 API Access,Accès API
 API access token,Token d'accès API
@@ -475,3 +474,6 @@ No MyParcel shipments were found to make a return label for.,Aucun envoi MyParce
 "MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel n'a pas pu lire les transporteurs de ce compte. Aucun transporteur n'est donc affiché. Vérifiez l’API key."
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 n'a pas été activé : ce transporteur nécessite une mise à jour du module avant de pouvoir expédier des envois."
 "Reloading the page...","Rechargement de la page..."
+"This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Cette sélection contient des commandes de comptes qui exportent la commande entière et des commandes d'autres comptes. Sélectionnez un seul type de commande et réessayez."
+"Account","Compte"
+"Account features","Fonctionnalités du compte"
