@@ -69,7 +69,11 @@ An endpoint that must accept an API access token follows [`docs/design/adding-a-
 
 ### Admin settings
 
-`Model\Settings\Blueprint\Generator` generates the admin settings per scope from the contract definitions of the scope's API key. Field templates and the module-owned lists are in `Blueprint\Catalogue`. The form's paths at a scope are also the save allow-list in `Observer\ConfigChange`. To add a setting:
+`Model\Settings\Blueprint\Generator` generates the admin settings per scope from the contract definitions of the scope's API key. Field templates and the module-owned lists are in `Blueprint\Catalogue`. The form's paths at a scope are also the save allow-list in `Observer\ConfigChange`.
+
+`config:set` and `config:show` accept a path that the form offers at any scope, through the `PathValidator` plugin `Plugin\Magento\Config\GeneratedSettingsPathValidator`. A CLI save does not run `Observer\ConfigChange`, so its setting validators and the api key import do not run.
+
+To add a setting:
 
 1. Add a `Field` to its group in `Blueprint\Catalogue`, and its label and tooltip to `i18n/`. `Tests/Unit/Model/Settings/Blueprint/GeneratorParityTest.php` pins the form against the legacy JSON, so name a moved or changed path there.
 2. Give it a value with `withDefault()` if it needs one before a merchant saves it. A switch or a fee defaults to `'0'`. `etc/config.xml` holds no MyParcel defaults: `App\Config\Source\GeneratedDefaults` supplies them at default scope, below every saved row.
