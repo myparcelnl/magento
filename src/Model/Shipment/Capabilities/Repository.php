@@ -23,6 +23,8 @@ use Throwable;
  *   loudly on its own path instead.
  * - Serve stale. Successful entries are written with no expiry and removed only by cache:clean, an
  *   API key change or a settings import, so a failed refresh finds the previous answer still there.
+ *   StoredAnswers keeps a copy outside the cache, so a shape that cannot be fetched gets its last
+ *   answer even after the cache was emptied, and permissive only when it was never answered.
  * - Do not hammer a failing endpoint. A shape that failed is remembered as failed for
  *   FAILURE_LIFETIME_SECONDS, so a reload does not repeat the burst. Checked *after* the success
  *   entry, never before it, so a previous good answer always beats a recent failure.
@@ -46,6 +48,7 @@ class Repository
     private Config              $config;
     private Fingerprint         $fingerprint;
     private LockManagerInterface $lockManager;
+    private StoredAnswers        $storedAnswers;
 
     /** @var array<string,CapabilitySet> per-request memo, so one page render decodes once */
     private array $memo = [];
@@ -55,7 +58,8 @@ class Repository
         CapabilitiesCache    $cache,
         Config               $config,
         Fingerprint          $fingerprint,
-        LockManagerInterface $lockManager
+        LockManagerInterface $lockManager,
+        StoredAnswers        $storedAnswers
     )
     {
         $this->client      = $client;
@@ -63,6 +67,7 @@ class Repository
         $this->config      = $config;
         $this->fingerprint = $fingerprint;
         $this->lockManager = $lockManager;
+        $this->storedAnswers = $storedAnswers;
     }
 
     /**
@@ -89,24 +94,25 @@ class Repository
         try {
             $body = $this->client->serialize($request);
         } catch (Throwable $e) {
-            $this->logFailure($apiKey, 'could not build the request: ' . $e->getMessage());
-
-            return CapabilitySet::permissive();
+            return $this->failed(
+                $apiKey,
+                'could not build the request: ' . $e->getMessage(),
+                CapabilitySet::permissive()
+            );
         }
+
+        $shape = $this->fingerprint->of($apiKey . '|' . $body);
 
         // The cache and the lock can throw too, and the first rule above covers them as well.
         try {
-            return $this->lookup($apiKey, $body);
+            return $this->lookup($apiKey, $body, $shape);
         } catch (Throwable $e) {
-            $this->logFailure($apiKey, $e->getMessage());
-
-            return CapabilitySet::permissive();
+            return $this->failed($apiKey, $e->getMessage(), $this->stored($apiKey, $shape));
         }
     }
 
-    private function lookup(string $apiKey, string $body): CapabilitySet
+    private function lookup(string $apiKey, string $body, string $shape): CapabilitySet
     {
-        $shape     = $this->fingerprint->of($apiKey . '|' . $body);
         $cacheId   = self::CACHE_ID_PREFIX . $shape;
         $failureId = self::FAILURE_ID_PREFIX . $shape;
 
@@ -126,31 +132,31 @@ class Repository
 
         if (false !== $this->cache->load($failureId)) {
             // Asked recently and it failed. Do not ask again yet.
-            return $this->memo[$cacheId] = CapabilitySet::permissive();
+            return $this->memo[$cacheId] = $this->stored($apiKey, $shape);
         }
 
         // One fetch per shape at a time. After a deploy or cache:clean every concurrent checkout
         // misses the same shape at once, and without this each one calls out. Waiting is not the
-        // alternative — that queues them all behind one request — so the rest answer permissively,
-        // exactly as they would if the fetch had failed.
+        // alternative — that queues them all behind one request — so the rest answer from the
+        // stored copy, exactly as they would if the fetch had failed.
         $lockName = self::CACHE_ID_PREFIX . 'fetch_' . $shape;
 
         // 0: try once and move on. Waiting is the thing being avoided.
         if (! $this->lockManager->lock($lockName, 0)) {
-            return $this->memo[$cacheId] = CapabilitySet::permissive();
+            return $this->memo[$cacheId] = $this->stored($apiKey, $shape);
         }
 
         try {
             $results = $this->client->send($apiKey, $body);
         } catch (Throwable $e) {
-            $this->logFailure($apiKey, $e->getMessage());
             $this->cache->save('1', $failureId, [], self::FAILURE_LIFETIME_SECONDS);
 
-            return $this->memo[$cacheId] = CapabilitySet::permissive();
+            return $this->memo[$cacheId] = $this->failed($apiKey, $e->getMessage(), $this->stored($apiKey, $shape));
         } finally {
             $this->lockManager->unlock($lockName);
         }
 
+        $this->store($apiKey, $shape, $results);
         $this->cache->save((string) json_encode($results), $cacheId, [], null);
 
         $set = CapabilitySet::fromApiResults($results);
@@ -177,13 +183,51 @@ class Repository
         }
     }
 
-    /** The key is fingerprinted and truncated: enough to correlate lines, never the key itself. */
-    private function logFailure(string $apiKey, string $reason): void
+    /** The last answer stored for this shape, or permissive when it was never answered. */
+    private function stored(string $apiKey, string $shape): CapabilitySet
+    {
+        try {
+            $results = $this->storedAnswers->load($apiKey, $shape);
+        } catch (Throwable $e) {
+            $results = null;
+        }
+
+        return null === $results ? CapabilitySet::permissive() : CapabilitySet::fromApiResults($results);
+    }
+
+    /**
+     * Before the cache entry, so a cache backend that refuses the save still leaves the stored copy.
+     * A failed write only costs the fallback, never the answer in hand.
+     */
+    private function store(string $apiKey, string $shape, array $results): void
+    {
+        try {
+            $this->storedAnswers->save($apiKey, $shape, $results);
+        } catch (Throwable $e) {
+            Logger::warning(sprintf(
+                'Could not store the capabilities answer for account %s: %s',
+                $this->accountLabel($apiKey),
+                $e->getMessage()
+            ));
+        }
+    }
+
+    /** Logged once per failure: the stored-answer reads on the other paths stay silent. */
+    private function failed(string $apiKey, string $reason, CapabilitySet $served): CapabilitySet
     {
         Logger::warning(sprintf(
-            'Capabilities lookup failed for account %s: %s. Offering everything instead.',
-            substr($this->fingerprint->of($apiKey), 0, Fingerprint::LABEL_LENGTH),
-            $reason
+            'Capabilities lookup failed for account %s: %s. %s',
+            $this->accountLabel($apiKey),
+            $reason,
+            $served->isPermissive() ? 'Offering everything instead.' : 'Serving the last stored answer.'
         ));
+
+        return $served;
+    }
+
+    /** The key is fingerprinted and truncated: enough to correlate lines, never the key itself. */
+    private function accountLabel(string $apiKey): string
+    {
+        return substr($this->fingerprint->of($apiKey), 0, Fingerprint::LABEL_LENGTH);
     }
 }
