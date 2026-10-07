@@ -37,7 +37,9 @@ class CustomsDeclarationBuilder
 
     /**
      * One item per shipped item — the legacy path looped both getData('items') and getItems() and
-     * added every item twice. Product data is fetched in two batch queries, not per item.
+     * added every item twice. getAllItems() leaves out what ShipmentFactory marked deleted: before
+     * the save, the shipment still carries a configurable's variant as an item of its own. Product
+     * data is fetched in two batch queries, not per item.
      *
      * @throws \RuntimeException when the shipment carries no item, or more than the API accepts
      */
@@ -45,7 +47,7 @@ class CustomsDeclarationBuilder
     {
         $shipmentItems = [];
 
-        foreach ($shipment->getItems() as $item) {
+        foreach ($shipment->getAllItems() as $item) {
             $shipmentItems[] = $item;
         }
 

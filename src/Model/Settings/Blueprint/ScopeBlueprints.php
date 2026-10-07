@@ -52,7 +52,7 @@ class ScopeBlueprints
 
             // Without a contract there is no carrier section to put either in, so no row to read.
             if (! $capabilities->isPermissive()) {
-                $apiKey        = trim((string) $this->config->getScopedConfig(Config::XML_PATH_API_KEY, $scopeName, $scopeId));
+                $apiKey        = (string) $this->config->getScopedConfig(Config::XML_PATH_API_KEY, $scopeName, $scopeId);
                 $international = $this->mailboxInternational->carriersFor($apiKey);
                 $proposition   = '' === $apiKey ? null : $this->storedAccount->propositionForApiKey($apiKey);
             }
