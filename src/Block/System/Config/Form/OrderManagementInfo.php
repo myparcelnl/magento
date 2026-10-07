@@ -39,7 +39,7 @@ class OrderManagementInfo extends Template
     protected function _toHtml(): string
     {
         [$scopeName, $scopeId] = $this->settings->getCurrentScopeFromRequest($this->getRequest());
-        $apiKey = trim((string) $this->config->getScopedConfig(Config::XML_PATH_API_KEY, $scopeName, $scopeId));
+        $apiKey = (string) $this->config->getScopedConfig(Config::XML_PATH_API_KEY, $scopeName, $scopeId);
 
         return '<pre>' . $this->_escaper->escapeHtml((string) json_encode(
             self::summary($apiKey, '' === $apiKey ? null : $this->storedAccount->featuresForApiKey($apiKey)),
