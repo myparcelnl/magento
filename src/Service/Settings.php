@@ -9,6 +9,7 @@ use Magento\Framework\App\RequestInterface;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Model\Settings\Blueprint\ScopeBlueprints;
+use MyParcelNL\Magento\Service\ApiAccessToken\TokenService;
 
 /**
  * The settings form of one admin scope, and the rows stored for it.
@@ -43,6 +44,15 @@ class Settings
     public function getAllFieldPaths(string $scopeName, ?int $scopeId): array
     {
         return $this->scopeBlueprints->forScope($scopeName, $scopeId)->paths();
+    }
+
+    /**
+     * The stored account row and a token hash sit under the general section, so a crafted save could
+     * otherwise overwrite them. The token button's own path is the hash path, so the form offers it.
+     */
+    public static function isWritable(string $path): bool
+    {
+        return 0 !== strpos($path, Config::XML_PATH_ACCOUNT_SETTINGS) && TokenService::CONFIG_PATH !== $path;
     }
 
     /** True when the scope's capabilities could not be read, so the form shows no carrier. */
