@@ -512,3 +512,4 @@ this order is a pickup but carries no pickup location,"denne ordre er en afhentn
 "The MyParcel account settings of this store are not imported, so it is not known whether its orders export as orders or as shipments. Open the MyParcel settings and click Import.","MyParcel-kontoindstillingerne for denne butik er ikke importeret, så det vides ikke, om dens ordrer eksporteres som ordrer eller som forsendelser. Åbn MyParcel-indstillingerne, og klik på Import."
 "Account","Konto"
 "Account features","Kontofunktioner"
+"%1 labels could not be fetched. %2","%1 etiketter kunne ikke hentes. %2"
