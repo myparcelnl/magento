@@ -3,9 +3,9 @@
 How this module uses SDK v11 and why. Keep it current: change it in the same PR as the code it
 describes.
 
-**PPS** is the export mode `Config::EXPORT_MODE_PPS`: setting *Mode* = "Export entire order"
-(`myparcelnl_magento_general/print/export_mode`). The module then sends each order to the Order v1
-API through the SDK's `Fulfilment` classes, and the back office makes the shipments. The code also
+**PPS** is the export of whole orders. An account with the `LEGACY_ORDER_MANAGEMENT` feature sends
+each order to the Order v1 API through the SDK's `Fulfilment` classes, and the back office makes the
+shipments; every other account creates shipments. The code also
 calls this mode "fulfilment" and "Order v1".
 
 **Proposition** is the MyParcel brand an account belongs to, such as MyParcel or SendMyParcel. The
@@ -192,6 +192,8 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   #731. INT-1464 can bring it back.
 - The New Shipment form's digital stamp weights 100 and 350 gram. The form now offers the weights of
   the setting: 20, 50, 200 and 2000 gram.
+- The "Export mode" setting. An account with order v1 exports orders (PPS), every other account
+  exports shipments. A grid selection that mixes the two is refused.
 - PostNL Monday delivery and the GLS Saturday fields. Saturday delivery is the `saturday_delivery`
   option.
 - A carrier outside the account's contract leaves the checkout, also when its switch is on.

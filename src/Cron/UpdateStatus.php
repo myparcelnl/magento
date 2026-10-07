@@ -23,7 +23,7 @@ use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
@@ -51,7 +51,7 @@ class UpdateStatus
     private ObjectManagerInterface $objectManager;
     private \Magento\Sales\Model\ResourceModel\Order $orderResource;
     private MagentoOrderCollection $orderCollection;
-    private Config                 $config;
+    private StoredAccount          $storedAccount;
 
     /**
      * UpdateStatus constructor.
@@ -63,7 +63,7 @@ class UpdateStatus
     )
     {
         $this->objectManager   = $objectManager = ObjectManager::getInstance();
-        $this->config          = $objectManager->get(Config::class);
+        $this->storedAccount   = $objectManager->get(StoredAccount::class);
         $this->orderCollection = new MagentoOrderCollection($this->objectManager);
         $this->orderResource   = $orderResource;
     }
@@ -80,7 +80,7 @@ class UpdateStatus
         // PPS only acquires barcodes, and drops an order the moment one arrives. The poll below
         // carries a shipment on from there; it selects on the track's own status, so it suits
         // either export mode.
-        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
+        if (in_array(true, $this->storedAccount->orderV1ByStore(), true)) {
             $this->updateStatusPPS();
         }
 

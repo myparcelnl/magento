@@ -19,8 +19,9 @@ use Throwable;
 /**
  * Fetches a MyParcel account's settings and caches them under the api key's fingerprint.
  *
- * Two sources, one row: the account and its shop come from the SDK's account web service, the
- * contract definitions from the capabilities client in a single unfiltered call.
+ * Three sources, one row: the account and its shop come from the SDK's account web service, the
+ * contract definitions from the capabilities client in a single unfiltered call, and the features
+ * from whoami.
  *
  * Throws whatever the SDK throws: an invalid key must surface, but must not abort a config save, so the
  * observer catches it.
@@ -34,6 +35,7 @@ class Importer
     private Client               $client;
     private UserAgent            $userAgent;
     private ContractDefinitions  $contractDefinitions;
+    private AccountFeatures      $accountFeatures;
 
     public function __construct(
         WriterInterface      $configWriter,
@@ -42,7 +44,8 @@ class Importer
         LoggerInterface      $logger,
         Client               $client,
         UserAgent            $userAgent,
-        ContractDefinitions  $contractDefinitions
+        ContractDefinitions  $contractDefinitions,
+        AccountFeatures      $accountFeatures
     ) {
         $this->configWriter        = $configWriter;
         $this->scopeConfig         = $scopeConfig;
@@ -51,6 +54,7 @@ class Importer
         $this->client              = $client;
         $this->userAgent           = $userAgent;
         $this->contractDefinitions = $contractDefinitions;
+        $this->accountFeatures     = $accountFeatures;
     }
 
     /**
@@ -115,6 +119,7 @@ class Importer
                 'shop'                 => $shop,
                 'account'              => $account,
                 'contract_definitions' => $this->fetchContractDefinitions($apiKey),
+                'features'             => $this->fetchFeatures($apiKey),
             ]
         );
     }
@@ -154,6 +159,26 @@ class Importer
     }
 
     /**
+     * Null when whoami fails: the rest of the row is still worth storing, and a row without features
+     * exports shipments, which the warning names.
+     *
+     * @return string[]|null
+     */
+    private function fetchFeatures(string $apiKey): ?array
+    {
+        try {
+            return $this->accountFeatures->forApiKey($apiKey);
+        } catch (Throwable $e) {
+            $this->logger->warning(
+                'The account features could not be fetched, so this account exports shipments until the next import.',
+                LogContext::of($e)
+            );
+
+            return null;
+        }
+    }
+
+    /**
      * @param \MyParcelNL\Sdk\Support\Collection $settings
      *
      * @return array
@@ -165,16 +190,24 @@ class Importer
         /** @var \MyParcelNL\Sdk\Model\Account\Account $account */
         $account = $settings->get('account');
 
-        return [
-            'shop'                 => [
+        $row = [
+            'shop'    => [
                 'id'   => $shop->getId(),
                 'name' => $shop->getName(),
             ],
-            'account'              => $account->toArray(),
-        ] + (null === $settings->get('contract_definitions') ? [] : [
-            // Stored verbatim: a generated model is an allow-list and would drop the insurance
-            // bounds the settings screen reads. Left out when unknown, so hasSettingsFor() asks again.
-            'contract_definitions' => $settings->get('contract_definitions'),
-        ]);
+            'account' => $account->toArray(),
+        ];
+
+        // Stored verbatim: a generated model is an allow-list and would drop the insurance bounds
+        // the settings screen reads. Left out when unknown, so hasSettingsFor() asks again.
+        if (null !== $settings->get('contract_definitions')) {
+            $row['contract_definitions'] = $settings->get('contract_definitions');
+        }
+
+        if (null !== $settings->get('features')) {
+            $row['features'] = $settings->get('features');
+        }
+
+        return $row;
     }
 }

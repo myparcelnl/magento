@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\Capabilities\Client;
+use MyParcelNL\Magento\Service\AccountSettings\AccountFeatures;
+use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Model\Account\Account;
 use MyParcelNL\Sdk\Model\Account\Shop;
@@ -74,7 +77,7 @@ it('asks for contract definitions exactly once, with no carrier filter', functio
     // One call without a carrier filter: the response names each item's carrier.
     $client->shouldReceive('sendContractDefinitions')->once()->with('live-key')->andReturn([]);
 
-    invokePrivateMethod(importerFor([], $client, $logger), 'fetchContractDefinitions', ['live-key']);
+    invokePrivateMethod(importerFor([], $client, null, $logger), 'fetchContractDefinitions', ['live-key']);
 });
 
 it('keeps a mixed-carrier answer as one list, in the order it arrived', function () {
@@ -95,7 +98,7 @@ it('answers unknown when the call is refused, rather than failing the import', f
     $logger->shouldReceive('warning')->with(Mockery::type('string'), Mockery::on(fn ($context) => [] !== $context))->once();
 
     $definitions = invokePrivateMethod(
-        importerFor([], importerClientRefusing(), $logger),
+        importerFor([], importerClientRefusing(), null, $logger),
         'fetchContractDefinitions',
         ['live-key']
     );
@@ -146,6 +149,23 @@ it('keeps insurance bounds verbatim on the way into storage', function () {
     expect($definitions[0]['options']['insurance']['max']['amount'])->toBe(500000);
 });
 
+it('fetches the account features from whoami', function () {
+    $features = Mockery::mock(AccountFeatures::class);
+    $features->shouldReceive('forApiKey')->once()->with('live-key')->andReturn(['LEGACY_ORDER_MANAGEMENT']);
+
+    expect(invokePrivateMethod(importerFor([], null, $features), 'fetchFeatures', ['live-key']))
+        ->toBe(['LEGACY_ORDER_MANAGEMENT']);
+});
+
+it('answers no features rather than failing the import when whoami fails', function () {
+    $logger = Mockery::mock(LoggerInterface::class);
+    $logger->shouldReceive('warning')->once();
+    $features = Mockery::mock(AccountFeatures::class);
+    $features->shouldReceive('forApiKey')->andThrow(new RuntimeException('iam unavailable'));
+
+    expect(invokePrivateMethod(importerFor([], null, $features, $logger), 'fetchFeatures', ['live-key']))->toBeNull();
+});
+
 it('stores shop, account and contract definitions and nothing else', function () {
     $settings = new Collection([
         'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
@@ -164,4 +184,20 @@ it('stores shop, account and contract definitions and nothing else', function ()
         ->and($stored['shop'])->toBe(['id' => 42, 'name' => 'Test Shop'])
         ->and($stored['account']['id'])->toBe(7)
         ->and($stored['contract_definitions'][0]['carrier'])->toBe('POSTNL');
+});
+
+it('stores the features beside the account when whoami answered', function () {
+    $settings = new Collection([
+        'shop'                 => new Shop(['id' => 42, 'name' => 'Test Shop']),
+        'account'              => new Account([
+            'id'               => 7,
+            'proposition_id'   => 1,
+            'shops'            => [['id' => 42, 'name' => 'Test Shop']],
+            'general_settings' => [],
+        ]),
+        'contract_definitions' => [],
+        'features'             => ['ORDER_MANAGEMENT'],
+    ]);
+
+    expect(invokePrivateMethod(importerFor([]), 'createArray', [$settings])['features'])->toBe(['ORDER_MANAGEMENT']);
 });

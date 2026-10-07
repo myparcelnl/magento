@@ -6,6 +6,7 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Service\Capabilities\Client;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
+use MyParcelNL\Magento\Service\AccountSettings\AccountFeatures;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\AccountSettings\Importer;
 use MyParcelNL\Magento\Service\Config;
@@ -48,7 +49,12 @@ function contractDefinitionsFor(array $rowsByPath, array $scopedValues = []): Co
  *
  * @param array<string, string> $rowsByPath
  */
-function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface $logger = null): Importer
+function importerFor(
+    array            $rowsByPath,
+    ?Client          $client = null,
+    ?AccountFeatures $features = null,
+    ?LoggerInterface $logger = null
+): Importer
 {
     return new Importer(
         Mockery::spy(WriterInterface::class),
@@ -57,7 +63,8 @@ function importerFor(array $rowsByPath, ?Client $client = null, ?LoggerInterface
         $logger ?? Mockery::spy(LoggerInterface::class),
         $client ?? Mockery::spy(Client::class),
         createUserAgent(),
-        contractDefinitionsFor($rowsByPath)
+        contractDefinitionsFor($rowsByPath),
+        $features ?? Mockery::mock(AccountFeatures::class, ['forApiKey' => []])
     );
 }
 
