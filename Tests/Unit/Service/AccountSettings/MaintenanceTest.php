@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\StoredAnswers;
 use MyParcelNL\Magento\Service\AccountSettings\Maintenance;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -69,7 +70,8 @@ function accountSettingsMaintenance(
     MyParcelTokenLifecycleHarness $harness,
     array                         $apiKeyByCoordinate,
     array                         $coordinates = [],
-    ?TypeListInterface            $cacheTypeList = null
+    ?TypeListInterface            $cacheTypeList = null,
+    ?StoredAnswers                $storedAnswers = null
 ): Maintenance {
     return new Maintenance(
         $harness->collectionFactory(),
@@ -78,7 +80,8 @@ function accountSettingsMaintenance(
         accountSettingsScopeConfig($apiKeyByCoordinate),
         accountSettingsConfig($coordinates),
         new Fingerprint(),
-        Mockery::spy(LoggerInterface::class)
+        Mockery::spy(LoggerInterface::class),
+        $storedAnswers ?? Mockery::spy(StoredAnswers::class)
     );
 }
 
@@ -192,4 +195,23 @@ it('ignores config rows belonging to other settings', function () {
     accountSettingsMaintenance($harness, ['default' => $apiKey])->reconcile();
 
     expect(array_column($harness->rows, 'path'))->toContain('myparcelnl_magento_general/print/paper_type');
+});
+
+it('keeps the stored capabilities answers of every live api key only', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $stored  = Mockery::spy(StoredAnswers::class);
+
+    $harness->save(Config::XML_PATH_API_KEY, 'live-key', 'default', 0);
+
+    accountSettingsMaintenance($harness, ['default' => 'live-key'], [], null, $stored)->reconcile();
+
+    $stored->shouldHaveReceived('deleteExcept')->once()->with([(new Fingerprint())->of('live-key')]);
+});
+
+it('keeps every stored capabilities answer when no api key is configured anywhere', function () {
+    $stored = Mockery::spy(StoredAnswers::class);
+
+    accountSettingsMaintenance(new MyParcelTokenLifecycleHarness(), [], [], null, $stored)->reconcile();
+
+    $stored->shouldNotHaveReceived('deleteExcept');
 });

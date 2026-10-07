@@ -10,6 +10,7 @@ use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UninstallInterface;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\StoredAnswers;
 
 class Uninstall implements UninstallInterface
 {
@@ -31,6 +32,8 @@ class Uninstall implements UninstallInterface
         foreach ($eavTypeCollection as $eavAttribute) {
             $eavResourceModel->delete($eavAttribute);
         }
+
+        $objectManager->get(StoredAnswers::class)->deleteAll();
 
         $setup->endSetup();
     }
