@@ -140,7 +140,7 @@ it('only counts this module carrier tracks', function () {
  *
  * @return object the recorder: whether updateMagentoTrack() was reached
  */
-function runCronInMode(string $exportMode): object
+function runCronInMode(bool $orderV1): object
 {
     $logger = mockLoggerFacade();
     $logger->shouldReceive('debug', 'notice', 'warning')->andReturnNull();
@@ -191,13 +191,13 @@ function runCronInMode(string $exportMode): object
         }
     );
 
-    $config = Mockery::mock(MyParcelNL\Magento\Service\Config::class);
-    $config->shouldReceive('getExportMode')->andReturn($exportMode);
+    $storedAccount = Mockery::mock(MyParcelNL\Magento\Service\AccountSettings\StoredAccount::class);
+    $storedAccount->shouldReceive('orderV1ByStore')->andReturn([1 => $orderV1]);
 
     $cron = newInstanceWithoutConstructor(MyParcelNL\Magento\Tests\Stub\RecordingUpdateStatus::class);
     setPrivateProperty($cron, 'objectManager', $objectManager);
     setPrivateProperty($cron, 'orderCollection', $orderCollection);
-    setPrivateProperty($cron, 'config', $config);
+    setPrivateProperty($cron, 'storedAccount', $storedAccount);
     $cron->orderRows = [];
 
     $cron->execute();
@@ -206,11 +206,11 @@ function runCronInMode(string $exportMode): object
 }
 
 it('polls shipment statuses in shipments mode', function () {
-    expect(runCronInMode('shipments')->polled)->toBeTrue();
+    expect(runCronInMode(false)->polled)->toBeTrue();
 });
 
 it('polls shipment statuses in PPS mode as well', function () {
     // PPS acquires barcodes and drops an order the moment it has one, so without this pass a PPS
     // order's myparcel_status stays at whatever its barcode pass wrote, for good.
-    expect(runCronInMode(MyParcelNL\Magento\Service\Config::EXPORT_MODE_PPS)->polled)->toBeTrue();
+    expect(runCronInMode(true)->polled)->toBeTrue();
 });

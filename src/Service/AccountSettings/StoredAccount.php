@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\AccountSettings;
 
+use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
+use MyParcelNL\Sdk\Client\Generated\IamApi\Model\Feature;
 use MyParcelNL\Sdk\Model\Account\Account;
 use Throwable;
 
@@ -25,17 +27,19 @@ use Throwable;
  */
 class StoredAccount
 {
-    private ShipmentApiProvider $apiProvider;
+    private ShipmentApiProvider   $apiProvider;
+    private StoreManagerInterface $storeManager;
 
-    /** @var array<string, Account|null> */
-    private array $accounts = [];
+    /** @var array<string, AccountSettings|null> */
+    private array $settings = [];
 
     /** @var array<string, Proposition|null> */
     private array $propositions = [];
 
-    public function __construct(ShipmentApiProvider $apiProvider)
+    public function __construct(ShipmentApiProvider $apiProvider, StoreManagerInterface $storeManager)
     {
-        $this->apiProvider = $apiProvider;
+        $this->apiProvider  = $apiProvider;
+        $this->storeManager = $storeManager;
     }
 
     public function propositionForApiKey(string $apiKey): ?Proposition
@@ -65,19 +69,62 @@ class StoredAccount
         return ($this->propositionForStore($storeId) ?? Proposition::default())->getCountryCode();
     }
 
-    private function accountFor(string $apiKey): ?Account
+    /**
+     * Whether the account has order v1, which exports entire orders (PPS). An account on order v2 only,
+     * a store without an account, and a row imported before features were stored all export shipments.
+     */
+    public function hasOrderV1ForStore(?int $storeId): bool
     {
-        if (! array_key_exists($apiKey, $this->accounts)) {
-            try {
-                $this->accounts[$apiKey] = (new AccountSettings($apiKey))->getAccount();
-            } catch (Throwable $e) {
-                Logger::alert('Could not read the stored account settings.', LogContext::of($e));
+        $apiKey   = null === $storeId ? null : $this->apiKeyFor($storeId);
+        $features = null === $apiKey ? null : $this->featuresForApiKey($apiKey);
 
-                $this->accounts[$apiKey] = null;
+        return in_array(Feature::LEGACY_ORDER_MANAGEMENT, $features ?? [], true);
+    }
+
+    /** @return string[]|null null when the stored row has no features yet */
+    public function featuresForApiKey(string $apiKey): ?array
+    {
+        $settings = $this->settingsFor($apiKey);
+
+        return null === $settings ? null : $settings->getFeatures();
+    }
+
+    /** @return array<int, bool> store id => hasOrderV1ForStore(), for every store view with an api key */
+    public function orderV1ByStore(): array
+    {
+        $modes = [];
+
+        foreach ($this->storeManager->getStores() as $store) {
+            $storeId = (int) $store->getId();
+
+            if (null !== $this->apiKeyFor($storeId)) {
+                $modes[$storeId] = $this->hasOrderV1ForStore($storeId);
             }
         }
 
-        return $this->accounts[$apiKey];
+        return $modes;
+    }
+
+    private function accountFor(string $apiKey): ?Account
+    {
+        $settings = $this->settingsFor($apiKey);
+
+        return null === $settings ? null : $settings->getAccount();
+    }
+
+    private function settingsFor(string $apiKey): ?AccountSettings
+    {
+        if (! array_key_exists($apiKey, $this->settings)) {
+            try {
+                $this->settings[$apiKey] = new AccountSettings($apiKey);
+            } catch (Throwable $e) {
+                Logger::alert('Could not read the stored account settings.', LogContext::of($e));
+
+                $this->settings[$apiKey] = null;
+            }
+        }
+
+        return $this->settings[$apiKey];
     }
 
     private function propositionOf(?Account $account): ?Proposition
