@@ -193,3 +193,18 @@ it('falls back to the parent where the variant has no customs data', function ()
     expect(configurableCustomsLine([4 => '6109.10'], [4 => 'CN', 9 => null]))
         ->toBe(['classification' => '6109.10', 'country' => 'CN']);
 });
+
+it('leaves out the variant item ShipmentFactory marked deleted, so a configurable is one line', function () {
+    $config  = createConfig(['print/weight_indication' => 'gram']);
+    $builder = new CustomsDeclarationBuilder(customsObjectManager([4 => '6109.10'], [4 => 'CN'], $config), $config, new Weight($config));
+    $parent  = createShipmentItem([
+        'product_id' => 4,
+        'order_item' => new DataObject(['product_type' => 'configurable', 'children_items' => [new DataObject(['product_id' => 9])]]),
+    ]);
+    $variant = createShipmentItem(['product_id' => 9, 'qty' => 0, 'price' => 0.0]);
+
+    // Before the save, getItems() still lists the deleted variant; getAllItems() does not.
+    $shipment = createShipment(['items' => [$parent], 'getItems' => [$parent, $variant]]);
+
+    expect($builder->build($shipment, 1000, '100000001')->getItems())->toHaveCount(1);
+});

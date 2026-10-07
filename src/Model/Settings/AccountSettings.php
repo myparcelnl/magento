@@ -72,7 +72,18 @@ class AccountSettings extends BaseModel
         $this->generalSettings = is_array($decoded['account']['general_settings'] ?? null)
             ? $decoded['account']['general_settings']
             : [];
-        $this->features        = is_array($decoded['features'] ?? null)
+        $this->features        = self::featuresIn($decoded);
+    }
+
+    /**
+     * The `features` of a decoded row; null for a row stored before they were imported.
+     *
+     * @param  array<string, mixed> $decoded
+     * @return string[]|null
+     */
+    public static function featuresIn(array $decoded): ?array
+    {
+        return is_array($decoded['features'] ?? null)
             ? array_values(array_filter($decoded['features'], 'is_string'))
             : null;
     }
