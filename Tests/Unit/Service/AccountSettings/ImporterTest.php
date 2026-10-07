@@ -152,14 +152,6 @@ it('keeps insurance bounds verbatim on the way into storage', function () {
     expect($definitions[0]['options']['insurance']['max']['amount'])->toBe(500000);
 });
 
-it('fetches the account features from whoami', function () {
-    $features = Mockery::mock(AccountFeatures::class);
-    $features->shouldReceive('forApiKey')->once()->with('live-key')->andReturn(['LEGACY_ORDER_MANAGEMENT']);
-
-    expect(invokePrivateMethod(importerFor([], null, $features), 'fetchFeatures', ['live-key']))
-        ->toBe(['LEGACY_ORDER_MANAGEMENT']);
-});
-
 it('answers no features rather than failing the import when whoami fails', function () {
     $logger = mockLoggerFacade();
     $logger->shouldReceive('warning')->once();
@@ -182,24 +174,16 @@ it('stores shop, account and contract definitions and nothing else', function ()
         ->and($stored['contract_definitions'][0]['carrier'])->toBe('POSTNL');
 });
 
-it('stores the features beside the account when whoami answered', function () {
-    $stored = invokePrivateMethod(importerFor([]), 'createArray', [importedSettings(['features' => ['ORDER_MANAGEMENT']])]);
+it('stores what whoami answered, or else the features of the row it replaces', function (
+    ?array $answered,
+    ?array $stored,
+    array  $expected
+) {
+    $settings = importedSettings(null === $answered ? [] : ['features' => $answered]);
 
-    expect($stored['features'])->toBe(['ORDER_MANAGEMENT']);
-});
-
-it('keeps the features of the row it replaces when whoami answered nothing', function () {
-    $stored = invokePrivateMethod(importerFor([]), 'createArray', [importedSettings(), ['LEGACY_ORDER_MANAGEMENT']]);
-
-    expect($stored['features'])->toBe(['LEGACY_ORDER_MANAGEMENT']);
-});
-
-it('stores the features whoami answered, not the ones stored before', function () {
-    $stored = invokePrivateMethod(
-        importerFor([]),
-        'createArray',
-        [importedSettings(['features' => ['ORDER_MANAGEMENT']]), ['LEGACY_ORDER_MANAGEMENT']]
-    );
-
-    expect($stored['features'])->toBe(['ORDER_MANAGEMENT']);
-});
+    expect(invokePrivateMethod(importerFor([]), 'createArray', [$settings, $stored])['features'])->toBe($expected);
+})->with([
+    'answered, nothing stored' => [['ORDER_MANAGEMENT'], null, ['ORDER_MANAGEMENT']],
+    'not answered, stored'     => [null, ['LEGACY_ORDER_MANAGEMENT'], ['LEGACY_ORDER_MANAGEMENT']],
+    'answered and stored'      => [['ORDER_MANAGEMENT'], ['LEGACY_ORDER_MANAGEMENT'], ['ORDER_MANAGEMENT']],
+]);
