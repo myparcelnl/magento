@@ -11,7 +11,6 @@ use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Sdk\Client\Generated\IamApi\Model\Feature;
-use MyParcelNL\Sdk\Model\Account\Account;
 use Throwable;
 
 /**
@@ -45,7 +44,7 @@ class StoredAccount
     public function propositionForApiKey(string $apiKey): ?Proposition
     {
         if (! array_key_exists($apiKey, $this->propositions)) {
-            $this->propositions[$apiKey] = $this->propositionOf($this->accountFor($apiKey));
+            $this->propositions[$apiKey] = $this->propositionOf($this->settingsFor($apiKey));
         }
 
         return $this->propositions[$apiKey];
@@ -59,7 +58,7 @@ class StoredAccount
 
     public function propositionForStore(?int $storeId): ?Proposition
     {
-        $apiKey = null === $storeId ? null : $this->apiKeyFor($storeId);
+        $apiKey = $this->apiKeyFor($storeId);
 
         return null === $apiKey ? null : $this->propositionForApiKey($apiKey);
     }
@@ -75,10 +74,10 @@ class StoredAccount
      */
     public function hasOrderV1ForStore(?int $storeId): bool
     {
-        $apiKey   = null === $storeId ? null : $this->apiKeyFor($storeId);
-        $features = null === $apiKey ? null : $this->featuresForApiKey($apiKey);
+        $apiKey = $this->apiKeyFor($storeId);
 
-        return in_array(Feature::LEGACY_ORDER_MANAGEMENT, $features ?? [], true);
+        return null !== $apiKey
+            && in_array(Feature::LEGACY_ORDER_MANAGEMENT, $this->featuresForApiKey($apiKey) ?? [], true);
     }
 
     /** @return string[]|null null when the stored row has no features yet */
@@ -105,13 +104,6 @@ class StoredAccount
         return $modes;
     }
 
-    private function accountFor(string $apiKey): ?Account
-    {
-        $settings = $this->settingsFor($apiKey);
-
-        return null === $settings ? null : $settings->getAccount();
-    }
-
     private function settingsFor(string $apiKey): ?AccountSettings
     {
         if (! array_key_exists($apiKey, $this->settings)) {
@@ -127,8 +119,10 @@ class StoredAccount
         return $this->settings[$apiKey];
     }
 
-    private function propositionOf(?Account $account): ?Proposition
+    private function propositionOf(?AccountSettings $settings): ?Proposition
     {
+        $account = null === $settings ? null : $settings->getAccount();
+
         if (null === $account) {
             return null;
         }
@@ -145,8 +139,12 @@ class StoredAccount
         return $proposition;
     }
 
-    private function apiKeyFor(int $storeId): ?string
+    private function apiKeyFor(?int $storeId): ?string
     {
+        if (null === $storeId) {
+            return null;
+        }
+
         try {
             return $this->apiProvider->apiKeyForStoreOrNull($storeId);
         } catch (Throwable $e) {

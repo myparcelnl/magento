@@ -20,13 +20,6 @@ final class InsuranceAmountSetting
     private const ZONES_AT_HOME_IN_NL = ['local', 'belgium', 'eu', 'row'];
     private const ZONES               = ['local', 'eu', 'row'];
 
-    private const FIELDS = [
-        'insurance_local_amount',
-        'insurance_belgium_amount',
-        'insurance_eu_amount',
-        'insurance_row_amount',
-    ];
-
     public static function zonesFor(?Proposition $proposition): array
     {
         return $proposition && CountryCode::CC_NL === $proposition->getCountryCode()
@@ -47,6 +40,11 @@ final class InsuranceAmountSetting
             $zone = CountryCode::isEu($destination) ? 'eu' : 'row';
         }
 
+        return self::fieldOf($zone);
+    }
+
+    public static function fieldOf(string $zone): string
+    {
         return "insurance_{$zone}_amount";
     }
 
@@ -58,7 +56,7 @@ final class InsuranceAmountSetting
     {
         $segments = explode('/', $path);
 
-        if (! in_array(end($segments), self::FIELDS, true)) {
+        if (! in_array(end($segments), array_map([self::class, 'fieldOf'], self::ZONES_AT_HOME_IN_NL), true)) {
             return null;
         }
 
