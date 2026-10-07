@@ -105,6 +105,7 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 - Admin settings: generated per scope by `Model\Settings\Blueprint\Generator` from the contract definitions of the scope's API key. Field templates and the module-owned lists live in `Blueprint\Catalogue`. The form's paths at a scope are also the save allow-list in `Observer\ConfigChange`.
 - Config paths: `myparcelnl_magento_general/*`, `myparcelnl_magento_[carrier]_settings/*`
+  - `config:set` and `config:show` accept a path that the form offers at any scope, through the `PathValidator` plugin `Plugin\Magento\Config\GeneratedSettingsPathValidator`. A CLI save does not run `Observer\ConfigChange`, so its setting validators and the api key import do not run.
 - DI: `etc/di.xml` (backend), `etc/frontend/di.xml` (checkout)
 
   When adding a new admin setting:
