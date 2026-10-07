@@ -25,6 +25,7 @@ use Magento\Framework\Model\AbstractModel;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Sdk\Exception\ApiException;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
@@ -72,7 +73,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
                     $order->getState(),
                     ['pending', 'processing', 'new']
                 )) {
-                $this->exportAccordingToMode($order->getId());
+                $this->exportAccordingToMode($order->getId(), (int) $order->getStoreId());
             }
         }
 
@@ -83,6 +84,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      * Set MyParcel Tracks and update order grid
      *
      * @param $orderIds
+     * @param int $storeId the order's, whose account decides the export mode
      *
      * @return CreateConceptAfterInvoice
      * @throws LocalizedException
@@ -90,7 +92,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      * @throws MissingFieldException
      * @throws Exception
      */
-    private function exportAccordingToMode($orderIds)
+    private function exportAccordingToMode($orderIds, int $storeId)
     {
         $this->addOrdersToCollection($orderIds);
 
@@ -99,7 +101,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
             ->setNewMagentoShipment()
         ;
 
-        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
+        if ($this->objectManager->get(StoredAccount::class)->hasOrderV1ForStore($storeId)) {
             $this->orderCollection->setFulfilment();
 
             return $this;

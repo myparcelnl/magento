@@ -19,6 +19,14 @@ const LEGACY_ALLOWED_MISSING = [
     // Nothing read it. Saturday delivery is the `saturday_delivery` option now.
     'myparcelnl_magento_gls_settings/delivery/saturday_active',
     'myparcelnl_magento_gls_settings/delivery/saturday_fee',
+    // Whether the account has order v1 decides it.
+    'myparcelnl_magento_general/print/export_mode',
+];
+
+// Groups the legacy general section did not have.
+const LEGACY_ALLOWED_EXTRA_GROUPS = [
+    // Read-only: the account's order management, from whoami.
+    'account',
 ];
 
 // What the contract adds where the legacy form had a per-carrier exception.
@@ -36,6 +44,8 @@ const LEGACY_ALLOWED_EXTRA = [
     'myparcelnl_magento_gls_settings/default_options/signature_from_price',
     'myparcelnl_magento_gls_settings/default_options/only_recipient_active',
     'myparcelnl_magento_gls_settings/default_options/only_recipient_from_price',
+    // Read-only: the account's order management, from whoami.
+    'myparcelnl_magento_general/account/order_management',
 ];
 
 // One fee template: the other six carriers' fees had no validate, and parseDecimal() reads any notation.
@@ -157,6 +167,11 @@ it('keeps every legacy label, so no locale loses a translation', function () {
 it('keeps the general section byte for byte, tooltips and comments included', function () {
     $legacy    = legacySections()[0];
     $generated = legacyShapedSections()[0];
+
+    $generated['groups'] = array_values(array_filter(
+        $generated['groups'],
+        static fn(array $group): bool => ! in_array($group['id'], LEGACY_ALLOWED_EXTRA_GROUPS, true)
+    ));
 
     expect($generated['id'])->toBe($legacy['id'])
         ->and(array_column($generated['groups'], 'id'))->toBe(array_column($legacy['groups'], 'id'))
