@@ -476,3 +476,4 @@ No MyParcel shipments were found to make a return label for.,Non è stata trovat
 "The MyParcel account settings of this store are not imported, so it is not known whether its orders export as orders or as shipments. Open the MyParcel settings and click Import.","Le impostazioni dell'account MyParcel di questo negozio non sono importate, quindi non è noto se i suoi ordini vengono esportati come ordini o come spedizioni. Apri le impostazioni MyParcel e fai clic su Import."
 "Account","Account"
 "Account features","Funzionalità dell'account"
+"%1 labels could not be fetched. %2","Non è stato possibile recuperare %1 etichette. %2"
