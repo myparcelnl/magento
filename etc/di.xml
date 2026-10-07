@@ -98,4 +98,10 @@
             </argument>
         </arguments>
     </type>
+    <!-- A proxy: the importer's graph reaches the admin session, which setup:upgrade must not build unless the migration runs. -->
+    <type name="MyParcelNL\Magento\Setup\Migrations\ImportAccountSettings">
+        <arguments>
+            <argument name="importer" xsi:type="object">MyParcelNL\Magento\Service\AccountSettings\Importer\Proxy</argument>
+        </arguments>
+    </type>
 </config>
