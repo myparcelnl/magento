@@ -485,3 +485,4 @@ No MyParcel shipments were found to make a return label for.,Er zijn geen MyParc
 "This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Deze selectie bevat orders van accounts die de hele order exporteren en orders van andere accounts. Selecteer één soort order en probeer het opnieuw."
 "Account","Account"
 "Account features","Accountfuncties"
+"%1 labels could not be fetched. %2","%1 labels konden niet worden opgehaald. %2"
