@@ -8,6 +8,7 @@ use Magento\Config\Model\Config\Source\Yesno;
 use MyParcelNL\Magento\Block\System\Config\Form\ApiAccessTokenButton;
 use MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix;
 use MyParcelNL\Magento\Block\System\Config\Form\InsuranceAmount;
+use MyParcelNL\Magento\Block\System\Config\Form\OrderManagementInfo;
 use MyParcelNL\Magento\Block\System\Config\Form\SettingsButton;
 use MyParcelNL\Magento\Block\System\Config\Form\WeightUnitNote;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
@@ -16,7 +17,6 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions;
 use MyParcelNL\Magento\Model\Source\DropOffDelayDays;
-use MyParcelNL\Magento\Model\Source\ExportMode;
 use MyParcelNL\Magento\Model\Source\LargeFormatOptions;
 use MyParcelNL\Magento\Model\Source\NumberOfDays;
 use MyParcelNL\Magento\Model\Source\PaperType;
@@ -138,6 +138,7 @@ final class Catalogue
             self::shippingMethodsGroup(),
             self::deliveryTitlesGroup($facts),
             self::apiAccessGroup(),
+            self::accountGroup(),
         ]);
     }
 
@@ -515,9 +516,6 @@ final class Catalogue
         $path = Config::XML_PATH_GENERAL . 'print/';
 
         return new Group('print', 'Print settings', [
-            Field::select($path . 'export_mode', 'Mode', ExportMode::class)
-                ->withTooltip('With \'Export entire order\', MyParcel will export every order in its entirety to the back office for further processing.')
-                ->inDefaultScopeOnly(),
             Field::select($path . 'paper_type', 'Paper type', PaperType::class)
                 ->withTooltip('Select a standard orientation for printing labels.')
                 ->withDefault('A4'),
@@ -579,6 +577,13 @@ final class Catalogue
             Field::select($path . 'pop_up_map', 'Pop-up map', Yesno::class)
                 ->withTooltip('When enabled, the pickup location map is displayed in a pop-up.')
                 ->withDefault('0'),
+        ]);
+    }
+
+    private static function accountGroup(): Group
+    {
+        return new Group('account', 'Account', [
+            Field::button(Config::XML_PATH_GENERAL . 'account/order_management', 'Account features', OrderManagementInfo::class),
         ]);
     }
 

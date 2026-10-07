@@ -37,6 +37,7 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 
@@ -69,7 +70,7 @@ class NewShipment extends AbstractItems
 
     private Weight $weightService;
 
-    private Config $configService;
+    private StoredAccount $storedAccount;
 
     /**
      * @param Context                     $context
@@ -88,7 +89,7 @@ class NewShipment extends AbstractItems
     {
         $this->order         = $registry->registry('current_shipment')->getOrder();
         $this->weightService = $objectManager->get(Weight::class);
-        $this->configService = $objectManager->get(Config::class);
+        $this->storedAccount = $objectManager->get(StoredAccount::class);
         $this->form          = new NewShipmentForm();
 
         $this->capabilityLookup    = new ShapeLookup($objectManager->get(CapabilitiesRepository::class));
@@ -412,8 +413,8 @@ class NewShipment extends AbstractItems
     /**
      * @return bool
      */
-    public function isOrderManagementEnabled(): bool
+    public function hasOrderV1(): bool
     {
-        return Config::EXPORT_MODE_PPS === $this->configService->getExportMode();
+        return $this->storedAccount->hasOrderV1ForStore((int) $this->order->getStoreId());
     }
 }
