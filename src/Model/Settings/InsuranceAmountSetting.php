@@ -16,16 +16,9 @@ use MyParcelNL\Sdk\Services\CountryCodes;
  */
 class InsuranceAmountSetting
 {
-    public const LOCAL   = 'insurance_local_amount';
-    public const BELGIUM = 'insurance_belgium_amount';
-    public const EU      = 'insurance_eu_amount';
-    public const ROW     = 'insurance_row_amount';
-
     /** Belgium has a zone of its own only for an account at home in NL. */
     private const ZONES_AT_HOME_IN_NL = ['local', 'belgium', 'eu', 'row'];
     private const ZONES               = ['local', 'eu', 'row'];
-
-    private const FIELDS = [self::LOCAL, self::BELGIUM, self::EU, self::ROW];
 
     public static function zonesFor(?Proposition $proposition): array
     {
@@ -47,6 +40,11 @@ class InsuranceAmountSetting
             $zone = in_array($destination, CountryCodes::EU_COUNTRIES, true) ? 'eu' : 'row';
         }
 
+        return self::fieldOf($zone);
+    }
+
+    public static function fieldOf(string $zone): string
+    {
         return "insurance_{$zone}_amount";
     }
 
@@ -55,7 +53,7 @@ class InsuranceAmountSetting
     {
         $segments = explode('/', $path);
 
-        if (! in_array(end($segments), self::FIELDS, true)) {
+        if (! in_array(end($segments), array_map([self::class, 'fieldOf'], self::ZONES_AT_HOME_IN_NL), true)) {
             return null;
         }
 
