@@ -96,7 +96,8 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
     $objectManager->shouldReceive('get')->with(ShipmentApiProvider::class)
         ->andReturn(new ShipmentApiProvider($config, createUserAgent()));
     $objectManager->shouldReceive('get')->with(ShipmentValidator::class)->andReturn(new ShipmentValidator());
-    $objectManager->shouldReceive('get')->with(StoredAccount::class)->andReturn(storedAccountAt(CountryCode::CC_NL));
+    $storedAccount = storedAccountAt(CountryCode::CC_NL);
+    $objectManager->shouldReceive('get')->with(StoredAccount::class)->andReturn($storedAccount);
     // Never reached from a German address (customs is ROW-only), but the constructor fetches it.
     $objectManager->shouldReceive('get')->with(CustomsDeclarationBuilder::class)
         ->andReturn(new CustomsDeclarationBuilder($objectManager, $config, new Weight($config)));
@@ -107,7 +108,7 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
     // DefaultOptions, constructed for real inside the builders, reaches for the static
     // ObjectManager singleton rather than the instance injected above: for Config, and for the
     // product age check attribute, which answers "no opinion" here.
-    mockAttributeValueLookup('', [Config::class => $config, StoredAccount::class => storedAccountAt('NL')]);
+    mockAttributeValueLookup('', [Config::class => $config, StoredAccount::class => $storedAccount]);
 
     return $objectManager;
 }
