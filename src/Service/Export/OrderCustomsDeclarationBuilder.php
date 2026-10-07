@@ -47,10 +47,13 @@ class OrderCustomsDeclarationBuilder
             }
 
             // The order row's product id, name and weight: a product deleted from the catalog still ships.
-            $productIds = [(int) $item->getProductId()];
+            $productIds     = [(int) $item->getProductId()];
+            $quantitySource = $item;
 
             if ($isVariant) {
                 $productIds[] = (int) $parent->getProductId();
+                // Magento ships the parent and never registers qty_shipped on the variant.
+                $quantitySource = $parent;
             }
 
             $lines[] = [
@@ -58,8 +61,8 @@ class OrderCustomsDeclarationBuilder
                 'weight'     => (float) $item->getWeight(),
                 // A zero-quantity line is one the API refuses, and a fractional quantity casts to 0.
                 // The database gives "0.0000", which is truthy: cast before the fallback.
-                'amount'     => max(1, (int) ((float) $item->getQtyShipped() ?: (float) $item->getQtyOrdered())),
-                'price'      => (float) $item->getPrice(),
+                'amount'     => max(1, (int) ((float) $quantitySource->getQtyShipped() ?: (float) $quantitySource->getQtyOrdered())),
+                'price'      => (float) $quantitySource->getPrice(),
                 'productIds' => $productIds,
             ];
         }
