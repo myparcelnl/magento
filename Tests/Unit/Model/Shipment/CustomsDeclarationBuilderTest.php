@@ -184,15 +184,16 @@ function configurableCustomsLine(array $classifications, array $countries): arra
     return ['classification' => $line->getClassification(), 'country' => $line->getCountry()];
 }
 
-it('declares a configurable item with the customs data of the variant that ships', function () {
-    expect(configurableCustomsLine([4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ']))
-        ->toBe(['classification' => '0090902341', 'country' => 'AQ']);
-});
-
-it('falls back to the parent where the variant has no customs data', function () {
-    expect(configurableCustomsLine([4 => '6109.10'], [4 => 'CN', 9 => null]))
-        ->toBe(['classification' => '6109.10', 'country' => 'CN']);
-});
+it('declares a configurable item with the variant its customs data, or else the parent its', function (
+    array $classifications,
+    array $countries,
+    array $expected
+) {
+    expect(configurableCustomsLine($classifications, $countries))->toBe($expected);
+})->with([
+    'the variant has customs data' => [[4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ'], ['classification' => '0090902341', 'country' => 'AQ']],
+    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['classification' => '6109.10', 'country' => 'CN']],
+]);
 
 it('leaves out the variant item ShipmentFactory marked deleted, so a configurable is one line', function () {
     $config  = createConfig(['print/weight_indication' => 'gram']);
