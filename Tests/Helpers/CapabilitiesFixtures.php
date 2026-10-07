@@ -13,6 +13,7 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRep
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\StoredAnswers;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Proxy\ProxyConfig;
@@ -161,8 +162,10 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
         public bool $lockHeld = false;
         public array $lockedNames = [];
         public array $unlockedNames = [];
-        /** 'load', 'save' or 'lock': that backend call throws, as an unreachable or full backend does. */
+        /** 'load', 'save', 'lock', 'storeLoad' or 'storeSave': that call throws, as an unreachable or full backend does. */
         public ?string $throwOn = null;
+        /** StoredAnswers' rows, keyed "apiKey|requestKey". */
+        public array $stored = [];
     };
 
     $cache = Mockery::mock(CapabilitiesCache::class);
@@ -198,8 +201,26 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
         return true;
     });
 
+    $storedAnswers = Mockery::mock(StoredAnswers::class);
+    $storedAnswers->shouldReceive('load')->andReturnUsing(static function (string $key, string $requestKey) use ($store): ?array {
+        failCapabilitiesBackendIfAsked($store, 'storeLoad');
+
+        return $store->stored["$key|$requestKey"] ?? null;
+    });
+    $storedAnswers->shouldReceive('save')->andReturnUsing(static function (string $key, string $requestKey, array $results) use ($store): void {
+        failCapabilitiesBackendIfAsked($store, 'storeSave');
+        $store->stored["$key|$requestKey"] = $results;
+    });
+
     return [
-        'repository' => new CapabilitiesRepository($client['client'], $cache, $config, new Fingerprint(), $lockManager),
+        'repository' => new CapabilitiesRepository(
+            $client['client'],
+            $cache,
+            $config,
+            new Fingerprint(),
+            $lockManager,
+            $storedAnswers
+        ),
         'history'    => &$client['history'],
         'store'      => $store,
         'config'     => $config,
