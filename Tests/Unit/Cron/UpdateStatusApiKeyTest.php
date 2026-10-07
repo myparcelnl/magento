@@ -7,7 +7,6 @@ use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Tests\Stub\RecordingUpdateStatus;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
@@ -141,7 +140,6 @@ function runPpsCron(
     $cron = newInstanceWithoutConstructor(RecordingUpdateStatus::class);
     $cron->orderRows = $orderRows;
     setPrivateProperty($cron, 'objectManager', $objectManager);
-    setPrivateProperty($cron, 'storedAccount', Mockery::mock(StoredAccount::class, ['orderV1ByStore' => [1 => true, 2 => true]]));
     setPrivateProperty($cron, 'orderCollection', $orderCollection);
     setPrivateProperty($cron, 'orderResource', $orderResource);
     $cron->responses   = $responses;
