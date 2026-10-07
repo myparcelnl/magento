@@ -33,7 +33,6 @@ use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
@@ -67,7 +66,6 @@ class UpdateStatus
     private ObjectManagerInterface $objectManager;
     private \Magento\Sales\Model\ResourceModel\Order $orderResource;
     private MagentoOrderCollection $orderCollection;
-    private StoredAccount          $storedAccount;
 
     /**
      * UpdateStatus constructor.
@@ -78,8 +76,7 @@ class UpdateStatus
         \Magento\Sales\Model\ResourceModel\Order $orderResource
     )
     {
-        $this->objectManager   = $objectManager = ObjectManager::getInstance();
-        $this->storedAccount   = $objectManager->get(StoredAccount::class);
+        $this->objectManager   = ObjectManager::getInstance();
         $this->orderCollection = new MagentoOrderCollection($this->objectManager);
         $this->orderResource   = $orderResource;
     }
@@ -93,19 +90,16 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        // PPS only acquires barcodes, and drops an order the moment one arrives. The poll below is
-        // what carries a shipment on from there, and it selects on the track's own status, so it
-        // suits either export mode. The two overlap by an order or so per tick, which costs ids in
-        // a call that is made anyway, not a call.
-        if (in_array(true, $this->storedAccount->orderV1ByStore(), true)) {
-            $this->updateStatusPPS();
-        }
+        // Not gated on the account's current mode: the PPS pass selects only orders a PPS export
+        // marked, so an account that moved off order v1 still gets its in-flight orders. PPS only
+        // acquires barcodes, and the poll below carries a shipment on from there, for either mode.
+        $this->updateStatusPPS();
 
         return $this->pollShipmentStatuses();
     }
 
     /**
-     * Handles orders exported using Orderbeheer (PPS) setting.
+     * Handles orders exported with PPS (order management v1).
      * Gets the eligible orders from Magento, gets the account's orders from the api. When the api
      * order is one of them and it has shipped, adds the shipment in Magento.
      *
