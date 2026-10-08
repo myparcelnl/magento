@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use DateTimeImmutable;
+use Throwable;
 
 class Dating
 {
     /**
-     * Get date in YYYY-MM-DD HH:MM:SS format
-     *
-     * @param string|null $date
-     * @param string $format
-     * @return string|null
+     * The delivery date to send, in $format, or null for none. An empty or unreadable date is none;
+     * a date that has passed becomes tomorrow.
      */
     public static function convertDeliveryDate(?string $date, string $format = 'Y-m-d H:i:s'): ?string
     {
-        if (null === $date) {
+        if (null === $date || '' === trim($date)) {
             return null;
         }
 
