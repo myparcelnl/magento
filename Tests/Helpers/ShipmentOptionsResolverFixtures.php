@@ -10,6 +10,7 @@ use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
@@ -17,11 +18,14 @@ use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 /**
  * Builds the resolver against mocked collaborators. Shared because the country and carrier guards
  * differ per option, so each option gets its own test file over the same construction.
+ *
+ * @param array<string,mixed> $chosen what the order's DefaultOptions answers, by option: on or off,
+ *                                    and for insurance the saved amount. Other options get $defaultOptionSet.
  */
 function createShipmentOptions(
     string                  $countryId,
     string                  $carrier,
-    array                   $options,
+    array                   $chosen,
     bool                    $defaultOptionSet = false,
     ?array                  $storedDeliveryOptions = null,
     ?CapabilitiesRepository $capabilities = null,
@@ -51,9 +55,11 @@ function createShipmentOptions(
     }
 
     $defaultOptions = $defaultOptions ?? Mockery::mock(DefaultOptions::class);
-    $defaultOptions->shouldReceive('hasOptionSet')->andReturn($defaultOptionSet)->byDefault();
+    $defaultOptions->shouldReceive('hasOptionSet')->andReturnUsing(
+        static fn(string $option): bool => (bool) ($chosen[$option] ?? $defaultOptionSet)
+    )->byDefault();
     $defaultOptions->shouldReceive('hasDefaultOption')->andReturn($defaultOptionSet)->byDefault();
-    $defaultOptions->shouldReceive('getDefaultInsurance')->andReturn(0)->byDefault();
+    $defaultOptions->shouldReceive('getDefaultInsurance')->andReturn((int) ($chosen[ShipmentOption::INSURANCE] ?? 0))->byDefault();
 
     $deliveryOptions = storedDeliveryOptions($storedDeliveryOptions);
 
@@ -63,11 +69,10 @@ function createShipmentOptions(
         $deliveryOptions,
         $objectManager,
         $carrier,
-        $options,
         null,
-        // Production reads this off OrderShipmentOptions::packageType(), which prefers the admin
-        // override. Defaulting to the stored type keeps a test that varies only the checkout honest;
-        // a test about the override passes the two apart.
+        // Production reads this off OrderShipmentOptions::packageType(). Defaulting to the stored
+        // type keeps a test that varies only the checkout honest; a test about a different exported
+        // type passes the two apart.
         $exportedPackageType ?? $deliveryOptions->getPackageType()
     );
 }
@@ -166,7 +171,6 @@ function createLabelDescriptionResolver(?int $shipmentId, string $template, arra
         storedDeliveryOptions(null),
         $objectManager,
         'postnl',
-        [],
         $shipmentId
     );
 
