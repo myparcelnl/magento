@@ -59,7 +59,7 @@ one-directional excludes, but not the mutual case.
 Do not copy that. Rank **where the value came from**, which needs no list of option names:
 
 1. **Product attribute.** A property of the goods. 18+ is a legal fact, not a preference.
-2. **Posted for this shipment** (`$this->options`). The operator's decision about this order.
+2. **Switched on by the merchant** (`merchantOptions` on the order). The merchant's decision about this order.
 3. **The checkout's stored delivery options.** The customer chose it, and may have paid for it.
 4. **Configuration default.** A standing preference, not a decision about this order.
 
