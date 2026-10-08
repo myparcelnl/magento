@@ -59,3 +59,23 @@ input[type=checkbox]:checked + label.mypa_position_selector-item:after {
 input[type=checkbox]:not(:checked) + label.mypa_position_selector-item:after {
     content: '\e632';
 }
+/* The shipment options form: carrier and package type beside the options, one column when narrow. */
+.mypa-options-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(28rem, 1fr));
+    gap: 0 4rem;
+}
+
+.mypa-options-loading {
+    padding: 3rem 0;
+    text-align: center;
+}
+
+.mypa-options-dimensions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.mypa-options-dimensions input {
+    width: 8rem;
+}

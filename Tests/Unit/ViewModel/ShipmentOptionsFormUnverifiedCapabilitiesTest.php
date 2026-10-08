@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Block\Sales\NewShipment;
+use MyParcelNL\Magento\ViewModel\ShipmentOptionsForm;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
@@ -12,7 +12,7 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
  * own rather than the account's. A partial fallback is the case that matters.
  *
  * capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php,
- * createNewShipmentBlockWith() in Tests/Helpers/NewShipmentBlockMocks.php.
+ * createShipmentOptionsFormWith() in Tests/Helpers/ShipmentOptionsFormMocks.php.
  */
 
 /**
@@ -20,9 +20,9 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
  * the flag, so the flag is only meaningful after it has run. No insurance and no digital stamp in
  * these fixtures, which keeps DefaultOptions and Weight out of the picture.
  */
-function resolveFormWith(array $byPackageType): NewShipment
+function resolveFormWith(array $byPackageType): ShipmentOptionsForm
 {
-    $block = createNewShipmentBlockWith($byPackageType);
+    $block = createShipmentOptionsFormWith($byPackageType);
     $block->getFormCarriers();
 
     return $block;

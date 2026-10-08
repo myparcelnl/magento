@@ -22,4 +22,16 @@ final class IdList
     {
         return array_values(array_unique(array_filter(array_map('intval', $ids))));
     }
+
+    /**
+     * A request parameter: an array of ids, or one comma-separated string.
+     *
+     * @param mixed $value
+     *
+     * @return int[]
+     */
+    public static function fromParam($value): array
+    {
+        return self::ints(is_string($value) ? explode(',', $value) : (array) $value);
+    }
 }

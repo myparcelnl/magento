@@ -8,6 +8,7 @@ use Exception;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ObjectManager;
 use Magento\Quote\Model\QuoteRepository\SaveHandler;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Api\ShippingMethodsInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
@@ -48,7 +49,7 @@ class ShippingMethods implements ShippingMethodsInterface
         }
 
         // save the delivery options in the quote
-        $adapted = DeliveryOptionsFactory::create($deliveryOptions[0]);
+        $adapted = DeliveryOptionsFactory::create(DeliveryOptions::inheritUnticked($deliveryOptions[0]));
         $quote = $this->session->getQuote();
         $quote->addData([Config::FIELD_DELIVERY_OPTIONS => json_encode($adapted->toArray(), JSON_THROW_ON_ERROR)]);
         $saver = ObjectManager::getInstance()->get(SaveHandler::class);
