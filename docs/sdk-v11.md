@@ -75,11 +75,12 @@ Four, all deliberate. A reader who finds them should treat them as decisions, no
 2. **`filterSupportedCapabilities()` is not ported.** A capability allow-list is the mechanism by
    which upstream additions break integrations.
 3. **`InsuranceTierMath` is not ported.** The API accepts any amount in range.
-4. **An option the package type cannot carry narrows the package type; the PDK drops the option.**
-   `CapabilitiesOptionCalculator` forces any option the narrowed response omits to `DISABLED`, so a
-   mailbox order simply loses its age check. For 18+ goods that is a compliance failure, so the
-   module keeps the option and rules the package type out at checkout instead
-   (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`).
+4. **An option the package type cannot carry also narrows the package type at checkout.** The
+   export drops an option the carrier does not offer for the shipment, as the PDK does
+   (`ShipmentOptionsResolver::dropNotOffered()`), so the API never refuses a shipment for it. The
+   checkout first rules out a package type that cannot carry a forced option
+   (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`), so an 18+ order keeps its
+   age check where a package type can carry it. An option dropped at export is logged.
 
 ## Vocabulary per boundary
 
@@ -173,7 +174,11 @@ never by id.
   and the status cron recovers rows an earlier run left stamped with a placeholder.
 - Every collo of a multicollo gets its own track and barcode, in both export modes.
 - Return labels and status polling use each order's own account, not the first order's.
-- The order grid's PPS export honours the modal's carrier and package type.
+- The order grid's PPS export honours the carrier and package type saved in the options modal.
+- An order without a delivery date no longer ships with tomorrow as its date, and a malformed date
+  no longer stops the export. DPD, bpost and a collect shipment get no delivery date: the API
+  refuses one there.
+- The order grid's "Delivery date" column showed the drop-off day; it is now labelled so.
 
 **New**
 
@@ -186,6 +191,12 @@ never by id.
 - The export no longer navigates: the grid keeps its selection and reloads once the labels exist.
 - The track & trace link comes from the API. The fallback host follows the account's proposition.
 - A dedicated capabilities cache type, enabled once on upgrade when `env.php` does not mention it.
+- A shipment options modal on the order grid, the shipment grid, the order and shipment views and
+  the New Shipment page. It saves carrier, package type, options, insurance, label amount,
+  digital stamp weight, the delivery date (or its removal) and the package dimensions on the order,
+  so a refused export can be corrected and exported again.
+- Why the last export of an order failed stays on the order, in the grid's "MyParcel export error"
+  column and on the order view, until an export of that order succeeds.
 
 ## Open risks
 

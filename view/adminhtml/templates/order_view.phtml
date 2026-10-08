@@ -7,6 +7,7 @@
 // @codingStandardsIgnoreFile
 ?>
 <?php /** @var $block \MyParcelNL\Magento\Block\Sales\View */ ?>
+<?php /** @var \Magento\Framework\Escaper $escaper */ ?>
 <?php /** @var $order Magento\Sales\Model\Order */ ?>
 <?php $order = $block->getOrder() ?>
 <?php if ($order->getIsVirtual()) : return '';endif; ?>
@@ -18,7 +19,7 @@
     </div>
     <div class="admin__page-section-item-content">
         <?php if ($order->getShippingDescription()): ?>
-            <strong><?php echo $block->escapeHtml($order->getShippingDescription()) ?></strong>
+            <strong><?php echo $escaper->escapeHtml($order->getShippingDescription()) ?></strong>
 
             <?php if ($this->helper('Magento\Tax\Helper\Data')->displayShippingPriceIncludingTax()): ?>
                 <?php $_excl = $block->displayShippingPriceInclTax($order); ?>
@@ -39,6 +40,26 @@
         <?=$block->getCheckoutOptionsHtml();?>
     </div>
     <div class="admin__page-section-item-content">
+        <?php $exportError = (string) $order->getData(\MyParcelNL\Magento\Service\Config::FIELD_EXPORT_ERROR); ?>
+        <?php if ('' !== $exportError): ?>
+            <div class="message message-error error">
+                <div><?= $escaper->escapeHtml(__('MyParcel refused the last export: %1', $exportError)) ?></div>
+            </div>
+        <?php endif; ?>
+        <?php if ($block->hasOrderV1($order)): ?>
+            <div class="message message-notice notice">
+                <div><?= $escaper->escapeHtml(__(
+                    'This store uses MyParcel order management: MyParcel makes the label in its backoffice. '
+                    . 'Change MyParcel options exports the order.'
+                )) ?></div>
+            </div>
+        <?php endif; ?>
+        <?php /* mass-action.js opens the shipment options modal from this class. */ ?>
+        <button type="button" class="action-secondary action-myparcel-options">
+            <span><?= $escaper->escapeHtml(__('Change MyParcel options')) ?></span>
+        </button>
+    </div>
+    <div class="admin__page-section-item-content">
         <div style="float: left; margin-right: 10px;">
 <?php /* @noEscape */ /* Escaped inside LinkResolver::html(). */ echo $block->getTrackAndTraceLinksHtml($order); ?>
         </div>
@@ -49,8 +70,8 @@
     <?php $returnShipmentIds = $block->getReturnShipmentIds($order); ?>
     <?php if ($returnShipmentIds): ?>
         <div class="admin__page-section-item-content" style="clear: both;">
-            <?= $block->escapeHtml(__('Return label sent')) ?>
-            (<?= $block->escapeHtml(implode(', ', $returnShipmentIds)) ?>)
+            <?= $escaper->escapeHtml(__('Return label sent')) ?>
+            (<?= $escaper->escapeHtml(implode(', ', $returnShipmentIds)) ?>)
         </div>
     <?php endif; ?>
 </div>

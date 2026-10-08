@@ -1,7 +1,7 @@
 define(
     [
         'jquery',
-        'Magento_Ui/js/modal/confirm',
+        'MyParcelNL_Magento/js/shipment-options',
         'text!MyParcelNL_Magento/template/grid/order_massaction.html',
         'Magento_Ui/js/modal/alert',
         'uiRegistry',
@@ -10,7 +10,7 @@ define(
         'mage/loader',
         'mage/translate'
     ],
-    function ($, confirmation, template, alert, registry, messages, downloadLabels) {
+    function ($, shipmentOptions, template, alert, registry, messages, downloadLabels) {
         'use strict';
 
         return function MassAction(
@@ -45,6 +45,11 @@ define(
                     var massSelectorLoadInterval;
                     var parentThis = this;
 
+                    // The order and shipment pages show this button beside the shipping information.
+                    $(document).on('click', '.action-myparcel-options', function () {
+                        parentThis._showMyParcelModal();
+                    });
+
                     if (this.options['button_send_return_mail_present']) {
                         $('.action-myparcel_send_return_mail').on(
                             "click",
@@ -61,10 +66,11 @@ define(
                     }
 
                     if (this.options['button_present']) {
+                        // The order and shipment pages print at once; their options button opens the modal.
                         $('.action-myparcel').on(
                             "click",
                             function () {
-                                parentThis._showMyParcelModal();
+                                parentThis._printDirectly();
                             }
                         );
                     } else {
@@ -92,15 +98,21 @@ define(
                 },
 
                 /**
-                 * Show MyParcel options
+                 * The shipment options of the selection, with the export settings below them.
                  *
+                 * @param {String[]} [ids] - one row's id; the page's selection when absent
                  * @protected
                  */
-                _showMyParcelModal: function () {
+                _showMyParcelModal: function (ids) {
                     var parentThis = this;
-                    parentThis
-                        ._setSelectedIds()
-                        ._translateTemplate();
+
+                    if (ids) {
+                        this.selectedIds = ids;
+                    } else {
+                        this._setSelectedIds();
+                    }
+
+                    this._translateTemplate();
 
                     if (this.selectedIds.length == 0) {
                         alert({title: $.mage.__('Please select an item from the list')});
@@ -114,25 +126,58 @@ define(
                         return this;
                     }
 
-                    confirmation(
-                        {
-                            title: $.mage.__('MyParcel options'),
-                            content: template,
-                            focus: function () {
-                                $('#selected_ids').val(parentThis.selectedIds.join(','));
-                                parentThis
-                                    ._setMyParcelMassActionObserver()
-                                    ._setActions()
-                                    ._setDefaultSettings()
-                                    ._showMyParcelOptions();
+                    shipmentOptions.open({
+                        formUrl: this.options.url_options_form,
+                        saveUrl: this.options.url_options_save,
+                        ids: this.selectedIds,
+                        idType: this.options.id_type || 'order',
+                        title: $.mage.__('MyParcel options'),
+                        extraHtml: template,
+                        buttons: [
+                            {
+                                text: $.mage.__('Save'),
+                                class: 'action-secondary',
+                                click: function (api) {
+                                    api.save().then(function () {
+                                        api.close();
+                                        parentThis._refresh(false);
+                                    }).catch(function () {
+                                        // api.save() shows why in the modal.
+                                    });
+                                }
                             },
-                            actions: {
-                                confirm: function () {
-                                    parentThis._createConsignment();
+                            {
+                                text: $.mage.__('Save & export'),
+                                class: 'action-primary',
+                                click: function (api) {
+                                    // Opened here because this is still the click. A tab opened once
+                                    // the labels arrive is a popup, and the browser blocks it.
+                                    var tab = $('#mypa_request_type-open_new_tab').prop('checked')
+                                        ? window.open('', '_blank')
+                                        : null;
+
+                                    api.save().then(function () {
+                                        // Read before closing: closing removes the form.
+                                        var params = $('#mypa-options-form').serialize();
+
+                                        api.close();
+                                        parentThis._runExport(parentThis.options.url, tab, params);
+                                    }).catch(function () {
+                                        if (tab) {
+                                            tab.close();
+                                        }
+                                    });
                                 }
                             }
-                        }
-                    );
+                        ]
+                    });
+
+                    $('#selected_ids').val(this.selectedIds.join(','));
+                    this
+                        ._setMyParcelMassActionObserver()
+                        ._setActions()
+                        ._setDefaultSettings()
+                        ._showMyParcelOptions();
 
                     if (parentThis._usePPSExportMode()) {
                       $('#mypa_container-request_type').hide();
@@ -199,8 +244,6 @@ define(
                     }
 
                     $('#mypa_request_type-download').prop('checked', true).trigger('change');
-                    $('#mypa_package_type-default').prop('checked', true).trigger('change');
-                    $('#mypa_carrier_default').prop('checked', true).trigger('change');
                     $('#paper_size-' + this.options.settings['paper_type']).prop('checked', true).trigger('change');
 
                     this._getLabelPosition(selectAmount);
@@ -249,24 +292,12 @@ define(
                         }
                     );
 
-                  $("input[name='mypa_carrier']").on(
-                    'change',
-                    function() {
-                      if ($('#mypa_carrier_postnl').prop('checked')) {
-                        $('#mypa_container-package_type-digital_stamp').show();
-                        $('#mypa_container-package_type-letter').show();
-                      } else {
-                        $('#mypa_container-package_type-digital_stamp').hide();
-                        $('#mypa_container-package_type-letter').hide();
-                      }
-                    }
-                  );
-
-                    $("select[name='mypa_label_amount']").on(
-                        "change",
+                    // Delegated: the options form, which holds the label amount, arrives later.
+                    $(document).off('change.mypaLabelAmount').on(
+                        'change.mypaLabelAmount',
+                        '[data-mypa-field="label_amount"]',
                         function () {
-                            var selectAmount = parseInt($("select[name='mypa_label_amount']").val());
-                            parentThis._setLabelPosition(selectAmount);
+                            parentThis._setLabelPosition(parseInt($(this).val(), 10) || 1);
                         }
                     );
 
@@ -344,19 +375,33 @@ define(
                 },
 
                 /**
-                 * Exports without leaving the page, so the grid keeps its selection and fetches its
-                 * rows once — after the labels have minted the barcodes rather than against them.
+                 * Prints the page's order or shipment with the configured settings, creating its
+                 * shipment and concept first when it has none.
                  *
                  * @protected
                  */
-                _createConsignment: function () {
-                    // Opened here because this is still the click. A tab opened once the labels
-                    // arrive is a popup, and the browser blocks it.
-                    var tab = $('#mypa_request_type-open_new_tab').prop('checked')
-                        ? window.open('', '_blank')
-                        : null;
+                _printDirectly: function () {
+                    this._setSelectedIds();
 
-                    this._runExport(this.options.url, tab, $("#mypa-options-form").serialize());
+                    if (('has_api_key' in this.options) && (false === this.options['has_api_key'])) {
+                        alert({title: $.mage.__('No key found. Go to Configuration and then to MyParcel to enter the key.')});
+
+                        return;
+                    }
+
+                    this._runExport(this.options.url, null, {
+                        selected_ids: this.selectedIds.join(','),
+                        mypa_request_type: 'download'
+                    });
+                },
+
+                /**
+                 * One row's "Change MyParcel options", named as a callback by TrackActions.
+                 *
+                 * @protected
+                 */
+                openOptionsRow: function (actionIndex, recordId) {
+                    this._showMyParcelModal([String(recordId)]);
                 },
 
                 /**
@@ -393,32 +438,6 @@ define(
                 },
 
                 /**
-                 * One row's "Download label", named as a callback by TrackActions. Not _runExport:
-                 * the happy answer here is the PDF itself, which response.json() would destroy.
-                 * downloadLabels reads the stream and reports a JSON failure beside the grid.
-                 *
-                 * @protected
-                 */
-                downloadLabelRow: function (actionIndex, recordId, action) {
-                    var parentThis = this;
-
-                    messages.clear();
-                    $('body').trigger('processStart');
-
-                    downloadLabels({
-                        url: action.href,
-                        failureLabel: $.mage.__('The MyParcel labels could not be downloaded.')
-                    }, null)
-                        .then(function (delivered) {
-                            // The label fetch mints the barcodes, so the grid has new data to show.
-                            parentThis._refresh(!delivered);
-                        })
-                        .finally(function () {
-                            $('body').trigger('processStop');
-                        });
-                },
-
-                /**
                  * POSTed, never GETed: the export creates billable shipments and can mail the
                  * customer, and a bulk selection is long enough to push an admin URL past what a
                  * web server accepts. An admin POST is also form-key checked, where a GET is not.
@@ -435,23 +454,11 @@ define(
                 _runExport: function (url, tab, params) {
                     var parentThis = this;
                     var failed = false;
-                    var body = new URLSearchParams(params || {});
-
-                    // Admin POSTs are rejected without it.
-                    body.set('form_key', window.FORM_KEY);
 
                     messages.clear();
                     $('body').trigger('processStart');
 
-                    fetch(url, {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                        body: body.toString()
-                    })
-                        .then(function (response) {
-                            return response.json();
-                        })
+                    shipmentOptions.post(url, params)
                         .then(function (answer) {
                             failed = messages.render(answer.messages);
 
