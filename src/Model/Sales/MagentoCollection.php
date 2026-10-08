@@ -102,16 +102,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected LabelPositions         $labelPositions;
     protected ExportErrorRecorder    $errorRecorder;
 
-    /**
-     * The export's transport settings. Shipment options come from the order, never from the request.
-     * Without setOptionsFromParameters() — the return mail — same-day delivery stays off.
-     */
+    /** The export's transport settings. Shipment options come from the order, never from the request. */
     protected array $options
         = [
             'create_track_if_one_already_exist' => true,
             'request_type'                      => 'download',
             'positions'                         => null,
-            'same_day_delivery'                 => false,
         ];
 
     /**
@@ -169,16 +165,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         ];
 
         return $this;
-    }
-
-    /**
-     * Get all options
-     *
-     * @return array
-     */
-    public function getOptions(): array
-    {
-        return $this->options;
     }
 
     /**
@@ -309,7 +295,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             );
         }
 
-        return $this->shipmentBuilders[$orderId]->build($magentoTrack, $this->options, $colloNumber);
+        return $this->shipmentBuilders[$orderId]->build($magentoTrack, $colloNumber);
     }
 
     /**
