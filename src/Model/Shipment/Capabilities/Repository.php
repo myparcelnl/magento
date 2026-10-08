@@ -21,10 +21,10 @@ use Throwable;
  *   returns CapabilitySet::permissive() rather than throwing. A capability lookup must never stop a
  *   label being created, and a store with no key must still render its admin form; export fails
  *   loudly on its own path instead.
- * - Serve stale. Successful entries are written with no expiry and removed only by cache:clean, an
- *   API key change or a settings import, so a failed refresh finds the previous answer still there.
- *   StoredAnswers keeps a copy outside the cache, so a shape that cannot be fetched gets its last
- *   answer even after the cache was emptied, and permissive only when it was never answered.
+ * - Serve stale. Successful entries expire after SUCCESS_LIFETIME_SECONDS, and cache:clean, an API
+ *   key change or a settings import removes them sooner. StoredAnswers keeps a copy outside the
+ *   cache, so a shape whose refresh fails gets its last answer, and permissive only when it was
+ *   never answered.
  * - Do not hammer a failing endpoint. A shape that failed is remembered as failed for
  *   FAILURE_LIFETIME_SECONDS, so a reload does not repeat the burst. Checked *after* the success
  *   entry, never before it, so a previous good answer always beats a recent failure.
@@ -34,12 +34,14 @@ class Repository
     private const CACHE_ID_PREFIX   = 'myparcel_capabilities_';
     private const FAILURE_ID_PREFIX = 'myparcel_capabilities_failed_';
 
+    /** How long a good answer is cached: the longest a capabilities change takes to reach the shop. */
+    private const SUCCESS_LIFETIME_SECONDS = 10800;
+
     /**
      * How long a failed shape is remembered as failed.
      *
-     * Successful entries never expire, but a failure must: without it, an admin form that fans out
-     * over several package types repeats the whole burst on every reload, which is exactly the load
-     * a 429 asks us to stop applying.
+     * Without it, an admin form that fans out over several package types repeats the whole burst on
+     * every reload, which is exactly the load a 429 asks us to stop applying.
      */
     private const FAILURE_LIFETIME_SECONDS = 60;
 
@@ -157,7 +159,7 @@ class Repository
         }
 
         $this->store($apiKey, $shape, $results);
-        $this->cache->save((string) json_encode($results), $cacheId, [], null);
+        $this->cache->save((string) json_encode($results), $cacheId, [], self::SUCCESS_LIFETIME_SECONDS);
 
         $set = CapabilitySet::fromApiResults($results);
         $this->logUnknownValues($set);
