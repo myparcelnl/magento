@@ -313,5 +313,5 @@ function optionsFromParams(array $params, ?string $paperType = null): array
     setPrivateProperty($collection, 'request', $request);
     setPrivateProperty($collection, 'labelPositions', makeLabelPositions($paperType));
 
-    return $collection->setOptionsFromParameters()->getOptions();
+    return getPrivateProperty($collection->setOptionsFromParameters(), 'options');
 }
