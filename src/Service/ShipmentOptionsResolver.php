@@ -366,7 +366,7 @@ class ShipmentOptionsResolver
     private function decidedBy(string $option): int
     {
         if (isset($this->options[$option])) {
-            return OptionSource::POSTED;
+            return OptionSource::MERCHANT;
         }
 
         if (ShipmentOption::INSURANCE === $option) {
