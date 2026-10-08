@@ -127,7 +127,7 @@ class DeliveryOptions
     }
 
     /**
-     * Stored data in no recognised shape, merged with the options the admin posted.
+     * Stored data in no recognised shape.
      *
      * This is the degrade path: unlike fromCheckoutData(), it never refuses an absent pickup location.
      */

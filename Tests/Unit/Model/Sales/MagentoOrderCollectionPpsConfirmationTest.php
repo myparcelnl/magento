@@ -127,7 +127,7 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
     $builder = Mockery::mock(FulfilmentOrderBuilder::class);
 
     foreach ($magentoOrders as $order) {
-        $builder->shouldReceive('build')->with($order, Mockery::any())
+        $builder->shouldReceive('build')->with($order)
             ->andReturn($builtByIncrementId[$order->getIncrementId()]);
     }
 
