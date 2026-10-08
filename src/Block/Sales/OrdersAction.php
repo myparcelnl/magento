@@ -58,6 +58,16 @@ class OrdersAction extends Template
         return $this->_urlBuilder->getUrl('myparcel/shipment/CreateAndPrintMyParcelTrack');
     }
 
+    public function getOptionsFormUrl(): string
+    {
+        return $this->_urlBuilder->getUrl('myparcel/shipmentOptions/form');
+    }
+
+    public function getOptionsSaveUrl(): string
+    {
+        return $this->_urlBuilder->getUrl('myparcel/shipmentOptions/save');
+    }
+
     /**
      * Get url to send a mail with a return label
      *

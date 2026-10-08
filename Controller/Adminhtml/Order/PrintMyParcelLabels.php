@@ -143,10 +143,7 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
     /** @return int[] */
     private function idsFromParam(string $param): array
     {
-        $ids = $this->getRequest()->getParam($param);
-        $ids = is_string($ids) ? explode(',', $ids) : (array) $ids;
-
-        return IdList::ints($ids);
+        return IdList::fromParam($this->getRequest()->getParam($param));
     }
 
     /**

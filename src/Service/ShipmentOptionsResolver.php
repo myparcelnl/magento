@@ -471,8 +471,8 @@ class ShipmentOptionsResolver
      * Every option here is non-null, except extra_assurance, which nothing decides.
      *
      * With the account's capabilities for this shipment, an option they offer and the module has no
-     * rule for is decided like any other, then excludes and requires are applied. Without them, the
-     * options stay as chosen and the API decides.
+     * rule for is decided like any other, an option they do not offer is left off, then excludes and
+     * requires are applied. Without them, the options stay as chosen and the API decides.
      */
     public function resolve(): ShipmentOptions
     {
@@ -494,16 +494,48 @@ class ShipmentOptionsResolver
             return ShipmentOptions::resolved($values);
         }
 
-        foreach ($capabilities->optionsFor($this->carrier, $this->packageType) as $option) {
+        $offered = $capabilities->optionsFor($this->carrier, $this->packageType);
+
+        foreach ($offered as $option) {
             if (! array_key_exists($option, $values)) {
                 $values[$option] = $this->optionIsEnabled($option);
             }
         }
 
+        $values = $this->dropNotOffered($offered, $values);
+
         // Excludes first: an option that loses must not leave a companion behind.
         $values = $this->dropExcluded($capabilities, $values);
 
         return ShipmentOptions::resolved($this->addRequired($capabilities, $values));
+    }
+
+    /**
+     * Switches off each option the carrier does not offer for this shipment, whatever switched it
+     * on, as the PDK does: the API refuses the whole shipment otherwise.
+     *
+     * @param string[] $offered
+     */
+    private function dropNotOffered(array $offered, array $values): array
+    {
+        $options = array_merge(ShipmentOption::TO_CHECK, [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY]);
+
+        foreach (array_keys($this->optionsOn($values)) as $option) {
+            if (! in_array($option, $options, true) || in_array($option, $offered, true)) {
+                continue;
+            }
+
+            $values[$option] = ShipmentOption::INSURANCE === $option ? 0 : false;
+
+            Logger::notice(sprintf(
+                'Shipment option %s left off order %s: %s does not offer it for this shipment.',
+                $option,
+                $this->order->getIncrementId(),
+                $this->carrier
+            ));
+        }
+
+        return $values;
     }
 
     /**

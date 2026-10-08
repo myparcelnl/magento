@@ -5,6 +5,9 @@
            "myparcelnl_massaction": {
                 "has_api_key": "true",
                 "url": "<?= $block->getOrderAjaxUrl() ?>",
+                "url_options_form": "<?= $block->getOptionsFormUrl() ?>",
+                "url_options_save": "<?= $block->getOptionsSaveUrl() ?>",
+                "id_type": "order",
                 "url_send_return_mail": "<?= $block->getAjaxUrlSendReturnMail() ?>",
                 "settings": <?= $block->getPrintSettings() ?>,
                 "button_present": true,

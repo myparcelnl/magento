@@ -91,3 +91,17 @@ it('floors a zero-weight shipment at the configured default weight', function ()
 
     expect($weight)->toBe(Weight::DEFAULT_WEIGHT);
 });
+
+it('sends the dimensions a merchant saved beside the weight', function () {
+    $stored = \MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions::fromCheckoutData([
+        'deliveryType'       => 'standard',
+        'physicalProperties' => ['length' => 40, 'width' => 30, 'height' => 20],
+    ]);
+
+    expect(invokePrivateMethod(createBuilderForWeight(), 'physicalProperties', [1200, $stored]))
+        ->toBe(['weight' => 1200, 'length' => 40, 'width' => 30, 'height' => 20])
+        ->and(invokePrivateMethod(createBuilderForWeight(), 'physicalProperties', [
+            1200,
+            \MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions::fromCheckoutData(['deliveryType' => 'standard']),
+        ]))->toBe(['weight' => 1200]);
+});

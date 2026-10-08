@@ -25,7 +25,9 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
+use MyParcelNL\Magento\Service\Export\ExportErrorRecorder;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 
 /**
@@ -36,8 +38,6 @@ use MyParcelNL\Magento\Service\OrderGridColumns;
  */
 class NewShipment implements ObserverInterface
 {
-    const DEFAULT_LABEL_AMOUNT = 1;
-
     private ManagerInterface        $messageManager;
     private ObjectManager           $objectManager;
     private RedirectFactory         $redirectFactory;
@@ -118,11 +118,7 @@ class NewShipment implements ObserverInterface
                                          ->getOptions()
         ;
 
-        if (isset($options['carrier']) && false === $options['carrier']) {
-            unset($options['carrier']);
-        }
-
-        $amount = (int) ($options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT);
+        $amount = (new DefaultOptions($shipment->getOrder()))->getLabelAmount();
 
         $builder = new ShipmentBuilder($this->objectManager, $shipment->getOrder());
 
@@ -140,6 +136,7 @@ class NewShipment implements ObserverInterface
                 $this->messageManager->addErrorMessage(
                     sprintf('%s: %s', $shipment->getOrder()->getIncrementId(), $e->getMessage())
                 );
+                $this->objectManager->get(ExportErrorRecorder::class)->write($shipment->getOrder(), $e->getMessage());
 
                 return;
             }
@@ -169,6 +166,8 @@ class NewShipment implements ObserverInterface
         foreach ($report->failureMessages() as $message) {
             $this->messageManager->addErrorMessage($message);
         }
+
+        $this->objectManager->get(ExportErrorRecorder::class)->record($report, $builtShipments);
 
         // Each built shipment carries its own track, so nothing is paired by position any more.
         foreach ($builtShipments as $built) {

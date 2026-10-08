@@ -79,14 +79,17 @@ class DefaultOptions
     /**
      * Which OptionSource tier switched the option on, or null when it is off. The same answer as
      * hasOptionSet(), with its provenance kept.
+     *
+     * The order's stored value is tri-state: true is on, false is off, null inherits. A stored false
+     * beats everything, an 18+ product included: only a merchant stores one.
      */
     public function sourceOf(string $option, string $carrier): ?int
     {
-        if (ShipmentOption::LARGE_FORMAT === $option) {
-            return $this->hasDefaultLargeFormat($carrier, $option) ? OptionSource::CONFIGURATION : null;
-        }
+        $stored = $this->chosenOptions['shipmentOptions'][$option] ?? null;
 
-        $chosen = (bool) ($this->chosenOptions['shipmentOptions'][$option] ?? false);
+        if (false === $stored) {
+            return null;
+        }
 
         if (ShipmentOption::AGE_CHECK === $option) {
             $fromProducts = $this->ageCheckFromProducts();
@@ -97,17 +100,17 @@ class DefaultOptions
                 return OptionSource::PRODUCT;
             }
 
-            if ($chosen) {
-                return OptionSource::CHECKOUT;
-            }
-
-            if (false === $fromProducts) {
+            if (null === $stored && false === $fromProducts) {
                 return null;
             }
         }
 
-        if ($chosen) {
+        if (true === $stored) {
             return OptionSource::CHECKOUT;
+        }
+
+        if (ShipmentOption::LARGE_FORMAT === $option) {
+            return $this->hasDefaultLargeFormat($carrier, $option) ? OptionSource::CONFIGURATION : null;
         }
 
         return $this->hasDefaultOption($carrier, $option) ? OptionSource::CONFIGURATION : null;
@@ -168,7 +171,7 @@ class DefaultOptions
     }
 
     /**
-     * What the merchant's configuration asks for on this order, in whole euros.
+     * What the merchant saved on this order, or else what the configuration asks for, in whole euros.
      *
      * The destination decides which of the four configured caps applies. It does **not** bound the
      * amount against the account's contract: that is one clamp, in ShipmentOptionsResolver, so the
@@ -178,6 +181,12 @@ class DefaultOptions
      */
     public function getDefaultInsurance(string $carrier): int
     {
+        $stored = $this->chosenOptions['shipmentOptions'][ShipmentOption::INSURANCE] ?? null;
+
+        if (null !== $stored) {
+            return (int) $stored;
+        }
+
         return $this->getInsurance($carrier, $this->insuranceCapKey(), true);
     }
 
@@ -223,14 +232,30 @@ class DefaultOptions
         return (int) min(ceil($totalAfterPercentage), (int) $settings[$priceKey]);
     }
 
-    /**
-     * Get default of digital stamp weight
-     *
-     * @return int
-     */
+    /** The digital stamp weight in grams a merchant saved on the order, or the configured one. */
     public function getDigitalStampDefaultWeight(): int
     {
+        $saved = $this->getSavedDigitalStampWeight();
+
+        if (null !== $saved) {
+            return $saved;
+        }
+
         return (int) $this->config->getConfigValue('myparcelnl_magento_postnl_settings/digital_stamp/default_weight', (int) $this->quote->getStoreId());
+    }
+
+    /** The digital stamp weight in grams a merchant saved on the order; null when none was saved. */
+    public function getSavedDigitalStampWeight(): ?int
+    {
+        $saved = $this->chosenOptions['digitalStampWeight'] ?? null;
+
+        return null === $saved ? null : (int) $saved;
+    }
+
+    /** The number of labels a merchant saved on the order, or one. */
+    public function getLabelAmount(): int
+    {
+        return max(1, (int) ($this->chosenOptions['labelAmount'] ?? 1));
     }
 
     /**
