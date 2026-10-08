@@ -12,12 +12,13 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
  *
  * @param array<string,int> $sources         option => OptionSource tier, for what DefaultOptions switches on
  * @param array|null        $capabilityOptions null for a lookup that fails, which falls open
+ * @param int               $insurance         the amount DefaultOptions answers for the shipment
  */
 function dependencyResolver(
     ?array $capabilityOptions,
-    array  $posted = [],
     array  $sources = [],
-    int    $requiredInsurance = 0
+    int    $requiredInsurance = 0,
+    int    $insurance = 0
 ) {
     $repository = null;
 
@@ -32,13 +33,13 @@ function dependencyResolver(
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('hasOptionSet')->andReturnUsing(static fn(string $option): bool => isset($sources[$option]));
     $defaultOptions->shouldReceive('sourceOf')->andReturnUsing(static fn(string $option): ?int => $sources[$option] ?? null);
-    $defaultOptions->shouldReceive('getDefaultInsurance')->andReturn(0);
+    $defaultOptions->shouldReceive('getDefaultInsurance')->andReturn($insurance);
     $defaultOptions->shouldReceive('getRequiredInsurance')->andReturn($requiredInsurance);
 
     return createShipmentOptions(
         'NL',
         'postnl',
-        $posted,
+        [],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => PackageType::PACKAGE_NAME],
         $repository,

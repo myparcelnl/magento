@@ -20,8 +20,7 @@ function buildBatch(array $itemsPerOrder): array
             createFulfilmentMagentoOrder(
                 ['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'],
                 ['getItems' => $items, 'getIncrementId' => sprintf('10000000%d', $index + 1)]
-            ),
-            []
+            )
         );
     }
 
