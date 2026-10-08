@@ -1,6 +1,6 @@
 ---
 name: add-shipment-option
-description: Guide step by step through adding a shipment option to the Magento module, including a toggle on the product. Use when a new option must reach the New Shipment form, the checkout, the export or the product page.
+description: Guide step by step through adding a shipment option to the Magento module, including a toggle on the product. Use when a new option must reach the shipment options modal, the checkout, the export or the product page.
 ---
 
 # Add a shipment option

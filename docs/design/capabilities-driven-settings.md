@@ -201,7 +201,9 @@
 >
 > Recorded for a follow-up PR, after PR 4:
 >
-> - **The order grid's label modal lists carriers by hand.** `view/adminhtml/web/template/grid/order_massaction.html`
+> - **Done in the shipment options modal ([`shipment-options-modal.md`](shipment-options-modal.md)):**
+>   the modal now loads its carriers, package types and options from the server.
+>   **The order grid's label modal lists carriers by hand.** `view/adminhtml/web/template/grid/order_massaction.html`
 >   hardcodes seven carriers (DPD is missing) and six package types with their ids, and
 >   `mass-action.js:255` shows digital stamp and letter only for PostNL. The modal gets no server
 >   data. `OrderShipmentOptions:240` replaces the order's carrier with the one chosen there, so a
