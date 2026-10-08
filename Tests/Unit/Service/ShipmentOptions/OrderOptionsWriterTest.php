@@ -87,6 +87,33 @@ it('sets the written columns on the order too, so a summary built after the save
     expect($order->written)->toBe($did->saved[1]);
 });
 
+it('records the options the merchant switches on, so they outrank the checkout', function () {
+    $order = writableOrder([
+        'carrier'         => 'postnl',
+        'deliveryType'    => 'standard',
+        'shipmentOptions' => ['only_recipient' => true],
+        'merchantOptions' => ['only_recipient'],
+    ]);
+
+    $did = writeOrderOptions([$order], ['options' => ['signature' => '1', 'only_recipient' => '0']]);
+
+    expect(writtenOptions($did)['merchantOptions'])->toBe(['signature']);
+});
+
+it('keeps the merchant\'s options through a save of other fields, and drops the key when none is left', function () {
+    $kept = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard', 'merchantOptions' => ['signature']])],
+        ['label_amount' => '2']
+    );
+    $cleared = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard', 'merchantOptions' => ['signature']])],
+        ['options' => ['signature' => '0']]
+    );
+
+    expect(writtenOptions($kept)['merchantOptions'])->toBe(['signature'])
+        ->and(writtenOptions($cleared))->not->toHaveKey('merchantOptions');
+});
+
 it('writes package type, insurance, label amount and digital stamp weight', function () {
     $did = writeOrderOptions(
         [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard'])],
