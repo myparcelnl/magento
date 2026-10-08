@@ -8,13 +8,13 @@ jobs:
   dispatch:
     runs-on: ubuntu-latest
     steps:
-      - uses: myparcelnl/actions/setup-git-credentials@v3
+      - uses: myparcelnl/actions/setup-git-credentials@v4
         id: credentials
         with:
           private-key: ${{ secrets.MYPARCEL_APP_PRIVATE_KEY }}
           app-id: ${{ secrets.MYPARCEL_APP_ID }}
 
-      - uses: peter-evans/slash-command-dispatch@v3
+      - uses: peter-evans/slash-command-dispatch@v5
         with:
           token: ${{ steps.credentials.outputs.token }}
           commands: rebase
