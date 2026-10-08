@@ -39,7 +39,7 @@ class ShipmentBuilder
     private CustomsDeclarationBuilder $customsBuilder;
     private StoredAccount             $storedAccount;
 
-    /** @var array<string,OrderShipmentOptions> by shipment and option set; a multicollo order asks per collo */
+    /** @var array<int,OrderShipmentOptions> by shipment; a multicollo order asks per collo */
     private array $shipmentOptions = [];
 
     public function __construct(ObjectManagerInterface $objectManager, Order $order)
@@ -54,19 +54,16 @@ class ShipmentBuilder
     }
 
     /**
-     * Resolved once per shipment and option set, not once per collo: each instance re-reads the
-     * order's delivery options and, for a label description that names a product, its items.
-     *
-     * Keyed on the options too: the New Shipment form can hand a different set for one shipment.
+     * Resolved once per shipment, not once per collo: each instance re-reads the order's delivery
+     * options and, for a label description that names a product, its items.
      */
-    private function shipmentOptionsFor(MagentoShipment $magentoShipment, array $options): OrderShipmentOptions
+    private function shipmentOptionsFor(MagentoShipment $magentoShipment): OrderShipmentOptions
     {
-        $key = spl_object_id($magentoShipment) . '|' . json_encode($options);
+        $key = spl_object_id($magentoShipment);
 
         return $this->shipmentOptions[$key] ?? $this->shipmentOptions[$key] = new OrderShipmentOptions(
             $this->objectManager,
             $magentoShipment->getOrder(),
-            $options,
             $this->defaultOptions,
             $magentoShipment
         );
@@ -76,7 +73,7 @@ class ShipmentBuilder
      * @throws LocalizedException when the order's store has no API key
      * @throws \RuntimeException  when the order cannot be exported as stored
      */
-    public function build(Track $magentoTrack, array $options, int $colloNumber = 1): BuiltShipment
+    public function build(Track $magentoTrack, int $colloNumber = 1): BuiltShipment
     {
         $magentoShipment = $magentoTrack->getShipment();
 
@@ -91,10 +88,10 @@ class ShipmentBuilder
 
         // the observer builds on save_before, when the shipment has no id yet
         $shipmentId      = $magentoShipment->getEntityId() ? (int) $magentoShipment->getEntityId() : null;
-        $shipmentOptions = $this->shipmentOptionsFor($magentoShipment, $options);
+        $shipmentOptions = $this->shipmentOptionsFor($magentoShipment);
         $deliveryOptions = $shipmentOptions->deliveryOptions();
         $packageType     = $shipmentOptions->packageType();
-        $weight          = $this->weightInGrams($magentoTrack, $options, $packageType);
+        $weight          = $this->weightInGrams($magentoTrack, $packageType);
 
         $shipment = (new Shipment())
             ->setCarrier($shipmentOptions->carrierId())
@@ -209,13 +206,13 @@ class ShipmentBuilder
 
     /**
      * A digital stamp weight is always grams, whatever the weight unit setting says. A preset of
-     * zero (nothing posted and no default configured) falls through to the item weights: the API
+     * zero (nothing saved and no default configured) falls through to the item weights: the API
      * refuses a zero weight.
      */
-    private function weightInGrams(Track $magentoTrack, array $options, int $packageType): int
+    private function weightInGrams(Track $magentoTrack, int $packageType): int
     {
         if (PackageType::DIGITAL_STAMP === $packageType) {
-            $preset = (int) (($options['digital_stamp_weight'] ?? null) ?: $this->defaultOptions->getDigitalStampDefaultWeight());
+            $preset = $this->defaultOptions->getDigitalStampDefaultWeight();
 
             if (0 < $preset) {
                 return $preset;
