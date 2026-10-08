@@ -8,6 +8,7 @@
                 <item name="track_number" xsi:type="string">sales_order.track_number</item>
                 <item name="drop_off_day" xsi:type="string">sales_order.drop_off_day</item>
                 <item name="myparcel_carrier" xsi:type="string">sales_order.myparcel_carrier</item>
+                <item name="myparcel_export_error" xsi:type="string">sales_order.myparcel_export_error</item>
             </argument>
         </arguments>
     </virtualType>

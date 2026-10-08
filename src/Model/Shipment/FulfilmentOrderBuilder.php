@@ -20,6 +20,7 @@ use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Helper\SplitStreet;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\PhysicalProperties;
 use MyParcelNL\Sdk\Model\PickupLocation;
 use MyParcelNL\Sdk\Model\Recipient;
 use MyParcelNL\Sdk\Support\Collection;
@@ -78,6 +79,13 @@ class FulfilmentOrderBuilder
             ->setExternalIdentifier((string) $magentoOrder->getIncrementId())
             ->setOrderLines($this->orderLines($magentoOrder))
             ->setWeight($this->totalWeightInGrams($magentoOrder));
+
+        // Without saved dimensions the SDK sends its own 10 x 10 x 10 cm default.
+        if ([] !== $deliveryOptions->getDimensions()) {
+            $order->setPhysicalProperties(
+                new PhysicalProperties(['weight' => $order->getWeight()] + $deliveryOptions->getDimensions())
+            );
+        }
 
         if ($deliveryOptions->isPickup()) {
             $order->setPickupLocation($this->pickupLocation($deliveryOptions));

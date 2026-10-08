@@ -9,7 +9,8 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 /**
  * One shipment's options, as stored. ShipmentOptionsResolver decides them; this only holds them.
  *
- * A null field means 'not stored', which is not false. The null survives into toArray(), which is a
+ * Stored on an order, null is inherit, true is on and false is off: false beats the carrier
+ * setting. A null field means 'not stored', which is not false. The null survives into toArray(), which is a
  * persisted format whose key order is part of the contract.
  *
  * The named constructors read different stored shapes and deliberately disagree on defaults.
@@ -75,12 +76,19 @@ final class ShipmentOptions
      * A set that needs no reading of a stored shape: the resolver's own output, or nothing at all.
      *
      * fromLegacyCheckoutData() and fromMagentoOptions() exist because those two shapes disagree on
-     * what an absent option means. This one takes the values as they are, and drops a key KEYS does
-     * not name: the checkout's data passes through here into a persisted format.
+     * what an absent option means. This one takes the values as they are. The checkout's data
+     * passes through here into a persisted format, so a key KEYS does not name stays only when it
+     * is an option a merchant can save: a snake_case name with a bool or null value.
      */
     public static function of(array $values): self
     {
-        return new self($values);
+        $saved = array_filter(
+            $values,
+            static fn($value, $key): bool => ShipmentOption::isOptionName($key) && (null === $value || is_bool($value)),
+            ARRAY_FILTER_USE_BOTH
+        );
+
+        return new self(array_replace($saved, array_intersect_key($values, array_flip(self::keys()))), true);
     }
 
     /** ShipmentOptionsResolver's answer, which keeps the options only capabilities named. */
@@ -89,15 +97,18 @@ final class ShipmentOptions
         return new self($values, true);
     }
 
-    /** The old checkout carried only these four. The rest stay null, not false: it could not say. */
+    /**
+     * The old checkout carried only these four. The rest stay null, not false: it could not say.
+     * Its false and 0 meant 'not chosen', so they read as inherit, not as off.
+     */
     public static function fromLegacyCheckoutData(array $options): self
     {
         return new self(
             [
-                ShipmentOption::SIGNATURE         => $options['signature'] ?? null,
-                ShipmentOption::ONLY_RECIPIENT    => $options['only_recipient'] ?? null,
-                ShipmentOption::INSURANCE         => $options['insurance'] ?? null,
-                ShipmentOption::PRIORITY_DELIVERY => $options['priority_delivery'] ?? null,
+                ShipmentOption::SIGNATURE         => ($options['signature'] ?? null) ?: null,
+                ShipmentOption::ONLY_RECIPIENT    => ($options['only_recipient'] ?? null) ?: null,
+                ShipmentOption::INSURANCE         => ($options['insurance'] ?? null) ?: null,
+                ShipmentOption::PRIORITY_DELIVERY => ($options['priority_delivery'] ?? null) ?: null,
             ]
         );
     }

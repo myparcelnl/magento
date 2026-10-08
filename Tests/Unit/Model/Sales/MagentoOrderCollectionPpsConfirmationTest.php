@@ -8,6 +8,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Export\ExportErrorRecorder;
 use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Helper\MyParcelCurl;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
@@ -44,11 +45,11 @@ function ppsBuiltOrder(string $incrementId): FulfilmentOrder
  * @param array<string,FulfilmentOrder> $builtByIncrementId what the builder returns per order
  * @param array{response?: string, code?: int, timeout?: string} $answer
  *
- * @return array{errors: string[], exported: string[], sent: string[]}
+ * @return array{errors: string[], exported: string[], sent: string[], rows: array<string,string|null>}
  */
 function ppsChunkRun(array $builtByIncrementId, array $answer): array
 {
-    $did = new class { public array $errors = []; public array $exported = []; public array $sent = []; };
+    $did = new class { public array $errors = []; public array $exported = []; public array $sent = []; public array $rows = []; };
 
     MyParcelRequest::setCurlFactory(static function () use ($answer, $did): MyParcelCurl {
         $curl = Mockery::mock(MyParcelCurl::class);
@@ -87,6 +88,13 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('get')->with(OrderResource::class)->andReturn($orderResource);
 
+    $errorRecorder = Mockery::mock(ExportErrorRecorder::class);
+    $errorRecorder->shouldReceive('write')->andReturnUsing(
+        static function (Order $order, ?string $error) use ($did): void {
+            $did->rows[$order->getIncrementId()] = $error;
+        }
+    );
+
     $userAgent = Mockery::mock(UserAgent::class);
     $userAgent->shouldReceive('map')->andReturn([]);
 
@@ -109,13 +117,14 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
     setPrivateProperty($collection, 'messageManager', $messageManager);
     setPrivateProperty($collection, 'objectManager', $objectManager);
     setPrivateProperty($collection, 'userAgent', $userAgent);
+    setPrivateProperty($collection, 'errorRecorder', $errorRecorder);
     setPrivateProperty($collection, 'options', []);
 
     (function () use ($builder, $magentoOrders): void {
         $this->exportFulfilmentChunk($builder, $magentoOrders);
     })->call($collection);
 
-    return ['errors' => $did->errors, 'exported' => $did->exported, 'sent' => $did->sent];
+    return ['errors' => $did->errors, 'exported' => $did->exported, 'sent' => $did->sent, 'rows' => $did->rows];
 }
 
 it('tells the admin that a chunk MyParcel did not answer may have been created', function () {
@@ -127,6 +136,7 @@ it('tells the admin that a chunk MyParcel did not answer may have been created',
     expect($run['exported'])->toBe([])
         ->and($run['errors'])->toHaveCount(1)
         ->and($run['errors'][0])->toContain('MyParcel did not confirm these orders, so it is unknown whether it created them: 100000001, 100000002.')
+        ->and($run['rows'])->toBe(['100000001' => $run['errors'][0], '100000002' => $run['errors'][0]])
         ->and($run['errors'][0])->toContain('Operation timed out');
 });
 
@@ -139,5 +149,6 @@ it('does not mark an order exported when the answer leaves it out', function () 
 
     expect($run['exported'])->toBe([])
         ->and($run['errors'])->toHaveCount(1)
-        ->and($run['errors'][0])->toContain('MyParcel did not confirm these orders, so it is unknown whether it created them: 100000001, 100000002.');
+        ->and($run['errors'][0])->toContain('MyParcel did not confirm these orders, so it is unknown whether it created them: 100000001, 100000002.')
+        ->and($run['rows'])->toBe(['100000001' => $run['errors'][0], '100000002' => $run['errors'][0]]);
 });

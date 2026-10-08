@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Block\Sales\NewShipment;
+use MyParcelNL\Magento\ViewModel\ShipmentOptionsForm;
 use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 // capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php,
-// createNewShipmentBlockWith() in Tests/Helpers/NewShipmentBlockMocks.php.
+// createShipmentOptionsFormWith() in Tests/Helpers/ShipmentOptionsFormMocks.php.
 
 
 function postnlAndDpdCapabilities(): CapabilitySet
@@ -26,7 +26,7 @@ function postnlAndDpdCapabilities(): CapabilitySet
 }
 
 it('offers only the carriers the account has a contract for', function () {
-    $block = createNewShipmentBlockWith(postnlAndDpdCapabilities());
+    $block = createShipmentOptionsFormWith(postnlAndDpdCapabilities());
 
     expect($block->getCarriers())->toBe(['postnl', 'dpd'])
         ->and($block->getCarriers())->not->toContain('trunkrs');
@@ -38,7 +38,7 @@ it('keeps the carriers in the order capabilities report them', function () {
         capabilityResult(),
     ]);
 
-    expect(createNewShipmentBlockWith($reversed)->getCarriers())->toBe(['trunkrs', 'postnl']);
+    expect(createShipmentOptionsFormWith($reversed)->getCarriers())->toBe(['trunkrs', 'postnl']);
 });
 
 it('offers a reported carrier the SDK knows, and ignores one it does not', function () {
@@ -50,14 +50,14 @@ it('offers a reported carrier the SDK knows, and ignores one it does not', funct
         capabilityResult(['carrier' => 'HOOPLA']),
     ]);
 
-    expect(createNewShipmentBlockWith($set)->getCarriers())->toBe(['postnl', 'cheapcargo', 'upsexpresssaver'])
+    expect(createShipmentOptionsFormWith($set)->getCarriers())->toBe(['postnl', 'cheapcargo', 'upsexpresssaver'])
         ->and($set->unknownValues()['carrier'])->toBe(['HOOPLA']);
 });
 
 it('falls back to the exportable carriers of the stored contract when capabilities could not be reached', function () {
     // The live lookup answers permissive on any API failure. The stored contract is what the checkout
     // and the settings form read, so the three agree and a blip does not block label creation.
-    $block = createNewShipmentBlockWith(CapabilitySet::permissive(), [], ['DPD', 'HOOPLA', 'POSTNL']);
+    $block = createShipmentOptionsFormWith(CapabilitySet::permissive(), [], ['DPD', 'HOOPLA', 'POSTNL']);
 
     expect($block->getCarriers())->toBe(['dpd', 'postnl'])
         ->and($block->hasUnverifiedCapabilities())->toBeTrue();
@@ -65,11 +65,11 @@ it('falls back to the exportable carriers of the stored contract when capabiliti
 
 it('offers no carrier when neither capabilities nor the stored contract could be read', function () {
     // The form's own warning says why; the module lists no carrier to fall back on.
-    expect(createNewShipmentBlockWith(CapabilitySet::permissive())->getCarriers())->toBe([]);
+    expect(createShipmentOptionsFormWith(CapabilitySet::permissive())->getCarriers())->toBe([]);
 });
 
 it('offers the package types the account reports for that carrier', function () {
-    $block = createNewShipmentBlockWith(postnlAndDpdCapabilities());
+    $block = createShipmentOptionsFormWith(postnlAndDpdCapabilities());
 
     expect($block->getPackageTypes('postnl'))->toBe([
         PackageType::PACKAGE_NAME,
@@ -81,7 +81,7 @@ it('offers the package types the account reports for that carrier', function () 
 });
 
 it('degrades to the package types this form has always offered', function () {
-    $block = createNewShipmentBlockWith(CapabilitySet::permissive());
+    $block = createShipmentOptionsFormWith(CapabilitySet::permissive());
 
     // The five in PACKAGE_TYPE_HUMAN_MAP: what the form showed before capabilities existed. Not
     // every type the module knows, so pallet and envelope stay off a form they never appeared on.
@@ -100,13 +100,13 @@ it('every package type it offers has an id, so the form can submit it', function
         capabilityResult(['packageTypes' => ['PACKAGE', 'HOVERCRAFT']]),
     ]);
 
-    foreach (createNewShipmentBlockWith($set)->getPackageTypes('postnl') as $name) {
+    foreach (createShipmentOptionsFormWith($set)->getPackageTypes('postnl') as $name) {
         expect(PackageType::NAMES_IDS_MAP)->toHaveKey($name);
     }
 });
 
 it('renders the options the account reports, insurance excluded', function () {
-    $block = createNewShipmentBlockWith(postnlAndDpdCapabilities());
+    $block = createShipmentOptionsFormWith(postnlAndDpdCapabilities());
 
     expect($block->getShipmentOptions('postnl', PackageType::PACKAGE_NAME))
         ->toContain(ShipmentOption::SIGNATURE)
@@ -117,7 +117,7 @@ it('renders the options the account reports, insurance excluded', function () {
 });
 
 it('renders an option only capabilities name, under a label read from its name', function () {
-    $block = createNewShipmentBlockWith(CapabilitySet::fromApiResults([
+    $block = createShipmentOptionsFormWith(CapabilitySet::fromApiResults([
         capabilityResult(['options' => ['requiresSignature' => [], 'noTracking' => []]]),
     ]));
 
@@ -132,8 +132,8 @@ it('drops receipt code from a non-standard delivery even when the account has it
         capabilityResult(['options' => ['requiresReceiptCode' => [], 'requiresSignature' => []]]),
     ]);
 
-    $standard = createNewShipmentBlockWith($withReceiptCode);
-    $evening  = createNewShipmentBlockWith($withReceiptCode, [
+    $standard = createShipmentOptionsFormWith($withReceiptCode);
+    $evening  = createShipmentOptionsFormWith($withReceiptCode, [
         'deliveryOptions' => json_encode(['deliveryType' => 'evening']),
     ]);
 
@@ -145,7 +145,7 @@ it('drops receipt code from a non-standard delivery even when the account has it
 });
 
 it('offers the form its usual options when capabilities could not be reached', function () {
-    $block = createNewShipmentBlockWith(CapabilitySet::permissive());
+    $block = createShipmentOptionsFormWith(CapabilitySet::permissive());
 
     expect($block->getShipmentOptions('postnl', PackageType::PACKAGE_NAME))
         ->toBe(array_values(array_filter(
@@ -159,16 +159,16 @@ it('shows the insurance selector only where the account has insurance', function
         capabilityResult(['options' => ['requiresSignature' => []]]),
     ]);
 
-    expect(createNewShipmentBlockWith(postnlAndDpdCapabilities())
+    expect(createShipmentOptionsFormWith(postnlAndDpdCapabilities())
         ->hasInsurance('postnl', PackageType::PACKAGE_NAME))->toBeTrue()
-        ->and(createNewShipmentBlockWith($noInsurance)
+        ->and(createShipmentOptionsFormWith($noInsurance)
             ->hasInsurance('postnl', PackageType::PACKAGE_NAME))->toBeFalse()
-        ->and(createNewShipmentBlockWith(CapabilitySet::permissive())
+        ->and(createShipmentOptionsFormWith(CapabilitySet::permissive())
             ->hasInsurance('dpd', PackageType::PALLET_NAME))->toBeTrue();
 });
 
 it('offers the contract range as the field bounds, not a list of tiers', function () {
-    $block = createNewShipmentBlockWith(CapabilitySet::fromApiResults([capabilityResult()]));
+    $block = createShipmentOptionsFormWith(CapabilitySet::fromApiResults([capabilityResult()]));
 
     $insurance = null;
 
@@ -194,7 +194,7 @@ it('leaves the field unbounded when the account named no insurance bounds', func
         capabilityResult(['options' => ['insurance' => ['isRequired' => false]]]),
     ]);
 
-    $block     = createNewShipmentBlockWith($withoutBounds);
+    $block     = createShipmentOptionsFormWith($withoutBounds);
     $insurance = null;
 
     foreach ($block->getFormCarriers() as $carrier) {
@@ -223,7 +223,7 @@ it('floors the form at the minimum when the contract requires insurance', functi
         ]])]),
     ]);
 
-    $block     = createNewShipmentBlockWith($required);
+    $block     = createShipmentOptionsFormWith($required);
     $insurance = null;
 
     foreach ($block->getFormCarriers() as $carrier) {
@@ -241,7 +241,7 @@ it('floors the form at the minimum when the contract requires insurance', functi
 it('asks nothing for an order with no shipping address rather than inventing a country', function () {
     // Nothing seeded and no repository behind the lookup: an order with a country would fatal on
     // reaching the repository, and that is the assertion.
-    $block = createNewShipmentBlockWith([], ['getShippingAddress' => null]);
+    $block = createShipmentOptionsFormWith([], ['getShippingAddress' => null]);
 
     expect($block->getCountry())->toBe('')
         ->and($block->getCarriers())->toBe([]);
@@ -272,7 +272,7 @@ it('asks per package type, so a mailbox does not inherit a package\'s options', 
         ]),
     ]);
 
-    $block = createNewShipmentBlockWith([
+    $block = createShipmentOptionsFormWith([
         ''                            => $broadSuperset,
         PackageType::PACKAGE_NAME     => $broadSuperset,
         PackageType::MAILBOX_NAME     => $mailboxOnly,
@@ -293,7 +293,7 @@ it('still takes the carrier and package type lists from the broad answer', funct
         capabilityResult(['packageTypes' => ['PACKAGE', 'MAILBOX']]),
     ]);
 
-    $block = createNewShipmentBlockWith(['' => $broad]);
+    $block = createShipmentOptionsFormWith(['' => $broad]);
 
     expect($block->getCarriers())->toBe(['postnl'])
         ->and($block->getPackageTypes('postnl'))
@@ -301,7 +301,7 @@ it('still takes the carrier and package type lists from the broad answer', funct
 });
 
 it('withholds rather than over-reports for a package type it cannot express as a v2 name', function () {
-    $block = createNewShipmentBlockWith(['' => CapabilitySet::fromApiResults([capabilityResult()])]);
+    $block = createShipmentOptionsFormWith(['' => CapabilitySet::fromApiResults([capabilityResult()])]);
 
     // 'hovercraft' has no v2 name, so no request can be built for it. Permissive, not the broad
     // superset, because the superset would claim options no one asked about.
