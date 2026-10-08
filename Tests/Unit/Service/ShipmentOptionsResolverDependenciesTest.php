@@ -8,7 +8,7 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 it('adds the companions an option requires, and says so', function () {
     $notices = captureNotices();
 
-    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [], [ShipmentOption::AGE_CHECK => OptionSource::CONFIGURATION])
+    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [ShipmentOption::AGE_CHECK => OptionSource::CONFIGURATION])
         ->resolve()->toArray();
 
     expect($resolved[ShipmentOption::SIGNATURE])->toBeTrue()
@@ -21,7 +21,7 @@ it('adds the companions an option requires, and says so', function () {
 it('follows requires one level only, so receipt code keeps the options it excludes off', function () {
     captureNotices();
 
-    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [], [ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION], 250)
+    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION], 250)
         ->resolve()->toArray();
 
     expect($resolved[ShipmentOption::RECEIPT_CODE])->toBeTrue()
@@ -36,8 +36,9 @@ it('adds no companion that an option already on excludes', function () {
     // Configured insurance requires signature, but receipt code excludes it: a valid PostNL shipment.
     $resolved = dependencyResolver(
         acceptanceOptionsFor('POSTNL'),
-        [ShipmentOption::INSURANCE => 100],
-        [ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION]
+        [ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION],
+        0,
+        100
     )->resolve()->toArray();
 
     expect($resolved[ShipmentOption::INSURANCE])->toBe(100)
@@ -48,7 +49,7 @@ it('adds no companion that an option already on excludes', function () {
 it('settles a mutual exclusion by where each value came from', function (int $ageCheck, int $receiptCode, string $loser) {
     $notices = captureNotices();
 
-    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [], [
+    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [
         ShipmentOption::AGE_CHECK    => $ageCheck,
         ShipmentOption::RECEIPT_CODE => $receiptCode,
     ], 250)->resolve()->toArray();
@@ -69,24 +70,10 @@ it('settles a mutual exclusion by where each value came from', function (int $ag
     '18+ product beats a merchant receipt code'    => [OptionSource::PRODUCT, OptionSource::MERCHANT, ShipmentOption::RECEIPT_CODE],
 ]);
 
-it('lets a posted option beat a configured one it excludes', function () {
-    captureNotices();
-
-    $resolved = dependencyResolver(
-        acceptanceOptionsFor('POSTNL'),
-        [ShipmentOption::RECEIPT_CODE => '1'],
-        [ShipmentOption::AGE_CHECK => OptionSource::CONFIGURATION],
-        250
-    )->resolve()->toArray();
-
-    expect($resolved[ShipmentOption::AGE_CHECK])->toBeFalse()
-        ->and($resolved[ShipmentOption::RECEIPT_CODE])->toBeTrue();
-});
-
 it('settles exclusions before requires, so a dropped option adds no companion', function () {
     captureNotices();
 
-    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [], [
+    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [
         ShipmentOption::AGE_CHECK    => OptionSource::PRODUCT,
         ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION,
     ], 250)->resolve()->toArray();
@@ -101,8 +88,7 @@ it('keeps both options of an equal tier and leaves the refusal to the API', func
 
     $resolved = dependencyResolver(
         acceptanceOptionsFor('POSTNL'),
-        [ShipmentOption::AGE_CHECK => '1', ShipmentOption::RECEIPT_CODE => '1'],
-        [],
+        [ShipmentOption::AGE_CHECK => OptionSource::CHECKOUT, ShipmentOption::RECEIPT_CODE => OptionSource::CHECKOUT],
         250
     )->resolve()->toArray();
 
@@ -113,7 +99,7 @@ it('keeps both options of an equal tier and leaves the refusal to the API', func
 it('changes nothing when the capabilities cannot be read', function () {
     captureNotices();
 
-    $resolved = dependencyResolver(null, [ShipmentOption::AGE_CHECK => '1', ShipmentOption::RECEIPT_CODE => '1'])
+    $resolved = dependencyResolver(null, [ShipmentOption::AGE_CHECK => OptionSource::CHECKOUT, ShipmentOption::RECEIPT_CODE => OptionSource::CHECKOUT])
         ->resolve()->toArray();
 
     expect($resolved[ShipmentOption::AGE_CHECK])->toBeTrue()
@@ -126,7 +112,7 @@ it('insures a required companion at the contract minimum when nothing is configu
 
     $graph = acceptanceOptionsFor('POSTNL', ['insurance' => ['min' => ['amount' => 10000]]]);
 
-    $resolved = dependencyResolver($graph, [], [ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION])
+    $resolved = dependencyResolver($graph, [ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION])
         ->resolve()->toArray();
 
     expect($resolved[ShipmentOption::INSURANCE])->toBe(100);
@@ -135,7 +121,7 @@ it('insures a required companion at the contract minimum when nothing is configu
 it('leaves insurance off when no amount can be found, and says so', function () {
     $notices = captureNotices();
 
-    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [], [ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION])
+    $resolved = dependencyResolver(acceptanceOptionsFor('POSTNL'), [ShipmentOption::RECEIPT_CODE => OptionSource::CONFIGURATION])
         ->resolve()->toArray();
 
     expect($resolved[ShipmentOption::INSURANCE])->toBe(0)
@@ -149,7 +135,6 @@ it('resolves an option only capabilities offer, so it reaches the export', funct
 
     $resolved = dependencyResolver(
         acceptanceOptionsFor('POSTNL', ['noTracking' => ['requires' => [], 'excludes' => []]]),
-        [],
         ['no_tracking' => OptionSource::CONFIGURATION]
     )->resolve();
 

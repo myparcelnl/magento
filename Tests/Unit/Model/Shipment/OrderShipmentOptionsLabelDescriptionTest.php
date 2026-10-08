@@ -22,7 +22,6 @@ function labelDescriptionFor(string $description): string
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE);
 
     $subject = createOrderShipmentOptions([
-        'options'         => [],
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback([]),
         'resolved'        => ResolvedOptions::of(['label_description' => $description]),

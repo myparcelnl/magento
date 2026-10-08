@@ -19,7 +19,7 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use Throwable;
 
 /**
- * Decides what shipment options one shipment gets, from the posted options, the configured
+ * Decides what shipment options one shipment gets, from the order's stored options, the configured
  * defaults, the country, the carrier and per-product attributes. Answers with a ShipmentOptions.
  *
  * Takes the parsed DeliveryOptions on purpose: this class used to read the order column itself, and
@@ -52,8 +52,6 @@ class ShipmentOptionsResolver
 
     private ObjectManagerInterface $objectManager;
 
-    private array $options;
-
     private Config $config;
 
     private Order $order;
@@ -85,7 +83,6 @@ class ShipmentOptionsResolver
      * @param DeliveryOptions        $deliveryOptions
      * @param ObjectManagerInterface $objectManager
      * @param string                 $carrier
-     * @param array                  $options
      */
     public function __construct(
         DefaultOptions         $defaultOptions,
@@ -93,7 +90,6 @@ class ShipmentOptionsResolver
         DeliveryOptions        $deliveryOptions,
         ObjectManagerInterface $objectManager,
         string                 $carrier,
-        array                  $options = [],
         ?int                   $shipmentId = null,
         ?string                $packageType = null
     )
@@ -104,7 +100,6 @@ class ShipmentOptionsResolver
         $this->order          = $order;
         $this->objectManager  = $objectManager;
         $this->carrier        = $carrier;
-        $this->options        = $options;
         $this->cc             = $order->getShippingAddress() ? $order->getShippingAddress()->getCountryId() : null;
         $this->shipmentId     = $shipmentId;
         $this->packageType    = $packageType;
@@ -114,14 +109,12 @@ class ShipmentOptionsResolver
      * The insured amount for this shipment, in whole euros, bounded by what the account's contract
      * allows for this destination and package type.
      *
-     * This is the **only** clamp. Both inputs pass through it: an amount posted from the
-     * admin New Shipment form and the amount the merchant's configuration resolves to.
+     * This is the **only** clamp. Both inputs pass through it: the amount the merchant saved on the
+     * order and the amount the configuration resolves to.
      */
     public function getInsurance(): int
     {
-        $configured = $this->options['insurance'] ?? $this->defaultOptions->getDefaultInsurance($this->carrier);
-
-        return $this->clampInsurance((int) $configured);
+        return $this->clampInsurance($this->defaultOptions->getDefaultInsurance($this->carrier));
     }
 
     /**
@@ -436,18 +429,9 @@ class ShipmentOptionsResolver
         return $this->labelProductRows = $conn->fetchAll($select->order('main_table.entity_id ASC')->limit(1));
     }
 
-    /**
-     * Get default value if option === null
-     *
-     * @param      $optionKey
-     *
-     * @return bool
-     * @internal param $option
-     */
-    private function optionIsEnabled($optionKey): bool
+    private function optionIsEnabled(string $option): bool
     {
-        return (bool) ($this->options[$optionKey] ??
-                       $this->defaultOptions->hasOptionSet($optionKey, $this->carrier));
+        return $this->defaultOptions->hasOptionSet($option, $this->carrier);
     }
 
     /**
@@ -456,10 +440,6 @@ class ShipmentOptionsResolver
      */
     private function decidedBy(string $option): int
     {
-        if (isset($this->options[$option])) {
-            return OptionSource::MERCHANT;
-        }
-
         if (ShipmentOption::INSURANCE === $option) {
             return OptionSource::CONFIGURATION;
         }
