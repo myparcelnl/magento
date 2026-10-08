@@ -106,7 +106,9 @@ class DefaultOptions
         }
 
         if (true === $stored) {
-            return OptionSource::CHECKOUT;
+            return in_array($option, $this->chosenOptions['merchantOptions'] ?? [], true)
+                ? OptionSource::MERCHANT
+                : OptionSource::CHECKOUT;
         }
 
         if (ShipmentOption::LARGE_FORMAT === $option) {
