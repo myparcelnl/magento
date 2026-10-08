@@ -11,7 +11,13 @@ use MyParcelNL\Magento\Service\Config;
  * Which tier switched an option on, which ShipmentOptionsResolver reads to settle an excludes
  * conflict. mockAttributeValueLookup() lives in Tests/Helpers/ShipmentBuilderMocks.php.
  */
-function optionSourceFor(string $option, array $settings, array $chosen = [], string $productAgeCheck = ''): ?int
+function optionSourceFor(
+    string $option,
+    array  $settings,
+    array  $chosen = [],
+    string $productAgeCheck = '',
+    array  $merchantOptions = []
+): ?int
 {
     $config = createConfig([], ['postnl' => ['default_options' => $settings]]);
 
@@ -19,7 +25,12 @@ function optionSourceFor(string $option, array $settings, array $chosen = [], st
 
     $order = createOrder([
         'getItems'        => [createOrderItem(['product_id' => '7'])],
-        'deliveryOptions' => json_encode(['carrier' => 'postnl', 'deliveryType' => 'standard', 'shipmentOptions' => $chosen]),
+        'deliveryOptions' => json_encode([
+            'carrier'         => 'postnl',
+            'deliveryType'    => 'standard',
+            'shipmentOptions' => $chosen,
+            'merchantOptions' => $merchantOptions,
+        ]),
     ]);
 
     return (new DefaultOptions($order))->sourceOf($option, 'postnl');
@@ -32,6 +43,16 @@ it('names the configuration when only the carrier setting forces the option', fu
 it('names the checkout when the customer chose the option', function () {
     expect(optionSourceFor(ShipmentOption::SIGNATURE, [], [ShipmentOption::SIGNATURE => true]))
         ->toBe(OptionSource::CHECKOUT);
+});
+
+it('names the merchant when the merchant switched the option on', function () {
+    expect(optionSourceFor(ShipmentOption::SIGNATURE, [], [ShipmentOption::SIGNATURE => true], '', [ShipmentOption::SIGNATURE]))
+        ->toBe(OptionSource::MERCHANT);
+});
+
+it('names the product for an 18+ order, even when the merchant switched the age check on', function () {
+    expect(optionSourceFor(ShipmentOption::AGE_CHECK, [], [ShipmentOption::AGE_CHECK => true], '1', [ShipmentOption::AGE_CHECK]))
+        ->toBe(OptionSource::PRODUCT);
 });
 
 it('names the product for an 18+ order, even when the checkout chose the age check too', function () {

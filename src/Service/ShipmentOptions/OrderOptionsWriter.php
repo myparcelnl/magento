@@ -139,9 +139,21 @@ class OrderOptionsWriter
         }
 
         $stored['shipmentOptions'] = (array) ($stored['shipmentOptions'] ?? []);
+        $merchantOptions           = (array) ($stored['merchantOptions'] ?? []);
 
         foreach ($changes->options() as $option => $on) {
             $stored['shipmentOptions'][$option] = $on;
+            $merchantOptions = array_diff($merchantOptions, [$option]);
+
+            if ($on) {
+                $merchantOptions[] = $option;
+            }
+        }
+
+        unset($stored['merchantOptions']);
+
+        if ([] !== $merchantOptions) {
+            $stored['merchantOptions'] = array_values($merchantOptions);
         }
 
         if (null !== $changes->insurance()) {
