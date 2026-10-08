@@ -16,7 +16,10 @@ use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 
 /**
- * Writes sales_order.track_status and track_number for a page of orders: one tracks query, one read
+ * Writes sales_order columns and keeps the order grid in step, for the tracks and for any other
+ * MyParcel column (update()).
+ *
+ * writeFor() writes track_status and track_number for a page of orders: one tracks query, one read
  * of the current values, and a column-level UPDATE only where they differ.
  *
  * Not $order->save(): that rewrote every column of a possibly stale order and re-synced the grid once
@@ -104,17 +107,27 @@ class OrderGridColumns
             return false;
         }
 
+        $this->update($orderId, $changed);
+
+        return true;
+    }
+
+    /**
+     * Writes these sales_order columns of one order, then its grid row.
+     *
+     * @param array<string,mixed> $columns
+     */
+    public function update(int $orderId, array $columns): void
+    {
         $this->resource->getConnection()->update(
             $this->resource->getTableName('sales_order'),
-            $changed + ['updated_at' => gmdate('Y-m-d H:i:s')],
+            $columns + ['updated_at' => gmdate('Y-m-d H:i:s')],
             ['entity_id = ?' => $orderId]
         );
 
         if (! $this->scopeConfig->getValue(self::ASYNC_GRID_INDEXING)) {
             $this->orderGrid->refresh($orderId);
         }
-
-        return true;
     }
 
     /**

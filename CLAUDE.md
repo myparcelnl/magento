@@ -123,7 +123,9 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 ### Database
 
-Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_day`, `myparcel_carrier`. Schema in `src/Setup/UpgradeSchema.php`.
+Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_day`, `myparcel_carrier`, `myparcel_export_error`. Schema in `src/Setup/UpgradeSchema.php`.
+
+A shipment option stored in `myparcel_delivery_options` is tri-state: `null` inherits, `true` is on, `false` is off. A checkout write turns the widget's `false` into `null`. See [`docs/design/shipment-options-modal.md`](docs/design/shipment-options-modal.md).
 
 ### File Structure Notes
 
@@ -139,7 +141,7 @@ A carrier that capabilities report needs no code, and the module lists no carrie
 
 ## Adding a Shipment Option
 
-An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module name from the wire key (`noTracking` becomes `no_tracking`), the New Shipment form renders it under a label read from that name, `MagentoCollection` reads its checkbox through `mypa_rendered_options[]`, `ShipmentOptionsResolver::resolve()` decides it, and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies.
+An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module name from the wire key (`noTracking` becomes `no_tracking`), the shipment options modal renders it under a label read from that name and stores it on the order, `ShipmentOptionsResolver::resolve()` decides it, and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies. An option capabilities do not offer for the shipment is left off at export. A merchant's stored `false` beats every default, an 18+ product included.
 
 Add code only for what capabilities cannot say:
 
