@@ -131,3 +131,22 @@ it('weighs the rows a label ships, as the customs declaration does', function ()
 
     expect($order->getWeight())->toBe(200);
 });
+
+it('sends the dimensions a merchant saved, and the SDK default without them', function () {
+    $saved = createFulfilmentOrderBuilder()->build(
+        createFulfilmentMagentoOrder([
+            'carrier'            => CarrierPostNL::NAME,
+            'deliveryType'       => 'standard',
+            'physicalProperties' => ['length' => 40, 'width' => 30, 'height' => 20],
+        ]),
+        []
+    )->getPhysicalProperties();
+
+    $default = createFulfilmentOrderBuilder()->build(
+        createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard']),
+        []
+    )->getPhysicalProperties();
+
+    expect([$saved->getLength(), $saved->getWidth(), $saved->getHeight()])->toBe([40, 30, 20])
+        ->and([$default->getLength(), $default->getWidth(), $default->getHeight()])->toBe([10, 10, 10]);
+});

@@ -35,8 +35,8 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Export\ShipmentBuilder;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\SourceItem;
-use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Export\ExportErrorRecorder;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
@@ -98,18 +98,14 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected ManagerInterface       $messageManager;
     protected Config                 $config;
     protected LabelPositions         $labelPositions;
+    protected ExportErrorRecorder    $errorRecorder;
 
-    /** setOptionsFromParameters() adds every toggle in ShipmentOption::DEFINITIONS and every checkbox the form rendered. */
+    /** The export's transport settings. Shipment options come from the order, never from the request. */
     protected array $options
         = [
             'create_track_if_one_already_exist' => true,
             'request_type'                      => 'download',
-            'package_type'                      => 'default',
-            'carrier'                           => null,
             'positions'                         => null,
-            'insurance'                         => null,
-            'label_amount'                      => NewShipment::DEFAULT_LABEL_AMOUNT,
-            'digital_stamp_weight'              => null,
             'same_day_delivery'                 => false,
         ];
 
@@ -135,72 +131,36 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->userAgent      = $objectManager->get(UserAgent::class);
         $this->capabilityLookup = $objectManager->get(CapabilitiesLookup::class);
         $this->trackRepository  = $objectManager->get(ShipmentTrackRepositoryInterface::class);
+        $this->errorRecorder    = $objectManager->get(ExportErrorRecorder::class);
 
         $this->setSourceItemWhenInventoryApiEnabled();
     }
 
     /**
-     * The option checkboxes the New Shipment form rendered, including one only capabilities name.
-     * Filtered to option-shaped names, because the list comes from the request.
-     *
-     * @return string[]
-     */
-    private function renderedOptions(): array
-    {
-        $rendered = $this->request->getParam('mypa_rendered_options');
-
-        return array_values(array_filter(
-            array_map('strval', is_array($rendered) ? $rendered : []),
-            static fn(string $option): bool => 1 === preg_match('/^[a-z][a-z0-9_]*$/', $option)
-        ));
-    }
-
-    /**
-     * Set options from POST or GET variables
+     * Set the transport settings from the request: request type, paper size and positions.
      *
      * @return self
      */
     public function setOptionsFromParameters()
     {
-        $checkboxes = array_fill_keys(ShipmentOption::having('toggle'), null) + array_fill_keys($this->renderedOptions(), null);
-
-        foreach (array_keys($this->options + $checkboxes) as $option) {
-            if ($this->request->getParam('mypa_' . $option) === null) {
-                if ($this->request->getParam('mypa_extra_options_checkboxes_in_form') === null) {
-                    // Use default options
-                    $this->options[$option] = null;
-                } else {
-                    // Checkbox isset but false
-                    $this->options[$option] = false;
-                }
-            } else {
-                $this->options[$option] = $this->request->getParam('mypa_' . $option);
-            }
-        }
-
-        $label_amount = $this->request->getParam('mypa_label_amount') ?? NewShipment::DEFAULT_LABEL_AMOUNT;
-
-        if ($label_amount) {
-            $this->options['label_amount'] = $label_amount;
-        }
+        $requestType = $this->request->getParam('mypa_request_type');
+        $positions   = $this->request->getParam('mypa_positions');
 
         // Only the modal sends a paper size. Without it (the grid's direct action, a row action),
         // the configured paper type decides, or every such print is A6 whatever the setting says.
         $paperSize = $this->request->getParam('mypa_paper_size');
 
         if (null === $paperSize) {
-            $this->options['positions'] = $this->labelPositions->configured();
+            $positions = $this->labelPositions->configured();
         } elseif (ShipmentParametersPaperSize::A4 !== $paperSize) {
-            $this->options['positions'] = null;
+            $positions = null;
         }
 
-        if ($this->request->getParam('mypa_request_type') === null) {
-            $this->options['request_type'] = 'download';
-        }
-
-        if ($this->request->getParam('mypa_request_type') !== 'concept') {
-            $this->options['create_track_if_one_already_exist'] = false;
-        }
+        $this->options = [
+            'create_track_if_one_already_exist' => false,
+            'request_type'                      => $requestType ?? 'download',
+            'positions'                         => $positions,
+        ];
 
         return $this;
     }
@@ -224,7 +184,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function getOption($option)
     {
-        return $this->options[$option];
+        return $this->options[$option] ?? null;
     }
 
     /**
@@ -410,6 +370,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         foreach ($report->failureMessages() as $message) {
             $this->messageManager->addErrorMessage($message);
         }
+
+        $this->errorRecorder->record($report, $this->builtShipments);
 
         return $this;
     }
@@ -683,6 +645,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     // The order is named here, not by the builder: one prefix, one owner.
                     $incrementId = (string) $shipment->getOrder()->getIncrementId();
                     $this->messageManager->addErrorMessage(sprintf('%s: %s', $incrementId, $e->getMessage()));
+                    $this->errorRecorder->write($shipment->getOrder(), $e->getMessage());
                     continue;
                 }
 

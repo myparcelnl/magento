@@ -2,20 +2,27 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Block\Sales\NewShipment;
+use MyParcelNL\Magento\ViewModel\ShipmentOptionsForm;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
-function createNewShipmentBlockFor(?string $deliveryTypeName, string $incrementId = '100000042'): NewShipment
+/**
+ * The constructor is skipped: it stands up a Magento backend block context, while this method
+ * reads only $order.
+ */
+function createNewShipmentBlockFor(?string $deliveryTypeName, string $incrementId = '100000042'): ShipmentOptionsForm
 {
-    return createNewShipmentBlockWith(CapabilitySet::permissive(), [
+    $block = newInstanceWithoutConstructor(ShipmentOptionsForm::class);
+    setPrivateProperty($block, 'order', createOrder([
         'getIncrementId'  => $incrementId,
         'deliveryOptions' => json_encode(
             null === $deliveryTypeName ? [] : ['deliveryType' => $deliveryTypeName]
         ),
-    ]);
+    ]));
+
+    return $block;
 }
 
 it('resolves a known delivery type without logging', function () {
@@ -51,9 +58,10 @@ it('returns null rather than standard when the stored delivery type is unrecogni
 it('withholds the receipt code option when the delivery type is unrecognised', function () {
     mockLoggerFacade()->shouldReceive('warning');
 
-    // The capabilities are permissive, so a false here is the module's own standard-only rule
-    // beating the capability answer rather than agreeing with it.
     $block = createNewShipmentBlockFor('teleport');
+    // Permissive says yes to everything, so a false here is the module's own standard-only rule
+    // beating the capability answer rather than agreeing with it.
+    setPrivateProperty($block, 'capabilityLookup', capabilityLookupWith(CapabilitySet::permissive(), ''));
 
     expect($block->hasShipmentOption('postnl', PackageType::PACKAGE_NAME, ShipmentOption::RECEIPT_CODE))
         ->toBeFalse()

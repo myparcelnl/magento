@@ -59,3 +59,15 @@ it('copies the delivery options, drop-off day and carrier of a choice', function
         Config::FIELD_MYPARCEL_CARRIER => 'postnl',
     ]);
 });
+
+/** The quote holds the widget's raw output; the order must store an unticked option as inherit. */
+it('stores an option the customer did not tick as inherit on the order', function () {
+    $raw = json_encode([
+        'carrier'         => 'postnl',
+        'deliveryType'    => 'standard',
+        'shipmentOptions' => ['signature' => false, 'onlyRecipient' => true],
+    ]);
+
+    expect(json_decode(orderDataAfterQuote($raw)[Config::FIELD_DELIVERY_OPTIONS], true)['shipmentOptions'])
+        ->toBe(['signature' => null, 'onlyRecipient' => true]);
+});
