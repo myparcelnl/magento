@@ -2,44 +2,7 @@
 
 declare(strict_types=1);
 
-use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Address;
-use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
-use MyParcelNL\Magento\Service\Config;
-
-/**
- * What the merchant's configuration asks for, before the contract range is applied. The clamp is
- * ShipmentOptionsResolver's, and is deliberately not exercised here.
- *
- * @param array<string, mixed> $carrierSettings the carrier's default_options
- */
-function defaultOptionsFor(
-    array   $carrierSettings,
-    float   $grandTotal,
-    ?string $countryId = 'NL',
-    string  $homeCountry = 'NL'
-): DefaultOptions
-{
-    $config = createConfig([], ['postnl' => ['default_options' => $carrierSettings]]);
-    mockLoggerFacade([Config::class => $config, StoredAccount::class => storedAccountAt($homeCountry)]);
-
-    $address = null;
-
-    if (null !== $countryId) {
-        $address = Mockery::mock(Address::class);
-        $address->shouldReceive('getCountryId')->andReturn($countryId);
-    }
-
-    $quote = Mockery::mock(Quote::class);
-    $quote->shouldReceive('getData')->andReturn(null);
-    $quote->shouldReceive('getShippingAddress')->andReturn($address);
-    $quote->shouldReceive('getGrandTotal')->andReturn($grandTotal);
-    $quote->shouldReceive('getStoreId')->andReturn(1);
-
-    return new DefaultOptions($quote);
-}
-
+/** What the configuration asks for, before the contract range: that clamp is ShipmentOptionsResolver's. */
 function insuranceSettings(array $overrides = []): array
 {
     return array_replace([
@@ -51,6 +14,15 @@ function insuranceSettings(array $overrides = []): array
         'insurance_row_amount'     => 0,
     ], $overrides);
 }
+
+it('insures for the amount stored on the order, zero included', function () {
+    $stored = static function (int $amount): string {
+        return json_encode(['deliveryType' => 'standard', 'shipmentOptions' => ['insurance' => $amount]]);
+    };
+
+    expect(defaultOptionsFor(insuranceSettings(), 137.00, 'NL', 'NL', $stored(500))->getDefaultInsurance('postnl'))->toBe(500)
+        ->and(defaultOptionsFor(insuranceSettings(), 137.00, 'NL', 'NL', $stored(0))->getDefaultInsurance('postnl'))->toBe(0);
+});
 
 it('insures the order value, not a tier above it', function () {
     $options = defaultOptionsFor(insuranceSettings(), 137.00);
