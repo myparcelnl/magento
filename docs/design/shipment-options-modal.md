@@ -19,6 +19,8 @@ The options live on the order, in `sales_order.myparcel_delivery_options`, so `/
 
 A stored shipment option is tri-state: `null` inherits, `true` is on, `false` is off. A stored `false` beats everything, an 18+ product included: the merchant decides (`DefaultOptions::sourceOf()`).
 
+An option the merchant switches on is also listed in `merchantOptions`, so it outranks the customer's checkout choice when the two exclude each other. An 18+ product still outranks it. Switching the option off removes it from the list.
+
 The checkout widget writes `false` for an option it offered that the customer did not tick. That `false` must inherit, so every checkout write path turns it into `null` (`DeliveryOptions::inheritUnticked()`):
 
 - `ShippingMethods::getFromDeliveryOptions()` (quote)
