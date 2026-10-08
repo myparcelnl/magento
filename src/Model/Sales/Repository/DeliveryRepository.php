@@ -73,24 +73,15 @@ class DeliveryRepository extends Config implements DeliveryInterface
      */
     public function getDropOffDay()
     {
-        $weekDay = date('N', $this->getDeliveryDateTime());
+        return self::dropOffTimestampFor((int) $this->getDeliveryDateTime());
+    }
 
-        switch ($weekDay) {
-            case (1): // Monday
-                $dropOff = strtotime("-2 day", $this->getDeliveryDateTime());
-                break;
-            case (2):
-            case (3):
-            case (4):
-            case (5): // Friday
-            case (6): // Saturday
-            case (7): // Sunday
-            default:
-                $dropOff = strtotime("-1 day", $this->getDeliveryDateTime());
-                break;
-        }
+    /** Two days before a Monday delivery, else the day before. */
+    public static function dropOffTimestampFor(int $deliveryTimestamp): int
+    {
+        $days = 1 === (int) date('N', $deliveryTimestamp) ? 2 : 1;
 
-        return $dropOff;
+        return (int) strtotime("-{$days} day", $deliveryTimestamp);
     }
 
 

@@ -98,7 +98,7 @@ class ShipmentBuilder
             ->setCarrier($shipmentOptions->carrierId())
             ->setReferenceIdentifier(self::referenceIdentifierFor((int) $magentoShipment->getEntityId(), $colloNumber))
             ->setRecipient($this->recipient($address, $this->storedAccount->homeCountryForApiKey($apiKey)))
-            ->setPhysicalProperties(['weight' => $weight])
+            ->setPhysicalProperties(self::physicalProperties($weight, $deliveryOptions))
             ->setOptions($shipmentOptions->shipmentOptions());
 
         if ($deliveryOptions->isPickup()) {
@@ -114,6 +114,12 @@ class ShipmentBuilder
         $this->assertValid($shipment);
 
         return new BuiltShipment($shipment, $magentoTrack, $apiKey, $incrementId);
+    }
+
+    /** The weight in grams, and the length, width and height in cm a merchant saved on the order. */
+    private static function physicalProperties(int $weight, DeliveryOptions $deliveryOptions): array
+    {
+        return ['weight' => $weight] + $deliveryOptions->getDimensions();
     }
 
     /**

@@ -8,11 +8,10 @@ use Magento\Framework\View\Element\UiComponent\ContextInterface;
 use Magento\Framework\View\Element\UiComponentFactory;
 use Magento\Ui\Component\Listing\Columns\Column;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
-use MyParcelNL\Magento\Service\Export\LabelPositions;
 
 /**
- * The order grid's per-row MyParcel actions: export as a package type, create a concept, download
- * the labels of an exported order, send a return label.
+ * The order grid's per-row MyParcel actions: change the options, print the label, create a concept,
+ * send a return label.
  *
  * None of the export actions is a plain link — the controllers answer JSON, so following the href
  * would put that JSON on screen. Each carries a callback into the grid's own JS instead.
@@ -21,16 +20,14 @@ class TrackActions extends Column
 {
     public const NAME = 'track_actions';
 
-    private StoredAccount  $storedAccount;
-    private UrlInterface   $urlBuilder;
-    private LabelPositions $labelPositions;
+    private StoredAccount $storedAccount;
+    private UrlInterface  $urlBuilder;
 
     /**
      * @param ContextInterface   $context
      * @param StoredAccount      $storedAccount
      * @param UiComponentFactory $uiComponentFactory
      * @param UrlInterface       $urlBuilder
-     * @param LabelPositions     $labelPositions
      * @param array              $components
      * @param array              $data
      */
@@ -39,14 +36,12 @@ class TrackActions extends Column
         StoredAccount      $storedAccount,
         UiComponentFactory $uiComponentFactory,
         UrlInterface       $urlBuilder,
-        LabelPositions     $labelPositions,
         array              $components = [],
         array              $data = []
     )
     {
-        $this->urlBuilder     = $urlBuilder;
-        $this->storedAccount  = $storedAccount;
-        $this->labelPositions = $labelPositions;
+        $this->urlBuilder    = $urlBuilder;
+        $this->storedAccount = $storedAccount;
         parent::__construct($context, $uiComponentFactory, $components, $data);
     }
 
@@ -64,23 +59,22 @@ class TrackActions extends Column
             return $dataSource;
         }
 
-        // Read once for the whole grid: the configured paper type is what a row action asks for,
-        // since it renders no modal to pick one in.
-        $positions = $this->labelPositions->encode($this->labelPositions->configured());
-
-        // Same reason: none of these vary per row, and a few hundred rows made a Phrase of each.
-        $downloads = [
-            'action-download_package_label'       => [__('Download package label'), 1],
-            'action-download_small_package_label' => [__('Download small package label'), 6],
-            'action-download_digital_stamp_label' => [__('Download digital stamp label'), 4],
-            'action-download_mailbox_label'       => [__('Download mailbox label'), 2],
-            'action-download_letter_label'        => [__('Download letter label'), 3],
-        ];
+        // Read once for the whole grid: none of these vary per row, and a few hundred rows made a
+        // Phrase of each.
+        $printLabel       = __('Print label');
         $exportLabel      = __('Export to MyParcel');
         $newConceptLabel  = __('Create new concept');
         $shipmentLabel    = __('Create shipment');
-        $alreadyExported  = __('Already exported');
-        $downloadLabel    = __('Download label');
+        $alreadyExported  = __('Send to MyParcel again');
+        $optionsAction    = [
+            // The callback opens the options modal; the href is never followed.
+            'href'     => '#',
+            'label'    => __('Change MyParcel options'),
+            'callback' => [
+                'provider' => 'myparcel_grid_massaction',
+                'target'   => 'openOptionsRow',
+            ],
+        ];
 
         foreach ($dataSource['data']['items'] as &$item) {
             if (! array_key_exists(ShippingStatus::NAME, $item)) {
@@ -92,7 +86,7 @@ class TrackActions extends Column
             }
 
             $entityId = $item['entity_id'];
-            $actions  = [];
+            $actions  = ['action-myparcel_options' => $optionsAction];
 
             // Per row: a grid holds orders of every store, and each store's account has its own mode.
             $orderV1 = $this->storedAccount->hasOrderV1ForStore(
@@ -108,14 +102,8 @@ class TrackActions extends Column
                         ! $orderV1
                     );
                 } else {
-                    foreach ($downloads as $name => [$label, $packageType]) {
-                        $actions[$name] = $this->exportAction(
-                            $label,
-                            $entityId,
-                            ['mypa_package_type' => $packageType, 'mypa_request_type' => 'download'],
-                            $orderV1
-                        );
-                    }
+                    // The order's own options decide the package type; the options modal changes them.
+                    $actions['action-print_label'] = $this->printAction($printLabel, $entityId);
 
                     $actions['action-create_concept'] = $this->exportAction(
                         $newConceptLabel,
@@ -138,21 +126,9 @@ class TrackActions extends Column
                     ! $orderV1
                 );
 
-                // Straight to the labels: this order already shipped, so there is nothing to create.
-                // Its own callback, not exportRow — the happy answer is a PDF stream, not JSON.
-                $actions['action-download_package_label'] = [
-                    'href'     => $this->urlBuilder->getUrl(
-                        'myparcel/order/PrintMyParcelLabels',
-                        ['order_ids' => $entityId, 'request_type' => 'download']
-                        + ($positions ? ['positions' => $positions] : [])
-                    ),
-                    'label'    => $downloadLabel,
-                    'hidden'   => $orderV1,
-                    'callback' => [
-                        'provider' => 'myparcel_grid_massaction',
-                        'target'   => 'downloadLabelRow',
-                    ],
-                ];
+                if (! $orderV1) {
+                    $actions['action-print_label'] = $this->printAction($printLabel, $entityId);
+                }
 
                 // The callback keeps this a POST. Without one the column navigates to the href,
                 // which would create a return label and mail the consumer over a GET.
@@ -171,6 +147,18 @@ class TrackActions extends Column
         }
 
         return $dataSource;
+    }
+
+    /**
+     * Prints the order's labels, creating its shipment and concept first when it has none: the same
+     * export the order view's "Print label" runs, with the configured paper size.
+     *
+     * @param \Magento\Framework\Phrase $label
+     * @param mixed                     $entityId
+     */
+    private function printAction($label, $entityId): array
+    {
+        return $this->exportAction($label, $entityId, ['mypa_request_type' => 'download'], false);
     }
 
     /**

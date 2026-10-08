@@ -41,6 +41,7 @@ use MyParcelNL\Magento\Setup\Migrations\RemoveExportModeRows;
 use MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows;
 use MyParcelNL\Magento\Setup\Migrations\RenameUpsSettingsPath;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
+use MyParcelNL\Magento\Setup\Migrations\ShipmentOptionsFalseToNull;
 use MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication;
 
 /**
@@ -145,6 +146,8 @@ class UpgradeData implements UpgradeDataInterface
      */
     private $importAccountSettings;
 
+    private ShipmentOptionsFalseToNull $shipmentOptionsFalseToNull;
+
     /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                     $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                              $eavSetupFactory
@@ -160,6 +163,7 @@ class UpgradeData implements UpgradeDataInterface
      * @param  \MyParcelNL\Magento\Setup\Migrations\LegacyConfigDefaults $legacyConfigDefaults
      * @param  \MyParcelNL\Magento\Setup\Migrations\RemoveExportModeRows $removeExportModeRows
      * @param  \MyParcelNL\Magento\Setup\Migrations\ImportAccountSettings $importAccountSettings
+     * @param  \MyParcelNL\Magento\Setup\Migrations\ShipmentOptionsFalseToNull $shipmentOptionsFalseToNull
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -175,7 +179,8 @@ class UpgradeData implements UpgradeDataInterface
         RenameUpsSettingsPath $renameUpsSettingsPath,
         LegacyConfigDefaults $legacyConfigDefaults,
         RemoveExportModeRows $removeExportModeRows,
-        ImportAccountSettings $importAccountSettings
+        ImportAccountSettings $importAccountSettings,
+        ShipmentOptionsFalseToNull $shipmentOptionsFalseToNull
     ) {
         $this->categorySetupFactory            = $categorySetupFactory;
         $this->eavSetupFactory                 = $eavSetupFactory;
@@ -191,6 +196,7 @@ class UpgradeData implements UpgradeDataInterface
         $this->legacyConfigDefaults            = $legacyConfigDefaults;
         $this->removeExportModeRows            = $removeExportModeRows;
         $this->importAccountSettings           = $importAccountSettings;
+        $this->shipmentOptionsFalseToNull      = $shipmentOptionsFalseToNull;
     }
 
     /**
@@ -1154,6 +1160,7 @@ class UpgradeData implements UpgradeDataInterface
             $this->renameUpsSettingsPath->run();
             $this->removePickupMailboxRows->run();
             $this->removeExportModeRows->run();
+            $this->shipmentOptionsFalseToNull->run();
             if ('' !== (string) $context->getVersion()) {
                 $this->legacyConfigDefaults->run();
                 // The export mode is read from the features, which no row imported before 5.11 has.
