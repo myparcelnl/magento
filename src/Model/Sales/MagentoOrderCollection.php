@@ -192,7 +192,7 @@ class MagentoOrderCollection extends MagentoCollection
 
         foreach ($magentoOrders as $magentoOrder) {
             try {
-                $orderCollection->push($builder->build($magentoOrder, $this->options));
+                $orderCollection->push($builder->build($magentoOrder));
                 $sent[] = $magentoOrder;
             } catch (Throwable $e) {
                 $this->messageManager->addErrorMessage(

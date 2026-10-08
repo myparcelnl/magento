@@ -25,7 +25,7 @@ it('raises a LocalizedException when the store has no API key', function () {
     [$builder, $track] = createConvertibleShipmentBuilder(standardCheckoutOptions(), '');
 
     $convert = function () use ($builder, $track) {
-        $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0]);
+        $builder->build($track);
     };
 
     expect($convert)->toThrow(LocalizedException::class);
@@ -39,7 +39,7 @@ it('resolves the API key from the order\'s own store, not another store\'s', fun
     [$builder, $track] = createConvertibleShipmentBuilder(standardCheckoutOptions(), 'store-5-key', 9, 5);
 
     $convert = function () use ($builder, $track) {
-        $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0]);
+        $builder->build($track);
     };
 
     expect($convert)->toThrow(LocalizedException::class);

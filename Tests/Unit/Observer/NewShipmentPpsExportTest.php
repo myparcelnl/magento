@@ -134,7 +134,7 @@ it('refuses the export with the import error, before it creates a track, when th
     setPrivateProperty($observer, 'messageManager', $messages);
     setPrivateProperty($observer, 'redirectFactory', $redirectFactory);
     setPrivateProperty($observer, 'storedAccount', storedAccountForStores([4 => 'old-row-key']));
-    // Unstubbed: reading the options, the first step of an export, fails this test.
+    // Unstubbed, and the shipment has no order: any step of an export fails this test.
     setPrivateProperty($observer, 'orderCollection', Mockery::mock(MagentoOrderCollection::class));
 
     $observer->execute($event);

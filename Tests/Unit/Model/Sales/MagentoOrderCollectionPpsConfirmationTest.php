@@ -106,7 +106,7 @@ function ppsChunkRun(array $builtByIncrementId, array $answer): array
         $order->shouldReceive('getIncrementId')->andReturn((string) $incrementId);
         $order->shouldReceive('setData')->andReturnSelf();
         $order->shouldReceive('setIsInProcess')->andReturnSelf();
-        $builder->shouldReceive('build')->with($order, Mockery::any())->andReturn($built);
+        $builder->shouldReceive('build')->with($order)->andReturn($built);
         $magentoOrders[] = $order;
     }
 
