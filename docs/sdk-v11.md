@@ -53,6 +53,10 @@ is a lock taken with a zero wait, not a queue — after `cache:clean` every conc
 the same shape at once, and making them wait for one call is the cost being avoided, not the fix. `AccountSettings\Maintenance` deletes the
 stored answers of an API key that is configured nowhere any more.
 
+A cached answer lives three hours. Then the next lookup of that shape fetches again, and a failed
+refresh serves the stored answer. That is the longest a capabilities change, a bugfix included, takes
+to reach a shop. To get it sooner, flush the "MyParcel carrier capabilities" cache type.
+
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
 render pays is one connect timeout per *distinct* shape it asks about: `ShapeLookup` memoises per
