@@ -134,13 +134,13 @@ it('serves the cached answer without a new request', function () {
         ->and($again['history'])->toHaveCount(0);
 });
 
-it('writes the entry with no expiry', function () {
+it('writes the entry with a three-hour lifetime, so a capabilities change reaches the shop', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
     $r = makeCapabilitiesRepository([capabilitiesOk()]);
     $r['repository']->forApiKey(CAPABILITIES_TEST_API_KEY, CapabilitiesRequest::forCountry('NL'));
 
-    expect(array_values($r['store']->savedTags)[0]['lifeTime'])->toBeNull();
+    expect(array_values($r['store']->savedTags)[0]['lifeTime'])->toBe(3 * 60 * 60);
 });
 
 it('logs each kind of unrecognised value once per fetch, and no option, which the SDK leaves out', function () {
