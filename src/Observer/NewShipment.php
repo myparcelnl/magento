@@ -117,10 +117,6 @@ class NewShipment implements ObserverInterface
         // First: it refuses an account without stored features, before a track exists.
         $orderV1 = $this->storedAccount->hasOrderV1ForExport((int) $shipment->getStoreId());
 
-        $options = $this->orderCollection()->setOptionsFromParameters()
-                                         ->getOptions()
-        ;
-
         $amount = (new DefaultOptions($shipment->getOrder()))->getLabelAmount();
 
         $builder = new ShipmentBuilder($this->objectManager, $shipment->getOrder());
@@ -132,7 +128,7 @@ class NewShipment implements ObserverInterface
             $track = $builder->createTrackForShipment($shipment);
 
             try {
-                $builtShipments[] = $builder->build($track, $options, $collo);
+                $builtShipments[] = $builder->build($track, $collo);
             } catch (\Throwable $e) {
                 // The builder says what went wrong; naming the order is the reporting layer's job,
                 // here and in MagentoCollection::setNewMyParcelTracks().

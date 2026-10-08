@@ -34,7 +34,6 @@ class DefaultOptions
 {
     private const INSURANCE_FROM_PRICE     = 'insurance_from_price';
     private const INSURANCE_PERCENTAGE     = 'insurance_percentage';
-    public const  DEFAULT_OPTION_VALUE     = 'default';
 
     private Config $config;
     private        $quote;
@@ -176,8 +175,7 @@ class DefaultOptions
      * What the merchant saved on this order, or else what the configuration asks for, in whole euros.
      *
      * The destination decides which of the four configured caps applies. It does **not** bound the
-     * amount against the account's contract: that is one clamp, in ShipmentOptionsResolver, so the
-     * posted admin override goes through it too.
+     * amount against the account's contract: that is one clamp, in ShipmentOptionsResolver.
      *
      * @throws \Exception
      */

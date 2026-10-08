@@ -16,7 +16,7 @@ final class OptionSource
     /** A property of the goods, such as an 18+ product. */
     public const PRODUCT = 1;
 
-    /** Switched on by the merchant: in the shipment options modal, or posted for this shipment. */
+    /** Switched on by the merchant in the shipment options modal. */
     public const MERCHANT = 2;
 
     /** Chosen by the customer in the checkout. */
