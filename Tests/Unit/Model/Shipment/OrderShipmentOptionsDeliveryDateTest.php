@@ -14,7 +14,6 @@ it('sends the delivery date with a package small', function () {
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE_SMALL);
 
     $subject = createOrderShipmentOptions([
-        'options'         => [],
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['deliveryType' => 'standard', 'date' => '2099-08-20']),
         'resolved'        => ResolvedOptions::of([]),
@@ -30,7 +29,6 @@ function deliveryDateSentFor(string $carrier, array $resolved = []): ?string
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE);
 
     return createOrderShipmentOptions([
-        'options'         => [],
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['carrier' => $carrier, 'deliveryType' => 'standard', 'date' => '2099-08-20']),
         'resolved'        => ResolvedOptions::of($resolved),
@@ -51,7 +49,6 @@ it('sends no delivery date when none is stored', function () {
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE);
 
     $subject = createOrderShipmentOptions([
-        'options'         => [],
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['deliveryType' => 'standard', 'date' => '']),
         'resolved'        => ResolvedOptions::of([]),
