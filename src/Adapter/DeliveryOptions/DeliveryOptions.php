@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Adapter\DeliveryOptions;
 use InvalidArgumentException;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Shipment\TypeValue;
 use MyParcelNL\Sdk\Support\Str;
 
@@ -48,6 +49,9 @@ final class DeliveryOptions
     /** @var array<string,int> length, width and height in cm, only the ones set */
     private array $dimensions;
 
+    /** @var string[] the shipment options the merchant switched on, which outrank the checkout's */
+    private array $merchantOptions;
+
     /**
      * @param string|int|null $deliveryType
      * @param string|int|null $packageType
@@ -61,7 +65,8 @@ final class DeliveryOptions
         ?PickupLocation $pickupLocation,
         ?int $labelAmount = null,
         ?int $digitalStampWeight = null,
-        array $dimensions = []
+        array $dimensions = [],
+        array $merchantOptions = []
     ) {
         $this->carrier         = $carrier;
         $this->date            = $date;
@@ -72,6 +77,7 @@ final class DeliveryOptions
         $this->labelAmount        = $labelAmount;
         $this->digitalStampWeight = $digitalStampWeight;
         $this->dimensions         = $dimensions;
+        $this->merchantOptions    = $merchantOptions;
     }
 
     /** @throws \InvalidArgumentException when the options say pickup but carry no location */
@@ -98,7 +104,8 @@ final class DeliveryOptions
             $pickup,
             self::intOrNull($data['labelAmount'] ?? null),
             self::intOrNull($data['digitalStampWeight'] ?? null),
-            self::dimensionsOf($data['physicalProperties'] ?? null)
+            self::dimensionsOf($data['physicalProperties'] ?? null),
+            self::optionNamesOf($data['merchantOptions'] ?? null)
         );
     }
 
@@ -146,7 +153,8 @@ final class DeliveryOptions
             $pickup,
             self::intOrNull($data['labelAmount'] ?? null),
             self::intOrNull($data['digitalStampWeight'] ?? null),
-            self::dimensionsOf($data['physicalProperties'] ?? null)
+            self::dimensionsOf($data['physicalProperties'] ?? null),
+            self::optionNamesOf($data['merchantOptions'] ?? null)
         );
     }
 
@@ -214,6 +222,12 @@ final class DeliveryOptions
         }
 
         return $dimensions;
+    }
+
+    /** @return string[] */
+    private static function optionNamesOf($names): array
+    {
+        return is_array($names) ? array_values(array_unique(array_filter($names, [ShipmentOption::class, 'isOptionName']))) : [];
     }
 
     private static function intOrNull($value): ?int
@@ -312,6 +326,12 @@ final class DeliveryOptions
         return $this->dimensions;
     }
 
+    /** @return string[] the shipment options the merchant switched on */
+    public function getMerchantOptions(): array
+    {
+        return $this->merchantOptions;
+    }
+
     /** The stored type plus its resolution, for a caller that must tell unrecognised from absent. */
     public function deliveryTypeValue(): TypeValue
     {
@@ -355,6 +375,10 @@ final class DeliveryOptions
 
         if ([] !== $this->dimensions) {
             $array['physicalProperties'] = $this->dimensions;
+        }
+
+        if ([] !== $this->merchantOptions) {
+            $array['merchantOptions'] = $this->merchantOptions;
         }
 
         return $array;

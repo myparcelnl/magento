@@ -65,6 +65,8 @@ it('settles a mutual exclusion by where each value came from', function (int $ag
 })->with([
     '18+ product beats a configured receipt code'  => [OptionSource::PRODUCT, OptionSource::CONFIGURATION, ShipmentOption::RECEIPT_CODE],
     'customer choice beats a configured age check' => [OptionSource::CONFIGURATION, OptionSource::CHECKOUT, ShipmentOption::AGE_CHECK],
+    'merchant choice beats a customer age check'   => [OptionSource::CHECKOUT, OptionSource::MERCHANT, ShipmentOption::AGE_CHECK],
+    '18+ product beats a merchant receipt code'    => [OptionSource::PRODUCT, OptionSource::MERCHANT, ShipmentOption::RECEIPT_CODE],
 ]);
 
 it('lets a posted option beat a configured one it excludes', function () {
