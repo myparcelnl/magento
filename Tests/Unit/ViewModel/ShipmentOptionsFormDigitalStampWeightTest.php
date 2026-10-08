@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Block\Sales\NewShipment;
+use MyParcelNL\Magento\ViewModel\ShipmentOptionsForm;
 use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
 use MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions;
 use MyParcelNL\Magento\Service\Config;
@@ -10,13 +10,13 @@ use MyParcelNL\Magento\Service\Config;
 /*
  * The weight buckets the New Shipment form offers, and the admin setting that must offer the
  * same ones. They held separate lists until 2026-08, so the last case here is the one that keeps
- * DigitalStampWeightOptions and the block in step.
+ * DigitalStampWeightOptions and the form in step.
  */
 
 /** @param int $orderWeightGrams what getDigitalStampWeight() resolves to */
-function createNewShipmentBlockWeighing(int $orderWeightGrams): NewShipment
+function createOptionsFormWeighing(int $orderWeightGrams): ShipmentOptionsForm
 {
-    $block = newInstanceWithoutConstructor(NewShipment::class);
+    $block = newInstanceWithoutConstructor(ShipmentOptionsForm::class);
 
     $weight = Mockery::mock(\MyParcelNL\Magento\Service\Weight::class);
     $weight->shouldReceive('convertToGrams')->andReturn($orderWeightGrams);
@@ -25,6 +25,7 @@ function createNewShipmentBlockWeighing(int $orderWeightGrams): NewShipment
     // weightless case stays genuinely weightless.
     $defaults = Mockery::mock(\MyParcelNL\Magento\Model\Source\DefaultOptions::class);
     $defaults->shouldReceive('getDigitalStampDefaultWeight')->andReturn(0);
+    $defaults->shouldReceive('getSavedDigitalStampWeight')->andReturn(null);
 
     setPrivateProperty($block, 'order', createOrder(['getWeight' => (float) $orderWeightGrams]));
     setPrivateProperty($block, 'weightService', $weight);
@@ -34,7 +35,7 @@ function createNewShipmentBlockWeighing(int $orderWeightGrams): NewShipment
 }
 
 /** @return int[] values of the selected buckets */
-function selectedWeights(NewShipment $block): array
+function selectedWeights(ShipmentOptionsForm $block): array
 {
     return array_column(
         array_filter($block->getDigitalStampWeightOptions(), static fn (array $o): bool => $o['selected']),
@@ -47,17 +48,17 @@ it('selects exactly one range, and the lightest one for a weightless order', fun
     // its own boundary. The old form-local list sent 100 and 350 here, values ReplaceDpzRange had
     // already retired from the matching admin setting.
     foreach ([0 => 20, 15 => 20, 20 => 20, 25 => 50, 90 => 200, 300 => 200, 350 => 200, 1500 => 2000] as $grams => $expected) {
-        expect(selectedWeights(createNewShipmentBlockWeighing($grams)))
+        expect(selectedWeights(createOptionsFormWeighing($grams)))
             ->toBe([$expected], "an order of {$grams}g should send {$expected}g");
     }
 });
 
 it('selects nothing above the heaviest range rather than guessing', function () {
-    expect(selectedWeights(createNewShipmentBlockWeighing(5000)))->toBe([]);
+    expect(selectedWeights(createOptionsFormWeighing(5000)))->toBe([]);
 });
 
 it('offers the no-standard-weight option first and never selected', function () {
-    $options = createNewShipmentBlockWeighing(25)->getDigitalStampWeightOptions();
+    $options = createOptionsFormWeighing(25)->getDigitalStampWeightOptions();
 
     expect($options[0]['value'])->toBe(DigitalStampWeight::NO_STANDARD_WEIGHT)
         ->and($options[0]['selected'])->toBeFalse()
@@ -71,5 +72,5 @@ it('offers the admin setting and the form the identical set of weights', functio
     $setting = new DigitalStampWeightOptions(Mockery::mock(Config::class));
 
     expect(array_column($setting->toOptionArray(), 'value'))
-        ->toBe(array_column(createNewShipmentBlockWeighing(0)->getDigitalStampWeightOptions(), 'value'));
+        ->toBe(array_column(createOptionsFormWeighing(0)->getDigitalStampWeightOptions(), 'value'));
 });
