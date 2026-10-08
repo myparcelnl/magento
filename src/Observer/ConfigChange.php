@@ -283,8 +283,8 @@ class ConfigChange implements ObserverInterface
      * the whole cache type instead, discarding the merged system.xml structure that lives in it, and
      * every following request would rebuild that from every module's system.xml.
      *
-     * Capability entries are keyed on the api key and stored without expiry, so nothing but an api
-     * key change can invalidate them; dropping them for any other setting buys an API round trip.
+     * Capability entries are keyed on the api key and expire on their own, so only an api key change
+     * needs to drop them; dropping them for any other setting buys an API round trip.
      *
      * Do not use cleanType('config'): it also drops the merged system.xml structure. Only an api key
      * change drops the capabilities. Rendered output is marked invalid, not flushed.
