@@ -14,8 +14,18 @@
 
 namespace MyParcelNL\Magento\Plugin\Block\Adminhtml\Order;
 
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
+
+/** Order v1 makes no label in Magento: MyParcel makes it in its backoffice, so no button offers one. */
 class View
 {
+    private StoredAccount $storedAccount;
+
+    public function __construct(StoredAccount $storedAccount)
+    {
+        $this->storedAccount = $storedAccount;
+    }
+
     /**
      * Add MyParcel label print button to order detail page
      *
@@ -23,6 +33,10 @@ class View
      */
     public function beforeSetLayout(\Magento\Sales\Block\Adminhtml\Order\View $view)
     {
+        if ($this->storedAccount->hasOrderV1ForStore((int) $view->getOrder()->getStoreId())) {
+            return;
+        }
+
         $view->addButton(
             'myparcelnl_print_label',
             [

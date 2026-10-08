@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Block\Sales\NewShipment;
+use MyParcelNL\Magento\ViewModel\ShipmentOptionsForm;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -12,9 +12,9 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
  * The constructor is skipped: it stands up a Magento backend block context, while this method
  * reads only $order.
  */
-function createNewShipmentBlockFor(?string $deliveryTypeName, string $incrementId = '100000042'): NewShipment
+function createNewShipmentBlockFor(?string $deliveryTypeName, string $incrementId = '100000042'): ShipmentOptionsForm
 {
-    $block = newInstanceWithoutConstructor(NewShipment::class);
+    $block = newInstanceWithoutConstructor(ShipmentOptionsForm::class);
     setPrivateProperty($block, 'order', createOrder([
         'getIncrementId'  => $incrementId,
         'deliveryOptions' => json_encode(
