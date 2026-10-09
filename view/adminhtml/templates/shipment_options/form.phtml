@@ -18,7 +18,8 @@ $keep     = $escaper->escapeHtml(__('Keep'));
      data-bulk="<?= $bulk ? '1' : '0' ?>"
      data-carrier="<?= $bulk ? '' : $escaper->escapeHtmlAttr($form->getCarrier()) ?>"
      data-package-type="<?= $bulk ? '' : $escaper->escapeHtmlAttr($form->getPackageTypeName()) ?>"
-     data-pickup="<?= ! $bulk && $form->isPickup() ? '1' : '0' ?>">
+     data-pickup="<?= ! $bulk && $form->isPickup() ? '1' : '0' ?>"
+     data-label-total="<?= (int) $block->getData('label_total') ?>">
     <?php if (! $bulk && null !== $form->getExportError()): ?>
         <div class="message message-error error">
             <div><?= $escaper->escapeHtml(__('MyParcel refused the last export: %1', $form->getExportError())) ?></div>
