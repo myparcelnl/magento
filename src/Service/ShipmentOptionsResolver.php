@@ -440,10 +440,6 @@ class ShipmentOptionsResolver
      */
     private function decidedBy(string $option): int
     {
-        if (ShipmentOption::INSURANCE === $option) {
-            return OptionSource::CONFIGURATION;
-        }
-
         return $this->defaultOptions->sourceOf($option, $this->carrier) ?? OptionSource::CONFIGURATION;
     }
 

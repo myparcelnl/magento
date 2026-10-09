@@ -86,6 +86,12 @@ class DefaultOptions
     {
         $stored = $this->chosenOptions['shipmentOptions'][$option] ?? null;
 
+        // Insurance is stored as an amount: 0 is off, as false is, and any other amount is on.
+        // Configured insurance has no _active switch, so it answers null; decidedBy() reads that as configuration.
+        if (ShipmentOption::INSURANCE === $option && null !== $stored) {
+            $stored = 0 < (int) $stored;
+        }
+
         if (false === $stored) {
             return null;
         }
