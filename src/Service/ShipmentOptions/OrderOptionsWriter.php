@@ -289,11 +289,18 @@ class OrderOptionsWriter
 
     private function assertInsurance(CapabilitySet $shape, string $carrier, ?string $packageType, ?int $amount, callable $refuse): void
     {
-        if (null === $amount || 0 === $amount) {
+        if (null === $amount) {
             return;
         }
 
-        if (! $shape->hasOption($carrier, $packageType, ShipmentOption::INSURANCE)) {
+        $offered = $shape->hasOption($carrier, $packageType, ShipmentOption::INSURANCE);
+
+        // Zero is "no insurance": always fine where it is not offered, and refused below when required.
+        if (0 === $amount && ! $offered) {
+            return;
+        }
+
+        if (! $offered) {
             throw $refuse(ShipmentOption::INSURANCE);
         }
 
