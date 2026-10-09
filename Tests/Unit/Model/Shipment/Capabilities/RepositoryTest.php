@@ -136,13 +136,13 @@ it('serves the cached answer when a later refresh would fail', function () {
         ->and($again['history'])->toHaveCount(0);
 });
 
-it('writes the entry with no expiry, which is what makes stale-serving work', function () {
+it('writes the entry with a three-hour lifetime, so a capabilities change reaches the shop', function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault();
 
     $r = makeCapabilitiesRepository([capabilitiesOk()]);
     $r['repository']->forStore(1, CapabilitiesRequest::forCountry('NL'));
 
-    expect(array_values($r['store']->savedTags)[0]['lifeTime'])->toBeNull();
+    expect(array_values($r['store']->savedTags)[0]['lifeTime'])->toBe(3 * 60 * 60);
 });
 
 it('fails open for a store with no api key rather than stopping the page', function () {
