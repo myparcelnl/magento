@@ -522,8 +522,8 @@ letting the API refuse.**
 
 The seam exists. `ShipmentOptionsResolver::resolve()` (`src/Service/ShipmentOptionsResolver.php:382`)
 is the one place a shipment's options are decided — *"Decides what shipment options one shipment
-gets, from the posted options, the configured defaults, the country, the carrier and per-product
-attributes"* — and `insuranceRange()` (`:135-160`) already makes exactly the call needed:
+gets, from the order's stored options, the configured defaults, the country, the carrier and
+per-product attributes"* — and `insuranceRange()` (`:135-160`) already makes exactly the call needed:
 
 ```php
 $this->objectManager->get(ShapeLookup::class)->forShape(
@@ -575,19 +575,8 @@ The higher tier wins. **On equal tier the module does not arbitrate**: both stay
 API refuses, naming the order. Dropping one would silently lose an age check an 18+ order needs,
 which `docs/sdk-v11.md:62-66` rules out.
 
-The tiers are already separate constructor arguments on `ShipmentOptionsResolver` — the product
-attributes, `array $options` (tier 2), `DeliveryOptions $deliveryOptions` (tier 3) and
-`DefaultOptions $defaultOptions` (tier 4). Provenance is recoverable without restructuring. What
-collapses it is one method:
-
-```php
-private function optionIsEnabled($optionKey): bool
-{
-    return (bool) ($this->options[$optionKey] ?? $this->defaultOptions->hasOptionSet($optionKey, $this->carrier));
-}
-```
-
-Give it a sibling that answers **which tier** decided, and the ranking is a comparison. Tier 1 has
+`DefaultOptions` reads all four tiers, and `DefaultOptions::sourceOf()` answers **which tier**
+switched an option on, so the ranking is a comparison. Tier 1 has
 one member today; it earns its place as a rule about provenance rather than a named exception, so a
 future product-driven flag joins it with no list to maintain.
 

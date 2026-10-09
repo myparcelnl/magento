@@ -55,14 +55,9 @@ class FulfilmentOrderBuilder
      * @throws LocalizedException when the order's store has no API key
      * @throws RuntimeException   when the order cannot be exported as stored
      */
-    public function build(Order $magentoOrder, array $options): FulfilmentOrder
+    public function build(Order $magentoOrder): FulfilmentOrder
     {
-        $shipmentOptions = new OrderShipmentOptions(
-            $this->objectManager,
-            $magentoOrder,
-            $options,
-            new DefaultOptions($magentoOrder)
-        );
+        $shipmentOptions = new OrderShipmentOptions($this->objectManager, $magentoOrder, new DefaultOptions($magentoOrder));
 
         $apiKey            = $this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId());
         $deliveryOptions   = $shipmentOptions->deliveryOptions();

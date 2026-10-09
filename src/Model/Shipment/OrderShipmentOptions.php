@@ -44,7 +44,6 @@ class OrderShipmentOptions
     private ObjectManagerInterface $objectManager;
     private JsonSerializer         $jsonSerializer;
     private Order                  $order;
-    private array                  $options;
     private DefaultOptions         $defaultOptions;
 
     private ?DeliveryOptions $deliveryOptions = null;
@@ -56,7 +55,6 @@ class OrderShipmentOptions
     public function __construct(
         ObjectManagerInterface $objectManager,
         Order                  $order,
-        array                  $options,
         DefaultOptions         $defaultOptions,
         ?int                   $shipmentId = null
     )
@@ -64,7 +62,6 @@ class OrderShipmentOptions
         $this->objectManager  = $objectManager;
         $this->jsonSerializer = $objectManager->get(JsonSerializer::class);
         $this->order          = $order;
-        $this->options        = $options;
         $this->defaultOptions = $defaultOptions;
         $this->shipmentId     = $shipmentId;
     }
@@ -103,7 +100,6 @@ class OrderShipmentOptions
             $this->deliveryOptions(),
             $this->objectManager,
             $this->carrierName(),
-            $this->options,
             $this->shipmentId,
             $this->effectivePackageTypeName()
         ))->resolve());
@@ -126,27 +122,13 @@ class OrderShipmentOptions
     }
 
     /**
-     * Package type precedence: the explicit option, then what the checkout stored, then the
-     * configured default. Nothing here overrides a stored type — an option the type cannot carry
-     * is the checkout's problem to avoid and the API's to refuse.
-     *
-     * The two sources fail differently, and deliberately. An explicit option is the admin form's own
-     * vocabulary, so an unmapped one falls back the way it always has. A *stored* type is the
-     * customer's choice, so an unresolvable one fails the shipment instead of shipping as something
-     * else.
+     * The stored type, else the configured default. A stored type that resolves to no id fails the
+     * shipment instead of shipping as something else.
      *
      * @throws RuntimeException on a stored type that resolves to no id
      */
     public function packageType(): int
     {
-        $explicit = $this->options['package_type'] ?? DefaultOptions::DEFAULT_OPTION_VALUE;
-
-        if (DefaultOptions::DEFAULT_OPTION_VALUE !== $explicit) {
-            return is_numeric($explicit)
-                ? (int) $explicit
-                : (PackageType::toIdOrNull((string) $explicit) ?? $this->defaultOptions->getPackageType());
-        }
-
         $storedType = $this->deliveryOptions()->packageTypeValue();
 
         if ($storedType->isAbsent()) {
@@ -238,18 +220,19 @@ class OrderShipmentOptions
     }
 
     /**
-     * The stored checkout data, with the carrier resolved and a pickup location dropped when the
-     * carrier was overridden — a pickup location is carrier-specific, so an inherited one is no
-     * longer reachable under a different carrier.
+     * The stored delivery options, with the configured default carrier when none is stored. Never
+     * another carrier: DefaultOptions answers the default for data it cannot parse, and a pickup
+     * under that carrier would ship as a home delivery.
      */
     private function storedDeliveryOptions(): array
     {
         $stored = $this->jsonSerializer->unserialize($this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '[]') ?? [];
 
-        return DeliveryOptions::withCarrier(
-            $stored,
-            $this->carrierFromOptions() ?? $this->defaultOptions->getCarrierName()
-        );
+        if (empty($stored['carrier'])) {
+            $stored['carrier'] = $this->defaultOptions->getCarrierName();
+        }
+
+        return $stored;
     }
 
     /**
@@ -270,7 +253,7 @@ class OrderShipmentOptions
                 $e
             );
         } catch (BadMethodCallException $e) {
-            return DeliveryOptions::fromOrderFallback($stored + $this->options);
+            return DeliveryOptions::fromOrderFallback($stored);
         }
     }
 
@@ -288,17 +271,6 @@ class OrderShipmentOptions
         } catch (InvalidArgumentException $e) {
             throw new RuntimeException($e->getMessage(), 0, $e);
         }
-    }
-
-    private function carrierFromOptions(): ?string
-    {
-        if (empty($this->options['carrier'])) {
-            return null;
-        }
-
-        return DefaultOptions::DEFAULT_OPTION_VALUE === $this->options['carrier']
-            ? $this->defaultOptions->getCarrierName()
-            : $this->options['carrier'];
     }
 
     private function flag(?bool $value): int

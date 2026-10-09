@@ -150,14 +150,20 @@ class OrderOptionsWriter
             }
         }
 
+        if (null !== $changes->insurance()) {
+            $stored['shipmentOptions'][ShipmentOption::INSURANCE] = $changes->insurance();
+            $merchantOptions = array_diff($merchantOptions, [ShipmentOption::INSURANCE]);
+
+            // The old checkout stored an amount too, so only this list says the merchant chose it.
+            if (0 < $changes->insurance()) {
+                $merchantOptions[] = ShipmentOption::INSURANCE;
+            }
+        }
+
         unset($stored['merchantOptions']);
 
         if ([] !== $merchantOptions) {
             $stored['merchantOptions'] = array_values($merchantOptions);
-        }
-
-        if (null !== $changes->insurance()) {
-            $stored['shipmentOptions'][ShipmentOption::INSURANCE] = $changes->insurance();
         }
 
         if (null !== $changes->labelAmount()) {
