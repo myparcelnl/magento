@@ -8,10 +8,11 @@ use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\ShipmentOptions\OptionChanges;
 use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
 
 /**
- * Every checkbox the New Shipment form can render, from the POST to the shipment the API receives.
+ * Every checkbox the shipment options form can render, from the POST to the shipment the API receives.
  *
  * The form is built from ShipmentOption::TO_CHECK; the export once named each option by hand, so a
  * new one showed as a checkbox and was dropped without a trace. NL, standard delivery and a
@@ -36,8 +37,8 @@ function sdkValueOf(SdkShipmentOptions $options, string $option)
     return $options->{SdkShipmentOptions::getters()[$option]}();
 }
 
-it('reads the option out of the posted parameters', function (string $option) {
-    expect(optionsFromParams(['mypa_' . $option => '1'])[$option] ?? null)->toBe('1');
+it('reads the option out of the posted changes', function (string $option) {
+    expect(OptionChanges::fromRequest(['options' => [$option => '1']])->options()[$option] ?? null)->toBeTrue();
 })->with(ShipmentOption::TO_CHECK);
 
 it('resolves the option from the posted options', function (string $option) {
@@ -83,34 +84,17 @@ it('keeps an option only capabilities named after the persisted keys', function 
         ->and(ResolvedOptions::resolved(['no_tracking' => false])->discovered())->toBe(['no_tracking' => false]);
 });
 
-it('drops a key it does not name from stored checkout data', function () {
-    expect(ResolvedOptions::of(['no_tracking' => true])->toArray())->not->toHaveKey('no_tracking');
+it('keeps an option a merchant saved that only capabilities name, and drops anything else', function () {
+    $stored = ResolvedOptions::of(['no_tracking' => false, 'Not An Option' => true, 'odd' => 'yes'])->toArray();
+
+    expect($stored)->toHaveKey('no_tracking')
+        ->and($stored['no_tracking'])->toBeFalse()
+        ->and($stored)->not->toHaveKey('Not An Option')
+        ->and($stored)->not->toHaveKey('odd');
 });
 
-it('reads an option only capabilities name when the form rendered its checkbox', function () {
-    $ticked = optionsFromParams([
-        'mypa_extra_options_checkboxes_in_form' => '1',
-        'mypa_rendered_options'                 => ['no_tracking'],
-        'mypa_no_tracking'                      => '1',
-    ]);
-    $unticked = optionsFromParams([
-        'mypa_extra_options_checkboxes_in_form' => '1',
-        'mypa_rendered_options'                 => ['no_tracking'],
-    ]);
+it('takes no shipment option from an export request: the order holds them', function () {
+    $options = optionsFromParams(['mypa_signature' => '1', 'mypa_label_amount' => '5', 'mypa_carrier' => 'dpd']);
 
-    expect($ticked['no_tracking'] ?? null)->toBe('1')
-        ->and($unticked)->toHaveKey('no_tracking')
-        ->and($unticked['no_tracking'])->toBeFalse();
-});
-
-it('reads no option the form did not render, and no name that is not option-shaped', function () {
-    $options = optionsFromParams([
-        'mypa_extra_options_checkboxes_in_form' => '1',
-        'mypa_rendered_options'                 => ['Not An Option', '../x'],
-        'mypa_no_tracking'                      => '1',
-    ]);
-
-    expect($options)->not->toHaveKey('no_tracking')
-        ->and($options)->not->toHaveKey('Not An Option')
-        ->and($options)->not->toHaveKey('../x');
+    expect(array_keys($options))->toBe(['create_track_if_one_already_exist', 'request_type', 'positions']);
 });

@@ -201,7 +201,9 @@
 >
 > Recorded for a follow-up PR, after PR 4:
 >
-> - **The order grid's label modal lists carriers by hand.** `view/adminhtml/web/template/grid/order_massaction.html`
+> - **Done in the shipment options modal ([`shipment-options-modal.md`](shipment-options-modal.md)):**
+>   the modal now loads its carriers, package types and options from the server.
+>   **The order grid's label modal lists carriers by hand.** `view/adminhtml/web/template/grid/order_massaction.html`
 >   hardcodes seven carriers (DPD is missing) and six package types with their ids, and
 >   `mass-action.js:255` shows digital stamp and letter only for PostNL. The modal gets no server
 >   data. `OrderShipmentOptions:240` replaces the order's carrier with the one chosen there, so a
@@ -565,7 +567,7 @@ Rank **where the value came from** instead, which needs no list of option names:
 | tier | source | why it outranks the next |
 |---|---|---|
 | 1 | product attribute | 18+ is a legal fact about the goods, not a preference |
-| 2 | posted for this shipment | the operator's decision about this order |
+| 2 | switched on by the merchant | the merchant's decision about this order |
 | 3 | the checkout's stored delivery options | the customer chose it, and may have paid for it |
 | 4 | configuration default | a standing preference, not a decision about this order |
 
@@ -978,7 +980,7 @@ each addition with the order and what required it. Hoist the `forShape()` call s
 and this pass share one lookup.
 
 `excludes` resolves by provenance: give `optionIsEnabled()` a sibling that reports which tier
-decided, rank product attribute > posted > stored checkout choice > configuration default, and leave
+decided, rank product attribute > merchant > stored checkout choice > configuration default, and leave
 equal tiers alone for the API to refuse. A permissive set changes nothing, in either direction.
 
 A validator in `src/Model/Settings/Validator/` joins `InsuranceAmount` in `etc/di.xml:81-87` and

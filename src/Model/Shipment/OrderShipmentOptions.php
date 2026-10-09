@@ -39,6 +39,8 @@ class OrderShipmentOptions
 {
     public const LABEL_DESCRIPTION_MAX_LENGTH = 45;
 
+    private const CARRIERS_WITHOUT_DELIVERY_DATE = ['DPD', 'BPOST'];
+
     private ObjectManagerInterface $objectManager;
     private JsonSerializer         $jsonSerializer;
     private Order                  $order;
@@ -210,7 +212,7 @@ class OrderShipmentOptions
 
         $deliveryDate = Dating::convertDeliveryDate($deliveryOptions->getDate());
 
-        if (null !== $deliveryDate) {
+        if (null !== $deliveryDate && $this->acceptsDeliveryDate($resolved)) {
             $options->setDeliveryDate($deliveryDate);
         }
 
@@ -227,6 +229,14 @@ class OrderShipmentOptions
         return $options;
     }
 
+    /** The API refuses a delivery date for DPD and bpost, and together with collect. */
+    private function acceptsDeliveryDate(ResolvedOptions $resolved): bool
+    {
+        $v2Carrier = Carrier::toV2Name((string) $this->carrierName());
+
+        return ! in_array($v2Carrier, self::CARRIERS_WITHOUT_DELIVERY_DATE, true) && ! $resolved->hasCollect();
+    }
+
     /**
      * The stored checkout data, with the carrier resolved and a pickup location dropped when the
      * carrier was overridden — a pickup location is carrier-specific, so an inherited one is no
@@ -234,19 +244,12 @@ class OrderShipmentOptions
      */
     private function storedDeliveryOptions(): array
     {
-        $stored          = $this->jsonSerializer->unserialize($this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '[]') ?? [];
-        $checkoutCarrier = $stored['carrier'] ?? null;
-        $selected        = $this->carrierFromOptions() ?? $this->defaultOptions->getCarrierName();
+        $stored = $this->jsonSerializer->unserialize($this->order->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '[]') ?? [];
 
-        $stored['carrier'] = $selected;
-
-        if ($checkoutCarrier && $selected !== $checkoutCarrier && ! empty($stored['isPickup'])) {
-            unset($stored['pickupLocation']);
-            $stored['isPickup']     = false;
-            $stored['deliveryType'] = DeliveryType::STANDARD_NAME;
-        }
-
-        return $stored;
+        return DeliveryOptions::withCarrier(
+            $stored,
+            $this->carrierFromOptions() ?? $this->defaultOptions->getCarrierName()
+        );
     }
 
     /**

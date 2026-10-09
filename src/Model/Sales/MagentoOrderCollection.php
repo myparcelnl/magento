@@ -17,6 +17,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
@@ -123,7 +124,9 @@ class MagentoOrderCollection extends MagentoCollection
                 ! ($tracks[(int) $shipment->getId()] ?? []) ||
                 $this->getOption('create_track_if_one_already_exist')
             ) {
-                while ($i <= $this->getOption('label_amount')) {
+                $amount = (new DefaultOptions($shipment->getOrder()))->getLabelAmount();
+
+                while ($i <= $amount) {
                     $this->setNewMagentoTrack($shipment);
                     $i++;
                 }
@@ -146,6 +149,20 @@ class MagentoOrderCollection extends MagentoCollection
     {
         $builder   = new FulfilmentOrderBuilder($this->objectManager);
         $chunkSize = $this->config->getExportChunkSize();
+        $sentAgain = [];
+
+        // Sent again on purpose, but said: MyParcel creates a second order for each one.
+        foreach ($this->getOrders() as $magentoOrder) {
+            if ($magentoOrder->getData('myparcel_uuid')) {
+                $sentAgain[] = (string) $magentoOrder->getIncrementId();
+            }
+        }
+
+        if ($sentAgain) {
+            $this->messageManager->addNoticeMessage(
+                __('These orders were already sent to MyParcel before, and are sent again: %1', implode(', ', $sentAgain))
+            );
+        }
 
         foreach ($this->ordersByApiKey() as $magentoOrders) {
             foreach (array_chunk($magentoOrders, $chunkSize) as $chunk) {
@@ -181,6 +198,7 @@ class MagentoOrderCollection extends MagentoCollection
                 $this->messageManager->addErrorMessage(
                     sprintf('%s: %s', $magentoOrder->getIncrementId(), $e->getMessage())
                 );
+                $this->errorRecorder->write($magentoOrder, $e->getMessage());
             }
         }
 
@@ -193,7 +211,16 @@ class MagentoOrderCollection extends MagentoCollection
         } catch (Throwable $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
 
+            // The API refuses a chunk whole and names no order, so each order in it keeps the reason.
+            foreach ($exported as $magentoOrder) {
+                $this->errorRecorder->write($magentoOrder, $e->getMessage());
+            }
+
             return;
+        }
+
+        foreach ($exported as $magentoOrder) {
+            $this->errorRecorder->write($magentoOrder, null);
         }
 
         // Before the next request is made: an order that exists in the API but carries no exported
