@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Controller\Adminhtml\ShipmentOptions;
 
 use Magento\Backend\Block\Template;
+use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
 /** The shipment options form for one order, or for a bulk selection of one account's orders. */
 class Form extends AbstractShipmentOptions
@@ -18,6 +19,7 @@ class Form extends AbstractShipmentOptions
             ->setTemplate('MyParcelNL_Magento::shipment_options/form.phtml')
             ->setData('options_form', $this->formFactory->create(['order' => $orders[0], 'bulk' => count($orders) > 1]))
             ->setData('order_count', count($orders))
+            ->setData('label_total', DefaultOptions::labelTotal($orders))
             ->toHtml();
 
         return ['html' => $html];
