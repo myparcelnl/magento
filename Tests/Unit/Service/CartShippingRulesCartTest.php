@@ -105,6 +105,21 @@ it('allows parcel lockers when nothing excludes them', function () {
     expect($rules->excludesParcelLockers([quoteItemFor(1)], CART_RULES_CARRIER_PATH))->toBeFalse();
 });
 
+it('skips the age check rule when there is no carrier to read it from', function () {
+    // The checkout passes null with no active carrier: only the general and product rules apply.
+    $rules = createCartShippingRules([CART_RULES_LOCKERS_PATH => '0', CART_RULES_AGE_CHECK_PATH => '1'], [1 => []]);
+
+    expect($rules->excludesParcelLockers([quoteItemFor(1)], null))->toBeFalse();
+});
+
+it('keeps the general setting and the product rule with no carrier', function () {
+    $general = createCartShippingRules([CART_RULES_LOCKERS_PATH => '1']);
+    $product = createCartShippingRules([CART_RULES_LOCKERS_PATH => '0'], [1 => ['myparcel_exclude_parcel_lockers' => '1']]);
+
+    expect($general->excludesParcelLockers([], null))->toBeTrue()
+        ->and($product->excludesParcelLockers([quoteItemFor(1)], null))->toBeTrue();
+});
+
 it('allows parcel lockers when the read throws, rather than hiding pickup over a config error', function () {
     $rules = createCartShippingRules([], [1 => []]);
 

@@ -39,7 +39,7 @@ it('sorts before matching, so an unsorted list gives the same answer', function 
  * Model\Shipment silently broke the Carrier reference and every test still passed.
  */
 it('resolves real tiers for a carrier and zone', function () {
-    expect(LegacyInsuranceTiers::forCarrierAndZone(Carrier::POSTNL, LegacyInsuranceTiers::ZONE_LOCAL))
+    expect(LegacyInsuranceTiers::forCarrierAndZone('postnl', LegacyInsuranceTiers::ZONE_LOCAL))
         ->toContain(100)
         ->toContain(5000)
         ->and(LegacyInsuranceTiers::forCarrierAndZone('nonexistent', LegacyInsuranceTiers::ZONE_LOCAL))

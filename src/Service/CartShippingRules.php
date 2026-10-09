@@ -57,13 +57,14 @@ class CartShippingRules
 
     /**
      * Parcel lockers are excluded by the general setting, by a product that says so, or by 18+ goods.
+     * A null carrier path skips the last rule: there is no carrier to read the age check from.
      *
      * Anything that goes wrong answers "do not exclude": this decides whether a delivery method is
      * offered, and failing closed would hide pickup locations over a config read.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
-    public function excludesParcelLockers(array $items, string $carrierPath, ?int $storeId = null): bool
+    public function excludesParcelLockers(array $items, ?string $carrierPath, ?int $storeId = null): bool
     {
         try {
             $this->warmAttributes($items);
@@ -78,7 +79,7 @@ class CartShippingRules
                 }
             }
 
-            return $this->forcesAgeCheck($items, $carrierPath, $storeId);
+            return null !== $carrierPath && $this->forcesAgeCheck($items, $carrierPath, $storeId);
         } catch (Throwable $e) {
             return false;
         }
