@@ -28,7 +28,7 @@ function sdkOptionsFor(ResolvedOptions $resolved, array $storedDeliveryOptions =
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback($storedDeliveryOptions),
         'resolved'        => $resolved,
-    ])->shipmentOptions(createAddress(['getCountryId' => 'NL']));
+    ])->shipmentOptions();
 }
 
 function sdkValueOf(SdkShipmentOptions $options, string $option)

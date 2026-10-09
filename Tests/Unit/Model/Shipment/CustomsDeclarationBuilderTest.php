@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\DataObject;
 use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
@@ -158,4 +159,53 @@ it('carries an HS code of the full eighteen characters', function () {
     // The previous cap was 10, which is ours rather than the API's — the Core API types this field
     // as a plain string with no maximum.
     expect(classificationOf('610910.0010.123456'))->toBe('610910.0010.123456');
+});
+
+/*
+ * A configurable product ships as one item of its parent; the variant is in the order item's
+ * children. Product 4 is the parent, 9 the variant.
+ */
+
+function configurableCustomsLine(array $classifications, array $countries): array
+{
+    $config  = createConfig(['print/weight_indication' => 'gram']);
+    $builder = new CustomsDeclarationBuilder(customsObjectManager($classifications, $countries, $config), $config, new Weight($config));
+    $item    = createShipmentItem([
+        'product_id' => 4,
+        'order_item' => new DataObject([
+            'product_type'   => 'configurable',
+            'children_items' => [new DataObject(['product_id' => 9])],
+        ]),
+    ]);
+
+    $declaration = $builder->build(createShipment(['items' => [$item]]), 1000, '100000001');
+    $line        = builtShipmentCustomsItems((new Shipment())->setCustomsDeclaration($declaration))[0];
+
+    return ['classification' => $line->getClassification(), 'country' => $line->getCountry()];
+}
+
+it('declares a configurable item with the variant its customs data, or else the parent its', function (
+    array $classifications,
+    array $countries,
+    array $expected
+) {
+    expect(configurableCustomsLine($classifications, $countries))->toBe($expected);
+})->with([
+    'the variant has customs data' => [[4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ'], ['classification' => '0090902341', 'country' => 'AQ']],
+    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['classification' => '6109.10', 'country' => 'CN']],
+]);
+
+it('leaves out the variant item ShipmentFactory marked deleted, so a configurable is one line', function () {
+    $config  = createConfig(['print/weight_indication' => 'gram']);
+    $builder = new CustomsDeclarationBuilder(customsObjectManager([4 => '6109.10'], [4 => 'CN'], $config), $config, new Weight($config));
+    $parent  = createShipmentItem([
+        'product_id' => 4,
+        'order_item' => new DataObject(['product_type' => 'configurable', 'children_items' => [new DataObject(['product_id' => 9])]]),
+    ]);
+    $variant = createShipmentItem(['product_id' => 9, 'qty' => 0, 'price' => 0.0]);
+
+    // Before the save, getItems() still lists the deleted variant; getAllItems() does not.
+    $shipment = createShipment(['items' => [$parent], 'getItems' => [$parent, $variant]]);
+
+    expect($builder->build($shipment, 1000, '100000001')->getItems())->toHaveCount(1);
 });

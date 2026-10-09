@@ -8,7 +8,7 @@ use MyParcelNL\Sdk\Model\Recipient;
 /**
  * The street splitting itself is the SDK's, so these test our wiring around
  * it: joining the lines, mapping the fields, taking the person from the
- * billing address, splitting by the carrier's own local country, and letting
+ * billing address, splitting by the account's home country, and letting
  * a rejected address surface.
  *
  * No case asserts a literal the SDK's regex produced — those are its to change.
@@ -16,7 +16,7 @@ use MyParcelNL\Sdk\Model\Recipient;
 function recipientForAddress(
     array   $addressOverrides,
     array   $orderOverrides = [],
-    ?string $carrier = 'postnl'
+    string  $localCountry = 'NL'
 ): Recipient
 {
     $order = createOrder(array_merge(
@@ -27,7 +27,7 @@ function recipientForAddress(
     return invokePrivateMethod(
         newInstanceWithoutConstructor(FulfilmentOrderBuilder::class),
         'shippingRecipient',
-        [$order, $carrier]
+        [$order, $localCountry]
     );
 }
 
@@ -85,16 +85,16 @@ it('takes the person from the billing address name parts', function () {
     expect($recipient->getPerson())->toBe('Jan de Vries');
 });
 
-it('splits a Belgian address by the carrier\'s own country, not always by PostNL', function () {
-    // A Belgian destination only has a split rule when the carrier ships from Belgium. This path
-    // hard-coded PostNL for every carrier, so a DPD address stayed one unsplit string.
+it('splits a Belgian address by the account\'s home country, whatever the carrier', function () {
+    // A Belgian destination only has a split rule when the account ships from Belgium. This used to
+    // follow the carrier, so a Belgian account shipping PostNL to Belgium sent one unsplit string.
     $belgianAddress = ['getCountryId' => 'BE', 'street' => 'Antwerpsesteenweg 20'];
 
-    $viaDpd    = recipientForAddress($belgianAddress, [], 'dpd');
-    $viaPostnl = recipientForAddress($belgianAddress, [], 'postnl');
+    $fromBelgium     = recipientForAddress($belgianAddress, [], 'BE');
+    $fromNetherlands = recipientForAddress($belgianAddress, [], 'NL');
 
-    expect($viaDpd->getNumber())->toBe('20');
-    expect($viaPostnl->getNumber())->toBe('');
+    expect($fromBelgium->getNumber())->toBe('20');
+    expect($fromNetherlands->getNumber())->toBe('');
 });
 
 it('lets a rejected address surface instead of swallowing it', function () {

@@ -8,15 +8,16 @@ use Magento\Config\Model\Config\Source\Yesno;
 use MyParcelNL\Magento\Block\System\Config\Form\ApiAccessTokenButton;
 use MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix;
 use MyParcelNL\Magento\Block\System\Config\Form\InsuranceAmount;
+use MyParcelNL\Magento\Block\System\Config\Form\OrderManagementInfo;
 use MyParcelNL\Magento\Block\System\Config\Form\SettingsButton;
 use MyParcelNL\Magento\Block\System\Config\Form\WeightUnitNote;
+use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions;
 use MyParcelNL\Magento\Model\Source\DropOffDelayDays;
-use MyParcelNL\Magento\Model\Source\ExportMode;
 use MyParcelNL\Magento\Model\Source\LargeFormatOptions;
 use MyParcelNL\Magento\Model\Source\NumberOfDays;
 use MyParcelNL\Magento\Model\Source\PaperType;
@@ -58,8 +59,6 @@ final class Catalogue
 
     /** Mailbox options, which go in the mailbox group instead of `default_options`. */
     public const MAILBOX_OPTIONS = [ShipmentOption::PRIORITY_DELIVERY];
-
-    public const INSURANCE_ZONES = ['local', 'belgium', 'eu', 'row'];
 
     /** The order the Automate toggles show in. An option not listed follows, in capabilities order. */
     private const DEFAULT_OPTIONS_ORDER = [
@@ -140,6 +139,7 @@ final class Catalogue
             self::shippingMethodsGroup(),
             self::deliveryTitlesGroup($facts),
             self::apiAccessGroup(),
+            self::accountGroup(),
         ]);
     }
 
@@ -147,14 +147,15 @@ final class Catalogue
         string       $carrier,
         CarrierShape $shape,
         bool         $exportable,
-        bool         $internationalMailbox
+        bool         $internationalMailbox,
+        array        $insuranceZones
     ): Section
     {
         $path   = Config::carrierPath($carrier);
         $groups = [
             self::deliveryGroup($carrier, $shape, $exportable),
             self::dropOffDaysGroup($path . 'drop_off_days/'),
-            self::defaultOptionsGroup($carrier, $shape),
+            self::defaultOptionsGroup($carrier, $shape, $insuranceZones),
         ];
 
         if ($shape->hasPackageType(PackageType::DIGITAL_STAMP_NAME)) {
@@ -269,7 +270,7 @@ final class Catalogue
         );
     }
 
-    private static function defaultOptionsGroup(string $carrier, CarrierShape $shape): Group
+    private static function defaultOptionsGroup(string $carrier, CarrierShape $shape, array $insuranceZones): Group
     {
         $path   = Config::carrierPath($carrier) . 'default_options/';
         $fields = [];
@@ -281,7 +282,7 @@ final class Catalogue
         }
 
         if ($shape->hasInsurance()) {
-            $fields = array_merge($fields, self::insuranceFields($path));
+            $fields = array_merge($fields, self::insuranceFields($path, $insuranceZones));
         }
 
         return new Group(
@@ -335,9 +336,9 @@ final class Catalogue
     }
 
     /** @return Field[] */
-    private static function insuranceFields(string $path): array
+    private static function insuranceFields(string $path, array $zones): array
     {
-        $zones = [
+        $zoneTexts = [
             'local'   => ['Insure orders up to', 'This setting applies to domestic shipments only'],
             'belgium' => ['Insure orders up to (BE)', 'A custom be insurance price within a range of possibilities.'],
             'eu'      => ['Insure orders up to (EU)', 'A custom eu insurance price within a range of possibilities.'],
@@ -351,9 +352,9 @@ final class Catalogue
                 ->withDefault('0'),
         ];
 
-        foreach (self::INSURANCE_ZONES as $zone) {
-            [$label, $tooltip] = $zones[$zone];
-            $fields[]          = Field::text("{$path}insurance_{$zone}_amount", $label)
+        foreach ($zones as $zone) {
+            [$label, $tooltip] = $zoneTexts[$zone];
+            $fields[]          = Field::text($path . InsuranceAmountSetting::fieldOf($zone), $label)
                 ->withTooltip($tooltip)
                 ->withFrontendModel(InsuranceAmount::class)
                 ->withDefault('0');
@@ -516,18 +517,15 @@ final class Catalogue
         $path = Config::XML_PATH_GENERAL . 'print/';
 
         return new Group('print', 'Print settings', [
-            Field::select($path . 'export_mode', 'Mode', ExportMode::class)
-                ->withTooltip('With \'Export entire order\', MyParcel will export every order in its entirety to the back office for further processing.')
-                ->inDefaultScopeOnly(),
             Field::select($path . 'paper_type', 'Paper type', PaperType::class)
                 ->withTooltip('Select a standard orientation for printing labels.')
                 ->withDefault('A4'),
             Field::text($path . 'label_description', 'Label description')
                 ->withTooltip('This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%.')
                 ->withDefault('%order_nr%'),
+            // No default: an empty value is the account's home country, read at export.
             Field::text($path . 'country_of_origin', 'Country of origin')
-                ->withTooltip('This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.')
-                ->withDefault('NL'),
+                ->withTooltip('This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.'),
             Field::select($path . 'create_concept_after_invoice', 'Create Concept', Yesno::class)
                 ->withTooltip('Enable create label concept, when invoice is printed.')
                 ->withDefault('0'),
@@ -580,6 +578,13 @@ final class Catalogue
             Field::select($path . 'pop_up_map', 'Pop-up map', Yesno::class)
                 ->withTooltip('When enabled, the pickup location map is displayed in a pop-up.')
                 ->withDefault('0'),
+        ]);
+    }
+
+    private static function accountGroup(): Group
+    {
+        return new Group('account', 'Account', [
+            Field::button(Config::XML_PATH_GENERAL . 'account/order_management', 'Account features', OrderManagementInfo::class),
         ]);
     }
 

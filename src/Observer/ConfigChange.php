@@ -153,6 +153,11 @@ class ConfigChange implements ObserverInterface
                 $value = implode(',', $value);
             }
 
+            // The one place the key is trimmed: every reader fingerprints the row by the key as stored.
+            if (Config::XML_PATH_API_KEY === $path && is_string($value)) {
+                $value = trim($value);
+            }
+
             $rejection = $this->rejectionFor($path, $value, $scope, $scopeId);
 
             // Refuse this one field rather than the whole save: the form posts every field on
@@ -213,7 +218,7 @@ class ConfigChange implements ObserverInterface
     private function importMissingAccountSettings(string $scope, int $scopeId): void
     {
         // reinit() reset the in-memory config too, so this is the post-save key, not a cached one.
-        $apiKey = trim((string) ($this->scopeConfig->getValue(Config::XML_PATH_API_KEY, $scope, $scopeId) ?? ''));
+        $apiKey = (string) ($this->scopeConfig->getValue(Config::XML_PATH_API_KEY, $scope, $scopeId) ?? '');
 
         if ('' === $apiKey || $this->accountSettingsImporter->hasSettingsFor($apiKey)) {
             return;

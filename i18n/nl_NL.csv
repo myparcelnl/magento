@@ -426,7 +426,6 @@ This setting applies to domestic shipments only,Deze instelling geldt alleen voo
 This will be added to or subtracted from the regular shipping price,Dit wordt opgeteld bij of afgetrokken van de normale verzendkosten
 Use percentage of total order amount for insurance.,Gebruik percentage van het totale orderbedrag voor verzekering.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Wanneer ingeschakeld, worden pakketkluizen uitgesloten van ophaallocaties voor alle producten. Alleen fysieke afhaalpunten worden getoond."
-"With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Met 'Exporteer hele bestelling' exporteert MyParcel elke bestelling volledig naar de backoffice voor verdere verwerking.
 
 API Access,API-toegang
 API access token,API-toegangstoken
@@ -483,3 +482,6 @@ No MyParcel shipments were found to make a return label for.,Er zijn geen MyParc
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 is niet ingeschakeld: deze vervoerder heeft een module-update nodig voordat er zendingen mee verstuurd kunnen worden."
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-instellingen geïmporteerd."
 "Reloading the page...","De pagina wordt opnieuw geladen..."
+"This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Deze selectie bevat orders van accounts die de hele order exporteren en orders van andere accounts. Selecteer één soort order en probeer het opnieuw."
+"Account","Account"
+"Account features","Accountfuncties"

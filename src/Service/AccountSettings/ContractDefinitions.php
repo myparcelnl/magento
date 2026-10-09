@@ -64,7 +64,7 @@ class ContractDefinitions
     {
         $apiKey = (string) $this->config->getScopedConfig(Config::XML_PATH_API_KEY, $scopeName, $scopeId);
 
-        return $this->forApiKey(trim($apiKey));
+        return $this->forApiKey($apiKey);
     }
 
     /**

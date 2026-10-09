@@ -12,6 +12,7 @@ use Magento\Sales\Model\Order\Shipment\Track;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier as MagentoCarrier;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
@@ -36,6 +37,7 @@ class ShipmentBuilder
     private ShipmentApiProvider       $apiProvider;
     private ShipmentValidator         $validator;
     private CustomsDeclarationBuilder $customsBuilder;
+    private StoredAccount             $storedAccount;
 
     /** @var array<string,OrderShipmentOptions> by shipment and option set; a multicollo order asks per collo */
     private array $shipmentOptions = [];
@@ -47,6 +49,7 @@ class ShipmentBuilder
         $this->apiProvider    = $objectManager->get(ShipmentApiProvider::class);
         $this->validator      = $objectManager->get(ShipmentValidator::class);
         $this->customsBuilder = $objectManager->get(CustomsDeclarationBuilder::class);
+        $this->storedAccount  = $objectManager->get(StoredAccount::class);
         $this->defaultOptions = new DefaultOptions($order);
     }
 
@@ -94,9 +97,9 @@ class ShipmentBuilder
         $shipment = (new Shipment())
             ->setCarrier($shipmentOptions->carrierId())
             ->setReferenceIdentifier(self::referenceIdentifierFor((int) $magentoShipment->getEntityId(), $colloNumber))
-            ->setRecipient($this->recipient($address, $shipmentOptions->carrierName()))
+            ->setRecipient($this->recipient($address, $this->storedAccount->homeCountryForApiKey($apiKey)))
             ->setPhysicalProperties(['weight' => $weight])
-            ->setOptions($shipmentOptions->shipmentOptions($address));
+            ->setOptions($shipmentOptions->shipmentOptions());
 
         if ($deliveryOptions->isPickup()) {
             $shipment->setPickup($this->pickup($deliveryOptions));
@@ -155,11 +158,11 @@ class ShipmentBuilder
             ->setTrackNumber(TrackAndTrace::VALUE_EMPTY);
     }
 
-    private function recipient($address, ?string $carrier): array
+    private function recipient($address, string $localCountry): array
     {
         $street = SplitStreet::splitStreet(
             implode(' ', $address->getStreet() ?? []),
-            Carrier::localCountryCodeFor($carrier),
+            $localCountry,
             (string) $address->getCountryId()
         );
 

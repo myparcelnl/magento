@@ -6,10 +6,11 @@ namespace MyParcelNL\Magento\Controller\Adminhtml\Order;
 
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
@@ -29,14 +30,16 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
  */
 class CreateAndPrintMyParcelTrack extends LabelExportAction
 {
+    public const ERROR_MIXED_ORDER_V1 = 'This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.';
+
     private MagentoOrderCollection $orderCollection;
-    private Config                 $config;
+    private StoredAccount          $storedAccount;
 
     public function __construct(Context $context)
     {
         parent::__construct($context);
 
-        $this->config          = $this->_objectManager->get(Config::class);
+        $this->storedAccount   = $this->_objectManager->get(StoredAccount::class);
         $this->orderCollection = new MagentoOrderCollection(
             $this->_objectManager,
             $this->getRequest()
@@ -52,11 +55,17 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
 
         $this->getRequest()->setParams(['myparcel_track_email' => true]);
 
-        $this->addOrdersToCollection($orderIds);
+        $orderV1 = $this->orderV1Of($this->addOrdersToCollection($orderIds));
+
+        if (null === $orderV1) {
+            $this->messageManager->addErrorMessage(__(self::ERROR_MIXED_ORDER_V1));
+
+            return null;
+        }
 
         $this->orderCollection->setOptionsFromParameters();
 
-        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
+        if ($orderV1) {
             $this->orderCollection->setFulfilment();
 
             return null;
@@ -91,7 +100,7 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
     /**
      * @param string[] $orderIds
      */
-    private function addOrdersToCollection(array $orderIds): void
+    private function addOrdersToCollection(array $orderIds): OrderCollection
     {
         /**
          * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
@@ -99,5 +108,18 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
         $collection = $this->_objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
         $collection->addAttributeToFilter('entity_id', ['in' => $orderIds]);
         $this->orderCollection->setOrderCollection($collection);
+
+        return $collection;
+    }
+
+    /** Whether every selected order's account has order v1; null when the selection mixes both. */
+    private function orderV1Of(OrderCollection $orders): ?bool
+    {
+        $modes = array_unique(array_map(
+            fn($storeId): bool => $this->storedAccount->hasOrderV1ForStore((int) $storeId),
+            array_unique($orders->getColumnValues('store_id'))
+        ));
+
+        return 1 < count($modes) ? null : (bool) reset($modes);
     }
 }

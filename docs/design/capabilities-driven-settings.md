@@ -143,10 +143,61 @@
 >   Ask for the map in the SDK rather than copy it. The SDK has split rules for local NL and BE
 >   only, so an IT account gets no split for any destination.
 > - **"Platform" is the old name for "proposition".** `account.platform_id` and
->   `account.proposition_id` carry the same value. Deprecate the platform name where the module
->   owns it: `AccountPlatform`, `TrackTraceUrl`'s `baseUrlsByPlatform` in `etc/di.xml`, and the
->   readers in `LinkResolver` and `AccountSettings`. `Config::PLATFORM` is the widget's own option
->   name, so it stays until the widget renames it.
+>   `account.proposition_id` carry the same value. Use "proposition" everywhere the module owns the
+>   name: `AccountPlatform` (and its test), `TrackTraceUrl`'s `baseUrlsByPlatform` in `etc/di.xml`,
+>   and the readers in `LinkResolver` and `AccountSettings`, with their tests and fixtures. Keep
+>   "platform" only where an outside contract sets it: the widget's `platform` config key, the
+>   `platform_id` fallback in `AccountSettings` while the API still sends it, and the generated SDK
+>   classes. `UserAgent`'s "platform" is Magento, not a proposition. Write no proposition that no
+>   longer exists (flespakket) in code or comments.
+>
+> Recorded for PR 6, found on 2026-10-06 while tracing Belgian checkout errors:
+>
+> - **The checkout sends `platform: 'myparcel'` for every store.** This is step 11. With a Belgian
+>   key, the widget asks `delivery_options` and `pickup_locations` for bpost and DPD on the wrong
+>   proposition, and the API refuses them. A fix is in the stash "PR 6: checkout sends the
+>   account's proposition (step 11)": `Checkout::platform()` maps `AccountPlatform::forStore()` to
+>   a widget name and falls back to `Config::DEFAULT_PLATFORM` (renamed from `PLATFORM`). It still
+>   uses "platform" names and a `platformNames` map in `etc/di.xml`; the two items below replace both.
+>   The widget's names are the API's own (`AccountDefsPlatformName`): `myparcel`, `belgie`, `italy`.
+> - **One registry lists the propositions.** Adding a proposition (for example 7, Canada) must take
+>   one entry, and the whole module must then work with it. Each entry holds the widget name, the
+>   home country and, optionally, a track & trace host. It holds 1 (myparcel, NL, myparcel.me),
+>   3 (belgie, BE, sendmyparcel.me) and 6 (italy, IT, no host: the API always returns the link on
+>   an Italian shipment). It replaces the `platformNames` and `baseUrlsByPlatform` maps in
+>   `etc/di.xml` and `Carrier::LOCAL_COUNTRY_MAP`. A test asserts every entry has a name and a
+>   country. A new name also needs the widget to know it. Ask the SDK to own the map; until then,
+>   the module holds it.
+> - **The home country is NL in code, not read from the proposition.** These read "NL" as the
+>   account's home country and must read the registry: the domestic mailbox key
+>   (`Checkout::checkPackageType()`, `PackageTypeResolver::mailboxAllowedTo()`), the local insurance
+>   cap (`DefaultOptions::insuranceCapKey()`), and the `country_of_origin` default in `Catalogue`.
+> - **Two NL-only checks go.** They test the destination, and both are wrong: a digital stamp is
+>   available outside NL (`PackageTypeResolver::resolve()`; capabilities already decide it per
+>   destination), and a package small takes a delivery date to any country
+>   (`OrderShipmentOptions::deliveryDate()`).
+>
+> PR 6 departs from the plan in these places:
+>
+> - **No `AccountFlags`, and no `Config::getExportMode()`.** Order v1 is the account's, like the
+>   proposition, so `StoredAccount::hasOrderV1ForStore()` reads both from one memo per api key.
+>   `Config` cannot depend on it: `StoredAccount` needs `ShipmentApiProvider`, which needs `Config`.
+> - **Order v1 comes from whoami, not from `general_settings.order_mode`.** That flag is also
+>   true for an order v2 account, which must export shipments. Only the IAM feature
+>   `LEGACY_ORDER_MANAGEMENT` (order v1) means PPS. The importer stores the features in the row, and
+>   the 5.11 upgrade imports every stored key again, so no PPS shop falls back to shipments silently.
+> - **A grid selection that mixes order v1 accounts and others is refused** with a message. Splitting
+>   it needs a second order collection and two export paths in one request, for a rare case.
+> - **The grid's export modal hides its label fields** only when every store's account has order
+>   v1, because it cannot know which export a selection gets before it is made.
+> - **The cron needs no partition by export mode (step 9's own commit).** `ordersAwaitingBarcode()`
+>   already selects only orders a PPS export marked (`myparcel_uuid`), and `incrementIdsByApiKey()`
+>   asks each order's own account. A partition by the account's *current* mode would stop polling the
+>   in-flight orders of an account that moved from order v1 to v2. So `UpdateStatus::execute()` runs
+>   both passes on every tick, ungated, and its test asserts that. A shop without PPS pays one query
+>   every 15 minutes, which the `myparcel_uuid(36)` index (`UpgradeSchema::addUuidPrefixIndex()`)
+>   answers from an empty range. Not verified: the plan on a large `sales_order`, where the optimiser
+>   could prefer a backward primary-key scan for `ORDER BY entity_id DESC`.
 >
 > Recorded for a follow-up PR, after PR 4:
 >

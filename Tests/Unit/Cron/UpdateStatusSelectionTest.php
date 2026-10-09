@@ -5,6 +5,7 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Cron\UpdateStatus;
+use MyParcelNL\Magento\Tests\Stub\RecordingUpdateStatus;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
@@ -138,9 +139,9 @@ it('only counts this module carrier tracks', function () {
  * Runs execute() with nothing awaiting a barcode, so the PPS pass returns at once and only the
  * status poll can reach the collection.
  *
- * @return object the recorder: whether updateMagentoTrack() was reached
+ * @return array{0: RecordingUpdateStatus, 1: object} the cron, and whether updateMagentoTrack() was reached
  */
-function runCronInMode(string $exportMode): object
+function runCron(): array
 {
     $logger = mockLoggerFacade();
     $logger->shouldReceive('debug', 'notice', 'warning')->andReturnNull();
@@ -191,26 +192,21 @@ function runCronInMode(string $exportMode): object
         }
     );
 
-    $config = Mockery::mock(MyParcelNL\Magento\Service\Config::class);
-    $config->shouldReceive('getExportMode')->andReturn($exportMode);
-
-    $cron = newInstanceWithoutConstructor(MyParcelNL\Magento\Tests\Stub\RecordingUpdateStatus::class);
+    $cron = newInstanceWithoutConstructor(RecordingUpdateStatus::class);
     setPrivateProperty($cron, 'objectManager', $objectManager);
     setPrivateProperty($cron, 'orderCollection', $orderCollection);
-    setPrivateProperty($cron, 'config', $config);
     $cron->orderRows = [];
 
     $cron->execute();
 
-    return $reached;
+    return [$cron, $reached];
 }
 
-it('polls shipment statuses in shipments mode', function () {
-    expect(runCronInMode('shipments')->polled)->toBeTrue();
-});
+it('runs the barcode pass and the status poll on every tick, whatever the accounts export', function () {
+    // An account that moved off order v1 still has PPS orders awaiting a barcode, and a PPS order
+    // needs the poll after its barcode pass, or its myparcel_status stays where that pass left it.
+    [$cron, $reached] = runCron();
 
-it('polls shipment statuses in PPS mode as well', function () {
-    // PPS acquires barcodes and drops an order the moment it has one, so without this pass a PPS
-    // order's myparcel_status stays at whatever its barcode pass wrote, for good.
-    expect(runCronInMode(MyParcelNL\Magento\Service\Config::EXPORT_MODE_PPS)->polled)->toBeTrue();
+    expect($cron->barcodePassRan)->toBeTrue()
+        ->and($reached->polled)->toBeTrue();
 });

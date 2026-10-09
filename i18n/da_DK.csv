@@ -414,7 +414,6 @@ This setting applies to domestic shipments only,Denne indstilling gælder kun fo
 This will be added to or subtracted from the regular shipping price,Dette vil blive lagt til eller trukket fra den regulære fragtpris
 Use percentage of total order amount for insurance.,Brug procentdel af det samlede ordrebeløb til forsikring.
 "When enabled, parcel lockers will be excluded from pickup locations for all products. Only physical pickup points will be shown.","Når aktiveret, vil pakkebokse blive udelukket fra afhentningssteder for alle produkter. Kun fysiske afhentningssteder vil blive vist."
-"With 'Export entire order', MyParcel will export every order in its entirety to the back office for further processing.",Med 'Eksporter hele ordren' vil MyParcel eksportere hver ordre i sin helhed til back office til videre behandling.
 
 Titles,Titler
 API Access,API-adgang
@@ -469,3 +468,6 @@ No MyParcel shipments were found to make a return label for.,Der blev ikke funde
 "MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel kunne ikke læse denne kontos transportører, så ingen transportør vises. Kontrollér API-nøglen."
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 blev ikke slået til: denne transportør kræver en modulopdatering, før der kan sendes forsendelser med den."
 "Reloading the page...","Siden genindlæses..."
+"This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Dette valg indeholder ordrer fra konti, der eksporterer hele ordren, og ordrer fra andre konti. Vælg én type ordre, og prøv igen."
+"Account","Konto"
+"Account features","Kontofunktioner"

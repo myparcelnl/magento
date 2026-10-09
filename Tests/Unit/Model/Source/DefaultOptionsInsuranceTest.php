@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 
 /**
@@ -13,10 +14,15 @@ use MyParcelNL\Magento\Service\Config;
  *
  * @param array<string, mixed> $carrierSettings the carrier's default_options
  */
-function defaultOptionsFor(array $carrierSettings, float $grandTotal, ?string $countryId = 'NL'): DefaultOptions
+function defaultOptionsFor(
+    array   $carrierSettings,
+    float   $grandTotal,
+    ?string $countryId = 'NL',
+    string  $homeCountry = 'NL'
+): DefaultOptions
 {
     $config = createConfig([], ['postnl' => ['default_options' => $carrierSettings]]);
-    mockLoggerFacade([Config::class => $config]);
+    mockLoggerFacade([Config::class => $config, StoredAccount::class => storedAccountAt($homeCountry)]);
 
     $address = null;
 
@@ -108,3 +114,10 @@ it('applies the percentage and the cap to a required companion', function () {
         ->and(defaultOptionsFor(insuranceSettings(['insurance_local_amount' => 250]), 9000.00)->getRequiredInsurance('postnl'))->toBe(250)
         ->and(defaultOptionsFor(insuranceSettings(['insurance_local_amount' => 0]), 400.00)->getRequiredInsurance('postnl'))->toBe(0);
 });
+
+it('caps Belgium by the zone the account its home country puts it in', function (string $homeCountry, int $cap) {
+    expect(defaultOptionsFor(insuranceSettings(), 9000.00, 'BE', $homeCountry)->getDefaultInsurance('postnl'))->toBe($cap);
+})->with([
+    'belgian account, local amount' => ['BE', 5000],
+    'dutch account, belgian amount' => ['NL', 2000],
+]);
