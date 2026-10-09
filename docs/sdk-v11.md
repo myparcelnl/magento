@@ -43,12 +43,15 @@ Three rules run through the result:
 3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
    module truth.
 
-**When capabilities cannot be had, the module offers everything.** `Capabilities\Repository` answers
-a permissive set in five cases: a store with no API key, a request that will not serialise, a shape
-that failed within the last 60 seconds, a failed fetch, and a shape another request is already
-fetching. The last one is a lock taken with a zero wait, not a queue — after `cache:clean` every
-concurrent render misses the same shape at once, and making them wait for one call is the cost being
-avoided, not the fix.
+**When capabilities cannot be had, the module serves the last answer, else everything.**
+`Capabilities\Repository` answers a permissive set for a store with no API key and for a request that
+will not serialise. Four more cases serve the shape's last good answer from `Capabilities\StoredAnswers`
+(Magento's `flag` table, so it survives `cache:clean` and a Redis restart), and a permissive set only
+when the shape was never answered: a shape that failed within the last 60 seconds, a failed fetch,
+a cache or lock backend that throws, and a shape another request is already fetching. The last one
+is a lock taken with a zero wait, not a queue — after `cache:clean` every concurrent render misses
+the same shape at once, and making them wait for one call is the cost being avoided, not the fix. `AccountSettings\Maintenance` deletes the
+stored answers of an API key that is configured nowhere any more.
 
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a

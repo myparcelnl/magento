@@ -8,6 +8,7 @@ use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\StoredAnswers;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 use MyParcelNL\Magento\Service\LogContext;
@@ -15,7 +16,8 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Deletes stored account settings rows whose api key is configured nowhere any more.
+ * Deletes stored account settings rows and stored capabilities answers whose api key is configured
+ * nowhere any more.
  *
  * Invariants:
  *  - Idempotent, so calling it after every config save costs nothing when there is nothing to do.
@@ -32,6 +34,7 @@ class Maintenance
     private Config               $config;
     private Fingerprint          $fingerprint;
     private LoggerInterface      $logger;
+    private StoredAnswers        $storedAnswers;
 
     public function __construct(
         CollectionFactory    $collectionFactory,
@@ -40,7 +43,8 @@ class Maintenance
         ScopeConfigInterface $scopeConfig,
         Config               $config,
         Fingerprint          $fingerprint,
-        LoggerInterface      $logger
+        LoggerInterface      $logger,
+        StoredAnswers        $storedAnswers
     ) {
         $this->collectionFactory = $collectionFactory;
         $this->configWriter      = $configWriter;
@@ -49,11 +53,13 @@ class Maintenance
         $this->config            = $config;
         $this->fingerprint       = $fingerprint;
         $this->logger            = $logger;
+        $this->storedAnswers     = $storedAnswers;
     }
 
     /**
-     * Deletes stored account settings whose api key is not configured. Callers may run it after any
-     * config save: it is idempotent, and an empty live key set makes it a no-op instead of a purge.
+     * Deletes stored account settings and capabilities answers whose api key is not configured.
+     * Callers may run it after any config save: it is idempotent, and an empty live key set makes it a
+     * no-op instead of a purge.
      */
     public function reconcile(): void
     {
@@ -95,6 +101,8 @@ class Maintenance
         if ($changed) {
             $this->cacheTypeList->cleanType(self::CONFIG_CACHE_TYPE);
         }
+
+        $this->storedAnswers->deleteExcept(array_keys($liveFingerprints));
     }
 
     /**

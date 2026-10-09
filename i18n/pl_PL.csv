@@ -475,3 +475,4 @@ No MyParcel shipments were found to make a return label for.,"Nie znaleziono prz
 "This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Ten wybór zawiera zamówienia z kont, które eksportują całe zamówienie, oraz zamówienia z innych kont. Wybierz jeden rodzaj zamówienia i spróbuj ponownie."
 "Account","Konto"
 "Account features","Funkcje konta"
+"%1 labels could not be fetched. %2","Nie udało się pobrać %1 etykiet. %2"
