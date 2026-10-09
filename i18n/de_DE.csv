@@ -457,6 +457,7 @@ Return if no answer,Bei Nichtannahme zurücksenden
 "Importing the MyParcel Backoffice settings failed:","Der Import der MyParcel Backoffice-Einstellungen ist fehlgeschlagen:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","Der Import der MyParcel Backoffice-Einstellungen ist fehlgeschlagen. Details finden Sie im Protokoll."
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-Einstellungen wurden importiert."
+"Save the configuration first. The import uses the saved API key.","Speichern Sie zuerst die Konfiguration. Der Import verwendet den gespeicherten API-Schlüssel."
 Return label sent,Retouren-Etikett gesendet
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel kennt die Sendung %1 unter dem API-Schlüssel dieses Stores nicht.
 The carrier of shipment %1 does not support return labels.,Der Versanddienstleister der Sendung %1 unterstützt keine Retouren-Etiketten.

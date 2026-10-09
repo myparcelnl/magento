@@ -457,6 +457,7 @@ Return if no answer,Restituisci se nessuna risposta
 "Importing the MyParcel Backoffice settings failed:","L'importazione delle impostazioni MyParcel Backoffice non è riuscita:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","L'importazione delle impostazioni MyParcel Backoffice non è riuscita. Controlla il log per i dettagli."
 "MyParcel Backoffice settings imported.","Impostazioni MyParcel Backoffice importate."
+"Save the configuration first. The import uses the saved API key.","Salva prima la configurazione. L’importazione usa l’API key salvata."
 Return label sent,Etichetta di reso inviata
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel non conosce la spedizione %1 con l'API key di questo store.
 The carrier of shipment %1 does not support return labels.,Il corriere della spedizione %1 non supporta le etichette di reso.
