@@ -9,17 +9,19 @@ use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
-use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
+use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
+use MyParcelNL\Magento\Service\PackageTypeResolver;
 use MyParcelNL\Magento\Service\Tax;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
@@ -38,10 +40,15 @@ class Checkout
     private Tax                   $tax;
     private Config                $config;
     private DeliveryCosts         $deliveryCosts;
-    private PackageRepository     $package;
+    private PackageTypeResolver   $packageTypes;
+    private CartShippingRules     $cartRules;
     private Quote                 $quote;
     private StoreManagerInterface $storeManager;
     private ShapeLookup           $capabilityLookup;
+
+    /** The quote's store. Every config read this class delegates carries it, rather than relying on
+     *  the ambient store of the request. */
+    private int $storeId;
 
     /** @var string[]|null the carriers with delivery or pickup on; getDeliveryOptions() asks three times */
     private ?array $activeCarriers = null;
@@ -52,7 +59,8 @@ class Checkout
      * @param Tax                   $tax
      * @param Config                $config
      * @param DeliveryCosts         $deliveryCosts
-     * @param PackageRepository     $package
+     * @param PackageTypeResolver   $packageTypes
+     * @param CartShippingRules     $cartRules
      * @param StoreManagerInterface $storeManager
      * @param ShapeLookup           $capabilityLookup
      */
@@ -60,21 +68,22 @@ class Checkout
         Tax                   $tax,
         Config                $config,
         DeliveryCosts         $deliveryCosts,
-        PackageRepository     $package, // TODO DEPRECATE / IMPROVE
+        PackageTypeResolver   $packageTypes,
+        CartShippingRules     $cartRules,
         StoreManagerInterface $storeManager,
         ShapeLookup           $capabilityLookup
     )
     {
-        $this->tax                    = $tax;
-        $this->config                 = $config;
-        $this->deliveryCosts          = $deliveryCosts;
-        $this->package                = $package;
-        $this->storeManager           = $storeManager;
-        $this->capabilityLookup       = $capabilityLookup;
-        $this->quote                  = $this->getQuoteFromCurrentSession();
-
-        // Must happen before any setMailboxSettings() call, which reads config.
-        $this->package->setStoreId((int) $this->quote->getStoreId());
+        $this->tax              = $tax;
+        $this->config           = $config;
+        $this->deliveryCosts    = $deliveryCosts;
+        $this->packageTypes     = $packageTypes;
+        $this->cartRules        = $cartRules;
+        $this->storeManager     = $storeManager;
+        $this->capabilityLookup = $capabilityLookup;
+        $this->quote            = $this->getQuoteFromCurrentSession();
+        // Cast kept: a quote with no store id resolves as store 0, which is not the same as null.
+        $this->storeId          = (int) $this->quote->getStoreId();
     }
 
     /**
@@ -88,8 +97,6 @@ class Checkout
      */
     public function getDeliveryOptions(array $forAddress = []): array
     {
-        $this->hideDeliveryOptionsForProduct();
-
         $country = $forAddress['countryId'] ?? null;
 
         if ($country
@@ -193,8 +200,10 @@ class Checkout
         $carrierPaths   = Config::CARRIERS_XML_PATH_MAP;
         $showTotalPrice = $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
 
-        $quote = $this->quote;
-        $caps  = $this->getCapabilities($country, $packageType);
+        $quote           = $this->quote;
+        $items           = $quote->getAllItems();
+        $caps            = $this->getCapabilities($country, $packageType);
+        $hidesForProduct = $this->cartRules->hidesDeliveryOptions($items);
 
         foreach ($activeCarriers as $carrierName) {
             $carrierPath = $carrierPaths[$carrierName];
@@ -239,16 +248,16 @@ class Checkout
                 $caps,
                 $carrierName,
                 $packageType,
-                $this->package->forcedLimitingOptions($quote->getAllItems(), $carrierPath)
+                $this->cartRules->forcedLimitingOptions($items, $carrierPath, $this->storeId)
             );
             $allowDeliveryOptions  = $canCarryForced
-                                     && ! $this->package->deliveryOptionsDisabled
+                                     && ! $hidesForProduct
                                      && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             if ($allowDeliveryOptions && $packageType === PackageType::MAILBOX_NAME) {
-                $this->package->setMailboxSettings($carrierPath);
                 $allowDeliveryOptions = $this->config->getBoolConfig($carrierPath, 'mailbox/active')
-                                        && $this->package->getMaxMailboxWeight() >= $this->package->getWeight();
+                                        && $this->packageTypes->maxMailboxWeight($carrierPath, $this->storeId)
+                                           >= $this->packageTypes->cartWeight($items);
             }
 
             $myParcelConfig['carrierSettings'][$carrierName] = [
@@ -258,7 +267,7 @@ class Checkout
                 'allowCollect'          => $canHaveCollect && $this->config->getBoolConfig($carrierPath, 'delivery/collect_active'),
                 'allowReceiptCode'      => $canHaveReceiptCode && $this->config->getBoolConfig($carrierPath, 'delivery/receipt_code_active'),
                 'allowOnlyRecipient'    => $canHaveOnlyRecipient && $this->config->getBoolConfig($carrierPath, 'delivery/only_recipient_active'),
-                'allowPriorityDelivery' => $canHavePriorityDelivery && $this->package->getPriorityDelivery($quote->getAllItems(), $carrierPath),
+                'allowPriorityDelivery' => $canHavePriorityDelivery && $this->cartRules->allowsPriorityDelivery($items, $carrierPath, $this->storeId),
                 'allowMorningDelivery'  => $allowMorningDelivery,
                 'allowEveningDelivery'  => $allowEveningDelivery,
                 'allowPickupLocations'  => $canHavePickup && $this->isPickupAllowed($carrierPath, $country),
@@ -429,30 +438,29 @@ class Checkout
 
         $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrierName];
         $products            = $this->quote->getAllItems();
-        $forced              = $this->package->forcedLimitingOptions($products, $carrierPath);
+        $forced              = $this->cartRules->forcedLimitingOptions($products, $carrierPath, $this->storeId);
         $canHaveDigitalStamp = $this->isPackageTypeCandidate($caps, $carrierName, $country, PackageType::DIGITAL_STAMP_NAME, $forced);
         $canHaveMailbox      = $this->isPackageTypeCandidate($caps, $carrierName, $country, PackageType::MAILBOX_NAME, $forced);
         $canHavePackageSmall = $this->isPackageTypeCandidate($caps, $carrierName, $country, PackageType::PACKAGE_SMALL_NAME, $forced);
 
-        $this->package->setMailboxSettings($carrierPath);
-        $this->package->setDigitalStampSettings($carrierPath);
-        $this->package->setPackageSmallSettings($carrierPath);
+        // Abroad the international toggle decides, so a carrier switched off at home can still ship
+        // a mailbox. && short-circuits per entry, so a config key is not read once the capability
+        // has already said no.
+        $mailboxActiveKey = CountryCode::CC_NL === $country ? 'mailbox/active' : 'mailbox/international_active';
 
-        if ($canHaveMailbox) {
-            if (CountryCode::CC_NL === $country) {
-                $this->package->setMailboxActive($this->config->getBoolConfig($carrierPath, 'mailbox/active'));
-            } else {
-                $this->package->setMailboxActive($this->config->getBoolConfig($carrierPath, 'mailbox/international_active'));
+        $candidates = PackageTypeCandidates::none();
+
+        foreach ([
+            PackageType::DIGITAL_STAMP_NAME => $canHaveDigitalStamp && $this->config->getBoolConfig($carrierPath, 'digital_stamp/active'),
+            PackageType::MAILBOX_NAME       => $canHaveMailbox && $this->config->getBoolConfig($carrierPath, $mailboxActiveKey),
+            PackageType::PACKAGE_SMALL_NAME => $canHavePackageSmall && $this->config->getBoolConfig($carrierPath, 'package_small/active'),
+        ] as $packageTypeName => $isCandidate) {
+            if ($isCandidate) {
+                $candidates = $candidates->with($packageTypeName);
             }
-        } else {
-            $this->package->setMailboxActive(false);
         }
 
-        $this->package->setCurrentCountry($country);
-        $this->package->setDigitalStampActive($canHaveDigitalStamp && $this->config->getBoolConfig($carrierPath, 'digital_stamp/active'));
-        $this->package->setPackageSmallActive($canHavePackageSmall && $this->config->getBoolConfig($carrierPath, 'package_small/active'));
-
-        return $this->package->selectPackageType($products, $carrierName);
+        return $this->packageTypes->resolve($products, $carrierName, $country, $candidates, $this->storeId);
     }
 
     /**
@@ -517,7 +525,7 @@ class Checkout
     {
         $products = $this->quote->getAllItems();
 
-        return $this->package->getAgeCheck($products, $carrierPath);
+        return $this->cartRules->forcesAgeCheck($products, $carrierPath, $this->storeId);
     }
 
     /**
@@ -529,7 +537,7 @@ class Checkout
     {
         $products = $this->quote->getAllItems();
 
-        return $this->package->getExcludeParcelLockers($products, $carrierPath);
+        return $this->cartRules->excludesParcelLockers($products, $carrierPath, $this->storeId);
     }
 
     /**
@@ -541,21 +549,10 @@ class Checkout
     public function getDropOffDelay(string $carrierPath, string $key): int
     {
         $products     = $this->quote->getAllItems();
-        $productDelay = (int) $this->package->getProductDropOffDelay($products);
+        $productDelay = (int) $this->cartRules->dropOffDelay($products);
         $configDelay  = $this->config->getIntegerConfig($carrierPath, $key);
 
         return max($productDelay, $configDelay);
-    }
-
-    /**
-     * @return self
-     */
-    public function hideDeliveryOptionsForProduct(): self
-    {
-        $products = $this->quote->getAllItems();
-        $this->package->productWithoutDeliveryOptions($products);
-
-        return $this;
     }
 
     /**
@@ -568,7 +565,7 @@ class Checkout
         $pickupEnabled = PackageType::PACKAGE_NAME === $this->getPackageType($country)
                          && $this->config->getBoolConfig($carrier, 'pickup/active');
 
-        return ! $this->package->deliveryOptionsDisabled && $pickupEnabled;
+        return ! $this->cartRules->hidesDeliveryOptions($this->quote->getAllItems()) && $pickupEnabled;
     }
 
     /**
