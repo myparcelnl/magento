@@ -91,3 +91,23 @@ it('drops a default-only field at website and store scope, and a group it leaves
         ->and($blueprint->shownAt('websites')->paths())->toBe(['general/print/paper_type'])
         ->and($blueprint->shownAt('stores')->toArray()['sections'][0]['groups'])->toHaveCount(1);
 });
+
+it('keeps the default out of the form array', function () {
+    $field = Field::select('carrier/delivery/active', 'Delivery enabled', 'Yesno')->withDefault('0');
+
+    expect($field->default())->toBe('0')
+        ->and($field->toArray())->not->toHaveKey('default');
+});
+
+it('lists the default of every field that has one', function () {
+    $blueprint = new Blueprint([
+        new Section('carrier', 'Carrier', [
+            new Group('delivery', 'Delivery', [
+                Field::select('carrier/delivery/active', 'Delivery enabled', 'Yesno')->withDefault('0'),
+                Field::text('carrier/delivery/title', 'Title'),
+            ]),
+        ]),
+    ]);
+
+    expect($blueprint->defaults())->toBe(['carrier/delivery/active' => '0']);
+});

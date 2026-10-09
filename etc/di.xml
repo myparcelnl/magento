@@ -11,6 +11,17 @@
             </argument>
         </arguments>
     </virtualType>
+    <!-- The module's config defaults. sortOrder 5 sits below config.xml (10) and saved rows (100). -->
+    <virtualType name="systemConfigSourceAggregated" type="Magento\Framework\App\Config\ConfigSourceAggregated">
+        <arguments>
+            <argument name="sources" xsi:type="array">
+                <item name="myparcel_generated_defaults" xsi:type="array">
+                    <item name="source" xsi:type="object">MyParcelNL\Magento\App\Config\Source\GeneratedDefaults</item>
+                    <item name="sortOrder" xsi:type="string">5</item>
+                </item>
+            </argument>
+        </arguments>
+    </virtualType>
     <!-- The order grid the module refreshes after writing its two columns -->
     <type name="MyParcelNL\Magento\Service\OrderGridColumns">
         <arguments>
