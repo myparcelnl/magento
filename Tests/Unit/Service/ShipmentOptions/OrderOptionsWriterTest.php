@@ -114,6 +114,20 @@ it('keeps the merchant\'s options through a save of other fields, and drops the 
         ->and(writtenOptions($cleared))->not->toHaveKey('merchantOptions');
 });
 
+it('records an insurance the merchant saves, so it outranks the checkout, and forgets it at zero', function () {
+    $insured = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard', 'merchantOptions' => ['signature']])],
+        ['insurance' => '500']
+    );
+    $uninsured = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard', 'merchantOptions' => ['insurance']])],
+        ['insurance' => '0']
+    );
+
+    expect(writtenOptions($insured)['merchantOptions'])->toBe(['signature', 'insurance'])
+        ->and(writtenOptions($uninsured))->not->toHaveKey('merchantOptions');
+});
+
 it('writes package type, insurance, label amount and digital stamp weight', function () {
     $did = writeOrderOptions(
         [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard'])],
