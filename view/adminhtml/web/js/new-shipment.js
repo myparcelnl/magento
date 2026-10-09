@@ -37,7 +37,7 @@ define(
                             text: $.mage.__('Save'),
                             class: 'action-primary',
                             click: function (api) {
-                                api.save().then(function (answer) {
+                                return api.save().then(function (answer) {
                                     if (answer.summary) {
                                         renderSummary(answer.summary);
                                     }
