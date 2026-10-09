@@ -140,7 +140,7 @@ define(
                                 text: $.mage.__('Save'),
                                 class: 'action-secondary',
                                 click: function (api) {
-                                    api.save().then(function () {
+                                    return api.save().then(function () {
                                         api.close();
                                         parentThis._refresh(false);
                                     }).catch(function () {
@@ -158,7 +158,7 @@ define(
                                         ? window.open('', '_blank')
                                         : null;
 
-                                    api.save().then(function () {
+                                    return api.save().then(function () {
                                         // Read before closing: closing removes the form.
                                         var params = $('#mypa-options-form').serialize();
 
