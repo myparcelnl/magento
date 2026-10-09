@@ -261,6 +261,18 @@ class DefaultOptions
     }
 
     /**
+     * The labels an export of these orders creates, for the A4 positions to match.
+     *
+     * @param \Magento\Sales\Model\Order[] $orders
+     */
+    public static function labelTotal(array $orders): int
+    {
+        return array_sum(array_map(static function ($order): int {
+            return (new self($order))->getLabelAmount();
+        }, $orders));
+    }
+
+    /**
      * The stored name, unresolved. Use this when showing or passing the value on; getPackageType()
      * has to answer with an int and therefore has to substitute.
      *
