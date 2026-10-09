@@ -133,6 +133,14 @@ define(
                         idType: this.options.id_type || 'order',
                         title: $.mage.__('MyParcel options'),
                         extraHtml: template,
+                        onOpened: function (api) {
+                            // The export creates each order's saved label amount, which only arrives
+                            // with the form. On a view page, number_of_positions counts the tracks.
+                            var total = parseInt(api.$content.find('[data-mypa-options]').attr('data-label-total'), 10) || 1;
+
+                            $("input[id^=mypa_position-]").prop('checked', false);
+                            parentThis._getLabelPosition(Math.max(parentThis.options['number_of_positions'] || 1, total));
+                        },
                         buttons: [
                             {
                                 text: $.mage.__('Save'),
