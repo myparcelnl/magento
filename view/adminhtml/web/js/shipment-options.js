@@ -163,7 +163,8 @@ define(
          * @param {String}   config.idType    - 'order' or 'shipment'
          * @param {String}   config.title
          * @param {String}   [config.extraHtml] - shown below the options, for the export settings
-         * @param {Array}    config.buttons   - {text, class, click(api)}
+         * @param {Array}    config.buttons   - {text, class, click(api)}; the buttons stay disabled
+         *                                     until the promise click returns settles
          * @param {Function} [config.onOpened] - called with the api once the form is in place
          *
          * @return {Object} the api the buttons receive
@@ -177,6 +178,7 @@ define(
             var $extra = $('<div class="mypa-options-modal-extra"></div>').append(config.extraHtml || '').hide();
             var $root = $();
             var $footer;
+            var closed = false;
             var api;
 
             $content.append($loading, $messages, $form, $extra);
@@ -225,6 +227,7 @@ define(
                 },
 
                 close: function () {
+                    closed = true;
                     $content.modal('closeModal');
                 }
             };
@@ -237,7 +240,23 @@ define(
                         text: button.text,
                         class: button.class || '',
                         click: function () {
-                            button.click(api);
+                            var $buttons = $footer.find('button');
+
+                            function enable() {
+                                // A closing modal stays clickable while it fades out.
+                                if (!closed) {
+                                    $buttons.prop('disabled', false);
+                                }
+                            }
+
+                            // Disabled, not only covered by the spinner: Enter on a focused button
+                            // gets past it, and a second click can export the orders twice.
+                            if ($buttons.prop('disabled')) {
+                                return;
+                            }
+
+                            $buttons.prop('disabled', true);
+                            Promise.resolve(button.click(api)).then(enable, enable);
                         }
                     };
                 }),
