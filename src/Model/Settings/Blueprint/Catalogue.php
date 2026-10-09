@@ -14,7 +14,6 @@ use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
-use MyParcelNL\Magento\Model\Source\AgeCheckNo;
 use MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions;
 use MyParcelNL\Magento\Model\Source\DropOffDelayDays;
 use MyParcelNL\Magento\Model\Source\ExportMode;
@@ -414,7 +413,7 @@ final class Catalogue
 
     private static function timedDeliveryGroup(string $path, string $id, string $label): Group
     {
-        $active = Field::select($path . 'active', "$label active", AgeCheckNo::class)
+        $active = Field::select($path . 'active', "$label active", Yesno::class)
             ->withTooltip("If age check is active then the $id delivery is not possible");
 
         return new Group($id, $label, [
