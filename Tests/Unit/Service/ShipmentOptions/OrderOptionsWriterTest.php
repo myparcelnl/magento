@@ -154,6 +154,31 @@ it('refuses an option the account does not offer for the shape, and writes nothi
         ->toThrow(LocalizedException::class, 'age_check');
 });
 
+it('refuses no insurance when the contract requires insurance', function () {
+    $order        = writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard']);
+    $capabilities = CapabilitySet::fromApiResults([capabilityResult(['options' => capabilityOptions(['insurance' => [
+        'isRequired' => true,
+        'min'        => ['amount' => 10000, 'currency' => 'EUR'],
+        'max'        => ['amount' => 500000, 'currency' => 'EUR'],
+    ]])])]);
+
+    expect(fn() => writeOrderOptions([$order], ['insurance' => '0'], $capabilities))
+        ->toThrow(LocalizedException::class, 'insurance');
+});
+
+it('accepts no insurance when the contract does not require it', function (array $options) {
+    $did = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard'])],
+        ['insurance' => '0'],
+        CapabilitySet::fromApiResults([capabilityResult(['options' => $options])])
+    );
+
+    expect(writtenOptions($did)['shipmentOptions']['insurance'])->toBe(0);
+})->with([
+    'optional'    => [capabilityOptions()],
+    'not offered' => [array_diff_key(capabilityOptions(), ['insurance' => true])],
+]);
+
 it('refuses a carrier the account has no contract for', function () {
     $order = writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard']);
 
