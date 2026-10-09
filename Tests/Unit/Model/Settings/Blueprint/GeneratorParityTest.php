@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Magento\Config\Model\Config\Source\Yesno;
 use MyParcelNL\Magento\Model\Settings\Blueprint\Generator;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
@@ -65,6 +66,12 @@ const LEGACY_ALLOWED_VALIDATE = [
     'myparcelnl_magento_trunkrs_settings/delivery/signature_fee',
     'myparcelnl_magento_trunkrs_settings/delivery/only_recipient_fee',
     'myparcelnl_magento_trunkrs_settings/delivery/receipt_code_fee',
+];
+
+// AgeCheckNo read PostNL's age check for every carrier; the checkout excludes morning and evening per carrier.
+const LEGACY_ALLOWED_SOURCE_MODELS = [
+    'myparcelnl_magento_postnl_settings/morning/active' => Yesno::class,
+    'myparcelnl_magento_postnl_settings/evening/active' => Yesno::class,
 ];
 
 // One label template: Trunkrs had its own wording, GLS one "(Local)" suffix.
@@ -158,6 +165,8 @@ it('stores and shows every legacy path the same way', function () {
         if (in_array($path, LEGACY_ALLOWED_MISSING, true)) {
             continue;
         }
+
+        $field['source_model'] = LEGACY_ALLOWED_SOURCE_MODELS[$path] ?? $field['source_model'] ?? null;
 
         expect(storageShape($generated[$path]))->toBe(storageShape($field), $path);
 
