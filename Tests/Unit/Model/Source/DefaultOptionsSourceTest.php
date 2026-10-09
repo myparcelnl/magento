@@ -36,6 +36,15 @@ function optionSourceFor(
     return (new DefaultOptions($order))->sourceOf($option, 'postnl');
 }
 
+it('reads a stored insurance amount as a switch: 0 is off, any other amount is on', function (array $chosen, array $merchantOptions, ?int $tier) {
+    expect(optionSourceFor(ShipmentOption::INSURANCE, [], $chosen, '', $merchantOptions))->toBe($tier);
+})->with([
+    'the merchant saved it'     => [[ShipmentOption::INSURANCE => 250], [ShipmentOption::INSURANCE], OptionSource::MERCHANT],
+    'the old checkout chose it' => [[ShipmentOption::INSURANCE => 250], [], OptionSource::CHECKOUT],
+    'the merchant switched off' => [[ShipmentOption::INSURANCE => 0], [], null],
+    'nothing is stored'         => [[], [], null],
+]);
+
 it('names the configuration when only the carrier setting forces the option', function () {
     expect(optionSourceFor(ShipmentOption::SIGNATURE, ['signature_active' => '1']))->toBe(OptionSource::CONFIGURATION);
 });

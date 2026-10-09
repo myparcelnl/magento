@@ -70,6 +70,23 @@ it('settles a mutual exclusion by where each value came from', function (int $ag
     '18+ product beats a merchant receipt code'    => [OptionSource::PRODUCT, OptionSource::MERCHANT, ShipmentOption::RECEIPT_CODE],
 ]);
 
+it('ranks the insurance a merchant saved above a configured option it excludes', function () {
+    $notices = captureNotices();
+
+    $resolved = dependencyResolver(
+        acceptanceOptionsFor('POSTNL', ['printReturnLabelAtDropOff' => ['requires' => [], 'excludes' => ['insurance']]]),
+        [ShipmentOption::INSURANCE => OptionSource::MERCHANT, ShipmentOption::PRINTERLESS_RETURN => OptionSource::CONFIGURATION],
+        0,
+        250
+    )->resolve()->toArray();
+
+    expect($resolved[ShipmentOption::INSURANCE])->toBe(250)
+        ->and($resolved[ShipmentOption::PRINTERLESS_RETURN])->toBeFalse()
+        ->and($notices->getArrayCopy())->toContain(
+            'Shipment option printerless_return left off order 100000001: it excludes insurance, which was decided with more weight.'
+        );
+});
+
 it('settles exclusions before requires, so a dropped option adds no companion', function () {
     captureNotices();
 
