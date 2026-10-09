@@ -26,6 +26,9 @@ class Settings
     private ?array               $settingsCache = null;
     private CollectionFactory    $scopeCollectionFactory;
 
+    /** @var array<string,array<string,bool>> "scope|scopeId" => path => whether a row exists there */
+    private array $rowsAtScope = [];
+
     public function __construct(
         ModuleDirReader      $moduleDirReader,
         Json                 $json,
@@ -121,15 +124,90 @@ class Settings
     /**
      * Partition-aware: true if and only if a row exists at the exact (scope, scopeId) for this path.
      * Unlike hasOwnValue() this does NOT short-circuit for default scope.
+     *
+     * Answered from one read of every path the settings file declares, warmed on the first ask per
+     * scope: the form asks once per field and there are hundreds of them, so a COUNT each cost the
+     * page a query per field at website and store scope. A path the file does not declare — an API
+     * token, say — still costs its own.
      */
     public function hasRowAtScope(string $path, string $scope, int $scopeId): bool
     {
+        $key = $scope . '|' . $scopeId;
+
+        if (! isset($this->rowsAtScope[$key])) {
+            $paths  = $this->settingPaths();
+            $stored = $this->storedValuesAtScope($paths, $scope, $scopeId);
+            $known  = [];
+
+            foreach ($paths as $declared) {
+                $known[$declared] = array_key_exists($declared, $stored);
+            }
+
+            $this->rowsAtScope[$key] = $known;
+        }
+
+        // isset() is safe here: a warmed path is true or false, never null.
+        if (isset($this->rowsAtScope[$key][$path])) {
+            return $this->rowsAtScope[$key][$path];
+        }
+
         $collection = $this->scopeCollectionFactory->create()
             ->addFieldToFilter('path', $path)
             ->addFieldToFilter('scope', $scope)
             ->addFieldToFilter('scope_id', $scopeId);
 
         return $collection->getSize() > 0;
+    }
+
+    /** @return string[] every field path the settings file declares */
+    private function settingPaths(): array
+    {
+        $paths = [];
+
+        foreach ($this->getSections() as $section) {
+            foreach ($section['groups'] ?? [] as $group) {
+                foreach ($group['fields'] ?? [] as $field) {
+                    if (isset($field['path'])) {
+                        $paths[] = (string) $field['path'];
+                    }
+                }
+            }
+        }
+
+        return $paths;
+    }
+
+    /**
+     * The values stored at exactly this (scope, scopeId), keyed by path.
+     *
+     * Row coordinates, never inheritance: a path missing from the result has no row here, which is
+     * not the same as having no value. A save compares against this to skip fields nobody changed,
+     * and a cascaded read would answer "unchanged" for a scope that is only inheriting — which is
+     * precisely the case that has to be written.
+     *
+     * One query for the whole form, so the comparison costs less than the writes it avoids.
+     *
+     * @param  string[] $paths
+     * @return array<string, string|null>
+     */
+    public function storedValuesAtScope(array $paths, string $scope, int $scopeId): array
+    {
+        if ([] === $paths) {
+            return [];
+        }
+
+        $collection = $this->scopeCollectionFactory->create()
+            ->addFieldToFilter('path', ['in' => array_values(array_unique($paths))])
+            ->addFieldToFilter('scope', $scope)
+            ->addFieldToFilter('scope_id', $scopeId);
+
+        $values = [];
+
+        foreach ($collection as $row) {
+            $values[(string) $row->getData('path')] = $row->getData('value');
+        }
+
+        return $values;
     }
 
     /**

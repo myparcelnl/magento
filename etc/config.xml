@@ -35,7 +35,6 @@
                 <label_description>%order_nr%</label_description>
                 <country_of_origin>NL</country_of_origin>
                 <create_concept_after_invoice>0</create_concept_after_invoice>
-                <return_in_the_box>0</return_in_the_box>
                 <priority_delivery_active>0</priority_delivery_active>
             </print>
             <delivery_titles>
@@ -207,6 +206,9 @@
 
         <myparcelnl_magento_ups_settings>
             <default_options>
+                <insurance_from_price>0</insurance_from_price>
+                <insurance_local_amount>0</insurance_local_amount>
+                <insurance_percentage>0</insurance_percentage>
                 <delivery_fee>0</delivery_fee>
             </default_options>
             <general>
