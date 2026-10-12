@@ -1,6 +1,6 @@
 {
   "name": "@myparcel/magento",
-  "version": "5.10.0",
+  "version": "5.10.3",
   "private": true,
   "description": "Voor de handleiding en meer informatie ga naar: https://myparcelnl.github.io/magento/",
   "homepage": "https://myparcelnl.github.io/magento",
@@ -19,13 +19,10 @@
     "@eslint/js": "^10.0.1",
     "@myparcel-dev/eslint-config-esnext": "^1.4.0",
     "@myparcel-dev/eslint-config-node": "^1.4.0",
-    "@myparcel-dev/semantic-release-config": "^6.0.12",
+    "@myparcel-dev/semantic-release-config": "^7.0.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@types/knockout": "^3.4.77",
     "eslint": "^10.9.1"
-  },
-  "resolutions": {
-    "tar": "7.5.11"
   },
   "packageManager": "yarn@4.12.0"
 }
