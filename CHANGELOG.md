@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.10.4](https://github.com/myparcelnl/magento/compare/v5.10.3...v5.10.4) (2026-10-13)
+
+### :bug: Bug Fixes
+
+* **checkout:** stop overriding Magento's shipping save processor ([#990](https://github.com/myparcelnl/magento/issues/990)) ([061be86](https://github.com/myparcelnl/magento/commit/061be86dda8c49f1d3e8a6e83b3ab482a0decc8f)), closes [#775](https://github.com/myparcelnl/magento/issues/775) [#311](https://github.com/myparcelnl/magento/issues/311) [#774](https://github.com/myparcelnl/magento/issues/774) [#839](https://github.com/myparcelnl/magento/issues/839)
+
 ## [5.10.3](https://github.com/myparcelnl/magento/compare/v5.10.2...v5.10.3) (2026-10-02)
 
 ## [5.10.2](https://github.com/myparcelnl/magento/compare/v5.10.1...v5.10.2) (2026-10-01)
