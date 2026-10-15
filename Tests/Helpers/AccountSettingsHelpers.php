@@ -40,6 +40,37 @@ function contractDefinitionsFor(array $rowsByPath, array $scopedValues = []): Co
 }
 
 /**
+ * The stored row of $apiKey naming these carriers and nothing else about them, keyed by path. An
+ * empty list is no row at all, which reads permissive: "could not find out", not "no carriers".
+ *
+ * @param  string[] $v2Names
+ * @return array<string, string>
+ */
+function contractRowsFor(array $v2Names, string $apiKey = 'live-key'): array
+{
+    if ([] === $v2Names) {
+        return [];
+    }
+
+    return [settingsPathFor($apiKey) => accountSettingsRow(array_map(static function (string $v2Name): array {
+        return contractDefinitionItem(['carrier' => $v2Name]);
+    }, $v2Names))];
+}
+
+/**
+ * A ContractDefinitions whose stored contract for one store names these carriers.
+ *
+ * @param string[] $v2Names
+ */
+function storedContractFor(int $storeId, array $v2Names, string $apiKey = 'live-key'): ContractDefinitions
+{
+    return contractDefinitionsFor(
+        contractRowsFor($v2Names, $apiKey),
+        ['stores' => [$storeId => [Config::XML_PATH_API_KEY => $apiKey]]]
+    );
+}
+
+/**
  * The stored account settings row for 'live-key', carrying one PostNL contract whose insurance
  * option has the given bounds in cents.
  *

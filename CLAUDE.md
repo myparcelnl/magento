@@ -61,7 +61,7 @@ Magento Order → Adapter → SDK Consignment → MyParcel API
 
 - **Adapters** (`src/Adapter/`): Convert between Magento and SDK data structures (`DeliveryOptionsFromOrderAdapter`, `OrderLineOptionsFromOrderAdapter`, `ShipmentOptionsFromAdapter`)
 - **Carrier** (`src/Model/Carrier/Carrier.php`): Single Magento carrier (`myparcel`) that dispatches to PostNL, DHL variants, DPD, UPS, GLS, Trunkrs
-- **Config** (`src/Service/Config.php`): Central configuration access with `CARRIERS_XML_PATH_MAP` for carrier-specific settings
+- **Config** (`src/Service/Config.php`): Central configuration access. `Config::carrierPath()` derives a carrier's settings prefix from its name
 - **Checkout** (`src/Model/Checkout/DeliveryOptions.php`): Delivery options logic for frontend; frontend JS uses RequireJS + Knockout.js
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`): Bridge Magento orders/shipments to SDK for batch API operations
 - **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`): Package type determination (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, plus what the cart's own products say about how it may ship. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way
@@ -95,7 +95,7 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 - **ADRs**: Architectural Decision Records live in the engineering-wide [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) repo, not in this module.
 - **SDK v11** ([`docs/sdk-v11.md`](docs/sdk-v11.md)): why the module owns its shipment domain layer, the deliberate divergences from `myparcelnl/pdk`, which vocabulary each boundary takes, the three money scales, and the SDK defects the module works around. Read it before touching `src/Model/Shipment/` or `src/Service/Export/`.
-- **Capabilities-driven settings** ([`docs/design/capabilities-driven-settings.md`](docs/design/capabilities-driven-settings.md)): the INT-1289 stack that replaces `etc/dynamic_settings.json` with a settings form generated per scope from account capabilities. PR 1 of 6 has landed. Read it before touching `etc/dynamic_settings.json` or `Config::CARRIERS_XML_PATH_MAP`.
+- **Capabilities-driven settings** ([`docs/design/capabilities-driven-settings.md`](docs/design/capabilities-driven-settings.md)): the INT-1289 stack that generates the settings form per scope from account capabilities. PR 4 of 6 replaced `etc/dynamic_settings.json` with `src/Model/Settings/Blueprint/`. Read it before touching `Blueprint/Catalogue.php` or `Model/Shipment/Carrier.php`.
 - **FRs** (`docs/functional-requirements/`): Functional requirement specifications
 - **TRs** (`docs/technical-requirements/`): Technical requirement specifications
 - **OpenAPI** — Core API spec: `https://api.myparcel.nl/openapi.min.json`; Order API spec (enums, ShipmentOptions): `https://order.api.myparcel.nl/openapi.json`
@@ -103,17 +103,18 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 ### Configuration
 
-- Admin settings: `etc/dynamic_settings.json` (intermediate solution, will be replaced by capabilities endpoint later)
+- Admin settings: generated per scope by `Model\Settings\Blueprint\Generator` from the contract definitions of the scope's API key. Field templates and the module-owned lists live in `Blueprint\Catalogue`. The form's paths at a scope are also the save allow-list in `Observer\ConfigChange`.
 - Config paths: `myparcelnl_magento_general/*`, `myparcelnl_magento_[carrier]_settings/*`
 - DI: `etc/di.xml` (backend), `etc/frontend/di.xml` (checkout)
 
   When adding a new admin setting:
-  1. Add a JSON entry to `etc/dynamic_settings.json` with `id`, `path`, `type`,                                                                                                                                      
-     `label`, and the three `showIn*` flags.
-  2. For non-trivial UI (buttons, custom widgets), set `frontend_model` to a block
+  1. Add a `Field` to its group in `Blueprint\Catalogue`, and its label and tooltip to `i18n/`.
+     `Tests/Unit/Model/Settings/Blueprint/GeneratorParityTest.php` pins the form against the legacy
+     JSON, so name a moved or changed path there.
+  2. For non-trivial UI (buttons, custom widgets), give the field a `frontend_model`: a block
      class in `src/Block/System/Config/Form/`.
   3. Persist via `Magento\Framework\App\Config\Storage\WriterInterface::save(...)`.
-  4. Read scoped existence via `Settings::hasOwnValue($path, $scope, $scopeId)`                                       
+  4. Read scoped existence via `Settings::hasOwnValue($path, $scope, $scopeId)`
      (partition semantics — does NOT cascade).
 
 ### Database
@@ -130,9 +131,7 @@ Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_da
 
 ## Adding a New Carrier
 
-1. Add admin settings and defaults in `etc/dynamic_settings.json`
-2. Add virtual types for insurance in `etc/di.xml`
-3. Update carrier detection in relevant services
+A carrier that capabilities report needs no code, and the module lists no carrier. Its paths derive from its name through `Config::carrierPath()`, and `Carrier::idFor()` reads its id from the SDK's carrier table, so the settings form, the New Shipment form and the checkout offer it. A carrier the SDK does not know yet renders with its delivery and pickup switches disabled: update the SDK. Do not add a per-carrier exception to `Catalogue`: a fact about a carrier comes from capabilities or from the account's `general_settings`, as the international mailbox flag does.
 
 ## Adding a Shipment Option
 
@@ -140,7 +139,7 @@ An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` d
 
 Add code only for what capabilities cannot say:
 
-1. A label of its own: an entry in `NewShipmentForm`, and its translation in `i18n/`. Without one, the label is the name, translated through `i18n/`.
+1. A label of its own: an entry in `ShipmentOption::LABELS`, and its translation in `i18n/`. Without one, the label is the name, translated through `i18n/`. The settings form gives the option a bare Automate toggle; add it to `Catalogue::FEE_OPTIONS` or `Catalogue::FROM_PRICE_OPTIONS` for a fee or a from-price.
 2. A country or delivery type rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map.
 3. A place in the fail-open form: `ShipmentOption::TO_CHECK` is what the form shows when capabilities could not be read, and the fixed front of the persisted key order in `ShipmentOptions::KEYS`. It needs a constant in `ShipmentOption.php`, and an entry in `V2_NAMES_MAP` only when the name does not derive from the wire key.
 

@@ -24,6 +24,7 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\Registry;
 use Magento\Sales\Block\Adminhtml\Items\AbstractItems;
+use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
@@ -35,6 +36,7 @@ use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
+use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
 
@@ -63,6 +65,8 @@ class NewShipment extends AbstractItems
 
     private ShapeLookup $capabilityLookup;
 
+    private ContractDefinitions $contractDefinitions;
+
     private Weight $weightService;
 
     private Config $configService;
@@ -87,7 +91,8 @@ class NewShipment extends AbstractItems
         $this->configService = $objectManager->get(Config::class);
         $this->form          = new NewShipmentForm();
 
-        $this->capabilityLookup = new ShapeLookup($objectManager->get(CapabilitiesRepository::class));
+        $this->capabilityLookup    = new ShapeLookup($objectManager->get(CapabilitiesRepository::class));
+        $this->contractDefinitions = $objectManager->get(ContractDefinitions::class);
 
         $this->defaultOptions = new DefaultOptions($this->order);
 
@@ -205,23 +210,23 @@ class NewShipment extends AbstractItems
     }
 
     /**
-     * Carriers to offer: those the account has a contract for, narrowed to those this module has
-     * settings for. A carrier the account has but we have no config path for cannot be offered —
-     * it would have no fee, no active flag and no drop-off days. The Repository already logs any
-     * carrier name the module does not know, and V2NameMapTest pins the two lists to the same keys,
-     * so there is no second gap to report here.
+     * Carriers to offer: those the account has a contract for that the module can export, so the
+     * same rule as the settings form. A shipment on any other carrier would fail at label time.
+     *
+     * The live lookup answers permissive on any API failure. Then the stored contract of the order's
+     * store answers instead, so a blip does not block label creation. With neither there is no
+     * carrier, and the form says so.
      *
      * @return string[]
      */
     public function getCarriers(): array
     {
-        $configured = array_keys(Config::CARRIERS_XML_PATH_MAP);
+        $capabilities = $this->getCapabilities();
+        $carriers     = $capabilities->isPermissive()
+            ? $this->contractDefinitions->forScope(ScopeInterface::SCOPE_STORES, (int) $this->order->getStoreId())->carriers()
+            : $capabilities->carriers();
 
-        if ($this->getCapabilities()->isPermissive()) {
-            return $configured;
-        }
-
-        return array_values(array_intersect($configured, $this->getCapabilities()->carriers()));
+        return array_values(array_filter($carriers, [Carrier::class, 'isExportable']));
     }
 
     /**

@@ -4,72 +4,67 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment;
 
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
 use MyParcelNL\Sdk\Model\Carrier\CarrierFactory;
-use MyParcelNL\Sdk\Model\Carrier\CarrierGLS;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
+use MyParcelNL\Sdk\Services\Mapping\ApiMapperService;
 use Throwable;
 
 /**
  * Carrier names and labels.
  *
- * Same split as PackageType and DeliveryType: the lowercase names are ours and are config path
- * segments, so they cannot follow the SDK. V2_NAMES_MAP translates them to the Core API vocabulary
- * a capabilities response speaks.
- *
+ * The lowercase names are ours and are config path segments. Each one derives from the carrier's
+ * Core API v2 name, and the SDK's carrier table answers the way back, so no carrier is listed here.
  */
 final class Carrier
 {
-    use MapsV2Names;
+    /** The carriers whose local country is not NL. Goes in PR 6: the local country is the account's. */
+    public const LOCAL_COUNTRY_MAP = ['dpd' => CountryCode::CC_BE];
 
-    // The SDK owns a carrier's name and label; this list is only which of them the module has
-    // admin settings and insurance virtual types for. The SDK ships more (bpost, brt, inpost,
-    // posteitaliane, upsexpresssaver) and an account's real set comes from capabilities.
-    public const POSTNL             = CarrierPostNL::NAME;
-    public const DHL_FOR_YOU        = CarrierDHLForYou::NAME;
-    public const DHL_EUROPLUS       = CarrierDHLEuroplus::NAME;
-    public const DHL_PARCEL_CONNECT = CarrierDHLParcelConnect::NAME;
-    public const UPS_STANDARD       = CarrierUPSStandard::NAME;
-    public const DPD                = CarrierDPD::NAME;
-    public const GLS                = CarrierGLS::NAME;
-    public const TRUNKRS            = CarrierTrunkrs::NAME;
-
-    public const V2_NAMES_MAP
-        = [
-            self::POSTNL             => 'POSTNL',
-            self::DHL_FOR_YOU        => 'DHL_FOR_YOU',
-            self::DHL_EUROPLUS       => 'DHL_EUROPLUS',
-            self::DHL_PARCEL_CONNECT => 'DHL_PARCEL_CONNECT',
-            self::UPS_STANDARD       => 'UPS_STANDARD',
-            self::DPD                => 'DPD',
-            self::GLS                => 'GLS',
-            self::TRUNKRS            => 'TRUNKRS',
-        ];
-
-    public const LOCAL_COUNTRY_MAP
-        = [
-            self::POSTNL             => CountryCode::CC_NL,
-            self::DHL_FOR_YOU        => CountryCode::CC_NL,
-            self::DHL_EUROPLUS       => CountryCode::CC_NL,
-            self::DHL_PARCEL_CONNECT => CountryCode::CC_NL,
-            self::UPS_STANDARD       => CountryCode::CC_NL,
-            self::DPD                => CountryCode::CC_BE,
-            self::GLS                => CountryCode::CC_NL,
-            self::TRUNKRS            => CountryCode::CC_NL,
-        ];
+    /** @var array<string, string>|null module name => v2 name, for every carrier the SDK knows */
+    private static ?array $v2Names = null;
 
     /**
-     * The module name for any v2 carrier name. The rule reproduces every name in V2_NAMES_MAP; it is
-     * one-way, so toV2Name() cannot use it: `upsstandard` could have been `UPS_STANDARD` or `UPSSTANDARD`.
+     * The module name for any v2 carrier name. One-way on its own, `upsstandard` could have been
+     * `UPS_STANDARD` or `UPSSTANDARD`, which is why toV2Name() reads the SDK's table.
      */
     public static function fromV2Name(string $v2Name): string
     {
         return strtolower(str_replace('_', '', $v2Name));
+    }
+
+    /** Null for a carrier the SDK does not know. */
+    public static function toV2Name(string $name): ?string
+    {
+        if (null === self::$v2Names) {
+            self::$v2Names = [];
+
+            foreach (ApiMapperService::forCarrier()->allRows() as $row) {
+                $v2Name = $row[ApiMapperService::COLUMN_V2_NAME] ?? null;
+
+                if (is_string($v2Name)) {
+                    self::$v2Names[self::fromV2Name($v2Name)] = $v2Name;
+                }
+            }
+        }
+
+        return self::$v2Names[$name] ?? null;
+    }
+
+    public static function knowsV2Name(string $v2Name): bool
+    {
+        return $v2Name === self::toV2Name(self::fromV2Name($v2Name));
+    }
+
+    /** The carrier's v1 id, which a shipment carries. Null for a carrier the SDK does not know. */
+    public static function idFor(string $name): ?int
+    {
+        $v2Name = self::toV2Name($name);
+
+        return null === $v2Name ? null : ApiMapperService::forCarrier()->idFromV2Name($v2Name);
+    }
+
+    public static function isExportable(string $name): bool
+    {
+        return null !== self::idFor($name);
     }
 
     /** Falls back to NL, which is what every carrier but DPD answers and what the old code hardcoded. */

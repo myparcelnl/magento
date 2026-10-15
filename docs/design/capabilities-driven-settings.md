@@ -1,6 +1,6 @@
 # Capabilities-driven settings (INT-1289)
 
-> **Status — 2026-09-29.** PR 1 of 6 is open for review; PRs 2 and 3 are open as drafts.
+> **Status — 2026-10-01.** PR 1 of 6 is open for review; PRs 2, 3 and 4 are open as drafts.
 >
 > | # | PR | branch | state |
 > |---|---|---|---|
@@ -9,7 +9,7 @@
 > | 2 | derive carrier and option names | `refactor/derive-carrier-and-option-names` | draft PR, #980 |
 > | — | settings decimals and import fix | `fix/settings-decimals-and-import` | draft PR, #981 |
 > | 3 | honour capability option dependencies | `feat/honour-capability-option-dependencies` | draft PR, #982 |
-> | 4 | generate the settings form | — | not started |
+> | 4 | generate the settings form | `feat/generate-settings-form` | draft PR, #984 |
 > | 5 | supply settings defaults | — | not started |
 > | 6 | account-derived export mode and proposition | — | not started |
 >
@@ -43,6 +43,88 @@
 >   `optionsFor()` offers, and `ShipmentOption::KNOWN` and `knowsV2Name()` are gone. `TO_CHECK` is
 >   not deleted, because it is what the form shows when capabilities could not be read. The
 >   unknown-values notice no longer reports options, because every option name derives.
+>
+> PR 4 departs from the plan in these places:
+>
+> - `AccountFlags` moves to PR 6 and `Field::neutral()` to PR 5. Nothing in PR 4 reads them. For
+>   the same reason, `Generator::for()` takes a `CapabilitySet`, not an `AccountFacts`.
+> - `delivery/delivery_fee` (GLS, Trunkrs) is dropped. Nothing reads it: the checkout and the carrier
+>   read `{deliveryType}/fee`.
+> - **The module lists no carrier.** `Carrier::V2_NAMES_MAP`, `Config::CARRIERS_XML_PATH_MAP`, the
+>   eight `XML_PATH_*_SETTINGS` constants and the `Carrier::POSTNL` style constants are gone.
+>   `Carrier::toV2Name()` and `Carrier::idFor()` read the SDK's carrier table, so every carrier the
+>   SDK knows is exportable, cheapcargo and UPS Express Saver included. `Carrier::isExportable()` is
+>   the export gate. Tabs follow the order capabilities report. Only the two migrations keep
+>   carrier names, as literals, because they repair rows that only those carriers stored.
+> - **A set that could not be read shows no carrier in the settings form**, with a warning. There is
+>   no fail-open carrier shape, so there is no retired group either. The New Shipment form reads the
+>   live lookup, which also answers permissive on an API failure, so it falls back to the exportable
+>   carriers in the store's stored contract and shows no carrier only when that cannot be read either.
+> - **`Checkout::getActiveCarriers()` offers the exportable carriers in the store's contract whose
+>   toggle is on, and none when the contract cannot be read.** A grandfathered carrier outside the
+>   contract leaves the checkout. That is a behaviour change for the release notes. The PostNL
+>   fallback for `excludeParcelLockers` is gone: with no carrier, only the general and product
+>   rules apply.
+> - **Per-carrier exceptions are gone.** Every carrier gets every insurance zone, and the contract
+>   bound clamps the amount. The pickup group is labelled *Pickup locations*. GLS Saturday is
+>   deleted: nothing read it, and Saturday delivery is the `saturday_delivery` option. PostNL Monday
+>   is deleted, and `Checkout` no longer offers it, because no capability reports Monday delivery.
+>   When the API adds `mondayDelivery`, it arrives as an option.
+> - From-price is an inclusion list, `Catalogue::FROM_PRICE_OPTIONS`, not the exclusion list the plan
+>   names. A new option arrives as a bare toggle either way; the list names the options that have a
+>   from-price rather than the two that do not.
+> - **International mailbox comes from the account flag.** `InternationalMailbox::carriersIn()`
+>   reads `{carrier}_mailbox_international` from the raw `general_settings` and derives the carrier
+>   from the prefix. The SDK's `GeneralSettings` drops unknown keys, so the raw row is read. The
+>   field shows under the flagged carrier's mailbox group, and `PackageTypeResolver` asks
+>   `MailboxInternational::isEnabledFor()` instead of comparing with PostNL.
+> - A delivery title is generated only for a name that `Checkout` passes to the widget. That is
+>   narrower than "a new option gets a title field for free". `receipt_code_title` stays for parity,
+>   although nothing reads it.
+> - One template for all carriers: Trunkrs takes the `Automate '…'` and `From price` labels, GLS
+>   loses its `(Local)` suffix, the GLS and Trunkrs fees lose `validate-number`, the age check
+>   tooltip shows for every carrier, and three Trunkrs from-price tooltips are gone. Six new msgids
+>   are translated in the six locales.
+> - The API access token button's field path is the token hash path, so the form offers it, and so
+>   did the JSON. `ConfigChange` now refuses that path and the stored account rows, whatever the
+>   form offers.
+> - `Model\Carrier\Carrier` declares its five properties, which its constructor set as dynamic
+>   properties.
+>
+> Recorded for PR 6, found while PR 4 was built:
+>
+> - **The local country comes from the account, not the carrier.** `Carrier::LOCAL_COUNTRY_MAP`
+>   (DPD → BE, else NL) feeds `SplitStreet::splitStreet()` in `ShipmentBuilder::recipient()` and
+>   `FulfilmentOrderBuilder::shippingRecipient()`. The SDK uses it only for a Belgian destination:
+>   local BE splits the street by the Belgian rule, local NL leaves it unsplit. A BE account that
+>   ships PostNL or GLS to Belgium therefore sends unsplit streets today. The stored account row
+>   has no country, only `account.proposition_id`. The PDK maps propositions to countries in
+>   `config/proposition/proposition-{1,3,6}.json` (`countryCode` NL, BE, IT). Read the proposition
+>   per store next to `AccountPlatform`, map it, fall back to NL, and delete `LOCAL_COUNTRY_MAP`.
+>   Ask for the map in the SDK rather than copy it. The SDK has split rules for local NL and BE
+>   only, so an IT account gets no split for any destination.
+> - **"Platform" is the old name for "proposition".** `account.platform_id` and
+>   `account.proposition_id` carry the same value. Deprecate the platform name where the module
+>   owns it: `AccountPlatform`, `TrackTraceUrl`'s `baseUrlsByPlatform` in `etc/di.xml`, and the
+>   readers in `LinkResolver` and `AccountSettings`. `Config::PLATFORM` is the widget's own option
+>   name, so it stays until the widget renames it.
+>
+> Recorded for a follow-up PR, after PR 4:
+>
+> - **The order grid's label modal lists carriers by hand.** `view/adminhtml/web/template/grid/order_massaction.html`
+>   hardcodes seven carriers (DPD is missing) and six package types with their ids, and
+>   `mass-action.js:255` shows digital stamp and letter only for PostNL. The modal gets no server
+>   data. `OrderShipmentOptions:240` replaces the order's carrier with the one chosen there, so a
+>   carrier outside the contract goes to the API and is refused. Fix: pass the modal its carriers
+>   and, per carrier, the package types from `packageTypesFor()`, through the grid's UI component
+>   config, and render them with a Knockout `foreach`. One grid holds orders of every store, so
+>   the list is the union of the exportable carriers in each store's contract. An order on a store
+>   without the chosen carrier then fails on export with the API's error, as other failures do.
+>   With no readable contract, the modal offers only "Default". The hardcoded radio buttons and
+>   the PostNL rule go.
+> - **The parity pin has a sunset.** `Tests/Fixtures/dynamic-settings-legacy.json` and
+>   `GeneratorParityTest` hold PR 4's form to the deleted JSON. Delete both once PR 6 has landed:
+>   from then on a catalogue change is a change, not a regression, and the allow-lists only cost.
 >
 > Everything after this block is the plan as written, unchanged.
 
@@ -592,7 +674,7 @@ anything, and keep 6 separate whatever else happens, because of the behaviour ch
 The steps below are numbered independently of the stack; the table above maps them to branches.
 
 ### 1. Spike the config source seam
-`private/config-source-probe.php`, following the `private/caps-cache-dump.php` bootstrap pattern.
+`private/config-source-probe.php`, following the bootstrap of the local, uncommitted `private/caps-cache-dump.php`.
 A throwaway `ConfigSourceInterface` returning two hard-coded keys, wired at sortOrder 5, then:
 
 ```bash
