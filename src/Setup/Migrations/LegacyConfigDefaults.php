@@ -28,7 +28,6 @@ class LegacyConfigDefaults
         'myparcelnl_magento_general/shipping_methods/pop_up_map'                            => '0',
         'myparcelnl_magento_general/print/paper_type'                                       => 'A4',
         'myparcelnl_magento_general/print/label_description'                                => '%order_nr%',
-        'myparcelnl_magento_general/print/country_of_origin'                                => 'NL',
         'myparcelnl_magento_general/print/create_concept_after_invoice'                     => '0',
         'myparcelnl_magento_general/delivery_titles/delivery_title'                         => 'Thuis of op het werk bezorgd',
         'myparcelnl_magento_general/delivery_titles/standard_delivery_title'                => 'Standaardlevering',
