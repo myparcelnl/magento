@@ -2,11 +2,6 @@ name: '🧪 Run tests'
 
 on:
   workflow_call:
-    inputs:
-      ref:
-        description: 'Ref to run on'
-        type: string
-        required: false
 
 permissions:
   contents: read
@@ -25,8 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ inputs.ref || github.ref }}
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --ignore-platform-req=ext-*
