@@ -6,9 +6,8 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
- * A pickup location belongs to one carrier's network, so overriding the
- * carrier after checkout invalidates it and the shipment falls back to
- * standard home delivery.
+ * A stored pickup ships as a pickup. The carrier change that turns a pickup into a home delivery
+ * happens when the merchant saves it (OrderOptionsWriterTest), not at export.
  *
  * Read through ShipmentAccessors rather than consignment getters: the rule
  * survives the SDK migration, the shape it is read from does not.
@@ -32,19 +31,10 @@ function pickupCheckoutOptions(): array
     ];
 }
 
-it('clears an inherited pickup location when the carrier is overridden', function () {
+it('keeps the pickup location of the stored carrier', function () {
     [$builder, $track] = createConvertibleShipmentBuilder(pickupCheckoutOptions());
 
-    $shipment = $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0])->shipment();
-
-    expect(builtShipmentIsPickup($shipment))->toBeFalse();
-    expect(builtShipmentPickupPostalCode($shipment))->toBeNull();
-});
-
-it('preserves an inherited pickup location when the carrier is not overridden', function () {
-    [$builder, $track] = createConvertibleShipmentBuilder(pickupCheckoutOptions());
-
-    $shipment = $builder->build($track, ['carrier' => CarrierDHLForYou::NAME, 'insurance' => 0])->shipment();
+    $shipment = $builder->build($track)->shipment();
 
     expect(builtShipmentIsPickup($shipment))->toBeTrue();
     expect(builtShipmentPickupPostalCode($shipment))->toBe('1000AA');
@@ -61,10 +51,21 @@ it('leaves naming the order to the reporting layer', function () {
         'date'         => '2026-08-20',
     ]);
 
-    $build = fn () => $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0]);
+    $build = fn () => $builder->build($track);
 
     expect($build)->toThrow(RuntimeException::class)
         ->and(fn () => $build())->toThrow(function (RuntimeException $e) {
             expect($e->getMessage())->not->toContain('Order ');
         });
+});
+
+it('refuses a stored pickup without a location, never ships it home under the default carrier', function () {
+    [$builder, $track] = createConvertibleShipmentBuilder([
+        'carrier'      => CarrierDHLForYou::NAME,
+        'deliveryType' => 'pickup',
+        'isPickup'     => true,
+        'date'         => '2026-08-20',
+    ]);
+
+    expect(fn () => $builder->build($track))->toThrow(RuntimeException::class, 'pickup location cannot be read');
 });
