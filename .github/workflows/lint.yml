@@ -1,14 +1,13 @@
-name: Lint
+name: '🔍 Lint'
 
 on:
-  pull_request:
-    branches: [main, develop]
-  push:
-    branches: [main, develop]
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   eslint:
-    name: ESLint
     runs-on: ubuntu-latest
 
     steps:

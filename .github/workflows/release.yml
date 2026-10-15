@@ -1,0 +1,51 @@
+name: '🚀 Release'
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  lint:
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
+
+  release:
+    needs:
+      - test
+      - lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: myparcelnl/actions/setup-git-credentials@v5
+        id: credentials
+        with:
+          app-id: ${{ secrets.MYPARCEL_APP_ID }}
+          private-key: ${{ secrets.MYPARCEL_APP_PRIVATE_KEY }}
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: myparcelnl/actions/yarn-install@v5
+        with:
+          node-version: 24
+
+      - uses: myparcelnl/actions/semantic-release@v5
+        with:
+          token: ${{ steps.credentials.outputs.token }}
+
+  rebase-prs:
+    needs:
+      - release
+    uses: ./.github/workflows/rebase-prs.yml
+    secrets: inherit
