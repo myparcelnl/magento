@@ -1216,21 +1216,21 @@ __metadata:
   linkType: hard
 
 "brace-expansion@npm:^1.1.7":
-  version: 1.1.12
-  resolution: "brace-expansion@npm:1.1.12"
+  version: 1.1.21
+  resolution: "brace-expansion@npm:1.1.21"
   dependencies:
     balanced-match: "npm:^1.0.0"
     concat-map: "npm:0.0.1"
-  checksum: 975fecac2bb7758c062c20d0b3b6288c7cc895219ee25f0a64a9de662dbac981ff0b6e89909c3897c1f84fa353113a721923afdec5f8b2350255b097f12b1f73
+  checksum: 8f0a68a720f9cb28c2ecaea5cdaf15fafd686d6b6e4e722a81c9d4bd2f68c1fd0619731cac05875d842221eaf4d97d564d329a12eb3c4c22137502fb3c65be8b
   languageName: node
   linkType: hard
 
 "brace-expansion@npm:^5.0.8":
-  version: 5.0.9
-  resolution: "brace-expansion@npm:5.0.9"
+  version: 5.0.12
+  resolution: "brace-expansion@npm:5.0.12"
   dependencies:
     balanced-match: "npm:^4.0.2"
-  checksum: 3dea38884a1c3c8b1c9c44a7402a0c76fca460f70cffb3127242b0b4cbf4472019e022ade021eec44838ff19f1dac2625dfd11dd459d7e1e055b0698a8d52fec
+  checksum: a40ac64d3bdb5bb222456514d3633c1f627f03b844f509c69e70f98b78be0ce85e21b44bbfecdd0ddd4cc0855ca4242b41ea96ddccf88c7c3c7a84405474bb3a
   languageName: node
   linkType: hard
 
@@ -2182,10 +2182,10 @@ __metadata:
   linkType: hard
 
 "handlebars@npm:^4.7.7":
-  version: 4.7.8
-  resolution: "handlebars@npm:4.7.8"
+  version: 4.7.10
+  resolution: "handlebars@npm:4.7.10"
   dependencies:
-    minimist: "npm:^1.2.5"
+    minimist: "npm:^1.2.8"
     neo-async: "npm:^2.6.2"
     source-map: "npm:^0.6.1"
     uglify-js: "npm:^3.1.4"
@@ -2195,7 +2195,7 @@ __metadata:
       optional: true
   bin:
     handlebars: bin/handlebars
-  checksum: 7aff423ea38a14bb379316f3857fe0df3c5d66119270944247f155ba1f08e07a92b340c58edaa00cfe985c21508870ee5183e0634dcb53dd405f35c93ef7f10d
+  checksum: 9b5573584ae5836172ae3f1502d9819568ba1b92ee83b81b18223beeb4c07486595e7b0fa633102beabc66ed06fe6e7da1dd9a9ea8c7072b9550b9a88809165c
   languageName: node
   linkType: hard
 
@@ -2246,9 +2246,9 @@ __metadata:
   linkType: hard
 
 "http-cache-semantics@npm:^4.1.1":
-  version: 4.2.0
-  resolution: "http-cache-semantics@npm:4.2.0"
-  checksum: 45b66a945cf13ec2d1f29432277201313babf4a01d9e52f44b31ca923434083afeca03f18417f599c9ab3d0e7b618ceb21257542338b57c54b710463b4a53e37
+  version: 4.3.0
+  resolution: "http-cache-semantics@npm:4.3.0"
+  checksum: b9668e271b4a99cba067bfa6f286b12eff1408a24e090ca16f0f5fa826ac07f67b4b8c7aa6e7458596d890683f3c172f647a00ca516a8f0158c80d7e4ebe0316
   languageName: node
   linkType: hard
 
@@ -2573,18 +2573,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-yaml@npm:^4.1.0":
-  version: 4.1.1
-  resolution: "js-yaml@npm:4.1.1"
-  dependencies:
-    argparse: "npm:^2.0.1"
-  bin:
-    js-yaml: bin/js-yaml.js
-  checksum: 561c7d7088c40a9bb53cc75becbfb1df6ae49b34b5e6e5a81744b14ae8667ec564ad2527709d1a6e7d5e5fa6d483aa0f373a50ad98d42fde368ec4a190d4fae7
-  languageName: node
-  linkType: hard
-
-"js-yaml@npm:^4.3.2":
+"js-yaml@npm:^4.1.0, js-yaml@npm:^4.3.2":
   version: 4.3.2
   resolution: "js-yaml@npm:4.3.2"
   dependencies:
@@ -2868,9 +2857,9 @@ __metadata:
   linkType: hard
 
 "lodash-es@npm:^4.17.21":
-  version: 4.17.23
-  resolution: "lodash-es@npm:4.17.23"
-  checksum: 3150fb6660c14c7a6b5f23bd11597d884b140c0e862a17fdb415aaa5ef7741523182904a6b7929f04e5f60a11edb5a79499eb448734381c99ffb3c4734beeddd
+  version: 4.18.1
+  resolution: "lodash-es@npm:4.18.1"
+  checksum: 35d4dcf87ef07f8d090f409447575800108057e360b445f590d0d25d09e3d1e33a163d2fc100d4d072b0f901d5e2fc533cd7c4bfd8eeb38a06abec693823c8b8
   languageName: node
   linkType: hard
 
@@ -2910,9 +2899,9 @@ __metadata:
   linkType: hard
 
 "lodash@npm:^4.17.4":
-  version: 4.17.23
-  resolution: "lodash@npm:4.17.23"
-  checksum: 1264a90469f5bb95d4739c43eb6277d15b6d9e186df4ac68c3620443160fc669e2f14c11e7d8b2ccf078b81d06147c01a8ccced9aab9f9f63d50dcf8cace6bf6
+  version: 4.18.1
+  resolution: "lodash@npm:4.18.1"
+  checksum: 757228fc68805c59789e82185135cf85f05d0b2d3d54631d680ca79ec21944ec8314d4533639a14b8bcfbd97a517e78960933041a5af17ecb693ec6eecb99a27
   languageName: node
   linkType: hard
 
@@ -3052,7 +3041,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimist@npm:^1.2.0, minimist@npm:^1.2.5":
+"minimist@npm:^1.2.0, minimist@npm:^1.2.8":
   version: 1.2.8
   resolution: "minimist@npm:1.2.8"
   checksum: 19d3fcdca050087b84c2029841a093691a91259a47def2f18222f41e7645a0b7c44ef4b40e88a1e58a40c84d2ef0ee6047c55594d298146d0eb3f6b737c20ce6
@@ -3777,9 +3766,9 @@ __metadata:
   linkType: hard
 
 "picomatch@npm:^2.3.1":
-  version: 2.3.1
-  resolution: "picomatch@npm:2.3.1"
-  checksum: 26c02b8d06f03206fc2ab8d16f19960f2ff9e81a658f831ecb656d8f17d9edc799e8364b1f4a7873e89d9702dff96204be0fa26fe4181f6843f040f819dac4be
+  version: 2.3.2
+  resolution: "picomatch@npm:2.3.2"
+  checksum: a554d1709e59be97d1acb9eaedbbc700a5c03dbd4579807baed95100b00420bc729335440ef15004ae2378984e2487a7c1cebd743cfdb72b6fa9ab69223c0d61
   languageName: node
   linkType: hard
 
