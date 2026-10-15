@@ -23,7 +23,7 @@ jobs:
     needs:
       - test
       - lint
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: myparcelnl/actions/setup-git-credentials@v5
         id: credentials
