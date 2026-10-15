@@ -136,13 +136,15 @@ Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_da
 
 ## Adding a Shipment Option
 
-The New Shipment form and the export both read `ShipmentOption::TO_CHECK`, so a checkbox option needs only:
+An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module name from the wire key (`noTracking` becomes `no_tracking`), the New Shipment form renders it under a label read from that name, `MagentoCollection` reads its checkbox through `mypa_rendered_options[]`, `ShipmentOptionsResolver::resolve()` decides it, and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies.
 
-1. A constant in `src/Model/Shipment/ShipmentOption.php`, added to `TO_CHECK` and `V2_NAMES_MAP` (the capabilities name).
-2. A form label in `src/Block/Sales/NewShipmentForm.php`, and its translation in `i18n/`.
-3. Only if the option has a country, delivery type or combination rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. Every other option is taken as chosen.
+Add code only for what capabilities cannot say:
 
-The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `TO_CHECK` does not reach the shipment the API receives. Do not add the option by hand to `MagentoCollection::$options`, `resolve()` or the setter loop in `OrderShipmentOptions`.
+1. A label of its own: an entry in `NewShipmentForm`, and its translation in `i18n/`. Without one, the label is the name, translated through `i18n/`.
+2. A country or delivery type rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map.
+3. A place in the fail-open form: `ShipmentOption::TO_CHECK` is what the form shows when capabilities could not be read, and the fixed front of the persisted key order in `ShipmentOptions::KEYS`. It needs a constant in `ShipmentOption.php`, and an entry in `V2_NAMES_MAP` only when the name does not derive from the wire key.
+
+The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `TO_CHECK` does not reach the shipment the API receives.
 
 ## Dependencies
 

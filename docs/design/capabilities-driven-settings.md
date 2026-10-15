@@ -1,6 +1,6 @@
 # Capabilities-driven settings (INT-1289)
 
-> **Status — 2026-09-29.** PR 1 of 6 is open for review; PR 2 is open as a draft.
+> **Status — 2026-09-29.** PR 1 of 6 is open for review; PRs 2 and 3 are open as drafts.
 >
 > | # | PR | branch | state |
 > |---|---|---|---|
@@ -8,7 +8,7 @@
 > | 1 | stateless package type services | `refactor/stateless-package-type-services` | PR open, #970 |
 > | 2 | derive carrier and option names | `refactor/derive-carrier-and-option-names` | draft PR, #980 |
 > | — | settings decimals and import fix | `fix/settings-decimals-and-import` | draft PR, #981 |
-> | 3 | honour capability option dependencies | — | findings in [capability-option-dependencies.md](capability-option-dependencies.md) |
+> | 3 | honour capability option dependencies | `feat/honour-capability-option-dependencies` | draft PR, #982 |
 > | 4 | generate the settings form | — | not started |
 > | 5 | supply settings defaults | — | not started |
 > | 6 | account-derived export mode and proposition | — | not started |
@@ -27,6 +27,22 @@
 > #981 is not part of INT-1289. It fixes two settings-screen bugs in code that exists only in this
 > stack, so it sits on top of PR 2. **Base PR 3 on `fix/settings-decimals-and-import` (#981)**, not
 > on PR 2.
+>
+> PR 3 departs from the plan in five places:
+>
+> - Excludes are settled before requires. The other order lets receipt code add insurance, then
+>   lose to age check, and leave the insurance behind.
+> - Requires never adds a companion that an option already on excludes. PostNL insurance requires
+>   signature, which receipt code excludes, and receipt code with insurance is a valid shipment.
+> - A required insurance is the configured amount for the destination, with the percentage but
+>   without the from-price, then the contract minimum. With neither, it stays off and is logged.
+> - A dependency name the module does not know is derived, not dropped: the key lists are open, so
+>   the export sends it when the SDK has a setter, and logs it when not. Only an entry that is not a
+>   name is dropped.
+> - PR 3 also opens the New Shipment form, which step 3 gave to PR 2: it renders what
+>   `optionsFor()` offers, and `ShipmentOption::KNOWN` and `knowsV2Name()` are gone. `TO_CHECK` is
+>   not deleted, because it is what the form shows when capabilities could not be read. The
+>   unknown-values notice no longer reports options, because every option name derives.
 >
 > Everything after this block is the plan as written, unchanged.
 
