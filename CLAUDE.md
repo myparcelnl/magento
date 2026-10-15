@@ -42,7 +42,7 @@ vendor/bin/pest --filter=WeightTest  # run a specific test
 - **Framework:** Pest v1 (on PHPUnit) with Mockery for mocking
 - **Config:** `phpunit.xml.dist`, bootstrap in `Tests/bootstrap.php`
 - **Tests live in:** `Tests/Unit/` (new location; legacy `Test/Unit/` was removed)
-- **CI:** GitHub Actions runs Pest across PHP 8.1–8.4 on push/PR to main/develop (`.github/workflows/test.yml`). PHP 7.4 and 8.0 are not tested (no compatible `magento/framework` resolves on those versions).
+- **CI:** GitHub Actions runs Pest across PHP 8.1–8.4 on all pull requests, the merge queue and push to main (`.github/workflows/test.yml`, called by `pull-request.yml`, `merge-group.yml`, `push.yml` and `release.yml`). PHP 7.4 and 8.0 are not tested (no compatible `magento/framework` resolves on those versions).
 
 ## Architecture
 
@@ -142,3 +142,5 @@ Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_da
 ## Versioning
 
 Semantic release via `release.config.js`. Version is synced across `composer.json`, `package.json`, and `etc/module.xml` by `private/updateVersion.js`.
+
+Pull requests target `main`; there is no `develop` branch. A merge to `main` does not release. Start a release by hand with the "Release" workflow (`.github/workflows/release.yml`, `workflow_dispatch`).

@@ -1,64 +1,28 @@
-name: 'Release new version'
+name: '⚙️ On push'
 
 on:
   push:
     branches:
       - main
 
-  workflow_dispatch: ~
+  workflow_dispatch:
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: '${{ github.workflow }}-${{ github.ref }}'
   cancel-in-progress: true
 
 jobs:
-  release:
-    name: 'Build and publish 🚀'
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-          token: ${{ secrets.GH_REPO_TOKEN }}
-
-      # TODO: Switch to v3 with app credentials when GitHub apps are allowed to bypass status checks. https://github.com/orgs/community/discussions/43460
-      - uses: myparcelnl/actions/setup-git-credentials@v2
-        with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
-
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GH_REPO_TOKEN }}
-
-      - uses: myparcelnl/actions/yarn-install@v3
-        with:
-          node-version: 24
-
-      - uses: myparcelnl/actions/semantic-release@v3
-        with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
-
-
-  rebase:
-    name: 'Rebase develop onto main'
-    needs: release
-    if: always()
-    uses: myparcelnl/magento/.github/workflows/rebase.yml@main
+  test:
+    uses: ./.github/workflows/test.yml
     secrets: inherit
-    with:
-      base: main
-      target: develop
+
+  lint:
+    uses: ./.github/workflows/lint.yml
+    secrets: inherit
 
   rebase-prs:
-    name: 'Rebase pull requests onto develop'
-    needs: rebase
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: peter-evans/rebase@v2
-        with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
-          base: develop
-          exclude-drafts: true
-          exclude-labels: 'hotfix'
+    uses: ./.github/workflows/rebase-prs.yml
+    needs:
+      - test
+      - lint
+    secrets: inherit

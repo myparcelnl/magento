@@ -1,12 +1,15 @@
-name: Tests
+name: '🧪 Run tests'
 
 on:
-  pull_request:
-  push:
-    branches: [main, develop]
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Ref to run on'
+        type: string
+        required: false
 
 jobs:
-  test:
+  test-backend:
     runs-on: ubuntu-latest
 
     strategy:
@@ -14,13 +17,13 @@ jobs:
       matrix:
         php: ['8.1', '8.2', '8.3', '8.4']
 
-    name: PHP ${{ matrix.php }}
-
     container:
       image: ghcr.io/myparcelnl/php-xd:${{ matrix.php }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --ignore-platform-req=ext-*

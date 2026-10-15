@@ -1,56 +1,44 @@
-name: 'Rebase'
+name: '🧩 Rebase branches'
 
 on:
   workflow_call:
     inputs:
       base:
         type: string
-        required: false
-        default: 'main'
-
+        required: true
       target:
         type: string
+        required: true
+      force:
+        type: boolean
         required: false
-        default: 'develop'
+        default: false
 
   workflow_dispatch:
     inputs:
       base:
         type: string
         description: 'Base branch'
-        default: 'develop'
         required: true
-
+        default: 'main'
       target:
         type: string
         description: 'Target branch to update'
-        default: 'main'
         required: true
-
-  repository_dispatch:
-    types: [ rebase-command ]
-
-concurrency:
-  group: rebase-${{ github.event.client_payload.target || github.event.inputs.target || inputs.target }}
-  cancel-in-progress: true
+      force:
+        type: boolean
+        description: 'Force push target branch'
+        required: false
+        default: false
 
 jobs:
   rebase:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: myparcelnl/actions/rebase@v5
         with:
-          fetch-depth: 0
-          persist-credentials: false
-          token: ${{ secrets.GH_REPO_TOKEN }}
-
-      # TODO: Switch to v3 with app credentials when GitHub apps are allowed to bypass status checks. https://github.com/orgs/community/discussions/43460
-      - uses: myparcelnl/actions/setup-git-credentials@v2
-        with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
-
-      - uses: myparcelnl/actions/rebase@v3
-        with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
-          target: ${{ github.event.client_payload.target || github.event.inputs.target || inputs.target }}
-          base: ${{ github.event.client_payload.base || github.event.inputs.base || inputs.base }}
+          app-id: ${{ secrets.MYPARCEL_APP_ID }}
+          private-key: ${{ secrets.MYPARCEL_APP_PRIVATE_KEY }}
+          base: ${{ inputs.base || github.ref_name }}
+          target: ${{ inputs.target }}
+          force: ${{ inputs.force }}

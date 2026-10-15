@@ -1,18 +1,21 @@
-name: Lint
+name: '🔍 Lint'
 
 on:
-  pull_request:
-    branches: [main, develop]
-  push:
-    branches: [main, develop]
+  workflow_call:
+    inputs:
+      ref:
+        description: 'Ref to run on'
+        type: string
+        required: false
 
 jobs:
   eslint:
-    name: ESLint
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
 
       - uses: actions/setup-node@v4
         with:
