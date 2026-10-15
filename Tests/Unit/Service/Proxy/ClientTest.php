@@ -2,11 +2,7 @@
 
 declare(strict_types=1);
 
-use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Handler\MockHandler;
-use GuzzleHttp\HandlerStack;
-use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use Magento\Framework\Exception\LocalizedException;
@@ -17,9 +13,9 @@ use Psr\Log\LoggerInterface;
 
 /**
  * Build a Client with a mocked Config, a permissive logger, and a Guzzle
- * client backed by a MockHandler. The returned `&history` array captures
- * each outgoing request so tests can assert URL, method, headers, body,
- * and Guzzle transfer options.
+ * client backed by a MockHandler (see Tests/Helpers/HttpMocks.php). The
+ * returned `&history` array captures each outgoing request so tests can
+ * assert URL, method, headers, body, and Guzzle transfer options.
  *
  * @param GuzzleResponse[]|\Throwable[] $responses
  * @return array{client: Client, config: Config, logger: LoggerInterface, history: array, handler: MockHandler}
@@ -29,30 +25,15 @@ function makeProxyClient(string $apiKey = 'test-api-key', array $responses = [])
     $config = Mockery::mock(Config::class);
     $config->shouldReceive('getGeneralConfig')->with('api/key')->andReturn($apiKey);
 
-    $logger = Mockery::mock(LoggerInterface::class);
-    $logger->shouldReceive('warning')->byDefault();
-    $logger->shouldReceive('error')->byDefault();
-    $logger->shouldReceive('info')->byDefault();
-    $logger->shouldReceive('debug')->byDefault();
-    $logger->shouldReceive('notice')->byDefault();
-    $logger->shouldReceive('critical')->byDefault();
-    $logger->shouldReceive('alert')->byDefault();
-    $logger->shouldReceive('emergency')->byDefault();
-    $logger->shouldReceive('log')->byDefault();
-
-    $history     = [];
-    $mockHandler = new MockHandler($responses);
-    $stack       = HandlerStack::create($mockHandler);
-    $stack->push(Middleware::history($history));
-
-    $httpClient = new GuzzleClient(['handler' => $stack]);
+    $logger = makePermissiveLogger();
+    $http   = makeGuzzleWithHistory($responses);
 
     return [
-        'client'  => new Client($config, $logger, $httpClient),
+        'client'  => new Client($config, $logger, $http['client']),
         'config'  => $config,
         'logger'  => $logger,
-        'history' => &$history,
-        'handler' => $mockHandler,
+        'history' => &$http['history'],
+        'handler' => $http['handler'],
     ];
 }
 
