@@ -42,7 +42,7 @@ jobs:
 
       - uses: myparcelnl/actions/semantic-release@v5
         with:
-          token: ${{ secrets.GH_REPO_TOKEN }}
+          token: ${{ steps.credentials.outputs.token }}
 
   rebase-prs:
     needs:
