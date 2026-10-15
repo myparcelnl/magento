@@ -1,12 +1,13 @@
 # Capabilities-driven settings (INT-1289)
 
-> **Status — 2026-09-29.** PR 1 of 6 is open for review; PR 2 is in progress.
+> **Status — 2026-09-29.** PR 1 of 6 is open for review; PR 2 is open as a draft.
 >
 > | # | PR | branch | state |
 > |---|---|---|---|
 > | — | stack base | `feat/use-sdk-v11-shipments` | PR open, not in `main` |
 > | 1 | stateless package type services | `refactor/stateless-package-type-services` | PR open, #970 |
-> | 2 | derive carrier and option names | `refactor/derive-carrier-and-option-names` | in progress |
+> | 2 | derive carrier and option names | `refactor/derive-carrier-and-option-names` | draft PR, #980 |
+> | — | settings decimals and import fix | `fix/settings-decimals-and-import` | draft PR, #981 |
 > | 3 | honour capability option dependencies | — | findings in [capability-option-dependencies.md](capability-option-dependencies.md) |
 > | 4 | generate the settings form | — | not started |
 > | 5 | supply settings defaults | — | not started |
@@ -22,6 +23,10 @@
 >   `signature` and `receipt_code` join it.
 > - `fromV2Name()` never answers null, so `knowsV2Name()` keeps the New Shipment form and the
 >   unknown-values notice on today's names until PR 3 opens the option key lists.
+>
+> #981 is not part of INT-1289. It fixes two settings-screen bugs in code that exists only in this
+> stack, so it sits on top of PR 2. **Base PR 3 on `fix/settings-decimals-and-import` (#981)**, not
+> on PR 2.
 >
 > Everything after this block is the plan as written, unchanged.
 
@@ -623,6 +628,12 @@ is never serialised into the form array.
 Neutral defaults: `*_active` → `'0'`, `*_fee` → `'0'`, `*_from_price` → `'1'`,
 `large_format_active` → `'No'`, `mailbox`/`package_small` weight → `'2000'`,
 `drop_off_days/cutoff_time_N` → `'15,30,00'`, insurance → `'0'`, `*_title` → `''`.
+
+Validation: `Field::toArray()` must emit the `validate` key of each field that has one in
+`etc/dynamic_settings.json` today. The four `myparcelnl_magento_general/empty_package_weight/*`
+fields are whole grams and need `validate-digits`. If that key is lost, the form accepts "1.000" again,
+and `Weight::getEmptyPackageWeightInGrams()` reads it as 1. The fee and the mailbox or package-small
+weight fields need no validation: `Config::parseDecimal()` reads them in any notation.
 
 ### Money fields are opt-in, not opt-out
 
