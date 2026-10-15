@@ -64,7 +64,7 @@ Magento Order → Adapter → SDK Consignment → MyParcel API
 - **Config** (`src/Service/Config.php`): Central configuration access with `CARRIERS_XML_PATH_MAP` for carrier-specific settings
 - **Checkout** (`src/Model/Checkout/DeliveryOptions.php`): Delivery options logic for frontend; frontend JS uses RequireJS + Knockout.js
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`): Bridge Magento orders/shipments to SDK for batch API operations
-- **Package** (`src/Model/Sales/Package.php`): Complex package type determination (mailbox, digital stamp, package) based on weight, carrier, and config
+- **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`): Package type determination (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, plus what the cart's own products say about how it may ship. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way
 
 ### Extension Points
 
@@ -95,6 +95,7 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 - **ADRs**: Architectural Decision Records live in the engineering-wide [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) repo, not in this module.
 - **SDK v11** ([`docs/sdk-v11.md`](docs/sdk-v11.md)): why the module owns its shipment domain layer, the deliberate divergences from `myparcelnl/pdk`, which vocabulary each boundary takes, the three money scales, and the SDK defects the module works around. Read it before touching `src/Model/Shipment/` or `src/Service/Export/`.
+- **Capabilities-driven settings** ([`docs/design/capabilities-driven-settings.md`](docs/design/capabilities-driven-settings.md)): the INT-1289 stack that replaces `etc/dynamic_settings.json` with a settings form generated per scope from account capabilities. PR 1 of 6 has landed. Read it before touching `etc/dynamic_settings.json` or `Config::CARRIERS_XML_PATH_MAP`.
 - **FRs** (`docs/functional-requirements/`): Functional requirement specifications
 - **TRs** (`docs/technical-requirements/`): Technical requirement specifications
 - **OpenAPI** — Core API spec: `https://api.myparcel.nl/openapi.min.json`; Order API spec (enums, ShipmentOptions): `https://order.api.myparcel.nl/openapi.json`
