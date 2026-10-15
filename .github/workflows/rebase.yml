@@ -31,6 +31,9 @@ on:
         required: false
         default: false
 
+permissions:
+  contents: read
+
 jobs:
   rebase:
     runs-on: ubuntu-22.04

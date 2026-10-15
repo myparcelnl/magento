@@ -3,6 +3,9 @@ name: '♻️ Rebase PRs'
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   rebase-prs:
     runs-on: ubuntu-22.04
