@@ -64,7 +64,7 @@ final class OptionSet
 
     /**
      * The companions the option needs, in module names. Single level: the caller must not follow a
-     * companion's own requires, see docs/design/capability-option-dependencies.md.
+     * companion's own requires, see docs/sdk-v11.md.
      *
      * @return string[]
      */
