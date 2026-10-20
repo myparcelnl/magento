@@ -102,13 +102,13 @@ class CustomsDeclarationBuilder
     }
 
     private function buildItem(
-        string $name,
-        int    $qty,
-        float  $unitWeight,
-        float  $unitPrice,
-        string $classification,
-        string $countryOfOrigin,
-        string $externalProductReference
+        string  $name,
+        int     $qty,
+        float   $unitWeight,
+        float   $unitPrice,
+        string  $classification,
+        string  $countryOfOrigin,
+        ?string $externalProductReference
     ): RefShipmentCustomsDeclarationItem
     {
         // Truncating would under-declare the pieces, the weight and the value at once, because
@@ -136,8 +136,8 @@ class CustomsDeclarationBuilder
             ->setItemValue($itemValue)
             ->setClassification($this->items->classification($classification));
 
-        // The field is nullable, so setting an empty value would send null instead of leaving it out.
-        if ('' !== $externalProductReference) {
+        // Setting null marks the key as sent, so a missing value is not set at all.
+        if (null !== $externalProductReference) {
             $item->setExternalProductReference($externalProductReference);
         }
 
