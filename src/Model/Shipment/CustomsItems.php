@@ -70,13 +70,13 @@ class CustomsItems
     }
 
     /**
-     * The HS code and country of origin of each customs line.
+     * The HS code, country of origin and external product reference of each customs line.
      *
      * A line lists its products most specific first: a configurable item's variant, then its parent.
      * The first product with a value wins. A country falls back to the store's `print/country_of_origin`
-     * setting, then to the account's home country; an HS code has no fallback.
+     * setting, then to the account's home country; an HS code and a reference have no fallback.
      *
-     * @return array<int|string, array{classification: string, country: string}>
+     * @return array<int|string, array{classification: string, country: string, external_product_reference: string}>
      */
     public function customsDataFor(array $productIdsByLine, int $storeId): array
     {
@@ -88,6 +88,7 @@ class CustomsItems
 
         $productIds      = array_values(array_unique($productIds));
         $classifications = $productIds ? $this->classificationsFor($productIds) : [];
+        $references      = $productIds ? $this->attributes()->getColumn($productIds, 'external_product_reference') : [];
         $countries       = $productIds ? $this->manufacturingCountriesFor($productIds) : [];
         $fallback        = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
             ?: $this->objectManager->get(StoredAccount::class)->homeCountryForStore($storeId);
@@ -96,8 +97,9 @@ class CustomsItems
 
         foreach ($productIdsByLine as $line => $ids) {
             $data[$line] = [
-                'classification' => self::firstOf($ids, $classifications) ?? '',
-                'country'        => self::firstOf($ids, $countries) ?? $fallback,
+                'classification'             => self::firstOf($ids, $classifications) ?? '',
+                'country'                    => self::firstOf($ids, $countries) ?? $fallback,
+                'external_product_reference' => self::firstOf($ids, $references) ?? '',
             ];
         }
 
@@ -125,6 +127,7 @@ class CustomsItems
         return $countries;
     }
 
+    /** The value of the first id in $ids that has a non-empty one. */
     private static function firstOf(array $ids, array $values): ?string
     {
         foreach ($ids as $id) {

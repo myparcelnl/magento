@@ -190,6 +190,8 @@ The age check is intended for parcel shipments for which the recipient must show
 Fit in digital stamp,Past in digitale postzegel
 HS code,HS code
 "HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs","HS Codes worden gebruikt voor MyParcel wereldzendingen, je kunt de juiste code vinden op de site van de Douane."
+"External product reference","Externe productreferentie"
+"Enter the external product reference, for example the Zonos Catalog Item ID of this product.","Voer de externe productreferentie in, bijvoorbeeld het Zonos Catalog Item ID van dit product."
 Disable delivery options,Verzendopties uitschakelen
 With this option you can disable the delivery options if this product is in the cart.,Met deze optie kun je de bezorgopties uitschakelen als dit product in de winkelwagen zit.
 Fit in mailbox,Past in brievenbus
