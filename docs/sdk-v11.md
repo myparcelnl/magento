@@ -48,19 +48,9 @@ Three rules run through the result:
 3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
    module truth.
 
-**When capabilities cannot be had, the module serves the last answer, else everything.**
-`Capabilities\Repository` answers a permissive set for a store with no API key and for a request that
-will not serialise. Four more cases serve the shape's last good answer from `Capabilities\StoredAnswers`
-(Magento's `flag` table, so it survives `cache:clean` and a Redis restart), and a permissive set only
-when the shape was never answered: a shape that failed within the last 60 seconds, a failed fetch,
-a cache or lock backend that throws, and a shape another request is already fetching. The last one
-is a lock taken with a zero wait, not a queue — after `cache:clean` every concurrent render misses
-the same shape at once, and making them wait for one call is the cost being avoided, not the fix. `AccountSettings\Maintenance` deletes the
-stored answers of an API key that is configured nowhere any more.
-
-A cached answer lives three hours. Then the next lookup of that shape fetches again, and a failed
-refresh serves the stored answer. That is the longest a capabilities change, a bugfix included, takes
-to reach a shop. To get it sooner, flush the "MyParcel carrier capabilities" cache type.
+**When capabilities cannot be had, the module serves the last answer, else everything**
+(`Capabilities\Repository`). A cached answer lives three hours, which is the longest a capabilities
+change takes to reach a shop. To get it sooner, flush the "MyParcel carrier capabilities" cache type.
 
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
@@ -70,7 +60,7 @@ that.
 
 ## Deliberate divergences from `myparcelnl/pdk`
 
-Four, all deliberate. A reader who finds them should treat them as decisions, not omissions.
+Six, all deliberate. A reader who finds them should treat them as decisions, not omissions.
 
 1. **The module reuses the SDK's `CapabilitiesMapper::mapToCoreApi()`** rather than porting PDK's
    private `hydrateModel()`. The mapper builds typed generated models through typed setters, so wire
@@ -90,6 +80,11 @@ Four, all deliberate. A reader who finds them should treat them as decisions, no
    checkout first rules out a package type that cannot carry a forced option
    (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`), so an 18+ order keeps its
    age check where a package type can carry it. An option dropped at export is logged.
+5. **`requires` adds one level only.** The PDK follows the chain and then undoes the damage, which
+   rests on statement order in one method: PostNL receipt code requires insurance, which requires
+   the signature that receipt code excludes.
+6. **An `excludes` conflict is won by where the value came from** (`OptionSource`). In the PDK, the
+   definition that sorts first alphabetically wins, so renaming a class flips the outcome.
 
 ## Vocabulary per boundary
 
@@ -167,6 +162,11 @@ never by id.
 - The per-country print-position rule on the order and shipment views. It answered the same for
   every order, and the grid never used it; positions are offered everywhere.
 - The rule that forced a PPS pickup to package type `package`. A pickup ships as the type stored.
+- The "Export mode" setting. An account with order v1 exports orders (PPS), every other account
+  exports shipments. A grid selection that mixes the two is refused.
+- PostNL Monday delivery and the GLS Saturday fields. Saturday delivery is the `saturday_delivery`
+  option.
+- A carrier outside the account's contract leaves the checkout, also when its switch is on.
 
 **Corrected**
 
@@ -201,6 +201,8 @@ never by id.
 - The export no longer navigates: the grid keeps its selection and reloads once the labels exist.
 - The track & trace link comes from the API. The fallback host follows the account's proposition.
 - A dedicated capabilities cache type, enabled once on upgrade when `env.php` does not mention it.
+- The settings form shows, per scope, the carriers and options of that scope's contract. A new
+  install starts with every carrier, option and fee off. An existing install keeps its values.
 - A shipment options modal on the order grid, the shipment grid, the order and shipment views and
   the New Shipment page. It saves carrier, package type, options, insurance, label amount,
   digital stamp weight, the delivery date (or its removal) and the package dimensions on the order,
