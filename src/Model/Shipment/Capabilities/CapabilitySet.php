@@ -125,8 +125,7 @@ final class CapabilitySet
     }
 
     /**
-     * Single level: the caller must not follow a companion's own requires, see
-     * docs/design/capability-option-dependencies.md.
+     * Single level: the caller must not follow a companion's own requires, see docs/sdk-v11.md.
      * Empty when permissive: an account we could not read forces no companion on.
      *
      * @return string[] module option names
