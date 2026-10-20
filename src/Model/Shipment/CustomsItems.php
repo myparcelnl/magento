@@ -47,18 +47,6 @@ class CustomsItems
         $this->weight        = $weight;
     }
 
-    /**
-     * HS codes: up to 18 characters, digits and dots (6109.10). The int column they moved from
-     * dropped leading zeroes and dots.
-     *
-     * @param  int[] $productIds
-     * @return array<int,string> product id => HS code
-     */
-    public function classificationsFor(array $productIds): array
-    {
-        return $this->attributes()->getColumn($productIds, 'classification');
-    }
-
     /** Held for the instance, which is what keeps a multi-item declaration to one product load. */
     private function attributes(): ProductAttributes
     {
@@ -74,9 +62,9 @@ class CustomsItems
      *
      * A line lists its products most specific first: a configurable item's variant, then its parent.
      * The first product with a value wins. A country falls back to the store's `print/country_of_origin`
-     * setting, then to the account's home country; an HS code and a reference have no fallback.
+     * setting, then to the account's home country; an HS code has no fallback and a reference is null.
      *
-     * @return array<int|string, array{classification: string, country: string, external_product_reference: string}>
+     * @return array<int|string, array{classification: string, country: string, external_product_reference: ?string}>
      */
     public function customsDataFor(array $productIdsByLine, int $storeId): array
     {
@@ -87,8 +75,8 @@ class CustomsItems
         }
 
         $productIds      = array_values(array_unique($productIds));
-        $classifications = $productIds ? $this->classificationsFor($productIds) : [];
-        $references      = $productIds ? $this->attributes()->getColumn($productIds, 'external_product_reference') : [];
+        $classifications = $this->attributes()->getColumn($productIds, 'classification');
+        $references      = $this->attributes()->getColumn($productIds, 'external_product_reference');
         $countries       = $productIds ? $this->manufacturingCountriesFor($productIds) : [];
         $fallback        = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
             ?: $this->objectManager->get(StoredAccount::class)->homeCountryForStore($storeId);
@@ -99,7 +87,7 @@ class CustomsItems
             $data[$line] = [
                 'classification'             => self::firstOf($ids, $classifications) ?? '',
                 'country'                    => self::firstOf($ids, $countries) ?? $fallback,
-                'external_product_reference' => self::firstOf($ids, $references) ?? '',
+                'external_product_reference' => self::firstOf($ids, $references),
             ];
         }
 
