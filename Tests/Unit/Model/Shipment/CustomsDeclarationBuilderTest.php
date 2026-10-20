@@ -29,6 +29,12 @@ function createCustomsDeclarationBuilder(string $classification = '61', int $pro
     );
 }
 
+/** One shippable line of product 99, the id the default builder knows. */
+function widgetItem(): DataObject
+{
+    return createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
+}
+
 /** @return array{0: Shipment, 1: array} */
 function buildCustomsFor(array $items, string $classification = '61', array $attributes = []): array
 {
@@ -141,9 +147,7 @@ it('truncates a description the API would refuse rather than throwing', function
  */
 function classificationOf(string $stored): string
 {
-    $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
-
-    [, $items] = buildCustomsFor([$item], $stored);
+    [, $items] = buildCustomsFor([widgetItem()], $stored);
 
     return $items[0]->getClassification();
 }
@@ -213,17 +217,13 @@ it('leaves out the variant item ShipmentFactory marked deleted, so a configurabl
 });
 
 it('sends the external product reference of a product that has one', function () {
-    $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
-
-    [, $items] = buildCustomsFor([$item], '61', ['external_product_reference' => [99 => 'zonos-item-1']]);
+    [, $items] = buildCustomsFor([widgetItem()], '61', ['external_product_reference' => [99 => 'zonos-item-1']]);
 
     expect($items[0]->getExternalProductReference())->toBe('zonos-item-1');
 });
 
 it('leaves the external product reference out of the request when the product has none', function () {
-    $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
-
-    [, $items] = buildCustomsFor([$item]);
+    [, $items] = buildCustomsFor([widgetItem()]);
 
     expect(json_decode(json_encode($items[0]), true))->not->toHaveKey('external_product_reference');
 });
@@ -241,7 +241,5 @@ it('takes a configurable item its external product reference from the variant, o
 ]);
 
 it('refuses an external product reference above 64 characters instead of cutting it', function () {
-    $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
-
-    buildCustomsFor([$item], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
+    buildCustomsFor([widgetItem()], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
 })->throws(InvalidArgumentException::class);
