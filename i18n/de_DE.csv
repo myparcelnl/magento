@@ -188,6 +188,8 @@ The age check is intended for parcel shipments for which the recipient must show
 Fit in digital stamp,Passt in digitale Briefmarke
 HS code,HS-Code
 "HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs","HS-Codes werden für MyParcel-Weltsendungen verwendet, den passenden Code finden Sie auf der Website des niederländischen Zolls."
+"External product reference","Externe Produktreferenz"
+"Enter the external product reference, for example the Zonos Catalog Item ID of this product.","Geben Sie die externe Produktreferenz ein, zum Beispiel die Zonos Catalog Item ID dieses Produkts."
 Disable delivery options,Lieferoptionen deaktivieren
 With this option you can disable the delivery options if this product is in the cart.,"Mit dieser Option können Sie die Lieferoptionen deaktivieren, wenn dieses Produkt im Warenkorb liegt."
 Fit in mailbox,Passt in Briefkasten

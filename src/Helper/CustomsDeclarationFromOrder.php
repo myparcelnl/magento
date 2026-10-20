@@ -88,23 +88,27 @@ class CustomsDeclarationFromOrder
             $lineWeight   = $this->items->lineWeightInGrams((float) $product->getWeight(), $amount);
             $totalWeight += $lineWeight;
 
-            $customsDeclaration->addCustomsItem(
-                (new MyParcelCustomsItem())
-                    ->setDescription($this->items->description((string) $product->getName()))
-                    ->setAmount($line['amount'])
-                    ->setWeight($lineWeight)
-                    ->setItemValueArray([
-                                            'amount'   => $this->items->lineValueInCents(
-                                                (float) $product->getPrice(),
-                                                $amount
-                                            ),
-                                            'currency' => $currency,
-                                        ])
-                    ->setCountry($customsData[$index]['country'])
-                    // setClassification() cuts to 10 inside the SDK, so a longer code is truncated
-                    // here where the v11 shipment path carries it whole. Raised with the SDK.
-                    ->setClassification($this->items->classification($customsData[$index]['classification']))
-            );
+            $customsItem = (new MyParcelCustomsItem())
+                ->setDescription($this->items->description((string) $product->getName()))
+                ->setAmount($line['amount'])
+                ->setWeight($lineWeight)
+                ->setItemValueArray([
+                                        'amount'   => $this->items->lineValueInCents(
+                                            (float) $product->getPrice(),
+                                            $amount
+                                        ),
+                                        'currency' => $currency,
+                                    ])
+                ->setCountry($customsData[$index]['country'])
+                // setClassification() cuts to 10 inside the SDK, so a longer code is truncated
+                // here where the v11 shipment path carries it whole. Raised with the SDK.
+                ->setClassification($this->items->classification($customsData[$index]['classification']));
+
+            if ('' !== $customsData[$index]['external_product_reference']) {
+                $customsItem->setExternalProductReference($customsData[$index]['external_product_reference']);
+            }
+
+            $customsDeclaration->addCustomsItem($customsItem);
         }
 
         $customsDeclaration
