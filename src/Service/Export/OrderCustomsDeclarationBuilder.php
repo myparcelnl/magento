@@ -80,18 +80,22 @@ class OrderCustomsDeclarationBuilder
             $lineWeight   = $this->items->lineWeightInGrams($line['weight'], $amount);
             $totalWeight += $lineWeight;
 
-            $customsDeclaration->addCustomsItem(
-                (new MyParcelCustomsItem())
-                    ->setDescription($this->items->description($line['name']))
-                    ->setAmount($amount)
-                    ->setWeight($lineWeight)
-                    ->setItemValueArray([
-                        'amount'   => $this->items->lineValueInCents($line['price'], $amount),
-                        'currency' => $currency,
-                    ])
-                    ->setCountry($customsData[$index]['country'])
-                    ->setClassification($this->items->classification($customsData[$index]['classification']))
-            );
+            $customsItem = (new MyParcelCustomsItem())
+                ->setDescription($this->items->description($line['name']))
+                ->setAmount($amount)
+                ->setWeight($lineWeight)
+                ->setItemValueArray([
+                    'amount'   => $this->items->lineValueInCents($line['price'], $amount),
+                    'currency' => $currency,
+                ])
+                ->setCountry($customsData[$index]['country'])
+                ->setClassification($this->items->classification($customsData[$index]['classification']));
+
+            if ('' !== $customsData[$index]['external_product_reference']) {
+                $customsItem->setExternalProductReference($customsData[$index]['external_product_reference']);
+            }
+
+            $customsDeclaration->addCustomsItem($customsItem);
         }
 
         $customsDeclaration
