@@ -31,6 +31,7 @@ class ProductAttributes
         'disable_checkout',
         'dropoff_delay',
         'exclude_parcel_lockers',
+        'external_product_reference',
         'fit_in_mailbox',
         'priority_delivery',
     ];
