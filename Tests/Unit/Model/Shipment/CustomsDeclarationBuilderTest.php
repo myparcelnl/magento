@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Magento\Framework\DataObject;
 use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclarationItem;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
@@ -17,22 +18,22 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
  * Product data (HS code, country of manufacture) is fetched in two batch
  * queries keyed by product id, never per item — that is what the mocks model.
  */
-function createCustomsDeclarationBuilder(string $classification = '61', int $productId = 99): CustomsDeclarationBuilder
+function createCustomsDeclarationBuilder(string $classification = '61', int $productId = 99, array $attributes = []): CustomsDeclarationBuilder
 {
     $config = createConfig(['print/weight_indication' => 'gram']);
 
     return new CustomsDeclarationBuilder(
-        customsObjectManager([$productId => $classification], [$productId => 'CN'], $config),
+        customsObjectManager(['classification' => [$productId => $classification]] + $attributes, [$productId => 'CN'], $config),
         $config,
         new Weight($config)
     );
 }
 
 /** @return array{0: Shipment, 1: array} */
-function buildCustomsFor(array $items, string $classification = '61'): array
+function buildCustomsFor(array $items, string $classification = '61', array $attributes = []): array
 {
     $magentoShipment = createShipment(['items' => $items]);
-    $declaration     = createCustomsDeclarationBuilder($classification)->build($magentoShipment, 1000, '100000001');
+    $declaration     = createCustomsDeclarationBuilder($classification, 99, $attributes)->build($magentoShipment, 1000, '100000001');
     $shipment        = (new Shipment())->setCustomsDeclaration($declaration);
 
     return [$shipment, builtShipmentCustomsItems($shipment)];
@@ -166,10 +167,10 @@ it('carries an HS code of the full eighteen characters', function () {
  * children. Product 4 is the parent, 9 the variant.
  */
 
-function configurableCustomsLine(array $classifications, array $countries): array
+function configurableCustomsLine(array $attributes, array $countries): RefShipmentCustomsDeclarationItem
 {
     $config  = createConfig(['print/weight_indication' => 'gram']);
-    $builder = new CustomsDeclarationBuilder(customsObjectManager($classifications, $countries, $config), $config, new Weight($config));
+    $builder = new CustomsDeclarationBuilder(customsObjectManager($attributes, $countries, $config), $config, new Weight($config));
     $item    = createShipmentItem([
         'product_id' => 4,
         'order_item' => new DataObject([
@@ -179,9 +180,8 @@ function configurableCustomsLine(array $classifications, array $countries): arra
     ]);
 
     $declaration = $builder->build(createShipment(['items' => [$item]]), 1000, '100000001');
-    $line        = builtShipmentCustomsItems((new Shipment())->setCustomsDeclaration($declaration))[0];
 
-    return ['classification' => $line->getClassification(), 'country' => $line->getCountry()];
+    return builtShipmentCustomsItems((new Shipment())->setCustomsDeclaration($declaration))[0];
 }
 
 it('declares a configurable item with the variant its customs data, or else the parent its', function (
@@ -189,7 +189,9 @@ it('declares a configurable item with the variant its customs data, or else the 
     array $countries,
     array $expected
 ) {
-    expect(configurableCustomsLine($classifications, $countries))->toBe($expected);
+    $line = configurableCustomsLine(['classification' => $classifications], $countries);
+
+    expect(['classification' => $line->getClassification(), 'country' => $line->getCountry()])->toBe($expected);
 })->with([
     'the variant has customs data' => [[4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ'], ['classification' => '0090902341', 'country' => 'AQ']],
     'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['classification' => '6109.10', 'country' => 'CN']],
@@ -197,7 +199,7 @@ it('declares a configurable item with the variant its customs data, or else the 
 
 it('leaves out the variant item ShipmentFactory marked deleted, so a configurable is one line', function () {
     $config  = createConfig(['print/weight_indication' => 'gram']);
-    $builder = new CustomsDeclarationBuilder(customsObjectManager([4 => '6109.10'], [4 => 'CN'], $config), $config, new Weight($config));
+    $builder = new CustomsDeclarationBuilder(customsObjectManager(['classification' => [4 => '6109.10']], [4 => 'CN'], $config), $config, new Weight($config));
     $parent  = createShipmentItem([
         'product_id' => 4,
         'order_item' => new DataObject(['product_type' => 'configurable', 'children_items' => [new DataObject(['product_id' => 9])]]),
@@ -209,3 +211,37 @@ it('leaves out the variant item ShipmentFactory marked deleted, so a configurabl
 
     expect($builder->build($shipment, 1000, '100000001')->getItems())->toHaveCount(1);
 });
+
+it('sends the external product reference of a product that has one', function () {
+    $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
+
+    [, $items] = buildCustomsFor([$item], '61', ['external_product_reference' => [99 => 'zonos-item-1']]);
+
+    expect($items[0]->getExternalProductReference())->toBe('zonos-item-1');
+});
+
+it('leaves the external product reference out of the request when the product has none', function () {
+    $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
+
+    [, $items] = buildCustomsFor([$item]);
+
+    expect(json_decode(json_encode($items[0]), true))->not->toHaveKey('external_product_reference');
+});
+
+it('takes a configurable item its external product reference from the variant, or else the parent', function (
+    array $references,
+    string $expected
+) {
+    $line = configurableCustomsLine(['external_product_reference' => $references], [4 => 'CN', 9 => null]);
+
+    expect($line->getExternalProductReference())->toBe($expected);
+})->with([
+    'the variant has one' => [[4 => 'zonos-parent', 9 => 'zonos-variant'], 'zonos-variant'],
+    'the variant has none' => [[4 => 'zonos-parent'], 'zonos-parent'],
+]);
+
+it('refuses an external product reference above 64 characters instead of cutting it', function () {
+    $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
+
+    buildCustomsFor([$item], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
+})->throws(InvalidArgumentException::class);
