@@ -13,14 +13,6 @@ use Magento\Sales\Model\Order\Address;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLEuroplus;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLForYou;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDHLParcelConnect;
-use MyParcelNL\Sdk\Model\Carrier\CarrierDPD;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
-use MyParcelNL\Sdk\Model\Carrier\CarrierTrunkrs;
-use MyParcelNL\Sdk\Model\Carrier\CarrierUPSStandard;
-use MyParcelNL\Sdk\Model\Carrier\CarrierGLS;
 
 class Config extends AbstractHelper
 {
@@ -37,14 +29,6 @@ class Config extends AbstractHelper
      * (scope_id 0) — never pass a store/website scope here.
      */
     public const XML_PATH_ACCOUNT_SETTINGS          = self::XML_PATH_GENERAL . 'account_settings_';
-    public const XML_PATH_POSTNL_SETTINGS           = 'myparcelnl_magento_postnl_settings/';
-    public const XML_PATH_DHLFORYOU_SETTINGS        = 'myparcelnl_magento_dhlforyou_settings/';
-    public const XML_PATH_DHLEUROPLUS_SETTINGS      = 'myparcelnl_magento_dhleuroplus_settings/';
-    public const XML_PATH_DHLPARCELCONNECT_SETTINGS = 'myparcelnl_magento_dhlparcelconnect_settings/';
-    public const XML_PATH_UPSSTANDARD_SETTINGS      = 'myparcelnl_magento_upsstandard_settings/';
-    public const XML_PATH_DPD_SETTINGS              = 'myparcelnl_magento_dpd_settings/';
-    public const XML_PATH_GLS_SETTINGS              = 'myparcelnl_magento_gls_settings/';
-    public const XML_PATH_TRUNKRS_SETTINGS          = 'myparcelnl_magento_trunkrs_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
 
     /** API feature flags, as headers; see Confluence "API feature flags". Enables noTracking. */
@@ -64,18 +48,6 @@ class Config extends AbstractHelper
 
     private const CARRIER_PATH_PREFIX = 'myparcelnl_magento_';
     private const CARRIER_PATH_SUFFIX = '_settings';
-
-    public const CARRIERS_XML_PATH_MAP
-        = [
-            CarrierPostNL::NAME           => self::XML_PATH_POSTNL_SETTINGS,
-            CarrierDHLForYou::NAME        => self::XML_PATH_DHLFORYOU_SETTINGS,
-            CarrierDHLEuroplus::NAME      => self::XML_PATH_DHLEUROPLUS_SETTINGS,
-            CarrierDHLParcelConnect::NAME => self::XML_PATH_DHLPARCELCONNECT_SETTINGS,
-            CarrierUPSStandard::NAME      => self::XML_PATH_UPSSTANDARD_SETTINGS,
-            CarrierDPD::NAME              => self::XML_PATH_DPD_SETTINGS,
-            CarrierGLS::NAME              => self::XML_PATH_GLS_SETTINGS,
-            CarrierTrunkrs::NAME          => self::XML_PATH_TRUNKRS_SETTINGS,
-        ];
 
     private ModuleListInterface   $moduleList;
     private StoreManagerInterface $storeManager;

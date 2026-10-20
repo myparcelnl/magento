@@ -449,7 +449,7 @@ A token is currently configured at this scope.,Er is op dit bereik momenteel een
 Covers every store not tokened separately at website or store-view scope.,Dekt elke store die niet apart op website- of store-view-bereik een eigen token heeft.
 24 hour priority,Prio levering
 "When enabled, the 24 hour priority checkbox will be shown in the checkout when this product is in the cart, even when the general priority delivery setting is off.","Indien ingeschakeld wordt de checkbox prio levering in de checkout getoond wanneer dit product in de winkelwagen zit, ook als de algemene prio levering instelling uit staat."
-"Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Uw API key is opgeslagen, maar de MyParcel-accountinstellingen konden niet worden geïmporteerd: %1. Controleer de API key en gebruik daarna de knop MyParcel Backoffice-instellingen importeren."
+"Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key.","Uw API key is opgeslagen, maar de MyParcel-accountinstellingen konden niet worden geïmporteerd: %1. Controleer de API key."
 "MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel kon niet vaststellen welke opties dit account heeft, daarom worden alle opties getoond. Een optie die het account niet heeft, wordt geweigerd bij het exporteren van de zending."
 No standard weight,Geen standaardgewicht
 Create MyParcel consignment,MyParcel zending aanmaken
@@ -475,3 +475,11 @@ The carrier of shipment %1 does not support return labels.,De vervoerder van zen
 No MyParcel shipments were found to make a return label for.,Er zijn geen MyParcel-zendingen gevonden om een retourlabel voor te maken.
 "MyParcel reads every product weight with this one unit, so this setting exists in default scope only.","MyParcel leest elk productgewicht met deze ene eenheid, daarom staat deze instelling alleen op standaard scope."
 "Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.","Let op: gewicht is in deze installatie geen globaal attribuut, dus een product kan per scope een ander getal wegen. MyParcel leest ze allemaal met de eenheid hierboven."
+"Automate 'Fresh food'","Automatiseer 'Verse producten'"
+"Automate 'Frozen'","Automatiseer 'Bevroren'"
+"Automate 'No tracking'","Automatiseer 'Geen track & trace'"
+"This carrier needs a module update before orders can ship with it.","Deze vervoerder heeft een module-update nodig voordat er zendingen mee verstuurd kunnen worden."
+"MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel kon de vervoerders van dit account niet lezen, daarom wordt geen vervoerder getoond. Controleer de API key."
+"%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 is niet ingeschakeld: deze vervoerder heeft een module-update nodig voordat er zendingen mee verstuurd kunnen worden."
+"MyParcel Backoffice settings imported.","MyParcel Backoffice-instellingen geïmporteerd."
+"Reloading the page...","De pagina wordt opnieuw geladen..."

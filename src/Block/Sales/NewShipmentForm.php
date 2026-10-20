@@ -21,41 +21,9 @@ class NewShipmentForm
         PackageType::PACKAGE_SMALL => 'Small package',
     ];
 
-    /**
-     * @var array
-     */
-    private array $shipmentOptionsHumanMap;
-
-    public function __construct()
-    {
-        $this->shipmentOptionsHumanMap = [
-            ShipmentOption::SIGNATURE          => __('Signature on receipt'),
-            ShipmentOption::RECEIPT_CODE       => __('Receipt code'),
-            ShipmentOption::COLLECT            => __('Collect package'),
-            ShipmentOption::ONLY_RECIPIENT     => __('Only recipient'),
-            ShipmentOption::AGE_CHECK          => __('Age check 18+'),
-            ShipmentOption::HIDE_SENDER        => __('Hide sender'),
-            ShipmentOption::LARGE_FORMAT       => __('Large package'),
-            ShipmentOption::RETURN             => __('Return if no answer'),
-            ShipmentOption::SAME_DAY_DELIVERY  => __('Same day delivery'),
-            ShipmentOption::PRINTERLESS_RETURN => __('Printerless return'),
-            ShipmentOption::FRESH_FOOD         => __('Fresh food'),
-            ShipmentOption::FROZEN             => __('Frozen'),
-            ShipmentOption::PRIORITY_DELIVERY  => __('Priority delivery'),
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    public function getShipmentOptionsHumanMap(): array
-    {
-        return $this->shipmentOptionsHumanMap;
-    }
-
-    /** The option's label; one only capabilities name reads as its name, so `no_tracking` is "No tracking". */
+    /** The option's translated label. */
     public function labelFor(string $option): string
     {
-        return (string) ($this->shipmentOptionsHumanMap[$option] ?? __(ucfirst(str_replace('_', ' ', $option))));
+        return (string) __(ShipmentOption::labelFor($option));
     }
 }

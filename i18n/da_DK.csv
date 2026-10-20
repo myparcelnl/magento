@@ -436,7 +436,7 @@ A token is currently configured at this scope.,Der er i øjeblikket konfigureret
 "Covers only this store. Issuing this token removes this store from the default-scope token's view and from any parent-website token's view: it is now exclusively owned by this store-view-scoped token.",Dækker kun denne butik. Udstedelse af dette token fjerner denne butik fra standardomfangstokenets visning og fra enhver overordnet webstedstokens visning: det ejes nu udelukkende af dette butiksvisningsomfangstoken.
 "Covers every store-view in this website not tokened separately at store-view scope. Issuing this token removes these stores from the default-scope token's view; any store-view in this website with its own dedicated token remains invisible to this token.","Dækker alle butiksvisninger i dette websted, der ikke er tokenet separat i butiksvisningsomfang. Udstedelse af dette token fjerner disse butikker fra standardomfangstokenets visning; en butiksvisning med sit eget dedikerede token forbliver usynligt for dette token."
 Covers every store not tokened separately at website or store-view scope.,Dækker alle butikker der ikke er tokenet separat i websted- eller butiksvisningsomfang.
-"Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key, then use the Import MyParcel Backoffice settings button.","Din API-nøgle blev gemt, men MyParcel-kontoindstillingerne kunne ikke importeres: %1. Kontrollér API-nøglen, og brug derefter knappen Importer MyParcel Backoffice-indstillinger."
+"Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key.","Din API-nøgle blev gemt, men MyParcel-kontoindstillingerne kunne ikke importeres: %1. Kontrollér API-nøglen."
 "MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel kunne ikke bekræfte, hvilke muligheder denne konto har, så alle muligheder vises. En mulighed, som kontoen ikke har, afvises, når forsendelsen eksporteres."
 No standard weight,Ingen standardvægt
 Create MyParcel consignment,Opret MyParcel forsendelse
@@ -462,3 +462,10 @@ The carrier of shipment %1 does not support return labels.,Transportøren af for
 No MyParcel shipments were found to make a return label for.,Der blev ikke fundet nogen MyParcel-forsendelser at lave en returlabel til.
 "MyParcel reads every product weight with this one unit, so this setting exists in default scope only.","MyParcel læser hver produktvægt med denne ene enhed, så denne indstilling findes kun i standardomfang."
 "Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.","Bemærk: vægt er ikke en global attribut i denne installation, så et produkt kan veje et andet tal per omfang. MyParcel læser dem alle med enheden ovenfor."
+"Automate 'Fresh food'","Automatiser 'Friske fødevarer'"
+"Automate 'Frozen'","Automatiser 'Frossen'"
+"Automate 'No tracking'","Automatiser 'Ingen sporing'"
+"This carrier needs a module update before orders can ship with it.","Denne transportør kræver en modulopdatering, før der kan sendes forsendelser med den."
+"MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.","MyParcel kunne ikke læse denne kontos transportører, så ingen transportør vises. Kontrollér API-nøglen."
+"%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 blev ikke slået til: denne transportør kræver en modulopdatering, før der kan sendes forsendelser med den."
+"Reloading the page...","Siden genindlæses..."

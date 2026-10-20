@@ -24,10 +24,12 @@ $form     = $block->getNewShipmentForm();
 </div>
 <?php if ($block->hasUnverifiedCapabilities()): ?>
     <div class="message message-warning warning js--mypa-options" style="margin: 10px 0;">
-        <div><?= __(
-            'MyParcel could not confirm which options this account has, so every option is shown. '
-            . 'An option the account does not carry is refused when the shipment is exported.'
-        ) ?></div>
+        <div><?= [] === $carriers
+            ? __('MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.')
+            : __(
+                'MyParcel could not confirm which options this account has, so every option is shown. '
+                . 'An option the account does not carry is refused when the shipment is exported.'
+            ) ?></div>
     </div>
 <?php endif; ?>
 <?php foreach ($carriers as $carrier): ?>

@@ -16,12 +16,14 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
 <link href="<?php echo $block->getCssUrl(); ?>" rel="stylesheet" type="text/css"/>
 
 <div class="myparcel-dynamic-settings">
-    <!-- Settings Form -->
-    <form id="myparcel-settings-form"
-          action="<?= $escaper->escapeUrl($block->getSaveUrl()) ?>"
-          method="post"
-          data-form="myparcel-settings">
-        <?= $block->getBlockHtml('formkey') ?>
+    <?php if ($block->isPermissive()): ?>
+        <div class="message message-warning warning">
+            <div><?= $escaper->escapeHtml(__(
+                'MyParcel could not read the carriers of this account, so no carrier is shown. Check the API key.'
+            )) ?></div>
+        </div>
+    <?php endif; ?>
+    <!-- Inside Magento's own config form, so these post with it; ConfigChange reads them. -->
         <input type="hidden" name="scope" value="<?= $escaper->escapeHtmlAttr($currentScopeName) ?>"/>
         <input type="hidden" name="scope_id" value="<?= $escaper->escapeHtmlAttr((string) $currentScopeId) ?>"/>
 
@@ -71,15 +73,15 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                     <div class="admin__fieldset-wrapper-content">
                                         <?php foreach ($group['fields'] ?? [] as $field): ?>
                                             <?php
-                                            if (! $block->isFieldVisibleInCurrentScope($field)) {
-                                                continue;
-                                            }
                                             $fieldHtmlId     = $block->getFieldHtmlId($field);
                                             $fieldName       = $block->getFieldName($field);
                                             $fieldValue      = $block->getFieldValue($field);
                                             $hasOwnValue     = $block->hasOwnValue($field);
                                             $hasDependencies = ! empty($field['depends']);
                                             $dependenciesMet = $block->areDependenciesMet($field);
+                                            $isLocked        = ! empty($field['disabled']);
+                                            // Not posted while disabled, so nothing is written for it.
+                                            $controlDisabled = $isLocked || (! $isDefaultScope && ! $hasOwnValue);
                                             // Filled by the frontend_model branch below, so it must reset per field.
                                             $frontendModelNote = '';
                                             ?>
@@ -98,7 +100,7 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                     </label>
                                                 <?php endif; ?>
 
-                                                <?php if (! $isDefaultScope && 'button' !== $field['type']): ?>
+                                                <?php if (! $isDefaultScope && ! $isLocked && 'button' !== $field['type']): ?>
                                                     <!-- Use Default checkbox -->
                                                     <div class="use-default">
                                                         <input type="checkbox"
@@ -134,21 +136,25 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                         <select id="<?= $escaper->escapeHtmlAttr($fieldHtmlId) ?>"
                                                                 name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
                                                                 class="admin__control-select <?= $escaper->escapeHtmlAttr($field['frontend_class'] ?? '') ?>"
-                                                                <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
-                                                            <?php foreach ($block->getFieldOptions($field) as $option): ?>
+                                                                <?= $controlDisabled ? 'disabled="disabled"' : '' ?>>
+                                                            <?php
+                                                            $selectOptions = $block->getFieldOptions($field);
+                                                            $selectedValue = $block->getSelectedValue($fieldValue, $selectOptions);
+                                                            ?>
+                                                            <?php foreach ($selectOptions as $option): ?>
                                                                 <?php if (isset($option['value']) && is_array($option['value'])): ?>
                                                                     <optgroup
                                                                             label="<?= $escaper->escapeHtmlAttr($option['label']) ?>">
                                                                         <?php foreach ($option['value'] as $subOption): ?>
                                                                             <option value="<?= $escaper->escapeHtmlAttr((string) $subOption['value']) ?>"
-                                                                                    <?= (string) $fieldValue === (string) $subOption['value'] ? 'selected="selected"' : '' ?>>
+                                                                                    <?= $selectedValue === (string) $subOption['value'] ? 'selected="selected"' : '' ?>>
                                                                                 <?= $escaper->escapeHtml($subOption['label']) ?>
                                                                             </option>
                                                                         <?php endforeach; ?>
                                                                     </optgroup>
                                                                 <?php else: ?>
                                                                     <option value="<?= $escaper->escapeHtmlAttr((string) ($option['value'] ?? '')) ?>"
-                                                                            <?= (string) $fieldValue === (string) ($option['value'] ?? '') ? 'selected="selected"' : '' ?>>
+                                                                            <?= $selectedValue === (string) ($option['value'] ?? '') ? 'selected="selected"' : '' ?>>
                                                                         <?= $escaper->escapeHtml($option['label'] ?? '') ?>
                                                                     </option>
                                                                 <?php endif; ?>
@@ -160,7 +166,7 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                                 name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value][]"
                                                                 class="admin__control-multiselect <?= $escaper->escapeHtmlAttr($field['frontend_class'] ?? '') ?>"
                                                                 multiple="multiple"
-                                                                <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                                <?= $controlDisabled ? 'disabled="disabled"' : '' ?>>
                                                             <?php
                                                             $selectedValues = is_string($fieldValue) ? explode(',', $fieldValue) : (array) $fieldValue;
                                                             ?>
@@ -177,7 +183,7 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                                   name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
                                                                   class="admin__control-textarea"
                                                                   rows="5"
-                                                                  <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>><?= $escaper->escapeHtml((string) $fieldValue) ?></textarea>
+                                                                  <?= $controlDisabled ? 'disabled="disabled"' : '' ?>><?= $escaper->escapeHtml((string) $fieldValue) ?></textarea>
                                                     <?php elseif ($field['type'] === 'time'): ?>
                                                         <!-- Time field -->
                                                         <?php
@@ -186,7 +192,7 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                         <div class="admin__control-time">
                                                             <select name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value][0]"
                                                                     class="admin__control-select"
-                                                                    <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                                    <?= $controlDisabled ? 'disabled="disabled"' : '' ?>>
                                                                 <?php for ($h = 0; $h < 24; $h++): ?>
                                                                     <option value="<?= sprintf('%02d', $h) ?>" <?= ($timeValue[0] ?? '00') == sprintf('%02d', $h) ? 'selected' : '' ?>>
                                                                         <?= sprintf('%02d', $h) ?>
@@ -196,7 +202,7 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                             <span>:</span>
                                                             <select name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value][1]"
                                                                     class="admin__control-select"
-                                                                    <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                                    <?= $controlDisabled ? 'disabled="disabled"' : '' ?>>
                                                                 <?php for ($m = 0; $m < 60; $m++): ?>
                                                                     <option value="<?= sprintf('%02d', $m) ?>" <?= ($timeValue[1] ?? '00') == sprintf('%02d', $m) ? 'selected' : '' ?>>
                                                                         <?= sprintf('%02d', $m) ?>
@@ -206,7 +212,7 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                             <span>:</span>
                                                             <select name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value][2]"
                                                                     class="admin__control-select"
-                                                                    <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>>
+                                                                    <?= $controlDisabled ? 'disabled="disabled"' : '' ?>>
                                                                 <?php for ($s = 0; $s < 60; $s++): ?>
                                                                     <option value="<?= sprintf('%02d', $s) ?>" <?= ($timeValue[2] ?? '00') == sprintf('%02d', $s) ? 'selected' : '' ?>>
                                                                         <?= sprintf('%02d', $s) ?>
@@ -226,7 +232,7 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                                name="<?= $escaper->escapeHtmlAttr($fieldName) ?>[value]"
                                                                value="<?= $escaper->escapeHtmlAttr((string) $fieldValue) ?>"
                                                                class="admin__control-text <?= $escaper->escapeHtmlAttr($field['validate'] ?? '') ?>"
-                                                                <?= (! $isDefaultScope && ! $hasOwnValue) ? 'disabled="disabled"' : '' ?>/>
+                                                                <?= $controlDisabled ? 'disabled="disabled"' : '' ?>/>
                                                     <?php endif; ?>
 
                                                     <?php if (! empty($field['tooltip'])): ?>
@@ -260,7 +266,6 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                 <?php endforeach; ?>
             </div>
         </div>
-    </form>
 </div>
 
 <script>
@@ -329,18 +334,6 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
 
     $('select, input').on('change', function() {
       checkDependencies();
-    });
-
-    // Form validation
-    $('#myparcel-settings-form').on('submit', function(e) {
-      const $form = $(this);
-      const isValid = true;
-
-      // Add any custom validation here
-
-      if (!isValid) {
-        e.preventDefault();
-      }
     });
   });
 </script>
