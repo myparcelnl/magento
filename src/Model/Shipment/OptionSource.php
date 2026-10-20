@@ -9,7 +9,7 @@ namespace MyParcelNL\Magento\Model\Shipment;
  *
  * Ranked by provenance, never by option name, so a new option needs no entry. Two options on the
  * same tier are both kept, and the API refuses the shipment: the module does not choose between
- * two decisions of equal weight. See docs/design/capability-option-dependencies.md.
+ * two decisions of equal weight. See docs/sdk-v11.md.
  */
 final class OptionSource
 {
