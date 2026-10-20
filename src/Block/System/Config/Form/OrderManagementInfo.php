@@ -15,7 +15,7 @@ use MyParcelNL\Sdk\Client\Generated\IamApi\Model\Feature;
  * Read-only, as bare JSON: the order management of the account behind this scope's api key, and its
  * stored features. For checking what the export decides on, so it is deliberately not pretty.
  *
- * DynamicSettings renders a field block through toHtml(), not render(), so the output is _toHtml().
+ * Hidden on the Version and support page: remove the hidden attribute in the browser inspector to see it.
  */
 class OrderManagementInfo extends Template
 {
