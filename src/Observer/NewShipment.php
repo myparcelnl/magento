@@ -21,20 +21,30 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Model\Order\Shipment;
+use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Sales\TrackTraceHolder;
+use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
+use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\OrderGridColumns;
 
+/**
+ * Exports a shipment to MyParcel as Magento saves it.
+ *
+ * Fires on every sales_order_shipment_save_before in the shop, so it guards out the shipments that
+ * are none of its business first.
+ */
 class NewShipment implements ObserverInterface
 {
     const DEFAULT_LABEL_AMOUNT = 1;
 
-    private ManagerInterface       $messageManager;
-    private ObjectManager          $objectManager;
-    private RedirectFactory        $redirectFactory;
-    private RequestInterface       $request;
-    private MagentoOrderCollection $orderCollection;
-    private Config                 $config;
+    private ManagerInterface        $messageManager;
+    private ObjectManager           $objectManager;
+    private RedirectFactory         $redirectFactory;
+    private RequestInterface        $request;
+    private ?MagentoOrderCollection $orderCollection;
+    private Config                  $config;
+    private OrderGridColumns        $gridColumns;
 
     /**
      * NewShipment constructor.
@@ -47,8 +57,26 @@ class NewShipment implements ObserverInterface
         $this->request         = $this->objectManager->get(RequestInterface::class);
         $this->redirectFactory = $this->objectManager->get(RedirectFactory::class);
         $this->messageManager  = $this->objectManager->get(ManagerInterface::class);
-        $this->orderCollection = $orderCollection ?? new MagentoOrderCollection($this->objectManager, $this->request);
+        $this->orderCollection = $orderCollection;
         $this->config          = $this->objectManager->get(Config::class);
+        $this->gridColumns     = $this->objectManager->get(OrderGridColumns::class);
+    }
+
+    /**
+     * Built on first use, not in the constructor.
+     *
+     * This observer runs on every sales_order_shipment_save_before in the shop, and all but the
+     * MyParcel ones return at the guard in execute(). MagentoOrderCollection resolves eleven
+     * services of its own, so constructing it up front billed every other shipment save for a graph
+     * it never touched.
+     */
+    private function orderCollection(): MagentoOrderCollection
+    {
+        if (null === $this->orderCollection) {
+            $this->orderCollection = new MagentoOrderCollection($this->objectManager, $this->request);
+        }
+
+        return $this->orderCollection;
     }
 
     /**
@@ -86,7 +114,7 @@ class NewShipment implements ObserverInterface
      */
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
-        $options = $this->orderCollection->setOptionsFromParameters()
+        $options = $this->orderCollection()->setOptionsFromParameters()
                                          ->getOptions()
         ;
 
@@ -94,38 +122,39 @@ class NewShipment implements ObserverInterface
             unset($options['carrier']);
         }
 
-        $amount = $options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT;
+        $amount = (int) ($options['label_amount'] ?? self::DEFAULT_LABEL_AMOUNT);
 
-        /** @var \MyParcelNL\Magento\Model\Sales\TrackTraceHolder[] $trackTraceHolders */
-        $trackTraceHolders = [];
-        $i                 = 1;
-        $useMultiCollo     = false;
+        $builder = new ShipmentBuilder($this->objectManager, $shipment->getOrder());
 
-        while ($i <= $amount) {
-            // Set MyParcel options
-            $trackTraceHolder = (new TrackTraceHolder($this->objectManager, $shipment->getOrder()))
-                ->createTrackTraceFromShipment($shipment)
-            ;
-            $trackTraceHolder->convertDataFromMagentoToApi($trackTraceHolder->mageTrack, $options);
+        /** @var BuiltShipment[] $builtShipments */
+        $builtShipments = [];
 
-            if (1 === $i && $this->orderCollection->canUseMultiCollo($trackTraceHolder->consignment)) {
-                $useMultiCollo = true;
+        for ($collo = 1; $collo <= $amount; $collo++) {
+            $track = $builder->createTrackForShipment($shipment);
+
+            try {
+                $builtShipments[] = $builder->build($track, $options, $collo);
+            } catch (\Throwable $e) {
+                // The builder says what went wrong; naming the order is the reporting layer's job,
+                // here and in MagentoCollection::setNewMyParcelTracks().
+                $this->messageManager->addErrorMessage(
+                    sprintf('%s: %s', $shipment->getOrder()->getIncrementId(), $e->getMessage())
+                );
+
+                return;
             }
 
-            if (! $useMultiCollo) {
-                $this->orderCollection->myParcelCollection->addConsignment($trackTraceHolder->consignment);
+            // One track for the whole multicollo, because parseCreateResponse() drops the response's
+            // secondary_shipments and colli 2..N have no id to store here. They are not lost: the
+            // query response does carry them, so updateMagentoTrack() adds their tracks.
+            if (1 === $collo) {
+                $multiCollo = $this->orderCollection()->asMultiCollo($builtShipments[0], $amount);
+
+                if (null !== $multiCollo) {
+                    $builtShipments = [$multiCollo];
+                    break;
+                }
             }
-
-            $trackTraceHolders[] = $trackTraceHolder;
-            $i++;
-        }
-
-        if ($useMultiCollo) {
-            $firstTrackTraceHolder = $trackTraceHolders[0];
-            $this->orderCollection->myParcelCollection->addMultiCollo(
-                $firstTrackTraceHolder->consignment,
-                $amount
-            );
         }
 
         if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
@@ -135,40 +164,37 @@ class NewShipment implements ObserverInterface
             return;
         }
 
-        $this->orderCollection->myParcelCollection
-            ->createConcepts()
-            ->setLatestData()
-        ;
+        $report = $this->orderCollection()->getExportService()->createConcepts($builtShipments);
 
-        foreach ($this->orderCollection->myParcelCollection as $consignment) {
-            $trackTraceHolder = array_pop($trackTraceHolders);
-            $trackTraceHolder->mageTrack
-                ->setData('myparcel_consignment_id', $consignment->getConsignmentId())
-                ->setData('myparcel_status', 1)
-            ;
-            $shipment->addTrack($trackTraceHolder->mageTrack);
+        foreach ($report->failureMessages() as $message) {
+            $this->messageManager->addErrorMessage($message);
+        }
+
+        // Each built shipment carries its own track, so nothing is paired by position any more.
+        foreach ($builtShipments as $built) {
+            if (! $built->track()->getData('myparcel_consignment_id')) {
+                continue;
+            }
+
+            $shipment->addTrack($built->track());
         }
 
         $this->updateTrackGrid($shipment, false);
     }
 
     /**
-     * @param $shipment
+     * Export the order instance the request already holds, never a fresh load of it.
      *
-     * @return void
+     * Magento saves $shipment->getOrder() once more after this observer, in
+     * Shipment\Save::_saveShipment(). A second instance still carries myparcel_uuid => null, and that
+     * save writes the null back over the uuid setFulfilment() just stored.
+     *
      * @throws \Exception
      */
-    private function exportEntireOrder($shipment): void
+    private function exportEntireOrder(Shipment $shipment): void
     {
-        $orderId = $shipment->getOrderId();
-
-        /**
-         * @var \Magento\Sales\Model\ResourceModel\Order\Collection $collection
-         */
-        $collection = $this->objectManager->get(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION);
-        $collection->addAttributeToFilter('entity_id', ['in' => $orderId]);
-        $this->orderCollection->setOrderCollection($collection);
-        $this->orderCollection->setFulfilment();
+        $this->orderCollection()->setOrderCollection([$shipment->getOrder()]);
+        $this->orderCollection()->setFulfilment();
     }
 
     /**
@@ -182,16 +208,19 @@ class NewShipment implements ObserverInterface
      */
     private function updateTrackGrid($shipment, $entireOrder): void
     {
-        $aHtml = $this->orderCollection->getHtmlForGridColumnsByTracks($shipment->getTracksCollection());
+        $columns = $this->gridColumns->htmlForTracks($shipment->getTracksCollection());
 
         if ($entireOrder) {
-            $aHtml['track_status'] = 'Exported';
+            $columns['track_status'] = UpdateStatus::ORDER_STATUS_EXPORTED;
         }
 
-        $shipment->getOrder()
-                 ->setData('track_status', $aHtml['track_status'])
-                 ->setData('track_number', $aHtml['track_number'])
-                 ->save()
-        ;
+        $order = $shipment->getOrder();
+
+        // Set as well as written: Magento saves this order again after the observer, and without
+        // these two the save would put the pre-observer values back over the column write.
+        $order->setData('track_status', $columns['track_status'])
+              ->setData('track_number', $columns['track_number']);
+
+        $this->gridColumns->writeColumns((int) $order->getEntityId(), $columns);
     }
 }
