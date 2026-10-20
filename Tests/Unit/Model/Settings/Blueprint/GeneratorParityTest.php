@@ -11,7 +11,7 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 // The form for a contract shaped like the eight carriers of the deleted etc/dynamic_settings.json,
 // against a byte copy of it. Every difference is listed here, so a change to the catalogue that moves
-// a path or a msgid fails until it is named.
+// a path or a msgid fails until it is named. Delete this test and its fixture once INT-1289 is in main.
 
 const LEGACY_ALLOWED_MISSING = [
     // Nothing reads it: the checkout and the carrier read {deliveryType}/fee.
