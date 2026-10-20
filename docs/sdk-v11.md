@@ -84,6 +84,11 @@ Six, all deliberate. A reader who finds them should treat them as decisions, not
    checkout first rules out a package type that cannot carry a forced option
    (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`), so an 18+ order keeps its
    age check where a package type can carry it. An option dropped at export is logged.
+5. **`requires` adds one level only.** The PDK follows the chain and then undoes the damage, which
+   rests on statement order in one method: PostNL receipt code requires insurance, which requires
+   the signature that receipt code excludes.
+6. **An `excludes` conflict is won by where the value came from** (`OptionSource`). In the PDK, the
+   definition that sorts first alphabetically wins, so renaming a class flips the outcome.
 
 ## Vocabulary per boundary
 
@@ -222,6 +227,8 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - The export no longer navigates: the grid keeps its selection and reloads once the labels exist.
 - The track & trace link comes from the API. The fallback host follows the account's proposition.
 - A dedicated capabilities cache type, enabled once on upgrade when `env.php` does not mention it.
+- The settings form shows, per scope, the carriers and options of that scope's contract. A new
+  install starts with every carrier, option and fee off. An existing install keeps its values.
 - A shipment options modal on the order grid, the shipment grid, the order and shipment views and
   the New Shipment page. It saves carrier, package type, options, insurance, label amount,
   digital stamp weight, the delivery date (or its removal) and the package dimensions on the order,
