@@ -98,7 +98,7 @@ class CustomsDeclarationBuilder
         float   $unitPrice,
         string  $classification,
         string  $countryOfOrigin,
-        string  $externalProductReference
+        ?string $externalProductReference
     ): RefShipmentCustomsDeclarationItem
     {
         // A zero-quantity line is not an error, it is a line the API refuses.
@@ -116,8 +116,8 @@ class CustomsDeclarationBuilder
                 ->setItemValue($itemValue)
                 ->setClassification($this->items->classification($classification));
 
-            // The field is nullable, so setting an empty value would send null instead of leaving it out.
-            if ('' !== $externalProductReference) {
+            // Setting null marks the key as sent, so a missing value is not set at all.
+            if (null !== $externalProductReference) {
                 $item->setExternalProductReference($externalProductReference);
             }
         } catch (\InvalidArgumentException $e) {

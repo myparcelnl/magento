@@ -88,25 +88,22 @@ class CustomsDeclarationFromOrder
             $lineWeight   = $this->items->lineWeightInGrams((float) $product->getWeight(), $amount);
             $totalWeight += $lineWeight;
 
-            $customsItem = (new MyParcelCustomsItem())
-                ->setDescription($this->items->description((string) $product->getName()))
-                ->setAmount($line['amount'])
-                ->setWeight($lineWeight)
-                ->setItemValueArray([
-                                        'amount'   => $this->items->lineValueInCents(
-                                            (float) $product->getPrice(),
-                                            $amount
-                                        ),
-                                        'currency' => $currency,
-                                    ])
-                ->setCountry($customsData[$index]['country'])
-                ->setClassification($this->items->classification($customsData[$index]['classification']));
-
-            if ('' !== $customsData[$index]['external_product_reference']) {
-                $customsItem->setExternalProductReference($customsData[$index]['external_product_reference']);
-            }
-
-            $customsDeclaration->addCustomsItem($customsItem);
+            $customsDeclaration->addCustomsItem(
+                (new MyParcelCustomsItem())
+                    ->setDescription($this->items->description((string) $product->getName()))
+                    ->setAmount($line['amount'])
+                    ->setWeight($lineWeight)
+                    ->setItemValueArray([
+                                            'amount'   => $this->items->lineValueInCents(
+                                                (float) $product->getPrice(),
+                                                $amount
+                                            ),
+                                            'currency' => $currency,
+                                        ])
+                    ->setCountry($customsData[$index]['country'])
+                    ->setClassification($this->items->classification($customsData[$index]['classification']))
+                    ->setExternalProductReference($customsData[$index]['external_product_reference'])
+            );
         }
 
         $customsDeclaration
