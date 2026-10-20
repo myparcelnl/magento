@@ -59,7 +59,8 @@ class CustomsDeclarationBuilder
                 // The Core API takes EUR only, so the base price; the order may be in another currency.
                 (float) $item->getOrderItem()->getBasePrice(),
                 $customsData[$line]['classification'],
-                $customsData[$line]['country']
+                $customsData[$line]['country'],
+                $customsData[$line]['external_product_reference']
             );
         }
 
@@ -95,7 +96,8 @@ class CustomsDeclarationBuilder
         float   $unitWeight,
         float   $unitPrice,
         string  $classification,
-        string  $countryOfOrigin
+        string  $countryOfOrigin,
+        string  $externalProductReference
     ): RefShipmentCustomsDeclarationItem
     {
         // A zero-quantity line is not an error, it is a line the API refuses.
@@ -106,16 +108,23 @@ class CustomsDeclarationBuilder
             ->setAmount($this->items->lineValueInCents($unitPrice, (float) $amount));
 
         try {
-            return (new RefShipmentCustomsDeclarationItem())
+            $item = (new RefShipmentCustomsDeclarationItem())
                 ->setCountry($countryOfOrigin)
                 ->setDescription($this->items->description($name))
                 ->setAmount($amount)
                 ->setWeight($this->items->lineWeightInGrams($unitWeight, (float) $amount))
                 ->setItemValue($itemValue)
                 ->setClassification($this->items->classification($classification));
+
+            // The field is nullable, so setting an empty value would send null instead of leaving it out.
+            if ('' !== $externalProductReference) {
+                $item->setExternalProductReference($externalProductReference);
+            }
         } catch (\InvalidArgumentException $e) {
             throw CustomsItems::refused($name, $sku, $e);
         }
+
+        return $item;
     }
 
 }
