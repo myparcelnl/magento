@@ -98,7 +98,7 @@ function accountSettingsRow(array $items, array $overrides = []): string
 {
     return (string) json_encode(array_replace([
         'shop'                 => ['id' => 42, 'name' => 'Test Shop'],
-        'account'              => ['id' => 7, 'platform_id' => 1],
+        'account'              => ['id' => 7, 'proposition_id' => 1],
         'contract_definitions' => $items,
     ], $overrides));
 }

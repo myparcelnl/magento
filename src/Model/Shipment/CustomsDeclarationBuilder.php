@@ -37,7 +37,9 @@ class CustomsDeclarationBuilder
 
     /**
      * One item per shipped item — the legacy path looped both getData('items') and getItems() and
-     * added every item twice. Product data is fetched in two batch queries, not per item.
+     * added every item twice. getAllItems() leaves out what ShipmentFactory marked deleted: before
+     * the save, the shipment still carries a configurable's variant as an item of its own. Product
+     * data is fetched in two batch queries, not per item.
      *
      * @throws \RuntimeException when the shipment carries no item, or more than the API accepts
      */
@@ -45,7 +47,7 @@ class CustomsDeclarationBuilder
     {
         $shipmentItems = [];
 
-        foreach ($shipment->getItems() as $item) {
+        foreach ($shipment->getAllItems() as $item) {
             $shipmentItems[] = $item;
         }
 
@@ -59,22 +61,21 @@ class CustomsDeclarationBuilder
             );
         }
 
-        $productIds      = array_map(static fn($item): int => (int) $item->getProductId(), $shipmentItems);
-        $classifications = $this->items->classificationsFor($productIds);
-        $countries       = $this->items->countriesOfOriginFor($productIds);
+        $customsData = $this->items->customsDataFor(
+            array_map([self::class, 'productIdsOf'], $shipmentItems),
+            (int) $shipment->getStoreId()
+        );
 
         $items = [];
 
-        foreach ($shipmentItems as $item) {
-            $productId = (int) $item->getProductId();
-
+        foreach ($shipmentItems as $line => $item) {
             $items[] = $this->buildItem(
                 (string) $item->getName(),
                 (int) $item->getQty(),
                 (float) $item->getWeight(),
                 (float) $item->getPrice(),
-                (string) ($classifications[$productId] ?? ''),
-                (string) ($countries[$productId] ?? '')
+                $customsData[$line]['classification'],
+                $customsData[$line]['country']
             );
         }
 
@@ -83,6 +84,20 @@ class CustomsDeclarationBuilder
             ->setWeight($totalWeightInGrams)
             ->setInvoice($invoice)
             ->setItems($items);
+    }
+
+    /** A configurable item ships as its parent; the variant's own customs data comes first. */
+    private static function productIdsOf($shipmentItem): array
+    {
+        $orderItem = $shipmentItem->getOrderItem();
+        $variants  = $orderItem && CustomsItems::CONFIGURABLE === $orderItem->getProductType()
+            ? (array) $orderItem->getChildrenItems()
+            : [];
+
+        return array_merge(
+            array_map(static fn($child): int => (int) $child->getProductId(), $variants),
+            [(int) $shipmentItem->getProductId()]
+        );
     }
 
     private function buildItem(

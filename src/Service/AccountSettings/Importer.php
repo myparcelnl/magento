@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Service\AccountSettings;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Settings\AccountSettings;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Client;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -22,8 +23,9 @@ use Throwable;
  * Config::XML_PATH_ACCOUNT_SETTINGS for why that is the key). Shared by the *Import MyParcel Backoffice
  * settings* button and the automatic import on an api key change.
  *
- * Two sources, one row: the account and its shop come from the SDK's account web service, the
- * contract definitions from the capabilities client in a single unfiltered call.
+ * Three sources, one row: the account and its shop come from the SDK's account web service, the
+ * contract definitions from the capabilities client in a single unfiltered call, and the features
+ * from whoami.
  *
  * Throws whatever the SDK throws: an invalid key must surface, but must not abort a config save, so the
  * observer catches it.
@@ -36,6 +38,7 @@ class Importer
     private LoggerInterface      $logger;
     private Client               $client;
     private UserAgent            $userAgent;
+    private AccountFeatures      $accountFeatures;
 
     public function __construct(
         WriterInterface      $configWriter,
@@ -43,25 +46,28 @@ class Importer
         Fingerprint          $fingerprint,
         LoggerInterface      $logger,
         Client               $client,
-        UserAgent            $userAgent
+        UserAgent            $userAgent,
+        AccountFeatures      $accountFeatures
     ) {
-        $this->configWriter = $configWriter;
-        $this->scopeConfig  = $scopeConfig;
-        $this->fingerprint  = $fingerprint;
-        $this->logger       = $logger;
-        $this->client       = $client;
-        $this->userAgent    = $userAgent;
+        $this->configWriter    = $configWriter;
+        $this->scopeConfig     = $scopeConfig;
+        $this->fingerprint     = $fingerprint;
+        $this->logger          = $logger;
+        $this->client          = $client;
+        $this->userAgent       = $userAgent;
+        $this->accountFeatures = $accountFeatures;
     }
 
     /**
-     * Whether this account's settings are already cached, so a caller can heal a missing row without
-     * paying for an API call on every save.
+     * Whether this account's settings are already cached in full, so a caller can heal a missing row
+     * without paying for an API call on every save. A row without features counts as missing: the
+     * export reads them, so the next save completes the row.
      */
     public function hasSettingsFor(string $apiKey): bool
     {
-        return (bool) $this->scopeConfig->getValue(
+        return null !== self::featuresOf($this->scopeConfig->getValue(
             Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey)
-        );
+        ));
     }
 
     /**
@@ -80,7 +86,9 @@ class Importer
         $fingerprint = $this->fingerprint->of($apiKey);
         $path        = Config::XML_PATH_ACCOUNT_SETTINGS . $fingerprint;
         $before      = $this->scopeConfig->getValue($path);
-        $row         = (string) json_encode($this->createArray($this->fetchConfigurations($apiKey)));
+        $row         = (string) json_encode(
+            $this->createArray($this->fetchConfigurations($apiKey), self::featuresOf($before))
+        );
 
         $this->configWriter->save($path, $row);
 
@@ -117,6 +125,7 @@ class Importer
                 'shop'                 => $shop,
                 'account'              => $account,
                 'contract_definitions' => $this->fetchContractDefinitions($apiKey),
+                'features'             => $this->fetchFeatures($apiKey),
             ]
         );
     }
@@ -155,18 +164,51 @@ class Importer
     }
 
     /**
+     * Null when whoami fails: the rest of the row is still worth storing, and createArray() keeps the
+     * features stored before, so a transient failure never changes the export.
+     *
+     * @return string[]|null
+     */
+    private function fetchFeatures(string $apiKey): ?array
+    {
+        try {
+            return $this->accountFeatures->forApiKey($apiKey);
+        } catch (Throwable $e) {
+            Logger::warning(
+                'The account features could not be fetched. The stored features stay until the next import; an account without any exports shipments.',
+                LogContext::of($e)
+            );
+
+            return null;
+        }
+    }
+
+    /**
+     * @param mixed $storedRow the raw config value
+     *
+     * @return string[]|null
+     */
+    private static function featuresOf($storedRow): ?array
+    {
+        $decoded = is_string($storedRow) ? json_decode($storedRow, true) : null;
+
+        return is_array($decoded) ? AccountSettings::featuresIn($decoded) : null;
+    }
+
+    /**
      * @param \MyParcelNL\Sdk\Support\Collection $settings
+     * @param string[]|null                      $storedFeatures of the row being replaced, kept when whoami answered nothing
      *
      * @return array
      */
-    private function createArray(Collection $settings): array
+    private function createArray(Collection $settings, ?array $storedFeatures = null): array
     {
         /** @var \MyParcelNL\Sdk\Model\Account\Shop $shop */
         $shop = $settings->get('shop');
         /** @var \MyParcelNL\Sdk\Model\Account\Account $account */
         $account = $settings->get('account');
 
-        return [
+        $row = [
             'shop'                 => [
                 'id'   => $shop->getId(),
                 'name' => $shop->getName(),
@@ -176,5 +218,13 @@ class Importer
             // bounds the settings screen reads.
             'contract_definitions' => $settings->get('contract_definitions'),
         ];
+
+        $features = $settings->get('features') ?? $storedFeatures;
+
+        if (null !== $features) {
+            $row['features'] = $features;
+        }
+
+        return $row;
     }
 }
