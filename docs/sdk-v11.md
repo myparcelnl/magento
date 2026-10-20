@@ -67,7 +67,7 @@ that.
 
 ## Deliberate divergences from `myparcelnl/pdk`
 
-Four, all deliberate. A reader who finds them should treat them as decisions, not omissions.
+Six, all deliberate. A reader who finds them should treat them as decisions, not omissions.
 
 1. **The module reuses the SDK's `CapabilitiesMapper::mapToCoreApi()`** rather than porting PDK's
    private `hydrateModel()`. The mapper builds typed generated models through typed setters, so wire
@@ -183,6 +183,11 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - The per-country print-position rule on the order and shipment views. It answered the same for
   every order, and the grid never used it; positions are offered everywhere.
 - The rule that forced a PPS pickup to package type `package`. A pickup ships as the type stored.
+- The "Export mode" setting. An account with order v1 exports orders (PPS), every other account
+  exports shipments. A grid selection that mixes the two is refused.
+- PostNL Monday delivery and the GLS Saturday fields. Saturday delivery is the `saturday_delivery`
+  option.
+- A carrier outside the account's contract leaves the checkout, also when its switch is on.
 
 **Corrected**
 
