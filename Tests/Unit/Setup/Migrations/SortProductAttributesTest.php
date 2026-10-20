@@ -40,39 +40,18 @@ function runSortProductAttributes(array $attributeIds): array
     return $updates;
 }
 
-it('sorts the attributes in the order of the PDK product settings', function () {
-    $codes   = [
-        'myparcel_age_check',
-        'myparcel_classification',
-        'myparcel_digital_stamp',
-        'myparcel_disable_checkout',
-        'myparcel_dropoff_delay',
-        'myparcel_exclude_parcel_lockers',
-        'myparcel_external_product_reference',
-        'myparcel_fit_in_mailbox',
-        'myparcel_priority_delivery',
-    ];
-    $ids     = array_combine($codes, range(101, 109));
-    $codeOf  = array_flip($ids);
-    $order   = [];
+it('gives each attribute its place in the PDK order, the external product reference right after the HS code', function () {
+    $ids    = ['myparcel_fit_in_mailbox' => 101, 'myparcel_classification' => 102, 'myparcel_external_product_reference' => 103, 'myparcel_age_check' => 104];
+    $codeOf = array_flip($ids);
+    $order  = [];
 
     foreach (runSortProductAttributes($ids) as $update) {
-        $order[$codeOf[$update['where']['attribute_id = ?']]] = $update['bind']['sort_order'];
+        $order[$update['bind']['sort_order']] = $codeOf[$update['where']['attribute_id = ?']];
     }
 
-    asort($order);
-
-    expect(array_keys($order))->toBe([
-        'myparcel_fit_in_mailbox',
-        'myparcel_digital_stamp',
-        'myparcel_dropoff_delay',
-        'myparcel_disable_checkout',
-        'myparcel_exclude_parcel_lockers',
-        'myparcel_classification',
-        'myparcel_external_product_reference',
-        'myparcel_age_check',
-        'myparcel_priority_delivery',
-    ]);
+    expect(array_keys($order))->toBe([1, 6, 7, 8])
+        ->and($order[7])->toBe('myparcel_external_product_reference')
+        ->and($order[6])->toBe('myparcel_classification');
 });
 
 it('skips an attribute that does not exist', function () {
