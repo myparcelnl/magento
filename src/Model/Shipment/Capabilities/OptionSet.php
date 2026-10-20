@@ -33,7 +33,7 @@ final class OptionSet
         $unknown = [];
 
         foreach (array_keys($options) as $key) {
-            if (null === ShipmentOption::fromV2Name((string) $key)) {
+            if (! ShipmentOption::knowsV2Name((string) $key)) {
                 $unknown[] = (string) $key;
             }
         }
@@ -43,9 +43,7 @@ final class OptionSet
 
     public function has(string $moduleOptionName): bool
     {
-        $key = ShipmentOption::toV2Name($moduleOptionName);
-
-        return null !== $key && array_key_exists($key, $this->raw);
+        return array_key_exists(ShipmentOption::toV2Name($moduleOptionName), $this->raw);
     }
 
     /**
@@ -57,7 +55,7 @@ final class OptionSet
     {
         $key = ShipmentOption::toV2Name($moduleOptionName);
 
-        if (null === $key || ! array_key_exists($key, $this->raw)) {
+        if (! array_key_exists($key, $this->raw)) {
             return null;
         }
 
@@ -74,10 +72,8 @@ final class OptionSet
         $names = [];
 
         foreach (array_keys($this->raw) as $key) {
-            $name = ShipmentOption::fromV2Name((string) $key);
-
-            if (null !== $name) {
-                $names[] = $name;
+            if (ShipmentOption::knowsV2Name((string) $key)) {
+                $names[] = ShipmentOption::fromV2Name((string) $key);
             }
         }
 
