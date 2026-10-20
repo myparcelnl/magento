@@ -85,7 +85,7 @@ To add a setting:
 
 The module adds the columns `track_status`, `track_number`, `drop_off_day`, `myparcel_carrier` and `myparcel_export_error` to `sales_order`. The schema is in `src/Setup/UpgradeSchema.php`.
 
-A shipment option stored in `myparcel_delivery_options` is tri-state: `null` inherits, `true` is on, `false` is off. A checkout write turns the widget's `false` into `null`. See [`docs/design/shipment-options-modal.md`](docs/design/shipment-options-modal.md).
+A shipment option stored in `myparcel_delivery_options` is tri-state: see [`docs/design/shipment-options-modal.md`](docs/design/shipment-options-modal.md).
 
 ### Adding a carrier
 
