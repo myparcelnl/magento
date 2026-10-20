@@ -95,7 +95,6 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 - **ADRs**: Architectural Decision Records live in the engineering-wide [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) repo, not in this module.
 - **SDK v11** ([`docs/sdk-v11.md`](docs/sdk-v11.md)): why the module owns its shipment domain layer, the deliberate divergences from `myparcelnl/pdk`, which vocabulary each boundary takes, the three money scales, and the SDK defects the module works around. Read it before touching `src/Model/Shipment/` or `src/Service/Export/`.
-- **Capabilities-driven settings** ([`docs/design/capabilities-driven-settings.md`](docs/design/capabilities-driven-settings.md)): the INT-1289 stack that generates the settings form per scope from account capabilities. PR 4 of 6 replaced `etc/dynamic_settings.json` with `src/Model/Settings/Blueprint/`. Read it before touching `Blueprint/Catalogue.php` or `Model/Shipment/Carrier.php`.
 - **FRs** (`docs/functional-requirements/`): Functional requirement specifications
 - **TRs** (`docs/technical-requirements/`): Technical requirement specifications
 - **OpenAPI** — Core API spec: `https://api.myparcel.nl/openapi.min.json`; Order API spec (enums, ShipmentOptions): `https://order.api.myparcel.nl/openapi.json`
@@ -125,7 +124,7 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_day`, `myparcel_carrier`, `myparcel_export_error`. Schema in `src/Setup/UpgradeSchema.php`.
 
-A shipment option stored in `myparcel_delivery_options` is tri-state: `null` inherits, `true` is on, `false` is off. A checkout write turns the widget's `false` into `null`. See [`docs/design/shipment-options-modal.md`](docs/design/shipment-options-modal.md).
+A shipment option stored in `myparcel_delivery_options` is tri-state: see [`docs/design/shipment-options-modal.md`](docs/design/shipment-options-modal.md).
 
 ### File Structure Notes
 
@@ -141,7 +140,7 @@ A carrier that capabilities report needs no code, and the module lists no carrie
 
 ## Adding a Shipment Option
 
-An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module name from the wire key (`noTracking` becomes `no_tracking`), the shipment options modal renders it under a label read from that name and stores it on the order, `ShipmentOptionsResolver::resolve()` decides it, and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies. An option capabilities do not offer for the shipment is left off at export. A merchant's stored `false` beats every default, an 18+ product included.
+An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module name from the wire key (`noTracking` becomes `no_tracking`), the shipment options modal renders it under a label read from that name and stores it on the order, `ShipmentOptionsResolver::resolve()` decides it, and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies. An option capabilities do not offer for the shipment is left off at export.
 
 Add code only for what capabilities cannot say:
 

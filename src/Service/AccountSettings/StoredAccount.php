@@ -71,6 +71,7 @@ class StoredAccount
     /**
      * Whether the account has order v1, which exports entire orders (PPS). An account on order v2 only,
      * a store without an account, and a row imported before features were stored all export shipments.
+     * Not general_settings.order_mode: that flag is also true on order v2.
      */
     public function hasOrderV1ForStore(?int $storeId): bool
     {
