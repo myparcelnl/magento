@@ -12,15 +12,15 @@ use MyParcelNL\Magento\Service\Weight;
 /**
  * Object manager wired for CustomsItems' two batch lookups, shared by both customs paths.
  *
- * Product data (HS code, country of manufacture) is fetched in two batch queries keyed by product
- * id, never per item — that is what these mocks model.
+ * Product data (the myparcel_ attributes, country of manufacture) is fetched in batch queries keyed
+ * by product id, never per item — that is what these mocks model. Only ids in $countries exist.
  *
- * @param array<int,string>      $classifications product id => HS code
- * @param array<int,string|null> $countries       product id => country of manufacture
- * @param string                 $homeCountry     the account's, which an empty country of origin setting falls back to
+ * @param array<string,array<int,string>> $attributes  column without myparcel_ => product id => value
+ * @param array<int,string|null>          $countries   product id => country of manufacture
+ * @param string                          $homeCountry the account's, which an empty country of origin setting falls back to
  */
 function customsObjectManager(
-    array  $classifications,
+    array  $attributes,
     array  $countries,
     Config $config,
     bool   $asGlobalInstance = false,
@@ -33,10 +33,8 @@ function customsObjectManager(
         $product->shouldReceive('getId')->andReturn($productId);
         $product->shouldReceive('getCountryOfManufacture')->andReturn($country);
         $product->shouldReceive('getData')->andReturnUsing(
-            static function (string $code) use ($productId, $classifications) {
-                return 'myparcel_classification' === $code
-                    ? ($classifications[$productId] ?? null)
-                    : null;
+            static function (string $code) use ($productId, $attributes) {
+                return $attributes[substr($code, strlen('myparcel_'))][$productId] ?? null;
             }
         );
         $products[] = $product;
