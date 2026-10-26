@@ -150,40 +150,24 @@ class ExportReport
             return $messages;
         }
 
-        $count  = count($this->collateral);
-        $orders = 1 === $count ? 'order' : 'orders';
+        // A count, not a sentence per number: __() has no plural forms.
+        $count = count($this->collateral);
 
         if ($this->blamed) {
-            $messages[] = sprintf(
-                '%d other %s in this batch %s not exported. Correct the orders above and run the action again.',
-                $count,
-                $orders,
-                1 === $count ? 'was' : 'were'
-            );
+            $messages[] = (string) __('Other orders in this batch that were not exported: %1. Correct the orders above and run the action again.', $count);
 
             return $messages;
         }
 
         if ($this->collateralRefused) {
-            $messages[] = sprintf(
-                '%d %s not exported. MyParcel refused this batch: %s',
-                $count,
-                1 === $count ? 'order was' : 'orders were',
-                $this->collateralReason
-            );
+            $messages[] = (string) __('Orders that were not exported because MyParcel refused this batch: %1. Reason: %2', $count, $this->collateralReason);
 
             return $messages;
         }
 
         // Never "not exported" here: the call may have been processed, and re-running would then
         // create a second billable shipment for every one of these orders.
-        $messages[] = sprintf(
-            'MyParcel could not be reached for %d %s, so it is unknown whether they shipped.'
-            . ' Check them in the MyParcel backoffice before running the action again: %s',
-            $count,
-            1 === $count ? 'order' : 'orders',
-            $this->collateralReason
-        );
+        $messages[] = (string) __('Orders for which MyParcel could not be reached: %1. It is unknown whether they shipped. Check them in the MyParcel backoffice before you export them again. Reason: %2', $count, $this->collateralReason);
 
         return $messages;
     }
