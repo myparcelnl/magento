@@ -65,6 +65,7 @@ Magento Order → Adapter → SDK Consignment → MyParcel API
 - **Checkout** (`src/Model/Checkout/DeliveryOptions.php`): Delivery options logic for frontend; frontend JS uses RequireJS + Knockout.js
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`): Bridge Magento orders/shipments to SDK for batch API operations
 - **Package** (`src/Model/Sales/Package.php`): Complex package type determination (mailbox, digital stamp, package) based on weight, carrier, and config
+- **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
 
 ### Extension Points
 

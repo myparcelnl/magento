@@ -3,6 +3,11 @@
 What the code cannot say about itself. The reasoning behind the migration is in the classes it
 produced and in the tests that pin them; this file holds the facts that live outside the module.
 
+**PPS** is the export mode `Config::EXPORT_MODE_PPS`: setting *Mode* = "Export entire order"
+(`myparcelnl_magento_general/print/export_mode`). The module then sends each order to the Order v1
+API through the SDK's `Fulfilment` classes, and the back office makes the shipments. The code also
+calls this mode "fulfilment" and "Order v1".
+
 The first two sections are ADR-shaped and belong in
 [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr). Raise
 them there when you have access.
