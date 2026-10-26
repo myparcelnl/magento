@@ -116,7 +116,7 @@ it('retries once only, and reports every order that still did not ship', functio
         ->and($report->collateral())->toBe(['000000117'])
         ->and($report->failureMessages())->toHaveCount(3)
         ->and($report->failureMessages()[2])
-        ->toBe('1 other order in this batch was not exported. Correct the orders above and run the action again.');
+        ->toBe('Other orders in this batch that were not exported: 1. Correct the orders above and run the action again.');
 });
 
 it('does not retry when the response blames nobody', function () {
@@ -133,7 +133,7 @@ it('does not retry when the response blames nobody', function () {
         ->and($report->failureReasons())->toBeEmpty()
         ->and($report->collateral())->toBe(['000000116', '000000117'])
         ->and($report->failureMessages())->toBe([
-            '2 orders were not exported. MyParcel refused this batch: Verzending validatiefout Account problem — your account is not active',
+            'Orders that were not exported because MyParcel refused this batch: 2. Reason: Verzending validatiefout Account problem — your account is not active',
         ]);
 });
 
@@ -151,7 +151,7 @@ it('does not retry a failure that may have created shipments', function () {
     // And the admin is told so: "not exported" would invite the retry that bills twice.
     expect($calls)->toHaveCount(1)
         ->and($report->collateral())->toBe(['000000116', '000000117'])
-        ->and($report->failureMessages()[0])->toContain('it is unknown whether they shipped')
+        ->and($report->failureMessages()[0])->toContain('It is unknown whether they shipped')
         ->and($report->failureMessages()[0])->not->toContain('were not exported');
 });
 
