@@ -12,6 +12,7 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\ShipmentOptionsResolver;
 
 /**
@@ -39,6 +40,7 @@ function createShipmentOptions(
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('get')->with(Config::class)->andReturn($config);
+    $objectManager->shouldReceive('get')->with(Dating::class)->andReturn(datingOn(date('Y-m-d')));
 
     // Absent on purpose when no repository is supplied: the resolver must fall open on a capabilities
     // lookup it cannot make, and a test that stubs one would not prove that.
@@ -159,6 +161,7 @@ function createLabelDescriptionResolver(?int $shipmentId, string $template, arra
         ->with(Config::class)
         ->andReturn(createConfig(['print/label_description' => $template]));
     $objectManager->shouldReceive('get')->with(ResourceConnection::class)->andReturn($resource);
+    $objectManager->shouldReceive('get')->with(Dating::class)->andReturn(datingOn(date('Y-m-d')));
 
     $resolver = new ShipmentOptionsResolver(
         Mockery::mock(DefaultOptions::class),
