@@ -462,3 +462,5 @@ MyParcel does not know shipment %1 for the API key of this store.,MyParcel nie z
 The carrier of shipment %1 does not support return labels.,Przewoźnik przesyłki %1 nie obsługuje etykiet zwrotnych.
 No MyParcel shipments were found to make a return label for.,"Nie znaleziono przesyłek MyParcel, dla których można utworzyć etykietę zwrotną."
 "MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel nie potwierdził tych zamówień, więc nie wiadomo, czy je utworzył: %1. Sprawdź je w backoffice MyParcel, zanim wyeksportujesz je ponownie."
+"Not every collo of this order was exported: %1","Nie wszystkie paczki tego zamówienia zostały wyeksportowane: %1"
+"It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.","Nie wiadomo, czy MyParcel utworzył wszystkie paczki tego zamówienia: %1. Sprawdź zamówienie w backoffice MyParcel, zanim wyeksportujesz je ponownie."

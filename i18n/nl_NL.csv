@@ -471,3 +471,5 @@ MyParcel does not know shipment %1 for the API key of this store.,MyParcel kent 
 The carrier of shipment %1 does not support return labels.,De vervoerder van zending %1 ondersteunt geen retourlabels.
 No MyParcel shipments were found to make a return label for.,Er zijn geen MyParcel-zendingen gevonden om een retourlabel voor te maken.
 "MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel heeft deze orders niet bevestigd, dus het is onbekend of MyParcel ze heeft aangemaakt: %1. Controleer ze in de MyParcel backoffice voordat je ze opnieuw exporteert."
+"Not every collo of this order was exported: %1","Niet elk collo van deze order is geëxporteerd: %1"
+"It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.","Het is onbekend of MyParcel elk collo van deze order heeft aangemaakt: %1. Controleer de order in de MyParcel backoffice voordat je hem opnieuw exporteert."
