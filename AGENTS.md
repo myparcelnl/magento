@@ -55,6 +55,7 @@ Magento order -> Adapter -> SDK consignment -> MyParcel API
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`) send orders and shipments to the SDK in batches. A new SDK call goes through them: controller or observer, then collection, then adapter, then SDK.
 - **Carrier** (`src/Model/Carrier/Carrier.php`) is one Magento carrier, `myparcel`, that dispatches to the MyParcel carriers.
 - **Config** (`src/Service/Config.php`) holds the config path constants and `CARRIERS_XML_PATH_MAP`. Use the constants, not config paths as strings.
+- **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
 - **Insurance** is a range per carrier from the account's capabilities (`Model\Shipment\Capabilities\InsuranceRange`). `Model\Settings\Validator\InsuranceAmount` checks each insurance amount setting against it on save.
 
 ### REST API (`src/Model/Rest/`)
