@@ -117,6 +117,19 @@ function(
       }
       quote.billingAddress.subscribe(reloadConfig);
       quote.shippingAddress.subscribe(reloadConfig);
+
+      // The delivery costs matrix can price by order amount, so a discount code changes the prices.
+      let orderAmount = getOrderAmount(quote.totals());
+      quote.totals.subscribe(function(totals) {
+        const newOrderAmount = getOrderAmount(totals);
+
+        if (newOrderAmount === orderAmount) {
+          return;
+        }
+
+        orderAmount = newOrderAmount;
+        doRequest(Model.getDeliveryOptionsConfig, {onSuccess: Model.onReFetchDeliveryOptionsConfig});
+      });
     },
 
     onReFetchDeliveryOptionsConfig: function(response) {
@@ -263,6 +276,23 @@ function(
   };
 
   return Model;
+
+  /**
+   * The subtotal after the discount on the items. Shipping and its discount are left out: choosing a delivery option
+   * changes those and must not fetch the prices again.
+   *
+   * @param {Object|null} totals - Totals of the quote.
+   * @returns {number|null}
+   */
+  function getOrderAmount(totals) {
+    if (!totals) {
+      return null;
+    }
+
+    return (totals.items || []).reduce(function(amount, item) {
+      return amount - Number(item.discount_amount || 0);
+    }, Number(totals.subtotal_incl_tax || 0));
+  }
 
   function updateAllowedShippingMethods() {
     // if the shipping methods are not yet loaded in the DOM, try again shortly

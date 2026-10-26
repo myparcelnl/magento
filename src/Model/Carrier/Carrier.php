@@ -171,7 +171,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             }
         }
 
-        $amount = $this->deliveryCosts->getBasePrice($quote);
+        $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryOptions->getDeliveryType());
 
         foreach ($shipmentFees as $key => $value) {
             if (! $value) {

@@ -323,6 +323,11 @@ Country,Pays
 Package type,Type de colis
 Maximum weight (in grams),Poids maximum en grammes
 Country part of,Partie du pays
+Standard delivery,Livraison standard
+Minimum order amount,Montant minimum de commande
+Maximum order amount,Montant maximum de commande
+Delivery type,Type de livraison
+Set the fees to 0 when the matrix fully sets the price per delivery type.,Mettez les frais à 0 si la matrice fixe entièrement le prix par type de livraison.
 No rules defined. Click Add rule to create a new rule.,Aucune règle définie. Cliquez sur Ajouter une règle pour en créer une nouvelle.
 Add rule,Ajouter une règle
 Price,Prix

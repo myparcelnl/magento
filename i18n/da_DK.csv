@@ -323,6 +323,11 @@ Country,Land
 Package type,Pakketype
 Maximum weight (in grams),Maksimal vægt (i gram)
 Country part of,Land del af
+Standard delivery,Standardlevering
+Minimum order amount,Minimumsordrebeløb
+Maximum order amount,Maksimalt ordrebeløb
+Delivery type,Leveringstype
+Set the fees to 0 when the matrix fully sets the price per delivery type.,"Sæt gebyrerne til 0, når matrixen fastsætter prisen pr. leveringstype fuldt ud."
 No rules defined. Click Add rule to create a new rule.,Ingen regler defineret. Klik på 'Tilføj regel' for at oprette en ny regel.
 Add rule,Tilføj regel
 Price,Pris

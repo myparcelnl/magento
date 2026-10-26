@@ -334,6 +334,12 @@ Country,Land
 Package type,Pakket type
 Maximum weight (in grams),Maximum gewicht (in gram)
 Country part of,Land onderdeel van
+Standard delivery,Standaard bezorging
+Pickup,Ophalen
+Minimum order amount,Minimaal bestelbedrag
+Maximum order amount,Maximaal bestelbedrag
+Delivery type,Bezorgtype
+Set the fees to 0 when the matrix fully sets the price per delivery type.,Zet de fees op 0 als je de prijs per delivery type volledig via de matrix regelt.
 No rules defined. Click Add rule to create a new rule.,Geen regels gedefinieerd. Klik op Regel toevoegen om een nieuwe regel te maken.
 Add rule,Regel toevoegen
 Price,Prijs
