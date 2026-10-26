@@ -25,7 +25,7 @@ class ExportReport
     /** @var array<string,string[]> increment id => every reason it was blamed, in the order they arrived */
     private array $blamed = [];
 
-    /** @var array<string,true> increment ids that did not ship but were never blamed */
+    /** @var array<string,array{reason: string, refused: bool}> increment ids that did not ship but were never blamed */
     private array $collateral = [];
 
     /** Why the collateral did not ship. The same for all of them, so it is kept once. */
@@ -40,14 +40,18 @@ class ExportReport
     private bool $collateralRefused = true;
 
     /**
-     * A success clears collateral but never an earlier blame: an order exports one shipment per
-     * collo under the same increment id, so one collo succeeding and another failing are both true
-     * at once — dropping either half would tell the admin a partial export was clean.
+     * A success never clears a failure: an order exports one shipment per collo under the same
+     * increment id, so one collo succeeding and another failing are both true at once — dropping
+     * either half would tell the admin a partial export was clean.
      */
     public function succeed(string $incrementId, int $shipmentId): void
     {
         $this->succeeded[$incrementId] = $shipmentId;
-        unset($this->collateral[$incrementId]);
+
+        // Collateral is only recorded after the retry, so it belongs to another collo of this order.
+        if (isset($this->collateral[$incrementId])) {
+            $this->failPartially($incrementId, $this->collateral[$incrementId]['reason'], $this->collateral[$incrementId]['refused']);
+        }
     }
 
     /**
@@ -80,13 +84,27 @@ class ExportReport
      */
     public function failCollateral(string $incrementId, string $reason, bool $refused = true): void
     {
-        if (isset($this->succeeded[$incrementId]) || isset($this->blamed[$incrementId])) {
+        if (isset($this->blamed[$incrementId])) {
             return;
         }
 
-        $this->collateral[$incrementId] = true;
+        if (isset($this->succeeded[$incrementId])) {
+            $this->failPartially($incrementId, $reason, $refused);
+
+            return;
+        }
+
+        $this->collateral[$incrementId] = ['reason' => trim($reason), 'refused' => $refused];
         $this->collateralReason         = trim($reason) ?: $this->collateralReason;
         $this->collateralRefused        = $this->collateralRefused && $refused;
+    }
+
+    /** Names an order that shipped some colli and not others, which a count of collateral would hide. */
+    private function failPartially(string $incrementId, string $reason, bool $refused): void
+    {
+        $this->fail($incrementId, (string) ($refused
+            ? __('Not every collo of this order was exported: %1', trim($reason))
+            : __('It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.', trim($reason))));
     }
 
     /** @return array<string,int> */
