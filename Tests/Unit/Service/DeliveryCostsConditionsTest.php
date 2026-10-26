@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Magento\Quote\Model\Quote;
-use Magento\Quote\Model\Quote\Address;
+use Magento\Quote\Model\Quote\Item;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 
@@ -102,27 +102,66 @@ it('prices an existing matrix the same as before', function (float $orderAmount,
     [250.0, 'pickup'],
 ]);
 
-it('takes the subtotal after discount including tax as order amount', function () {
-    $address = Mockery::mock(Address::class);
-    $address->shouldReceive('getSubtotalInclTax')->andReturn(121.0);
-    $address->shouldReceive('getDiscountAmount')->andReturn(-25.0);
-    $address->shouldReceive('getShippingDiscountAmount')->andReturn(5.0);
+/**
+ * @param array<int, array{0: float, 1: float, 2: float}> $rows row total, row total incl. tax, discount per item
+ * @param array<string, string|null> $taxConfig by path
+ */
+function orderAmountFor(array $rows, array $taxConfig = []): float
+{
+    $items = array_map(static function (array $row) {
+        $item = Mockery::mock(Item::class);
+        $item->shouldReceive('getRowTotal')->andReturn($row[0]);
+        $item->shouldReceive('getRowTotalInclTax')->andReturn($row[1]);
+        $item->shouldReceive('getDiscountAmount')->andReturn($row[2]);
+
+        return $item;
+    }, $rows);
 
     $quote = Mockery::mock(Quote::class);
-    $quote->shouldReceive('getShippingAddress')->andReturn($address);
+    $quote->shouldReceive('getStoreId')->andReturn(1);
+    $quote->shouldReceive('getAllVisibleItems')->andReturn($items);
 
-    // the 5 off shipping is no discount on the order: 121 - (25 - 5)
-    expect(invokePrivateMethod(newInstanceWithoutConstructor(DeliveryCosts::class), 'getOrderAmount', [$quote]))->toBe(101.0);
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getConfigValue')->andReturnUsing(static function (string $path) use ($taxConfig) {
+        return $taxConfig[$path] ?? null;
+    });
+
+    $deliveryCosts = newInstanceWithoutConstructor(DeliveryCosts::class);
+    setPrivateProperty($deliveryCosts, 'config', $config);
+
+    return invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$quote]);
+}
+
+it('takes the subtotal including tax when there is no discount', function () {
+    expect(orderAmountFor([[45.39, 54.92, 0.0], [10.0, 10.9, 0.0]]))->toEqualWithDelta(65.82, 0.001);
+});
+
+it('raises a discount excluding tax by the tax rate of its item', function () {
+    // The cart from the test environment: 20% off 45.39 excl. tax is 9.07, which also lowers the 21% tax.
+    // Subtracting 9.07 from 54.92 would give 45.85; 9.07 * 1.21 = 10.97 gives the real 43.95.
+    expect(orderAmountFor([[45.39, 54.92, 9.07]]))->toEqualWithDelta(43.945, 0.001);
+});
+
+it('raises the discount per item, each by its own tax rate', function () {
+    // 21% and 9% tax, 10 off each excl. tax: (121 - 12.10) + (109 - 10.90)
+    expect(orderAmountFor([[100.0, 121.0, 10.0], [100.0, 109.0, 10.0]]))->toEqualWithDelta(207.0, 0.001);
+});
+
+it('subtracts a discount that already includes tax as it is', function () {
+    expect(orderAmountFor([[45.39, 54.92, 10.98]], ['tax/calculation/discount_tax' => '1']))
+        ->toEqualWithDelta(43.94, 0.001);
+});
+
+it('subtracts the discount as it is when tax is calculated before the discount', function () {
+    // the discount leaves the tax alone, so the full tax stays on the order
+    expect(orderAmountFor([[45.39, 54.92, 9.07]], ['tax/calculation/apply_after_discount' => '0']))
+        ->toEqualWithDelta(45.85, 0.001);
 });
 
 it('never takes a negative order amount', function () {
-    $address = Mockery::mock(Address::class);
-    $address->shouldReceive('getSubtotalInclTax')->andReturn(10.0);
-    $address->shouldReceive('getDiscountAmount')->andReturn(-15.0);
-    $address->shouldReceive('getShippingDiscountAmount')->andReturn(null);
+    expect(orderAmountFor([[10.0, 12.1, 15.0]]))->toBe(0.0);
+});
 
-    $quote = Mockery::mock(Quote::class);
-    $quote->shouldReceive('getShippingAddress')->andReturn($address);
-
-    expect(invokePrivateMethod(newInstanceWithoutConstructor(DeliveryCosts::class), 'getOrderAmount', [$quote]))->toBe(0.0);
+it('takes 0 for a quote without items', function () {
+    expect(orderAmountFor([]))->toBe(0.0);
 });
