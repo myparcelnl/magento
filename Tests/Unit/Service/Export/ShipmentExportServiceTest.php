@@ -3,6 +3,9 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesShipments;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentResponsesShipmentsData;
 
 /**
  * the export scenarios. Fixtures live in Tests/Helpers/ExportFixtures.php.
@@ -261,4 +264,18 @@ it('keeps a failure visible when a sibling collo of the same order succeeded', f
 
 it('exposes twenty as the default chunk size', function () {
     expect(ShipmentExportService::DEFAULT_CHUNK_SIZE)->toBe(20);
+});
+
+it('names the accounts whose lookup failed, apart from the ones that answered without a shipment', function () {
+    $api = Mockery::mock(ShipmentApi::class);
+    $api->shouldReceive('getShipmentsById')->andReturn(
+        (new ShipmentResponsesShipments())->setData((new ShipmentResponsesShipmentsData())->setShipments([]))
+    );
+
+    // makeExportService() has no client for key-a, so its lookup throws.
+    $lookup = makeExportService(['key-b' => $api])->fetchLatestWithErrors(['key-a' => [111], 'key-b' => [42]]);
+
+    expect($lookup['failedApiKeys'])->toBe(['key-a'])
+        ->and($lookup['errors'])->toHaveCount(1)
+        ->and($lookup['shipments'])->toBe([]);
 });
