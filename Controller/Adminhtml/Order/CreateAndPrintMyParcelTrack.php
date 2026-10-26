@@ -116,7 +116,7 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
     private function orderV1Of(OrderCollection $orders): ?bool
     {
         $modes = array_unique(array_map(
-            fn($storeId): bool => $this->storedAccount->hasOrderV1ForStore((int) $storeId),
+            fn($storeId): bool => $this->storedAccount->hasOrderV1ForExport((int) $storeId),
             array_unique($orders->getColumnValues('store_id'))
         ));
 
