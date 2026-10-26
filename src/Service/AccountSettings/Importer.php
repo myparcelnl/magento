@@ -175,7 +175,7 @@ class Importer
             return $this->accountFeatures->forApiKey($apiKey);
         } catch (Throwable $e) {
             Logger::warning(
-                'The account features could not be fetched. The stored features stay until the next import; an account without any exports shipments.',
+                'The account features could not be fetched. The stored features stay until the next import; an account without any cannot export until then.',
                 LogContext::of($e)
             );
 
