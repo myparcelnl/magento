@@ -489,5 +489,6 @@ No MyParcel shipments were found to make a return label for.,Er zijn geen MyParc
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-instellingen geïmporteerd."
 "Reloading the page...","De pagina wordt opnieuw geladen..."
 "This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Deze selectie bevat orders van accounts die de hele order exporteren en orders van andere accounts. Selecteer één soort order en probeer het opnieuw."
+"The MyParcel account settings of this store are not imported, so it is not known whether its orders export as orders or as shipments. Open the MyParcel settings and click Import.","De MyParcel accountinstellingen van deze winkel zijn niet geïmporteerd, dus het is niet bekend of de orders als orders of als zendingen exporteren. Open de MyParcel instellingen en klik op Import."
 "Account","Account"
 "Account features","Accountfuncties"

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service\AccountSettings;
 
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Settings\AccountSettings;
@@ -17,8 +18,8 @@ use Throwable;
  * What the stored settings of the account behind an api key say about it — no API call.
  *
  * An account is null when its settings were never imported or cannot be read; a proposition is also
- * null when the account names one Proposition does not list, which logs a warning. Never throws: the
- * order grid asks per row, so an unusable row must not cost the page.
+ * null when the account names one Proposition does not list, which logs a warning. Only
+ * hasOrderV1ForExport() throws: the order grid asks per row, so an unusable row must not cost the page.
  *
  * Memoised per api key, because these are the account's: stores sharing a key cost one read, and a
  * null is memoised too, or one broken row logs once per grid row. The store methods only map a store
@@ -26,6 +27,8 @@ use Throwable;
  */
 class StoredAccount
 {
+    public const ERROR_FEATURES_UNKNOWN = 'The MyParcel account settings of this store are not imported, so it is not known whether its orders export as orders or as shipments. Open the MyParcel settings and click Import.';
+
     private ShipmentApiProvider   $apiProvider;
     private StoreManagerInterface $storeManager;
 
@@ -70,7 +73,8 @@ class StoredAccount
 
     /**
      * Whether the account has order v1, which exports entire orders (PPS). An account on order v2 only,
-     * a store without an account, and a row imported before features were stored all export shipments.
+     * a store without an account, and a row without features answer false. For a row without features
+     * that is a guess, so an export asks hasOrderV1ForExport() instead.
      */
     public function hasOrderV1ForStore(?int $storeId): bool
     {
@@ -78,6 +82,22 @@ class StoredAccount
 
         return null !== $apiKey
             && in_array(Feature::LEGACY_ORDER_MANAGEMENT, $this->featuresForApiKey($apiKey) ?? [], true);
+    }
+
+    /**
+     * hasOrderV1ForStore() for an export, which refuses instead of guessing for a row without features.
+     *
+     * @throws LocalizedException when the store's account has no stored features
+     */
+    public function hasOrderV1ForExport(?int $storeId): bool
+    {
+        $apiKey = $this->apiKeyFor($storeId);
+
+        if (null !== $apiKey && null === $this->featuresForApiKey($apiKey)) {
+            throw new LocalizedException(__(self::ERROR_FEATURES_UNKNOWN));
+        }
+
+        return $this->hasOrderV1ForStore($storeId);
     }
 
     /** @return string[]|null null when the stored row has no features yet */
