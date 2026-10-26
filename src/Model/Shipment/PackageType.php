@@ -13,6 +13,8 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPackageTypeV2;
  * The names are ours and are stored in config and on orders; the ids are the SDK's. The two
  * vocabularies differ ('letter' is UNFRANKED, 'package_small' is SMALL_PACKAGE), so always hand
  * the SDK an id, never one of these names. See docs/sdk-v11.md.
+ *
+ * @todo INT-1563 replaces this hardcoded mapping with the generic SDK helpers.
  */
 final class PackageType
 {
