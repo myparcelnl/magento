@@ -11,6 +11,8 @@ use InvalidArgumentException;
  *
  * Requires the using class to declare: public const NAMES_IDS_MAP, module name => SDK id, and
  * public const TYPE_LABEL, lower case, which names the type in an exception message.
+ *
+ * @todo INT-1563 replaces this hardcoded mapping with the generic SDK helpers.
  */
 trait MapsNamesToIds
 {
