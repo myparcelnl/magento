@@ -46,6 +46,7 @@ class OrderShipmentOptions
 
     private ObjectManagerInterface $objectManager;
     private JsonSerializer         $jsonSerializer;
+    private Dating                 $dating;
     private Order                  $order;
     private array                  $options;
     private DefaultOptions         $defaultOptions;
@@ -66,6 +67,7 @@ class OrderShipmentOptions
     {
         $this->objectManager  = $objectManager;
         $this->jsonSerializer = $objectManager->get(JsonSerializer::class);
+        $this->dating         = $objectManager->get(Dating::class);
         $this->order          = $order;
         $this->options        = $options;
         $this->defaultOptions = $defaultOptions;
@@ -213,7 +215,7 @@ class OrderShipmentOptions
             $options->setReturn(0);
         }
 
-        $deliveryDate = Dating::convertDeliveryDate($deliveryOptions->getDate());
+        $deliveryDate = $this->dating->convertDeliveryDate($deliveryOptions->getDate(), $this->order);
 
         if (null !== $deliveryDate && $this->acceptsDeliveryDate($resolved)) {
             $options->setDeliveryDate($deliveryDate);
