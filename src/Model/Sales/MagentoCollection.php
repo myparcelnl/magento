@@ -15,8 +15,6 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Exception;
-use Magento\Framework\App\Area;
-use Magento\Framework\App\AreaList;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\ResourceConnection;
@@ -73,7 +71,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected ObjectManagerInterface   $objectManager;
     protected ProductMetadataInterface $productMetadata;
     protected Track                    $modelTrack;
-    protected AreaList                 $areaList;
     protected ManagerInterface         $messageManager;
     protected Config                   $config;
     protected Weight                   $weight;
@@ -103,19 +100,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * @param ObjectManagerInterface $objectManager
      * @param null                   $request
-     * @param null                   $areaList
      */
     public function __construct(
         ObjectManagerInterface $objectManager,
-                               $request = null,
-                               $areaList = null
+                               $request = null
     )
     {
-        // @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
-        if ($areaList) {
-            $this->areaList = $areaList;
-        }
-
         $this->objectManager      = $objectManager;
         $this->moduleManager      = $objectManager->get(Manager::class);
         $this->productMetadata    = $objectManager->get(ProductMetadataInterface::class);
@@ -215,15 +205,6 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function getHtmlForGridColumns($orderId)
     {
-        /**
-         * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
-         */
-        // Temporarily fix to translate in cronjob
-        if (! empty($this->areaList)) {
-            $areaObject = $this->areaList->getArea(Area::AREA_ADMINHTML);
-            $areaObject->load(Area::PART_TRANSLATE);
-        }
-
         return $this->getHtmlForGridColumnsByTracks($this->getTracksCollectionByOrderId($orderId));
     }
 

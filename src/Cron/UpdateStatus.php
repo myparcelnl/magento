@@ -23,7 +23,6 @@ namespace MyParcelNL\Magento\Cron;
 
 use DateTime;
 use Exception;
-use Magento\Framework\App\AreaList;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Framework\Exception\LocalizedException;
@@ -57,19 +56,15 @@ class UpdateStatus
     /**
      * UpdateStatus constructor.
      *
-     * @param AreaList $areaList
      * @param \Magento\Sales\Model\ResourceModel\Order $orderResource
-     *
-     * @todo; Adjust if there is a solution to the following problem: https://github.com/magento/magento2/pull/8413
      */
     public function __construct(
-        AreaList                                 $areaList,
         \Magento\Sales\Model\ResourceModel\Order $orderResource
     )
     {
         $this->objectManager   = $objectManager = ObjectManager::getInstance();
         $this->config          = $objectManager->get(Config::class);
-        $this->orderCollection = new MagentoOrderCollection($this->objectManager, null, $areaList);
+        $this->orderCollection = new MagentoOrderCollection($this->objectManager);
         $this->orderResource   = $orderResource;
     }
 

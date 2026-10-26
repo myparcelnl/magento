@@ -46,8 +46,7 @@ class CreateAndPrintMyParcelTrack extends Action
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->shipmentCollection    = new MagentoShipmentCollection(
             $context->getObjectManager(),
-            $this->getRequest(),
-            null
+            $this->getRequest()
         );
     }
 
