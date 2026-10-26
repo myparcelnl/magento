@@ -23,6 +23,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
+use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
@@ -73,7 +74,16 @@ class CreateConceptAfterInvoice implements ObserverInterface
                     $order->getState(),
                     ['pending', 'processing', 'new']
                 )) {
-                $this->exportAccordingToMode($order->getId(), (int) $order->getStoreId());
+                try {
+                    $orderV1 = $this->objectManager->get(StoredAccount::class)->hasOrderV1ForExport((int) $order->getStoreId());
+                } catch (LocalizedException $e) {
+                    // Logged, not thrown: an exception here would fail the invoice.
+                    Logger::warning(sprintf('Order %s was not exported after its invoice: %s', $order->getId(), $e->getMessage()));
+
+                    return $this;
+                }
+
+                $this->exportAccordingToMode($order->getId(), $orderV1);
             }
         }
 
@@ -84,7 +94,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      * Set MyParcel Tracks and update order grid
      *
      * @param $orderIds
-     * @param int $storeId the order's, whose account decides the export mode
+     * @param bool $orderV1 whether the order's account exports entire orders
      *
      * @return CreateConceptAfterInvoice
      * @throws LocalizedException
@@ -92,7 +102,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
      * @throws MissingFieldException
      * @throws Exception
      */
-    private function exportAccordingToMode($orderIds, int $storeId)
+    private function exportAccordingToMode($orderIds, bool $orderV1)
     {
         $this->addOrdersToCollection($orderIds);
 
@@ -101,7 +111,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
             ->setNewMagentoShipment()
         ;
 
-        if ($this->objectManager->get(StoredAccount::class)->hasOrderV1ForStore($storeId)) {
+        if ($orderV1) {
             $this->orderCollection->setFulfilment();
 
             return $this;

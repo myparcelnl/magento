@@ -2,8 +2,15 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Controller\Result\RedirectFactory;
+use Magento\Framework\DataObject;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Message\ManagerInterface;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Observer\NewShipment;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 
 /**
  * PPS export from the New Shipment page. Magento saves $shipment->getOrder() once more after this
@@ -134,8 +141,8 @@ function ppsExportGridWrites(?string $uuidBefore, ?string $uuidAfter): array
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
     $collection->shouldReceive('setFulfilment')->once()->andReturnSelf();
 
-    $config = Mockery::mock(MyParcelNL\Magento\Service\Config::class);
-    $config->shouldReceive('getExportMode')->andReturn(MyParcelNL\Magento\Service\Config::EXPORT_MODE_PPS);
+    $storedAccount = Mockery::mock(StoredAccount::class);
+    $storedAccount->shouldReceive('hasOrderV1ForExport')->andReturnTrue();
 
     $written     = [];
     $gridColumns = Mockery::mock(MyParcelNL\Magento\Service\OrderGridColumns::class);
@@ -148,7 +155,7 @@ function ppsExportGridWrites(?string $uuidBefore, ?string $uuidAfter): array
 
     $observer = newInstanceWithoutConstructor(NewShipment::class);
     setPrivateProperty($observer, 'orderCollection', $collection);
-    setPrivateProperty($observer, 'config', $config);
+    setPrivateProperty($observer, 'storedAccount', $storedAccount);
     setPrivateProperty($observer, 'gridColumns', $gridColumns);
 
     invokePrivateMethod($observer, 'setMagentoAndMyParcelTrack', [$shipment]);
@@ -166,4 +173,38 @@ it('exports a PPS order without building a label shipment and marks it exported'
 it('leaves the grid alone when the PPS export did not confirm the order', function () {
     expect(ppsExportGridWrites(null, null))->toBe([])
         ->and(ppsExportGridWrites('uuid-1', 'uuid-1'))->toBe([]);
+});
+
+it('refuses the export with the import error, before it creates a track, when the account has no stored features', function () {
+    stubAccountSettingsReader([
+        settingsPathFor('old-row-key') => accountSettingsRow([], ['account' => ['id' => 6, 'proposition_id' => 1]]),
+    ]);
+
+    $request = Mockery::mock(RequestInterface::class);
+    $request->shouldReceive('getParam')->with('mypa_create_from_observer')->andReturn('1');
+    $request->shouldReceive('setParams');
+
+    // Exact text: any other failure in the export also ends as an error message.
+    $messages = Mockery::mock(ManagerInterface::class);
+    $messages->shouldReceive('addErrorMessage')->once()->with(StoredAccount::ERROR_FEATURES_UNKNOWN);
+    $messages->shouldReceive('hasMessages')->andReturnTrue();
+
+    $redirect = Mockery::mock(Redirect::class);
+    $redirect->shouldReceive('setPath')->once()->with('*/*/');
+    $redirectFactory = Mockery::mock(RedirectFactory::class, ['create' => $redirect]);
+
+    $shipment = createShipment(['getStoreId' => 4]);
+
+    $event = Mockery::mock(Observer::class);
+    $event->shouldReceive('getEvent')->andReturn(new DataObject(['shipment' => $shipment]));
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'request', $request);
+    setPrivateProperty($observer, 'messageManager', $messages);
+    setPrivateProperty($observer, 'redirectFactory', $redirectFactory);
+    setPrivateProperty($observer, 'storedAccount', storedAccountForStores([4 => 'old-row-key']));
+    // Unstubbed: reading the options, the first step of an export, fails this test.
+    setPrivateProperty($observer, 'orderCollection', Mockery::mock(MagentoOrderCollection::class));
+
+    $observer->execute($event);
 });
