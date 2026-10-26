@@ -73,7 +73,7 @@ Magento Order → Adapter → SDK Consignment → MyParcel API
 - **REST API** (`etc/webapi.xml`):
   - For checkout: `/V1/delivery_options/get`, `/V1/delivery_options/config`, `/V1/shipping_methods`, `/V1/package_type` (anonymous)
   - Admin info: `/V1/myparcel/delivery-options` (ACL-protected, versioned — see REST API Framework below)
-- **Virtual types** in `etc/di.xml`: Carrier-specific insurance configurations — follow this pattern when adding carrier features
+- **Insurance** is a range per carrier from the account's capabilities (`Model\Shipment\Capabilities\InsuranceRange`). `Model\Settings\Validator\InsuranceAmount` checks each insurance amount setting against it on save.
 
 ### REST API Framework (`src/Model/Rest/`)
 
@@ -130,7 +130,7 @@ Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_da
 ## Adding a New Carrier
 
 1. Add admin settings and defaults in `etc/dynamic_settings.json`
-2. Add virtual types for insurance in `etc/di.xml`
+2. For insurance, add the amount fields `insurance_local_amount`, `insurance_belgium_amount`, `insurance_eu_amount` and `insurance_row_amount` with the `InsuranceAmount` frontend model in `etc/dynamic_settings.json`. The range comes from capabilities, so `etc/di.xml` needs nothing.
 3. Update carrier detection in relevant services
 
 ## Adding a Shipment Option
