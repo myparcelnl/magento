@@ -457,3 +457,4 @@ Return label sent,Returlabel sendt
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel kender ikke forsendelse %1 under API-nøglen for denne butik.
 The carrier of shipment %1 does not support return labels.,Transportøren af forsendelse %1 understøtter ikke returlabels.
 No MyParcel shipments were found to make a return label for.,Der blev ikke fundet nogen MyParcel-forsendelser at lave en returlabel til.
+"MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel har ikke bekræftet disse ordrer, så det er ukendt, om MyParcel har oprettet dem: %1. Kontrollér dem i MyParcel-backoffice, før du eksporterer dem igen."
