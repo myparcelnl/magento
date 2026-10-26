@@ -14,6 +14,8 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesDeliveryTypeV2;
  *
  * SAME_DAY is the delivery type 'same_day'. ShipmentOption::SAME_DAY_DELIVERY is the string
  * 'same_day_delivery' and a different thing entirely.
+ *
+ * @todo INT-1563 replaces this hardcoded mapping with the generic SDK helpers.
  */
 final class DeliveryType
 {
