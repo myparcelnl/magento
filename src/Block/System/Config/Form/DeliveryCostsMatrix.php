@@ -8,6 +8,7 @@ use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\Settings;
@@ -66,6 +67,22 @@ class DeliveryCostsMatrix extends Field
         ];
     }
 
+    /**
+     * Keyed by the name the checkout stores as delivery type, which the delivery_type condition compares.
+     */
+    public function getDeliveryTypes(): array
+    {
+        return [
+            DeliveryType::STANDARD_NAME => __('Standard delivery'),
+            DeliveryType::PICKUP_NAME   => __('Pickup'),
+            DeliveryType::MORNING_NAME  => __('Morning delivery'),
+            DeliveryType::EVENING_NAME  => __('Evening delivery'),
+            'monday'                    => __('Monday delivery'),
+            DeliveryType::SAME_DAY_NAME => __('Same day delivery'),
+            DeliveryType::EXPRESS_NAME  => __('Express delivery'),
+        ];
+    }
+
     public function getCountryCodes(): array
     {
         return CountryCodes::ALL;
@@ -116,6 +133,10 @@ class DeliveryCostsMatrix extends Field
             'Package type' => __('Package type'),
             'Maximum weight (in grams)' => __('Maximum weight (in grams)'),
             'Country part of' => __('Country part of'),
+            'Minimum order amount' => __('Minimum order amount'),
+            'Maximum order amount' => __('Maximum order amount'),
+            'Delivery type' => __('Delivery type'),
+            'Set the fees to 0 when the matrix fully sets the price per delivery type.' => __('Set the fees to 0 when the matrix fully sets the price per delivery type.'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
             'Invalid JSON in textarea' => __('Invalid JSON in textarea'),

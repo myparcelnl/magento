@@ -6,6 +6,7 @@ namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\Services\CountryCodes;
@@ -23,14 +24,21 @@ class DeliveryCosts
      * The price associated with the condition with the most points will be used.
      * Distribute points in a way that the most specific condition has the most points, and less specific conditions
      * cannot override more specific conditions.
+     *
+     * The order amount and delivery type conditions outrank all others together, so a rule holding one of them wins
+     * from a rule without it. Unlike the others they also rule a definition out when not met: a free shipping
+     * threshold or a pickup price must never reach an order below the threshold or a home delivery.
      */
     private const CONDITIONS = [
-        'country'         => 32,
-        'country_part_of' => 16,
-        'package_type'    => 8,
-        'carrier_name'    => 4,
-        'maximum_weight'  => 2,
-        'unspecified'     => 1, // when a condition is not specified, it should be considered met, but least specific
+        'delivery_type'        => 256,
+        'minimum_order_amount' => 128,
+        'maximum_order_amount' => 64,
+        'country'              => 32,
+        'country_part_of'      => 16,
+        'package_type'         => 8,
+        'carrier_name'         => 4,
+        'maximum_weight'       => 2,
+        'unspecified'          => 1, // when a condition is not specified, it should be considered met, but least specific
     ];
 
     public function __construct(Weight $weight, Config $config, Tax $tax)
@@ -40,6 +48,11 @@ class DeliveryCosts
         $this->tax    = $tax;
     }
 
+    private const REQUIRED_CONDITIONS = ['carrier_name', 'package_type', 'country', 'weight', 'order_amount', 'delivery_type'];
+
+    /** Not met, these rule a definition out instead of scoring 0, see self::CONDITIONS. */
+    private const EXCLUDING_CONDITIONS = ['delivery_type', 'minimum_order_amount', 'maximum_order_amount'];
+
     /**
      * Returns the base price with Magento tax settings applied, for displaying to the client.
      *
@@ -47,12 +60,13 @@ class DeliveryCosts
      * @param string|null $carrierName override carrier from quote if you want
      * @param string|null $packageTypeName override package type from quote if you want
      * @param string|null $countryCode override country from quote->shippingAddress if you want
+     * @param string|null $deliveryTypeName the delivery type to price, standard when null
      * @return float
      * @uses DeliveryCosts::getBasePrice()
      */
-    public function getBasePriceForClient(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
+    public function getBasePriceForClient(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null, ?string $deliveryTypeName = null): float
     {
-        $price = $this->getBasePrice($quote, $carrierName, $packageTypeName, $countryCode);
+        $price = $this->getBasePrice($quote, $carrierName, $packageTypeName, $countryCode, $deliveryTypeName);
 
         return $this->tax->shippingPrice($price, $quote);
     }
@@ -64,9 +78,10 @@ class DeliveryCosts
      * @param string|null $carrierName override carrier from quote if you want
      * @param string|null $packageTypeName override package type from quote if you want
      * @param string|null $countryCode override country from quote->shippingAddress if you want
+     * @param string|null $deliveryTypeName the delivery type to price, standard when null
      * @return float
      */
-    public function getBasePrice(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null): float
+    public function getBasePrice(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null, ?string $deliveryTypeName = null): float
     {
         if ($this->config->getGeneralConfig('matrix/use_free_shipping')
             && $this->isFreeShippingAvailable()
@@ -83,12 +98,29 @@ class DeliveryCosts
 
         return $this->calculate(
             [
-                'carrier_name' => $carrierName,
-                'package_type' => $packageType,
-                'country'      => $countryCode,
-                'weight'       => $weight,
+                'carrier_name'  => $carrierName,
+                'package_type'  => $packageType,
+                'country'       => $countryCode,
+                'weight'        => $weight,
+                'order_amount'  => $this->getOrderAmount($quote),
+                'delivery_type' => $deliveryTypeName ?? DeliveryType::DEFAULT_NAME,
             ]
         );
+    }
+
+    /**
+     * The amount the order amount conditions compare: the subtotal after discount, including tax, in the currency of
+     * the store view. A discount on shipping is taken back out, it is no discount on what was ordered.
+     *
+     * Read from the shipping address, whose totals Magento collects (subtotal, tax, discount) before it collects the
+     * shipping rates.
+     */
+    private function getOrderAmount(Quote $quote): float
+    {
+        $address  = $quote->getShippingAddress();
+        $subtotal = $address->getSubtotalInclTax() ?? $quote->getSubtotal();
+
+        return max(0.0, (float) $subtotal + (float) $address->getDiscountAmount() + (float) $address->getShippingDiscountAmount());
     }
 
     /**
@@ -100,8 +132,10 @@ class DeliveryCosts
      */
     private function calculate(array $conditions): float
     {
-        if (! isset($conditions['carrier_name'], $conditions['package_type'], $conditions['country'], $conditions['weight'])) {
-            throw new \InvalidArgumentException('Missing required conditions');
+        foreach (self::REQUIRED_CONDITIONS as $required) {
+            if (! isset($conditions[$required])) {
+                throw new \InvalidArgumentException('Missing required conditions');
+            }
         }
 
         $json = $this->config->getGeneralConfig('matrix/delivery_costs');
@@ -124,7 +158,13 @@ class DeliveryCosts
                     continue;
                 }
 
-                $totalPoints += $this->scoreCondition($condition, $conditions, $definedConditions);
+                $score = $this->scoreCondition($condition, $conditions, $definedConditions);
+
+                if (0 === $score && in_array($condition, self::EXCLUDING_CONDITIONS, true)) {
+                    continue 2;
+                }
+
+                $totalPoints += $score;
             }
 
             $return[] = [
@@ -169,6 +209,16 @@ class DeliveryCosts
             $value              = $definedCondition['value'] ?? '';
 
             switch ($condition) {
+                case 'minimum_order_amount':
+                    if ((float) $conditions['order_amount'] >= (float) $value) {
+                        return self::CONDITIONS[$condition];
+                    }
+                    break;
+                case 'maximum_order_amount':
+                    if ((float) $conditions['order_amount'] < (float) $value) {
+                        return self::CONDITIONS[$condition];
+                    }
+                    break;
                 case 'maximum_weight':
                     if ((float) $conditions['weight'] <= (float) $value) {
                         return self::CONDITIONS[$condition];

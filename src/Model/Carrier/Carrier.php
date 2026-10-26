@@ -179,7 +179,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             'mailbox/priority_delivery_fee'            => $shipmentOptions->hasPriorityDelivery(),
         ];
 
-        $amount = $this->deliveryCosts->getBasePrice($quote);
+        $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryOptions->getDeliveryType());
 
         foreach ($shipmentFees as $key => $value) {
             if (! $value) {
