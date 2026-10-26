@@ -4,12 +4,8 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service;
 
-use Magento\Framework\App\Area;
-use Magento\Framework\App\AreaList;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\App\State;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\ResourceModel\Grid;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Magento\Service\IdList;
@@ -31,22 +27,12 @@ class OrderGridColumns
     private ResourceConnection   $resource;
     private Grid                 $orderGrid;
     private ScopeConfigInterface $scopeConfig;
-    private AreaList             $areaList;
-    private State                $appState;
 
-    public function __construct(
-        ResourceConnection   $resource,
-        Grid                 $orderGrid,
-        ScopeConfigInterface $scopeConfig,
-        AreaList             $areaList,
-        State                $appState
-    )
+    public function __construct(ResourceConnection $resource, Grid $orderGrid, ScopeConfigInterface $scopeConfig)
     {
         $this->resource    = $resource;
         $this->orderGrid   = $orderGrid;
         $this->scopeConfig = $scopeConfig;
-        $this->areaList    = $areaList;
-        $this->appState    = $appState;
     }
 
     /**
@@ -61,8 +47,6 @@ class OrderGridColumns
         if (! $orderIds) {
             return 0;
         }
-
-        $this->loadAdminTranslations();
 
         $tracks  = $this->tracksByOrder($orderIds);
         $current = $this->currentColumns($orderIds);
@@ -203,24 +187,5 @@ class OrderGridColumns
         }
 
         return $current;
-    }
-
-    /**
-     * The status labels are translated, and outside adminhtml — the cron — nothing has loaded the
-     * admin translations yet. Once per call; it used to run once per order.
-     */
-    private function loadAdminTranslations(): void
-    {
-        try {
-            $areaCode = $this->appState->getAreaCode();
-        } catch (LocalizedException $e) {
-            $areaCode = null;
-        }
-
-        if (Area::AREA_ADMINHTML === $areaCode) {
-            return;
-        }
-
-        $this->areaList->getArea(Area::AREA_ADMINHTML)->load(Area::PART_TRANSLATE);
     }
 }
