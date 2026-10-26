@@ -19,7 +19,12 @@ define(
                         {value: 'package_type', text: this.translations['Package type']},
                         {value: 'maximum_weight', text: this.translations['Maximum weight (in grams)']},
                         {value: 'country_part_of', text: this.translations['Country part of']},
+                        {value: 'minimum_order_amount', text: this.translations['Minimum order amount']},
+                        {value: 'maximum_order_amount', text: this.translations['Maximum order amount']},
+                        {value: 'delivery_type', text: this.translations['Delivery type']},
                     ];
+                    // Conditions whose value is typed in rather than picked from a list
+                    this.numberConditions = ['maximum_weight', 'minimum_order_amount', 'maximum_order_amount'];
 
                     // This is the first place where the JSON is being parsed, if the JSON is invalid,
                     // this will be shown to the user and the matrix will not be rendered
@@ -63,6 +68,12 @@ define(
                 // Create the matrix UI
                 render: function() {
                     this.matrixElement.innerHTML = '';
+
+                    const helpText = document.createElement('p');
+                    helpText.className = 'note';
+                    helpText.textContent = this.translations['Set the fees to 0 when the matrix fully sets the price per delivery type.'];
+                    this.matrixElement.appendChild(helpText);
+
                     // If there are no rules, show an empty message
                     if (this.ruleData.length === 0) {
                         const emptyMessage = document.createElement('p');
@@ -258,10 +269,11 @@ define(
 
                     // Create the input for the condition value based on the type
                     let conditionValues;
-                    // If the condition type is 'maximum_weight', use an input, otherwise use a select with the available values
-                    if (condition.type === 'maximum_weight') {
+                    // If the condition type takes a number, use an input, otherwise use a select with the available values
+                    if (this.numberConditions.includes(condition.type)) {
                         conditionValues = document.createElement('input');
                         conditionValues.type = 'number';
+                        conditionValues.step = 'any';
                         conditionValues.value = condition.value;
                         conditionValues.addEventListener('change', (e) => this.updateCondition(ruleIndex, conditionIndex, 'value', e.target.value));
                     } else {
@@ -284,10 +296,11 @@ define(
                         const newType = e.target.value;
                         let newValueInput;
 
-                        // If the new type is 'maximum_weight', create an input, otherwise create a select with the available values
-                        if (newType === 'maximum_weight') {
+                        // If the new type takes a number, create an input, otherwise create a select with the available values
+                        if (this.numberConditions.includes(newType)) {
                             newValueInput = document.createElement('input');
                             newValueInput.type = 'number';
+                            newValueInput.step = 'any';
                             newValueInput.value = '';
                             newValueInput.addEventListener('change', (ev) => this.updateCondition(ruleIndex, conditionIndex, 'value', ev.target.value));
                         } else {
@@ -347,6 +360,15 @@ define(
                     if (conditionValue ==='carrier_name') {
                         const carriers = options.carriers;
                         Object.entries(carriers).forEach(([value, text]) => {
+                            const option = document.createElement('option');
+                            option.value = value;
+                            option.textContent = text;
+                            valueSelect.appendChild(option);
+                        });
+                    }
+
+                    if (conditionValue === 'delivery_type') {
+                        Object.entries(options.deliveryTypes).forEach(([value, text]) => {
                             const option = document.createElement('option');
                             option.value = value;
                             option.textContent = text;

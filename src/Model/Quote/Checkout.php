@@ -225,7 +225,14 @@ class Checkout
 
         foreach ($activeCarriers as $carrierName) {
             $carrierPath = Config::carrierPath($carrierName);
-            $basePrice   = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country);
+            $basePrices  = [];
+
+            // the matrix can price each delivery type differently, the fees come on top of that
+            foreach ([DeliveryType::STANDARD_NAME, DeliveryType::MORNING_NAME, DeliveryType::EVENING_NAME, DeliveryType::PICKUP_NAME] as $deliveryType) {
+                $basePrices[$deliveryType] = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country, $deliveryType);
+            }
+
+            $basePrice = $basePrices[DeliveryType::STANDARD_NAME];
 
             $canHaveSameDay          = $caps->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
             $canHaveMorning          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::MORNING_NAME);
@@ -240,8 +247,8 @@ class Checkout
             $canHaveAgeCheck         = $caps->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
-            $morningFee          = $canHaveMorning ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'morning/fee'), $quote) + $addBasePrice : 0;
-            $eveningFee          = $canHaveEvening ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'evening/fee'), $quote) + $addBasePrice : 0;
+            $morningFee          = $canHaveMorning ? self::deliveryTypePrice($basePrices, DeliveryType::MORNING_NAME, $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'morning/fee'), $quote), $showTotalPrice) : 0;
+            $eveningFee          = $canHaveEvening ? self::deliveryTypePrice($basePrices, DeliveryType::EVENING_NAME, $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'evening/fee'), $quote), $showTotalPrice) : 0;
             $sameDayFee          = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
             $signatureFee        = $canHaveSignature ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/signature_fee'), $quote) : 0;
             $collectFee          = $canHaveCollect ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/collect_fee'), $quote) : 0;
@@ -301,7 +308,7 @@ class Checkout
                 'priceMorningDelivery'  => $morningFee,
                 'priceEveningDelivery'  => $eveningFee,
                 'priceSameDayDelivery'  => $sameDayFee,
-                'pricePickup'           => max(0, $canHavePickup ? $this->config->getFloatConfig($carrierPath, 'pickup/fee') + $basePrice : 0),
+                'pricePickup'           => max(0, $canHavePickup ? $this->config->getFloatConfig($carrierPath, 'pickup/fee') + $basePrices[DeliveryType::PICKUP_NAME] : 0),
                 // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
                 'pricePackageTypeMailbox'      => $basePrice,
                 'pricePackageTypeDigitalStamp' => $basePrice,
@@ -311,6 +318,24 @@ class Checkout
         }
 
         return $myParcelConfig;
+    }
+
+    /**
+     * The price the widget shows for a delivery type: the total, or the surcharge on standard delivery. Either way
+     * standard delivery plus the surcharge comes to the total, which is never negative.
+     *
+     * @param array<string, float> $basePrices by delivery type name, holding at least standard
+     */
+    private static function deliveryTypePrice(array $basePrices, string $deliveryType, float $fee, bool $showTotalPrice): float
+    {
+        $standard = $basePrices[DeliveryType::STANDARD_NAME];
+
+        if ($showTotalPrice) {
+            return max(0.0, $basePrices[$deliveryType] + $fee);
+        }
+
+        // the difference first, so equal base prices leave the fee exactly as it was
+        return max(-$standard, $basePrices[$deliveryType] - $standard + $fee);
     }
 
     /** @see ShapeLookup::forShape() for what a null package type asks, and what it must not be used for. */
