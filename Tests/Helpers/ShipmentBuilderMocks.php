@@ -17,6 +17,7 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentValidator;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\ProductAttributes;
 use MyParcelNL\Magento\Service\Weight;
 
@@ -33,9 +34,12 @@ function createShipmentBuilder(array $properties = []): ShipmentBuilder
 /**
  * Builds an OrderShipmentOptions past its constructor. Setting `deliveryOptions` and `resolved`
  * fills the two memoised answers, so a test can name only the question it is asking.
+ * Without an `order` or `dating`, it gets an order of store 1 and Dating at today's date.
  */
 function createOrderShipmentOptions(array $properties = []): OrderShipmentOptions
 {
+    $properties += ['order' => createOrder(), 'dating' => datingOn(date('Y-m-d'))];
+
     return instanceWithProperties(OrderShipmentOptions::class, $properties);
 }
 
@@ -82,6 +86,7 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
     $objectManager->shouldReceive('get')->with(ShipmentApiProvider::class)
         ->andReturn(new ShipmentApiProvider($config, createUserAgent()));
     $objectManager->shouldReceive('get')->with(ShipmentValidator::class)->andReturn(new ShipmentValidator());
+    $objectManager->shouldReceive('get')->with(Dating::class)->andReturn(datingOn(date('Y-m-d')));
     $storedAccount = storedAccountAt(CountryCode::CC_NL);
     $objectManager->shouldReceive('get')->with(StoredAccount::class)->andReturn($storedAccount);
     // Never reached from a German address (customs is ROW-only), but the constructor fetches it.

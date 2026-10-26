@@ -23,6 +23,7 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
 
@@ -43,6 +44,7 @@ class ShipmentOptionsForm implements ArgumentInterface
     private ContractDefinitions $contractDefinitions;
     private Weight              $weightService;
     private StoredAccount       $storedAccount;
+    private Dating              $dating;
     private bool                $bulk = false;
 
     public function __construct(
@@ -52,6 +54,7 @@ class ShipmentOptionsForm implements ArgumentInterface
         ContractDefinitions    $contractDefinitions,
         Weight                 $weightService,
         StoredAccount          $storedAccount,
+        Dating                 $dating,
         bool                   $bulk = false
     ) {
         $this->order               = $order;
@@ -61,6 +64,7 @@ class ShipmentOptionsForm implements ArgumentInterface
         $this->defaultOptions      = new DefaultOptions($order);
         $this->weightService       = $weightService;
         $this->storedAccount       = $storedAccount;
+        $this->dating              = $dating;
         $this->bulk                = $bulk;
     }
 
@@ -202,7 +206,7 @@ class ShipmentOptionsForm implements ArgumentInterface
     /** The earliest date the form offers: the export moves an earlier one to tomorrow anyway. */
     public function getEarliestDeliveryDate(): string
     {
-        return date('Y-m-d', strtotime('+1 day'));
+        return $this->dating->tomorrow($this->order);
     }
 
     /** @return array<string,int> the length, width and height in cm saved on the order, only the ones set */
