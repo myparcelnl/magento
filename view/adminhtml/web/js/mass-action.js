@@ -408,7 +408,7 @@ define(
                     downloadLabels({
                         url: action.href,
                         failureLabel: $.mage.__('The MyParcel labels could not be downloaded.')
-                    }, null)
+                    }, null, parentThis.options['label_warning_header'])
                         .then(function (delivered) {
                             // The label fetch mints the barcodes, so the grid has new data to show.
                             parentThis._refresh(!delivered);
@@ -463,7 +463,7 @@ define(
                                 return null;
                             }
 
-                            return downloadLabels(answer.labels, tab).then(function (delivered) {
+                            return downloadLabels(answer.labels, tab, parentThis.options['label_warning_header']).then(function (delivered) {
                                 failed = failed || !delivered;
                             });
                         })

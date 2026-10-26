@@ -10,10 +10,6 @@ define(['jquery', 'MyParcelNL_Magento/js/admin-messages'], function ($, messages
 
     var FALLBACK_NAME = 'myparcel-labels.pdf';
 
-    // PrintMyParcelLabels::HEADER_INCOMPLETE. Set when a batch spanning several accounts lost one
-    // of them and merged the rest anyway.
-    var HEADER_INCOMPLETE = 'X-MyParcel-Label-Warnings';
-
     /**
      * The name the controller already put on the PDF, so the file is named in one place rather than
      * once per caller. Every label response carries it; the fallback is for a body that somehow
@@ -28,9 +24,11 @@ define(['jquery', 'MyParcelNL_Magento/js/admin-messages'], function ($, messages
     /**
      * Says which accounts the PDF is missing labels for. A warning, not an error: the document is
      * real and the caller must still count the download as delivered.
+     *
+     * The header is set when a batch spanning several accounts lost one of them and merged the rest.
      */
-    function warnIfIncomplete(response) {
-        var warning = response.headers.get(HEADER_INCOMPLETE);
+    function warnIfIncomplete(response, warningHeader) {
+        var warning = warningHeader ? response.headers.get(warningHeader) : null;
 
         if (!warning) {
             return;
@@ -84,10 +82,11 @@ define(['jquery', 'MyParcelNL_Magento/js/admin-messages'], function ($, messages
      * @param {Object}      labels - {url, params, failureLabel} as the export returned them.
      * @param {Window|null} tab    - a tab opened during the click that started this, to be filled
      *                               with the PDF. Opening one here would be blocked as a popup.
+     * @param {String}      warningHeader - the page's label_warning_header, PrintMyParcelLabels::HEADER_INCOMPLETE.
      *
      * @returns {Promise<Boolean>} whether the PDF was delivered; a failure has been reported.
      */
-    return function (labels, tab) {
+    return function (labels, tab, warningHeader) {
         function fail(text) {
             if (tab) {
                 tab.close();
@@ -101,7 +100,7 @@ define(['jquery', 'MyParcelNL_Magento/js/admin-messages'], function ($, messages
         return request(labels)
             .then(function (response) {
                 if (response.ok) {
-                    warnIfIncomplete(response);
+                    warnIfIncomplete(response, warningHeader);
 
                     return response.blob().then(function (blob) {
                         save(blob, nameFrom(response), tab);

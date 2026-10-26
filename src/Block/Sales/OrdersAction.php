@@ -17,6 +17,7 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
+use MyParcelNL\Magento\Controller\Adminhtml\Order\PrintMyParcelLabels;
 use MyParcelNL\Magento\Service\Config;
 
 class OrdersAction extends Template
@@ -88,5 +89,11 @@ class OrdersAction extends Template
         $settings = $this->config->getGeneralConfig('print');
 
         return json_encode($settings);
+    }
+
+    /** The response header that label-download.js reads to warn about a PDF with missing labels. */
+    public function getLabelWarningHeader(): string
+    {
+        return PrintMyParcelLabels::HEADER_INCOMPLETE;
     }
 }

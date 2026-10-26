@@ -35,7 +35,7 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
 {
     public const ADMIN_RESOURCE = 'Magento_Sales::shipment';
 
-    /** Read by label-download.js; keep the two spellings in step. */
+    /** Read by label-download.js, which gets the name through OrdersAction::getLabelWarningHeader(). */
     public const HEADER_INCOMPLETE = 'X-MyParcel-Label-Warnings';
 
     private ShipmentExportService     $exportService;
