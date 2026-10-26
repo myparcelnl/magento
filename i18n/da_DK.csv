@@ -458,3 +458,5 @@ MyParcel does not know shipment %1 for the API key of this store.,MyParcel kende
 The carrier of shipment %1 does not support return labels.,Transportøren af forsendelse %1 understøtter ikke returlabels.
 No MyParcel shipments were found to make a return label for.,Der blev ikke fundet nogen MyParcel-forsendelser at lave en returlabel til.
 "MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel har ikke bekræftet disse ordrer, så det er ukendt, om MyParcel har oprettet dem: %1. Kontrollér dem i MyParcel-backoffice, før du eksporterer dem igen."
+"Not every collo of this order was exported: %1","Ikke alle kolli i denne ordre blev eksporteret: %1"
+"It is unknown whether MyParcel created every collo of this order: %1. Check it in the MyParcel backoffice before you export it again.","Det er ukendt, om MyParcel har oprettet alle kolli i denne ordre: %1. Kontrollér ordren i MyParcel-backoffice, før du eksporterer den igen."
