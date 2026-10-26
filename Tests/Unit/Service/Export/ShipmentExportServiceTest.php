@@ -134,8 +134,8 @@ it('reports an unattributable chunk rejection once, not once per order', functio
     expect($report->hasFailures())->toBeTrue()
         ->and(array_map('strval', $report->collateral()))->toBe(['100000001', '100000002'])
         ->and($report->failureMessages())->toBe([
-            'MyParcel could not be reached for 2 orders, so it is unknown whether they shipped.'
-            . ' Check them in the MyParcel backoffice before running the action again:'
+            'Orders for which MyParcel could not be reached: 2. It is unknown whether they shipped.'
+            . ' Check them in the MyParcel backoffice before you export them again. Reason:'
             . ' the API refused this chunk',
         ]);
 });
