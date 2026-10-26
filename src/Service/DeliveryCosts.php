@@ -110,17 +110,32 @@ class DeliveryCosts
 
     /**
      * The amount the order amount conditions compare: the subtotal after discount, including tax, in the currency of
-     * the store view. A discount on shipping is taken back out, it is no discount on what was ordered.
+     * the store view. Shipping and its discount are no part of it.
      *
-     * Read from the shipping address, whose totals Magento collects (subtotal, tax, discount) before it collects the
-     * shipping rates.
+     * Summed from the items, whose totals Magento collects (subtotal, tax, discount) before it collects the shipping
+     * rates. Their discount is excluding tax unless Magento applies discounts on prices including tax. When tax is
+     * calculated after the discount, the discount lowers the tax too, so it is raised by the tax rate of its item.
      */
     private function getOrderAmount(Quote $quote): float
     {
-        $address  = $quote->getShippingAddress();
-        $subtotal = $address->getSubtotalInclTax() ?? $quote->getSubtotal();
+        $storeId             = (int) $quote->getStoreId();
+        $discountIncludesTax = '1' === (string) $this->config->getConfigValue('tax/calculation/discount_tax', $storeId);
+        $taxAfterDiscount    = '0' !== (string) $this->config->getConfigValue('tax/calculation/apply_after_discount', $storeId);
+        $amount              = 0.0;
 
-        return max(0.0, (float) $subtotal + (float) $address->getDiscountAmount() + (float) $address->getShippingDiscountAmount());
+        foreach ($quote->getAllVisibleItems() as $item) {
+            $rowTotal        = (float) $item->getRowTotal();
+            $rowTotalInclTax = (float) ($item->getRowTotalInclTax() ?? $rowTotal);
+            $discount        = (float) $item->getDiscountAmount();
+
+            if (! $discountIncludesTax && $taxAfterDiscount && $rowTotal > 0) {
+                $discount *= $rowTotalInclTax / $rowTotal;
+            }
+
+            $amount += $rowTotalInclTax - $discount;
+        }
+
+        return max(0.0, $amount);
     }
 
     /**
