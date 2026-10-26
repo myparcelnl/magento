@@ -13,12 +13,13 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsShipment;
  * A lookup that failed leaves its shipments out of the answer, which is shaped exactly like
  * "nothing to do". The run then made no return label at all and still reported success.
  *
- * @param array{shipments: array<int,object>, errors: string[]} $lookup
+ * @param array{shipments: array<int,object>, errors: string[], failedApiKeys: string[]} $lookup
  * @param string[]                                              $createReturnsErrors
  * @param array<string,array<int,int>>                          $returns per key, return id => parent id
  * @param array<int,\Magento\Sales\Model\Order\Shipment\Track[]>   $tracks  keyed by Magento shipment id
  * @param int[]                                                 $ids     MyParcel shipment ids of key-a
  * @param object[]                                              $shipments Magento shipments in the collection
+ * @param array<string,int[]>                                   $idsByApiKey replaces $ids for a run over several keys
  *
  * @return array{sent: bool, errors: string[], successes: int, rows: array}
  */
@@ -28,7 +29,8 @@ function returnMailRun(
     array $returns = [],
     array $tracks = [],
     array $ids = [111],
-    array $shipments = []
+    array $shipments = [],
+    array $idsByApiKey = []
 ): array
 {
     $recorded = ['errors' => [], 'successes' => 0];
@@ -58,7 +60,7 @@ function returnMailRun(
     );
 
     $collection = partialOrderCollection($shipments);
-    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')->andReturn(['key-a' => $ids]);
+    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')->andReturn($idsByApiKey ?: ['key-a' => $ids]);
     $collection->shouldReceive('tracksByShipmentId')->andReturn($tracks);
     setPrivateProperty($collection, 'exportService', $exportService);
     setPrivateProperty($collection, 'messageManager', $messageManager);
@@ -111,7 +113,7 @@ function returnMailShipment(int $id = 111, int $carrierId = 1): ShipmentDefsShip
 }
 
 it('shows the lookup error and reports nothing sent when the account is unreachable', function () {
-    $run = returnMailRun(['shipments' => [], 'errors' => ['Could not reach the MyParcel API']]);
+    $run = returnMailRun(['shipments' => [], 'errors' => ['Could not reach the MyParcel API'], 'failedApiKeys' => ['key-a']]);
 
     expect($run['sent'])->toBeFalse()
         ->and($run['errors'])->toBe(['Could not reach the MyParcel API'])
@@ -120,7 +122,7 @@ it('shows the lookup error and reports nothing sent when the account is unreacha
 
 it('still says something when the lookup answered nothing and named no error', function () {
     // Silence here reads as success to the caller, which is the whole defect.
-    $run = returnMailRun(['shipments' => [], 'errors' => []]);
+    $run = returnMailRun(['shipments' => [], 'errors' => [], 'failedApiKeys' => []]);
 
     expect($run['sent'])->toBeFalse()
         ->and($run['errors'])->toHaveCount(1);
@@ -131,7 +133,7 @@ it('names the order and barcode of a shipment the account behind the key does no
     $track = returnMailTrack(111, 5, 'BARCODE111');
 
     $run = returnMailRun(
-        ['shipments' => [], 'errors' => []],
+        ['shipments' => [], 'errors' => [], 'failedApiKeys' => []],
         [],
         [],
         [5 => [$track]],
@@ -145,12 +147,30 @@ it('names the order and barcode of a shipment the account behind the key does no
         ]);
 });
 
+it('names a shipment its own account does not know while another account is unreachable', function () {
+    $run = returnMailRun(
+        ['shipments' => [], 'errors' => ['Could not reach the MyParcel API'], 'failedApiKeys' => ['key-a']],
+        [],
+        [],
+        [5 => [returnMailTrack(111, 5)], 6 => [returnMailTrack(42, 6, 'BARCODE42')]],
+        [],
+        [returnMailMagentoShipment(5, '000000001'), returnMailMagentoShipment(6, '000000002')],
+        ['key-a' => [111], 'key-b' => [42]]
+    );
+
+    expect($run['sent'])->toBeFalse()
+        ->and($run['errors'])->toBe([
+            'Could not reach the MyParcel API',
+            '000000002: MyParcel does not know shipment BARCODE42 for the API key of this store.',
+        ]);
+});
+
 it('names only the unknown shipment and still returns the one the account knows', function () {
     $known   = returnMailTrack(111, 5);
     $unknown = returnMailTrack(222, 6, 'BARCODE222');
 
     $run = returnMailRun(
-        ['shipments' => [111 => returnMailShipment()], 'errors' => []],
+        ['shipments' => [111 => returnMailShipment()], 'errors' => [], 'failedApiKeys' => []],
         [],
         [],
         [5 => [$known], 6 => [$unknown]],
@@ -166,7 +186,7 @@ it('names only the unknown shipment and still returns the one the account knows'
 });
 
 it('reports sent when a return was created', function () {
-    $run = returnMailRun(['shipments' => [111 => returnMailShipment()], 'errors' => []]);
+    $run = returnMailRun(['shipments' => [111 => returnMailShipment()], 'errors' => [], 'failedApiKeys' => []]);
 
     expect($run['sent'])->toBeTrue()
         ->and($run['errors'])->toBe([]);
@@ -174,7 +194,7 @@ it('reports sent when a return was created', function () {
 
 it('reports nothing sent when every account refused the return', function () {
     $run = returnMailRun(
-        ['shipments' => [111 => returnMailShipment()], 'errors' => []],
+        ['shipments' => [111 => returnMailShipment()], 'errors' => [], 'failedApiKeys' => []],
         ['The return shipment was refused']
     );
 
@@ -185,7 +205,7 @@ it('reports nothing sent when every account refused the return', function () {
 it('carries the email and name the API requires on a return row', function () {
     // Acceptance refuses a row of parent + carrier alone and accepts the same row with email and
     // name, so both are mandatory. They come off the parent's recipient: same person, other way.
-    $run = returnMailRun(['shipments' => [111 => returnMailShipment()], 'errors' => []]);
+    $run = returnMailRun(['shipments' => [111 => returnMailShipment()], 'errors' => [], 'failedApiKeys' => []]);
 
     expect($run['rows']['key-a'][0])->toBe([
         'parent'               => 111,
@@ -200,7 +220,7 @@ it('records the return shipment on the track of its parent', function () {
     $track = exportTrack(111, 1, $saves);
 
     returnMailRun(
-        ['shipments' => [111 => returnMailShipment()], 'errors' => []],
+        ['shipments' => [111 => returnMailShipment()], 'errors' => [], 'failedApiKeys' => []],
         [],
         ['key-a' => [901 => 111]],
         [5 => [$track]]
@@ -215,7 +235,7 @@ it('adds a second return mail to the ones already recorded', function () {
     $track->setData('myparcel_return_ids', '[901]');
 
     returnMailRun(
-        ['shipments' => [111 => returnMailShipment()], 'errors' => []],
+        ['shipments' => [111 => returnMailShipment()], 'errors' => [], 'failedApiKeys' => []],
         [],
         ['key-a' => [902 => 111]],
         [5 => [$track]]
@@ -230,7 +250,7 @@ it('skips a return whose parent has no track, and still reports it sent', functi
     $track = exportTrack(222, 1, $saves);
 
     $run = returnMailRun(
-        ['shipments' => [111 => returnMailShipment()], 'errors' => []],
+        ['shipments' => [111 => returnMailShipment()], 'errors' => [], 'failedApiKeys' => []],
         [],
         ['key-a' => [901 => 111]],
         [5 => [$track]]
@@ -245,7 +265,7 @@ it('leaves out a shipment whose carrier has no returns, and still returns the ot
     // UPS (8) is not in the return endpoint's carrier enum; the SDK throws on it, which used to
     // cost every other shipment of that account its return label too.
     $run = returnMailRun(
-        ['shipments' => [111 => returnMailShipment(), 222 => returnMailShipment(222, 8)], 'errors' => []],
+        ['shipments' => [111 => returnMailShipment(), 222 => returnMailShipment(222, 8)], 'errors' => [], 'failedApiKeys' => []],
         [],
         [],
         [5 => [returnMailTrack(111, 5)], 6 => [returnMailTrack(222, 6)]],
@@ -263,7 +283,7 @@ it('leaves out a shipment whose carrier has no returns, and still returns the ot
 
 it('names only the unsupported carrier when no shipment can get a return', function () {
     $run = returnMailRun(
-        ['shipments' => [111 => returnMailShipment(111, 8)], 'errors' => []],
+        ['shipments' => [111 => returnMailShipment(111, 8)], 'errors' => [], 'failedApiKeys' => []],
         [],
         [],
         [5 => [returnMailTrack(111, 5)]],
