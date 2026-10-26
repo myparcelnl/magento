@@ -418,7 +418,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
                 if (null === $shipment) {
                     // A lookup error already names its account; only a silent miss needs a message.
-                    if (! $lookup['errors']) {
+                    if (! in_array((string) $apiKey, $lookup['failedApiKeys'], true)) {
                         $reported = true;
                         $this->messageManager->addErrorMessage($this->shipmentMessage(
                             (int) $shipmentId,
