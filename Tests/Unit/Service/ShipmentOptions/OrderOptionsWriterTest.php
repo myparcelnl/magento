@@ -6,6 +6,7 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 use MyParcelNL\Magento\Service\ShipmentOptions\OptionChanges;
@@ -19,7 +20,13 @@ use MyParcelNL\Magento\Service\ShipmentOptions\OrderOptionsWriter;
  *
  * @return object{saved: array<int,array<string,mixed>>}
  */
-function writeOrderOptions(array $orders, array $changes, ?CapabilitySet $capabilities = null, array $apiKeyByStore = [1 => 'key-a']): object
+function writeOrderOptions(
+    array          $orders,
+    array          $changes,
+    ?CapabilitySet $capabilities = null,
+    array          $apiKeyByStore = [1 => 'key-a'],
+    ?Dating        $dating = null
+): object
 {
     $did = new class { public array $saved = []; };
 
@@ -36,7 +43,7 @@ function writeOrderOptions(array $orders, array $changes, ?CapabilitySet $capabi
         $did->saved[$orderId] = $columns;
     });
 
-    (new OrderOptionsWriter($repository, $apiProvider, $gridColumns))
+    (new OrderOptionsWriter($repository, $apiProvider, $gridColumns, $dating ?? datingOn(date('Y-m-d'))))
         ->write($orders, OptionChanges::fromRequest($changes));
 
     return $did;
@@ -260,6 +267,16 @@ it('refuses a delivery date before tomorrow, and ignores one that is not a date'
     expect(fn() => writeOrderOptions([$order], ['delivery_date' => date('Y-m-d')]))
         ->toThrow(LocalizedException::class, 'tomorrow')
         ->and(OptionChanges::fromRequest(['delivery_date' => '2099-02-30'])->isEmpty())->toBeTrue();
+});
+
+it('takes tomorrow from the calendar of the order store, not from the server clock', function () {
+    $order  = writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard'], ['getStoreId' => 7]);
+    $dating = datingOn('2026-10-24', 7);
+
+    expect(fn() => writeOrderOptions([$order], ['delivery_date' => '2026-10-24'], null, [7 => 'key-a'], $dating))
+        ->toThrow(LocalizedException::class, 'tomorrow')
+        ->and(writeOrderOptions([$order], ['delivery_date' => '2026-10-25'], null, [7 => 'key-a'], $dating)->saved)
+        ->toHaveKey(1);
 });
 
 it('sets and removes dimensions, and drops the key when none is left', function () {

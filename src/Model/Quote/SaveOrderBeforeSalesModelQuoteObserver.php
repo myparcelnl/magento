@@ -74,7 +74,7 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
 
             $order->setData(Config::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
 
-            $dropOffDay = $this->delivery->getDropOffDayFromDeliveryOptions($deliveryOptions);
+            $dropOffDay = $this->delivery->getDropOffDayFromDeliveryOptions($deliveryOptions, $order);
             $order->setData(Config::FIELD_DROP_OFF_DAY, $dropOffDay);
 
             $selectedCarrier = $this->delivery->getCarrierFromDeliveryOptions($deliveryOptions);

@@ -19,6 +19,7 @@ use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 
@@ -33,15 +34,18 @@ class OrderOptionsWriter
     private CapabilitiesRepository $capabilitiesRepository;
     private ShipmentApiProvider    $apiProvider;
     private OrderGridColumns       $gridColumns;
+    private Dating                 $dating;
 
     public function __construct(
         CapabilitiesRepository $capabilitiesRepository,
         ShipmentApiProvider    $apiProvider,
-        OrderGridColumns       $gridColumns
+        OrderGridColumns       $gridColumns,
+        Dating                 $dating
     ) {
         $this->capabilitiesRepository = $capabilitiesRepository;
         $this->apiProvider            = $apiProvider;
         $this->gridColumns            = $gridColumns;
+        $this->dating                 = $dating;
     }
 
     /**
@@ -215,7 +219,7 @@ class OrderOptionsWriter
             return;
         }
 
-        if ($date < date('Y-m-d', strtotime('+1 day'))) {
+        if ($date < $this->dating->tomorrow($order)) {
             throw new LocalizedException(__('%1: the delivery date must be tomorrow or later.', $order->getIncrementId()));
         }
     }
