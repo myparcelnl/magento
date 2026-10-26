@@ -8,6 +8,8 @@ namespace MyParcelNL\Magento\Model\Shipment;
  * Translates between module names and the Core API v2 vocabulary.
  *
  * Requires the using class to declare: public const V2_NAMES_MAP, module name => v2 name.
+ *
+ * @todo INT-1563 replaces this hardcoded mapping with the generic SDK helpers.
  */
 trait MapsV2Names
 {
