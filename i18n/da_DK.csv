@@ -475,5 +475,6 @@ No MyParcel shipments were found to make a return label for.,Der blev ikke funde
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 blev ikke slået til: denne transportør kræver en modulopdatering, før der kan sendes forsendelser med den."
 "Reloading the page...","Siden genindlæses..."
 "This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Dette valg indeholder ordrer fra konti, der eksporterer hele ordren, og ordrer fra andre konti. Vælg én type ordre, og prøv igen."
+"The MyParcel account settings of this store are not imported, so it is not known whether its orders export as orders or as shipments. Open the MyParcel settings and click Import.","MyParcel-kontoindstillingerne for denne butik er ikke importeret, så det vides ikke, om dens ordrer eksporteres som ordrer eller som forsendelser. Åbn MyParcel-indstillingerne, og klik på Import."
 "Account","Konto"
 "Account features","Kontofunktioner"
