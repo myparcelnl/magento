@@ -103,27 +103,38 @@ class ShipmentExportService
     /**
      * The same refresh, with the per-account failures alongside it.
      *
+     * `failedApiKeys` tells a failed lookup apart from an account that answered without the shipment.
+     *
      * @param array<string,int[]> $shipmentIdsByApiKey
      *
-     * @return array{shipments: array<int,object>, errors: string[]}
+     * @return array{shipments: array<int,object>, errors: string[], failedApiKeys: string[]}
      */
     public function fetchLatestWithErrors(array $shipmentIdsByApiKey): array
     {
-        $latest = [];
+        $latest   = [];
+        $idsByKey = array_map([$this, 'normalizeIds'], $shipmentIdsByApiKey);
+        $answered = [];
 
         $errors = $this->perKey(
-            array_map([$this, 'normalizeIds'], $shipmentIdsByApiKey),
+            $idsByKey,
             'refresh shipments',
-            function (string $apiKey, array $shipmentIds) use (&$latest): void {
+            function (string $apiKey, array $shipmentIds) use (&$latest, &$answered): void {
                 $service = $this->tagged($apiKey, static function (string $key, $client) {
                     return new ShipmentQuery($client);
                 });
 
                 $latest += $service->findMany($shipmentIds);
+                $answered[] = $apiKey;
             }
         );
 
-        return ['shipments' => $latest, 'errors' => $errors];
+        $asked = array_map('strval', array_keys(array_filter($idsByKey)));
+
+        return [
+            'shipments'     => $latest,
+            'errors'        => $errors,
+            'failedApiKeys' => array_values(array_diff($asked, $answered)),
+        ];
     }
 
     /**
