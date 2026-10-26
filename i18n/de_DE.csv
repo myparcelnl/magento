@@ -461,3 +461,4 @@ Return label sent,Retouren-Etikett gesendet
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel kennt die Sendung %1 unter dem API-Schlüssel dieses Stores nicht.
 The carrier of shipment %1 does not support return labels.,Der Versanddienstleister der Sendung %1 unterstützt keine Retouren-Etiketten.
 No MyParcel shipments were found to make a return label for.,"Es wurden keine MyParcel-Sendungen gefunden, für die ein Retouren-Etikett erstellt werden kann."
+"MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel hat diese Bestellungen nicht bestätigt, daher ist unbekannt, ob MyParcel sie angelegt hat: %1. Prüfen Sie sie im MyParcel-Backoffice, bevor Sie sie erneut exportieren."
