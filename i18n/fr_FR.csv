@@ -481,5 +481,6 @@ No MyParcel shipments were found to make a return label for.,Aucun envoi MyParce
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 n'a pas été activé : ce transporteur nécessite une mise à jour du module avant de pouvoir expédier des envois."
 "Reloading the page...","Rechargement de la page..."
 "This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Cette sélection contient des commandes de comptes qui exportent la commande entière et des commandes d'autres comptes. Sélectionnez un seul type de commande et réessayez."
+"The MyParcel account settings of this store are not imported, so it is not known whether its orders export as orders or as shipments. Open the MyParcel settings and click Import.","Les paramètres du compte MyParcel de cette boutique ne sont pas importés : on ne sait donc pas si ses commandes sont exportées comme commandes ou comme envois. Ouvrez les paramètres MyParcel et cliquez sur Import."
 "Account","Compte"
 "Account features","Fonctionnalités du compte"

@@ -479,5 +479,6 @@ No MyParcel shipments were found to make a return label for.,"Nie znaleziono prz
 "%1 was not switched on: this carrier needs a module update before orders can ship with it.","%1 nie został włączony: ten przewoźnik wymaga aktualizacji modułu, zanim będzie można wysyłać nim przesyłki."
 "Reloading the page...","Ponowne ładowanie strony..."
 "This selection has orders of accounts that export the entire order and orders of other accounts. Select one kind of order and try again.","Ten wybór zawiera zamówienia z kont, które eksportują całe zamówienie, oraz zamówienia z innych kont. Wybierz jeden rodzaj zamówienia i spróbuj ponownie."
+"The MyParcel account settings of this store are not imported, so it is not known whether its orders export as orders or as shipments. Open the MyParcel settings and click Import.","Ustawienia konta MyParcel tego sklepu nie zostały zaimportowane, więc nie wiadomo, czy jego zamówienia są eksportowane jako zamówienia, czy jako przesyłki. Otwórz ustawienia MyParcel i kliknij Import."
 "Account","Konto"
 "Account features","Funkcje konta"

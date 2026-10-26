@@ -114,6 +114,9 @@ class NewShipment implements ObserverInterface
      */
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
+        // First: it refuses an account without stored features, before a track exists.
+        $orderV1 = $this->storedAccount->hasOrderV1ForExport((int) $shipment->getStoreId());
+
         $options = $this->orderCollection()->setOptionsFromParameters()
                                          ->getOptions()
         ;
@@ -157,7 +160,7 @@ class NewShipment implements ObserverInterface
             }
         }
 
-        if ($this->storedAccount->hasOrderV1ForStore((int) $shipment->getStoreId())) {
+        if ($orderV1) {
             $this->exportEntireOrder($shipment);
             $this->updateTrackGrid($shipment, true);
 

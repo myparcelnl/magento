@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\DataObject;
-use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
-use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 
 /**
  * The proposition of the account behind an api key, or behind a store's api key.
@@ -13,28 +11,10 @@ use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
  * Read while the order grid renders, so a keyless store and a row that cannot be read at all must
  * both answer null instead of throwing, and one account must cost one read.
  *
- * stubAccountSettingsReader() and settingsPathFor() live in Tests/Helpers/AccountSettingsHelpers.php,
+ * stubAccountSettingsReader(), settingsPathFor() and storedAccountForStores() live in
+ * Tests/Helpers/AccountSettingsHelpers.php,
  * accountSettingsRow() in Tests/Helpers/CapabilitiesFixtures.php.
  */
-/**
- * @param array<int, string|null> $keysByStore store id => its api key; also the store views the store manager lists
- * @param int|null                $keyLookups  the store key lookups to expect; null for any number
- */
-function storedAccountForStores(array $keysByStore, ?int $keyLookups = null): StoredAccount
-{
-    $provider = Mockery::mock(ShipmentApiProvider::class);
-    $lookup   = $provider->shouldReceive('apiKeyForStoreOrNull')
-        ->andReturnUsing(static fn(int $storeId) => $keysByStore[$storeId]);
-
-    if (null !== $keyLookups) {
-        $lookup->times($keyLookups);
-    }
-
-    $stores = array_map(static fn(int $id) => new DataObject(['id' => $id]), array_keys($keysByStore));
-
-    return new StoredAccount($provider, Mockery::mock(StoreManagerInterface::class, ['getStores' => $stores]));
-}
-
 /** A read that fails, standing for anything between the config row and the SDK throwing. */
 function unreadableSettings(): callable
 {
@@ -135,6 +115,48 @@ it('exports entire orders for order v1 only: not for order v2, and not without f
         ->and($account->hasOrderV1ForStore(null))->toBeFalse()
         ->and($account->hasOrderV1ForStore(4))->toBeFalse();
 });
+
+it('gives an export the mode of an account with stored features, or of a store without one', function () {
+    stubAccountSettingsReader([
+        settingsPathFor('order-key') => accountSettingsRow([], [
+            'account'  => ['id' => 7, 'proposition_id' => 1],
+            'features' => ['LEGACY_ORDER_MANAGEMENT'],
+        ]),
+        settingsPathFor('v2-key')    => accountSettingsRow([], [
+            'account'  => ['id' => 9, 'proposition_id' => 1],
+            'features' => ['ORDER_MANAGEMENT'],
+        ]),
+        settingsPathFor('none-key')  => accountSettingsRow([], ['account' => ['id' => 8, 'proposition_id' => 1], 'features' => []]),
+    ]);
+    $account = storedAccountForStores([1 => 'order-key', 2 => 'v2-key', 3 => 'none-key', 4 => null]);
+
+    expect($account->hasOrderV1ForExport(1))->toBeTrue()
+        ->and($account->hasOrderV1ForExport(2))->toBeFalse()
+        ->and($account->hasOrderV1ForExport(3))->toBeFalse()
+        ->and($account->hasOrderV1ForExport(4))->toBeFalse()
+        ->and($account->hasOrderV1ForExport(null))->toBeFalse();
+});
+
+it('refuses an export for an account without stored features, where the grid only guesses', function (string $apiKey) {
+    stubAccountSettingsReader([], static function (string $path) {
+        if (settingsPathFor('broken-key') === $path) {
+            throw new RuntimeException('config unavailable');
+        }
+
+        return settingsPathFor('old-row-key') === $path
+            ? accountSettingsRow([], ['account' => ['id' => 6, 'proposition_id' => 1]])
+            : null;
+    });
+    $account = storedAccountForStores([1 => $apiKey]);
+
+    expect($account->hasOrderV1ForStore(1))->toBeFalse()
+        ->and(fn() => $account->hasOrderV1ForExport(1))
+        ->toThrow(LocalizedException::class, StoredAccount::ERROR_FEATURES_UNKNOWN);
+})->with([
+    'a row imported before features were stored' => 'old-row-key',
+    'a row that cannot be read'                 => 'broken-key',
+    'no row at all'                             => 'missing-key',
+]);
 
 it('lists whether every store with an api key has order v1, and only those', function () {
     stubAccountSettingsReader([
