@@ -2,14 +2,10 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\App\Area;
-use Magento\Framework\App\AreaList;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\App\State;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Select;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\ResourceModel\Grid;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
@@ -26,14 +22,13 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
  *
  * @return array{0: OrderGridColumns, 1: object} the service and a recorder of what it did
  */
-function gridColumnsWriter(array $tracks, array $current, bool $async = false, ?string $areaCode = 'adminhtml'): array
+function gridColumnsWriter(array $tracks, array $current, bool $async = false): array
 {
     $did = new class {
-        public int   $fetches        = 0;
-        public array $updates        = [];
-        public array $refreshed      = [];
-        public int   $translateLoads = 0;
-        public array $wheres         = [];
+        public int   $fetches   = 0;
+        public array $updates   = [];
+        public array $refreshed = [];
+        public array $wheres    = [];
     };
 
     $select = Mockery::mock(Select::class);
@@ -70,23 +65,7 @@ function gridColumnsWriter(array $tracks, array $current, bool $async = false, ?
     $scopeConfig = Mockery::mock(ScopeConfigInterface::class);
     $scopeConfig->shouldReceive('getValue')->with('dev/grid/async_indexing')->andReturn($async ? '1' : '0');
 
-    $area = Mockery::mock(Area::class);
-    $area->shouldReceive('load')->with(Area::PART_TRANSLATE)->andReturnUsing(static function () use ($did, $area) {
-        $did->translateLoads++;
-
-        return $area;
-    });
-    $areaList = Mockery::mock(AreaList::class);
-    $areaList->shouldReceive('getArea')->with(Area::AREA_ADMINHTML)->andReturn($area);
-
-    $state = Mockery::mock(State::class);
-    if (null === $areaCode) {
-        $state->shouldReceive('getAreaCode')->andThrow(new LocalizedException(__('Area code is not set')));
-    } else {
-        $state->shouldReceive('getAreaCode')->andReturn($areaCode);
-    }
-
-    return [new OrderGridColumns($resource, $grid, $scopeConfig, $areaList, $state), $did];
+    return [new OrderGridColumns($resource, $grid, $scopeConfig), $did];
 }
 
 /** @return array<string,mixed> */
@@ -146,30 +125,6 @@ it('leaves the grid to the scheduled sync when async indexing is on, and stamps 
 
     expect($did->refreshed)->toBe([])
         ->and($did->updates[0]['bind']['updated_at'])->toMatch('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/');
-});
-
-it('loads the admin translations once per call outside adminhtml, whatever the page size', function () {
-    [$columns, $did] = gridColumnsWriter([trackRowFor(7, '3SA'), trackRowFor(9, '3SC')], [orderRow(7), orderRow(9)], false, 'crontab');
-
-    $columns->writeFor([7, 9]);
-
-    expect($did->translateLoads)->toBe(1);
-});
-
-it('treats an unset area code as outside adminhtml', function () {
-    [$columns, $did] = gridColumnsWriter([trackRowFor(7, '3SA')], [orderRow(7)], false, null);
-
-    $columns->writeFor([7]);
-
-    expect($did->translateLoads)->toBe(1);
-});
-
-it('does not touch the translations in adminhtml', function () {
-    [$columns, $did] = gridColumnsWriter([trackRowFor(7, '3SA')], [orderRow(7)]);
-
-    $columns->writeFor([7]);
-
-    expect($did->translateLoads)->toBe(0);
 });
 
 it('never blanks a column the tracks cannot fill', function () {
