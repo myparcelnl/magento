@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Sales\Model\ResourceModel\Order\Collection as OrderCollection;
 use MyParcelNL\Magento\Controller\Adminhtml\Order\CreateAndPrintMyParcelTrack;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
+use MyParcelNL\Magento\Service\Export\ExportResponse;
 
 /**
  * The order grid's PPS export. The collection's constructor defaults are a mass action's, and
@@ -48,12 +50,14 @@ final class FakeCreateAndPrintMyParcelTrack extends CreateAndPrintMyParcelTrack
 }
 
 /**
- * @param array<int, bool> $orderV1ByStore the selected orders' stores and whether each account has order v1
+ * @param array<int, bool>   $orderV1ByStore the selected orders' stores and whether each account has order v1
+ * @param StoredAccount|null $storedAccount  a real one to test the decision too; a mock of $orderV1ByStore when null
  */
 function createPpsGridController(
     MagentoOrderCollection $collection,
     array                  $orderV1ByStore = [1 => true],
-    ?ManagerInterface      $messages = null
+    ?ManagerInterface      $messages = null,
+    ?StoredAccount         $storedAccount = null
 ): FakeCreateAndPrintMyParcelTrack
 {
     $request = Mockery::mock(RequestInterface::class);
@@ -67,10 +71,12 @@ function createPpsGridController(
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('get')->with(MagentoOrderCollection::PATH_MODEL_ORDER_COLLECTION)->andReturn($magentoOrders);
 
-    $storedAccount = Mockery::mock(StoredAccount::class);
-    $storedAccount->shouldReceive('hasOrderV1ForStore')->andReturnUsing(
-        static fn(int $storeId): bool => $orderV1ByStore[$storeId]
-    );
+    if (null === $storedAccount) {
+        $storedAccount = Mockery::mock(StoredAccount::class);
+        $storedAccount->shouldReceive('hasOrderV1ForExport')->andReturnUsing(
+            static fn(int $storeId): bool => $orderV1ByStore[$storeId]
+        );
+    }
 
     $controller = new FakeCreateAndPrintMyParcelTrack($request, $objectManager);
     setPrivateProperty($controller, 'orderCollection', $collection);
@@ -100,4 +106,35 @@ it('refuses a selection that mixes order v1 accounts and others, and exports not
     $messages->shouldReceive('addErrorMessage')->once();
 
     expect(createPpsGridController($collection, [1 => true, 2 => false], $messages)->runMassAction())->toBeNull();
+});
+
+it('refuses the export with the import error when an account has no stored features', function () {
+    stubAccountSettingsReader([
+        settingsPathFor('v1-key')     => accountSettingsRow([], [
+            'account'  => ['id' => 7, 'proposition_id' => 1],
+            'features' => ['LEGACY_ORDER_MANAGEMENT'],
+        ]),
+        settingsPathFor('old-row-key') => accountSettingsRow([], ['account' => ['id' => 6, 'proposition_id' => 1]]),
+    ]);
+
+    $collection = Mockery::mock(MagentoOrderCollection::class);
+    $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
+    $collection->shouldNotReceive('setOptionsFromParameters', 'setFulfilment', 'setNewMagentoShipment');
+
+    $messages = Mockery::mock(ManagerInterface::class);
+    $messages->shouldReceive('addErrorMessage')->once()->with(StoredAccount::ERROR_FEATURES_UNKNOWN);
+
+    $result   = Mockery::mock(ResultInterface::class);
+    $response = Mockery::mock(ExportResponse::class);
+    $response->shouldReceive('json')->once()->with(null)->andReturn($result);
+
+    $controller = createPpsGridController(
+        $collection,
+        [1 => true, 2 => false],
+        $messages,
+        storedAccountForStores([1 => 'v1-key', 2 => 'old-row-key'])
+    );
+    setPrivateProperty($controller, 'response', $response);
+
+    expect($controller->execute())->toBe($result);
 });
