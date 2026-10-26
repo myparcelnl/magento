@@ -37,6 +37,7 @@ use RuntimeException;
  */
 class OrderShipmentOptions
 {
+    /** Copy of the maxLength RefShipmentShipmentOptions::setLabelDescription() enforces; read it from the SDK once the generator exposes it. */
     public const LABEL_DESCRIPTION_MAX_LENGTH = 45;
 
     private ObjectManagerInterface $objectManager;
