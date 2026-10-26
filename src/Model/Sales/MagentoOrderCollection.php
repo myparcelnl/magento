@@ -170,12 +170,12 @@ class MagentoOrderCollection extends MagentoCollection
     protected function exportFulfilmentChunk(FulfilmentOrderBuilder $builder, array $magentoOrders): void
     {
         $orderCollection = (new OrderCollection())->setUserAgents($this->userAgent->map());
-        $exported        = [];
+        $sent            = [];
 
         foreach ($magentoOrders as $magentoOrder) {
             try {
                 $orderCollection->push($builder->build($magentoOrder, $this->options));
-                $exported[] = $magentoOrder;
+                $sent[] = $magentoOrder;
             } catch (Throwable $e) {
                 $this->messageManager->addErrorMessage(
                     sprintf('%s: %s', $magentoOrder->getIncrementId(), $e->getMessage())
@@ -190,14 +190,18 @@ class MagentoOrderCollection extends MagentoCollection
         try {
             $savedOrders = $orderCollection->save();
         } catch (Throwable $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
+            // A timeout and an API error are the same exception here, so a refusal cannot be told apart.
+            $this->reportUnconfirmed($sent, $e->getMessage());
 
             return;
         }
 
-        // Before the next request is made: an order that exists in the API but carries no exported
-        // status is created again by the next run, as a second billable order.
-        $this->setMagentoOrdersAsExported($exported, $savedOrders);
+        // Before the next request is made, so the grid shows which orders MyParcel has.
+        $unconfirmed = $this->setMagentoOrdersAsExported($sent, $savedOrders);
+
+        if ($unconfirmed) {
+            $this->reportUnconfirmed($unconfirmed, '');
+        }
 
         try {
             $this->saveOrderNotes($savedOrders);
@@ -321,28 +325,53 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
+     * Marks the orders the answer confirms as exported, with their MyParcel uuid.
+     *
      * @param Order[] $magentoOrders the orders this account's call actually carried
+     *
+     * @return Order[] the orders the answer left out, which stay unmarked
      */
-    private function setMagentoOrdersAsExported(array $magentoOrders, OrderCollection $savedOrders): void
+    private function setMagentoOrdersAsExported(array $magentoOrders, OrderCollection $savedOrders): array
     {
         $byExternalIdentifier = [];
+        $unconfirmed          = [];
 
         foreach ($savedOrders as $savedOrder) {
             $byExternalIdentifier[(string) $savedOrder->getExternalIdentifier()] = $savedOrder;
         }
 
         foreach ($magentoOrders as $magentoOrder) {
-            $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
-
             $fulfilmentOrder = $byExternalIdentifier[(string) $magentoOrder->getIncrementId()] ?? null;
 
-            if ($fulfilmentOrder) {
-                $magentoOrder->setData('myparcel_uuid', $fulfilmentOrder->getUuid());
+            if (! $fulfilmentOrder) {
+                $unconfirmed[] = $magentoOrder;
+                continue;
             }
 
+            $magentoOrder->setData('track_status', UpdateStatus::ORDER_STATUS_EXPORTED);
+            $magentoOrder->setData('myparcel_uuid', $fulfilmentOrder->getUuid());
             $magentoOrder->setIsInProcess(true);
             $this->objectManager->get(OrderResource::class)->save($magentoOrder);
         }
+
+        return $unconfirmed;
+    }
+
+    /**
+     * Tells the admin to check orders in the backoffice: the API deduplicates nothing, so exporting
+     * an order it did create makes a second billable order.
+     *
+     * @param Order[] $magentoOrders
+     */
+    private function reportUnconfirmed(array $magentoOrders, string $reason): void
+    {
+        $message = __(
+            'MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.',
+            implode(', ', array_map(static fn (Order $order): string => (string) $order->getIncrementId(), $magentoOrders))
+        );
+
+        // The reason is the API's or the SDK's own text, so it stays untranslated.
+        $this->messageManager->addErrorMessage(trim($message . ' ' . $reason));
     }
 
     /**

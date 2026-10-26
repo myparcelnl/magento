@@ -470,3 +470,4 @@ Return label sent,Retourlabel verstuurd
 MyParcel does not know shipment %1 for the API key of this store.,MyParcel kent zending %1 niet onder de API key van deze store.
 The carrier of shipment %1 does not support return labels.,De vervoerder van zending %1 ondersteunt geen retourlabels.
 No MyParcel shipments were found to make a return label for.,Er zijn geen MyParcel-zendingen gevonden om een retourlabel voor te maken.
+"MyParcel did not confirm these orders, so it is unknown whether it created them: %1. Check them in the MyParcel backoffice before you export them again.","MyParcel heeft deze orders niet bevestigd, dus het is onbekend of MyParcel ze heeft aangemaakt: %1. Controleer ze in de MyParcel backoffice voordat je ze opnieuw exporteert."
