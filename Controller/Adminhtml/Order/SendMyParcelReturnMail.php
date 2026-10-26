@@ -43,8 +43,7 @@ class SendMyParcelReturnMail extends Action
         $this->resultRedirectFactory = $context->getResultRedirectFactory();
         $this->orderCollection       = new MagentoOrderCollection(
             $context->getObjectManager(),
-            $this->getRequest(),
-            null
+            $this->getRequest()
         );
     }
 
