@@ -19,6 +19,11 @@ if (file_exists($moduleAutoloader)) {
     require $magentoAutoloader;
 }
 
+// The CI image has no intl. Mockery reads TimezoneInterface's \IntlDateFormatter::SHORT defaults.
+if (! class_exists(IntlDateFormatter::class)) {
+    eval('class IntlDateFormatter { const FULL = 0; const LONG = 1; const MEDIUM = 2; const SHORT = 3; const NONE = -1; }');
+}
+
 // Fallback autoloader: generate empty stubs for Magento classes that are not
 // installed in CI (e.g. classes from magento/module-shipping, magento/module-quote).
 // This lets Mockery create mocks and lets compile-time class references resolve
