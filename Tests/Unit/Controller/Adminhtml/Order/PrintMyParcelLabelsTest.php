@@ -22,7 +22,7 @@ function shipmentWithTracks(int $entityId, int $storeId, array $myParcelShipment
 
     foreach ($myParcelShipmentIds as $shipmentId) {
         $track = Mockery::mock(Magento\Sales\Model\Order\Shipment\Track::class);
-        $track->shouldReceive('getData')->with('myparcel_consignment_id')->andReturn($shipmentId);
+        $track->shouldReceive('getData')->with('myparcel_shipment_id')->andReturn($shipmentId);
         $tracks[] = $track;
     }
 

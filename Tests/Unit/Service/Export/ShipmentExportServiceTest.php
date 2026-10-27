@@ -110,8 +110,8 @@ it('persists each chunk before issuing the next, and keeps earlier chunks when a
 
     $report = $service->createConcepts($built);
 
-    expect($built[0]->track()->getData('myparcel_consignment_id'))->not->toBeNull()
-        ->and($built[1]->track()->getData('myparcel_consignment_id'))->not->toBeNull()
+    expect($built[0]->track()->getData('myparcel_shipment_id'))->not->toBeNull()
+        ->and($built[1]->track()->getData('myparcel_shipment_id'))->not->toBeNull()
         ->and($report->succeeded())->toHaveCount(3)
         ->and($report->hasFailures())->toBeFalse();
 });
@@ -179,8 +179,8 @@ it('correlates by reference identifier rather than by result order', function ()
 
     $report = $service->createConcepts($built);
 
-    expect($report->succeeded()['100000001'])->toBe($built[0]->track()->getData('myparcel_consignment_id'))
-        ->and($report->succeeded()['100000002'])->toBe($built[1]->track()->getData('myparcel_consignment_id'))
+    expect($report->succeeded()['100000001'])->toBe($built[0]->track()->getData('myparcel_shipment_id'))
+        ->and($report->succeeded()['100000002'])->toBe($built[1]->track()->getData('myparcel_shipment_id'))
         ->and($report->succeeded()['100000001'])->not->toBe($report->succeeded()['100000002']);
 });
 
@@ -192,7 +192,7 @@ it('saves a track that has an entity id, once', function () {
     $service->createConcepts([builtShipmentFor('key', '100000001', null, $track)]);
 
     expect($saves)->toBe(1)
-        ->and($track->getData('myparcel_consignment_id'))->not->toBeNull();
+        ->and($track->getData('myparcel_shipment_id'))->not->toBeNull();
 });
 
 it('writes but does not save an unsaved track, whose shipment save persists it', function () {
@@ -205,7 +205,7 @@ it('writes but does not save an unsaved track, whose shipment save persists it',
     $report = $service->createConcepts([builtShipmentFor('key', '100000001', null, $track)]);
 
     expect($saves)->toBe(0)
-        ->and($track->getData('myparcel_consignment_id'))->not->toBeNull()
+        ->and($track->getData('myparcel_shipment_id'))->not->toBeNull()
         ->and($report->succeeded())->toHaveCount(1);
 });
 

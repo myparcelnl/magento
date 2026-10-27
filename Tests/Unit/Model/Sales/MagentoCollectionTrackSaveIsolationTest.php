@@ -42,7 +42,7 @@ function collectionWhoseFirstTrackCannotSave(): array
             ],
             [
                 'getData' => static function (?string $key = null) use ($myParcelShipmentId) {
-                    return 'myparcel_consignment_id' === $key ? $myParcelShipmentId : null;
+                    return 'myparcel_shipment_id' === $key ? $myParcelShipmentId : null;
                 },
             ]
         );
