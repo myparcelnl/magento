@@ -6,7 +6,7 @@ use Magento\Framework\DataObject;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 
 /**
- * The PPS customs path. It declares what was ordered at product weight and price, where the v11
+ * The Order v1 customs path. It declares what was ordered at product weight and price, where the v11
  * shipment path declares what was shipped at item weight and price.
  *
  * customsObjectManager() lives in Tests/Helpers/CustomsMocks.php.

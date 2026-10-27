@@ -6,11 +6,11 @@ use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 
 /**
- * Fulfilment API responses, the direction OrderV1BuilderMocks does not cover: that one
+ * Order v1 API responses, the direction OrderV1BuilderMocks does not cover: that one
  * builds what we send, these build what comes back.
  *
  * order_shipments is a raw array in the SDK, so these mirror its wire shape rather than a model.
- * A fulfilment order can hold several shipments — extra colli for the same goods — which is what
+ * An Order v1 order can hold several shipments — extra colli for the same goods — which is what
  * apiOrderWithShipments() exists for; the single-shipment helpers are wrappers over it.
  */
 

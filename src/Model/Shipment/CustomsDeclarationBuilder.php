@@ -16,7 +16,7 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
  * Builds a v11 RefShipmentCustomsDeclaration for a ROW shipment. Stateless; shared across a batch.
  *
  * Deliberately separate from Helper\CustomsDeclarationFromOrder, which serves the Order v1
- * fulfilment path — a different API.
+ * Order v1 path — a different API.
  *
  * Two traps this class exists to contain: country must go through the item constructor, because the
  * generated enum for setCountry() lists only '' and throws on every real country — which also makes

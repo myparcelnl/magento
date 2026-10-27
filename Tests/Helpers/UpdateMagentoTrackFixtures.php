@@ -97,7 +97,7 @@ function myParcelShipmentIdsStub(array $ownIds): Closure
 
 /**
  * updateMagentoTrack() is what puts the consumer portal link on the track, and nothing covered it —
- * which is why PPS orders went without one unnoticed. There is no PPS-specific link path:
+ * which is why Order v1 orders went without one unnoticed. There is no Order v1-specific link path:
  * once a track carries myparcel_shipment_id it refreshes through here like any other.
  *
  * @param array<int,ShipmentDefsShipment> $latest keyed by MyParcel shipment id
