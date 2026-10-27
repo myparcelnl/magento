@@ -16,10 +16,10 @@ it('sends the delivery date with a package small', function () {
     $subject = createOrderShipmentOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['deliveryType' => 'standard', 'date' => '2099-08-20']),
-        'resolved'        => ResolvedOptions::of([]),
+        'chosen'        => ResolvedOptions::of([]),
     ]);
 
-    expect($subject->shipmentOptions()->getDeliveryDate())->toBe('2099-08-20 00:00:00');
+    expect($subject->sdkShipmentOptions()->getDeliveryDate())->toBe('2099-08-20 00:00:00');
 });
 
 /** The API refuses a delivery date for DPD and bpost, and together with collect. */
@@ -31,8 +31,8 @@ function deliveryDateSentFor(string $carrier, array $resolved = []): ?string
     return createOrderShipmentOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['carrier' => $carrier, 'deliveryType' => 'standard', 'date' => '2099-08-20']),
-        'resolved'        => ResolvedOptions::of($resolved),
-    ])->shipmentOptions()->getDeliveryDate();
+        'chosen'        => ResolvedOptions::of($resolved),
+    ])->sdkShipmentOptions()->getDeliveryDate();
 }
 
 it('sends no delivery date for a carrier that refuses one', function (string $carrier) {
@@ -51,8 +51,8 @@ it('sends no delivery date when none is stored', function () {
     $subject = createOrderShipmentOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['deliveryType' => 'standard', 'date' => '']),
-        'resolved'        => ResolvedOptions::of([]),
+        'chosen'        => ResolvedOptions::of([]),
     ]);
 
-    expect($subject->shipmentOptions()->getDeliveryDate())->toBeNull();
+    expect($subject->sdkShipmentOptions()->getDeliveryDate())->toBeNull();
 });
