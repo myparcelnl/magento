@@ -47,7 +47,7 @@ Select a standard orientation for printing labels.,Vælg en standardretning til 
 Label description,Labelbeskrivelse
 "This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%.","Denne beskrivelse vises på forsendelseslabelen. Følgende dele kan bruges: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%."
 Country of origin,Oprindelsesland
-"This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dette land vises på de internationale forsendelseslabels. Det er her, dine produkter sendes fra. Du kan bruge NL, BE, DE osv. Det vil blive overskrevet af fremstillingslandet på produktniveau."
+"This country will appear on the international shipment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dette land vises på de internationale forsendelseslabels. Det er her, dine produkter sendes fra. Du kan bruge NL, BE, DE osv. Det vil blive overskrevet af fremstillingslandet på produktniveau."
 Create Concept,Opret kladde
 "Enable create label concept, when invoice is printed.","Opret kladdeforsendelse, når fakturaen udskrives."
 Delivery methods,Forsendelsesmetoder
@@ -445,7 +445,7 @@ Covers every store not tokened separately at website or store-view scope.,Dække
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key.","Din API-nøgle blev gemt, men MyParcel-kontoindstillingerne kunne ikke importeres: %1. Kontrollér API-nøglen."
 "MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel kunne ikke bekræfte, hvilke muligheder denne konto har, så alle muligheder vises. En mulighed, som kontoen ikke har, afvises, når forsendelsen eksporteres."
 No standard weight,Ingen standardvægt
-Create MyParcel consignment,Opret MyParcel forsendelse
+Create MyParcel shipment,Opret MyParcel forsendelse
 Export Entire Order,Eksporter hele ordren
 Label amount:,Antal labels:
 Letter,Ufrankeret

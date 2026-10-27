@@ -9,7 +9,7 @@ declare(strict_types=1);
  * sorts entity_id DESC — so a row that throws on save wins the same place next tick, and every
  * order behind it stalls for as long as the row stays broken.
  *
- * partialOrderCollection(), recordingExportService(), consignmentIdsStub() and apiShipment() live
+ * partialOrderCollection(), recordingExportService(), myParcelShipmentIdsStub() and apiShipment() live
  * in Tests/Helpers/UpdateMagentoTrackFixtures.php; recordingTrack() in Tests/Helpers/ExportFixtures.php.
  */
 
@@ -25,24 +25,24 @@ function collectionWhoseFirstTrackCannotSave(): array
         public array $fetched = [];
     };
 
-    $track = static function (int $consignmentId, bool $throws) use ($saved) {
+    $track = static function (int $myParcelShipmentId, bool $throws) use ($saved) {
         return recordingTrack(
             [
                 'setTrackNumber' => static function (): void {
                 },
                 'setData'        => static function (): void {
                 },
-                'save'           => static function () use ($saved, $consignmentId, $throws): void {
+                'save'           => static function () use ($saved, $myParcelShipmentId, $throws): void {
                     if ($throws) {
                         throw new Exception('constraint violation on this row');
                     }
 
-                    $saved->saves[] = $consignmentId;
+                    $saved->saves[] = $myParcelShipmentId;
                 },
             ],
             [
-                'getData' => static function (?string $key = null) use ($consignmentId) {
-                    return 'myparcel_consignment_id' === $key ? $consignmentId : null;
+                'getData' => static function (?string $key = null) use ($myParcelShipmentId) {
+                    return 'myparcel_shipment_id' === $key ? $myParcelShipmentId : null;
                 },
             ]
         );
@@ -53,8 +53,8 @@ function collectionWhoseFirstTrackCannotSave(): array
 
     $collection->shouldReceive('tracksByShipmentId')
                ->andReturn([(int) $shipment->getId() => [$track(4242, true), $track(4243, false)]]);
-    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')
-               ->andReturnUsing(consignmentIdsStub([4242, 4243]));
+    $collection->shouldReceive('getMyParcelShipmentIdsByApiKey')
+               ->andReturnUsing(myParcelShipmentIdsStub([4242, 4243]));
     $collection->shouldReceive('updateOrderGrid')->andReturnSelf();
 
     setPrivateProperty($collection, 'exportService', recordingExportService([

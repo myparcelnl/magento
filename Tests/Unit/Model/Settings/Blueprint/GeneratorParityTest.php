@@ -56,6 +56,11 @@ const LEGACY_ALLOWED_SOURCE_MODELS = [
 ];
 
 // One label template: Trunkrs had its own wording, GLS one "(Local)" suffix.
+// A tooltip whose wording changed on purpose; the legacy fixture stays a byte copy.
+const LEGACY_ALLOWED_TOOLTIPS = [
+    'myparcelnl_magento_general/print/country_of_origin' => 'This country will appear on the international shipment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.',
+];
+
 const LEGACY_ALLOWED_LABELS = [
     'myparcelnl_magento_gls_settings/default_options/insurance_local_amount'        => 'Insure orders up to',
     'myparcelnl_magento_trunkrs_settings/default_options/signature_active'          => "Automate 'Signature on receipt'",
@@ -172,7 +177,7 @@ it('keeps the general section byte for byte, tooltips and comments included', fu
         }
 
         expect([$generatedFields[$path]['tooltip'] ?? null, $generatedFields[$path]['comment'] ?? null])
-            ->toBe([$field['tooltip'] ?? null, $field['comment'] ?? null], $path);
+            ->toBe([LEGACY_ALLOWED_TOOLTIPS[$path] ?? $field['tooltip'] ?? null, $field['comment'] ?? null], $path);
     }
 });
 

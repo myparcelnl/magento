@@ -52,7 +52,7 @@ vendor/bin/pest --filter=WeightTest  # run a specific test
 
 ### Data Flow
 ```
-Magento Order → Adapter → SDK Consignment → MyParcel API
+Magento Order → Adapter → SDK Shipment → MyParcel API
       ↑                                          ↓
       └──────── Track & Trace Update ────────────┘
 ```
@@ -65,7 +65,7 @@ Magento Order → Adapter → SDK Consignment → MyParcel API
 - **Checkout** (`src/Model/Checkout/DeliveryOptions.php`): Delivery options logic for frontend; frontend JS uses RequireJS + Knockout.js
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`): Bridge Magento orders/shipments to SDK for batch API operations
 - **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`): Package type determination (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, plus what the cart's own products say about how it may ship. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way
-- **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
+- **Order v1 export** (`OrderV1Builder`, `MagentoOrderCollection::exportAsOrderV1()`): an account with the `LEGACY_ORDER_MANAGEMENT` feature exports whole orders to the Order v1 API; every other account creates shipments. See `docs/sdk-v11.md`.
 
 ### Extension Points
 
@@ -147,9 +147,9 @@ Add code only for what capabilities cannot say:
 
 1. A label of its own: an entry in `ShipmentOption::LABELS`, and its translation in `i18n/`. Without one, the label is the name, translated through `i18n/`. The settings form gives the option a bare Automate toggle; add it to `Catalogue::FEE_OPTIONS` or `Catalogue::FROM_PRICE_OPTIONS` for a fee or a from-price.
 2. A country or delivery type rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map.
-3. A place in the fail-open form: `ShipmentOption::TO_CHECK` is what the form shows when capabilities could not be read, and the fixed front of the persisted key order in `ShipmentOptions::KEYS`. It needs a constant in `ShipmentOption.php`, and an entry in `V2_NAMES_MAP` only when the name does not derive from the wire key.
+3. A place in the fail-open form: `ShipmentOption::KNOWN_TOGGLES` is what the form shows when capabilities could not be read, and the fixed front of the persisted key order in `ShipmentOptions::KEYS`. It needs a constant in `ShipmentOption.php`, and an entry in `V2_NAMES_MAP` only when the name does not derive from the wire key.
 
-The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `TO_CHECK` does not reach the shipment the API receives.
+The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `KNOWN_TOGGLES` does not reach the shipment the API receives.
 
 ## Dependencies
 

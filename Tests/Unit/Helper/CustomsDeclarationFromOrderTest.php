@@ -6,12 +6,12 @@ use Magento\Framework\DataObject;
 use MyParcelNL\Magento\Helper\CustomsDeclarationFromOrder;
 
 /**
- * The PPS customs path. It declares what was ordered at product weight and price, where the v11
+ * The Order v1 customs path. It declares what was ordered at product weight and price, where the v11
  * shipment path declares what was shipped at item weight and price.
  *
  * customsObjectManager() lives in Tests/Helpers/CustomsMocks.php.
  */
-function ppsCustomsItems(
+function orderV1CustomsItems(
     array  $productData,
     array  $config = [],
     array  $itemData = [],
@@ -38,19 +38,19 @@ function ppsCustomsItems(
 }
 
 it('takes the account\'s home country when no country of origin is set', function () {
-    expect(ppsCustomsItems([], [], [], 'BE')[0]->getCountry())->toBe('BE');
+    expect(orderV1CustomsItems([], [], [], 'BE')[0]->getCountry())->toBe('BE');
 });
 
 it('takes the country of origin from the product when it has one', function () {
-    expect(ppsCustomsItems(['country_of_manufacture' => 'CN'])[0]->getCountry())->toBe('CN');
+    expect(orderV1CustomsItems(['country_of_manufacture' => 'CN'])[0]->getCountry())->toBe('CN');
 });
 
 it('falls back to the configured country of origin, not a hardcoded NL', function () {
-    expect(ppsCustomsItems([], ['print/country_of_origin' => 'BE'])[0]->getCountry())->toBe('BE');
+    expect(orderV1CustomsItems([], ['print/country_of_origin' => 'BE'])[0]->getCountry())->toBe('BE');
 });
 
 it('declares weight and value at line level, multiplied by the quantity', function () {
-    $items = ppsCustomsItems(
+    $items = orderV1CustomsItems(
         ['country_of_manufacture' => 'CN', 'weight' => 100.0, 'price' => 10.0],
         [],
         ['qty_ordered' => 3]
@@ -65,7 +65,7 @@ it('declares weight and value at line level, multiplied by the quantity', functi
  * 9 the variant.
  */
 
-function ppsConfigurableCustomsItems(
+function orderV1ConfigurableCustomsItems(
     array $attributes,
     array $countries,
     array $parentQty = [],
@@ -96,7 +96,7 @@ it('declares a configurable product once, as the variant, and falls back to the 
     array $countries,
     array $expected
 ) {
-    $items = ppsConfigurableCustomsItems(['classification' => $classifications], $countries);
+    $items = orderV1ConfigurableCustomsItems(['classification' => $classifications], $countries);
 
     expect($items)->toHaveCount(1)
         ->and($items[0]->getDescription())->toBe('Caterham Red')
@@ -107,7 +107,7 @@ it('declares a configurable product once, as the variant, and falls back to the 
 ]);
 
 it('takes a configurable line\'s quantity from the parent, which alone records what shipped', function () {
-    $items = ppsConfigurableCustomsItems(
+    $items = orderV1ConfigurableCustomsItems(
         ['classification' => [9 => '6109.10']],
         [9 => 'CN'],
         ['qty_ordered' => 3, 'qty_shipped' => 1],
@@ -120,20 +120,20 @@ it('takes a configurable line\'s quantity from the parent, which alone records w
 });
 
 it('sends the external product reference of a product that has one', function () {
-    $items = ppsCustomsItems([], [], [], 'NL', ['external_product_reference' => [7 => 'zonos-item-1']]);
+    $items = orderV1CustomsItems([], [], [], 'NL', ['external_product_reference' => [7 => 'zonos-item-1']]);
 
     expect($items[0]->getExternalProductReference())->toBe('zonos-item-1');
 });
 
 it('sets no external product reference when the product has none', function () {
-    expect(ppsCustomsItems([])[0]->getExternalProductReference())->toBeNull();
+    expect(orderV1CustomsItems([])[0]->getExternalProductReference())->toBeNull();
 });
 
 it('takes a configurable line its external product reference from the variant, or else the parent', function (
     array $references,
     string $expected
 ) {
-    $items = ppsConfigurableCustomsItems(['external_product_reference' => $references], [4 => 'CN', 9 => null]);
+    $items = orderV1ConfigurableCustomsItems(['external_product_reference' => $references], [4 => 'CN', 9 => null]);
 
     expect($items[0]->getExternalProductReference())->toBe($expected);
 })->with([

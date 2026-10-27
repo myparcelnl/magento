@@ -112,7 +112,7 @@ class CreateConceptAfterInvoice implements ObserverInterface
         ;
 
         if ($orderV1) {
-            $this->orderCollection->setFulfilment();
+            $this->orderCollection->exportAsOrderV1();
 
             return $this;
         }

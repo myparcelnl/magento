@@ -24,10 +24,10 @@ function labelDescriptionFor(string $description): string
     $subject = createOrderShipmentOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback([]),
-        'resolved'        => ResolvedOptions::of(['label_description' => $description]),
+        'chosen'        => ResolvedOptions::of(['label_description' => $description]),
     ]);
 
-    return (string) $subject->shipmentOptions()->getLabelDescription();
+    return (string) $subject->sdkShipmentOptions()->getLabelDescription();
 }
 
 it('leaves a description that already fits exactly alone', function () {
