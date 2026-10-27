@@ -51,3 +51,28 @@ function datedDelivery(string $date, string $deliveryType, ?string $start = null
 {
     return ['date' => $date, 'deliveryType' => $deliveryType, 'start' => $start, 'end' => $end];
 }
+
+/**
+ * One location of a `/pickup_locations` answer, in the wire shape. Each moment is a Y-m-d H:i the
+ * location can be collected from.
+ *
+ * @param string[] $moments
+ */
+function pickupLocation(string $code, string $name = 'Primera', array $moments = ['2026-10-29 15:00']): array
+{
+    return [
+        'address'       => ['cc' => 'NL', 'city' => 'Hoofddorp', 'street' => 'Antareslaan', 'postal_code' => '2132JE', 'number' => '31', 'number_suffix' => null],
+        'possibilities' => array_map(static fn(string $moment): array => [
+            'delivery_type_id'   => 4,
+            'delivery_type_name' => 'pickup',
+            'moment'             => ['start' => ['date' => $moment . ':00.000000', 'timezone_type' => 3, 'timezone' => 'Europe/Amsterdam']],
+        ], $moments),
+        'location'      => ['location_name' => $name, 'retail_network_id' => 'PNPNL-01', 'distance' => '350', 'location_code' => $code, 'type' => 'retail'],
+    ];
+}
+
+/** A `/pickup_locations` body as the API sends it. */
+function pickupLocationsBody(array $locations): string
+{
+    return (string) json_encode(['data' => ['pickup_locations' => $locations]]);
+}
