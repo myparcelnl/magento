@@ -57,17 +57,17 @@ class FulfilmentOrderBuilder
      */
     public function build(Order $magentoOrder): FulfilmentOrder
     {
-        $shipmentOptions = new OrderShipmentOptions($this->objectManager, $magentoOrder, new DefaultOptions($magentoOrder));
+        $orderOptions = new OrderShipmentOptions($this->objectManager, $magentoOrder, new DefaultOptions($magentoOrder));
 
         $apiKey            = $this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId());
-        $deliveryOptions   = $shipmentOptions->deliveryOptions();
+        $deliveryOptions   = $orderOptions->deliveryOptionsToShip();
         $shippingRecipient = $this->shippingRecipient($magentoOrder, $this->storedAccount->homeCountryForApiKey($apiKey));
 
         $order = (new FulfilmentOrder())
             ->setApiKey($apiKey)
             ->setStatus((string) $magentoOrder->getStatus())
-            ->setCarrierId($shipmentOptions->carrierId())
-            ->setDeliveryOptions($shipmentOptions->shipmentOptions())
+            ->setCarrierId($orderOptions->carrierIdToShip())
+            ->setDeliveryOptions($orderOptions->sdkShipmentOptions())
             ->setInvoiceAddress($this->billingRecipient($magentoOrder))
             ->setRecipient($shippingRecipient)
             ->setOrderDate($this->localCreatedAtDate($magentoOrder))

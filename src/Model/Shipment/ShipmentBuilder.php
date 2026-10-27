@@ -40,7 +40,7 @@ class ShipmentBuilder
     private StoredAccount             $storedAccount;
 
     /** @var array<int,OrderShipmentOptions> by shipment; a multicollo order asks per collo */
-    private array $shipmentOptions = [];
+    private array $orderOptions = [];
 
     public function __construct(ObjectManagerInterface $objectManager, Order $order)
     {
@@ -57,9 +57,9 @@ class ShipmentBuilder
      * Resolved once per shipment, not once per collo: each instance re-reads the order's delivery
      * options and, for a label description that names a product, its items.
      */
-    private function shipmentOptionsFor(Order $order, int $shipmentId): OrderShipmentOptions
+    private function orderOptionsFor(Order $order, int $shipmentId): OrderShipmentOptions
     {
-        return $this->shipmentOptions[$shipmentId] ?? $this->shipmentOptions[$shipmentId] = new OrderShipmentOptions(
+        return $this->orderOptions[$shipmentId] ?? $this->orderOptions[$shipmentId] = new OrderShipmentOptions(
             $this->objectManager,
             $order,
             $this->defaultOptions,
@@ -84,17 +84,17 @@ class ShipmentBuilder
         $incrementId = (string) $order->getIncrementId();
         $apiKey      = $this->apiProvider->apiKeyForStore((int) $order->getStoreId());
 
-        $shipmentOptions = $this->shipmentOptionsFor($order, (int) $magentoShipment->getEntityId());
-        $deliveryOptions = $shipmentOptions->deliveryOptions();
-        $packageType     = $shipmentOptions->packageType();
+        $orderOptions    = $this->orderOptionsFor($order, (int) $magentoShipment->getEntityId());
+        $deliveryOptions = $orderOptions->deliveryOptionsToShip();
+        $packageType     = $orderOptions->packageTypeToShip();
         $weight          = $this->weightInGrams($magentoTrack, $packageType);
 
         $shipment = (new Shipment())
-            ->setCarrier($shipmentOptions->carrierId())
+            ->setCarrier($orderOptions->carrierIdToShip())
             ->setReferenceIdentifier(self::referenceIdentifierFor((int) $magentoShipment->getEntityId(), $colloNumber))
             ->setRecipient($this->recipient($address, $this->storedAccount->homeCountryForApiKey($apiKey)))
             ->setPhysicalProperties(self::physicalProperties($weight, $deliveryOptions))
-            ->setOptions($shipmentOptions->shipmentOptions());
+            ->setOptions($orderOptions->sdkShipmentOptions());
 
         if ($deliveryOptions->isPickup()) {
             $shipment->setPickup($this->pickup($deliveryOptions));
