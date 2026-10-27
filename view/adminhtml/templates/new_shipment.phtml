@@ -38,6 +38,8 @@ $form = $block->getOptionsForm();
         "myparcelnl_newshipment": {
             "formUrl": "<?= $escaper->escapeJs($block->getOptionsFormUrl()) ?>",
             "saveUrl": "<?= $escaper->escapeJs($block->getOptionsSaveUrl()) ?>",
+            "refreshUrl": "<?= $escaper->escapeJs($block->getOptionsRefreshUrl()) ?>",
+            "pickupLocationsUrl": "<?= $escaper->escapeJs($block->getPickupLocationsUrl()) ?>",
             "orderId": <?= (int) $block->getOrderId() ?>
         }
     }
