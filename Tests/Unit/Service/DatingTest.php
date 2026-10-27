@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 /** Today and tomorrow are the store's, not UTC's; an empty, unreadable or past date sends no delivery date. */
+it('gives the calendar day of the order store', function () {
+    expect(datingOn('2026-10-26', 7)->today(createOrder(['getStoreId' => 7]), 'w'))->toBe('1');
+});
+
 it('gives the day after the calendar day of the order store', function () {
     expect(datingOn('2026-10-24', 7)->tomorrow(createOrder(['getStoreId' => 7])))->toBe('2026-10-25');
 });
