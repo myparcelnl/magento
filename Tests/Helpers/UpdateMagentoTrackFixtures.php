@@ -86,7 +86,7 @@ function myParcelShipmentIdsStub(array $ownIds): Closure
 
             foreach ($tracksByShipmentId as $rows) {
                 foreach ($rows as $row) {
-                    $ids[] = (int) $row->getData('myparcel_consignment_id');
+                    $ids[] = (int) $row->getData('myparcel_shipment_id');
                 }
             }
         }
@@ -98,7 +98,7 @@ function myParcelShipmentIdsStub(array $ownIds): Closure
 /**
  * updateMagentoTrack() is what puts the consumer portal link on the track, and nothing covered it —
  * which is why PPS orders went without one unnoticed. There is no PPS-specific link path:
- * once a track carries myparcel_consignment_id it refreshes through here like any other.
+ * once a track carries myparcel_shipment_id it refreshes through here like any other.
  *
  * @param array<int,ShipmentDefsShipment> $latest keyed by MyParcel shipment id
  *
@@ -130,7 +130,7 @@ function collectionRefreshing(int $myParcelShipmentId, array $latest, bool $chan
         ],
         [
             'getData'        => static function (?string $key = null) use ($myParcelShipmentId) {
-                return 'myparcel_consignment_id' === $key ? $myParcelShipmentId : null;
+                return 'myparcel_shipment_id' === $key ? $myParcelShipmentId : null;
             },
             // False models a refresh that brought nothing new; the caller then skips the save.
             'hasDataChanges' => $changed,
@@ -203,7 +203,7 @@ function collectionRefreshingTracks(array $myParcelShipmentIds, array $latest): 
                 },
             ],
             ['getData' => static function (?string $key = null) use ($myParcelShipmentId) {
-                return 'myparcel_consignment_id' === $key ? $myParcelShipmentId : null;
+                return 'myparcel_shipment_id' === $key ? $myParcelShipmentId : null;
             }]
         );
     }
@@ -294,7 +294,7 @@ function collectionWithTracks(string $incrementId, array $tracks, int $shipmentC
         public array $data = [];
         /** @var string[] numbers written to tracks created by this run */
         public array $createdNumbers = [];
-        /** @var int[] every myparcel_consignment_id written, existing and created */
+        /** @var int[] every myparcel_shipment_id written, existing and created */
         public array $ids = [];
     };
 
@@ -311,7 +311,7 @@ function collectionWithTracks(string $incrementId, array $tracks, int $shipmentC
                 'setData'        => static function ($key, $value) use ($saved): void {
                     $saved->data[$key] = $value;
 
-                    if ('myparcel_consignment_id' === $key) {
+                    if ('myparcel_shipment_id' === $key) {
                         $saved->ids[] = $value;
                     }
                 },
@@ -320,7 +320,7 @@ function collectionWithTracks(string $incrementId, array $tracks, int $shipmentC
                 'getCarrierCode' => $track['carrier'] ?? Carrier::CODE,
                 'getTrackNumber' => $track['number'],
                 'getData'        => static function (string $key) use ($track) {
-                    return 'myparcel_consignment_id' === $key ? ($track['myParcelShipmentId'] ?? null) : null;
+                    return 'myparcel_shipment_id' === $key ? ($track['myParcelShipmentId'] ?? null) : null;
                 },
             ]
         );

@@ -33,6 +33,7 @@ use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
@@ -590,7 +591,7 @@ class UpdateStatus
         $trackCollection
             ->addFieldToSelect('order_id')
             ->addAttributeToFilter('myparcel_status', [1, 2, 3, 4, 5, 6, 8])
-            ->addAttributeToFilter('myparcel_consignment_id', ['notnull' => true])
+            ->addAttributeToFilter(Config::FIELD_MYPARCEL_SHIPMENT_ID, ['notnull' => true])
             ->setPageSize(self::PAGE_SIZE)
             ->setOrder('order_id', 'DESC');
         MyParcelTracks::scopeCollection($trackCollection);
