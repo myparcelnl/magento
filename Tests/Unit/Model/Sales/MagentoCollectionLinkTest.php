@@ -122,7 +122,7 @@ it('leaves a track the response said nothing about untouched', function () {
 
 it('reads the tracks from their own query once, and hands every caller the same objects', function () {
     // A Shipment caches its own tracks with no way to reset them, so reading from it misses what
-    // setFulfilmentTrackData() wrote. updateMagentoTrack() then reads that shipment id back off these
+    // setOrderV1TrackData() wrote. updateMagentoTrack() then reads that shipment id back off these
     // objects, so fresh instances lose it unless every writer saves first.
     $track      = recordingTrack([], ['getParentId' => 7]);
     $collection = memoisedTrackCollection([$track], $queries, $shipmentLoads);

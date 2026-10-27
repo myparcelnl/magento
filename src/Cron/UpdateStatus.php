@@ -29,6 +29,7 @@ use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 use Throwable;
 
@@ -78,7 +79,7 @@ class UpdateStatus
         // Not gated on the account's current mode: the PPS pass selects only orders a PPS export
         // marked, so an account that moved off order v1 still gets its in-flight orders. PPS only
         // acquires barcodes, and the poll below carries a shipment on from there, for either mode.
-        $this->updateStatusPPS();
+        $this->updateOrderV1Status();
 
         return $this->pollShipmentStatuses();
     }
@@ -95,10 +96,10 @@ class UpdateStatus
      * @throws AlreadyExistsException
      * @throws Exception
      */
-    private function updateStatusPPS(): self
+    private function updateOrderV1Status(): self
     {
         $orderRows  = $this->ordersAwaitingBarcode();
-        $fulfilment = [];
+        $orderV1ShipmentsByIncrementId = [];
         $tally = ['awaiting' => count($orderRows), 'accounts' => 0, 'returned' => 0, 'matched' => 0,
                   'shipped'  => 0, 'shipments' => 0, 'without_id' => 0, 'order_row' => 0];
 
@@ -118,7 +119,7 @@ class UpdateStatus
                 $incrementId = $apiOrder->getExternalIdentifier();
 
                 if (! $incrementId
-                    || isset($fulfilment[$incrementId])
+                    || isset($orderV1ShipmentsByIncrementId[$incrementId])
                     || ! isset($orderIdsToCheck[$incrementId])) {
                     continue;
                 }
@@ -140,7 +141,7 @@ class UpdateStatus
                     }
                 }
 
-                $fulfilment[$incrementId] = $shipments;
+                $orderV1ShipmentsByIncrementId[$incrementId] = $shipments;
             }
         }
 
@@ -156,15 +157,15 @@ class UpdateStatus
             $tally['shipments']
         ));
 
-        if (! $fulfilment) {
+        if (! $orderV1ShipmentsByIncrementId) {
             return $this;
         }
 
-        $orderIncrementIds     = array_keys($fulfilment);
+        $orderIncrementIds     = array_keys($orderV1ShipmentsByIncrementId);
         $entityIdByIncrementId = [];
 
         foreach ($orderRows as $arrayWithIds) {
-            if (! isset($fulfilment[$arrayWithIds['increment_id']])) {
+            if (! isset($orderV1ShipmentsByIncrementId[$arrayWithIds['increment_id']])) {
                 continue;
             }
             $entityIdByIncrementId[(string) $arrayWithIds['increment_id']] = (int) $arrayWithIds['entity_id'];
@@ -183,10 +184,10 @@ class UpdateStatus
         $this->orderCollection->setOption('create_track_if_one_already_exist', false)
                               ->setNewMagentoShipment(false)
                               ->setMagentoTrack()
-                              ->setFulfilmentTrackData($fulfilment)
+                              ->setOrderV1TrackData($orderV1ShipmentsByIncrementId)
                               ->updateMagentoTrack();
 
-        $tally['order_row'] = $this->writeBarcodeWhereNoTrack($fulfilment, $entityIdByIncrementId);
+        $tally['order_row'] = $this->writeBarcodeWhereNoTrack($orderV1ShipmentsByIncrementId, $entityIdByIncrementId);
 
         if ($tally['order_row'] || $tally['without_id']) {
             Logger::notice(sprintf(
@@ -272,7 +273,7 @@ class UpdateStatus
      *
      * @return array<int,array{barcode: string, shipmentId: int|null}>
      */
-    private function shippedShipments(FulfilmentOrder $apiOrder): array
+    private function shippedShipments(SdkOrderV1 $apiOrder): array
     {
         $shipments = [];
         $seenIds   = [];
@@ -310,16 +311,16 @@ class UpdateStatus
      *
      * No track holds a stored link for it, so LinkResolver::forOrders() builds one from the barcode.
      *
-     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilment
+     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $orderV1ShipmentsByIncrementId
      * @param array<string,int>                                                    $entityIdByIncrementId
      *
      * @return int how many orders were written
      */
-    private function writeBarcodeWhereNoTrack(array $fulfilment, array $entityIdByIncrementId): int
+    private function writeBarcodeWhereNoTrack(array $orderV1ShipmentsByIncrementId, array $entityIdByIncrementId): int
     {
         $barcodesByIncrementId = [];
 
-        foreach ($fulfilment as $incrementId => $shipments) {
+        foreach ($orderV1ShipmentsByIncrementId as $incrementId => $shipments) {
             $barcodes = array_values(array_unique(array_filter(
                 array_column($shipments, 'barcode'),
                 static function (string $barcode): bool {

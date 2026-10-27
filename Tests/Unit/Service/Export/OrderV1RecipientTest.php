@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Service\Export\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Service\Export\OrderV1Builder;
 use MyParcelNL\Magento\Service\Export\RecipientFields;
 use MyParcelNL\Sdk\Model\Recipient;
 
@@ -21,7 +21,7 @@ function recipientForAddress(
         $orderOverrides
     ));
 
-    $builder = newInstanceWithoutConstructor(FulfilmentOrderBuilder::class);
+    $builder = newInstanceWithoutConstructor(OrderV1Builder::class);
     setPrivateProperty($builder, 'recipientFields', new RecipientFields());
 
     return invokePrivateMethod(
