@@ -120,3 +120,19 @@ function createPermissiveConfig(): Config
 
     return $config;
 }
+
+/**
+ * A real Config over config rows per store id, so the typed getters run as in production.
+ *
+ * @param array<int,array<string,mixed>> $rowsByStore store id => path => value
+ */
+function configWithStoreRows(array $rowsByStore, int $currentStoreId = 1): Config
+{
+    $config = newInstanceWithoutConstructor(Config::class);
+    setPrivateProperty($config, 'scopeConfig', mockScopeConfig([], static function (string $path, string $scope = 'default', $scopeId = null) use ($rowsByStore) {
+        return $rowsByStore[(int) $scopeId][$path] ?? null;
+    }));
+    setPrivateProperty($config, 'storeId', $currentStoreId);
+
+    return $config;
+}

@@ -62,6 +62,7 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
     setPrivateProperty($checkout, 'packageTypes', $packageTypes);
     setPrivateProperty($checkout, 'cartRules', $cartRules);
     setPrivateProperty($checkout, 'config', $config);
+    setPrivateProperty($checkout, 'dropOffSettings', new MyParcelNL\Magento\Service\DropOffSettings($config));
     setPrivateProperty($checkout, 'quote', $quote);
     setPrivateProperty($checkout, 'storeId', 1);
     setPrivateProperty($checkout, 'capabilityLookup', $lookup ?? capabilityLookupWith($capabilities, $country, 1));
