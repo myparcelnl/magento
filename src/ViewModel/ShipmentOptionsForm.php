@@ -302,18 +302,6 @@ class ShipmentOptionsForm implements ArgumentInterface
 
     public function hasShipmentOption(string $carrier, string $packageType, string $shipmentOption): bool
     {
-        // getDeliveryType() answers null for a stored type the module does not know, and
-        // allowedForDeliveryType() reads that as standard, so name it explicitly instead. In bulk
-        // each order has its own delivery type, so the save decides instead.
-        if (! $this->bulk) {
-            $deliveryTypeId = $this->getDeliveryType();
-            $deliveryType   = null === $deliveryTypeId ? 'unknown' : DeliveryType::nameFromIdOrNull($deliveryTypeId);
-
-            if (! ShipmentOption::allowedForDeliveryType($shipmentOption, $deliveryType)) {
-                return false;
-            }
-        }
-
         return $this->getCapabilities($packageType)->hasOption($carrier, $packageType, $shipmentOption);
     }
 
