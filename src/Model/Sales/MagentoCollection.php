@@ -307,7 +307,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         if (! $this->builtShipments) {
             // Nothing built is not the same as nothing to do: a selection of orders that already
             // carry labels is a reprint, and warning there reads as a failure.
-            if (! $this->getMyparcelConsignmentIdsByApiKey()) {
+            if (! $this->getMyParcelShipmentIdsByApiKey()) {
                 $this->messageManager->addWarningMessage(__('No MyParcel shipments to process.'));
             }
 
@@ -371,7 +371,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function sendReturnLabelMails(): bool
     {
-        $idsByApiKey = $this->getMyparcelConsignmentIdsByApiKey();
+        $idsByApiKey = $this->getMyParcelShipmentIdsByApiKey();
         $lookup      = $this->exportService->fetchLatestWithErrors($idsByApiKey);
         $rows        = [];
         $reported    = false;
@@ -553,7 +553,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $shipments = $this->getShipmentsCollection();
         $tracks    = $this->tracksByShipmentId();
 
-        $multiColloConsignments = []; // parent shipment id => built shipment + collo count
+        $multiColloShipments = []; // parent shipment id => built shipment + collo count
         /**
          * @var Order\Shipment $shipment
          * @var Track          $magentoTrack
@@ -570,11 +570,11 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
                 $parentId = $magentoTrack->getData('parent_id');
 
-                if (isset($multiColloConsignments[$parentId])) {
-                    $multiColloConsignments[$parentId]['colli']++;
+                if (isset($multiColloShipments[$parentId])) {
+                    $multiColloShipments[$parentId]['colli']++;
                     // Kept, not just counted: each collo must pair with its own track row, or every
                     // returned shipment id lands on the first row and the others stay id-less.
-                    $multiColloConsignments[$parentId]['tracks'][] = $magentoTrack;
+                    $multiColloShipments[$parentId]['tracks'][] = $magentoTrack;
                     continue;
                 }
 
@@ -588,7 +588,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                     continue;
                 }
 
-                $multiColloConsignments[$parentId] = [
+                $multiColloShipments[$parentId] = [
                     'built'  => $built,
                     'tracks' => [$magentoTrack],
                     'colli'  => 1,
@@ -596,7 +596,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             }
         }
 
-        return $this->addGroupedShipments($multiColloConsignments);
+        return $this->addGroupedShipments($multiColloShipments);
     }
 
     /**
@@ -617,11 +617,11 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * @param array<int,array{built:BuiltShipment,tracks:Track[],colli:int}> $multiColloConsignments
+     * @param array<int,array{built:BuiltShipment,tracks:Track[],colli:int}> $multiColloShipments
      */
-    protected function addGroupedShipments(array $multiColloConsignments): self
+    protected function addGroupedShipments(array $multiColloShipments): self
     {
-        foreach ($multiColloConsignments as $group) {
+        foreach ($multiColloShipments as $group) {
             /** @var BuiltShipment $built */
             $built    = $group['built'];
             $quantity = (int) $group['colli'];
@@ -676,7 +676,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
         // The shipment id is already on each track — the export service wrote it per chunk — so this
         // only refreshes status and barcode. Nothing is paired by position any more.
-        $latest = $this->exportService->fetchLatest($this->getMyparcelConsignmentIdsByApiKey($tracks));
+        $latest = $this->exportService->fetchLatest($this->getMyParcelShipmentIdsByApiKey($tracks));
 
         $claimedIds = [];
         $secondary  = [];
@@ -815,7 +815,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         }
 
         $latest = $this->exportService->fetchLatest(
-            $this->getMyparcelConsignmentIdsByApiKey($tracksByShipmentId)
+            $this->getMyParcelShipmentIdsByApiKey($tracksByShipmentId)
         );
 
         foreach ($colli as $colloId => $entry) {
@@ -885,9 +885,9 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * @param array<int,Track[]>|null $tracks the caller's own read, when it already holds one
      */
-    public function getMyparcelConsignmentIdsByApiKey(?array $tracks = null): array
+    public function getMyParcelShipmentIdsByApiKey(?array $tracks = null): array
     {
-        return $this->apiProvider->consignmentIdsByApiKey(
+        return $this->apiProvider->myParcelShipmentIdsByApiKey(
             $this->getShipmentsCollection(),
             $tracks ?? $this->tracksByShipmentId()
         );

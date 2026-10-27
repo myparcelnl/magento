@@ -102,8 +102,8 @@ it('gives a second shipment its own track when only one placeholder is free', fu
 it('adds nothing on a second run over the same response', function () {
     // The cron runs every minute. Both shipments are on tracks now, so this must be a no-op.
     [$collection, $saved] = collectionWithTracks('100000001', [
-        ['number' => '3SA', 'consignmentId' => 1],
-        ['number' => '3SB', 'consignmentId' => 2],
+        ['number' => '3SA', 'myParcelShipmentId' => 1],
+        ['number' => '3SB', 'myParcelShipmentId' => 2],
     ]);
 
     $collection->setFulfilmentTrackData(['100000001' => [
@@ -118,7 +118,7 @@ it('adds nothing on a second run over the same response', function () {
 
 it('creates no track for a shipment with neither an id nor a real barcode', function () {
     // Nothing could ever match it again, so a new track would be added every single run.
-    [$collection, $saved] = collectionWithTracks('100000001', [['number' => '3SA', 'consignmentId' => 1]]);
+    [$collection, $saved] = collectionWithTracks('100000001', [['number' => '3SA', 'myParcelShipmentId' => 1]]);
 
     $collection->setFulfilmentTrackData(['100000001' => [
         ['barcode' => TrackAndTrace::VALUE_PRINTED, 'shipmentId' => null],
