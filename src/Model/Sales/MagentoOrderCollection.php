@@ -409,7 +409,7 @@ class MagentoOrderCollection extends MagentoCollection
      * shipment id when the response carries one.
      *
      * The shipment path gets both from updateMagentoTrack(), which refreshes by
-     * myparcel_consignment_id. A PPS order has no id until this runs, so without it the track keeps
+     * myparcel_shipment_id. A PPS order has no id until this runs, so without it the track keeps
      * its placeholder and never joins the status or track & trace refresh at all.
      *
      * The id is read defensively: it is not in the SDK's model — order_shipments passes through as
@@ -495,7 +495,7 @@ class MagentoOrderCollection extends MagentoCollection
                 }
 
                 $host          = $host ?? $magentoShipment;
-                $myParcelShipmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+                $myParcelShipmentId = (int) $magentoTrack->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
                 if (0 !== $myParcelShipmentId) {
                     $claimedIds[$myParcelShipmentId] = true;
@@ -530,7 +530,7 @@ class MagentoOrderCollection extends MagentoCollection
             $magentoTrack->setTrackNumber($fulfilment['barcode']);
 
             if (null !== $shipmentId) {
-                $magentoTrack->setData('myparcel_consignment_id', $shipmentId);
+                $magentoTrack->setData(Config::FIELD_MYPARCEL_SHIPMENT_ID, $shipmentId);
                 $claimedIds[$shipmentId] = true;
             } else {
                 // Without the id updateMagentoTrack() can never refresh this track, so it keeps

@@ -493,7 +493,7 @@ class ShipmentExportService
 
     private function stamp(Track $track, int $shipmentId): void
     {
-        $track->setData('myparcel_consignment_id', $shipmentId);
+        $track->setData(Config::FIELD_MYPARCEL_SHIPMENT_ID, $shipmentId);
         $track->setData('myparcel_status', 1);
 
         if ($track->getId()) {
@@ -511,7 +511,7 @@ class ShipmentExportService
         $pending = [];
 
         foreach ($builtShipments as $built) {
-            $existing = (int) $built->track()->getData('myparcel_consignment_id');
+            $existing = (int) $built->track()->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
             if (0 < $existing) {
                 $report->succeed($built->incrementId(), $existing);

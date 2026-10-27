@@ -23,7 +23,7 @@ it('writes the barcode and the shipment id onto a track still holding a placehol
     $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
 
     expect($saved->numbers)->toBe(['3SMYPA123'])
-        ->and($saved->data)->toBe(['myparcel_consignment_id' => 4242])
+        ->and($saved->data)->toBe(['myparcel_shipment_id' => 4242])
         ->and($saved->createdNumbers)->toBe([]);
 });
 

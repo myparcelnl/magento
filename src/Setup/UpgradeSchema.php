@@ -19,6 +19,7 @@ use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\SchemaSetupInterface;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
 use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Setup\Migrations\RenameMyParcelShipmentIdColumn;
 
 class UpgradeSchema implements UpgradeSchemaInterface
 {
@@ -35,10 +36,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
             if ($setup->getConnection()->isTableExists($tableName) == true) {
                 $setup->getConnection()->addColumn(
                     $tableName,
-                    'myparcel_consignment_id',
+                    Config::FIELD_MYPARCEL_SHIPMENT_ID,
                     [
                         'type'    => Table::TYPE_INTEGER,
-                        'comment' => 'MyParcel id',
+                        'comment' => 'MyParcel shipment id',
                     ]
                 );
                 $setup->getConnection()->addColumn(
@@ -59,7 +60,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'track_status',
                     [
                         'type'    => Table::TYPE_TEXT,
-                        'comment' => 'Status of MyParcel consignment'
+                        'comment' => 'Status of MyParcel shipment'
                     ]
                 );
                 $setup->getConnection()->addColumn(
@@ -67,7 +68,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'track_number',
                     [
                         'type'    => Table::TYPE_TEXT,
-                        'comment' => 'Track number of MyParcel consignment'
+                        'comment' => 'Track number of MyParcel shipment'
                     ]
                 );
             }
@@ -80,7 +81,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'track_status',
                     [
                         'type'    => Table::TYPE_TEXT,
-                        'comment' => 'Status of MyParcel consignment'
+                        'comment' => 'Status of MyParcel shipment'
                     ]
                 );
                 $setup->getConnection()->addColumn(
@@ -88,7 +89,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'track_number',
                     [
                         'type'    => Table::TYPE_TEXT,
-                        'comment' => 'Track number of MyParcel consignment'
+                        'comment' => 'Track number of MyParcel shipment'
                     ]
                 );
             }
@@ -249,7 +250,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         // over the whole table — there is no order to narrow it first — and had no index to start
         // from. carrier_code leads because it is the equality; myparcel_status is the IN().
         //
-        // No index on myparcel_consignment_id: that query already filters it, but only alongside
+        // No index on myparcel_shipment_id: that query already filters it, but only alongside
         // these two, and nothing else filters it at all. A second index would just be maintained.
         // The EXISTS subqueries in ordersAwaitingBarcode() correlate on order_id, which core's own
         // SALES_SHIPMENT_TRACK_ORDER_ID already covers.
@@ -262,6 +263,11 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         if (version_compare($context->getVersion(), '5.11.0', '<')) {
             $this->addUuidPrefixIndex($setup, $tableSalesOrder);
+        }
+
+        // Installs from before 5.11.0 still have the old name.
+        if (version_compare($context->getVersion(), '5.11.0', '<')) {
+            (new RenameMyParcelShipmentIdColumn())->run($setup);
         }
 
         // Why the API refused the order's last export. Cleared by the next export that succeeds.
