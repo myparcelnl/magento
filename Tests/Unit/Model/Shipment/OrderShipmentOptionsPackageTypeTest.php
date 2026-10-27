@@ -27,8 +27,8 @@ function packageTypeOf(
     return createOrderShipmentOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback($stored),
-        'resolved'        => ResolvedOptions::of([ShipmentOption::AGE_CHECK => $ageCheck]),
-    ])->packageType();
+        'chosen'        => ResolvedOptions::of([ShipmentOption::AGE_CHECK => $ageCheck]),
+    ])->packageTypeToShip();
 }
 
 it('takes the package type the order stored', function () {

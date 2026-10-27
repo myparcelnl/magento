@@ -49,7 +49,7 @@ class OrderShipmentOptions
     private DefaultOptions         $defaultOptions;
 
     private ?DeliveryOptions $deliveryOptions = null;
-    private ?ResolvedOptions $resolved        = null;
+    private ?ResolvedOptions $chosen          = null;
 
     /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
     private ?int $shipmentId;
@@ -69,21 +69,24 @@ class OrderShipmentOptions
         $this->shipmentId     = $shipmentId;
     }
 
-    /** @throws RuntimeException when the order cannot be exported as stored */
-    public function deliveryOptions(): DeliveryOptions
+    /**
+     * The order's stored delivery options, with the configured default carrier when none is stored.
+     *
+     * @throws RuntimeException when the order cannot be exported as stored
+     */
+    public function deliveryOptionsToShip(): DeliveryOptions
     {
         return $this->deliveryOptions ?? ($this->deliveryOptions = $this->parse($this->storedDeliveryOptions()));
     }
 
-    public function carrierName(): ?string
+    /**
+     * The SDK id of the carrier the order ships with.
+     *
+     * @throws RuntimeException on a carrier the SDK does not know
+     */
+    public function carrierIdToShip(): int
     {
-        return $this->deliveryOptions()->getCarrier();
-    }
-
-    /** @throws RuntimeException on a carrier the SDK does not know */
-    public function carrierId(): int
-    {
-        $carrier = $this->carrierName();
+        $carrier = $this->carrierNameToShip();
         $id      = null === $carrier ? null : Carrier::idFor($carrier);
 
         if (null === $id) {
@@ -95,44 +98,15 @@ class OrderShipmentOptions
         return $id;
     }
 
-    public function resolved(): ResolvedOptions
-    {
-        return $this->resolved ?? ($this->resolved = (new ShipmentOptionsResolver(
-            $this->defaultOptions,
-            $this->order,
-            $this->deliveryOptions(),
-            $this->objectManager,
-            $this->carrierName(),
-            $this->shipmentId,
-            $this->effectivePackageTypeName()
-        ))->resolve());
-    }
-
     /**
-     * The type the shipment will carry, as a name, for the capability lookups the resolver makes.
-     *
-     * Null on a stored type that resolves to nothing: packageType() fails the shipment over that,
-     * but this is a read for a bound, and failing here would move the throw to whichever caller
-     * happened to ask for the options first.
-     */
-    private function effectivePackageTypeName(): ?string
-    {
-        try {
-            return PackageType::nameFromIdOrNull($this->packageType());
-        } catch (RuntimeException $e) {
-            return null;
-        }
-    }
-
-    /**
-     * The stored type, else the configured default. A stored type that resolves to no id fails the
-     * shipment instead of shipping as something else.
+     * The package type id the order ships as: the stored type, else the configured default. A stored
+     * type that resolves to no id fails the shipment instead of shipping as something else.
      *
      * @throws RuntimeException on a stored type that resolves to no id
      */
-    public function packageType(): int
+    public function packageTypeToShip(): int
     {
-        $storedType = $this->deliveryOptions()->packageTypeValue();
+        $storedType = $this->deliveryOptionsToShip()->packageTypeValue();
 
         if ($storedType->isAbsent()) {
             return $this->defaultOptions->getPackageType();
@@ -145,23 +119,37 @@ class OrderShipmentOptions
         }
     }
 
-    /**
-     * Every boolean is a literal 1 or 0: RefTypesIntBoolean is checked against [0, 1] with a strict
-     * in_array during serialization, so true and false both throw at request time.
-     */
-    public function shipmentOptions(): SdkShipmentOptions
+    /** The SDK shipment options for this order: what the resolver chose, plus the export rules below. */
+    public function sdkShipmentOptions(): SdkShipmentOptions
     {
-        $deliveryOptions = $this->deliveryOptions();
-        $resolved        = $this->resolved();
-        $packageType     = $this->packageType();
+        $deliveryOptions = $this->deliveryOptionsToShip();
+        $chosen          = $this->chosenOptions();
 
         $options = (new SdkShipmentOptions())
-            ->setPackageType($packageType)
+            ->setPackageType($this->packageTypeToShip())
             ->setDeliveryType($this->deliveryTypeId($deliveryOptions))
-            ->setLabelDescription(Str::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
-            ->setSameDayDelivery($this->flag($resolved->hasSameDayDelivery()));
+            ->setLabelDescription($this->labelDescriptionWithinLimit($chosen))
+            ->setSameDayDelivery($this->flag($chosen->hasSameDayDelivery()));
 
-        $values = $resolved->toArray();
+        $this->setKnownToggles($options, $chosen);
+        $this->setDiscoveredOptions($options, $chosen);
+        $this->dropReturnOnPickup($options, $deliveryOptions);
+        $this->setDeliveryDateWhenAccepted($options, $deliveryOptions, $chosen);
+        $this->setInsuranceInCents($options, $chosen);
+
+        return $options;
+    }
+
+    /** The label description cut to the SDK's limit; setLabelDescription() throws above it. */
+    private function labelDescriptionWithinLimit(ResolvedOptions $chosen): string
+    {
+        return Str::limit((string) $chosen->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH);
+    }
+
+    /** Every known toggle as 1 or 0. One the SDK cannot set is a bug in the module, so it throws. */
+    private function setKnownToggles(SdkShipmentOptions $options, ResolvedOptions $chosen): void
+    {
+        $values = $chosen->toArray();
 
         foreach (ShipmentOption::KNOWN_TOGGLES as $option) {
             $setter = SdkShipmentOptions::setters()[$option] ?? null;
@@ -172,17 +160,21 @@ class OrderShipmentOptions
 
             $options->{$setter}($this->flag($values[$option] ?? null));
         }
+    }
 
-        foreach ($resolved->discovered() as $option => $chosen) {
+    /** The options only capabilities name. One the SDK cannot set yet is left off, and logged when chosen. */
+    private function setDiscoveredOptions(SdkShipmentOptions $options, ResolvedOptions $chosen): void
+    {
+        foreach ($chosen->discovered() as $option => $isChosen) {
             $setter = SdkShipmentOptions::setters()[$option] ?? null;
 
             if (null !== $setter) {
-                $options->{$setter}($this->flag($chosen));
+                $options->{$setter}($this->flag($isChosen));
 
                 continue;
             }
 
-            if ($chosen) {
+            if ($isChosen) {
                 Logger::notice(sprintf(
                     'Shipment option "%s" left off order %s: the SDK cannot send it yet.',
                     $option,
@@ -190,18 +182,34 @@ class OrderShipmentOptions
                 ));
             }
         }
+    }
 
+    /** A pickup never ships with the return option. */
+    private function dropReturnOnPickup(SdkShipmentOptions $options, DeliveryOptions $deliveryOptions): void
+    {
         if ($deliveryOptions->isPickup()) {
             $options->setReturn(0);
         }
+    }
 
+    /** The order's delivery date, when it has one and acceptsDeliveryDate() allows it. */
+    private function setDeliveryDateWhenAccepted(
+        SdkShipmentOptions $options,
+        DeliveryOptions    $deliveryOptions,
+        ResolvedOptions    $chosen
+    ): void
+    {
         $deliveryDate = $this->dating->convertDeliveryDate($deliveryOptions->getDate(), $this->order);
 
-        if (null !== $deliveryDate && $this->acceptsDeliveryDate($resolved)) {
+        if (null !== $deliveryDate && $this->acceptsDeliveryDate($chosen)) {
             $options->setDeliveryDate($deliveryDate);
         }
+    }
 
-        $insurance = (int) $resolved->getInsurance();
+    /** The insured amount, stored in whole euros, sent in cents. */
+    private function setInsuranceInCents(SdkShipmentOptions $options, ResolvedOptions $chosen): void
+    {
+        $insurance = (int) $chosen->getInsurance();
 
         if (0 < $insurance) {
             $options->setInsurance(
@@ -210,16 +218,49 @@ class OrderShipmentOptions
                     ->setAmount($insurance * 100)
             );
         }
-
-        return $options;
     }
 
     /** The API refuses a delivery date for DPD and bpost, and together with collect. */
-    private function acceptsDeliveryDate(ResolvedOptions $resolved): bool
+    private function acceptsDeliveryDate(ResolvedOptions $chosen): bool
     {
-        $v2Carrier = Carrier::toV2Name((string) $this->carrierName());
+        $v2Carrier = Carrier::toV2Name((string) $this->carrierNameToShip());
 
-        return ! in_array($v2Carrier, self::CARRIERS_WITHOUT_DELIVERY_DATE, true) && ! $resolved->hasCollect();
+        return ! in_array($v2Carrier, self::CARRIERS_WITHOUT_DELIVERY_DATE, true) && ! $chosen->hasCollect();
+    }
+
+    private function carrierNameToShip(): ?string
+    {
+        return $this->deliveryOptionsToShip()->getCarrier();
+    }
+
+    /** The options ShipmentOptionsResolver chose for this order, resolved once. */
+    private function chosenOptions(): ResolvedOptions
+    {
+        return $this->chosen ?? ($this->chosen = (new ShipmentOptionsResolver(
+            $this->defaultOptions,
+            $this->order,
+            $this->deliveryOptionsToShip(),
+            $this->objectManager,
+            $this->carrierNameToShip(),
+            $this->shipmentId,
+            $this->effectivePackageTypeName()
+        ))->resolve());
+    }
+
+    /**
+     * The type the shipment will carry, as a name, for the capability lookups the resolver makes.
+     *
+     * Null on a stored type that resolves to nothing: packageTypeToShip() fails the shipment over
+     * that, but this is a read for a bound, and failing here would move the throw to whichever
+     * caller happened to ask for the options first.
+     */
+    private function effectivePackageTypeName(): ?string
+    {
+        try {
+            return PackageType::nameFromIdOrNull($this->packageTypeToShip());
+        } catch (RuntimeException $e) {
+            return null;
+        }
     }
 
     /**
@@ -276,6 +317,10 @@ class OrderShipmentOptions
         }
     }
 
+    /**
+     * A literal 1 or 0: RefTypesIntBoolean is checked against [0, 1] with a strict in_array during
+     * serialization, so true and false both throw at request time.
+     */
     private function flag(?bool $value): int
     {
         return $value ? 1 : 0;
