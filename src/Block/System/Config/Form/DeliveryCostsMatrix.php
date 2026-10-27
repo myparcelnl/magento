@@ -77,7 +77,6 @@ class DeliveryCostsMatrix extends Field
             DeliveryType::PICKUP_NAME   => __('Pickup'),
             DeliveryType::MORNING_NAME  => __('Morning delivery'),
             DeliveryType::EVENING_NAME  => __('Evening delivery'),
-            'monday'                    => __('Monday delivery'),
             DeliveryType::SAME_DAY_NAME => __('Same day delivery'),
             DeliveryType::EXPRESS_NAME  => __('Express delivery'),
         ];
