@@ -341,8 +341,9 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
     $seeded = [];
 
     foreach ($answers as $packageType => $set) {
-        // Same shape as ShapeLookup::answer() builds: scope, country, package type, carrier.
-        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|'] = $set;
+        // Same shape as ShapeLookup::answer() builds: scope, country, package type, carrier, delivery
+        // type, options. Carrier, delivery type and options stay empty.
+        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|||'] = $set;
     }
 
     $lookup = newInstanceWithoutConstructor(ShapeLookup::class);
