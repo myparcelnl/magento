@@ -11,6 +11,7 @@ use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 use MyParcelNL\Magento\Service\ShipmentOptions\OptionChanges;
 use MyParcelNL\Magento\Service\ShipmentOptions\OrderOptionsWriter;
+use MyParcelNL\Magento\Service\ShipmentOptions\PickupLocations;
 
 /**
  * A merchant's change lands in the order's stored delivery options, and only the fields it names.
@@ -25,7 +26,8 @@ function writeOrderOptions(
     array          $changes,
     ?CapabilitySet $capabilities = null,
     array          $apiKeyByStore = [1 => 'key-a'],
-    ?Dating        $dating = null
+    ?Dating        $dating = null,
+    ?PickupLocations $pickupLocations = null
 ): object
 {
     $did = new class { public array $saved = []; };
@@ -43,7 +45,10 @@ function writeOrderOptions(
         $did->saved[$orderId] = $columns;
     });
 
-    (new OrderOptionsWriter($repository, $apiProvider, $gridColumns, $dating ?? datingOn(date('Y-m-d'))))
+    // Without a double, any location lookup fails the test.
+    $pickupLocations = $pickupLocations ?? Mockery::mock(PickupLocations::class);
+
+    (new OrderOptionsWriter($repository, $apiProvider, $gridColumns, $dating ?? datingOn(date('Y-m-d')), $pickupLocations))
         ->write($orders, OptionChanges::fromRequest($changes));
 
     return $did;
@@ -305,4 +310,109 @@ it('sets and removes dimensions, and drops the key when none is left', function 
 
     expect(writtenOptions($set)['physicalProperties'])->toBe(['length' => 40, 'width' => 30, 'height' => 20])
         ->and(writtenOptions($removed))->not->toHaveKey('physicalProperties');
+});
+
+/** PickupLocations answering find() with this location for any code, or null. */
+function pickupLocationsFinding(?array $location): PickupLocations
+{
+    $pickupLocations = Mockery::mock(PickupLocations::class);
+    $pickupLocations->shouldReceive('find')->andReturn($location);
+
+    return $pickupLocations;
+}
+
+function foundPickupLocation(string $code = '176227', ?string $date = '2099-10-29'): array
+{
+    return [
+        'location_code'     => $code,
+        'location_name'     => 'Primera',
+        'retail_network_id' => 'PNPNL-01',
+        'street'            => 'Antareslaan',
+        'number'            => '31',
+        'postal_code'       => '2132JE',
+        'city'              => 'Hoofddorp',
+        'cc'                => 'NL',
+        'distance'          => '350',
+        'date'              => $date,
+    ];
+}
+
+it('stores a morning delivery with its date', function () {
+    $did = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard'])],
+        ['delivery_type' => 'morning', 'delivery_date' => '2099-10-29']
+    );
+
+    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'morning', 'date' => '2099-10-29 00:00:00', 'isPickup' => false])
+        ->and($did->saved[1])->toHaveKey(Config::FIELD_DROP_OFF_DAY);
+});
+
+it('stores a pickup location from the API with its earliest date', function () {
+    $did = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard'])],
+        ['delivery_type' => 'pickup', 'pickup_location_code' => '176227'],
+        null,
+        [1 => 'key-a'],
+        null,
+        pickupLocationsFinding(foundPickupLocation())
+    );
+    $stored = writtenOptions($did);
+
+    expect($stored)->toMatchArray(['deliveryType' => 'pickup', 'isPickup' => true, 'date' => '2099-10-29 00:00:00'])
+        ->and($stored['pickupLocation'])->toMatchArray(['location_code' => '176227', 'location_name' => 'Primera', 'retail_network_id' => 'PNPNL-01'])
+        ->and($stored['pickupLocation'])->not->toHaveKey('distance')
+        ->and($did->saved[1])->toHaveKey(Config::FIELD_DROP_OFF_DAY);
+});
+
+it('refuses a pickup location the API does not return', function () {
+    writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard'])],
+        ['delivery_type' => 'pickup', 'pickup_location_code' => '99'],
+        null,
+        [1 => 'key-a'],
+        null,
+        pickupLocationsFinding(null)
+    );
+})->throws(LocalizedException::class, '100000001');
+
+it('refuses a pickup without a location', function () {
+    writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard'])],
+        ['delivery_type' => 'pickup']
+    );
+})->throws(LocalizedException::class, '100000001');
+
+it('refuses a delivery type capabilities do not return for the options', function () {
+    writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard', 'shipmentOptions' => ['age_check' => true]])],
+        ['delivery_type' => 'morning', 'delivery_date' => '2099-10-29'],
+        CapabilitySet::fromApiResults([capabilityResult(['deliveryTypes' => ['STANDARD_DELIVERY', 'PICKUP_DELIVERY']])])
+    );
+})->throws(LocalizedException::class, '100000001');
+
+it('clears the pickup location when the delivery becomes a home delivery', function () {
+    $did = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'pickup', 'pickupLocation' => foundPickupLocation()])],
+        ['delivery_type' => 'standard', 'delivery_date' => 'none']
+    );
+
+    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'standard', 'isPickup' => false, 'pickupLocation' => null, 'date' => null]);
+});
+
+it('leaves an unchanged stored pickup untouched', function () {
+    $did = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'pickup', 'pickupLocation' => foundPickupLocation()])],
+        ['label_amount' => '2']
+    );
+
+    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'pickup', 'isPickup' => true])
+        ->and(writtenOptions($did)['pickupLocation']['location_code'])->toBe('176227');
+});
+
+it('ignores an unknown delivery type name', function () {
+    $changes = OptionChanges::fromRequest(['delivery_type' => 'teleport', 'pickup_location_code' => '']);
+
+    expect($changes->deliveryType())->toBeNull()
+        ->and($changes->pickupLocationCode())->toBeNull()
+        ->and($changes->isEmpty())->toBeTrue();
 });
