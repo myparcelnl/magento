@@ -107,7 +107,7 @@ it('does not blank a stored link on an empty string', function () {
 });
 
 it('leaves a track the response said nothing about untouched', function () {
-    // This is the shape a PPS track has before its shipment id is stored: nothing to refresh by.
+    // This is the shape an Order v1 track has before its shipment id is stored: nothing to refresh by.
     [$collection, $saved] = collectionRefreshing(0, []);
 
     $collection->updateMagentoTrack();

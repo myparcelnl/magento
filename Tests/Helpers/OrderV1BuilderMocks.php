@@ -8,7 +8,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Shipment\OrderV1Builder;
 
 /**
- * Fixtures for the PPS export path. The object manager and the config come from
+ * Fixtures for the Order v1 export path. The object manager and the config come from
  * ShipmentBuilderMocks, which both export builders share; what is added here is the
  * ScopeConfigInterface the order date reads and an order item carrying a product.
  */
@@ -33,7 +33,7 @@ function createOrderV1Builder(
 }
 
 /**
- * An order the PPS builder can convert: a German destination, so age-check and customs never
+ * An order the Order v1 builder can convert: a German destination, so age-check and customs never
  * activate, with the same address billing and shipping unless one is overridden.
  */
 function createOrderV1MagentoOrder(array $checkoutDeliveryOptions, array $overrides = []): Order

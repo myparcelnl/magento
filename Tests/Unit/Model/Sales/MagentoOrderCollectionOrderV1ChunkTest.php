@@ -11,7 +11,7 @@ use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
- * The PPS export chunks by print/export_chunk_size, the same setting the shipment export uses.
+ * The Order v1 export chunks by print/export_chunk_size, the same setting the shipment export uses.
  *
  * Only the chunking is driven here. Sending a chunk ends in an HTTP call the SDK builds its own
  * cURL handle for, so exportOrderV1Chunk() is stubbed and what reaches it is what these cases

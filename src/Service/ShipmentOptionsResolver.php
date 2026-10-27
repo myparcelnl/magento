@@ -62,7 +62,7 @@ class ShipmentOptionsResolver
 
     private ?string $cc;
 
-    /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
+    /** Null on the Order v1 path: an Order v1 order has no Magento shipment yet. */
     private ?int $shipmentId;
 
     /**
@@ -401,7 +401,7 @@ class ShipmentOptionsResolver
     /**
      * The row %product_id%, %product_name% and %product_qty% read from.
      *
-     * sales_shipment_item.parent_id is the *shipment* entity id, never the order id. A fulfilment
+     * sales_shipment_item.parent_id is the *shipment* entity id, never the order id. An Order v1
      * order has no shipment yet, so that path reads the order's own items instead.
      *
      * Ordered and limited: only the first row is ever read, and without an order which row that is

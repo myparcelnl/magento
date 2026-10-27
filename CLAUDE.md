@@ -65,7 +65,7 @@ Magento Order → Adapter → SDK Shipment → MyParcel API
 - **Checkout** (`src/Model/Checkout/DeliveryOptions.php`): Delivery options logic for frontend; frontend JS uses RequireJS + Knockout.js
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`): Bridge Magento orders/shipments to SDK for batch API operations
 - **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`): Package type determination (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, plus what the cart's own products say about how it may ship. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way
-- **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
+- **Order v1 export** (`OrderV1Builder`, `MagentoOrderCollection::exportAsOrderV1()`): an account with the `LEGACY_ORDER_MANAGEMENT` feature exports whole orders to the Order v1 API; every other account creates shipments. See `docs/sdk-v11.md`.
 
 ### Extension Points
 
