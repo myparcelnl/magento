@@ -158,6 +158,7 @@ Each workaround names what to delete once the fix lands.
 | 6 | `ReturnShipmentService::createRelated()` does not check the HTTP status and reads an error answer as "Unexpected response type", so a refused return and a timeout look the same | `ShipmentExportService::createReturns()` reports every failure as "unknown whether created and mailed"; tell a 4xx apart there once the SDK throws with the status |
 | 7 | `Collection\Fulfilment\OrderCollection::getShipmentOptions()` sends a fixed list of options and drops `hide_sender`, `fresh_food`, `frozen` and `same_day_delivery` without an error, so an Order v1 order ships without them | None possible: the module cannot build the request itself. Fix it in the SDK: send every option the `ShipmentOptions` holds |
 | 8 | `ShipmentQueryService::findMany()` is final and sends `link_consumer_portal` as null, so the answer carries no track & trace link | `Service\Export\ShipmentQuery` repeats the query with the flag set. Delete it and use the SDK service once the flag is a parameter |
+| 9 | `ShipmentResponsesDeliveryOptionsDeliveryPossibilityType` is a generated wrapper without properties, so `getDeliveryOptions()` returns each possibility's `type` (the delivery type) empty | `ShipmentOptions\DeliveryDates` sends the request `getDeliveryOptionsRequest()` builds and reads the raw body |
 
 One generation trap worth knowing: `ShipmentDefsShipment::getParentId()` returns a property-less
 stub, so colli are paired by nesting, never by id.
