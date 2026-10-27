@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service\ShipmentOptions;
 
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 /**
@@ -29,6 +30,11 @@ final class OptionChanges
     /** @var array<string,int> length, width or height in cm; 0 removes it */
     private array $dimensions;
 
+    /** A DeliveryType name, or null for unchanged. */
+    private ?string $deliveryType;
+
+    private ?string $pickupLocationCode;
+
     public const NO_DELIVERY_DATE = 'none';
 
     /** Each label is a track and a shipment at export, so the amount is capped. */
@@ -42,7 +48,9 @@ final class OptionChanges
         ?int    $labelAmount,
         ?int    $digitalStampWeight,
         ?string $deliveryDate,
-        array   $dimensions
+        array   $dimensions,
+        ?string $deliveryType,
+        ?string $pickupLocationCode
     ) {
         $this->carrier            = $carrier;
         $this->packageType        = $packageType;
@@ -52,6 +60,8 @@ final class OptionChanges
         $this->digitalStampWeight = $digitalStampWeight;
         $this->deliveryDate       = $deliveryDate;
         $this->dimensions         = $dimensions;
+        $this->deliveryType       = $deliveryType;
+        $this->pickupLocationCode = $pickupLocationCode;
     }
 
     /** Reads the modal's `changes` parameter. A malformed name or value is dropped, not guessed. */
@@ -83,7 +93,9 @@ final class OptionChanges
             self::boundedLabelAmount($changes['label_amount'] ?? null),
             self::int($changes['digital_stamp_weight'] ?? null),
             self::date($changes['delivery_date'] ?? null),
-            $dimensions
+            $dimensions,
+            self::deliveryTypeName($changes['delivery_type'] ?? null),
+            self::locationCode($changes['pickup_location_code'] ?? null)
         );
     }
 
@@ -130,6 +142,17 @@ final class OptionChanges
         return $this->dimensions;
     }
 
+    /** A DeliveryType name, or null for unchanged. */
+    public function deliveryType(): ?string
+    {
+        return $this->deliveryType;
+    }
+
+    public function pickupLocationCode(): ?string
+    {
+        return $this->pickupLocationCode;
+    }
+
     public function isEmpty(): bool
     {
         return null === $this->carrier
@@ -139,12 +162,25 @@ final class OptionChanges
                && null === $this->labelAmount
                && null === $this->digitalStampWeight
                && null === $this->deliveryDate
-               && [] === $this->dimensions;
+               && [] === $this->dimensions
+               && null === $this->deliveryType
+               && null === $this->pickupLocationCode;
     }
 
     private static function name($value): ?string
     {
         return ShipmentOption::isOptionName($value) ? $value : null;
+    }
+
+    private static function deliveryTypeName($value): ?string
+    {
+        return is_string($value) && null !== DeliveryType::toIdOrNull($value) ? $value : null;
+    }
+
+    /** Location codes are digits, letters and dashes ("176227", "8004-NL-110511"). */
+    private static function locationCode($value): ?string
+    {
+        return is_string($value) && 1 === preg_match('/^[A-Za-z0-9-]{1,64}$/', $value) ? $value : null;
     }
 
     private static function date($value): ?string
