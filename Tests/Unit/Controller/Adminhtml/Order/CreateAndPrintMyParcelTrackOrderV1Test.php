@@ -13,9 +13,9 @@ use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ExportResponse;
 
 /**
- * The order grid's PPS export. The collection's constructor defaults are a mass action's, and
+ * The order grid's Order v1 export. The collection's constructor defaults are a mass action's, and
  * OrderShipmentOptions reads a carrier in them as the admin's override of the checkout carrier,
- * so the PPS branch has to run the request through setOptionsFromParameters() like every other
+ * so the Order v1 branch has to run the request through setOptionsFromParameters() like every other
  * caller of exportAsOrderV1() does, or the modal's choice is ignored and a default is exported.
  *
  * Skips parent::__construct(Action) and shadows getRequest(): the Backend Action chain is a stub here.
@@ -85,7 +85,7 @@ function createOrderV1GridController(
     return $controller;
 }
 
-it('reads the request options before a PPS export, as the shipment branch does', function () {
+it('reads the request options before an Order v1 export, as the shipment branch does', function () {
     $collection = Mockery::mock(MagentoOrderCollection::class);
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
     $collection->shouldReceive('setOptionsFromParameters')->once()->ordered()->andReturnSelf();
