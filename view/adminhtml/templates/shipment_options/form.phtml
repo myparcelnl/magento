@@ -6,7 +6,6 @@ $form = $block->getData('options_form');
 
 // Resolved first: the notice below reports on it, and every loop reads from it.
 $carriers = $form->getFormCarriers();
-$labels   = $form->getNewShipmentForm();
 $bulk     = $form->isBulk();
 $keep     = $escaper->escapeHtml(__('Keep'));
 
@@ -43,12 +42,6 @@ $keep     = $escaper->escapeHtml(__('Keep'));
             )) ?></div>
         </div>
     <?php endif; ?>
-    <div class="message message-warning warning" data-mypa-pickup-warning style="display: none;">
-        <div><?= $escaper->escapeHtml(__(
-            'The pickup location belongs to the current carrier. With another carrier, the order ships as a home delivery.'
-        )) ?></div>
-    </div>
-
     <div class="mypa-options-columns">
         <div class="mypa-options-column">
             <?php if ($bulk): ?>
@@ -188,27 +181,14 @@ $keep     = $escaper->escapeHtml(__('Keep'));
                                 </div>
                             <?php endif; ?>
                             <?php if ([] !== $packageType['options']): ?>
-                                <div class="admin__field">
-                                    <label class="admin__field-label"><span><?= $escaper->escapeHtml(__('Options')) ?></span></label>
-                                    <div class="admin__field-control">
-                                        <?php foreach ($packageType['options'] as $option):
-                                            $optionId = 'mypa_opt_' . $escaper->escapeHtmlAttr($option) . '_' . $suffix;
-                                            $on       = $form->hasDefaultOption($option, $carrier['name']);
-                                            $locked   = $form->isLocked($option, $carrier['name'], $packageType['name']);
-                                            ?>
-                                            <div class="admin__field admin__field-option">
-                                                <input type="checkbox" class="admin__control-checkbox" id="<?= $optionId ?>"
-                                                       data-mypa-option="<?= $escaper->escapeHtmlAttr($option) ?>"
-                                                       data-initial="<?= $on || $locked ? '1' : '0' ?>"
-                                                    <?= $on || $locked ? 'checked="checked"' : '' ?>
-                                                    <?= $locked ? 'disabled="disabled"' : '' ?> />
-                                                <label class="admin__field-label" for="<?= $optionId ?>">
-                                                    <span><?= $escaper->escapeHtml($labels->labelFor($option)) ?></span>
-                                                </label>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                </div>
+                                <?= $block->getLayout()->createBlock(\Magento\Backend\Block\Template::class)
+                                    ->setTemplate('MyParcelNL_Magento::shipment_options/options.phtml')
+                                    ->setData('options_form', $form)
+                                    ->setData('carrier', $carrier['name'])
+                                    ->setData('package_type', $packageType['name'])
+                                    ->setData('states', $form->initialOptionStates($carrier['name'], $packageType['name']))
+                                    ->setData('initial', $form->tickedOptions($carrier['name'], $packageType['name']))
+                                    ->toHtml() ?>
                             <?php endif; ?>
                             <?php if (null !== $packageType['insurance']):
                                 $insurance = $packageType['insurance'];
@@ -242,36 +222,16 @@ $keep     = $escaper->escapeHtml(__('Keep'));
 
     <div class="mypa-options-columns">
         <div class="mypa-options-column">
-            <div class="admin__field">
-                <label class="admin__field-label" for="mypa_opt_delivery_date"><span><?= $escaper->escapeHtml(__('Delivery date')) ?></span></label>
-                <div class="admin__field-control">
-                    <?php if ($bulk): ?>
-                        <select class="admin__control-select" data-mypa-bulk-date>
-                            <option value=""><?= $keep ?></option>
-                            <option value="set"><?= $escaper->escapeHtml(__('Set to')) ?></option>
-                            <option value="remove"><?= $escaper->escapeHtml(__('Remove')) ?></option>
-                        </select>
-                        <input type="date" id="mypa_opt_delivery_date" class="admin__control-text"
-                               min="<?= $escaper->escapeHtmlAttr($form->getEarliestDeliveryDate()) ?>"
-                               data-mypa-bulk-date-value style="display: none;" />
-                    <?php else:
-                        $date = $form->getDeliveryDate();
-                        ?>
-                        <?php /* Cleared, the field posts data-mypa-empty: an explicit removal. */ ?>
-                        <input type="date" id="mypa_opt_delivery_date" class="admin__control-text"
-                               min="<?= $escaper->escapeHtmlAttr($form->getEarliestDeliveryDate()) ?>"
-                               value="<?= $escaper->escapeHtmlAttr((string) $date) ?>"
-                               data-mypa-field="delivery_date" data-mypa-order-field data-mypa-empty="none"
-                               data-initial="<?= $escaper->escapeHtmlAttr((string) $date) ?>"
-                            <?= null === $date ? 'disabled="disabled"' : '' ?> />
-                        <div class="admin__field admin__field-option">
-                            <input type="checkbox" id="mypa_opt_no_delivery_date" class="admin__control-checkbox" data-mypa-no-date
-                                <?= null === $date ? 'checked="checked"' : '' ?> />
-                            <label class="admin__field-label" for="mypa_opt_no_delivery_date"><?= $escaper->escapeHtml(__('No delivery date')) ?></label>
-                        </div>
-                    <?php endif; ?>
+            <?php if (! $bulk): ?>
+                <?php /* shipment-options.js fills these from the refresh answer; data-initial is the stored choice. */ ?>
+                <div class="admin__field">
+                    <label class="admin__field-label" for="mypa_opt_delivery"><span><?= $escaper->escapeHtml(__('Delivery')) ?></span></label>
+                    <div class="admin__field-control">
+                        <div data-mypa-delivery data-initial="<?= $escaper->escapeHtmlAttr($form->storedDeliveryValue()) ?>"></div>
+                        <div data-mypa-pickup-list data-initial="<?= $escaper->escapeHtmlAttr((string) $form->storedPickupLocationCode()) ?>"></div>
+                    </div>
                 </div>
-            </div>
+            <?php endif; ?>
         </div>
 
         <div class="mypa-options-column">
