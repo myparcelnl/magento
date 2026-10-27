@@ -10,18 +10,21 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\PickupLocation;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\OrderGridColumns;
+use RuntimeException;
 
 /**
  * Writes a merchant's shipment option changes into each order's stored delivery options.
@@ -35,17 +38,20 @@ class OrderOptionsWriter
     private ShipmentApiProvider    $apiProvider;
     private OrderGridColumns       $gridColumns;
     private Dating                 $dating;
+    private PickupLocations        $pickupLocations;
 
     public function __construct(
         CapabilitiesRepository $capabilitiesRepository,
         ShipmentApiProvider    $apiProvider,
         OrderGridColumns       $gridColumns,
-        Dating                 $dating
+        Dating                 $dating,
+        PickupLocations        $pickupLocations
     ) {
         $this->capabilitiesRepository = $capabilitiesRepository;
         $this->apiProvider            = $apiProvider;
         $this->gridColumns            = $gridColumns;
         $this->dating                 = $dating;
+        $this->pickupLocations        = $pickupLocations;
     }
 
     /**
@@ -121,7 +127,8 @@ class OrderOptionsWriter
             $columns[Config::FIELD_MYPARCEL_CARRIER] = $changes->carrier();
         }
 
-        if (null !== $changes->deliveryDate()) {
+        // A pickup takes its date from the location, so a delivery type change moves the date too.
+        if (null !== $changes->deliveryDate() || null !== $changes->deliveryType()) {
             $columns[Config::FIELD_DROP_OFF_DAY] = self::dropOffDay($stored['date']);
         }
 
@@ -184,7 +191,55 @@ class OrderOptionsWriter
             $stored['date'] = $changes->deliveryDate() . ' 00:00:00';
         }
 
+        if (null !== $changes->deliveryType()) {
+            $stored = $this->withDelivery($order, $stored, $changes);
+        }
+
         return $this->withDimensions($stored, $changes->dimensions());
+    }
+
+    /**
+     * The changed delivery type. A pickup gets its location, in the checkout's shape, and its
+     * earliest date from the API, so a posted address is never stored.
+     *
+     * @throws LocalizedException
+     */
+    private function withDelivery(Order $order, array $stored, OptionChanges $changes): array
+    {
+        $stored['deliveryType'] = $changes->deliveryType();
+
+        if (DeliveryType::PICKUP_NAME !== $changes->deliveryType()) {
+            $stored['isPickup']       = false;
+            $stored['pickupLocation'] = null;
+
+            return $stored;
+        }
+
+        $location = null === $changes->pickupLocationCode() ? null : $this->findPickupLocation(
+            $order,
+            (string) ($stored['carrier'] ?? (new DefaultOptions($order))->getCarrierName()),
+            $changes->pickupLocationCode()
+        );
+
+        if (null === $location) {
+            throw new LocalizedException(__('%1: the pickup location is not available. Choose one from the list.', $order->getIncrementId()));
+        }
+
+        $stored['isPickup']       = true;
+        $stored['pickupLocation'] = PickupLocation::fromCheckoutData($location)->toArray();
+        $stored['date']           = null === $location['date'] ? null : $location['date'] . ' 00:00:00';
+
+        return $stored;
+    }
+
+    /** @throws LocalizedException when MyParcel cannot list the locations */
+    private function findPickupLocation(Order $order, string $carrier, string $code): ?array
+    {
+        try {
+            return $this->pickupLocations->find($order, $carrier, $code);
+        } catch (RuntimeException $e) {
+            throw new LocalizedException(__('%1: MyParcel could not load the pickup locations. Try again.', $order->getIncrementId()), $e);
+        }
     }
 
     /** A dimension of 0 removes it; no dimension left removes the key. */
@@ -295,6 +350,16 @@ class OrderOptionsWriter
         }
 
         $this->assertInsurance($shape, $carrier, $packageType, $changes->insurance(), $refuse);
+
+        if (null !== $changes->deliveryType()) {
+            // The options that are on go with it: an age check rules out morning and evening.
+            $ticked   = array_keys(array_filter((array) ($stored['shipmentOptions'] ?? []), static fn($on): bool => true === $on));
+            $delivery = $lookup->forShape($storeId, $country, $packageType, $carrier, null, $ticked);
+
+            if (! $delivery->hasDeliveryType($carrier, $packageType, $changes->deliveryType())) {
+                throw $refuse(DeliveryList::labelFor($changes->deliveryType()));
+            }
+        }
     }
 
     private function assertInsurance(CapabilitySet $shape, string $carrier, ?string $packageType, ?int $amount, callable $refuse): void
