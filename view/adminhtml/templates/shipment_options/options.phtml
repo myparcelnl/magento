@@ -1,0 +1,45 @@
+<?php
+/** @var \Magento\Backend\Block\Template $block */
+/** @var \Magento\Framework\Escaper $escaper */
+/** @var \MyParcelNL\Magento\ViewModel\ShipmentOptionsForm $form */
+$form    = $block->getData('options_form');
+$carrier = (string) $block->getData('carrier');
+$type    = (string) $block->getData('package_type');
+/** @var array<string,array{checked:bool,disabled:bool,greyed:bool}> $states */
+$states  = (array) $block->getData('states');
+/** @var string[] $initial the options on as stored: data-initial measures a change against these */
+$initial = (array) $block->getData('initial');
+$labels  = $form->getNewShipmentForm();
+$suffix  = $escaper->escapeHtmlAttr($carrier . '_' . $type);
+$greyed  = [] !== array_filter(array_column($states, 'greyed'));
+
+// The option checkboxes of one package block. The refresh answer replaces this markup in place.
+?>
+<div class="admin__field" data-mypa-options-block
+     data-mypa-requires="<?= $escaper->escapeHtmlAttr((string) json_encode($form->requiresMap($carrier, $type))) ?>">
+    <label class="admin__field-label"><span><?= $escaper->escapeHtml(__('Options')) ?></span></label>
+    <div class="admin__field-control">
+        <?php if ($block->getData('empty_answer')): ?>
+            <div class="message message-warning warning">
+                <div><?= $escaper->escapeHtml(__('MyParcel does not accept this combination of options. The options below are shown without them.')) ?></div>
+            </div>
+        <?php endif; ?>
+        <?php foreach ($states as $option => $state):
+            $optionId = 'mypa_opt_' . $escaper->escapeHtmlAttr($option) . '_' . $suffix;
+            ?>
+            <div class="admin__field admin__field-option<?= $state['greyed'] ? ' mypa-option-greyed' : '' ?>">
+                <input type="checkbox" class="admin__control-checkbox" id="<?= $optionId ?>"
+                       data-mypa-option="<?= $escaper->escapeHtmlAttr($option) ?>"
+                       data-initial="<?= in_array($option, $initial, true) ? '1' : '0' ?>"
+                    <?= $state['checked'] ? 'checked="checked"' : '' ?>
+                    <?= $state['disabled'] ? 'disabled="disabled"' : '' ?> />
+                <label class="admin__field-label" for="<?= $optionId ?>">
+                    <span><?= $escaper->escapeHtml($labels->labelFor($option)) ?></span>
+                </label>
+            </div>
+        <?php endforeach; ?>
+        <?php if ($greyed): ?>
+            <p class="note admin__field-note"><span><?= $escaper->escapeHtml(__('Not available with the current delivery or options.')) ?></span></p>
+        <?php endif; ?>
+    </div>
+</div>
