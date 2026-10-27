@@ -71,7 +71,6 @@ Automate 'Insurance € 500',Automatiser 'Forsikret op til € 500'
 Automate 'Insure shipments to Belgium',Automatiser 'Forsikr forsendelser til Belgien'
 Automate Priority delivery (mailbox),Automatiser prioriteret levering (brevkasse)
 Automatically enable priority delivery for mailbox packages during export,Aktivér automatisk prioriteret levering for brevkassepakker under eksport
-Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,"Bemærk: Mandagslevering er kun mulig, når pakken afleveres inden kl. 15:00 lørdag på de udpegede PostNL-steder."
 'Signature on receipt' operates above a certain order total amount,"'Underskrift ved modtagelse' aktiveres, når det samlede beløb overstiger beløbet ovenfor"
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,"Alderskontrollen er beregnet til pakteforsendelser, hvor modtageren skal vise 18+ ved hjælp af et identitetsdokument. Med denne forsendelsesmulighed er underskrift ved modtagelse og kun modtager inkluderet. Aldersgrænse 18+ er desuden udelukket fra leveringsmulighederne morgen- og aftenlevering."
 'Insurance € 500' operates above a certain order total amount.,"'Forsikret op til € 500' aktiveres, når det samlede beløb overstiger beløbet ovenfor."
@@ -97,8 +96,6 @@ If age check is active then the evening delivery is not possible,"Hvis alderskon
 If age check is active then the morning delivery is not possible,"Hvis alderskontrol er aktiv, er morgenlevering ikke mulig"
 Morning delivery fee,Gebyr for morgenlevering
 Evening delivery active,Aftenlevering aktiv
-Monday delivery,Mandagslevering
-Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"Levering om mandagen kan kræve særlige betingelser sammenlignet med andre (uge)dage, herunder, men ikke begrænset til, gebyr og deadline."
 Number of days,Antal dage
 Delivery enabled,Levering aktiveret
 Receipt code,Modtagelseskode
@@ -308,7 +305,6 @@ Packet,Lille pakke
 Signature,Underskrift ved modtagelse
 Priority delivery,Prioriteret levering
 Only Recipient,Kun modtager
-Monday delivery,Mandagslevering
 Saturday delivery,Lørdagslevering
 Load more,Indlæs flere
 Options,Muligheder
@@ -350,7 +346,6 @@ Pop-up map title,Titel for pop-up-kort
 Pop-up map open button text,Tekst for 'åbn kort'-knap i pop-up
 Pop-up map confirm button text,Tekst for bekræft-knap i pop-up
 Delivery options header,Header for leveringsmuligheder
-Monday delivery title,Titel for mandagslevering
 Receipt code title,Titel for modtagelseskode
 Exclude parcel lockers,Udeluk pakkebokse
 Price shown in delivery options,Pris vist i leveringsmuligheder
@@ -375,7 +370,6 @@ Insure orders up to (Local),Forsikr ordrer op til (Lokal)
 Insure orders up to (ROW),Forsikr ordrer op til (ROW)
 International mailbox,International postkasse
 Mode,Tilstand
-Monday delivery fee,Mandag leveringsgebyr
 Only recipient,Kun modtager
 Only recipient fee,Kun modtager gebyr
 Only recipient from price (€),Kun modtager fra pris (€)

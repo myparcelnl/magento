@@ -71,7 +71,6 @@ Automate 'Insurance € 500',Automatyzuj 'Ubezpieczone do € 500'
 Automate 'Insure shipments to Belgium',Automatyzuj 'Ubezpiecz przesyłki do Belgii'
 Automate Priority delivery (mailbox),Automatyzuj dostawę priorytetową (skrzynka pocztowa)
 Automatically enable priority delivery for mailbox packages during export,Automatycznie włącz dostawę priorytetową dla paczek skrzynkowych podczas eksportu
-Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,"Uwaga: dostawa w poniedziałek jest możliwa tylko wtedy, gdy paczka zostanie dostarczona przed godziną 15:00 w sobotę do wyznaczonych punktów PostNL."
 'Signature on receipt' operates above a certain order total amount,"'Podpis przy odbiorze' jest aktywowany, gdy kwota całkowita przekracza powyższą kwotę"
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,"Kontrola wieku jest przeznaczona dla przesyłek paczkowych, gdzie odbiorca musi wykazać 18+ za pomocą dowodu tożsamości. Przy tej opcji wysyłki uwzględnione są podpis przy odbiorze i tylko odbiorca. Kontrola wieku 18+ jest ponadto wykluczona z opcji dostawy rano i wieczorem."
 'Insurance € 500' operates above a certain order total amount.,"'Ubezpieczone do € 500' jest aktywowane, gdy kwota całkowita przekracza powyższą kwotę."
@@ -97,8 +96,6 @@ If age check is active then the evening delivery is not possible,"Jeśli weryfik
 If age check is active then the morning delivery is not possible,"Jeśli weryfikacja wieku jest aktywna, dostawa poranna nie jest możliwa"
 Morning delivery fee,Koszt dostawy porannej
 Evening delivery active,Dostawa wieczorna aktywna
-Monday delivery,Dostawa w poniedziałek
-Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"Dostawa w poniedziałek może wymagać specjalnych warunków w porównaniu do innych dni (tygodnia), w tym między innymi opłat i godziny granicznej."
 Number of days,Liczba dni
 Delivery enabled,Dostawa włączona
 Receipt code,Kod odbioru
@@ -308,7 +305,6 @@ Packet,Mała paczka
 Signature,Podpis przy odbiorze
 Priority delivery,Dostawa priorytetowa
 Only Recipient,Tylko odbiorca
-Monday delivery,Dostawa w poniedziałek
 Saturday delivery,Dostawa w sobotę
 Load more,Załaduj więcej
 Options,Opcje
@@ -350,7 +346,6 @@ Pop-up map title,Tytuł mapy pop-up
 Pop-up map open button text,Tekst przycisku 'otwórz mapę' pop-up
 Pop-up map confirm button text,Tekst przycisku potwierdzenia pop-up
 Delivery options header,Nagłówek opcji dostawy
-Monday delivery title,Tytuł dostawy w poniedziałek
 Receipt code title,Tytuł kodu odbioru
 Exclude parcel lockers,Wyklucz paczkomaty
 Price shown in delivery options,Cena widoczna w opcjach dostawy
@@ -375,7 +370,6 @@ Insure orders up to (Local),Ubezpieczaj zamówienia do (Lokalny)
 Insure orders up to (ROW),Ubezpieczaj zamówienia do (ROW)
 International mailbox,Międzynarodowa skrzynka pocztowa
 Mode,Tryb
-Monday delivery fee,Koszt dostawy w poniedziałek
 Only recipient,Tylko odbiorca
 Only recipient fee,Koszt tylko odbiorca
 Only recipient from price (€),Tylko odbiorca od ceny (€)

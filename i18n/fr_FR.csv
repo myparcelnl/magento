@@ -71,7 +71,6 @@ Automate 'Insurance € 500',Automatisation de l''Assurance jusqu'à € 500'
 Automate 'Insure shipments to Belgium',Automatisation de l'Assurance pour les envois vers la Belgique
 Automate Priority delivery (mailbox),Automatiser la livraison prioritaire (boîte aux lettres)
 Automatically enable priority delivery for mailbox packages during export,Activer automatiquement la livraison prioritaire pour les colis boîte aux lettres lors de l'export
-Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Remarque : La livraison le lundi n'est possible que si le colis est déposé avant 15h00 le samedi aux points PostNL désignés.
 'Signature on receipt' operates above a certain order total amount,La 'Signature pour réception' est activée lorsque le montant total dépasse le montant indiqué ci-dessus
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,"La vérification d'âge est destinée aux envois de colis pour lesquels le destinataire doit prouver qu'il a 18 ans ou plus au moyen d'une pièce d'identité. Avec cette option d'expédition, la signature à la réception et uniquement au destinataire sont incluses. La vérification d'âge 18+ est en outre exclue des options de livraison matin et soir."
 'Insurance € 500' operates above a certain order total amount.,L''Assurance jusqu'à € 500' est activée lorsque le montant total dépasse le montant ci-dessus.
@@ -97,8 +96,6 @@ If age check is active then the evening delivery is not possible,"Si le contrôl
 If age check is active then the morning delivery is not possible,"Si le contrôle d'âge est actif, la livraison du matin n'est pas possible"
 Morning delivery fee,Livraison du matin - prix
 Evening delivery active,Livraison du soir active
-Monday delivery,Livraison le lundi
-Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"La livraison le lundi peut nécessiter des conditions spéciales par rapport aux autres jours de la semaine, y compris mais sans s'y limiter, des frais et heure limite de commande."
 Number of days,Nombre de jours
 Delivery enabled,Livraison active
 Receipt code,Code de réception
@@ -308,7 +305,6 @@ Packet,Petit colis
 Signature, Signature à réception
 Only Recipient, Adresse de résidence uniquement
 Priority delivery, Livraison prioritaire
-Monday delivery, Livraison le lundi
 Saturday delivery, Livraison le samedi
 Load more, Charger plus
 Options, Options
@@ -351,7 +347,6 @@ Pop-up map title,Titre de la carte en pop-up
 Pop-up map open button text,Texte du bouton « ouvrir la carte » de la pop-up
 Pop-up map confirm button text,Texte du bouton de confirmation de la carte en pop-up
 Delivery options header,En-tête des options de livraison
-Monday delivery title,Titre de livraison du lundi
 Receipt code title,Titre du code de réception
 Exclude parcel lockers,Exclure les casiers à colis
 Price shown in delivery options,Prix affiché dans les options de livraison
@@ -376,7 +371,6 @@ Insure orders up to (Local),Assurer les commandes jusqu'à (Local)
 Insure orders up to (ROW),Assurer les commandes jusqu'à (ROW)
 International mailbox,Boîte aux lettres internationale
 Mode,Mode
-Monday delivery fee,Frais de livraison le lundi
 Only recipient,Uniquement au destinataire
 Only recipient fee,Frais destinataire uniquement
 Only recipient from price (€),Uniquement destinataire à partir du prix (€)

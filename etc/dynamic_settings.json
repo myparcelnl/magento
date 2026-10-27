@@ -474,15 +474,6 @@
               "showInStore": true
             },
             {
-              "id": "monday_delivery_title",
-              "path": "myparcelnl_magento_general/delivery_titles/monday_delivery_title",
-              "type": "text",
-              "label": "Monday delivery title",
-              "showInDefault": true,
-              "showInWebsite": true,
-              "showInStore": true
-            },
-            {
               "id": "header_delivery_options",
               "path": "myparcelnl_magento_general/delivery_titles/header_delivery_options",
               "type": "text",
@@ -594,43 +585,6 @@
               "showInWebsite": true,
               "showInStore": true,
               "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno"
-            },
-            {
-              "id": "monday_active",
-              "path": "myparcelnl_magento_postnl_settings/delivery/monday_active",
-              "type": "select",
-              "label": "Monday delivery",
-              "showInDefault": true,
-              "showInWebsite": true,
-              "showInStore": true,
-              "tooltip": "Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.",
-              "source_model": "Magento\\Config\\Model\\Config\\Source\\Yesno",
-              "depends": [
-                {
-                  "field": "myparcelnl_magento_postnl_settings/delivery/active",
-                  "value": "1"
-                }
-              ]
-            },
-            {
-              "id": "monday_fee",
-              "path": "myparcelnl_magento_postnl_settings/delivery/monday_fee",
-              "type": "text",
-              "label": "Monday delivery fee",
-              "showInDefault": true,
-              "showInWebsite": true,
-              "showInStore": true,
-              "tooltip": "This will be added to the regular shipping price",
-              "depends": [
-                {
-                  "field": "myparcelnl_magento_postnl_settings/delivery/monday_active",
-                  "value": "1"
-                },
-                {
-                  "field": "myparcelnl_magento_postnl_settings/delivery/active",
-                  "value": "1"
-                }
-              ]
             },
             {
               "id": "signature_active",

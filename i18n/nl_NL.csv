@@ -72,7 +72,6 @@ Automate 'Insurance € 500',Automatiseer 'Verzekerd tot € 500'
 Automate 'Insure shipments to Belgium',Automatiseer 'Verzeker zendingen naar België'
 Automate Priority delivery (mailbox),Automatiseer Prio levering (brievenbus)
 Automatically enable priority delivery for mailbox packages during export,Automatisch prioriteitslevering inschakelen voor brievenbuspakketten tijdens export
-Note: Monday delivery is only possible when the package is delivered before 15.00 on Saturday at the designated PostNL locations.,Let op: Maandagbezorging is alleen mogelijk als het pakket op zaterdag voor 15.00 uur is afgeleverd op de daarvoor bestemde PostNL locaties.
 'Signature on receipt' operates above a certain order total amount,'Handtekening voor ontvangst' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag
 The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.,De leeftijdscontrole is bedoeld voor pakketzendingen waarvoor de ontvanger 18+ dient te tonen door middel van een identiteitsbewijs. Bij deze verzendoptie zijn handtekening voor ontvangst en alleen ontvanger inbegrepen. De leeftijd van 18+ is verder uitgesloten van de bezorgopties 's morgens en 's avonds.
 'Insurance € 500' operates above a certain order total amount.,'Verzekerd tot € 500' wordt geactiveerd als het totaal bedrag meer is dan bovenstaande bedrag.
@@ -98,8 +97,6 @@ If age check is active then the evening delivery is not possible,Als de leeftijd
 If age check is active then the morning delivery is not possible,Als de leeftijdscontrole actief is dan is ochtendbezorging niet mogelijk
 Morning delivery fee,Ochtendlevering kosten
 Evening delivery active,Avondlevering ingeschakeld
-Monday delivery,Maandag levering
-Delivery on monday may require special conditions compared to other (week)days including but not limited to fee and cutoff time.,"Levering op maandag kan speciale voorwaarden vereisen in vergelijking met andere (week)dagen, waaronder maar niet beperkt tot kosten en laatste bestelmoment."
 Number of days,Aantal dagen
 Delivery enabled,Bezorging ingeschakeld
 Receipt code,Ontvangstcode
@@ -312,7 +309,6 @@ signature_title,Handtekening voor ontvangst
 receipt_code_title,Ontvangstcode
 priority_delivery_title,Prioriteitslevering
 only_recipient_title,Alleen ontvanger
-monday_delivery_title,Maandag bezorging
 saturday_delivery,Zaterdag bezorging
 saturday_delivery_title,Zaterdag bezorging
 load_more,Laad meer
@@ -361,7 +357,6 @@ Pop-up map title,Titel pop-up kaart
 Pop-up map open button text,Tekst knop 'kaart openen' pop-up
 Pop-up map confirm button text,Tekst bevestigingsknop pop-up kaart
 Delivery options header,Bezorgopties koptekst
-Monday delivery title,Titel maandagbezorging
 Receipt code title,Titel ontvangstcode
 Exclude parcel lockers,Pakketkluizen uitsluiten
 Price shown in delivery options,Prijs getoond in bezorgopties
@@ -386,7 +381,6 @@ Insure orders up to (Local),Verzeker bestellingen tot (Lokaal)
 Insure orders up to (ROW),Verzeker bestellingen tot (Rest van wereld)
 International mailbox,Internationale brievenbus
 Mode,Modus
-Monday delivery fee,Maandag levering kosten
 Only recipient,Alleen ontvanger
 Only recipient fee,Alleen ontvanger kosten
 Only recipient from price (€),Alleen ontvanger vanaf prijs (€)
