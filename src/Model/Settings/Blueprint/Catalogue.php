@@ -523,7 +523,7 @@ final class Catalogue
                 ->withDefault('%order_nr%'),
             // No default: an empty value is the account's home country, read at export.
             Field::text($path . 'country_of_origin', 'Country of origin')
-                ->withTooltip('This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.'),
+                ->withTooltip('This country will appear on the international shipment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.'),
             Field::select($path . 'create_concept_after_invoice', 'Create Concept', Yesno::class)
                 ->withTooltip('Enable create label concept, when invoice is printed.')
                 ->withDefault('0'),

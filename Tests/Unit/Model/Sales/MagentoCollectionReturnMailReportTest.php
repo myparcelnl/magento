@@ -60,7 +60,7 @@ function returnMailRun(
     );
 
     $collection = partialOrderCollection($shipments);
-    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')->andReturn($idsByApiKey ?: ['key-a' => $ids]);
+    $collection->shouldReceive('getMyParcelShipmentIdsByApiKey')->andReturn($idsByApiKey ?: ['key-a' => $ids]);
     $collection->shouldReceive('tracksByShipmentId')->andReturn($tracks);
     setPrivateProperty($collection, 'exportService', $exportService);
     setPrivateProperty($collection, 'messageManager', $messageManager);
