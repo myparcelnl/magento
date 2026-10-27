@@ -26,10 +26,10 @@ use MyParcelNL\Sdk\Support\Collection;
 use RuntimeException;
 
 /**
- * Turns one Magento order into a v11 fulfilment (PPS) order, tagged with its own store's API key.
+ * Turns one Magento order into an Order v1 order for the v11 SDK, tagged with its own store's API key.
  *
  * The counterpart of ShipmentBuilder: carrier, package type and the option set come from the
- * OrderShipmentOptions both share, and what is decided here is what only a PPS order needs: the
+ * OrderShipmentOptions both share, and what is decided here is what only an Order v1 order needs: the
  * two Recipients, the order lines and the order weight.
  *
  * Always call setCarrierId(): AbstractOrder::getCarrier() throws when the carrier was never set.

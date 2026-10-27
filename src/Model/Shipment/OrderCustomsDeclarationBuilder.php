@@ -13,7 +13,7 @@ use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
 
 /**
- * Builds the customs declaration of a PPS order: each order line at product weight and at the price
+ * Builds the customs declaration of an Order v1 order: each order line at product weight and at the price
  * paid, in the order's currency. The label path's counterpart is CustomsDeclarationBuilder.
  */
 class OrderCustomsDeclarationBuilder

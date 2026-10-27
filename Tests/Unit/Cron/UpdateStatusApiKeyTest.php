@@ -13,7 +13,7 @@ use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 
 /**
- * Pins the grouping of PPS orders per API key, the isolation between accounts, and that no store is
+ * Pins the grouping of Order v1 orders per API key, the isolation between accounts, and that no store is
  * matched against another store's response.
  */
 
@@ -193,8 +193,8 @@ it('matches each account response only against that account\'s own orders', func
 });
 
 it('hands the barcode and the MyParcel shipment id to the collection', function () {
-    // A PPS track has no myparcel_shipment_id, so updateMagentoTrack() cannot refresh it. Both
-    // facts have to travel from the fulfilment response or the track keeps its placeholder.
+    // An Order v1 track has no myparcel_shipment_id, so updateMagentoTrack() cannot refresh it. Both
+    // facts have to travel from the Order v1 response or the track keeps its placeholder.
     [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123', 4242)])]
@@ -271,12 +271,12 @@ it('tells the collection not to add a second track to a shipment that has one', 
 });
 
 /*
- * A fulfilment order can hold several shipments, all created in one run: separate shipments side by
+ * An Order v1 order can hold several shipments, all created in one run: separate shipments side by
  * side are one order_shipments entry each. A multicollo is one entry instead, and its colli are
  * expanded from the shipment API by updateMagentoTrack(), so they are tested there.
  */
 
-it('carries every shipped shipment of one fulfilment order', function () {
+it('carries every shipped shipment of one Order v1 order', function () {
     [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([

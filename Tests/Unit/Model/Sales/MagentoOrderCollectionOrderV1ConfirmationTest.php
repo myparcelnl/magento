@@ -16,7 +16,7 @@ use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 use MyParcelNL\Sdk\Model\MyParcelRequest;
 
 /**
- * What the admin is told when MyParcel does not confirm the orders of a PPS chunk.
+ * What the admin is told when MyParcel does not confirm the orders of an Order v1 chunk.
  *
  * The real OrderCollection::save() runs against a fake cURL from MyParcelRequest::setCurlFactory(),
  * so these cases go through the SDK's own error handling, where a timeout and an error body are the

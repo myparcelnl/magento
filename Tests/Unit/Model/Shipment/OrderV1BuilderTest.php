@@ -40,7 +40,7 @@ it('sets the carrier id, so getCarrier() does not throw', function () {
         ->and($order->getCarrier()->getName())->toBe(CarrierPostNL::NAME);
 });
 
-it('hands the fulfilment order the SDK shipment options', function () {
+it('hands the Order v1 order the SDK shipment options', function () {
     $order = createOrderV1Builder()->build(
         createOrderV1MagentoOrder([
             'carrier'      => CarrierPostNL::NAME,

@@ -160,7 +160,7 @@ class OrderGridColumns
             }
 
             // a placeholder is not a track number: on sales_order.track_number it would lock the order
-            // out of the PPS status cron
+            // out of the Order v1 status cron
             if (TrackAndTrace::isRealBarcode($track['track_number'])) {
                 $numbers[] = $track['track_number'];
             }
