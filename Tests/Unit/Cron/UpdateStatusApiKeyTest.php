@@ -201,7 +201,7 @@ it('matches each account response only against that account\'s own orders', func
 });
 
 it('hands the barcode and the MyParcel shipment id to the collection', function () {
-    // A PPS track has no myparcel_consignment_id, so updateMagentoTrack() cannot refresh it. Both
+    // A PPS track has no myparcel_shipment_id, so updateMagentoTrack() cannot refresh it. Both
     // facts have to travel from the fulfilment response or the track keeps its placeholder.
     [, , $calls] = runPpsCron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
