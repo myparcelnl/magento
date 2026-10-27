@@ -50,47 +50,18 @@ final class ShipmentOption
         ];
 
     /**
-     * Options that rule out a package type when the merchant has forced them on.
+     * Forced options that rule out a package type which cannot carry them.
      *
-     * Stated, not derived from the config shape: a forced option only narrows the choice when it
-     * applies to the whole order. Priority delivery is the counter-example — it is a mailbox
-     * option, so treating it as limiting would rule out every package type but mailbox, backwards.
+     * Only the age check: the export drops any other option a package type cannot carry, but an 18+
+     * order must keep its age check. Priority delivery is not one: it is a mailbox option, and would
+     * rule out every other package type. Which package type can carry it is the capabilities' answer.
      *
-     * Which types can carry one is the capabilities API's answer, per carrier: DPD may offer an
-     * age check on a mailbox where PostNL does not.
+     * Keep this until the checkout sends the forced options to capabilities as a filter, so that
+     * capabilities rule out the package type themselves.
      *
      * @var string[]
      */
     public const LIMIT_PACKAGE_TYPE = [self::AGE_CHECK];
-
-    /**
-     * Options the API accepts on some delivery types only.
-     *
-     * Not a capabilities fact: the capabilities response answers per carrier and package type, not
-     * per delivery type, so this rule is the module's own. Stating it here keeps the export and the
-     * admin form from disagreeing, which they did — one gated on country and carrier as well.
-     *
-     * The checkout cannot use this: it builds one config per carrier before the customer has picked
-     * a delivery type, and the widget decides what to render under each.
-     *
-     * @var array<string,string[]>
-     */
-    public const LIMIT_DELIVERY_TYPE = [self::RECEIPT_CODE => [DeliveryType::STANDARD_NAME]];
-
-    /**
-     * Whether the option may be set alongside this delivery type. An unknown delivery type counts
-     * as standard, so an order stored without one keeps working.
-     */
-    public static function allowedForDeliveryType(string $option, ?string $deliveryType): bool
-    {
-        $allowed = self::LIMIT_DELIVERY_TYPE[$option] ?? null;
-
-        if (null === $allowed) {
-            return true;
-        }
-
-        return in_array($deliveryType ?? DeliveryType::DEFAULT_NAME, $allowed, true);
-    }
 
     /**
      * Stored option names that do not follow from their camelCase wire key.
