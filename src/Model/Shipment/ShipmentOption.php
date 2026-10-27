@@ -188,36 +188,18 @@ class ShipmentOption
     }
 
     /**
-     * Options that rule out a package type when the merchant has forced them on. Which types can carry
-     * one is the capabilities answer, per carrier. Priority delivery is not here: it is a mailbox option.
+     * Forced options that rule out a package type which cannot carry them.
+     *
+     * Only the age check: the export drops any other option a package type cannot carry, but an 18+
+     * order must keep its age check. Priority delivery is not one: it is a mailbox option, and would
+     * rule out every other package type. Which package type can carry it is the capabilities' answer.
+     *
+     * Keep this until the checkout sends the forced options to capabilities as a filter, so that
+     * capabilities rule out the package type themselves.
      *
      * @var string[]
      */
     public const LIMIT_PACKAGE_TYPE = [self::AGE_CHECK];
-
-    /**
-     * Options the API accepts on some delivery types only. The module does not ask capabilities per
-     * delivery type yet; the checkout does not use this list, because it builds one config per carrier
-     * before the customer picks a delivery type.
-     *
-     * @var array<string,string[]>
-     */
-    public const LIMIT_DELIVERY_TYPE = [self::RECEIPT_CODE => [DeliveryType::STANDARD_NAME]];
-
-    /**
-     * Whether the option may be set alongside this delivery type. A missing delivery type counts as
-     * standard, so an order stored without one keeps working; an unknown one allows no limited option.
-     */
-    public static function allowedForDeliveryType(string $option, ?string $deliveryType): bool
-    {
-        $allowed = self::LIMIT_DELIVERY_TYPE[$option] ?? null;
-
-        if (null === $allowed) {
-            return true;
-        }
-
-        return in_array($deliveryType ?? DeliveryType::DEFAULT_NAME, $allowed, true);
-    }
 
     /** A snake_case module name. Request input that is not one is dropped, never guessed at. */
     public static function isOptionName($value): bool
