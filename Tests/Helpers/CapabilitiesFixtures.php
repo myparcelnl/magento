@@ -19,6 +19,7 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Proxy\ProxyConfig;
 use PHPUnit\Framework\Assert;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
+use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
 const CAPABILITIES_TEST_API_KEY = 'test-api-key-do-not-log';
 
@@ -341,8 +342,9 @@ function assertFlatInsuranceShape(array $results): void
  * A CapabilitiesLookup that already holds its answers. Reaching the repository fatals: that is the
  * assertion that the code asked only the requests the test seeded.
  *
- * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a
- * single CapabilitySet to seed every request at once, for a test the request distinction is not about.
+ * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup, and
+ * '<package type>|<option,option>' for a lookup with an option filter. Pass a single CapabilitySet
+ * to seed every unfiltered request at once, for a test the request distinction is not about.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $answers
  */
@@ -354,14 +356,36 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
 
     $seeded = [];
 
-    foreach ($answers as $packageType => $set) {
+    foreach ($answers as $request => $set) {
+        [$packageType, $options] = array_pad(explode('|', (string) $request, 2), 2, '');
+
         // The same key as CapabilitiesLookup::answer() builds: scope, country, package type, carrier,
-        // delivery type, options. Carrier, delivery type and options stay empty.
-        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|||'] = $set;
+        // delivery type, options. Carrier and delivery type stay empty.
+        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|||' . $options] = $set;
     }
 
     $lookup = newInstanceWithoutConstructor(CapabilitiesLookup::class);
     setPrivateProperty($lookup, 'answers', $seeded);
 
     return $lookup;
+}
+
+/**
+ * A lookup whose repository records every request it is asked.
+ *
+ * @return array{0: CapabilitiesLookup, 1: ArrayObject<int, CapabilitiesRequest>}
+ */
+function recordingCapabilitiesLookup(): array
+{
+    $requests   = new ArrayObject();
+    $repository = Mockery::mock(CapabilitiesRepository::class);
+    $repository->shouldReceive('forStore')->andReturnUsing(
+        static function (?int $storeId, CapabilitiesRequest $request) use ($requests): CapabilitySet {
+            $requests[] = $request;
+
+            return CapabilitySet::fromApiResults([]);
+        }
+    );
+
+    return [new CapabilitiesLookup($repository), $requests];
 }
