@@ -217,13 +217,18 @@ class Checkout
 
         $quote           = $this->quote;
         $items           = $quote->getAllItems();
-        $capabilities    = $this->getCapabilities($country, $packageType);
         $hidesForProduct = $this->cartRules->hidesDeliveryOptions($items);
         // once per request: every delivery type of every carrier compares the same amount
         $orderAmount     = $this->deliveryCosts->getOrderAmount($quote);
 
         foreach ($activeCarriers as $carrierName) {
-            $carrierPath = Config::carrierPath($carrierName);
+            $carrierPath  = Config::carrierPath($carrierName);
+            // Per carrier: the carrier's own default option setting can force an option.
+            $capabilities = $this->getCapabilities(
+                $country,
+                $packageType,
+                $this->cartRules->forcedCheckoutOptions($items, $carrierPath, $this->storeId)
+            );
 
             $basePrices          = [];
             $canHaveDeliveryType = [];
@@ -242,10 +247,8 @@ class Checkout
             $canHaveReceiptCode      = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
             $canHavePriorityDelivery = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::PRIORITY_DELIVERY);
             $canHaveOnlyRecipient    = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::ONLY_RECIPIENT);
-            $canHaveAgeCheck         = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
-            $isAgeCheckActive    = $canHaveAgeCheck && $this->isAgeCheckActive($carrierPath);
 
             $optionPrices = [];
             foreach (ShipmentOption::feePaths() as $option => $feePath) {
@@ -268,22 +271,21 @@ class Checkout
 
             $allowPickup           = $this->config->getBoolConfig($carrierPath, 'pickup/active');
             $allowStandardDelivery = $this->config->getBoolConfig($carrierPath, 'delivery/active');
-            $allowMorningDelivery  = ! $isAgeCheckActive && $canHaveDeliveryType[DeliveryType::MORNING_NAME] && $this->config->getBoolConfig($carrierPath, 'morning/active');
-            $allowEveningDelivery  = ! $isAgeCheckActive && $canHaveDeliveryType[DeliveryType::EVENING_NAME] && $this->config->getBoolConfig($carrierPath, 'evening/active');
+            $allowMorningDelivery  = $canHaveDeliveryType[DeliveryType::MORNING_NAME] && $this->config->getBoolConfig($carrierPath, 'morning/active');
+            $allowEveningDelivery  = $canHaveDeliveryType[DeliveryType::EVENING_NAME] && $this->config->getBoolConfig($carrierPath, 'evening/active');
             $allowExpressDelivery  = $canHaveExpress && $this->config->getBoolConfig($carrierPath, 'express/active');
-            // one package type serves the whole checkout, so check that this carrier can carry the forced options on it
-            $canCarryForced        = $this->canCarry(
-                $capabilities,
-                $carrierName,
-                $packageType,
-                $this->cartRules->forcedLimitingOptions($items, $carrierPath, $this->storeId)
-            );
-            $allowDeliveryOptions  = $canCarryForced
+            // the capabilities are filtered by the forced options, so a carrier that cannot carry them has no result here
+            $allowDeliveryOptions  = $capabilities->hasPackageType($carrierName, $packageType)
                                      && ! $hidesForProduct
                                      && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
             if ($allowDeliveryOptions && $packageType === PackageType::MAILBOX_NAME) {
                 $allowDeliveryOptions = $this->packageTypeResolver->fitsMailboxWeight($items, $carrierPath, $this->storeId);
+            }
+
+            if (! $allowDeliveryOptions) {
+                // Widget v7 ignores allowDeliveryOptions; a carrier missing from carrierSettings is not shown.
+                continue;
             }
 
             $myParcelConfig['carrierSettings'][$carrierName] = [
@@ -315,10 +317,14 @@ class Checkout
         return $myParcelConfig;
     }
 
-    /** @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for. */
-    private function getCapabilities(string $country, ?string $packageType = null): CapabilitySet
+    /**
+     * @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for.
+     *
+     * @param string[] $forced the forced ShipmentOption::LIMIT_CHECKOUT_OPTIONS, sent as a filter
+     */
+    private function getCapabilities(string $country, ?string $packageType = null, array $forced = []): CapabilitySet
     {
-        return $this->capabilityLookup->forRequest($this->storeId, $country, $packageType);
+        return $this->capabilityLookup->forRequest($this->storeId, $country, $packageType, null, null, $forced);
     }
 
     /**
@@ -486,82 +492,26 @@ class Checkout
      */
     public function checkPackageType(string $carrierName, string $country): string
     {
-        // The package-type-agnostic question: this method is what decides the package type, so
-        // there is none to narrow by yet.
-        $capabilities = $this->getCapabilities($country);
-
         $carrierPath = Config::carrierPath($carrierName);
         $products    = $this->quote->getAllItems();
-        $forced      = $this->cartRules->forcedLimitingOptions($products, $carrierPath, $this->storeId);
-        $allowed     = [];
+
+        // The package-type-agnostic question: this method is what decides the package type, so
+        // there is none to narrow by yet. The forced options filter it, so a package type that
+        // cannot carry them is not in the answer. A permissive answer restricts nothing.
+        $capabilities = $this->getCapabilities(
+            $country,
+            null,
+            $this->cartRules->forcedCheckoutOptions($products, $carrierPath, $this->storeId)
+        );
+        $allowed      = [];
 
         foreach ([PackageType::DIGITAL_STAMP_NAME, PackageType::MAILBOX_NAME, PackageType::PACKAGE_SMALL_NAME] as $packageTypeName) {
-            $allowed[$packageTypeName] = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, $packageTypeName, $forced);
+            $allowed[$packageTypeName] = $capabilities->hasPackageType($carrierName, $packageTypeName);
         }
 
         $candidates = $this->packageTypeResolver->candidates($allowed, $carrierPath, $country, $this->storeId);
 
         return $this->packageTypeResolver->resolve($products, $carrierName, $country, $candidates, $this->storeId);
-    }
-
-    /**
-     * The carrier has this package type, and it can carry every limiting option the order forces
-     * on: an 18+ order cannot go as a mailbox where the account has no age check on a mailbox.
-     *
-     * @param string[] $forcedOptions
-     */
-    private function isPackageTypeCandidate(
-        CapabilitySet $capabilities,
-        string        $carrierName,
-        string        $country,
-        string        $packageType,
-        array         $forcedOptions
-    ): bool
-    {
-        if (! $capabilities->hasPackageType($carrierName, $packageType)) {
-            return false;
-        }
-
-        // A permissive set means the service could not be reached: restrict nothing, the API decides.
-        if (! $forcedOptions || $capabilities->isPermissive()) {
-            return true;
-        }
-
-        return $this->canCarry(
-            $this->getCapabilities($country, $packageType),
-            $carrierName,
-            $packageType,
-            $forcedOptions
-        );
-    }
-
-    /**
-     * Never optionsFor(): it has no permissive guard and answers an empty list, which would read
-     * as "supports nothing" and rule out every package type.
-     *
-     * @param string[] $options
-     */
-    private function canCarry(CapabilitySet $capabilities, string $carrierName, string $packageType, array $options): bool
-    {
-        foreach ($options as $option) {
-            if (! $capabilities->hasOption($carrierName, $packageType, $option)) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $carrierPath
-     *
-     * @return bool
-     */
-    public function isAgeCheckActive(string $carrierPath): bool
-    {
-        $products = $this->quote->getAllItems();
-
-        return $this->cartRules->forcesAgeCheck($products, $carrierPath, $this->storeId);
     }
 
     /** With no active carrier there is no carrier age check to ask, only the general and product rules. */

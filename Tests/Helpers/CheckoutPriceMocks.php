@@ -75,7 +75,7 @@ function packageTypeResolverMock(): PackageTypeResolver
 function checkoutCarrierSettings(Config $config, Tax $tax, DeliveryCosts $deliveryCosts, Quote $quote, string $carrier = 'postnl'): array
 {
     $cartRules = Mockery::mock(CartShippingRules::class);
-    foreach (['forcedLimitingOptions' => [], 'hidesDeliveryOptions' => false, 'allowsPriorityDelivery' => false,
+    foreach (['forcedLimitingOptions' => [], 'forcedCheckoutOptions' => [], 'hidesDeliveryOptions' => false, 'allowsPriorityDelivery' => false,
               'forcesAgeCheck' => false, 'dropOffDelay' => null] as $method => $answer) {
         $cartRules->shouldReceive($method)->andReturn($answer)->byDefault();
     }

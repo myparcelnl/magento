@@ -7,21 +7,7 @@ use MyParcelNL\Magento\Service\Capabilities\CapabilitiesProvider;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
-/** A lookup whose provider records every request it is asked. */
-function recordingCapabilitiesLookup(): array
-{
-    $requests = new ArrayObject();
-    $provider = Mockery::mock(CapabilitiesProvider::class);
-    $provider->shouldReceive('forApiKey')->andReturnUsing(
-        static function (string $apiKey, CapabilitiesRequest $request) use ($requests): CapabilitySet {
-            $requests[] = $request;
-
-            return CapabilitySet::fromApiResults([]);
-        }
-    );
-
-    return [capabilitiesLookupOver($provider), $requests];
-}
+// recordingCapabilitiesLookup() lives in Tests/Helpers/CapabilitiesFixtures.php.
 
 it('sends the delivery type as its v2 name', function () {
     [$lookup, $requests] = recordingCapabilitiesLookup();
