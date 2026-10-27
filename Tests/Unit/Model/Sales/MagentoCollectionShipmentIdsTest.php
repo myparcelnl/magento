@@ -46,7 +46,7 @@ function groupShipmentIds(array $entries, array $keysByStore): array
     $collection = partialOrderCollection($shipments);
     setPrivateProperty($collection, 'apiProvider', new ShipmentApiProvider(createConfig([], [], $keysByStore), createUserAgent()));
 
-    return $collection->getMyparcelConsignmentIdsByApiKey($tracksByShipmentId);
+    return $collection->getMyParcelShipmentIdsByApiKey($tracksByShipmentId);
 }
 
 it('groups shipment ids by the api key each order resolves', function () {

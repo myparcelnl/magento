@@ -66,12 +66,12 @@ function recordingExportService(array $latest, object $saved): ShipmentExportSer
 }
 
 /**
- * getMyparcelConsignmentIdsByApiKey() as the real one answers: off the tracks the caller hands in,
+ * getMyParcelShipmentIdsByApiKey() as the real one answers: off the tracks the caller hands in,
  * or off the collection's own rows when it hands in none.
  *
  * @param int[] $ownIds
  */
-function consignmentIdsStub(array $ownIds): Closure
+function myParcelShipmentIdsStub(array $ownIds): Closure
 {
     return static function (?array $tracksByShipmentId = null) use ($ownIds): array {
         $ids = $ownIds;
@@ -97,7 +97,7 @@ function consignmentIdsStub(array $ownIds): Closure
  *
  * @return array{0: MagentoOrderCollection, 1: object} the collection and a recorder of what was set
  */
-function collectionRefreshing(int $consignmentId, array $latest, bool $changed = true): array
+function collectionRefreshing(int $myParcelShipmentId, array $latest, bool $changed = true): array
 {
     $saved = new class {
         public array $numbers = [];
@@ -122,15 +122,15 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
             },
         ],
         [
-            'getData'        => static function (?string $key = null) use ($consignmentId) {
-                return 'myparcel_consignment_id' === $key ? $consignmentId : null;
+            'getData'        => static function (?string $key = null) use ($myParcelShipmentId) {
+                return 'myparcel_consignment_id' === $key ? $myParcelShipmentId : null;
             },
             // False models a refresh that brought nothing new; the caller then skips the save.
             'hasDataChanges' => $changed,
         ]
     );
 
-    return [refreshingCollection([$track], [$consignmentId], $latest, $saved), $saved];
+    return [refreshingCollection([$track], [$myParcelShipmentId], $latest, $saved), $saved];
 }
 
 /**
@@ -140,13 +140,13 @@ function collectionRefreshing(int $consignmentId, array $latest, bool $changed =
  * rows beyond the first are spares waiting for an id of their own. collectionRefreshing() models
  * one row and cannot express it.
  *
- * @param int[]                           $consignmentIds one per existing row, in order
+ * @param int[]                           $myParcelShipmentIds one per existing row, in order
  * @param array<int,ShipmentDefsShipment> $latest         keyed by MyParcel shipment id
  *
  * @return array{0: MagentoOrderCollection, 1: object} the collection, and a recorder holding one
  *         entry per pre-existing row plus one per row this run created
  */
-function collectionRefreshingTracks(array $consignmentIds, array $latest): array
+function collectionRefreshingTracks(array $myParcelShipmentIds, array $latest): array
 {
     $saved = new class {
         /** @var array<int,array<string,int[]>> one per fetchLatest call, in order */
@@ -159,7 +159,7 @@ function collectionRefreshingTracks(array $consignmentIds, array $latest): array
 
     $existing = [];
 
-    foreach ($consignmentIds as $index => $consignmentId) {
+    foreach ($myParcelShipmentIds as $index => $myParcelShipmentId) {
         $saved->rows[$index] = ['number' => null, 'data' => []];
 
         $existing[] = recordingTrack(
@@ -171,29 +171,29 @@ function collectionRefreshingTracks(array $consignmentIds, array $latest): array
                     $saved->rows[$index]['data'][$key] = $value;
                 },
             ],
-            ['getData' => static function (?string $key = null) use ($consignmentId) {
-                return 'myparcel_consignment_id' === $key ? $consignmentId : null;
+            ['getData' => static function (?string $key = null) use ($myParcelShipmentId) {
+                return 'myparcel_consignment_id' === $key ? $myParcelShipmentId : null;
             }]
         );
     }
 
-    return [refreshingCollection($existing, $consignmentIds, $latest, $saved), $saved];
+    return [refreshingCollection($existing, $myParcelShipmentIds, $latest, $saved), $saved];
 }
 
 /**
  * The wiring both refresh fixtures share: one Magento shipment that carries $existing, an export
  * service answering from $latest, and new tracks recorded in $saved->created.
  *
- * @param int[] $consignmentIds
+ * @param int[] $myParcelShipmentIds
  */
-function refreshingCollection(array $existing, array $consignmentIds, array $latest, object $saved): MagentoOrderCollection
+function refreshingCollection(array $existing, array $myParcelShipmentIds, array $latest, object $saved): MagentoOrderCollection
 {
     $shipment = createShipment();
 
     $collection = partialOrderCollection([$shipment]);
     $collection->shouldReceive('tracksByShipmentId')->andReturn([(int) $shipment->getId() => $existing]);
-    $collection->shouldReceive('getMyparcelConsignmentIdsByApiKey')
-               ->andReturnUsing(consignmentIdsStub($consignmentIds));
+    $collection->shouldReceive('getMyParcelShipmentIdsByApiKey')
+               ->andReturnUsing(myParcelShipmentIdsStub($myParcelShipmentIds));
     $collection->shouldReceive('updateOrderGrid')->andReturnSelf();
     $collection->shouldReceive('newMagentoTrack')->andReturnUsing(static function () use ($saved) {
         $key = array_push($saved->created, ['number' => null, 'data' => []]) - 1;
@@ -257,7 +257,7 @@ function apiShipmentWithColli(int $id, string $barcode, array $colli): ShipmentD
 }
 
 /**
- * @param array<int,array{number: string, carrier?: string, consignmentId?: int}> $tracks
+ * @param array<int,array{number: string, carrier?: string, myParcelShipmentId?: int}> $tracks
  *
  * @return array{0: MagentoOrderCollection, 1: object} the collection, and a recorder that keeps
  *         what was written to the tracks that already existed apart from what was written to the
@@ -298,7 +298,7 @@ function collectionWithTracks(string $incrementId, array $tracks, int $shipmentC
                 'getCarrierCode' => $track['carrier'] ?? Carrier::CODE,
                 'getTrackNumber' => $track['number'],
                 'getData'        => static function (string $key) use ($track) {
-                    return 'myparcel_consignment_id' === $key ? ($track['consignmentId'] ?? null) : null;
+                    return 'myparcel_consignment_id' === $key ? ($track['myParcelShipmentId'] ?? null) : null;
                 },
             ]
         );
