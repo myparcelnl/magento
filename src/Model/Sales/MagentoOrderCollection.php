@@ -85,7 +85,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Set existing or create new Magento Track and set API consignment to collection
+     * Set existing or create new Magento Track and add its MyParcel shipment to the collection
      *
      * @throws Exception
      * @throws LocalizedException
@@ -495,10 +495,10 @@ class MagentoOrderCollection extends MagentoCollection
                 }
 
                 $host          = $host ?? $magentoShipment;
-                $consignmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+                $myParcelShipmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
 
-                if (0 !== $consignmentId) {
-                    $claimedIds[$consignmentId] = true;
+                if (0 !== $myParcelShipmentId) {
+                    $claimedIds[$myParcelShipmentId] = true;
                     continue;
                 }
 

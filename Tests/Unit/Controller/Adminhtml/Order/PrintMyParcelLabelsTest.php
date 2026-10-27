@@ -50,7 +50,7 @@ function groupShipmentIds(array $entries, array $keysByStore): array
 
     $provider = new ShipmentApiProvider(createConfig([], [], $keysByStore), createUserAgent());
 
-    return $provider->consignmentIdsByApiKey($shipments, $tracksByShipmentId);
+    return $provider->myParcelShipmentIdsByApiKey($shipments, $tracksByShipmentId);
 }
 
 it('groups shipment ids by the api key each order resolves', function () {

@@ -52,7 +52,7 @@ vendor/bin/pest --filter=WeightTest  # run a specific test
 
 ### Data Flow
 ```
-Magento Order → Adapter → SDK Consignment → MyParcel API
+Magento Order → Adapter → SDK Shipment → MyParcel API
       ↑                                          ↓
       └──────── Track & Trace Update ────────────┘
 ```
