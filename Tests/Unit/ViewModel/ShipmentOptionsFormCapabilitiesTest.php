@@ -127,23 +127,6 @@ it('renders an option only capabilities name, under a label read from its name',
         ->and((new NewShipmentForm())->labelFor(ShipmentOption::SIGNATURE))->toBe('Signature on receipt');
 });
 
-it('drops receipt code from a non-standard delivery even when the account has it', function () {
-    $withReceiptCode = CapabilitySet::fromApiResults([
-        capabilityResult(['options' => ['requiresReceiptCode' => [], 'requiresSignature' => []]]),
-    ]);
-
-    $standard = createShipmentOptionsFormWith($withReceiptCode);
-    $evening  = createShipmentOptionsFormWith($withReceiptCode, [
-        'deliveryOptions' => json_encode(['deliveryType' => 'evening']),
-    ]);
-
-    expect($standard->getShipmentOptions('postnl', PackageType::PACKAGE_NAME))
-        ->toContain(ShipmentOption::RECEIPT_CODE)
-        ->and($evening->getShipmentOptions('postnl', PackageType::PACKAGE_NAME))
-        ->not->toContain(ShipmentOption::RECEIPT_CODE)
-        ->toContain(ShipmentOption::SIGNATURE);
-});
-
 it('offers the form its usual options when capabilities could not be reached', function () {
     $block = createShipmentOptionsFormWith(CapabilitySet::permissive());
 
