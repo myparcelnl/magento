@@ -7,14 +7,11 @@ namespace MyParcelNL\Magento\Service\ShipmentOptions;
 use GuzzleHttp\Client as GuzzleClient;
 use GuzzleHttp\RequestOptions;
 use Magento\Sales\Model\Order;
-use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
-use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
 use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
-use MyParcelNL\Sdk\Helper\SplitStreet;
 use RuntimeException;
 use Throwable;
 
@@ -34,22 +31,22 @@ class DeliveryDates
     /** The checkout widget's cutoff time when today is no drop-off day (CUTOFF_TIME_DEFAULT). */
     private const DEFAULT_CUTOFF_TIME = '16:00';
 
-    private ShipmentApiProvider $apiProvider;
-    private DropOffSettings     $dropOffSettings;
-    private StoredAccount       $storedAccount;
-    private GuzzleClient        $httpClient;
-    private Dating              $dating;
+    private ShipmentApiProvider  $apiProvider;
+    private DropOffSettings      $dropOffSettings;
+    private ShippingAddressQuery $addressQuery;
+    private GuzzleClient         $httpClient;
+    private Dating               $dating;
 
     public function __construct(
-        ShipmentApiProvider $apiProvider,
-        DropOffSettings     $dropOffSettings,
-        StoredAccount       $storedAccount,
-        GuzzleClient        $httpClient,
-        Dating              $dating
+        ShipmentApiProvider  $apiProvider,
+        DropOffSettings      $dropOffSettings,
+        ShippingAddressQuery $addressQuery,
+        GuzzleClient         $httpClient,
+        Dating               $dating
     ) {
         $this->apiProvider     = $apiProvider;
         $this->dropOffSettings = $dropOffSettings;
-        $this->storedAccount   = $storedAccount;
+        $this->addressQuery    = $addressQuery;
         $this->httpClient      = $httpClient;
         $this->dating          = $dating;
     }
@@ -61,12 +58,7 @@ class DeliveryDates
      */
     public function forOrder(Order $order, string $carrier, string $packageType): array
     {
-        $address = $order->getShippingAddress();
-
-        if (null === $address) {
-            throw new RuntimeException('the order has no shipping address');
-        }
-
+        $query     = $this->addressQuery->forOrder($order);
         $storeId   = (int) $order->getStoreId();
         $carrierId = Carrier::idFor($carrier);
 
@@ -75,21 +67,16 @@ class DeliveryDates
         }
 
         try {
-            $street   = SplitStreet::splitStreet(
-                implode(' ', $address->getStreet() ?? []),
-                $this->storedAccount->homeCountryForStore($storeId),
-                (string) $address->getCountryId()
-            );
             $window   = $this->dropOffSettings->deliveryDaysWindow($storeId);
             $dropOff  = $this->dropOffSettings->dropOffDays(Config::carrierPath($carrier), $storeId);
             $days     = array_map(static fn(object $day): int => $day->weekday, $dropOff);
             $request  = $this->apiProvider->clientFor($this->apiProvider->apiKeyForStore($storeId))->getDeliveryOptionsRequest(
-                (string) $address->getCountryId(),
-                preg_replace('/\s+/', '', (string) $address->getPostcode()),
-                (string) $street->getNumber(),
-                (string) $address->getCity(),
-                $street->getStreet(),
-                ($this->storedAccount->propositionForStore($storeId) ?? Proposition::default())->getName(),
+                $query['cc'],
+                $query['postal_code'],
+                $query['number'],
+                $query['city'],
+                $query['street'],
+                $query['platform'],
                 null,
                 (string) $carrierId,
                 null,
