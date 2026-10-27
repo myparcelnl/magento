@@ -139,7 +139,7 @@ class OrderOptionsWriter
     private function changed(Order $order, OptionChanges $changes): array
     {
         $raw    = json_decode((string) $order->getData(Config::FIELD_DELIVERY_OPTIONS), true);
-        $stored = $this->currentShape(is_array($raw) ? $raw : [], $order, null !== $changes->carrier());
+        $stored = $this->currentShape(is_array($raw) ? $raw : [], $order, null !== $changes->carrier() || null !== $changes->deliveryType());
 
         if (null !== $changes->carrier()) {
             $stored = DeliveryOptions::withCarrier($stored, $changes->carrier());
@@ -287,25 +287,29 @@ class OrderOptionsWriter
 
     /**
      * Through the adapter, so legacy and camelCase data come out in the one shape a change can be
-     * merged into. A pickup that cannot be read is only repaired by a carrier change.
+     * merged into. A pickup that cannot be read is only repaired by a new carrier or delivery.
      *
      * @throws LocalizedException
      */
-    private function currentShape(array $raw, Order $order, bool $carrierChanges): array
+    private function currentShape(array $raw, Order $order, bool $repairs): array
     {
         try {
             return DeliveryOptionsFactory::create($raw)->toArray();
         } catch (BadMethodCallException $e) {
             return DeliveryOptions::defaults()->toArray();
         } catch (InvalidArgumentException $e) {
-            if (! $carrierChanges) {
+            if (! $repairs) {
                 throw new LocalizedException(__(
-                    '%1: the pickup location of this order cannot be read. Choose a carrier to ship it as a home delivery.',
+                    '%1: the pickup location of this order cannot be read. Choose another delivery or carrier.',
                     $order->getIncrementId()
                 ));
             }
 
-            return DeliveryOptionsFactory::create(DeliveryOptions::withCarrier($raw, ''))->toArray();
+            return DeliveryOptionsFactory::create(array_merge($raw, [
+                'deliveryType'   => DeliveryType::STANDARD_NAME,
+                'isPickup'       => false,
+                'pickupLocation' => null,
+            ]))->toArray();
         }
     }
 
