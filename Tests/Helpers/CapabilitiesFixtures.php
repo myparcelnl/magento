@@ -355,8 +355,9 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
     $seeded = [];
 
     foreach ($answers as $packageType => $set) {
-        // Same key as CapabilitiesLookup::answer() builds: scope, country, package type, carrier.
-        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|'] = $set;
+        // The same key as CapabilitiesLookup::answer() builds: scope, country, package type, carrier,
+        // delivery type, options. Carrier, delivery type and options stay empty.
+        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|||'] = $set;
     }
 
     $lookup = newInstanceWithoutConstructor(CapabilitiesLookup::class);
