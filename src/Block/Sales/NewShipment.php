@@ -52,4 +52,14 @@ class NewShipment extends Template
     {
         return $this->getUrl('myparcel/shipmentOptions/save');
     }
+
+    public function getOptionsRefreshUrl(): string
+    {
+        return $this->getUrl('myparcel/shipmentOptions/refresh');
+    }
+
+    public function getPickupLocationsUrl(): string
+    {
+        return $this->getUrl('myparcel/shipmentOptions/pickupLocations');
+    }
 }

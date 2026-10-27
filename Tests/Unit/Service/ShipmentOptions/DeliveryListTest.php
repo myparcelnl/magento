@@ -4,35 +4,8 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Service\ShipmentOptions\DeliveryList;
 
-// datedDelivery() lives in Tests/Helpers/DeliveryChoiceFixtures.php, storedDeliveryOptions() in
-// Tests/Helpers/ShipmentOptionsResolverFixtures.php.
-
-/** @return string[] every entry value of the list, in order */
-function deliveryValues(array $list): array
-{
-    $values = [];
-
-    foreach ($list['groups'] as $group) {
-        foreach ($group['entries'] as $entry) {
-            $values[] = $entry['value'];
-        }
-    }
-
-    return $values;
-}
-
-function selectedDelivery(array $list): ?string
-{
-    foreach ($list['groups'] as $group) {
-        foreach ($group['entries'] as $entry) {
-            if ($entry['selected']) {
-                return $entry['value'];
-            }
-        }
-    }
-
-    return null;
-}
+// datedDelivery(), deliveryValues() and selectedDelivery() live in Tests/Helpers/DeliveryChoiceFixtures.php,
+// storedDeliveryOptions() in Tests/Helpers/ShipmentOptionsResolverFixtures.php.
 
 function storedMorning(string $date, string $carrier = 'postnl'): \MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions
 {
