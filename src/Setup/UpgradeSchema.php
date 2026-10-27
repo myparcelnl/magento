@@ -321,9 +321,9 @@ class UpgradeSchema implements UpgradeSchemaInterface
     /**
      * Indexes sales_order.myparcel_uuid on its first 36 characters, a whole UUID.
      *
-     * Earns its place only where PPS is the exception: ordersAwaitingBarcode() then starts from the
+     * Earns its place only where Order v1 is the exception: ordersAwaitingBarcode() then starts from the
      * few orders carrying a uuid instead of every order of the last fortnight, which is all
-     * created_at can narrow it to. Where PPS is the normal export mode the condition matches almost
+     * created_at can narrow it to. Where Order v1 is the normal export mode the condition matches almost
      * every row and the optimiser ignores this index.
      *
      * `notnull` is a range MySQL can read from an index, so a prefix is enough; the column is never

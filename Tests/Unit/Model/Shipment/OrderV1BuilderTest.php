@@ -10,7 +10,7 @@ use MyParcelNL\Sdk\Model\Shipment\Carrier as SdkCarrier;
 use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
 
 /**
- * Drives the real build(), which is where beta.31's two fulfilment changes land: the carrier moved
+ * Drives the real build(), which is where beta.31's two changes to the SDK's Fulfilment classes land: the carrier moved
  * out of the delivery options into its own field, and the options are now the SDK's shipment
  * options rather than a delivery-options adapter.
  */
@@ -46,7 +46,7 @@ it('sets the carrier id, so getCarrier() no longer throws', function () {
         ->and($order->getCarrier()->getName())->toBe(CarrierPostNL::NAME);
 });
 
-it('hands the fulfilment order the SDK shipment options', function () {
+it('hands the Order v1 order the SDK shipment options', function () {
     $order = createOrderV1Builder()->build(
         createOrderV1MagentoOrder([
             'carrier'      => CarrierPostNL::NAME,

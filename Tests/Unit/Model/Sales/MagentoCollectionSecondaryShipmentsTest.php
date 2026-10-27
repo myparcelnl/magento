@@ -134,7 +134,7 @@ it('adds a row when a multicollo has more colli than spare rows', function () {
 });
 it('asks for a collo by id, so the link its nested entry lacked arrives', function () {
     // The api fills link_consumer_portal in only for a shipment asked for by id. A collo read out of
-    // secondary_shipments has none, and in PPS mode nothing ever asks again: ordersAwaitingBarcode()
+    // secondary_shipments has none, and in Order v1 mode nothing ever asks again: ordersAwaitingBarcode()
     // drops the order the moment it has a barcode, so the grid falls back to a built url for good.
     [$collection, $saved] = collectionRefreshing(4242, [
         4242 => apiShipmentWithColli(4242, '3SMAIN', [apiCollo(4243, '3SCOLLO2')]),

@@ -5,11 +5,11 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
- * A PPS order's barcode and shipment id must reach the track that would otherwise keep a
+ * An Order v1 order's barcode and shipment id must reach the track that would otherwise keep a
  * placeholder. The other half of that defect, a placeholder never reaching sales_order.track_number,
  * is pinned in OrderGridColumnsTest, where the rule lives.
  *
- * The allocation is the other half again: a fulfilment order can hold several separate
+ * The allocation is the other half again: an Order v1 order can hold several separate
  * shipments, each needs its own track, and the cron runs every minute — so what is pinned hardest
  * here is that a second run writes nothing. Multicollo colli are not this path; they are expanded
  * from the shipment API by updateMagentoTrack().
@@ -17,7 +17,7 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 it('writes the barcode and the shipment id onto a track still holding a placeholder', function () {
     // The id is what lets updateMagentoTrack() refresh this order afterwards, status and track &
-    // trace link included — which a PPS order never got.
+    // trace link included — which an Order v1 order never got.
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
 
     $collection->setOrderV1TrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
@@ -72,7 +72,7 @@ it('touches no track of another carrier', function () {
         ->and($saved->createdNumbers)->toBe(['3SMYPA123']);
 });
 
-it('does nothing for an order the fulfilment response said nothing about', function () {
+it('does nothing for an order the Order v1 response said nothing about', function () {
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
 
     $collection->setOrderV1TrackData(['100000999' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
