@@ -8,21 +8,7 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
-/** A lookup whose repository records every request it is asked. */
-function recordingShapeLookup(): array
-{
-    $requests   = new ArrayObject();
-    $repository = Mockery::mock(Repository::class);
-    $repository->shouldReceive('forStore')->andReturnUsing(
-        static function (?int $storeId, CapabilitiesRequest $request) use ($requests): CapabilitySet {
-            $requests[] = $request;
-
-            return CapabilitySet::fromApiResults([]);
-        }
-    );
-
-    return [new ShapeLookup($repository), $requests];
-}
+// recordingShapeLookup() lives in Tests/Helpers/CapabilitiesFixtures.php.
 
 it('sends the delivery type as its v2 name', function () {
     [$lookup, $requests] = recordingShapeLookup();
