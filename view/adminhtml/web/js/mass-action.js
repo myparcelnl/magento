@@ -187,7 +187,7 @@ define(
                         ._setDefaultSettings()
                         ._showMyParcelOptions();
 
-                    if (parentThis._usePPSExportMode()) {
+                    if (parentThis._isOrderV1Export()) {
                       $('#mypa_container-request_type').hide();
                       $('#mypa_container-label_amount').hide();
                       $('#mypa_container-print_position').hide();
@@ -348,10 +348,8 @@ define(
                 /**
                  * @protected
                  */
-                _usePPSExportMode: function () {
-                  var exportMode = this.options.settings['export_mode'];
-
-                  return exportMode === 'pps';
+                _isOrderV1Export: function () {
+                  return true === this.options.settings['order_v1'];
                 },
 
                 /**

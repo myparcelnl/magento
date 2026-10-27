@@ -12,12 +12,12 @@ use MyParcelNL\Sdk\Model\Fulfilment\OrderLine;
  */
 function buildBatch(array $itemsPerOrder): array
 {
-    $builder = createFulfilmentOrderBuilder();
+    $builder = createOrderV1Builder();
     $built   = [];
 
     foreach ($itemsPerOrder as $index => $items) {
         $built[] = $builder->build(
-            createFulfilmentMagentoOrder(
+            createOrderV1MagentoOrder(
                 ['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'],
                 ['getItems' => $items, 'getIncrementId' => sprintf('10000000%d', $index + 1)]
             )

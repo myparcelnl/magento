@@ -102,7 +102,7 @@ class OrdersAction extends Template
         // The grid's modal hides the label fields for a PPS export, which it can only know when
         // every store's account has order v1; the server refuses a mixed selection.
         $modes                   = ObjectManager::getInstance()->get(StoredAccount::class)->orderV1ByStore();
-        $settings['export_mode'] = $modes && ! in_array(false, $modes, true) ? 'pps' : 'shipments';
+        $settings['order_v1']    = $modes && ! in_array(false, $modes, true);
 
         return json_encode($settings);
     }

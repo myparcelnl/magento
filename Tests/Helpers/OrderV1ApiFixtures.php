@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Api\ShipmentStatus;
-use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 
 /**
- * Fulfilment API responses, the direction FulfilmentOrderBuilderMocks does not cover: that one
+ * Fulfilment API responses, the direction OrderV1BuilderMocks does not cover: that one
  * builds what we send, these build what comes back.
  *
  * order_shipments is a raw array in the SDK, so these mirror its wire shape rather than a model.
@@ -17,7 +17,7 @@ use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
 /**
  * @param array<int,array{status:int, barcode?:string, id?:int}> $shipments
  */
-function apiOrderWithShipments(string $incrementId, array $shipments): FulfilmentOrder
+function apiOrderWithShipments(string $incrementId, array $shipments): SdkOrderV1
 {
     $orderShipments = [];
 
@@ -35,13 +35,13 @@ function apiOrderWithShipments(string $incrementId, array $shipments): Fulfilmen
         $orderShipments[] = ['shipment' => $wire];
     }
 
-    return new FulfilmentOrder([
+    return new SdkOrderV1([
         'external_identifier' => $incrementId,
         'order_shipments'     => $orderShipments,
     ]);
 }
 
-function apiOrder(string $incrementId, int $status, string $barcode, ?int $shipmentId): FulfilmentOrder
+function apiOrder(string $incrementId, int $status, string $barcode, ?int $shipmentId): SdkOrderV1
 {
     $shipment = ['status' => $status, 'barcode' => $barcode];
 
@@ -52,13 +52,13 @@ function apiOrder(string $incrementId, int $status, string $barcode, ?int $shipm
     return apiOrderWithShipments($incrementId, [$shipment]);
 }
 
-function shippedApiOrder(string $incrementId, string $barcode = '3SABC', ?int $shipmentId = null): FulfilmentOrder
+function shippedApiOrder(string $incrementId, string $barcode = '3SABC', ?int $shipmentId = null): SdkOrderV1
 {
     return apiOrder($incrementId, ShipmentStatus::PRINTED_MINIMUM, $barcode, $shipmentId);
 }
 
 /** Status 1 is concept: created in the backoffice, not yet shipped. */
-function conceptApiOrder(string $incrementId, string $barcode = '3SABC'): FulfilmentOrder
+function conceptApiOrder(string $incrementId, string $barcode = '3SABC'): SdkOrderV1
 {
     return apiOrder($incrementId, ShipmentStatus::CONCEPT, $barcode, null);
 }
