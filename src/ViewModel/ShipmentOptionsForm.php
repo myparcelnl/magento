@@ -288,7 +288,7 @@ class ShipmentOptionsForm implements ArgumentInterface
         $capabilities = $this->getCapabilities($packageType);
 
         $options = $capabilities->isPermissive()
-            ? ShipmentOption::TO_CHECK
+            ? ShipmentOption::KNOWN_TOGGLES
             : $capabilities->optionsFor($carrier, $packageType);
 
         return array_values(array_filter(
@@ -334,7 +334,7 @@ class ShipmentOptionsForm implements ArgumentInterface
         $offered = $capabilities->optionsFor($carrier, $packageType);
         $dropped = [];
 
-        foreach (ShipmentOption::TO_CHECK as $option) {
+        foreach (ShipmentOption::KNOWN_TOGGLES as $option) {
             if (! in_array($option, $offered, true) && $this->hasDefaultOption($option, $carrier)) {
                 $dropped[] = $this->getNewShipmentForm()->labelFor($option);
             }
