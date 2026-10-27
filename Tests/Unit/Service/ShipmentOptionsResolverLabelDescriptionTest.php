@@ -58,6 +58,12 @@ it('reads one named row, not every column of every item', function () {
         ->and($select->order)->toBe('main_table.entity_id ASC');
 });
 
+it('leaves the delivery date empty for a date before tomorrow', function () {
+    ['resolver' => $resolver] = createLabelDescriptionResolver(42, '%delivery_date%', [], '2020-01-01 00:00:00');
+
+    expect($resolver->getLabelDescription())->toBe('');
+});
+
 it('reads the row once, however often the description is asked for', function () {
     ['resolver' => $resolver, 'select' => $select] = createLabelDescriptionResolver(
         42,

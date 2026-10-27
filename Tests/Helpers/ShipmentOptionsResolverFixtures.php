@@ -107,7 +107,7 @@ function storedDeliveryOptions(?array $stored): DeliveryOptions
  *
  * @return array{resolver: ShipmentOptionsResolver, select: object}
  */
-function createLabelDescriptionResolver(?int $shipmentId, string $template, array $rows = []): array
+function createLabelDescriptionResolver(?int $shipmentId, string $template, array $rows = [], ?string $deliveryDate = null): array
 {
     $recorder = new class {
         public string $table     = '';
@@ -171,7 +171,7 @@ function createLabelDescriptionResolver(?int $shipmentId, string $template, arra
     $resolver = new ShipmentOptionsResolver(
         Mockery::mock(DefaultOptions::class),
         createOrder(['getId' => 7]),
-        storedDeliveryOptions(null),
+        storedDeliveryOptions(null === $deliveryDate ? null : ['date' => $deliveryDate, 'deliveryType' => DeliveryType::STANDARD_NAME]),
         $objectManager,
         'postnl',
         $shipmentId
