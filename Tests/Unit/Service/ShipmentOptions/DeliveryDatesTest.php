@@ -9,6 +9,7 @@ use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\ShipmentOptions\DeliveryDates;
+use MyParcelNL\Magento\Service\ShipmentOptions\ShippingAddressQuery;
 use MyParcelNL\Sdk\Services\CoreApi\ShipmentApiFactory;
 
 // deliveryDay() and deliveryOptionsBody() live in Tests/Helpers/DeliveryChoiceFixtures.php.
@@ -43,7 +44,7 @@ function deliveryDatesWith(array $responses, int $deliveryDaysWindow = 3, string
     $storedAccount->shouldReceive('propositionForStore')->andReturn(null);
 
     return [
-        'dates'   => new DeliveryDates($apiProvider, $dropOff, $storedAccount, $http['client'], datingOn($storeToday)),
+        'dates'   => new DeliveryDates($apiProvider, $dropOff, new ShippingAddressQuery($storedAccount), $http['client'], datingOn($storeToday)),
         'history' => &$http['history'],
     ];
 }
