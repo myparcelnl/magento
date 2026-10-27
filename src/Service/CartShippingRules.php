@@ -33,16 +33,16 @@ class CartShippingRules
     }
 
     /**
-     * The limiting options this cart carries whatever the shopper picks, so a package type that
-     * cannot carry one of them is not a candidate.
+     * The options of ShipmentOption::LIMIT_CHECKOUT_OPTIONS this cart carries whatever the shopper
+     * picks, by a product or by the carrier's default option setting.
      *
      * @param  \Magento\Quote\Model\Quote\Item[] $items
      * @return string[]
      */
-    public function forcedLimitingOptions(array $items, string $carrierPath, ?int $storeId = null): array
+    public function forcedCheckoutOptions(array $items, string $carrierPath, ?int $storeId = null): array
     {
         return array_values(array_filter(
-            ShipmentOption::LIMIT_PACKAGE_TYPE,
+            ShipmentOption::LIMIT_CHECKOUT_OPTIONS,
             fn(string $option): bool => $this->optionForcedOn($items, $carrierPath, $option, $storeId)
         ));
     }

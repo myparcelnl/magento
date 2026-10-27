@@ -50,18 +50,17 @@ final class ShipmentOption
         ];
 
     /**
-     * Forced options that rule out a package type which cannot carry them.
+     * Options that, when the cart forces them, the checkout sends to capabilities as a filter.
      *
-     * Only the age check: the export drops any other option a package type cannot carry, but an 18+
-     * order must keep its age check. Priority delivery is not one: it is a mailbox option, and would
-     * rule out every other package type. Which package type can carry it is the capabilities' answer.
-     *
-     * Keep this until the checkout sends the forced options to capabilities as a filter, so that
-     * capabilities rule out the package type themselves.
+     * Capabilities then leave out what cannot carry them: for PostNL, mailbox, morning and evening
+     * for the age check. Which option is a must is the merchant's matter, not a capabilities fact:
+     * the export drops any other option a shipment cannot carry, but an 18+ order must keep its age
+     * check. A default such as signature is not one: the PostNL mailbox excludes it too, so mailbox
+     * would disappear for every cart.
      *
      * @var string[]
      */
-    public const LIMIT_PACKAGE_TYPE = [self::AGE_CHECK];
+    public const LIMIT_CHECKOUT_OPTIONS = [self::AGE_CHECK];
 
     /**
      * Stored option names that do not follow from their camelCase wire key.
