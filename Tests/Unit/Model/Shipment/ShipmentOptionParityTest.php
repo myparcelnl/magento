@@ -27,8 +27,8 @@ function sdkOptionsFor(ResolvedOptions $resolved, array $storedDeliveryOptions =
         'order'           => createOrder(),
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback($storedDeliveryOptions),
-        'resolved'        => $resolved,
-    ])->shipmentOptions();
+        'chosen'        => $resolved,
+    ])->sdkShipmentOptions();
 }
 
 function sdkValueOf(SdkShipmentOptions $options, string $option)
