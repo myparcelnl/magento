@@ -416,3 +416,12 @@ it('ignores an unknown delivery type name', function () {
         ->and($changes->pickupLocationCode())->toBeNull()
         ->and($changes->isEmpty())->toBeTrue();
 });
+
+it('repairs a pickup it cannot read when the merchant chooses a new delivery', function () {
+    $did = writeOrderOptions(
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'pickup'])],
+        ['delivery_type' => 'standard', 'delivery_date' => 'none']
+    );
+
+    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'standard', 'isPickup' => false, 'pickupLocation' => null]);
+});
