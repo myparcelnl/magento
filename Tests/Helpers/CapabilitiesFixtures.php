@@ -375,8 +375,9 @@ function capabilityLookupWith($answers, string $country = 'NL'): CapabilitiesLoo
     $seeded = [];
 
     foreach ($answers as $packageType => $set) {
-        // Same key as CapabilitiesLookup::forApiKeyRequest() builds: key, country, package type, carrier.
-        $seeded[CAPABILITIES_TEST_API_KEY . '|' . $country . '|' . $packageType . '|'] = $set;
+        // The same key as CapabilitiesLookup::forApiKeyRequest() builds: key, country, package type,
+        // carrier, delivery type, options. Carrier, delivery type and options stay empty.
+        $seeded[CAPABILITIES_TEST_API_KEY . '|' . $country . '|' . $packageType . '|||'] = $set;
     }
 
     $lookup = capabilitiesLookupOver(newInstanceWithoutConstructor(CapabilitiesRepository::class));
