@@ -27,6 +27,7 @@ use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ExportErrorRecorder;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 
@@ -170,7 +171,7 @@ class NewShipment implements ObserverInterface
 
         // Each built shipment carries its own track, so nothing is paired by position.
         foreach ($builtShipments as $built) {
-            if (! $built->getTrack()->getData('myparcel_consignment_id')) {
+            if (! $built->getTrack()->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID)) {
                 continue;
             }
 
