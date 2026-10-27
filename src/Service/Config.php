@@ -136,19 +136,14 @@ class Config extends AbstractHelper
         return $coordinates;
     }
 
-    /**
-     * @param string $path
-     * @param string $key
-     * @return bool
-     */
-    public function getBoolConfig(string $path, string $key): bool
+    public function getBoolConfig(string $path, string $key, ?int $storeId = null): bool
     {
-        return '1' === $this->getConfigValue("$path$key");
+        return '1' === $this->getConfigValue("$path$key", $storeId);
     }
 
-    public function getFloatConfig(string $path, string $key): float
+    public function getFloatConfig(string $path, string $key, ?int $storeId = null): float
     {
-        return self::parseDecimal((string) $this->getConfigValue("$path$key"));
+        return self::parseDecimal((string) $this->getConfigValue("$path$key", $storeId));
     }
 
     /**
@@ -179,9 +174,9 @@ class Config extends AbstractHelper
         return (float) ($whole . '.' . substr($value, $decimalAt + 1));
     }
 
-    public function getTimeConfig(string $carrier, string $key): string
+    public function getTimeConfig(string $carrier, string $key, ?int $storeId = null): string
     {
-        $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key"));
+        $timeAsString   = str_replace(',', ':', (string) $this->getConfigValue("$carrier$key", $storeId));
         $timeComponents = explode(':', $timeAsString);
         if ($timeComponents && count($timeComponents) >= 3) {
             [$hours, $minutes] = $timeComponents;
@@ -191,14 +186,9 @@ class Config extends AbstractHelper
         return $timeAsString;
     }
 
-    /**
-     * @param string $path
-     * @param string $key
-     * @return int
-     */
-    public function getIntegerConfig(string $path, string $key): int
+    public function getIntegerConfig(string $path, string $key, ?int $storeId = null): int
     {
-        return (int) $this->getConfigValue("$path$key");
+        return (int) $this->getConfigValue("$path$key", $storeId);
     }
 
     /** The config path prefix of a carrier's settings section, for any carrier name. */
@@ -245,9 +235,9 @@ class Config extends AbstractHelper
         return $this->getConfigValue(self::XML_PATH_GENERAL . $code, $storeId);
     }
 
-    public function getMagentoCarrierConfig(string $code = '')
+    public function getMagentoCarrierConfig(string $code = '', ?int $storeId = null)
     {
-        return $this->getConfigValue(self::XML_PATH_MAGENTO_CARRIER . $code);
+        return $this->getConfigValue(self::XML_PATH_MAGENTO_CARRIER . $code, $storeId);
     }
 
     /**
