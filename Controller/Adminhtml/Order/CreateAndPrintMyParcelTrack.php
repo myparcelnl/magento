@@ -66,7 +66,7 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
         $this->orderCollection->setOptionsFromParameters();
 
         if ($orderV1) {
-            $this->orderCollection->setFulfilment();
+            $this->orderCollection->exportAsOrderV1();
 
             return null;
         }
