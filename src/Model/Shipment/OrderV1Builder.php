@@ -19,7 +19,7 @@ use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Helper\SplitStreet;
-use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 use MyParcelNL\Sdk\Model\PhysicalProperties;
 use MyParcelNL\Sdk\Model\PickupLocation;
 use MyParcelNL\Sdk\Model\Recipient;
@@ -35,7 +35,7 @@ use RuntimeException;
  *
  * Always call setCarrierId(): AbstractOrder::getCarrier() throws when the carrier was never set.
  */
-class FulfilmentOrderBuilder
+class OrderV1Builder
 {
     private ObjectManagerInterface $objectManager;
     private Weight                 $weight;
@@ -54,7 +54,7 @@ class FulfilmentOrderBuilder
      * @throws LocalizedException when the order's store has no API key
      * @throws RuntimeException   when the order cannot be exported as stored
      */
-    public function build(Order $magentoOrder): FulfilmentOrder
+    public function build(Order $magentoOrder): SdkOrderV1
     {
         $orderOptions = new OrderShipmentOptions($this->objectManager, $magentoOrder, new DefaultOptions($magentoOrder));
 
@@ -62,7 +62,7 @@ class FulfilmentOrderBuilder
         $deliveryOptions   = $orderOptions->deliveryOptionsToShip();
         $shippingRecipient = $this->shippingRecipient($magentoOrder, $this->storedAccount->homeCountryForApiKey($apiKey));
 
-        $order = (new FulfilmentOrder())
+        $order = (new SdkOrderV1())
             ->setApiKey($apiKey)
             ->setStatus((string) $magentoOrder->getStatus())
             ->setCarrierId($orderOptions->carrierIdToShip())
