@@ -112,8 +112,12 @@ final class DeliveryList
 
     private static function storedValue(DeliveryOptions $stored): ?string
     {
-        $type = $stored->getDeliveryType();
+        return self::valueOf($stored->getDeliveryType(), $stored->getDate());
+    }
 
+    /** A stored delivery type and date as a list value, or null without a delivery type. */
+    public static function valueOf(?string $type, ?string $date): ?string
+    {
         if (null === $type || '' === $type) {
             return null;
         }
@@ -122,14 +126,18 @@ final class DeliveryList
             return $type . '|';
         }
 
-        $date = $stored->getDate();
-
         return $type . '|' . (null === $date || '' === $date ? '' : substr($date, 0, 10));
+    }
+
+    /** The translated label of a delivery type; an unknown type is its own label. */
+    public static function labelFor(string $type): string
+    {
+        return isset(self::LABELS[$type]) ? (string) __(self::LABELS[$type]) : $type;
     }
 
     private static function entry(string $type, ?string $date, ?string $start, ?string $end, bool $stored = false): array
     {
-        $label = isset(self::LABELS[$type]) ? (string) __(self::LABELS[$type]) : $type;
+        $label = self::labelFor($type);
 
         if (null !== $start && null !== $end) {
             $label .= ' ' . $start . '–' . $end;
