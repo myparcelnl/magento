@@ -46,7 +46,7 @@ CI runs Pest on PHP 8.1 to 8.4. PHP 7.4 and 8.0 are in `composer.json` but are n
 ## Architecture
 
 ```
-Magento order -> Adapter -> SDK consignment -> MyParcel API
+Magento order -> Adapter -> SDK shipment -> MyParcel API
       ^                                            |
       +----------- Track & Trace update -----------+
 ```
