@@ -14,7 +14,7 @@ use MyParcelNL\Sdk\Model\Shipment\ShipmentOptions as SdkShipmentOptions;
 /**
  * Every checkbox the shipment options form can render, from the POST to the shipment the API receives.
  *
- * The form is built from ShipmentOption::TO_CHECK; the export once named each option by hand, so a
+ * The form is built from ShipmentOption::KNOWN_TOGGLES; the export once named each option by hand, so a
  * new one showed as a checkbox and was dropped without a trace. NL, standard delivery and a
  * package: no option has a rule that turns it off there.
  */
@@ -38,22 +38,22 @@ function sdkValueOf(SdkShipmentOptions $options, string $option)
 
 it('reads the option out of the posted changes', function (string $option) {
     expect(OptionChanges::fromRequest(['options' => [$option => '1']])->options()[$option] ?? null)->toBeTrue();
-})->with(ShipmentOption::TO_CHECK);
+})->with(ShipmentOption::KNOWN_TOGGLES);
 
 it('resolves the option the order holds', function (string $option) {
     $resolved = createShipmentOptions('NL', 'postnl', [$option => '1'])->resolve();
 
     expect($resolved->toArray()[$option] ?? null)->toBeTrue();
-})->with(ShipmentOption::TO_CHECK);
+})->with(ShipmentOption::KNOWN_TOGGLES);
 
 it('sets the option on the shipment the API receives', function (string $option) {
     expect(sdkValueOf(sdkOptionsFor(ResolvedOptions::of([$option => true])), $option))->toBe(1);
-})->with(ShipmentOption::TO_CHECK);
+})->with(ShipmentOption::KNOWN_TOGGLES);
 
 it('sends a literal 0 when the option is not chosen', function (string $option) {
     // RefTypesIntBoolean is checked against [0, 1] with a strict in_array, so false would throw.
     expect(sdkValueOf(sdkOptionsFor(ResolvedOptions::of([])), $option))->toBe(0);
-})->with(ShipmentOption::TO_CHECK);
+})->with(ShipmentOption::KNOWN_TOGGLES);
 
 it('never sends return on a pickup, whatever was chosen', function () {
     $options = sdkOptionsFor(

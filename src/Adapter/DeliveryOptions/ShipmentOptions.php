@@ -69,7 +69,7 @@ final class ShipmentOptions
     /** KEYS, then any checkbox it does not name yet: appended, so the persisted order holds. */
     private static function keys(): array
     {
-        return array_values(array_unique(array_merge(self::KEYS, ShipmentOption::TO_CHECK)));
+        return array_values(array_unique(array_merge(self::KEYS, ShipmentOption::KNOWN_TOGGLES)));
     }
 
     /**
@@ -121,7 +121,7 @@ final class ShipmentOptions
     {
         $values = [ShipmentOption::INSURANCE => (int) ($options[ShipmentOption::INSURANCE] ?? self::DEFAULT_INSURANCE)];
 
-        foreach (ShipmentOption::TO_CHECK as $option) {
+        foreach (ShipmentOption::KNOWN_TOGGLES as $option) {
             $values[$option] = (bool) ($options[$option] ?? false);
         }
 

@@ -28,12 +28,13 @@ final class ShipmentOption
     public const FROZEN             = 'frozen';
 
     /**
-     * The checkboxes the New Shipment form shows when capabilities could not be read, and the fixed
-     * front of the persisted key order. With capabilities, the form shows what they offer instead.
+     * The yes/no options the module knows by name. The form shows them when capabilities could not be
+     * read, and they are the fixed front of the persisted key order. An option only capabilities name
+     * is a discovered option.
      *
      * @var string[]
      */
-    public const TO_CHECK
+    public const KNOWN_TOGGLES
         = [
             self::AGE_CHECK,
             self::HIDE_SENDER,
