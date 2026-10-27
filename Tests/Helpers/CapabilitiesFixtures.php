@@ -329,8 +329,9 @@ function assertFlatInsuranceShape(array $results): void
  * fatals, and that is the assertion that the code asked only the shapes the test seeded.
  *
  * Shapes are keyed by module package type name, with '' for the package-type-agnostic lookup, and
- * '<package type>|<option,option>' for a lookup with an option filter. Pass a single CapabilitySet
- * to seed every unfiltered shape at once, for a test the shape distinction is not about.
+ * '<package type>|<option,option>|<delivery type>' for a lookup with an option filter or a delivery
+ * type; options in sorted order. Pass a single CapabilitySet to seed every unfiltered shape at once,
+ * for a test the shape distinction is not about.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $answers
  */
@@ -343,11 +344,11 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
     $seeded = [];
 
     foreach ($answers as $shape => $set) {
-        [$packageType, $options] = array_pad(explode('|', (string) $shape, 2), 2, '');
+        [$packageType, $options, $deliveryType] = array_pad(explode('|', (string) $shape, 3), 3, '');
 
         // Same shape as ShapeLookup::answer() builds: scope, country, package type, carrier, delivery
-        // type, options. Carrier and delivery type stay empty.
-        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|||' . $options] = $set;
+        // type, options. Carrier stays empty.
+        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '||' . $deliveryType . '|' . $options] = $set;
     }
 
     $lookup = newInstanceWithoutConstructor(ShapeLookup::class);
