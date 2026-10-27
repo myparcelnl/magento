@@ -69,6 +69,16 @@ class OrdersAction extends Template
         return $this->_urlBuilder->getUrl('myparcel/shipmentOptions/save');
     }
 
+    public function getOptionsRefreshUrl(): string
+    {
+        return $this->_urlBuilder->getUrl('myparcel/shipmentOptions/refresh');
+    }
+
+    public function getPickupLocationsUrl(): string
+    {
+        return $this->_urlBuilder->getUrl('myparcel/shipmentOptions/pickupLocations');
+    }
+
     /**
      * Get url to send a mail with a return label
      *
