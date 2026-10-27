@@ -16,7 +16,7 @@ use MyParcelNL\Magento\Service\Export\ExportResponse;
  * The order grid's PPS export. The collection's constructor defaults are a mass action's, and
  * OrderShipmentOptions reads a carrier in them as the admin's override of the checkout carrier —
  * so the PPS branch has to run the request through setOptionsFromParameters() like every other
- * caller of setFulfilment() does, or the modal's choice is ignored and a default is exported.
+ * caller of exportAsOrderV1() does, or the modal's choice is ignored and a default is exported.
  *
  * Skips parent::__construct(Action) and shadows getRequest(), as the ApiAccessToken controller
  * tests do, because the Backend Action chain is a test stub here.
@@ -53,7 +53,7 @@ final class FakeCreateAndPrintMyParcelTrack extends CreateAndPrintMyParcelTrack
  * @param array<int, bool>   $orderV1ByStore the selected orders' stores and whether each account has order v1
  * @param StoredAccount|null $storedAccount  a real one to test the decision too; a mock of $orderV1ByStore when null
  */
-function createPpsGridController(
+function createOrderV1GridController(
     MagentoOrderCollection $collection,
     array                  $orderV1ByStore = [1 => true],
     ?ManagerInterface      $messages = null,
@@ -90,9 +90,9 @@ it('reads the request options before a PPS export, as the shipment branch does',
     $collection = Mockery::mock(MagentoOrderCollection::class);
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
     $collection->shouldReceive('setOptionsFromParameters')->once()->ordered()->andReturnSelf();
-    $collection->shouldReceive('setFulfilment')->once()->ordered()->andReturnSelf();
+    $collection->shouldReceive('exportAsOrderV1')->once()->ordered()->andReturnSelf();
 
-    $labels = createPpsGridController($collection)->runMassAction();
+    $labels = createOrderV1GridController($collection)->runMassAction();
 
     expect($labels)->toBeNull();
 });
@@ -100,12 +100,12 @@ it('reads the request options before a PPS export, as the shipment branch does',
 it('refuses a selection that mixes order v1 accounts and others, and exports nothing', function () {
     $collection = Mockery::mock(MagentoOrderCollection::class);
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
-    $collection->shouldNotReceive('setOptionsFromParameters', 'setFulfilment', 'setNewMagentoShipment');
+    $collection->shouldNotReceive('setOptionsFromParameters', 'exportAsOrderV1', 'setNewMagentoShipment');
 
     $messages = Mockery::mock(ManagerInterface::class);
     $messages->shouldReceive('addErrorMessage')->once();
 
-    expect(createPpsGridController($collection, [1 => true, 2 => false], $messages)->runMassAction())->toBeNull();
+    expect(createOrderV1GridController($collection, [1 => true, 2 => false], $messages)->runMassAction())->toBeNull();
 });
 
 it('refuses the export with the import error when an account has no stored features', function () {
@@ -119,7 +119,7 @@ it('refuses the export with the import error when an account has no stored featu
 
     $collection = Mockery::mock(MagentoOrderCollection::class);
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
-    $collection->shouldNotReceive('setOptionsFromParameters', 'setFulfilment', 'setNewMagentoShipment');
+    $collection->shouldNotReceive('setOptionsFromParameters', 'exportAsOrderV1', 'setNewMagentoShipment');
 
     $messages = Mockery::mock(ManagerInterface::class);
     $messages->shouldReceive('addErrorMessage')->once()->with(StoredAccount::ERROR_FEATURES_UNKNOWN);
@@ -128,7 +128,7 @@ it('refuses the export with the import error when an account has no stored featu
     $response = Mockery::mock(ExportResponse::class);
     $response->shouldReceive('json')->once()->with(null)->andReturn($result);
 
-    $controller = createPpsGridController(
+    $controller = createOrderV1GridController(
         $collection,
         [1 => true, 2 => false],
         $messages,

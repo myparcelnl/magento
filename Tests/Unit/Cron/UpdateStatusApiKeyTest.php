@@ -10,7 +10,7 @@ use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Tests\Stub\RecordingUpdateStatus;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
-use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 
 /**
  * The PPS branch used to read one API key with no store id, so a multi-account install only ever
@@ -28,7 +28,7 @@ function updateStatusConfig(): MyParcelNL\Magento\Service\Config
 }
 
 // apiOrderWithShipments(), shippedApiOrder() and conceptApiOrder() live in
-// Tests/Helpers/FulfilmentApiFixtures.php.
+// Tests/Helpers/OrderV1ApiFixtures.php.
 
 /**
  * @param array<int,array{increment_id:string,entity_id:int,store_id:int}> $orderRows
@@ -37,7 +37,7 @@ function updateStatusConfig(): MyParcelNL\Magento\Service\Config
  * @return array{0: RecordingUpdateStatus, 1: MagentoOrderCollection, 2: object} the cron, the
  *         collection the matched orders land in, and a recorder for what was handed to it
  */
-function runPpsCron(
+function runOrderV1Cron(
     array   $orderRows,
     array   $responses = [],
     array   $failingKeys = [],
@@ -50,7 +50,7 @@ function runPpsCron(
 
     // The selector has its own test; here it is stubbed so these cases are about the per-key loop.
     $calls = new class {
-        public array $fulfilment = [];
+        public array $orderV1ShipmentsByIncrementId = [];
         public array $options    = [];
         public array $orderRow   = [];
     };
@@ -130,9 +130,9 @@ function runPpsCron(
             return $orderCollection;
         }
     );
-    $orderCollection->shouldReceive('setFulfilmentTrackData')
-        ->andReturnUsing(static function (array $fulfilment) use ($orderCollection, $calls) {
-            $calls->fulfilment = $fulfilment;
+    $orderCollection->shouldReceive('setOrderV1TrackData')
+        ->andReturnUsing(static function (array $orderV1ShipmentsByIncrementId) use ($orderCollection, $calls) {
+            $calls->orderV1ShipmentsByIncrementId = $orderV1ShipmentsByIncrementId;
 
             return $orderCollection;
         });
@@ -145,13 +145,13 @@ function runPpsCron(
     $cron->responses   = $responses;
     $cron->failingKeys = $failingKeys;
 
-    invokePrivateMethod($cron, 'updateStatusPPS');
+    invokePrivateMethod($cron, 'updateOrderV1Status');
 
     return [$cron, $orderCollection, $calls];
 }
 
 it('issues one query per distinct API key', function () {
-    [$cron] = runPpsCron([
+    [$cron] = runOrderV1Cron([
         ['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1],
         ['increment_id' => '100000002', 'entity_id' => 2, 'store_id' => 1],
         ['increment_id' => '100000003', 'entity_id' => 3, 'store_id' => 2],
@@ -163,7 +163,7 @@ it('issues one query per distinct API key', function () {
 it('never polls a store that has no API key of its own', function () {
     // Skipped, never lent another store's key — which would read one account's orders under
     // another account's credentials.
-    [$cron] = runPpsCron([
+    [$cron] = runOrderV1Cron([
         ['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1],
         ['increment_id' => '100000009', 'entity_id' => 9, 'store_id' => 3],
     ]);
@@ -172,7 +172,7 @@ it('never polls a store that has no API key of its own', function () {
 });
 
 it('keeps updating the other accounts when one account fails', function () {
-    [$cron, $orderCollection] = runPpsCron(
+    [$cron, $orderCollection] = runOrderV1Cron(
         [
             ['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1],
             ['increment_id' => '100000003', 'entity_id' => 3, 'store_id' => 2],
@@ -188,7 +188,7 @@ it('keeps updating the other accounts when one account fails', function () {
 it('matches each account response only against that account\'s own orders', function () {
     // KEY_A's account answering with store 2's order must not update it: the order belongs to the
     // other account, and a shared id list would let the response cross over.
-    [$cron, $orderCollection] = runPpsCron(
+    [$cron, $orderCollection] = runOrderV1Cron(
         [
             ['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1],
             ['increment_id' => '100000003', 'entity_id' => 3, 'store_id' => 2],
@@ -203,33 +203,33 @@ it('matches each account response only against that account\'s own orders', func
 it('hands the barcode and the MyParcel shipment id to the collection', function () {
     // A PPS track has no myparcel_shipment_id, so updateMagentoTrack() cannot refresh it. Both
     // facts have to travel from the fulfilment response or the track keeps its placeholder.
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123', 4242)])]
     );
 
-    expect($calls->fulfilment)->toBe(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
+    expect($calls->orderV1ShipmentsByIncrementId)->toBe(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
 });
 
 it('still carries the barcode when the response names no shipment id', function () {
     // order_shipments passes through the SDK as a raw array, so the id is read defensively.
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])]
     );
 
-    expect($calls->fulfilment)->toBe(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => null]]]);
+    expect($calls->orderV1ShipmentsByIncrementId)->toBe(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => null]]]);
 });
 
 it('leaves an order the backoffice has not shipped yet completely alone', function () {
     // It used to be recorded as done before this check, so it still reached the collection below
     // and was given a Magento shipment and a placeholder track it could never come back from.
-    [, $orderCollection, $calls] = runPpsCron(
+    [, $orderCollection, $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([conceptApiOrder('100000001')])]
     );
 
-    expect($calls->fulfilment)->toBe([]);
+    expect($calls->orderV1ShipmentsByIncrementId)->toBe([]);
     $orderCollection->shouldNotHaveReceived('setNewMagentoShipment');
 });
 
@@ -237,7 +237,7 @@ it('writes the barcode to the order row when the chain could give it no track', 
     // No msi-source, or no shipment Magento would make. canShip() cannot tell us that in advance —
     // createMagentoShipment() rolls its quantity change back on failure, so canShip() stays true —
     // which is why the fallback is decided by what the chain produced.
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])],
         [],
@@ -249,7 +249,7 @@ it('writes the barcode to the order row when the chain could give it no track', 
 
 it('leaves the order row alone once the track carries the barcode', function () {
     // The track is where a barcode belongs: it is the only place a track & trace link can be stored.
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])],
         [],
@@ -262,7 +262,7 @@ it('leaves the order row alone once the track carries the barcode', function () 
 it('does not write the order row for a track still holding a placeholder', function () {
     // A placeholder is not a barcode, so this order is not finished and must stay in scope rather
     // than be settled on the order row.
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])],
         [],
@@ -275,7 +275,7 @@ it('does not write the order row for a track still holding a placeholder', funct
 it('never lets the cron add a second track to a shipment that has one', function () {
     // The default it used to inherit is a mass action's, and already-tracked orders reach
     // setMagentoTrack() now that the canShip() pre-check is gone.
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001')])]
     );
@@ -291,7 +291,7 @@ it('never lets the cron add a second track to a shipment that has one', function
  */
 
 it('carries every shipped shipment of one fulfilment order', function () {
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([
             apiOrderWithShipments('100000001', [
@@ -301,14 +301,14 @@ it('carries every shipped shipment of one fulfilment order', function () {
         ])]
     );
 
-    expect($calls->fulfilment)->toBe(['100000001' => [
+    expect($calls->orderV1ShipmentsByIncrementId)->toBe(['100000001' => [
         ['barcode' => '3SA', 'shipmentId' => 1],
         ['barcode' => '3SB', 'shipmentId' => 2],
     ]]);
 });
 
 it('leaves a concept behind while carrying its shipped siblings', function () {
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([
             apiOrderWithShipments('100000001', [
@@ -319,11 +319,11 @@ it('leaves a concept behind while carrying its shipped siblings', function () {
     );
 
     // Reading order_shipments[0] alone skipped this whole order: its first entry is a concept.
-    expect($calls->fulfilment)->toBe(['100000001' => [['barcode' => '3SB', 'shipmentId' => 2]]]);
+    expect($calls->orderV1ShipmentsByIncrementId)->toBe(['100000001' => [['barcode' => '3SB', 'shipmentId' => 2]]]);
 });
 
 it('ignores a cancelled shipment among the shipped ones', function () {
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([
             apiOrderWithShipments('100000001', [
@@ -333,11 +333,11 @@ it('ignores a cancelled shipment among the shipped ones', function () {
         ])]
     );
 
-    expect($calls->fulfilment)->toBe(['100000001' => [['barcode' => '3SA', 'shipmentId' => 1]]]);
+    expect($calls->orderV1ShipmentsByIncrementId)->toBe(['100000001' => [['barcode' => '3SA', 'shipmentId' => 1]]]);
 });
 
 it('writes every barcode to the order row when the chain could give it no track', function () {
-    [, , $calls] = runPpsCron(
+    [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([
             apiOrderWithShipments('100000001', [
