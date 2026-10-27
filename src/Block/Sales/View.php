@@ -83,7 +83,7 @@ class View extends AbstractOrder
     }
 
     /**
-     * Collect options selected at checkout and calculate type consignment
+     * Collect options selected at checkout and calculate the package type
      *
      * @return string
      * @throws LocalizedException

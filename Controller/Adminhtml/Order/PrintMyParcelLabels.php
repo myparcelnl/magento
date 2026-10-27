@@ -71,7 +71,7 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
 
         try {
             $result = $this->exportService->fetchLabelPdf(
-                $collection->getMyparcelConsignmentIdsByApiKey(),
+                $collection->getMyParcelShipmentIdsByApiKey(),
                 $this->labelPositions->decode($this->getRequest()->getParam('positions'))
             );
         } catch (Throwable $e) {
