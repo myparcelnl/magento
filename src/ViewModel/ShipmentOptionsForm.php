@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\ViewModel;
 
+use BadMethodCallException;
+use InvalidArgumentException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
@@ -455,6 +458,21 @@ class ShipmentOptionsForm implements ArgumentInterface
     {
         return DeliveryList::valueOf($this->storedDeliveryTypeName(), $this->getDeliveryDate())
                ?? DeliveryType::STANDARD_NAME . '|';
+    }
+
+    /** The stored delivery options; a pickup without a readable location counts as a home delivery. */
+    public function storedDelivery(): DeliveryOptions
+    {
+        try {
+            return DeliveryOptionsFactory::create($this->stored());
+        } catch (InvalidArgumentException $e) {
+            return DeliveryOptions::fromOrderFallback(array_merge($this->stored(), [
+                'deliveryType'   => DeliveryType::STANDARD_NAME,
+                'pickupLocation' => null,
+            ]));
+        } catch (BadMethodCallException $e) {
+            return DeliveryOptions::fromOrderFallback($this->stored());
+        }
     }
 
     public function storedPickupLocationCode(): ?string
