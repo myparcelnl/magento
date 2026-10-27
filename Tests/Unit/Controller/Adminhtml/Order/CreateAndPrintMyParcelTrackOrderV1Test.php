@@ -16,7 +16,7 @@ use MyParcelNL\Magento\Service\Export\ExportResponse;
  * The order grid's PPS export. The collection's constructor defaults are a mass action's, and
  * OrderShipmentOptions reads a carrier in them as the admin's override of the checkout carrier,
  * so the PPS branch has to run the request through setOptionsFromParameters() like every other
- * caller of setFulfilment() does, or the modal's choice is ignored and a default is exported.
+ * caller of exportAsOrderV1() does, or the modal's choice is ignored and a default is exported.
  *
  * Skips parent::__construct(Action) and shadows getRequest(): the Backend Action chain is a stub here.
  */
@@ -88,7 +88,7 @@ it('reads the request options before a PPS export, as the shipment branch does',
     $collection = Mockery::mock(MagentoOrderCollection::class);
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
     $collection->shouldReceive('setOptionsFromParameters')->once()->ordered()->andReturnSelf();
-    $collection->shouldReceive('setFulfilment')->once()->ordered()->andReturnSelf();
+    $collection->shouldReceive('exportAsOrderV1')->once()->ordered()->andReturnSelf();
 
     $labels = createGridController($collection)->runMassAction();
 
@@ -98,7 +98,7 @@ it('reads the request options before a PPS export, as the shipment branch does',
 it('refuses a selection that mixes order v1 accounts and others, and exports nothing', function () {
     $collection = Mockery::mock(MagentoOrderCollection::class);
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
-    $collection->shouldNotReceive('setOptionsFromParameters', 'setFulfilment', 'setNewMagentoShipment');
+    $collection->shouldNotReceive('setOptionsFromParameters', 'exportAsOrderV1', 'setNewMagentoShipment');
 
     $messages = Mockery::mock(ManagerInterface::class);
     $messages->shouldReceive('addErrorMessage')->once();
@@ -117,7 +117,7 @@ it('refuses the export with the import error when an account has no stored featu
 
     $collection = Mockery::mock(MagentoOrderCollection::class);
     $collection->shouldReceive('setOrderCollection')->once()->andReturnSelf();
-    $collection->shouldNotReceive('setOptionsFromParameters', 'setFulfilment', 'setNewMagentoShipment');
+    $collection->shouldNotReceive('setOptionsFromParameters', 'exportAsOrderV1', 'setNewMagentoShipment');
 
     $messages = Mockery::mock(ManagerInterface::class);
     $messages->shouldReceive('addErrorMessage')->once()->with(StoredAccount::ERROR_FEATURES_UNKNOWN);

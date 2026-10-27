@@ -15,7 +15,7 @@ it('writes the barcode and the shipment id onto a track still holding a placehol
     // The id lets updateMagentoTrack() refresh the status and track & trace link afterwards.
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
 
-    $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
+    $collection->setOrderV1TrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
 
     expect($saved->numbers)->toBe(['3SMYPA123'])
         ->and($saved->data)->toBe(['myparcel_shipment_id' => 4242])
@@ -30,7 +30,7 @@ it('writes the barcode without an id when the response named none, and says so',
 
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
 
-    $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => null]]]);
+    $collection->setOrderV1TrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => null]]]);
 
     expect($saved->numbers)->toBe(['3SMYPA123'])
         ->and($saved->data)->toBe([]);
@@ -39,7 +39,7 @@ it('writes the barcode without an id when the response named none, and says so',
 it('replaces the printed placeholder once a real barcode arrives', function () {
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_PRINTED]]);
 
-    $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => null]]]);
+    $collection->setOrderV1TrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => null]]]);
 
     expect($saved->numbers)->toBe(['3SMYPA123']);
 });
@@ -48,7 +48,7 @@ it('leaves a track that already carries a barcode alone, and gives the new shipm
     // The existing track is never rewritten.
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => '3SEXISTING']]);
 
-    $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
+    $collection->setOrderV1TrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
 
     expect($saved->numbers)->toBe([])
         ->and($saved->createdNumbers)->toBe(['3SMYPA123'])
@@ -58,7 +58,7 @@ it('leaves a track that already carries a barcode alone, and gives the new shipm
 it('does nothing for an order the fulfilment response said nothing about', function () {
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
 
-    $collection->setFulfilmentTrackData(['100000999' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
+    $collection->setOrderV1TrackData(['100000999' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
 
     expect($saved->numbers)->toBe([])
         ->and($saved->createdNumbers)->toBe([]);
@@ -72,7 +72,7 @@ it('gives a second shipment its own track when only one placeholder is free', fu
 
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackAndTrace::VALUE_EMPTY]]);
 
-    $collection->setFulfilmentTrackData(['100000001' => [
+    $collection->setOrderV1TrackData(['100000001' => [
         ['barcode' => '3SA', 'shipmentId' => 1],
         ['barcode' => '3SB', 'shipmentId' => 2],
     ]]);
@@ -89,7 +89,7 @@ it('adds nothing on a second run over the same response', function () {
         ['number' => '3SB', 'myParcelShipmentId' => 2],
     ]);
 
-    $collection->setFulfilmentTrackData(['100000001' => [
+    $collection->setOrderV1TrackData(['100000001' => [
         ['barcode' => '3SA', 'shipmentId' => 1],
         ['barcode' => '3SB', 'shipmentId' => 2],
     ]]);
@@ -103,7 +103,7 @@ it('creates no track for a shipment with neither an id nor a real barcode', func
     // Nothing could ever match it again, so a new track would be added every single run.
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => '3SA', 'myParcelShipmentId' => 1]]);
 
-    $collection->setFulfilmentTrackData(['100000001' => [
+    $collection->setOrderV1TrackData(['100000001' => [
         ['barcode' => TrackAndTrace::VALUE_PRINTED, 'shipmentId' => null],
     ]]);
 
@@ -119,7 +119,7 @@ it('claims a shipment once for an order that has two Magento shipments', functio
         2
     );
 
-    $collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
+    $collection->setOrderV1TrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);
 
     expect($saved->numbers)->toBe(['3SMYPA123'])
         ->and($saved->createdNumbers)->toBe([])
@@ -136,6 +136,6 @@ it('logs and skips an order whose track cannot be saved, so the run goes on', fu
     $repository->shouldReceive('save')->andThrow(new RuntimeException('deadlock'));
     setPrivateProperty($collection, 'trackRepository', $repository);
 
-    expect($collection->setFulfilmentTrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]))
+    expect($collection->setOrderV1TrackData(['100000001' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]))
         ->toBe($collection);
 });

@@ -32,8 +32,8 @@ function pickupCheckoutData(): array
 
 it('sets the carrier id, so getCarrier() does not throw', function () {
     // getCarrier() throws when the carrier was never set, and nothing else in the module checks it.
-    $order = createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'])
+    $order = createOrderV1Builder()->build(
+        createOrderV1MagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'])
     );
 
     expect($order->getCarrierId())->toBe(SdkCarrier::toId('POSTNL'))
@@ -41,8 +41,8 @@ it('sets the carrier id, so getCarrier() does not throw', function () {
 });
 
 it('hands the fulfilment order the SDK shipment options', function () {
-    $order = createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder([
+    $order = createOrderV1Builder()->build(
+        createOrderV1MagentoOrder([
             'carrier'      => CarrierPostNL::NAME,
             'deliveryType' => 'standard',
             'packageType'  => 'mailbox',
@@ -54,8 +54,8 @@ it('hands the fulfilment order the SDK shipment options', function () {
 });
 
 it('maps the pickup location field for field', function () {
-    $order = createFulfilmentOrderBuilder()
-        ->build(createFulfilmentMagentoOrder(pickupCheckoutData()));
+    $order = createOrderV1Builder()
+        ->build(createOrderV1MagentoOrder(pickupCheckoutData()));
 
     $pickup = $order->getPickupLocation();
 
@@ -70,8 +70,8 @@ it('maps the pickup location field for field', function () {
 });
 
 it('leaves a pickup on the package type the checkout stored', function () {
-    $order = createFulfilmentOrderBuilder()
-        ->build(createFulfilmentMagentoOrder(pickupCheckoutData()));
+    $order = createOrderV1Builder()
+        ->build(createOrderV1MagentoOrder(pickupCheckoutData()));
 
     expect($order->getDeliveryOptions()->getPackageType())->toBe(PackageType::MAILBOX);
 });
@@ -79,8 +79,8 @@ it('leaves a pickup on the package type the checkout stored', function () {
 it('resolves the API key from the order\'s own store, not another store\'s', function () {
     // Only store 5 resolves to a key; the order belongs to store 9. A lookup ignoring the order's
     // store would find store 5's key and not throw.
-    $builder = createFulfilmentOrderBuilder('store-5-key', 5);
-    $order   = createFulfilmentMagentoOrder(
+    $builder = createOrderV1Builder('store-5-key', 5);
+    $order   = createOrderV1MagentoOrder(
         ['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'],
         ['getStoreId' => 9]
     );
@@ -89,16 +89,16 @@ it('resolves the API key from the order\'s own store, not another store\'s', fun
 });
 
 it('sends the dimensions a merchant saved, and the SDK default without them', function () {
-    $saved = createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder([
+    $saved = createOrderV1Builder()->build(
+        createOrderV1MagentoOrder([
             'carrier'            => CarrierPostNL::NAME,
             'deliveryType'       => 'standard',
             'physicalProperties' => ['length' => 40, 'width' => 30, 'height' => 20],
         ])
     )->getPhysicalProperties();
 
-    $default = createFulfilmentOrderBuilder()->build(
-        createFulfilmentMagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'])
+    $default = createOrderV1Builder()->build(
+        createOrderV1MagentoOrder(['carrier' => CarrierPostNL::NAME, 'deliveryType' => 'standard'])
     )->getPhysicalProperties();
 
     expect([$saved->getLength(), $saved->getWidth(), $saved->getHeight()])->toBe([40, 30, 20])
