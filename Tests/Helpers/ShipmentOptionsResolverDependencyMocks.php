@@ -30,12 +30,6 @@ function dependencyResolver(
         ])['repository'];
     }
 
-    $defaultOptions = Mockery::mock(DefaultOptions::class);
-    $defaultOptions->shouldReceive('hasOptionSet')->andReturnUsing(static fn(string $option): bool => isset($sources[$option]));
-    $defaultOptions->shouldReceive('sourceOf')->andReturnUsing(static fn(string $option): ?int => $sources[$option] ?? null);
-    $defaultOptions->shouldReceive('getDefaultInsurance')->andReturn($insurance);
-    $defaultOptions->shouldReceive('getRequiredInsurance')->andReturn($requiredInsurance);
-
     return createShipmentOptions(
         'NL',
         'postnl',
@@ -43,8 +37,20 @@ function dependencyResolver(
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => PackageType::PACKAGE_NAME],
         $repository,
-        $defaultOptions
+        dependencyDefaultOptions($sources, $requiredInsurance, $insurance)
     );
+}
+
+/** @param array<string,int> $sources option => OptionSource that switched it on */
+function dependencyDefaultOptions(array $sources, int $requiredInsurance = 0, int $insurance = 0): DefaultOptions
+{
+    $defaultOptions = Mockery::mock(DefaultOptions::class);
+    $defaultOptions->shouldReceive('hasOptionSet')->andReturnUsing(static fn(string $option): bool => isset($sources[$option]));
+    $defaultOptions->shouldReceive('sourceOf')->andReturnUsing(static fn(string $option): ?int => $sources[$option] ?? null);
+    $defaultOptions->shouldReceive('getDefaultInsurance')->andReturn($insurance);
+    $defaultOptions->shouldReceive('getRequiredInsurance')->andReturn($requiredInsurance);
+
+    return $defaultOptions;
 }
 
 /** Collects every notice, so a test can assert on the one it cares about. */
