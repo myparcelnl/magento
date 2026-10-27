@@ -76,3 +76,30 @@ function pickupLocationsBody(array $locations): string
 {
     return (string) json_encode(['data' => ['pickup_locations' => $locations]]);
 }
+
+/** @return string[] every entry value of the list, in order */
+function deliveryValues(array $list): array
+{
+    $values = [];
+
+    foreach ($list['groups'] as $group) {
+        foreach ($group['entries'] as $entry) {
+            $values[] = $entry['value'];
+        }
+    }
+
+    return $values;
+}
+
+function selectedDelivery(array $list): ?string
+{
+    foreach ($list['groups'] as $group) {
+        foreach ($group['entries'] as $entry) {
+            if ($entry['selected']) {
+                return $entry['value'];
+            }
+        }
+    }
+
+    return null;
+}
