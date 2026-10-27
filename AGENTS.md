@@ -46,9 +46,9 @@ CI runs Pest on PHP 8.1 to 8.4. PHP 7.4 and 8.0 are in `composer.json` but are n
 ## Architecture
 
 ```
-Magento order -> builder (src/Service/Export/) -> SDK v11 Shipment or Fulfilment Order -> MyParcel API
-      ^                                                                                |
-      +------------------------------ Track & Trace update -----------------------------+
+Magento order -> Adapter -> SDK shipment -> MyParcel API
+      ^                                            |
+      +----------- Track & Trace update -----------+
 ```
 
 - **Builders** (`src/Service/Export/`) make SDK models from Magento data. Never pass a Magento object to the SDK directly. `src/Adapter/` holds the delivery options that are stored on the order. `src/Model/Shipment/` holds the definitions (carriers, package types, delivery types, options) and value objects; services go in `src/Service/`. The capabilities services are in `src/Service/Capabilities/`, their value objects (`CapabilitySet`, `InsuranceRange`) in `src/Model/Shipment/Capabilities/`.

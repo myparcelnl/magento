@@ -357,7 +357,7 @@ define(
                 },
 
                 /**
-                 * Create consignment
+                 * The ids of the selected orders or shipments, read from the page.
                  *
                  * @protected
                  */
