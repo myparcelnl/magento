@@ -7,6 +7,7 @@ namespace MyParcelNL\Magento\Service\Capabilities;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
@@ -26,7 +27,7 @@ class CapabilitiesLookup
 
     private ShipmentApiProvider $apiProvider;
 
-    /** @var array<string,CapabilitySet> keyed by API key, country, package type and carrier */
+    /** @var array<string,CapabilitySet> keyed by API key, country, package type, carrier, delivery type and options */
     private array $answers = [];
 
     public function __construct(CapabilitiesProvider $provider, ShipmentApiProvider $apiProvider)
@@ -40,18 +41,22 @@ class CapabilitiesLookup
      * for the carriers and their package types. An empty country gets the permissive set.
      *
      * @param int|null $storeId resolves the API key at that store's scope; null means the current store
+     * @param string[] $options module names of the ticked options; capabilities then leave out what
+     *                          they exclude, a delivery type included
      */
     public function forRequest(
         ?int    $storeId,
         string  $country,
         ?string $packageType = null,
-        ?string $carrier = null
+        ?string $carrier = null,
+        ?string $deliveryType = null,
+        array   $options = []
     ): CapabilitySet
     {
         $apiKey = $this->apiProvider->apiKeyForStoreOrNull($storeId);
 
         if (null !== $apiKey) {
-            return $this->forApiKeyRequest($apiKey, $country, $packageType, $carrier);
+            return $this->forApiKeyRequest($apiKey, $country, $packageType, $carrier, $deliveryType, $options);
         }
 
         // Memoised like any answer, so answeredPermissively() sees it and the warning is logged once.
@@ -72,26 +77,33 @@ class CapabilitiesLookup
     /**
      * Get the capabilities for this API key and request, once per set of inputs. The memo comes
      * before the request build, which costs a model and a hash.
+     *
+     * @param string[] $options
      */
     public function forApiKeyRequest(
         string  $apiKey,
         string  $country,
         ?string $packageType = null,
-        ?string $carrier = null
+        ?string $carrier = null,
+        ?string $deliveryType = null,
+        array   $options = []
     ): CapabilitySet
     {
         if ('' === $apiKey) {
             return CapabilitySet::permissive();
         }
 
-        $memoKey = $apiKey . '|' . $country . '|' . (string) $packageType . '|' . (string) $carrier;
+        sort($options);
 
-        if (isset($this->answers[$memoKey])) {
-            return $this->answers[$memoKey];
+        $key = $apiKey . '|' . $country . '|' . (string) $packageType . '|' . (string) $carrier
+               . '|' . (string) $deliveryType . '|' . implode(',', $options);
+
+        if (isset($this->answers[$key])) {
+            return $this->answers[$key];
         }
 
         if ('' === $country) {
-            return $this->answers[$memoKey] = CapabilitySet::permissive();
+            return $this->answers[$key] = CapabilitySet::permissive();
         }
 
         $request = CapabilitiesRequest::forCountry($country);
@@ -101,7 +113,7 @@ class CapabilitiesLookup
 
             if (null === $v2) {
                 // The API cannot be asked about this package type, so the answer is permissive.
-                return $this->answers[$memoKey] = CapabilitySet::permissive();
+                return $this->answers[$key] = CapabilitySet::permissive();
             }
 
             $request = $request->withPackageType($v2);
@@ -111,13 +123,28 @@ class CapabilitiesLookup
             $v2Carrier = Carrier::toV2Name($carrier);
 
             if (null === $v2Carrier) {
-                return $this->answers[$memoKey] = CapabilitySet::permissive();
+                return $this->answers[$key] = CapabilitySet::permissive();
             }
 
             $request = $request->withCarrier($v2Carrier);
         }
 
-        return $this->answers[$memoKey] = $this->provider->forApiKey($apiKey, $request);
+        if (null !== $deliveryType) {
+            $v2DeliveryType = DeliveryType::toV2Name($deliveryType);
+
+            if (null === $v2DeliveryType) {
+                return $this->answers[$key] = CapabilitySet::permissive();
+            }
+
+            $request = $request->withDeliveryType($v2DeliveryType);
+        }
+
+        if ([] !== $options) {
+            // Null is "enabled without configuration": the SDK sends it as {}.
+            $request = $request->withOptions(array_fill_keys($options, null));
+        }
+
+        return $this->answers[$key] = $this->provider->forApiKey($apiKey, $request);
     }
 
     /** Check whether one of the answers of this instance was a fallback, not the account's own. */
