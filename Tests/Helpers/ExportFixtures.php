@@ -97,7 +97,7 @@ function exportTrack(?int $existingShipmentId = null, ?int $trackEntityId = 1, ?
     $saves = 0;
 
     if (null !== $existingShipmentId) {
-        $data['myparcel_consignment_id'] = $existingShipmentId;
+        $data['myparcel_shipment_id'] = $existingShipmentId;
     }
 
     return recordingTrack(

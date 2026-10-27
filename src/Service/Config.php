@@ -41,6 +41,7 @@ class Config extends AbstractHelper
     public const FIELD_MYPARCEL_CARRIER             = 'myparcel_carrier';
     public const FIELD_DELIVERY_OPTIONS             = 'myparcel_delivery_options';
     public const FIELD_EXPORT_ERROR                 = 'myparcel_export_error';
+    public const FIELD_MYPARCEL_SHIPMENT_ID         = 'myparcel_shipment_id';
     public const FIELD_TRACK_STATUS                 = 'track_status';
     public const MYPARCEL_TRACK_TITLE               = 'MyParcel';
 

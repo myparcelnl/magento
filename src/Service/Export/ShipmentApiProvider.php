@@ -88,7 +88,7 @@ class ShipmentApiProvider
             }
 
             foreach ($tracksByShipmentId[(int) $shipment->getId()] ?? [] as $track) {
-                $myParcelShipmentId = (int) $track->getData('myparcel_consignment_id');
+                $myParcelShipmentId = (int) $track->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
                 if (0 < $myParcelShipmentId) {
                     // Keyed, not appended: a multicollo's colli share the parent's id until the
