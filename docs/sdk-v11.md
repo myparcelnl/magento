@@ -79,9 +79,10 @@ Six, all deliberate. A reader who finds them should treat them as decisions, not
 4. **An option the package type cannot carry also narrows the package type at checkout.** The
    export drops an option the carrier does not offer for the shipment, as the PDK does
    (`ShipmentOptionsResolver::dropNotOffered()`), so the API never refuses a shipment for it. The
-   checkout first rules out a package type that cannot carry a forced option
-   (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`), so an 18+ order keeps its
-   age check where a package type can carry it. An option dropped at export is logged.
+   checkout sends the forced options of `ShipmentOption::LIMIT_CHECKOUT_OPTIONS` to capabilities as
+   a filter, so a package type or delivery type that cannot carry them is not offered, and an 18+
+   order keeps its age check. The PDK sends no options and drops the age check at export. An
+   option dropped at export is logged.
 5. **`requires` adds one level only.** The PDK follows the chain and then undoes the damage, which
    rests on statement order in one method: PostNL receipt code requires insurance, which requires
    the signature that receipt code excludes.
