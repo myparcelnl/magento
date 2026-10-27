@@ -440,7 +440,7 @@ class MagentoOrderCollection extends MagentoCollection
      * Give every shipped fulfilment shipment its own Magento track: the barcode, and the MyParcel
      * shipment id when the response carries one.
      *
-     * A PPS order has no myparcel_consignment_id until this runs; without one the track keeps its
+     * A PPS order has no myparcel_shipment_id until this runs; without one the track keeps its
      * placeholder and never joins the status refresh. A shipment without an id is logged.
      *
      * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilmentByIncrementId
@@ -524,7 +524,7 @@ class MagentoOrderCollection extends MagentoCollection
         foreach ($magentoShipments as $magentoShipment) {
             foreach ($tracksByShipmentId[(int) $magentoShipment->getId()] ?? [] as $magentoTrack) {
                 $host          = $host ?? $magentoShipment;
-                $myParcelShipmentId = (int) $magentoTrack->getData('myparcel_consignment_id');
+                $myParcelShipmentId = (int) $magentoTrack->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
                 if (0 !== $myParcelShipmentId) {
                     $claimedIds[$myParcelShipmentId] = true;
@@ -559,7 +559,7 @@ class MagentoOrderCollection extends MagentoCollection
             $magentoTrack->setTrackNumber($fulfilment['barcode']);
 
             if (null !== $shipmentId) {
-                $magentoTrack->setData('myparcel_consignment_id', $shipmentId);
+                $magentoTrack->setData(Config::FIELD_MYPARCEL_SHIPMENT_ID, $shipmentId);
                 $claimedIds[$shipmentId] = true;
             } else {
                 // Without the id updateMagentoTrack() can never refresh this track: it keeps this

@@ -113,9 +113,9 @@ it('persists each chunk before issuing the next, and keeps earlier chunks when a
     $report = makeExportService(['key' => $spy], 2)->createConcepts($built);
 
     expect($savesAtSecondCall)->toBe([1, 1])
-        ->and($tracks[0]->getData('myparcel_consignment_id'))->not->toBeNull()
-        ->and($tracks[1]->getData('myparcel_consignment_id'))->not->toBeNull()
-        ->and($tracks[2]->getData('myparcel_consignment_id'))->toBeNull()
+        ->and($tracks[0]->getData('myparcel_shipment_id'))->not->toBeNull()
+        ->and($tracks[1]->getData('myparcel_shipment_id'))->not->toBeNull()
+        ->and($tracks[2]->getData('myparcel_shipment_id'))->toBeNull()
         ->and($saves3)->toBe(0)
         ->and(array_map('strval', array_keys($report->succeeded())))->toEqualCanonicalizing(['100000001', '100000002'])
         ->and($report->collateral())->toBe(['100000003']);
@@ -185,8 +185,8 @@ it('correlates by reference identifier rather than by result order', function ()
 
     // The spy numbers its answer from 1101, in reverse: 100000002 is created first.
     expect($report->succeeded())->toEqual(['100000001' => 1102, '100000002' => 1101])
-        ->and($built[0]->getTrack()->getData('myparcel_consignment_id'))->toBe(1102)
-        ->and($built[1]->getTrack()->getData('myparcel_consignment_id'))->toBe(1101);
+        ->and($built[0]->getTrack()->getData('myparcel_shipment_id'))->toBe(1102)
+        ->and($built[1]->getTrack()->getData('myparcel_shipment_id'))->toBe(1101);
 });
 
 it('saves a track that has an entity id, once', function () {
@@ -197,7 +197,7 @@ it('saves a track that has an entity id, once', function () {
     $service->createConcepts([builtShipmentFor('key', '100000001', null, $track)]);
 
     expect($saves)->toBe(1)
-        ->and($track->getData('myparcel_consignment_id'))->not->toBeNull();
+        ->and($track->getData('myparcel_shipment_id'))->not->toBeNull();
 });
 
 it('writes but does not save an unsaved track, whose shipment save persists it', function () {
@@ -210,7 +210,7 @@ it('writes but does not save an unsaved track, whose shipment save persists it',
     $report = $service->createConcepts([builtShipmentFor('key', '100000001', null, $track)]);
 
     expect($saves)->toBe(0)
-        ->and($track->getData('myparcel_consignment_id'))->not->toBeNull()
+        ->and($track->getData('myparcel_shipment_id'))->not->toBeNull()
         ->and($report->succeeded())->toHaveCount(1);
 });
 

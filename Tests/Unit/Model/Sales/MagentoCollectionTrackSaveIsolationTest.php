@@ -42,7 +42,7 @@ function collectionWhoseFirstTrackCannotSave(): array
             ],
             [
                 'getData' => static function (?string $key = null) use ($myParcelShipmentId) {
-                    return 'myparcel_consignment_id' === $key ? $myParcelShipmentId : null;
+                    return 'myparcel_shipment_id' === $key ? $myParcelShipmentId : null;
                 },
             ]
         );
@@ -109,7 +109,7 @@ it('carries on to the next collo when the track of one collo cannot be saved', f
                     throw new Exception('constraint violation on this row');
                 }
 
-                $saves[] = $saved->created[$key]['data']['myparcel_consignment_id'] ?? null;
+                $saves[] = $saved->created[$key]['data']['myparcel_shipment_id'] ?? null;
             },
         ]);
     });
