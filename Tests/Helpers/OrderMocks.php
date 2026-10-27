@@ -128,7 +128,7 @@ function createOrder(array $overrides = []): Order
 }
 
 /**
- * `myParcelShipmentId` backs getData('myparcel_consignment_id'), the keyed
+ * `myParcelShipmentId` backs getData('myparcel_shipment_id'), the keyed
  * getData() call MagentoCollection makes directly on a track.
  */
 function createShipmentTrack(array $overrides = []): Track
@@ -145,7 +145,7 @@ function createShipmentTrack(array $overrides = []): Track
     foreach (array_merge($defaults, $overrides) as $method => $value) {
         $track->shouldReceive($method)->andReturn($value)->byDefault();
     }
-    $track->shouldReceive('getData')->with('myparcel_consignment_id')->andReturn($myParcelShipmentId)->byDefault();
+    $track->shouldReceive('getData')->with('myparcel_shipment_id')->andReturn($myParcelShipmentId)->byDefault();
 
     return $track;
 }
