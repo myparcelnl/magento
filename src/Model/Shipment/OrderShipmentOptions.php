@@ -163,7 +163,7 @@ class OrderShipmentOptions
 
         $values = $resolved->toArray();
 
-        foreach (ShipmentOption::TO_CHECK as $option) {
+        foreach (ShipmentOption::KNOWN_TOGGLES as $option) {
             $setter = SdkShipmentOptions::setters()[$option] ?? null;
 
             if (null === $setter) {

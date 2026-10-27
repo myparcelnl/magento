@@ -149,7 +149,7 @@ it('offers the form its usual options when capabilities could not be reached', f
 
     expect($block->getShipmentOptions('postnl', PackageType::PACKAGE_NAME))
         ->toBe(array_values(array_filter(
-            ShipmentOption::TO_CHECK,
+            ShipmentOption::KNOWN_TOGGLES,
             static fn (string $o): bool => ShipmentOption::INSURANCE !== $o
         )));
 });
@@ -307,7 +307,7 @@ it('withholds rather than over-reports for a package type it cannot express as a
     // superset, because the superset would claim options no one asked about.
     expect($block->getShipmentOptions('postnl', 'hovercraft'))
         ->toBe(array_values(array_filter(
-            ShipmentOption::TO_CHECK,
+            ShipmentOption::KNOWN_TOGGLES,
             static fn (string $o): bool => ShipmentOption::INSURANCE !== $o
         )));
 });
