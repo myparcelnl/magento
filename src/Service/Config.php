@@ -253,7 +253,7 @@ class Config extends AbstractHelper
     /**
      * How many records one export request carries, bounded by what the admin field accepts.
      *
-     * Shared by both export paths: the shipment export and the PPS order export. Anything the
+     * Shared by both export paths: the shipment export and the Order v1 order export. Anything the
      * merchant cannot have typed into a `digits-range-1-100` field falls back to the default rather
      * than being clamped, because an out-of-range value there means the setting was written by
      * something other than the form.

@@ -10,7 +10,7 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
 /**
  * The v11 customs stack is a second builder, unrelated to the Order v1 one the
- * fulfilment path uses. ConsignmentEncode::DEFAULT_CURRENCY named the
+ * Order v1 path uses. ConsignmentEncode::DEFAULT_CURRENCY named the
  * currency before; it is one of the classes beta.22 removed, so the same value
  * is now read off the generated money model.
  *
