@@ -24,6 +24,7 @@ use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
 use MyParcelNL\Magento\Service\Tax;
@@ -51,6 +52,7 @@ class Checkout
     private CapabilitiesLookup    $capabilityLookup;
     private ContractDefinitions   $contractDefinitions;
     private StoredAccount         $storedAccount;
+    private DropOffSettings       $dropOffSettings;
 
     /** The quote's store, passed to every store-scoped config read this class delegates. */
     private int $storeId;
@@ -70,6 +72,7 @@ class Checkout
      * @param CapabilitiesLookup    $capabilityLookup
      * @param ContractDefinitions   $contractDefinitions
      * @param StoredAccount         $storedAccount
+     * @param DropOffSettings       $dropOffSettings
      */
     public function __construct(
         Tax                   $tax,
@@ -80,7 +83,8 @@ class Checkout
         StoreManagerInterface $storeManager,
         CapabilitiesLookup    $capabilityLookup,
         ContractDefinitions   $contractDefinitions,
-        StoredAccount         $storedAccount
+        StoredAccount         $storedAccount,
+        DropOffSettings       $dropOffSettings
     )
     {
         $this->tax                 = $tax;
@@ -92,6 +96,7 @@ class Checkout
         $this->capabilityLookup    = $capabilityLookup;
         $this->contractDefinitions = $contractDefinitions;
         $this->storedAccount       = $storedAccount;
+        $this->dropOffSettings     = $dropOffSettings;
         $this->quote               = $this->getQuoteFromCurrentSession();
         // A quote without a store id resolves as store 0, which is not the same as null.
         $this->storeId             = (int) $this->quote->getStoreId();
@@ -151,7 +156,7 @@ class Checkout
     {
         $activeCarriers = $this->getActiveCarriers();
         $carrierPath    = isset($activeCarriers[0]) ? Config::carrierPath($activeCarriers[0]) : null;
-        $deliveryDaysWindow = $this->config->getIntegerConfig(Config::XML_PATH_GENERAL, 'date_settings/deliverydays_window');
+        $deliveryDaysWindow = $this->dropOffSettings->deliveryDaysWindow();
 
         return [
             'platform'                          => $this->propositionName(),
@@ -159,7 +164,7 @@ class Checkout
             'proxyCapabilities'                 => $this->storeManager->getStore()->getBaseUrl() . 'myparcel/proxy/core/shipments/capabilities',
             'showDeliveryDate'                  => $deliveryDaysWindow > 0,
             'deliveryDaysWindow'                => $deliveryDaysWindow,
-            'dropOffDelay'                      => $this->getDropOffDelay(Config::XML_PATH_GENERAL, 'date_settings/dropoff_delay'),
+            'dropOffDelay'                      => $this->getDropOffDelay(),
             'pickupLocationsDefaultView'        => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/pickup_locations_view'),
             'allowPickupLocationsViewSelection' => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pickup_locations_view_change_allowed'),
             'showPriceSurcharge'                => $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::SURCHARGE,
@@ -303,7 +308,7 @@ class Checkout
                 'allowSameDayDelivery'  => $canHaveSameDay && $this->config->getBoolConfig($carrierPath, 'delivery/same_day_delivery_active'),
                 'allowExpressDelivery'  => $allowExpressDelivery,
 
-                'dropOffDays' => $this->getDropOffDays($carrierPath),
+                'dropOffDays' => $this->dropOffSettings->dropOffDays($carrierPath),
 
                 'priceSignature'        => $signatureFee,
                 'priceReceiptCode'      => $receiptCodeFee,
@@ -391,26 +396,6 @@ class Checkout
         }
 
         return $this->activeCarriers = $carriers;
-    }
-
-    private function getDropOffDays(string $carrierPath): array
-    {
-        $dropOffDays = [];
-        for ($weekday = 0; $weekday < 7; $weekday++) {
-            $cutoffTimeSameDay = $this->config->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_same_day_$weekday");
-            $sameDayTimeEntry  = $cutoffTimeSameDay ? ['cutoffTimeSameDay' => $cutoffTimeSameDay] : [];
-            if ($this->config->getBoolConfig($carrierPath, "drop_off_days/day_{$weekday}_active")) {
-                $dropOffDays[] = (object) array_merge(
-                    [
-                        'weekday'    => $weekday,
-                        'cutoffTime' => $this->config->getTimeConfig($carrierPath, "drop_off_days/cutoff_time_$weekday"),
-                    ],
-                    $sameDayTimeEntry
-                );
-            }
-        }
-
-        return $dropOffDays;
     }
 
     /**
@@ -526,17 +511,12 @@ class Checkout
         return $this->cartRules->excludesParcelLockers($products, $carrierPath, $this->storeId);
     }
 
-    /**
-     * @param string $carrierPath
-     * @param string $key
-     *
-     * @return int
-     */
-    public function getDropOffDelay(string $carrierPath, string $key): int
+    /** The longest of the configured drop-off delay and the delay a product in the cart sets. */
+    public function getDropOffDelay(): int
     {
         $products     = $this->quote->getAllItems();
         $productDelay = (int) $this->cartRules->dropOffDelay($products);
-        $configDelay  = $this->config->getIntegerConfig($carrierPath, $key);
+        $configDelay  = $this->dropOffSettings->dropOffDelay();
 
         return max($productDelay, $configDelay);
     }

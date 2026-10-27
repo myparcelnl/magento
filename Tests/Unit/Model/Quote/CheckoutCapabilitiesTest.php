@@ -61,6 +61,7 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
         'packageTypeResolver' => $packageTypeResolver,
         'cartRules'           => $cartRules,
         'config'              => $config,
+        'dropOffSettings'     => new MyParcelNL\Magento\Service\DropOffSettings($config),
         'quote'               => $quote,
         'storeId'             => 1,
         'capabilityLookup'    => $lookup ?? capabilityLookupWith($capabilities, $country),

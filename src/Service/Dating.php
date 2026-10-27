@@ -24,6 +24,12 @@ class Dating
         $this->timezone = $timezone;
     }
 
+    /** Today in the timezone of the order's store. */
+    public function today(Order $order, string $format = 'Y-m-d'): string
+    {
+        return $this->timezone->scopeDate((int) $order->getStoreId())->format($format);
+    }
+
     /** Tomorrow in the timezone of the order's store, at the start of the day. */
     public function tomorrow(Order $order, string $format = 'Y-m-d'): string
     {
