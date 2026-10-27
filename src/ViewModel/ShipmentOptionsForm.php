@@ -201,7 +201,7 @@ class ShipmentOptionsForm implements ArgumentInterface
         return false === $timestamp ? null : date('Y-m-d', $timestamp);
     }
 
-    /** The earliest date the form offers: the export moves an earlier one to tomorrow anyway. */
+    /** The earliest date the form offers: the export sends no date for an earlier one. */
     public function getEarliestDeliveryDate(): string
     {
         return $this->dating->tomorrow($this->order);

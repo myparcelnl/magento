@@ -31,8 +31,8 @@ class Dating
     }
 
     /**
-     * The delivery date to send, in $format, or null for none. An empty or unreadable date is none;
-     * a date before tomorrow becomes tomorrow.
+     * The delivery date to send, in $format, or null for none. An empty, unreadable or past date is
+     * none, as in the PDK: the API then refuses a past morning or evening delivery.
      */
     public function convertDeliveryDate(?string $date, Order $order, string $format = 'Y-m-d H:i:s'): ?string
     {
@@ -47,7 +47,7 @@ class Dating
         }
 
         if ($day < $this->tomorrow($order)) {
-            return $this->tomorrow($order, $format);
+            return null;
         }
 
         return (new DateTimeImmutable($day))->format($format);
