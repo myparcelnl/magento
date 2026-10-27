@@ -43,9 +43,9 @@ its price from `delivery/<name>_fee`, as `signature` does.
 
 ### A rule that capabilities do not give
 
-Add a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. A delivery type rule goes
-in `ShipmentOption::LIMIT_DELIVERY_TYPE`. Do not add a `RULES` entry for a combination rule: the
-capabilities `requires` and `excludes` give those.
+Add a method on `ShipmentOptionsResolver`, called from `resolve()` for that option. A delivery type
+rule needs no code, because the capabilities lookup sends the delivery type, and a combination rule
+needs none because the capabilities `requires` and `excludes` give it.
 
 ### A toggle on the product
 
