@@ -48,7 +48,7 @@ Select a standard orientation for printing labels.,Selecteer een standaard print
 Label description,Label omschrijving
 "This description will appear on the shipment label. The following parts can be used: %order_nr%, %delivery_date%, %product_id%, %product_name%, %product_qty%, %article_short_name%, %article_number_supplier%.","Deze beschrijving verschijnt op het verzendlabel. De volgende onderdelen kunnen worden gebruikt:% order_nr%,% delivery_date%,% product_id%,% product_name%,% product_qty%,% article_short_name%,% article_number_supplier%."
 Country of origin,Land van oorsprong
-"This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dit land zal op de internationale verzendlabels verschijnen. Dit is waar uw producten vandaan komen. U kunt NL, BE, DE etc gebruiken. Dit wordt op productniveau overschreven door het land van fabricage."
+"This country will appear on the international shipment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.","Dit land zal op de internationale verzendlabels verschijnen. Dit is waar uw producten vandaan komen. U kunt NL, BE, DE etc gebruiken. Dit wordt op productniveau overschreven door het land van fabricage."
 Create Concept,Concept maken
 "Enable create label concept, when invoice is printed.","Maak een conceptzending aan, wanneer er voor een bestelling is betaald."
 Delivery methods,Verzendmethodes
@@ -451,7 +451,7 @@ Covers every store not tokened separately at website or store-view scope.,Dekt e
 "Your API key was saved, but the MyParcel account settings could not be imported: %1. Check the API key.","Uw API key is opgeslagen, maar de MyParcel-accountinstellingen konden niet worden geïmporteerd: %1. Controleer de API key."
 "MyParcel could not confirm which options this account has, so every option is shown. An option the account does not carry is refused when the shipment is exported.","MyParcel kon niet vaststellen welke opties dit account heeft, daarom worden alle opties getoond. Een optie die het account niet heeft, wordt geweigerd bij het exporteren van de zending."
 No standard weight,Geen standaardgewicht
-Create MyParcel consignment,MyParcel zending aanmaken
+Create MyParcel shipment,MyParcel zending aanmaken
 Export Entire Order,Volledige bestelling exporteren
 Label amount:,Aantal labels:
 Letter,Ongefrankeerd
