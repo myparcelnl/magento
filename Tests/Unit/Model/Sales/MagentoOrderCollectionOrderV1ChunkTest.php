@@ -12,7 +12,7 @@ use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Services\CountryService;
 
 /**
- * The PPS export chunks by print/export_chunk_size, the same setting the shipment export uses.
+ * The Order v1 export chunks by print/export_chunk_size, the same setting the shipment export uses.
  *
  * Only the chunking is driven here: exportOrderV1Chunk() is stubbed, and what reaches it is what
  * these cases assert.

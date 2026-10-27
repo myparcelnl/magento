@@ -142,7 +142,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Export every order in the collection as a PPS order, grouped by API key and chunked.
+     * Export every order in the collection as an Order v1 order, grouped by API key and chunked.
      *
      * Do not leave the grouping to OrderCollection::save(): there, an exception on the second account
      * escapes before the first account's orders are marked exported, and the next run creates them again.
@@ -437,10 +437,10 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Give every shipped fulfilment shipment its own Magento track: the barcode, and the MyParcel
+     * Give every shipped Order v1 shipment its own Magento track: the barcode, and the MyParcel
      * shipment id when the response carries one.
      *
-     * A PPS order has no myparcel_shipment_id until this runs; without one the track keeps its
+     * An Order v1 order has no myparcel_shipment_id until this runs; without one the track keeps its
      * placeholder and never joins the status refresh. A shipment without an id is logged.
      *
      * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $orderV1ShipmentsByIncrementId
@@ -473,8 +473,8 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Get the collection's Magento shipments grouped by their order's increment id.
      *
-     * Allocate per order, never per Magento shipment: an order shipped partly by hand before PPS ran
-     * has two Magento shipments, and only one fulfilment barcode per fulfilment shipment.
+     * Allocate per order, never per Magento shipment: an order shipped partly by hand before Order v1 ran
+     * has two Magento shipments, and only one Order v1 barcode per Order v1 shipment.
      *
      * @return array<string,Shipment[]>
      */
@@ -501,7 +501,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * One track per fulfilment shipment, for one Magento order.
+     * One track per Order v1 shipment, for one Magento order.
      *
      * A shipment already on a track is left alone. Otherwise it takes a free placeholder track, and
      * only then a new one. A new track needs an id or a real barcode: without either, the shipment
@@ -565,7 +565,7 @@ class MagentoOrderCollection extends MagentoCollection
                 // Without the id updateMagentoTrack() can never refresh this track: it keeps this
                 // barcode and gets no status. Its link is the fallback that LinkResolver builds.
                 Logger::warning(sprintf(
-                    'MyParcel: fulfilment order %s came back with no shipment id for barcode %s, so its track gets no status',
+                    'MyParcel: Order v1 order %s came back with no shipment id for barcode %s, so its track gets no status',
                     $incrementId,
                     $orderV1Shipment['barcode']
                 ));

@@ -5,8 +5,8 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Service\TrackTrace\TrackNumber;
 
 /**
- * A PPS order's barcode and shipment id must reach the track that would otherwise keep a
- * placeholder. A fulfilment order can hold several shipments, each needs its own track, and the
+ * An Order v1 order's barcode and shipment id must reach the track that would otherwise keep a
+ * placeholder. An Order v1 order can hold several shipments, each needs its own track, and the
  * cron runs every minute, so a second run must write nothing. Multicollo colli are not this path:
  * updateMagentoTrack() expands them from the shipment API.
  */
@@ -55,7 +55,7 @@ it('leaves a track that already carries a barcode alone, and gives the new shipm
         ->and($saved->ids)->toBe([4242]);
 });
 
-it('does nothing for an order the fulfilment response said nothing about', function () {
+it('does nothing for an order the Order v1 response said nothing about', function () {
     [$collection, $saved] = collectionWithTracks('100000001', [['number' => TrackNumber::EMPTY]]);
 
     $collection->setOrderV1TrackData(['100000999' => [['barcode' => '3SMYPA123', 'shipmentId' => 4242]]]);

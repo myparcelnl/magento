@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service\Export;
 
 /**
- * The recipient fields both export paths read from a Magento address, so a label and a PPS order of
- * the same order name the same person at the same postal code.
+ * The recipient fields both export paths read from a Magento address, so a label and an Order v1
+ * order of the same order name the same person at the same postal code.
  */
 class RecipientFields
 {

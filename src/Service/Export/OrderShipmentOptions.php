@@ -33,7 +33,7 @@ use RuntimeException;
 /**
  * What one Magento order is to be shipped as: carrier, package type and the v11 ShipmentOptions.
  *
- * ShipmentBuilder (label) and OrderV1Builder (PPS) ask an order the same questions, so the answers
+ * ShipmentBuilder (label) and OrderV1Builder (Order v1) ask an order the same questions, so the answers
  * live here. Each builder keeps only what its own API shape needs.
  *
  * Generated-model trap: setLabelDescription() throws above its limit.
@@ -57,7 +57,7 @@ class OrderShipmentOptions
     private ?DeliveryOptions $deliveryOptions = null;
     private ?ResolvedOptions $chosen          = null;
 
-    /** Null on the PPS path: a fulfilment order has no Magento shipment. */
+    /** Null on the Order v1 path: an Order v1 order has no Magento shipment. */
     private ?Shipment $shipment;
 
     public function __construct(

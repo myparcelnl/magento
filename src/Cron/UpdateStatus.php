@@ -76,8 +76,8 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        // Not gated on the account's current mode: the PPS pass selects only orders a PPS export
-        // marked, so an account that moved off order v1 still gets its in-flight orders. PPS only
+        // Not gated on the account's current mode: the Order v1 pass selects only orders an Order v1 export
+        // marked, so an account that moved off order v1 still gets its in-flight orders. Order v1 only
         // acquires barcodes, and the poll below carries a shipment on from there, for either mode.
         $this->updateOrderV1Status();
 
@@ -85,7 +85,7 @@ class UpdateStatus
     }
 
     /**
-     * Add a Magento shipment for each order exported as a whole order (PPS) that the API says has shipped.
+     * Add a Magento shipment for each order exported to Order v1 that the API says has shipped.
      *
      * Each order_shipments entry gets its own track; updateMagentoTrack() expands a multicollo entry
      * from the shipment API. The API's reference is the increment_id, the track table holds entity_id.
@@ -108,7 +108,7 @@ class UpdateStatus
                 $apiOrders = $this->queryApiOrders($apiKey);
             } catch (Throwable $e) {
                 // One unreachable account must not cost the other accounts their update.
-                Logger::warning('PPS: could not poll one account', LogContext::of($e));
+                Logger::warning('Order v1: could not poll one account', LogContext::of($e));
                 continue;
             }
 
@@ -147,7 +147,7 @@ class UpdateStatus
 
         // Every run logs this; the notices below log only a change.
         Logger::debug(sprintf(
-            'PPS: %d order(s) awaiting a barcode over %d account(s); the API returned %d, of which '
+            'Order v1: %d order(s) awaiting a barcode over %d account(s); the API returned %d, of which '
             . '%d matched and %d shipped, carrying %d shipment(s)',
             $tally['awaiting'],
             $tally['accounts'],
@@ -175,7 +175,7 @@ class UpdateStatus
             return $this;
         }
 
-        Logger::notice(sprintf('PPS: update orders %s', implode(', ', $orderIncrementIds)));
+        Logger::notice(sprintf('Order v1: update orders %s', implode(', ', $orderIncrementIds)));
         $this->addOrdersToCollection(array_values($entityIdByIncrementId));
 
         // Do not call setNewMyParcelTracks(): it builds a v11 Shipment per track for a create this
@@ -191,7 +191,7 @@ class UpdateStatus
 
         if ($tally['order_row'] || $tally['without_id']) {
             Logger::notice(sprintf(
-                'PPS: %d order(s) got their barcode on the order row, as no MyParcel track carries a real barcode; '
+                'Order v1: %d order(s) got their barcode on the order row, as no MyParcel track carries a real barcode; '
                 . '%d shipment(s) came back with no id, so they get no status',
                 $tally['order_row'],
                 $tally['without_id']
@@ -202,7 +202,7 @@ class UpdateStatus
     }
 
     /**
-     * The PPS orders still waiting for a barcode.
+     * The Order v1 orders still waiting for a barcode.
      *
      * Keyed on the export marker and on the absence of a real barcode, on a track or on the order
      * row. Do not key on sales_order.track_number being null: a placeholder there is not a barcode.
@@ -265,10 +265,10 @@ class UpdateStatus
     }
 
     /**
-     * Every shipped shipment of one fulfilment order, in the order the API listed them.
+     * Every shipped shipment of one Order v1 order, in the order the API listed them.
      *
      * order_shipments passes through the SDK as a raw array with no model behind it, so each key is
-     * read defensively. The shipped check is per entry: a fulfilment order can hold a concept or a
+     * read defensively. The shipped check is per entry: an Order v1 order can hold a concept or a
      * cancelled shipment beside shipped ones, in any position.
      *
      * @return array<int,array{barcode: string, shipmentId: int|null}>
@@ -462,8 +462,8 @@ class UpdateStatus
      * Carry every exported shipment on to its next status, whatever export mode made it.
      *
      * It selects on the track rather than on the order (a MyParcel shipment id and a status that
-     * is not final yet), and a PPS shipment answers to both. setOrdersToUpdate() replaces the
-     * collection the PPS pass left behind.
+     * is not final yet), and an Order v1 shipment answers to both. setOrdersToUpdate() replaces the
+     * collection the Order v1 pass left behind.
      *
      * @throws LocalizedException
      * @throws Exception
