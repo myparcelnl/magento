@@ -153,3 +153,12 @@ it('gives the code of the stored pickup location', function () {
     expect($form->storedPickupLocationCode())->toBe('176227')
         ->and(optionStatesForm([])->storedPickupLocationCode())->toBeNull();
 });
+
+it('gives the stored delivery, and a home delivery for a pickup it cannot read', function () {
+    $morning    = optionStatesForm([], [], ['carrier' => 'postnl', 'deliveryType' => 'morning', 'date' => '2026-10-29 00:00:00'])->storedDelivery();
+    $unreadable = optionStatesForm([], [], ['carrier' => 'postnl', 'deliveryType' => 'pickup'])->storedDelivery();
+
+    expect($morning->getDeliveryType())->toBe('morning')
+        ->and($morning->getCarrier())->toBe('postnl')
+        ->and($unreadable->isPickup())->toBeFalse();
+});
