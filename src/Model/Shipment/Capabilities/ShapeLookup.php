@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 
 use MyParcelNL\Magento\Model\Shipment\Carrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
@@ -28,7 +29,7 @@ class ShapeLookup
 {
     private Repository $repository;
 
-    /** @var array<string,CapabilitySet> keyed by store, country and package type */
+    /** @var array<string,CapabilitySet> keyed by scope, country, package type, carrier, delivery type and options */
     private array $answers = [];
 
     public function __construct(Repository $repository)
@@ -41,12 +42,17 @@ class ShapeLookup
      *
      * An order with no shipping address has no country to ask about, so it gets the permissive set
      * rather than a country we invented for it.
+     *
+     * @param string[] $options module names of the ticked options; capabilities then leave out what
+     *                          they exclude, a delivery type included
      */
     public function forShape(
         ?int    $storeId,
         string  $country,
         ?string $packageType = null,
-        ?string $carrier = null
+        ?string $carrier = null,
+        ?string $deliveryType = null,
+        array   $options = []
     ): CapabilitySet
     {
         return $this->answer(
@@ -54,6 +60,8 @@ class ShapeLookup
             $country,
             $packageType,
             $carrier,
+            $deliveryType,
+            $options,
             function (CapabilitiesRequest $request) use ($storeId): CapabilitySet {
                 return $this->repository->forStore($storeId, $request);
             }
@@ -63,12 +71,16 @@ class ShapeLookup
     /**
      * The same question against one account's key, for a path that resolved the key itself rather
      * than a store — the export, which groups by key.
+     *
+     * @param string[] $options
      */
     public function forApiKeyShape(
         string  $apiKey,
         string  $country,
         ?string $packageType = null,
-        ?string $carrier = null
+        ?string $carrier = null,
+        ?string $deliveryType = null,
+        array   $options = []
     ): CapabilitySet
     {
         if ('' === $apiKey) {
@@ -80,6 +92,8 @@ class ShapeLookup
             $country,
             $packageType,
             $carrier,
+            $deliveryType,
+            $options,
             function (CapabilitiesRequest $request) use ($apiKey): CapabilitySet {
                 return $this->repository->forApiKey($apiKey, $request);
             }
@@ -92,6 +106,7 @@ class ShapeLookup
      * The memo is consulted before the request is built: Repository fingerprints the *serialized*
      * body, so reaching it means a typed-model build and a hash for a question already answered.
      *
+     * @param string[]                                       $options
      * @param callable(CapabilitiesRequest): CapabilitySet $ask
      */
     private function answer(
@@ -99,10 +114,15 @@ class ShapeLookup
         string   $country,
         ?string  $packageType,
         ?string  $carrier,
+        ?string  $deliveryType,
+        array    $options,
         callable $ask
     ): CapabilitySet
     {
-        $key = $scope . '|' . $country . '|' . (string) $packageType . '|' . (string) $carrier;
+        sort($options);
+
+        $key = $scope . '|' . $country . '|' . (string) $packageType . '|' . (string) $carrier
+               . '|' . (string) $deliveryType . '|' . implode(',', $options);
 
         if (isset($this->answers[$key])) {
             return $this->answers[$key];
@@ -134,6 +154,21 @@ class ShapeLookup
             }
 
             $request = $request->withCarrier($v2Carrier);
+        }
+
+        if (null !== $deliveryType) {
+            $v2DeliveryType = DeliveryType::toV2Name($deliveryType);
+
+            if (null === $v2DeliveryType) {
+                return $this->answers[$key] = CapabilitySet::permissive();
+            }
+
+            $request = $request->withDeliveryType($v2DeliveryType);
+        }
+
+        if ([] !== $options) {
+            // Null is "enabled without configuration": the SDK sends it as {}.
+            $request = $request->withOptions(array_fill_keys($options, null));
         }
 
         return $this->answers[$key] = $ask($request);
