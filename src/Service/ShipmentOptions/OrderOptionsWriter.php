@@ -212,8 +212,8 @@ class OrderOptionsWriter
     }
 
     /**
-     * Tomorrow at the earliest: the export moves an earlier date to tomorrow anyway, and saying so
-     * here beats a label dated other than what the merchant picked.
+     * Tomorrow at the earliest: the export sends no date for an earlier one, and saying so here beats
+     * a label without the date the merchant picked.
      *
      * @throws LocalizedException
      */
