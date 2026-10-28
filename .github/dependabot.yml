@@ -1,9 +1,4 @@
 version: 2
-registries:
-  mage-os:
-    type: composer-repository
-    url: https://mirror.mage-os.org
-
 updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
@@ -20,8 +15,6 @@ updates:
 
   - package-ecosystem: 'composer'
     directory: '/'
-    registries:
-      - mage-os
     schedule:
       interval: 'daily'
     commit-message:
