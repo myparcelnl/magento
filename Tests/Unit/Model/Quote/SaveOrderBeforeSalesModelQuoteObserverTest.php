@@ -60,6 +60,10 @@ it('warns about the postal code being null', function () {
     expect(runObserverForAddress(null, 'NL'))->toContain('Please check postal code');
 });
 
-it('warns about the country being null', function () {
+it('warns about the postal code being null for belgium', function () {
+    expect(runObserverForAddress(null, 'BE'))->toContain('Please check postal code');
+});
+
+it('does not set a warning when the country is null', function () {
     expect(runObserverForAddress('1234', null))->toBeNull();
 });
