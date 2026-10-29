@@ -33,7 +33,7 @@ use RuntimeException;
  *
  * Generated-model trap: setLabelDescription() throws above its limit.
  */
-class OrderShipmentOptions
+class OrderExportOptions
 {
     /**
      * Copy of the maxLength RefShipmentShipmentOptions::setLabelDescription() enforces.
