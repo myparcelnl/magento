@@ -358,6 +358,12 @@ class OrderOptionsWriter
             $ticked   = array_keys(array_filter((array) ($stored['shipmentOptions'] ?? []), static fn($on): bool => true === $on));
             $delivery = $lookup->forShape($storeId, $country, $packageType, $carrier, null, $ticked);
 
+            // No result for the carrier means the options that are on do not go together, which
+            // is not the delivery type's fault: the answer without options decides, as in the modal.
+            if (! $delivery->isPermissive() && ! in_array($carrier, $delivery->carriers(), true)) {
+                $delivery = $shape;
+            }
+
             if (! $delivery->hasDeliveryType($carrier, $packageType, $changes->deliveryType())) {
                 throw $refuse(DeliveryList::labelFor($changes->deliveryType()));
             }
