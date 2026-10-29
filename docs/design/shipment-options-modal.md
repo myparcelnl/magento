@@ -36,7 +36,9 @@ The modal of one order has one "Delivery" list, which the refresh endpoint fills
   or of an option refreshes only what capabilities allow.
 - When the dates cannot be read, the stored delivery stays in the list, with a warning.
 - A save sends the delivery only when it is different from the stored one. `drop_off_day` follows a
-  changed date.
+  changed date. The save checks a changed delivery type against capabilities with the options that
+  are on; when that answer is empty, the options do not go together and the answer without options
+  decides, as in the modal.
 - The bulk modal (more than one order) changes no delivery.
 
 ## Export
