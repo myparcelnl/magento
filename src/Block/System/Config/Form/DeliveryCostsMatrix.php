@@ -147,7 +147,7 @@ class DeliveryCostsMatrix extends Field
             'Minimum order amount' => __('Minimum order amount'),
             'Maximum order amount' => __('Maximum order amount'),
             'Delivery type' => __('Delivery type'),
-            'Set the fees to 0 when the matrix fully sets the price per delivery type.' => __('Set the fees to 0 when the matrix fully sets the price per delivery type.'),
+            'Set the fees to 0 if you fully set the price per delivery type via the matrix.' => __('Set the fees to 0 if you fully set the price per delivery type via the matrix.'),
             'The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.' => __('The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
