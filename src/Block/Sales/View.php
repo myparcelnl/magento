@@ -29,6 +29,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Service\TrackTrace\LinkResolver;
@@ -37,19 +38,28 @@ use Throwable;
 
 class View extends AbstractOrder
 {
-    private LinkResolver $links;
+    private LinkResolver  $links;
+    private StoredAccount $storedAccount;
 
     public function __construct(
         Context      $context,
         Registry     $registry,
         Admin        $adminHelper,
-        LinkResolver $links,
-        array        $data = []
+        LinkResolver  $links,
+        StoredAccount $storedAccount,
+        array         $data = []
     )
     {
         parent::__construct($context, $registry, $adminHelper, $data);
 
-        $this->links = $links;
+        $this->links         = $links;
+        $this->storedAccount = $storedAccount;
+    }
+
+    /** Order v1 sends the order to MyParcel, which makes the label in its backoffice. */
+    public function hasOrderV1(Order $order): bool
+    {
+        return $this->storedAccount->hasOrderV1ForStore((int) $order->getStoreId());
     }
 
     /**

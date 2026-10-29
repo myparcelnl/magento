@@ -27,6 +27,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Magento\Service\Config;
@@ -68,12 +69,12 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         }
 
         if ($quote->hasData(Config::FIELD_DELIVERY_OPTIONS) && $this->hasMyParcelDeliveryOptions($quote)) {
-            $jsonDeliveryOptions = $quote->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '';
+            $jsonDeliveryOptions = DeliveryOptions::inheritUntickedInJson($quote->getData(Config::FIELD_DELIVERY_OPTIONS) ?? '');
             $deliveryOptions     = json_decode($jsonDeliveryOptions, true) ?? [];
 
             $order->setData(Config::FIELD_DELIVERY_OPTIONS, $jsonDeliveryOptions);
 
-            $dropOffDay = $this->delivery->getDropOffDayFromDeliveryOptions($deliveryOptions);
+            $dropOffDay = $this->delivery->getDropOffDayFromDeliveryOptions($deliveryOptions, $order);
             $order->setData(Config::FIELD_DROP_OFF_DAY, $dropOffDay);
 
             $selectedCarrier = $this->delivery->getCarrierFromDeliveryOptions($deliveryOptions);
