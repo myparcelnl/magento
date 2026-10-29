@@ -25,6 +25,8 @@ define(
                     ];
                     // Conditions whose value is typed in rather than picked from a list
                     this.numberConditions = ['maximum_weight', 'minimum_order_amount', 'maximum_order_amount'];
+                    // grams are whole numbers; only the order amounts take decimals
+                    this.decimalConditions = ['minimum_order_amount', 'maximum_order_amount'];
 
                     // This is the first place where the JSON is being parsed, if the JSON is invalid,
                     // this will be shown to the user and the matrix will not be rendered
@@ -274,7 +276,7 @@ define(
                     if (this.numberConditions.includes(condition.type)) {
                         conditionValues = document.createElement('input');
                         conditionValues.type = 'number';
-                        conditionValues.step = 'any';
+                        conditionValues.step = this.decimalConditions.includes(condition.type) ? 'any' : '1';
                         conditionValues.className = 'required-entry validate-number'; // the config form blocks saving an empty value
                         conditionValues.value = condition.value;
                         conditionValues.addEventListener('change', (e) => this.updateCondition(ruleIndex, conditionIndex, 'value', e.target.value));
@@ -302,7 +304,7 @@ define(
                         if (this.numberConditions.includes(newType)) {
                             newValueInput = document.createElement('input');
                             newValueInput.type = 'number';
-                            newValueInput.step = 'any';
+                            newValueInput.step = this.decimalConditions.includes(newType) ? 'any' : '1';
                             newValueInput.className = 'required-entry validate-number'; // the config form blocks saving an empty value
                             newValueInput.value = '';
                             newValueInput.addEventListener('change', (ev) => this.updateCondition(ruleIndex, conditionIndex, 'value', ev.target.value));

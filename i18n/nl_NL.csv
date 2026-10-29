@@ -284,6 +284,8 @@ Show details in summary, Toon details in overzicht
 "Where the shipping method is displayed, show the currently known details (yes) or the method title (no)."," ""Waar de verzendmethode wordt getoond"
 
 Standard Delivery,Standaard bezorging
+Morning Delivery,Ochtendlevering
+Evening Delivery,Avondlevering
 Pickup locations,Ophalen bij een afhaallocatie
 Signature,Handtekening voor ontvangst
 
@@ -334,8 +336,6 @@ Country,Land
 Package type,Pakket type
 Maximum weight (in grams),Maximum gewicht (in gram)
 Country part of,Land onderdeel van
-Standard delivery,Standaard bezorging
-Pickup,Ophalen
 Minimum order amount,Minimaal bestelbedrag
 Maximum order amount,Maximaal bestelbedrag
 Delivery type,Bezorgtype

@@ -46,6 +46,17 @@ final class DeliveryType
     public const DEFAULT      = self::STANDARD;
     public const DEFAULT_NAME = self::STANDARD_NAME;
 
+    /**
+     * One label per delivery type, shop-wide: the carrier's method title and the delivery costs
+     * matrix read this same map, so a type never shows two names. The i18n files translate these.
+     */
+    public const TITLES = [
+        self::MORNING_NAME  => 'Morning Delivery',
+        self::STANDARD_NAME => 'Standard Delivery',
+        self::EVENING_NAME  => 'Evening Delivery',
+        self::PICKUP_NAME   => 'Pickup locations',
+    ];
+
     public const NAMES_IDS_MAP
         = [
             self::MORNING_NAME       => self::MORNING,

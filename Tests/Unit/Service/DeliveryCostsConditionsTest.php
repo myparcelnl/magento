@@ -6,6 +6,7 @@ use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Item;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\Tax;
 
 /** @param array<int, array{price: float, conditions: array}> $matrix */
 function deliveryCostsWithMatrix(?array $matrix, float $flatRate = 9.99): DeliveryCosts
@@ -104,9 +105,8 @@ it('prices an existing matrix the same as before', function (float $orderAmount,
 
 /**
  * @param array<int, array{0: float, 1: float, 2: float}> $rows row total, row total incl. tax, discount per item
- * @param array<string, string|null> $taxConfig by path
  */
-function orderAmountFor(array $rows, array $taxConfig = []): float
+function orderAmountFor(array $rows, bool $discountIncludesTax = false, bool $taxAfterDiscount = true): float
 {
     $items = array_map(static function (array $row) {
         $item = Mockery::mock(Item::class);
@@ -121,13 +121,12 @@ function orderAmountFor(array $rows, array $taxConfig = []): float
     $quote->shouldReceive('getStoreId')->andReturn(1);
     $quote->shouldReceive('getAllVisibleItems')->andReturn($items);
 
-    $config = Mockery::mock(Config::class);
-    $config->shouldReceive('getConfigValue')->andReturnUsing(static function (string $path) use ($taxConfig) {
-        return $taxConfig[$path] ?? null;
-    });
+    $tax = Mockery::mock(Tax::class);
+    $tax->shouldReceive('discountIncludesTax')->andReturn($discountIncludesTax);
+    $tax->shouldReceive('appliesTaxAfterDiscount')->andReturn($taxAfterDiscount);
 
     $deliveryCosts = newInstanceWithoutConstructor(DeliveryCosts::class);
-    setPrivateProperty($deliveryCosts, 'config', $config);
+    setPrivateProperty($deliveryCosts, 'tax', $tax);
 
     return invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$quote]);
 }
@@ -148,13 +147,13 @@ it('raises the discount per item, each by its own tax rate', function () {
 });
 
 it('subtracts a discount that already includes tax as it is', function () {
-    expect(orderAmountFor([[45.39, 54.92, 10.98]], ['tax/calculation/discount_tax' => '1']))
+    expect(orderAmountFor([[45.39, 54.92, 10.98]], true))
         ->toEqualWithDelta(43.94, 0.001);
 });
 
 it('subtracts the discount as it is when tax is calculated before the discount', function () {
     // the discount leaves the tax alone, so the full tax stays on the order
-    expect(orderAmountFor([[45.39, 54.92, 9.07]], ['tax/calculation/apply_after_discount' => '0']))
+    expect(orderAmountFor([[45.39, 54.92, 9.07]], false, false))
         ->toEqualWithDelta(45.85, 0.001);
 });
 
@@ -184,11 +183,12 @@ it('sums the order amount once per quote and keeps quotes apart', function () {
         return $quote;
     };
 
-    $config = Mockery::mock(Config::class);
-    $config->shouldReceive('getConfigValue')->andReturnNull();
+    $tax = Mockery::mock(Tax::class);
+    $tax->shouldReceive('discountIncludesTax')->andReturn(false);
+    $tax->shouldReceive('appliesTaxAfterDiscount')->andReturn(true);
 
     $deliveryCosts = newInstanceWithoutConstructor(DeliveryCosts::class);
-    setPrivateProperty($deliveryCosts, 'config', $config);
+    setPrivateProperty($deliveryCosts, 'tax', $tax);
 
     $one = $quoteFor($itemFor(100.0, 121.0));
     $two = $quoteFor($itemFor(50.0, 54.5));
@@ -241,4 +241,14 @@ it('lets an explicit zero minimum match, as a merchant typed it on purpose', fun
     ]);
 
     expect(priceFor($deliveryCosts, 10.0))->toBe(1.0);
+});
+
+it('prices a delivery type the matrix does not offer as standard, the price the checkout shows', function () {
+    // same day and express are a fee on top of standard delivery: the checkout shows standard's
+    // price plus the fee, so the order must take standard's matrix price, not skip its rules
+    $deliveryCosts = deliveryCostsWithMatrix(merchantConditionsMatrix());
+
+    expect(priceFor($deliveryCosts, 120.0, 'same_day'))->toBe(1.0)
+        ->and(priceFor($deliveryCosts, 10.0, 'same_day'))->toBe(6.95)
+        ->and(priceFor($deliveryCosts, 120.0, 'express'))->toBe(1.0);
 });
