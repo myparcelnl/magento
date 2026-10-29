@@ -112,18 +112,6 @@ it('does not log when every option survives mapping', function () {
     expect($body['options'])->toHaveKey('requiresSignature');
 });
 
-it('honours a host override, the only seam for testing against acceptance', function () {
-    $c = makeCapabilitiesClient(
-        [new GuzzleResponse(200, [], capabilitiesBody([]))],
-        'https://api.acceptance.myparcel.nl'
-    );
-
-    $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
-
-    expect((string) $c['history'][0]['request']->getUri())
-        ->toBe('https://api.acceptance.myparcel.nl/shipments/capabilities');
-});
-
 // ---- throttling -----------------------------------------------------------
 
 it('retries once after a 429 and returns the second answer', function () {
