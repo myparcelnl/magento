@@ -35,7 +35,7 @@ use RuntimeException;
  * setLabelDescription() throws above its limit where the consignment silently truncated, and
  * setDeliveryType() takes a literal int — a string enum name throws.
  */
-class OrderShipmentOptions
+class OrderExportOptions
 {
     /** Copy of the maxLength RefShipmentShipmentOptions::setLabelDescription() enforces; read it from the SDK once the generator exposes it. */
     public const LABEL_DESCRIPTION_MAX_LENGTH = 45;

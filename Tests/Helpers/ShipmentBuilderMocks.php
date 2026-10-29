@@ -13,7 +13,7 @@ use Magento\Framework\Serialize\Serializer\Json as JsonSerializer;
 use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\CustomsDeclarationBuilder;
-use MyParcelNL\Magento\Model\Shipment\OrderShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\OrderExportOptions;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Model\Shipment\ShipmentValidator;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
@@ -40,13 +40,13 @@ function createShipmentBuilder(array $properties = []): ShipmentBuilder
 }
 
 /**
- * Builds an OrderShipmentOptions past its constructor. Setting `deliveryOptions` and `resolved`
+ * Builds an OrderExportOptions past its constructor. Setting `deliveryOptions` and `chosen`
  * fills the two memoised answers, so a test can name only the question it is asking.
  * Without an `order` or `dating`, it gets an order of store 1 and Dating at today's date.
  */
-function createOrderShipmentOptions(array $properties = []): OrderShipmentOptions
+function createOrderExportOptions(array $properties = []): OrderExportOptions
 {
-    $options = newInstanceWithoutConstructor(OrderShipmentOptions::class);
+    $options = newInstanceWithoutConstructor(OrderExportOptions::class);
 
     $properties += ['order' => createOrder(), 'dating' => datingOn(date('Y-m-d'))];
 

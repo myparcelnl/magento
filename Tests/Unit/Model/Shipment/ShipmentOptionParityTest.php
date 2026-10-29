@@ -23,7 +23,7 @@ function sdkOptionsFor(ResolvedOptions $resolved, array $storedDeliveryOptions =
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE);
 
-    return createOrderShipmentOptions([
+    return createOrderExportOptions([
         'order'           => createOrder(),
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback($storedDeliveryOptions),
