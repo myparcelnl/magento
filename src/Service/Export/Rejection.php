@@ -142,7 +142,7 @@ final class Rejection
         return implode('; ', $parts);
     }
 
-    /** Check whether the API named this order in its errors. */
+    /** Check whether one of the API's errors points at this order. */
     public function blames(string $incrementId): bool
     {
         return isset($this->reasons[$incrementId]);
