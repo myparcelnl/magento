@@ -165,3 +165,35 @@ it('never takes a negative order amount', function () {
 it('takes 0 for a quote without items', function () {
     expect(orderAmountFor([]))->toBe(0.0);
 });
+
+it('sums the order amount once per quote and keeps quotes apart', function () {
+    $itemFor = static function (float $rowTotal, float $inclTax): Item {
+        $item = Mockery::mock(Item::class);
+        $item->shouldReceive('getRowTotal')->andReturn($rowTotal);
+        $item->shouldReceive('getRowTotalInclTax')->andReturn($inclTax);
+        $item->shouldReceive('getDiscountAmount')->andReturn(0.0);
+
+        return $item;
+    };
+    // once(): a second computation over the items fails the test
+    $quoteFor = static function (Item $item): Quote {
+        $quote = Mockery::mock(Quote::class);
+        $quote->shouldReceive('getStoreId')->andReturn(1);
+        $quote->shouldReceive('getAllVisibleItems')->once()->andReturn([$item]);
+
+        return $quote;
+    };
+
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getConfigValue')->andReturnNull();
+
+    $deliveryCosts = newInstanceWithoutConstructor(DeliveryCosts::class);
+    setPrivateProperty($deliveryCosts, 'config', $config);
+
+    $one = $quoteFor($itemFor(100.0, 121.0));
+    $two = $quoteFor($itemFor(50.0, 54.5));
+
+    expect(invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$one]))->toBe(121.0)
+        ->and(invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$one]))->toBe(121.0)
+        ->and(invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$two]))->toBe(54.5);
+});
