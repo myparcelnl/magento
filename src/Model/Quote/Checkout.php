@@ -489,7 +489,7 @@ class Checkout
     }
 
     /** The longest of the configured drop-off delay and the delay a product in the cart sets. */
-    public function getDropOffDelay(): int
+    private function getDropOffDelay(): int
     {
         $products     = $this->quote->getAllItems();
         $productDelay = (int) $this->cartRules->dropOffDelay($products);
