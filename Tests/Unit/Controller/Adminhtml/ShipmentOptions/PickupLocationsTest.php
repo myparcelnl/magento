@@ -2,33 +2,19 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Controller\Adminhtml\ShipmentOptions\PickupLocations;
 use MyParcelNL\Magento\Service\ShipmentOptions\PickupLocations as PickupLocationsService;
+use MyParcelNL\Magento\Tests\Stub\WithTestRequest;
 
 final class PickupLocationsWithRequest extends PickupLocations
 {
-    /** @var RequestInterface|null Declared here: the test stub of Action has no $_request. */
-    protected $_request;
-
-    public function getRequest()
-    {
-        return $this->_request;
-    }
+    use WithTestRequest;
 }
 
-/** The PickupLocations controller over a service double, for the given number of orders. */
 function pickupLocationsAnswer(PickupLocationsService $service, int $orderCount = 1): array
 {
-    $request = Mockery::mock(RequestInterface::class);
-    $request->shouldReceive('getParam')->andReturnUsing(static fn(string $name, $default = null) => ['carrier' => 'postnl'][$name] ?? $default);
-
-    $controller = newInstanceWithoutConstructor(PickupLocationsWithRequest::class);
-    setPrivateProperty($controller, '_request', $request);
-    setPrivateProperty($controller, 'pickupLocations', $service);
-
-    return invokePrivateMethod($controller, 'answer', [array_fill(0, $orderCount, createOrder())]);
+    return shipmentOptionsAnswer(PickupLocationsWithRequest::class, ['carrier' => 'postnl'], ['pickupLocations' => $service], $orderCount);
 }
 
 it('answers the locations near the shipping address of the order', function () {

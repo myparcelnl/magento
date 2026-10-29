@@ -321,21 +321,6 @@ function pickupLocationsFinding(?array $location): PickupLocations
     return $pickupLocations;
 }
 
-function foundPickupLocation(string $code = '176227', ?string $date = '2099-10-29'): array
-{
-    return [
-        'location_code'     => $code,
-        'location_name'     => 'Primera',
-        'retail_network_id' => 'PNPNL-01',
-        'street'            => 'Antareslaan',
-        'number'            => '31',
-        'postal_code'       => '2132JE',
-        'city'              => 'Hoofddorp',
-        'cc'                => 'NL',
-        'distance'          => '350',
-        'date'              => $date,
-    ];
-}
 
 it('stores a morning delivery with its date', function () {
     $did = writeOrderOptions(
@@ -390,14 +375,14 @@ it('refuses a delivery type capabilities do not return for the options', functio
     );
 })->throws(LocalizedException::class, '100000001');
 
-it('clears the pickup location when the delivery becomes a home delivery', function () {
-    $did = writeOrderOptions(
-        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'pickup', 'pickupLocation' => foundPickupLocation()])],
-        ['delivery_type' => 'standard', 'delivery_date' => 'none']
-    );
+it('makes a home delivery of a stored pickup when the merchant chooses a new delivery', function (array $stored) {
+    $did = writeOrderOptions([writableOrder($stored)], ['delivery_type' => 'standard', 'delivery_date' => 'none']);
 
     expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'standard', 'isPickup' => false, 'pickupLocation' => null, 'date' => null]);
-});
+})->with([
+    'a readable pickup'       => [['carrier' => 'postnl', 'deliveryType' => 'pickup', 'pickupLocation' => foundPickupLocation()]],
+    'a pickup without a location' => [['carrier' => 'postnl', 'deliveryType' => 'pickup']],
+]);
 
 it('leaves an unchanged stored pickup untouched', function () {
     $did = writeOrderOptions(
@@ -417,11 +402,3 @@ it('ignores an unknown delivery type name', function () {
         ->and($changes->isEmpty())->toBeTrue();
 });
 
-it('repairs a pickup it cannot read when the merchant chooses a new delivery', function () {
-    $did = writeOrderOptions(
-        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'pickup'])],
-        ['delivery_type' => 'standard', 'delivery_date' => 'none']
-    );
-
-    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'standard', 'isPickup' => false, 'pickupLocation' => null]);
-});

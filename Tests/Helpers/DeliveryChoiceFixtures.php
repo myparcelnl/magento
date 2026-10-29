@@ -2,49 +2,10 @@
 
 declare(strict_types=1);
 
-/**
- * One day of a v2 `/delivery_options` answer, in the wire shape. Each possibility is
- * [type, start H:i or null, end H:i or null].
- *
- * @param array<int,array{0:string,1?:?string,2?:?string}> $possibilities
- */
-function deliveryDay(string $date, array $possibilities): array
-{
-    $at = static fn(string $time): array => [
-        'date'          => $date . ' ' . $time . ':00.000000',
-        'timezone_type' => 3,
-        'timezone'      => 'Europe/Amsterdam',
-    ];
-
-    return [
-        'date'          => $at('00:00'),
-        'possibilities' => array_map(static function (array $possibility) use ($at): array {
-            [$type, $start, $end] = array_pad($possibility, 3, null);
-            $frames               = [];
-
-            if (null !== $start) {
-                $frames[] = ['type' => 'start', 'date_time' => $at($start)];
-            }
-
-            if (null !== $end) {
-                $frames[] = ['type' => 'end', 'date_time' => $at($end)];
-            }
-
-            return [
-                'type'                 => $type,
-                'package_type'         => 'package',
-                'delivery_time_frames' => $frames,
-                'shipment_options'     => [],
-            ];
-        }, $possibilities),
-    ];
-}
-
-/** A v2 `/delivery_options` body as the API sends it. */
-function deliveryOptionsBody(array $days): string
-{
-    return (string) json_encode(['data' => ['deliveries' => $days]]);
-}
+use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
+use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
+use MyParcelNL\Magento\Service\ShipmentOptions\ShippingAddressQuery;
 
 /** A dated entry as DeliveryDates::forOrder() returns it. */
 function datedDelivery(string $date, string $deliveryType, ?string $start = null, ?string $end = null): array
@@ -52,29 +13,21 @@ function datedDelivery(string $date, string $deliveryType, ?string $start = null
     return ['date' => $date, 'deliveryType' => $deliveryType, 'start' => $start, 'end' => $end];
 }
 
-/**
- * One location of a `/pickup_locations` answer, in the wire shape. Each moment is a Y-m-d H:i the
- * location can be collected from.
- *
- * @param string[] $moments
- */
-function pickupLocation(string $code, string $name = 'Primera', array $moments = ['2026-10-29 15:00']): array
+/** A location as PickupLocations::near() returns it. */
+function foundPickupLocation(string $code = '176227', ?string $date = '2099-10-29'): array
 {
     return [
-        'address'       => ['cc' => 'NL', 'city' => 'Hoofddorp', 'street' => 'Antareslaan', 'postal_code' => '2132JE', 'number' => '31', 'number_suffix' => null],
-        'possibilities' => array_map(static fn(string $moment): array => [
-            'delivery_type_id'   => 4,
-            'delivery_type_name' => 'pickup',
-            'moment'             => ['start' => ['date' => $moment . ':00.000000', 'timezone_type' => 3, 'timezone' => 'Europe/Amsterdam']],
-        ], $moments),
-        'location'      => ['location_name' => $name, 'retail_network_id' => 'PNPNL-01', 'distance' => '350', 'location_code' => $code, 'type' => 'retail'],
+        'location_code'     => $code,
+        'location_name'     => 'Primera',
+        'retail_network_id' => 'PNPNL-01',
+        'street'            => 'Antareslaan',
+        'number'            => '31',
+        'postal_code'       => '2132JE',
+        'city'              => 'Hoofddorp',
+        'cc'                => 'NL',
+        'distance'          => '350',
+        'date'              => $date,
     ];
-}
-
-/** A `/pickup_locations` body as the API sends it. */
-function pickupLocationsBody(array $locations): string
-{
-    return (string) json_encode(['data' => ['pickup_locations' => $locations]]);
 }
 
 /** @return string[] every entry value of the list, in order */
@@ -102,4 +55,54 @@ function selectedDelivery(array $list): ?string
     }
 
     return null;
+}
+
+/** An order shipped to an NL address, with these shipment options stored on it. */
+function orderShippedTo(array $address = [], array $shipmentOptions = []): Order
+{
+    return createOrder([
+        'getShippingAddress' => createAddress($address),
+        'getAllVisibleItems' => [],
+        'deliveryOptions'    => json_encode(['carrier' => 'postnl', 'deliveryType' => 'standard', 'shipmentOptions' => $shipmentOptions]),
+    ]);
+}
+
+/** A provider that hands every store this SDK client. */
+function shipmentApiProviderWith($client): ShipmentApiProvider
+{
+    $apiProvider = Mockery::mock(ShipmentApiProvider::class);
+    $apiProvider->shouldReceive('apiKeyForStore')->andReturn('test-key');
+    $apiProvider->shouldReceive('clientFor')->andReturn($client);
+
+    return $apiProvider;
+}
+
+/** An address query for an account at home in NL, on the default proposition. */
+function nlShippingAddressQuery(): ShippingAddressQuery
+{
+    $storedAccount = Mockery::mock(StoredAccount::class);
+    $storedAccount->shouldReceive('homeCountryForStore')->andReturn('NL');
+    $storedAccount->shouldReceive('propositionForStore')->andReturn(null);
+
+    return new ShippingAddressQuery($storedAccount);
+}
+
+/**
+ * The answer of one shipment options controller, built without its constructor, for this many
+ * orders. $properties are set on it as collaborators.
+ *
+ * @param class-string<\MyParcelNL\Magento\Controller\Adminhtml\ShipmentOptions\AbstractShipmentOptions> $class
+ * @param array<string,mixed> $params the request parameters
+ * @param array<string,mixed> $properties
+ */
+function shipmentOptionsAnswer(string $class, array $params, array $properties, int $orderCount = 1): array
+{
+    $controller = newInstanceWithoutConstructor($class);
+    setPrivateProperty($controller, '_request', mockRequestWithParams($params));
+
+    foreach ($properties as $name => $value) {
+        setPrivateProperty($controller, $name, $value);
+    }
+
+    return invokePrivateMethod($controller, 'answer', [array_fill(0, $orderCount, createOrder())]);
 }
