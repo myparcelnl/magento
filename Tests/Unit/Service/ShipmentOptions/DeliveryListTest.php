@@ -135,3 +135,10 @@ it('keeps the stored choice and warns when the dates failed', function () {
 it('has no warning when the dates were read', function () {
     expect(DeliveryList::build([], ['standard'], storedDeliveryOptions(null), 'postnl', false)['warning'])->toBeNull();
 });
+
+it('gives the delivery type of the selected entry', function () {
+    $list = DeliveryList::build([datedDelivery('2026-10-29', 'morning', '08:00', '12:00')], ['standard', 'morning'], storedMorning('2026-10-29'), 'postnl', false);
+
+    expect(DeliveryList::selectedType($list))->toBe('morning')
+        ->and(DeliveryList::selectedType(['groups' => []]))->toBeNull();
+});
