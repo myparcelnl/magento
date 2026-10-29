@@ -16,6 +16,14 @@ use GuzzleHttp\Middleware;
  * @param  \GuzzleHttp\Psr7\Response[]|\Throwable[] $responses
  * @return array{client: GuzzleClient, history: array, handler: MockHandler}
  */
+/** The query of the first request a makeGuzzleWithHistory() history holds, decoded. */
+function firstRequestQuery(array $history): array
+{
+    parse_str($history[0]['request']->getUri()->getQuery(), $query);
+
+    return $query;
+}
+
 function makeGuzzleWithHistory(array $responses = []): array
 {
     $history     = [];

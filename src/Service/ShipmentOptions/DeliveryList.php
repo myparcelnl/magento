@@ -16,8 +16,11 @@ use MyParcelNL\Magento\Model\Shipment\DeliveryType;
  */
 final class DeliveryList
 {
-    /** Delivery types the merchant can choose; same-day and early morning are only kept when stored. */
-    private const CHOOSABLE = [
+    /** The "Standard, no date" entry: the fallback selection, and what an order without a choice gets. */
+    public const STANDARD_VALUE = DeliveryType::STANDARD_NAME . '|';
+
+    /** The dated types the list offers from /delivery_options; pickup is a group of its own. Any other stored type is kept, never offered. */
+    public const CHOOSABLE = [
         DeliveryType::MORNING_NAME,
         DeliveryType::STANDARD_NAME,
         DeliveryType::EVENING_NAME,
@@ -51,7 +54,7 @@ final class DeliveryList
         string          $carrier,
         bool            $datesFailed
     ): array {
-        $groups = [null => self::undatedEntries($allowedDeliveryTypes)];
+        $groups = ['' => self::undatedEntries($allowedDeliveryTypes)];
 
         foreach ($dated as $possibility) {
             $type = $possibility['deliveryType'];
@@ -61,17 +64,19 @@ final class DeliveryList
             }
         }
 
-        $storedValue = self::storedValue($stored);
+        $storedValue = self::valueOf($stored->getDeliveryType(), $stored->getDate());
+        $offered     = null !== $storedValue && self::contains($groups, $storedValue);
+        $kept        = null !== $storedValue && ! $offered
+                       && ($datesFailed || ($stored->getCarrier() === $carrier && self::keptWhenMissing($stored)));
         $pickup      = in_array(DeliveryType::PICKUP_NAME, $allowedDeliveryTypes, true);
-        $sameCarrier = $stored->getCarrier() === $carrier;
 
-        if (null !== $storedValue && ! self::contains($groups, $storedValue) && ($datesFailed || ($sameCarrier && self::keptWhenMissing($stored)))) {
+        if ($kept) {
             [$type, $date] = explode('|', $storedValue);
 
             if (DeliveryType::PICKUP_NAME === $type) {
                 $pickup = true;
             } else {
-                $groups[$date ?: null][] = self::entry($type, $date ?: null, null, null, true);
+                $groups[$date][] = self::entry($type, '' === $date ? null : $date, null, null, true);
             }
         }
 
@@ -79,9 +84,7 @@ final class DeliveryList
             $groups[DeliveryType::PICKUP_NAME] = [self::entry(DeliveryType::PICKUP_NAME, null, null, null)];
         }
 
-        $selected = null !== $storedValue && self::contains($groups, $storedValue)
-            ? $storedValue
-            : DeliveryType::STANDARD_NAME . '|';
+        $selected = $offered || $kept ? $storedValue : self::STANDARD_VALUE;
 
         return [
             'groups'  => self::grouped($groups, $selected),
@@ -108,11 +111,6 @@ final class DeliveryList
     private static function keptWhenMissing(DeliveryOptions $stored): bool
     {
         return ! in_array($stored->getDeliveryType(), self::CHOOSABLE, true);
-    }
-
-    private static function storedValue(DeliveryOptions $stored): ?string
-    {
-        return self::valueOf($stored->getDeliveryType(), $stored->getDate());
     }
 
     /** A stored delivery type and date as a list value, or null without a delivery type. */

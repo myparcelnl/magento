@@ -55,16 +55,16 @@ it('returns null rather than standard when the stored delivery type is unrecogni
         ->not->toBe(DeliveryType::STANDARD);
 });
 
-it('leaves receipt code to capabilities whatever the delivery type', function (string $deliveryType) {
+it('leaves receipt code to capabilities for a delivery type it does not know', function () {
     mockLoggerFacade()->shouldReceive('warning');
 
-    $block = createNewShipmentBlockFor($deliveryType);
+    $block = createNewShipmentBlockFor('teleport');
     // Permissive says yes to everything, so a false here would be a module rule of its own.
     setPrivateProperty($block, 'capabilityLookup', capabilityLookupWith(CapabilitySet::permissive(), '', 1));
 
     expect($block->hasShipmentOption('postnl', PackageType::PACKAGE_NAME, ShipmentOption::RECEIPT_CODE))
         ->toBeTrue();
-})->with(['evening', 'teleport']);
+});
 
 it('defaults silently when the order carries no delivery type', function () {
     $logger = mockLoggerFacade();

@@ -47,7 +47,6 @@ class ShipmentOptionsForm implements ArgumentInterface
     private Weight              $weightService;
     private StoredAccount       $storedAccount;
     private bool                $bulk = false;
-    private bool                $emptyAnswer = false;
 
     public function __construct(
         Order                  $order,
@@ -326,12 +325,6 @@ class ShipmentOptionsForm implements ArgumentInterface
     }
 
     /**
-     * Whether any answer this render used was a fallback rather than the account's own.
-     *
-     * Only meaningful once the form data has been resolved, which is why the template asks for
-     * getFormCarriers() first.
-     */
-    /**
      * The options of a block that are on: the stored or default ones, and the ones the contract
      * makes compulsory. The modal sends these to capabilities as a filter.
      *
@@ -348,8 +341,8 @@ class ShipmentOptionsForm implements ArgumentInterface
 
     /**
      * Per option of the block: on, changeable, and greyed out when the carrier offers it for the
-     * package type but not with this delivery type and these ticked options. An answer without the
-     * carrier falls back to the answer without options, and emptyAnswer() says so.
+     * package type but not with this delivery type and these ticked options. When emptyAnswer(),
+     * the answer without options decides instead.
      *
      * @param string[] $ticked
      *
@@ -357,13 +350,11 @@ class ShipmentOptionsForm implements ArgumentInterface
      */
     public function optionStates(string $carrier, string $packageType, string $deliveryType, array $ticked): array
     {
-        $answer            = $this->selectionCapabilities($packageType, $deliveryType, $ticked);
-        $this->emptyAnswer = ! $answer->isPermissive() && ! in_array($carrier, $answer->carriers(), true);
-
-        if ($this->emptyAnswer) {
-            $answer = $this->selectionCapabilities($packageType, $deliveryType, []);
-        }
-
+        $answer = $this->selectionCapabilities(
+            $packageType,
+            $deliveryType,
+            $this->emptyAnswer($carrier, $packageType, $deliveryType, $ticked) ? [] : $ticked
+        );
         $states = [];
 
         foreach ($this->getShipmentOptions($carrier, $packageType) as $option) {
@@ -401,10 +392,17 @@ class ShipmentOptionsForm implements ArgumentInterface
         return $states;
     }
 
-    /** Whether the last optionStates() answer had no result for the ticked options. */
-    public function emptyAnswer(): bool
+    /**
+     * Whether capabilities have no result for the carrier with these ticked options. The lookup is
+     * memoised, so optionStates() asking the same question again costs no request.
+     *
+     * @param string[] $ticked
+     */
+    public function emptyAnswer(string $carrier, string $packageType, string $deliveryType, array $ticked): bool
     {
-        return $this->emptyAnswer;
+        $answer = $this->selectionCapabilities($packageType, $deliveryType, $ticked);
+
+        return ! $answer->isPermissive() && ! in_array($carrier, $answer->carriers(), true);
     }
 
     /**
@@ -420,13 +418,7 @@ class ShipmentOptionsForm implements ArgumentInterface
         $answer = $this->selectionCapabilities($packageType, null, $ticked);
 
         if ($answer->isPermissive()) {
-            return [
-                DeliveryType::STANDARD_NAME,
-                DeliveryType::MORNING_NAME,
-                DeliveryType::EVENING_NAME,
-                DeliveryType::EXPRESS_NAME,
-                DeliveryType::PICKUP_NAME,
-            ];
+            return array_merge(DeliveryList::CHOOSABLE, [DeliveryType::PICKUP_NAME]);
         }
 
         return $answer->deliveryTypesFor($carrier, $packageType);
@@ -452,7 +444,7 @@ class ShipmentOptionsForm implements ArgumentInterface
     public function storedDeliveryValue(): string
     {
         return DeliveryList::valueOf($this->storedDeliveryTypeName(), $this->getDeliveryDate())
-               ?? DeliveryType::STANDARD_NAME . '|';
+               ?? DeliveryList::STANDARD_VALUE;
     }
 
     /** The stored delivery options; a pickup without a readable location counts as a home delivery. */
@@ -461,10 +453,7 @@ class ShipmentOptionsForm implements ArgumentInterface
         try {
             return DeliveryOptionsFactory::create($this->stored());
         } catch (InvalidArgumentException $e) {
-            return DeliveryOptions::fromOrderFallback(array_merge($this->stored(), [
-                'deliveryType'   => DeliveryType::STANDARD_NAME,
-                'pickupLocation' => null,
-            ]));
+            return DeliveryOptions::fromOrderFallback(DeliveryOptions::asHomeDelivery($this->stored()));
         } catch (BadMethodCallException $e) {
             return DeliveryOptions::fromOrderFallback($this->stored());
         }
@@ -512,6 +501,12 @@ class ShipmentOptionsForm implements ArgumentInterface
         );
     }
 
+    /**
+     * Whether any answer this render used was a fallback rather than the account's own.
+     *
+     * Only meaningful once the form data has been resolved, which is why the template asks for
+     * getFormCarriers() first.
+     */
     public function hasUnverifiedCapabilities(): bool
     {
         return $this->capabilityLookup->answeredPermissively();

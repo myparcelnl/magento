@@ -206,18 +206,13 @@ class OrderOptionsWriter
      */
     private function withDelivery(Order $order, array $stored, OptionChanges $changes): array
     {
-        $stored['deliveryType'] = $changes->deliveryType();
-
         if (DeliveryType::PICKUP_NAME !== $changes->deliveryType()) {
-            $stored['isPickup']       = false;
-            $stored['pickupLocation'] = null;
-
-            return $stored;
+            return DeliveryOptions::asHomeDelivery($stored, $changes->deliveryType());
         }
 
         $location = null === $changes->pickupLocationCode() ? null : $this->findPickupLocation(
             $order,
-            (string) ($stored['carrier'] ?? (new DefaultOptions($order))->getCarrierName()),
+            self::carrierOf($order, $stored),
             $changes->pickupLocationCode()
         );
 
@@ -225,11 +220,18 @@ class OrderOptionsWriter
             throw new LocalizedException(__('%1: the pickup location is not available. Choose one from the list.', $order->getIncrementId()));
         }
 
+        $stored['deliveryType']   = DeliveryType::PICKUP_NAME;
         $stored['isPickup']       = true;
         $stored['pickupLocation'] = PickupLocation::fromCheckoutData($location)->toArray();
         $stored['date']           = null === $location['date'] ? null : $location['date'] . ' 00:00:00';
 
         return $stored;
+    }
+
+    /** The stored carrier, else the order's default one. */
+    private static function carrierOf(Order $order, array $stored): string
+    {
+        return (string) ($stored['carrier'] ?? (new DefaultOptions($order))->getCarrierName());
     }
 
     /** @throws LocalizedException when MyParcel cannot list the locations */
@@ -305,11 +307,7 @@ class OrderOptionsWriter
                 ));
             }
 
-            return DeliveryOptionsFactory::create(array_merge($raw, [
-                'deliveryType'   => DeliveryType::STANDARD_NAME,
-                'isPickup'       => false,
-                'pickupLocation' => null,
-            ]))->toArray();
+            return DeliveryOptionsFactory::create(DeliveryOptions::asHomeDelivery($raw))->toArray();
         }
     }
 
@@ -324,7 +322,7 @@ class OrderOptionsWriter
         $address     = $order->getShippingAddress();
         $country     = $address ? (string) $address->getCountryId() : '';
         $storeId     = (int) $order->getStoreId();
-        $carrier     = (string) ($stored['carrier'] ?? (new DefaultOptions($order))->getCarrierName());
+        $carrier     = self::carrierOf($order, $stored);
         $packageType = $stored['packageType'] ?? null;
         $refuse      = static function (string $what) use ($order): LocalizedException {
             return new LocalizedException(__('%1: %2 is not available for this account.', $order->getIncrementId(), $what));
