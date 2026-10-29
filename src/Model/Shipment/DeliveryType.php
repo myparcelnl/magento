@@ -58,6 +58,32 @@ final class DeliveryType
         ];
 
     /**
+     * The delivery types the checkout prices per type from the matrix, and the matrix offers as a
+     * delivery_type condition: every type the SDK defines, minus the named exceptions, so a new SDK
+     * type is priced per type by default. Exceptions: same day and express are still a fee on top
+     * of the standard price (pricing them per type needs a per-carrier split first, since DHL
+     * carries same day as an option on standard where Trunkrs and UPS Express Saver carry their
+     * own type), and early morning is not offered in the checkout at all.
+     *
+     * @todo INT-1563 shrinks the exceptions with the capabilities refactor.
+     * @return string[] delivery type names, see self::NAMES_IDS_MAP
+     */
+    public static function pricedPerTypeNames(): array
+    {
+        $exceptions = [self::SAME_DAY_NAME, self::EXPRESS_NAME, self::EARLY_MORNING_NAME];
+
+        $names = [];
+        foreach (RefTypesDeliveryTypeV2::getAllowableEnumValues() as $v2Name) {
+            $name = self::fromV2Name($v2Name);
+            if (null !== $name && ! in_array($name, $exceptions, true)) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /**
      * Module name to the Core API v2 name a capabilities response speaks.
      */
     public const V2_NAMES_MAP
