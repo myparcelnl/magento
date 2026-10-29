@@ -28,7 +28,7 @@ use MyParcelNL\Sdk\Services\CountryService;
 /**
  * Turns one Magento shipment track into a v11 Shipment, paired with its track and API key.
  *
- * Carrier, package type and the option set come from OrderShipmentOptions, which the Order v1
+ * Carrier, package type and the option set come from OrderExportOptions, which the Order v1
  * path shares. What is decided here is what only a label needs: the weight of these shipment items,
  * the recipient array and the pickup model. A shipment that cannot be built fails on its own, and
  * the caller names the order. An unknown stored carrier fails the shipment; it is never replaced.
@@ -45,7 +45,7 @@ class ShipmentBuilder
     private RecipientFields           $recipientFields;
     private CountryService            $countryService;
 
-    /** @var array<int,OrderShipmentOptions> by shipment; a multicollo order asks per collo */
+    /** @var array<int,OrderExportOptions> by shipment; a multicollo order asks per collo */
     private array $orderOptions = [];
 
     public function __construct(ObjectManagerInterface $objectManager, Order $order)
@@ -65,11 +65,11 @@ class ShipmentBuilder
      * Resolved once per shipment, not once per collo: each instance re-reads the order's delivery
      * options and, for a label description that names a product, its items.
      */
-    private function orderOptionsFor(MagentoShipment $magentoShipment): OrderShipmentOptions
+    private function orderOptionsFor(MagentoShipment $magentoShipment): OrderExportOptions
     {
         $key = spl_object_id($magentoShipment);
 
-        return $this->orderOptions[$key] ?? $this->orderOptions[$key] = new OrderShipmentOptions(
+        return $this->orderOptions[$key] ?? $this->orderOptions[$key] = new OrderExportOptions(
             $this->objectManager,
             $magentoShipment->getOrder(),
             $this->defaultOptions,

@@ -10,7 +10,7 @@ use BadMethodCallException;
  * Picks the stored shape to read a DeliveryOptions from, by its top-level keys only.
  *
  * Each named constructor normalises its own nested keys. Keep throwing BadMethodCallException:
- * OrderShipmentOptions::parse() catches that class to fall back to DeliveryOptions::fromOrderFallback().
+ * OrderExportOptions::parse() catches that class to fall back to DeliveryOptions::fromOrderFallback().
  */
 class DeliveryOptionsFactory
 {

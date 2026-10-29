@@ -18,7 +18,7 @@ function packageTypeOf(
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('getPackageType')->andReturn($fallbackType);
 
-    return createOrderShipmentOptions([
+    return createOrderExportOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback($stored),
         'chosen'        => ResolvedOptions::of([ShipmentOption::AGE_CHECK => $ageCheck]),
@@ -54,7 +54,7 @@ it('reads an empty delivery options column as no choice, rather than failing to 
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('getCarrierName')->andReturn('postnl');
 
-    $options = createOrderShipmentOptions([
+    $options = createOrderExportOptions([
         'defaultOptions' => $defaultOptions,
         'jsonSerializer' => new Magento\Framework\Serialize\Serializer\Json(),
         'order'          => createOrder(['deliveryOptions' => '']),
