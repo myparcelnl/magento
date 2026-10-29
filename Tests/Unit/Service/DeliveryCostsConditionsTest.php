@@ -33,7 +33,7 @@ function priceFor(DeliveryCosts $deliveryCosts, float $orderAmount, string $deli
     ]]);
 }
 
-/** Free pickup, € 1 home delivery from € 50, € 6.95 below it: the story's example. */
+/** Free pickup, € 1 home delivery from € 50, € 6.95 below it: INT-2147's example. */
 function merchantConditionsMatrix(): array
 {
     return [

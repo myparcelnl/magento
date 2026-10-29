@@ -327,7 +327,7 @@ Standard delivery,Standardzustellung
 Minimum order amount,Mindestbestellwert
 Maximum order amount,Höchstbestellwert
 Delivery type,Zustellart
-Set the fees to 0 when the matrix fully sets the price per delivery type.,"Setzen Sie die Gebühren auf 0, wenn die Matrix den Preis pro Zustellart vollständig festlegt."
+Set the fees to 0 if you fully set the price per delivery type via the matrix.,"Setzen Sie die Gebühren auf 0, wenn die Matrix den Preis pro Zustellart vollständig festlegt."
 "The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.","Die Bedingung Zustellart deckt Standardzustellung, Abholung, Morgen- und Abendzustellung ab: nur diese bepreist der Checkout je Zustellart."
 No rules defined. Click Add rule to create a new rule.,"Keine Regeln definiert. Klicken Sie auf 'Regel hinzufügen', um eine neue Regel zu erstellen."
 Add rule,Regel hinzufügen

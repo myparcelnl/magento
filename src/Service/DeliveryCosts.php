@@ -41,17 +41,18 @@ class DeliveryCosts
         'unspecified'          => 1, // when a condition is not specified, it should be considered met, but least specific
     ];
 
+    /** The quote values every calculate() call must supply, see getBasePrice(). */
+    private const REQUIRED_CONDITIONS = ['carrier_name', 'package_type', 'country', 'weight', 'order_amount', 'delivery_type'];
+
+    /** Not met, these rule a definition out instead of scoring 0, see self::CONDITIONS. */
+    private const EXCLUDING_CONDITIONS = ['delivery_type', 'minimum_order_amount', 'maximum_order_amount'];
+
     public function __construct(Weight $weight, Config $config, Tax $tax)
     {
         $this->weight = $weight;
         $this->config = $config;
         $this->tax    = $tax;
     }
-
-    private const REQUIRED_CONDITIONS = ['carrier_name', 'package_type', 'country', 'weight', 'order_amount', 'delivery_type'];
-
-    /** Not met, these rule a definition out instead of scoring 0, see self::CONDITIONS. */
-    private const EXCLUDING_CONDITIONS = ['delivery_type', 'minimum_order_amount', 'maximum_order_amount'];
 
     /**
      * One request prices several delivery types for several carriers over the same quote, so the amounts summed
@@ -127,13 +128,13 @@ class DeliveryCosts
     }
 
     /**
-     * Summed from the items, whose totals Magento collects (subtotal, tax, discount) before it collects the shipping
-     * rates. Their discount is excluding tax unless Magento applies discounts on prices including tax. When tax is
-     * calculated after the discount, the discount lowers the tax too, so it is raised by the tax rate of its item.
+     * Summed from the items, whose totals (subtotal, subtotal including tax and discount) Magento collects
+     * before it collects the shipping rates.
      */
     private function computeOrderAmount(Quote $quote): float
     {
-        $storeId             = (int) $quote->getStoreId();
+        $storeId = (int) $quote->getStoreId();
+        // the item discount excludes tax, unless Magento applies discounts on prices including tax
         $discountIncludesTax = '1' === (string) $this->config->getConfigValue('tax/calculation/discount_tax', $storeId);
         $taxAfterDiscount    = '0' !== (string) $this->config->getConfigValue('tax/calculation/apply_after_discount', $storeId);
         $amount              = 0.0;
@@ -144,6 +145,7 @@ class DeliveryCosts
             $discount        = (float) $item->getDiscountAmount();
 
             if (! $discountIncludesTax && $taxAfterDiscount && $rowTotal > 0) {
+                // tax calculated after the discount lowers the tax too, so raise the discount by the item's tax rate
                 $discount *= $rowTotalInclTax / $rowTotal;
             }
 
