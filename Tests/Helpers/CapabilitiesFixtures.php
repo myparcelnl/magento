@@ -101,12 +101,12 @@ function accountSettingsRow(array $items, array $overrides = []): string
  * @param  \GuzzleHttp\Psr7\Response[]|\Throwable[] $responses
  * @return array{client: CapabilitiesClient, history: array, handler: \GuzzleHttp\Handler\MockHandler}
  */
-function makeCapabilitiesClient(array $responses = [], ?string $host = null): array
+function makeCapabilitiesClient(array $responses = []): array
 {
     $http = makeGuzzleWithHistory($responses);
 
     return [
-        'client'  => new CapabilitiesClient($http['client'], createUserAgent(), null, $host),
+        'client'  => new CapabilitiesClient($http['client'], createUserAgent()),
         'history' => &$http['history'],
         'handler' => $http['handler'],
     ];
