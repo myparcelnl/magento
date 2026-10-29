@@ -143,7 +143,7 @@ Each workaround names what to delete once the fix lands.
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
 | 6 | `Collection\Fulfilment\OrderCollection::query()` is static and sends no user agent | None possible; the Order v1 status poll is the one unidentified call |
 | 7 | `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters | None; affects the Order v1 path only |
-| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
+| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 
 Defect 1 breaks capabilities for every SDK consumer on beta.25 and later, so other integrations will
 hit it.
