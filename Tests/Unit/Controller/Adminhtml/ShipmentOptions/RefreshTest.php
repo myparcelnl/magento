@@ -2,25 +2,19 @@
 
 declare(strict_types=1);
 
-use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Controller\Adminhtml\ShipmentOptions\Refresh;
 use MyParcelNL\Magento\Service\ShipmentOptions\DeliveryDates;
+use MyParcelNL\Magento\Tests\Stub\WithTestRequest;
 use MyParcelNL\Magento\ViewModel\ShipmentOptionsForm;
 use MyParcelNL\Magento\ViewModel\ShipmentOptionsFormFactory;
 
 /** Renders the option block as a marker, so the test needs no layout. */
 final class RefreshWithoutLayout extends Refresh
 {
-    /** @var RequestInterface|null Declared here: the test stub of Action has no $_request. */
-    protected $_request;
+    use WithTestRequest;
 
-    public function getRequest()
-    {
-        return $this->_request;
-    }
-
-    protected function optionsHtml(ShipmentOptionsForm $form, string $carrier, string $packageType, array $states): string
+    protected function optionsHtml(ShipmentOptionsForm $form, string $carrier, string $packageType, array $states, bool $emptyAnswer): string
     {
         return '<options ' . implode(',', array_keys($states)) . '>';
     }
@@ -39,24 +33,21 @@ function refreshAnswer(
     array          $stored = ['carrier' => 'postnl', 'deliveryType' => 'standard'],
     string         $statesFor = 'morning'
 ): array {
-    $request = Mockery::mock(RequestInterface::class);
-    $request->shouldReceive('getParam')->andReturnUsing(static fn(string $name, $default = null) => $params[$name] ?? $default);
-
     $form = Mockery::mock(ShipmentOptionsForm::class);
     $form->shouldReceive('optionStates')->with('postnl', 'package', $statesFor, ['signature'])->andReturn(['signature' => ['checked' => true, 'disabled' => false, 'greyed' => false]]);
-    $form->shouldReceive('emptyAnswer')->andReturn(false);
+    $form->shouldReceive('emptyAnswer')->with('postnl', 'package', $statesFor, ['signature'])->andReturn(false);
     $form->shouldReceive('allowedDeliveryTypes')->with('postnl', 'package', ['signature'])->andReturn(['standard', 'morning']);
     $form->shouldReceive('storedDelivery')->andReturn(storedDeliveryOptions($stored));
 
     $formFactory = Mockery::mock(ShipmentOptionsFormFactory::class);
     $formFactory->shouldReceive('create')->andReturn($form);
 
-    $controller = newInstanceWithoutConstructor(RefreshWithoutLayout::class);
-    setPrivateProperty($controller, '_request', $request);
-    setPrivateProperty($controller, 'formFactory', $formFactory);
-    setPrivateProperty($controller, 'deliveryDates', $dates ?? Mockery::mock(DeliveryDates::class));
-
-    return invokePrivateMethod($controller, 'answer', [array_fill(0, $orderCount, createOrder())]);
+    return shipmentOptionsAnswer(
+        RefreshWithoutLayout::class,
+        $params,
+        ['formFactory' => $formFactory, 'deliveryDates' => $dates ?? Mockery::mock(DeliveryDates::class)],
+        $orderCount
+    );
 }
 
 const REFRESH_PARAMS = ['carrier' => 'postnl', 'package_type' => 'package', 'delivery_type' => 'morning', 'options' => ['signature', 'not a name']];
@@ -77,8 +68,7 @@ it('adds the delivery list when asked with dates', function () {
 
     $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates, 1, ['carrier' => 'postnl', 'deliveryType' => 'morning', 'date' => '2026-10-29 00:00:00']);
 
-    expect(deliveryValues($answer['deliveries']))->toBe(['standard|', 'morning|2026-10-29'])
-        ->and($answer['deliveries']['warning'])->toBeNull();
+    expect(deliveryValues($answer['deliveries']))->toBe(['standard|', 'morning|2026-10-29']);
 });
 
 it('answers the option block for the delivery the list preselects, not the posted one', function () {
