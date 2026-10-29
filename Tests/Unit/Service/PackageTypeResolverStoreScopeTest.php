@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
-use MyParcelNL\Magento\Service\PostnlMailboxInternational;
+use MyParcelNL\Magento\Service\MailboxInternational;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
@@ -25,7 +25,7 @@ function createScopedResolver(array $configByStore): PackageTypeResolver
         $config,
         productAttributesFor([]),
         new Weight($config),
-        Mockery::mock(PostnlMailboxInternational::class)
+        Mockery::mock(MailboxInternational::class)
     );
 }
 

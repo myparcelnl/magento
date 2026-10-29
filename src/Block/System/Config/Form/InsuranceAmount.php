@@ -15,8 +15,8 @@ use MyParcelNL\Magento\Service\Settings;
 /**
  * Renders one insurance amount as a number field bounded by the account's contract.
  *
- * It exists because `etc/dynamic_settings.json` is a static file and the bound is per account and per
- * scope: `dynamic_settings.phtml` can only inject a fixed `validate` class, so a range like
+ * It exists because a field's `validate` class is fixed in the Catalogue and the bound is per account
+ * and per scope: `dynamic_settings.phtml` can only inject that fixed class, so a range like
  * `number-range-0-5000` has to be emitted at render time.
  *
  * The bound is **advisory**. Contract definitions carry no country, so this states what the
