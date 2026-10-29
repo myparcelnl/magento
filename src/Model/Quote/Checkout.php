@@ -258,20 +258,18 @@ class Checkout
             // The price per matrix-priced delivery type, its name mapped onto a price{Name}Delivery
             // key, with the fee from the type's own config group on top — the SDK's type list drives
             // this (see DeliveryType::pricedPerTypeNames()), so a new type is priced by default.
-            // Standard has no fee group of its own; pickup differs in key, fee path and floor and
-            // stays an exception in the carrierSettings below.
+            // Standard has no fee group of its own.
             $deliveryTypePrices = [];
             foreach (DeliveryType::pricedPerTypeNames() as $deliveryType) {
-                if (DeliveryType::PICKUP_NAME === $deliveryType) {
-                    continue;
-                }
-
                 $canHaveType = DeliveryType::DEFAULT_NAME === $deliveryType
                                || $caps->hasDeliveryType($carrierName, $packageType, $deliveryType);
                 $typeFee     = DeliveryType::DEFAULT_NAME === $deliveryType
                     ? 0.0
                     : $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, "$deliveryType/fee"), $quote);
-                $priceKey    = 'price' . str_replace('_', '', ucwords($deliveryType, '_')) . 'Delivery';
+                // the widget takes pickup as pricePickup, every other type as price{Name}Delivery
+                $priceKey    = DeliveryType::PICKUP_NAME === $deliveryType
+                    ? 'pricePickup'
+                    : 'price' . str_replace('_', '', ucwords($deliveryType, '_')) . 'Delivery';
 
                 $deliveryTypePrices[$priceKey] = $canHaveType
                     ? self::deliveryTypePrice($basePrices, $deliveryType, $typeFee, $showTotalPrice)
@@ -326,7 +324,6 @@ class Checkout
                 'priceOnlyRecipient'    => $onlyRecipientFee,
                 'pricePriorityDelivery' => $priorityDeliveryFee,
                 'priceSameDayDelivery'  => $sameDayFee,
-                'pricePickup'           => max(0, $canHavePickup ? $this->config->getFloatConfig($carrierPath, 'pickup/fee') + $basePrices[DeliveryType::PICKUP_NAME] : 0),
                 // because of how the delivery options work, we need to put the correctly calculated price in separate keys:
                 'pricePackageTypeMailbox'      => $basePrice,
                 'pricePackageTypeDigitalStamp' => $basePrice,
