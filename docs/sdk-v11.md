@@ -150,7 +150,7 @@ Each workaround names what to delete once the fix lands.
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
 | 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. The module cannot build the request itself, because `OrderCollection::createCollectionFromResponse()` is private. Fix it in the SDK: let `query()` take user agents |
 | 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
-| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
+| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 | 9 | `ReturnShipmentService::createRelated()` does not check the HTTP status and reads an error answer as "Unexpected response type", so a refused return and a timeout look the same | `ShipmentExportService::createReturns()` reports every failure as "unknown whether created and mailed"; tell a 4xx apart there once the SDK throws with the status |
 
 Defects 1 and 3 were capabilities defects. The module now uses the generated `ShipmentApi` and reads
