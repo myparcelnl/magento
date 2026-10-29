@@ -197,3 +197,26 @@ it('sums the order amount once per quote and keeps quotes apart', function () {
         ->and(invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$one]))->toBe(121.0)
         ->and(invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$two]))->toBe(54.5);
 });
+
+it('lets the highest met minimum win between tiered thresholds, whatever their order', function () {
+    // 3.00 from 50 and free from 100: at 120 both match, the 100 tier is the one the merchant meant
+    $tiers = [
+        ['name' => 'From 50', 'price' => 3.0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => 50]]],
+        ['name' => 'Free from 100', 'price' => 0.0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => 100]]],
+    ];
+
+    expect(priceFor(deliveryCostsWithMatrix($tiers), 120.0))->toBe(0.0)
+        ->and(priceFor(deliveryCostsWithMatrix(array_reverse($tiers)), 120.0))->toBe(0.0)
+        ->and(priceFor(deliveryCostsWithMatrix($tiers), 75.0))->toBe(3.0);
+});
+
+it('lets the lowest met maximum win between tiered thresholds, whatever their order', function () {
+    $tiers = [
+        ['name' => 'Below 20', 'price' => 7.95, 'conditions' => [['type' => 'maximum_order_amount', 'value' => 20]]],
+        ['name' => 'Below 100', 'price' => 5.95, 'conditions' => [['type' => 'maximum_order_amount', 'value' => 100]]],
+    ];
+
+    expect(priceFor(deliveryCostsWithMatrix($tiers), 10.0))->toBe(7.95)
+        ->and(priceFor(deliveryCostsWithMatrix(array_reverse($tiers)), 10.0))->toBe(7.95)
+        ->and(priceFor(deliveryCostsWithMatrix($tiers), 50.0))->toBe(5.95);
+});

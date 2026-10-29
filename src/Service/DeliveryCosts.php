@@ -197,9 +197,24 @@ class DeliveryCosts
                 $totalPoints += $score;
             }
 
+            // the tightest met thresholds of this definition, for the tie-break in the sort below
+            $minimum = -INF;
+            $maximum = INF;
+            foreach ($definedConditions as $definedCondition) {
+                $value = (float) ($definedCondition['value'] ?? 0);
+                if ('minimum_order_amount' === ($definedCondition['type'] ?? '')) {
+                    $minimum = max($minimum, $value);
+                }
+                if ('maximum_order_amount' === ($definedCondition['type'] ?? '')) {
+                    $maximum = min($maximum, $value);
+                }
+            }
+
             $return[] = [
                 'definition' => $definition,
                 'points'     => $totalPoints,
+                'minimum'    => $minimum,
+                'maximum'    => $maximum,
             ];
         }
 
@@ -208,9 +223,12 @@ class DeliveryCosts
             return (float) $this->config->getMagentoCarrierConfig('shipping_cost');
         }
 
-        // sort by points, highest first, then return the price from the first result
+        // sort by points, highest first, then return the price from the first result. Equal points mean
+        // tiered thresholds, where the tightest met threshold is the tier the merchant meant: the highest
+        // minimum wins, then the lowest maximum, so the outcome does not depend on the order of the rules.
         usort($return, static function ($one, $two) {
-            return $two['points'] <=> $one['points'];
+            return [$two['points'], $two['minimum'], $one['maximum']]
+                   <=> [$one['points'], $one['minimum'], $two['maximum']];
         });
 
         return (float) $return[0]['definition']['price'];
