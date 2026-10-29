@@ -8,13 +8,13 @@ use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Service\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\CartShippingRules;
 use MyParcelNL\Magento\Service\DeliveryCosts;
+use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
 use MyParcelNL\Magento\Service\Tax;
 
@@ -32,7 +32,7 @@ use MyParcelNL\Magento\Service\Tax;
  *
  * @return array{checkout: Checkout, cartRules: CartShippingRules, calls: object}
  */
-function createCheckoutWith(array $capabilities, string $country = 'NL', array $forced = [], ?CapabilitiesLookup $lookup = null): array
+function createCheckoutWith(array $capabilities, string $country = 'NL', array $forced = []): array
 {
     $calls = new class {
         public ?PackageTypeCandidates $candidates = null;
@@ -61,10 +61,10 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
         'packageTypeResolver' => $packageTypeResolver,
         'cartRules'           => $cartRules,
         'config'              => $config,
-        'dropOffSettings'     => new MyParcelNL\Magento\Service\DropOffSettings($config),
+        'dropOffSettings'     => new DropOffSettings($config),
         'quote'               => $quote,
         'storeId'             => 1,
-        'capabilityLookup'    => $lookup ?? capabilityLookupWith($capabilities, $country),
+        'capabilityLookup'    => capabilityLookupWith($capabilities, $country),
         'storedAccount'       => storedAccountAt('NL'),
         'contractDefinitions' => contractFor($capabilities),
     ]);
@@ -166,33 +166,9 @@ it('answers per carrier, not once for the store', function () {
         ->and(candidateWasOffered($dpd['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeFalse();
 });
 
-it('sends the forced age check as a capabilities option filter', function () {
-    [$lookup, $requests] = recordingCapabilitiesLookup();
-
-    createCheckoutWith([], 'NL', [ShipmentOption::AGE_CHECK], $lookup)['checkout']->checkPackageType('postnl', 'NL');
-
-    expect($requests)->not->toBeEmpty();
-
-    foreach ($requests as $request) {
-        expect($request->getOptions())->toBe([ShipmentOption::AGE_CHECK => null]);
-    }
-});
-
-it('sends no option filter for a cart that forces nothing', function () {
-    [$lookup, $requests] = recordingCapabilitiesLookup();
-
-    createCheckoutWith([], 'NL', [], $lookup)['checkout']->checkPackageType('postnl', 'NL');
-
-    expect($requests)->not->toBeEmpty();
-
-    foreach ($requests as $request) {
-        expect($request->getOptions())->toBeNull();
-    }
-});
-
 it('offers no mailbox when the filtered answer leaves it out', function () {
-    // Seeding only the filtered request also proves the unfiltered one is never asked: it would reach
-    // the repository, which is not set here, and fatal.
+    // Seeding only the filtered request also proves the forced option is sent, and nothing else is
+    // asked: any other lookup would reach the repository, which is not set here, and fatal.
     $c = createCheckoutWith(
         ['|age_check' => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['PACKAGE']])])],
         'NL',

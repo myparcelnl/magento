@@ -17,7 +17,8 @@ define(
 
         /** Wait this long after the last click before asking the server again. */
         var REFRESH_DELAY = 300;
-        var STANDARD = 'standard|';
+        var STANDARD_TYPE = 'standard';
+        var STANDARD = STANDARD_TYPE + '|';
         var PICKUP = 'pickup|';
 
         /** An admin POST with the form key; resolves with the decoded JSON answer. */
@@ -34,6 +35,13 @@ define(
                 body: body.toString()
             }).then(function (response) {
                 return response.json();
+            });
+        }
+
+        /** post(), with a network or parse failure turned into the answer shape {error}. */
+        function postOrError(url, params) {
+            return post(url, params).catch(function () {
+                return {error: $.mage.__('The MyParcel options could not be loaded.')};
             });
         }
 
@@ -171,7 +179,7 @@ define(
             $select.find('option').each(function () {
                 var $option = $(this);
                 var type = $option.attr('data-delivery-type');
-                var ok = '1' === $option.attr('data-stored') || 'standard' === type || -1 !== allowed.indexOf(type);
+                var ok = '1' === $option.attr('data-stored') || STANDARD_TYPE === type || -1 !== allowed.indexOf(type);
 
                 $option.prop('disabled', !ok).prop('hidden', !ok);
             });
@@ -356,10 +364,7 @@ define(
                     deliveryRoot($root).empty().append($('<div class="mypa-options-loading"></div>').text($.mage.__('Loading...')));
                 }
 
-                return post(config.refreshUrl, params)
-                    .catch(function () {
-                        return {error: $.mage.__('The MyParcel options could not be loaded.')};
-                    })
+                return postOrError(config.refreshUrl, params)
                     .then(function (answer) {
                         if (sequence !== state.sequence) {
                             return;
@@ -413,10 +418,7 @@ define(
 
                 $list.empty().append($('<div class="mypa-options-loading"></div>').text($.mage.__('Loading...')));
 
-                post(config.pickupLocationsUrl, $.extend(idParams(config.ids, config.idType), {carrier: carrier}))
-                    .catch(function () {
-                        return {error: $.mage.__('The MyParcel options could not be loaded.')};
-                    })
+                postOrError(config.pickupLocationsUrl, $.extend(idParams(config.ids, config.idType), {carrier: carrier}))
                     .then(function (answer) {
                         if (carrier !== selectedCarrier($root)) {
                             return;
@@ -521,10 +523,7 @@ define(
 
             $footer = $content.closest('.modal-inner-wrap').find('.modal-footer').hide();
 
-            post(config.formUrl, idParams(config.ids, config.idType))
-                .catch(function () {
-                    return {error: $.mage.__('The MyParcel options could not be loaded.')};
-                })
+            postOrError(config.formUrl, idParams(config.ids, config.idType))
                 .then(function (answer) {
                     $loading.remove();
 

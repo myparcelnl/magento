@@ -67,10 +67,11 @@ class Refresh extends AbstractShipmentOptions
         }
 
         $states = $form->optionStates($carrier, $packageType, $deliveryType, $ticked);
+        $empty  = $form->emptyAnswer($carrier, $packageType, $deliveryType, $ticked);
         $answer = [
             'allowedDeliveryTypes' => $allowed,
-            'optionsHtml'          => [] === $states ? '' : $this->optionsHtml($form, $carrier, $packageType, $states),
-            'emptyAnswer'          => $form->emptyAnswer(),
+            'optionsHtml'          => [] === $states ? '' : $this->optionsHtml($form, $carrier, $packageType, $states, $empty),
+            'emptyAnswer'          => $empty,
         ];
 
         if (null !== $deliveries) {
@@ -96,7 +97,7 @@ class Refresh extends AbstractShipmentOptions
     }
 
     /** @param array<string,array{checked:bool,disabled:bool,greyed:bool}> $states */
-    protected function optionsHtml(ShipmentOptionsForm $form, string $carrier, string $packageType, array $states): string
+    protected function optionsHtml(ShipmentOptionsForm $form, string $carrier, string $packageType, array $states, bool $emptyAnswer): string
     {
         return $this->_view->getLayout()
             ->createBlock(Template::class)
@@ -106,7 +107,7 @@ class Refresh extends AbstractShipmentOptions
             ->setData('package_type', $packageType)
             ->setData('states', $states)
             ->setData('initial', $form->tickedOptions($carrier, $packageType))
-            ->setData('empty_answer', $form->emptyAnswer())
+            ->setData('empty_answer', $emptyAnswer)
             ->toHtml();
     }
 }

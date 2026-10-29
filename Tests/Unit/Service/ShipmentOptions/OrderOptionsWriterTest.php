@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
+use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use MyParcelNL\Magento\Service\Capabilities\CapabilitiesProvider;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Dating;
@@ -16,24 +17,28 @@ use MyParcelNL\Magento\Service\ShipmentOptions\PickupLocations;
 /**
  * A merchant's change lands in the order's stored delivery options, and only the fields it names.
  *
- * @param array<int,\Magento\Sales\Model\Order> $orders
- * @param array<int,string|null>                $apiKeyByStore
+ * @param array<int,\Magento\Sales\Model\Order>                             $orders
+ * @param CapabilitySet|callable(CapabilitiesRequest):CapabilitySet|null $capabilities one answer for every request, or one per request
+ * @param array<int,string|null>                                            $apiKeyByStore
  *
  * @return object{saved: array<int,array<string,mixed>>}
  */
 function writeOrderOptions(
-    array          $orders,
-    array          $changes,
-    ?CapabilitySet $capabilities = null,
-    array          $apiKeyByStore = [1 => 'key-a'],
-    ?Dating        $dating = null,
+    array            $orders,
+    array            $changes,
+    $capabilities = null,
+    array            $apiKeyByStore = [1 => 'key-a'],
+    ?Dating          $dating = null,
     ?PickupLocations $pickupLocations = null
 ): object
 {
     $did = new class { public array $saved = []; };
 
-    $repository = Mockery::mock(CapabilitiesProvider::class);
-    $repository->shouldReceive('forApiKey')->andReturn($capabilities ?? CapabilitySet::fromApiResults([capabilityResult()]));
+    $capabilities = $capabilities ?? CapabilitySet::fromApiResults([capabilityResult()]);
+    $repository   = Mockery::mock(CapabilitiesProvider::class);
+    $repository->shouldReceive('forApiKey')->andReturnUsing(
+        static fn(string $apiKey, CapabilitiesRequest $request): CapabilitySet => is_callable($capabilities) ? $capabilities($request) : $capabilities
+    );
 
     $apiProvider = Mockery::mock(ShipmentApiProvider::class);
     $apiProvider->shouldReceive('apiKeyForStoreOrNull')->andReturnUsing(
@@ -321,21 +326,6 @@ function pickupLocationsFinding(?array $location): PickupLocations
     return $pickupLocations;
 }
 
-function foundPickupLocation(string $code = '176227', ?string $date = '2099-10-29'): array
-{
-    return [
-        'location_code'     => $code,
-        'location_name'     => 'Primera',
-        'retail_network_id' => 'PNPNL-01',
-        'street'            => 'Antareslaan',
-        'number'            => '31',
-        'postal_code'       => '2132JE',
-        'city'              => 'Hoofddorp',
-        'cc'                => 'NL',
-        'distance'          => '350',
-        'date'              => $date,
-    ];
-}
 
 it('stores a morning delivery with its date', function () {
     $did = writeOrderOptions(
@@ -390,14 +380,29 @@ it('refuses a delivery type capabilities do not return for the options', functio
     );
 })->throws(LocalizedException::class, '100000001');
 
-it('clears the pickup location when the delivery becomes a home delivery', function () {
+it('checks the delivery type without the options when they do not go together', function () {
+    // A PostNL mailbox with only_recipient on: capabilities answer nothing for that combination.
+    // The delivery type is still checked, against the answer without options, so the merchant can
+    // save standard and the export drops the option the carrier does not offer.
     $did = writeOrderOptions(
-        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'pickup', 'pickupLocation' => foundPickupLocation()])],
-        ['delivery_type' => 'standard', 'delivery_date' => 'none']
+        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'morning', 'packageType' => 'mailbox', 'shipmentOptions' => ['only_recipient' => true]])],
+        ['delivery_type' => 'standard', 'delivery_date' => 'none'],
+        static fn(CapabilitiesRequest $request): CapabilitySet => null === $request->getOptions()
+            ? CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['MAILBOX'], 'deliveryTypes' => ['STANDARD_DELIVERY']])])
+            : CapabilitySet::fromApiResults([])
     );
 
-    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'standard', 'isPickup' => false, 'pickupLocation' => null, 'date' => null]);
+    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'standard', 'date' => null]);
 });
+
+it('makes a home delivery of a stored pickup when the merchant chooses a new delivery', function (array $stored) {
+    $did = writeOrderOptions([writableOrder($stored)], ['delivery_type' => 'standard', 'delivery_date' => 'none']);
+
+    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'standard', 'isPickup' => false, 'pickupLocation' => null, 'date' => null]);
+})->with([
+    'a readable pickup'       => [['carrier' => 'postnl', 'deliveryType' => 'pickup', 'pickupLocation' => foundPickupLocation()]],
+    'a pickup without a location' => [['carrier' => 'postnl', 'deliveryType' => 'pickup']],
+]);
 
 it('leaves an unchanged stored pickup untouched', function () {
     $did = writeOrderOptions(
@@ -417,11 +422,3 @@ it('ignores an unknown delivery type name', function () {
         ->and($changes->isEmpty())->toBeTrue();
 });
 
-it('repairs a pickup it cannot read when the merchant chooses a new delivery', function () {
-    $did = writeOrderOptions(
-        [writableOrder(['carrier' => 'postnl', 'deliveryType' => 'pickup'])],
-        ['delivery_type' => 'standard', 'delivery_date' => 'none']
-    );
-
-    expect(writtenOptions($did))->toMatchArray(['deliveryType' => 'standard', 'isPickup' => false, 'pickupLocation' => null]);
-});

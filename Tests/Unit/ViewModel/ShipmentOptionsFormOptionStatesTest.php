@@ -49,7 +49,7 @@ it('greys out an option the delivery type does not allow', function () {
 
     expect($states[ShipmentOption::AGE_CHECK])->toBe(['checked' => false, 'disabled' => true, 'greyed' => true])
         ->and($states[ShipmentOption::SIGNATURE])->toBe(['checked' => true, 'disabled' => false, 'greyed' => false])
-        ->and($form->emptyAnswer())->toBeFalse();
+        ->and($form->emptyAnswer('postnl', PackageType::PACKAGE_NAME, 'morning', [ShipmentOption::SIGNATURE]))->toBeFalse();
 });
 
 it('greys out an option a ticked option excludes', function () {
@@ -61,19 +61,15 @@ it('greys out an option a ticked option excludes', function () {
 });
 
 it('treats a default and a locked option as ticked', function () {
-    $form = createShipmentOptionsFormWith(
+    $form = optionStatesForm(
         [PackageType::PACKAGE_NAME => CapabilitySet::fromApiResults([capabilityResult([
             'packageTypes' => ['PACKAGE'],
             'options'      => [
                 'requiresSignature'       => ['isRequired' => true, 'isSelectedByDefault' => true],
                 'requiresAgeVerification' => ['isRequired' => false, 'isSelectedByDefault' => false],
-                'requiresReceiptCode'     => ['isRequired' => false, 'isSelectedByDefault' => false],
             ],
         ])])],
-        ['getShippingAddress' => createAddress()]
-    );
-    getPrivateProperty($form, 'defaultOptions')->shouldReceive('hasOptionSet')->andReturnUsing(
-        static fn(string $option): bool => ShipmentOption::AGE_CHECK === $option
+        [ShipmentOption::AGE_CHECK]
     );
 
     expect($form->tickedOptions('postnl', PackageType::PACKAGE_NAME))
@@ -87,7 +83,7 @@ it('falls back to the answer without options when the answer is empty', function
     ]);
     $states = $form->optionStates('postnl', PackageType::PACKAGE_NAME, 'morning', [ShipmentOption::AGE_CHECK]);
 
-    expect($form->emptyAnswer())->toBeTrue()
+    expect($form->emptyAnswer('postnl', PackageType::PACKAGE_NAME, 'morning', [ShipmentOption::AGE_CHECK]))->toBeTrue()
         ->and($states[ShipmentOption::SIGNATURE]['greyed'])->toBeFalse()
         ->and($states[ShipmentOption::AGE_CHECK]['greyed'])->toBeTrue();
 });
@@ -107,17 +103,14 @@ it('allows every delivery type the modal offers while capabilities are unknown',
 });
 
 it('maps each option to the options it requires', function () {
-    $form = createShipmentOptionsFormWith(
-        [PackageType::PACKAGE_NAME => CapabilitySet::fromApiResults([capabilityResult([
-            'packageTypes' => ['PACKAGE'],
-            'options'      => [
-                'requiresAgeVerification' => ['requires' => ['recipientOnlyDelivery', 'requiresSignature'], 'isRequired' => false],
-                'requiresSignature'       => ['isRequired' => false],
-                'recipientOnlyDelivery'   => ['isRequired' => false],
-            ],
-        ])])],
-        ['getShippingAddress' => createAddress()]
-    );
+    $form = optionStatesForm([PackageType::PACKAGE_NAME => CapabilitySet::fromApiResults([capabilityResult([
+        'packageTypes' => ['PACKAGE'],
+        'options'      => [
+            'requiresAgeVerification' => ['requires' => ['recipientOnlyDelivery', 'requiresSignature'], 'isRequired' => false],
+            'requiresSignature'       => ['isRequired' => false],
+            'recipientOnlyDelivery'   => ['isRequired' => false],
+        ],
+    ])])]);
 
     expect($form->requiresMap('postnl', PackageType::PACKAGE_NAME)[ShipmentOption::AGE_CHECK])
         ->toEqualCanonicalizing([ShipmentOption::ONLY_RECIPIENT, ShipmentOption::SIGNATURE]);
