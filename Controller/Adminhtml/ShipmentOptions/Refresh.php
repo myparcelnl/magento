@@ -61,9 +61,11 @@ class Refresh extends AbstractShipmentOptions
         $deliveries   = null;
 
         if ('1' === (string) $request->getParam('with_dates')) {
-            $deliveries = $this->deliveries($form, $orders[0], $carrier, $packageType, $allowed);
-            // The modal posts the stored type before its list exists; the list may preselect another one.
-            $deliveryType = DeliveryList::selectedType($deliveries) ?? $deliveryType;
+            // Every type the carrier offers: the modal can hide an entry, not add one it never got.
+            $deliveries = $this->deliveries($form, $orders[0], $carrier, $packageType, $form->allowedDeliveryTypes($carrier, $packageType, []));
+            // The list may preselect another type than posted; the modal falls back to standard when the ticked options exclude it.
+            $selected     = DeliveryList::selectedType($deliveries) ?? $deliveryType;
+            $deliveryType = in_array($selected, $allowed, true) ? $selected : DeliveryType::STANDARD_NAME;
         }
 
         $states = $form->optionStates($carrier, $packageType, $deliveryType, $ticked);
