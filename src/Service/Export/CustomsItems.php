@@ -151,6 +151,7 @@ class CustomsItems
         return new \RuntimeException((string) __('customs item %1: %2', $product, $e->getMessage()), 0, $e);
     }
 
+    /** The product name, shortened to MAX_DESCRIPTION_LENGTH characters with `...` at the end. */
     public function description(string $name): string
     {
         return Str::limit($name, self::MAX_DESCRIPTION_LENGTH);
