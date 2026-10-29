@@ -212,9 +212,9 @@ class DeliveryCosts
 
             $return[] = [
                 'definition' => $definition,
-                'points'     => $totalPoints,
-                'minimum'    => $minimum,
-                'maximum'    => $maximum,
+                // the sort rank: points first, between equal points the tightest met threshold wins — the
+                // highest minimum, then the lowest maximum (negated, so every key ranks higher-is-better)
+                'rank'       => [$totalPoints, $minimum, -$maximum],
             ];
         }
 
@@ -223,12 +223,10 @@ class DeliveryCosts
             return (float) $this->config->getMagentoCarrierConfig('shipping_cost');
         }
 
-        // sort by points, highest first, then return the price from the first result. Equal points mean
-        // tiered thresholds, where the tightest met threshold is the tier the merchant meant: the highest
-        // minimum wins, then the lowest maximum, so the outcome does not depend on the order of the rules.
-        usort($return, static function ($one, $two) {
-            return [$two['points'], $two['minimum'], $one['maximum']]
-                   <=> [$one['points'], $one['minimum'], $two['maximum']];
+        // sort the highest rank first, then return the price from the first result, so tiered
+        // thresholds price by the tier the merchant meant, whatever the order of the rules
+        usort($return, static function (array $left, array $right) {
+            return $right['rank'] <=> $left['rank'];
         });
 
         return (float) $return[0]['definition']['price'];
