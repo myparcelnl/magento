@@ -8,7 +8,25 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
-// recordingShapeLookup() lives in Tests/Helpers/CapabilitiesFixtures.php.
+/**
+ * A lookup whose repository records every request it is asked, by store or by api key.
+ *
+ * @return array{0: ShapeLookup, 1: ArrayObject<int, CapabilitiesRequest>}
+ */
+function recordingShapeLookup(): array
+{
+    $requests   = new ArrayObject();
+    $record     = static function ($scope, CapabilitiesRequest $request) use ($requests): CapabilitySet {
+        $requests[] = $request;
+
+        return CapabilitySet::fromApiResults([]);
+    };
+    $repository = Mockery::mock(Repository::class);
+    $repository->shouldReceive('forStore')->andReturnUsing($record);
+    $repository->shouldReceive('forApiKey')->andReturnUsing($record);
+
+    return [new ShapeLookup($repository), $requests];
+}
 
 it('sends the delivery type as its v2 name', function () {
     [$lookup, $requests] = recordingShapeLookup();
@@ -52,17 +70,9 @@ it('answers permissive for a delivery type it cannot map', function () {
 });
 
 it('sends the delivery type and options for an api key too', function () {
-    $requests   = new ArrayObject();
-    $repository = Mockery::mock(Repository::class);
-    $repository->shouldReceive('forApiKey')->andReturnUsing(
-        static function (string $apiKey, CapabilitiesRequest $request) use ($requests): CapabilitySet {
-            $requests[] = $request;
+    [$lookup, $requests] = recordingShapeLookup();
 
-            return CapabilitySet::fromApiResults([]);
-        }
-    );
-
-    (new ShapeLookup($repository))->forApiKeyShape('key', 'NL', 'package', 'postnl', DeliveryType::EVENING_NAME, ['signature']);
+    $lookup->forApiKeyShape('key', 'NL', 'package', 'postnl', DeliveryType::EVENING_NAME, ['signature']);
 
     expect($requests[0]->getDeliveryType())->toBe(DeliveryType::toV2Name(DeliveryType::EVENING_NAME))
         ->and($requests[0]->getOptions())->toBe(['signature' => null]);

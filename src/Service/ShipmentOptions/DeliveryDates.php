@@ -127,8 +127,12 @@ class DeliveryDates
         foreach ($deliveries as $delivery) {
             $date = substr((string) ($delivery['date']['date'] ?? ''), 0, 10);
 
+            if ('' === $date) {
+                continue;
+            }
+
             foreach ($delivery['possibilities'] ?? [] as $possibility) {
-                if (! is_string($possibility['type'] ?? null) || '' === $date) {
+                if (! is_string($possibility['type'] ?? null)) {
                     continue;
                 }
 
