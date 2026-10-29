@@ -218,6 +218,7 @@ Printerless return,Retour zonder printer
 Frozen,Bevroren
 Fresh food,Verse producten
 Priority delivery,Prio levering
+"No tracking","Geen track & trace"
 Morning title,Ochtendlevering titel
 Evening title,Avondlevering titel
 Mailbox title,Brievenbuspakje titel
@@ -463,6 +464,7 @@ Importing the MyParcel Backoffice settings failed:,Het importeren van de MyParce
 Importing the MyParcel Backoffice settings failed. Check the log for details.,Het importeren van de MyParcel Backoffice-instellingen is mislukt. Bekijk het logbestand voor details.
 "Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Uw contract staat € %1 tot € %2 toe. Verzekering is verplicht voor deze vervoerder en kan niet worden uitgezet."
 "Insurance amount ""%1"" was not saved: enter a whole number of euros.","Verzekeringsbedrag ""%1"" is niet opgeslagen: vul een heel bedrag in euro's in."
+"Automate ""%1"" was not saved: it cannot ship together with ""%2"", which is already automated.","Automatiseren van ""%1"" is niet opgeslagen: het kan niet samen met ""%2"" verzonden worden, dat al geautomatiseerd is."
 MyParcel Backoffice settings imported.,MyParcel Backoffice-instellingen zijn geïmporteerd.
 "Save the configuration first. The import uses the saved API key.","Sla eerst de configuratie op. De import gebruikt de opgeslagen API key."
 Records per export request,Records per exportverzoek
