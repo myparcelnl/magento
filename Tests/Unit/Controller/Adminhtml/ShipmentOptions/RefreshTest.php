@@ -22,7 +22,8 @@ final class RefreshWithoutLayout extends Refresh
 
 /**
  * A Refresh controller over a form double and a DeliveryDates double, called with these params.
- * The form answers option states only for the delivery type $statesFor.
+ * The form answers option states only for the delivery type $statesFor, and allows standard and
+ * morning with the ticked signature; without options it also offers pickup.
  *
  * @param array<string,mixed> $params
  */
@@ -31,12 +32,14 @@ function refreshAnswer(
     ?DeliveryDates $dates = null,
     int            $orderCount = 1,
     array          $stored = ['carrier' => 'postnl', 'deliveryType' => 'standard'],
-    string         $statesFor = 'morning'
+    string         $statesFor = 'morning',
+    array          $allowedWithSignature = ['standard', 'morning']
 ): array {
     $form = Mockery::mock(ShipmentOptionsForm::class);
     $form->shouldReceive('optionStates')->with('postnl', 'package', $statesFor, ['signature'])->andReturn(['signature' => ['checked' => true, 'disabled' => false, 'greyed' => false]]);
     $form->shouldReceive('emptyAnswer')->with('postnl', 'package', $statesFor, ['signature'])->andReturn(false);
-    $form->shouldReceive('allowedDeliveryTypes')->with('postnl', 'package', ['signature'])->andReturn(['standard', 'morning']);
+    $form->shouldReceive('allowedDeliveryTypes')->with('postnl', 'package', ['signature'])->andReturn($allowedWithSignature);
+    $form->shouldReceive('allowedDeliveryTypes')->with('postnl', 'package', [])->andReturn(['standard', 'morning', 'pickup']);
     $form->shouldReceive('storedDelivery')->andReturn(storedDeliveryOptions($stored));
 
     $formFactory = Mockery::mock(ShipmentOptionsFormFactory::class);
@@ -68,7 +71,31 @@ it('adds the delivery list when asked with dates', function () {
 
     $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates, 1, ['carrier' => 'postnl', 'deliveryType' => 'morning', 'date' => '2026-10-29 00:00:00']);
 
-    expect(deliveryValues($answer['deliveries']))->toBe(['standard|', 'morning|2026-10-29']);
+    expect(deliveryValues($answer['deliveries']))->toBe(['standard|', 'morning|2026-10-29', 'pickup|']);
+});
+
+it('builds the list from every type the carrier offers, and filters by the ticked options apart', function () {
+    // Pickup is in the list although signature excludes it: the modal greys it out, and shows it
+    // again when the merchant unticks signature, without a rebuild.
+    $dates = Mockery::mock(DeliveryDates::class);
+    $dates->shouldReceive('forOrder')->andReturn([]);
+
+    $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates, 1, ['carrier' => 'postnl', 'deliveryType' => 'standard'], 'standard');
+
+    expect($answer['deliveries']['pickup'])->toBeTrue()
+        ->and($answer['allowedDeliveryTypes'])->toBe(['standard', 'morning']);
+});
+
+it('answers the option block for standard when the ticked options exclude the preselected delivery', function () {
+    // The list preselects the stored morning; the modal falls back to standard because signature
+    // excludes morning here, so the option block must follow standard too.
+    $dates = Mockery::mock(DeliveryDates::class);
+    $dates->shouldReceive('forOrder')->andReturn([datedDelivery('2026-10-29', 'morning', '08:00', '12:00')]);
+
+    $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates, 1, ['carrier' => 'postnl', 'deliveryType' => 'morning', 'date' => '2026-10-29 00:00:00'], 'standard', ['standard']);
+
+    expect(selectedDelivery($answer['deliveries']))->toBe('morning|2026-10-29')
+        ->and($answer['optionsHtml'])->toBe('<options signature>');
 });
 
 it('answers the option block for the delivery the list preselects, not the posted one', function () {
@@ -89,7 +116,7 @@ it('still answers the delivery list, with a warning, when the dates cannot be re
 
     $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates, 1, ['carrier' => 'postnl', 'deliveryType' => 'standard'], 'standard');
 
-    expect(deliveryValues($answer['deliveries']))->toBe(['standard|'])
+    expect(deliveryValues($answer['deliveries']))->toBe(['standard|', 'pickup|'])
         ->and($answer['deliveries']['warning'])->toBeString();
 });
 
