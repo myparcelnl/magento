@@ -54,6 +54,14 @@ class DeliveryCosts
     private const EXCLUDING_CONDITIONS = ['delivery_type', 'minimum_order_amount', 'maximum_order_amount'];
 
     /**
+     * One request prices several delivery types for several carriers over the same quote, so the amounts summed
+     * from the items are kept per quote (keyed by object id) and the matrix is decoded once per JSON value.
+     */
+    private array $orderAmountPerQuote   = [];
+    private array $weightInGramsPerQuote = [];
+    private array $matrixPerJson         = [];
+
+    /**
      * Returns the base price with Magento tax settings applied, for displaying to the client.
      *
      * @param Quote       $quote to get the weight and default carrier, package type and country, and calculate tax
@@ -94,7 +102,7 @@ class DeliveryCosts
         $packageType = PackageType::NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
         $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? CountryCode::CC_NL;
         $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
-                       + $this->weight->getQuoteWeightInGrams($quote);
+                       + ($this->weightInGramsPerQuote[spl_object_id($quote)] ??= $this->weight->getQuoteWeightInGrams($quote));
 
         return $this->calculate(
             [
@@ -110,13 +118,20 @@ class DeliveryCosts
 
     /**
      * The amount the order amount conditions compare: the subtotal after discount, including tax, in the currency of
-     * the store view. Shipping and its discount are no part of it.
-     *
+     * the store view. Shipping and its discount are no part of it. Computed once per quote: the items do not change
+     * between the delivery type lookups of one request.
+     */
+    private function getOrderAmount(Quote $quote): float
+    {
+        return $this->orderAmountPerQuote[spl_object_id($quote)] ??= $this->computeOrderAmount($quote);
+    }
+
+    /**
      * Summed from the items, whose totals Magento collects (subtotal, tax, discount) before it collects the shipping
      * rates. Their discount is excluding tax unless Magento applies discounts on prices including tax. When tax is
      * calculated after the discount, the discount lowers the tax too, so it is raised by the tax rate of its item.
      */
-    private function getOrderAmount(Quote $quote): float
+    private function computeOrderAmount(Quote $quote): float
     {
         $storeId             = (int) $quote->getStoreId();
         $discountIncludesTax = '1' === (string) $this->config->getConfigValue('tax/calculation/discount_tax', $storeId);
@@ -158,7 +173,7 @@ class DeliveryCosts
             return (float) $this->config->getMagentoCarrierConfig('shipping_cost');
         }
 
-        $matrix = json_decode($json, true, 8) ?? [];
+        $matrix = $this->matrixPerJson[$json] ??= (json_decode($json, true, 8) ?? []);
         $return = [];
 
         foreach ($matrix as $definition) {
