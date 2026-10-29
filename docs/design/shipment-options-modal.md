@@ -27,7 +27,9 @@ The modal of one order has one "Delivery" list, which the refresh endpoint fills
   "Pickup" opens a list of the locations near the shipping address (`PickupLocations`).
 - Capabilities decide which delivery types and options the selection allows. The lookup sends the
   delivery type and the ticked options. An option that the selection does not allow is greyed out,
-  not hidden, and a save sends it as off. When the merchant ticks an option, the modal also ticks the
+  not hidden, and a save sends it as off. The list holds every delivery type the carrier offers for
+  the package type; a delivery the ticked options exclude is hidden in the list and returns when
+  the option is unticked, without a rebuild. When the merchant ticks an option, the modal also ticks the
   options in its `requires` list.
 - The list preselects the stored delivery. When the list does not offer it, for example because the
   date is in the past, the list preselects standard without a date. On open, the option block
