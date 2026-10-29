@@ -241,7 +241,8 @@ $isDefaultScope = ScopeConfigInterface::SCOPE_TYPE_DEFAULT === $currentScopeName
                                                     <?php
                                                     $note = '' !== $frontendModelNote
                                                         ? $frontendModelNote
-                                                        : (empty($field['comment']) ? '' : (string) __($field['comment']));
+                                                        : ($block->getNoteFor($field)
+                                                            ?: (empty($field['comment']) ? '' : (string) __($field['comment'])));
                                                     ?>
                                                     <?php if ('' !== $note): ?>
                                                         <div class="admin__field-note">
