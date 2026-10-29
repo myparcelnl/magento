@@ -24,7 +24,7 @@ function packageTypeOf(
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('getPackageType')->andReturn($configuredDefault);
 
-    return createOrderShipmentOptions([
+    return createOrderExportOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback($stored),
         'chosen'        => ResolvedOptions::of([ShipmentOption::AGE_CHECK => $ageCheck]),

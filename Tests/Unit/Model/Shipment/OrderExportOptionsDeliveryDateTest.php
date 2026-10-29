@@ -13,7 +13,7 @@ it('sends the delivery date with a package small', function () {
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE_SMALL);
 
-    $subject = createOrderShipmentOptions([
+    $subject = createOrderExportOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['deliveryType' => 'standard', 'date' => '2099-08-20']),
         'chosen'        => ResolvedOptions::of([]),
@@ -28,7 +28,7 @@ function deliveryDateSentFor(string $carrier, array $resolved = []): ?string
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE);
 
-    return createOrderShipmentOptions([
+    return createOrderExportOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['carrier' => $carrier, 'deliveryType' => 'standard', 'date' => '2099-08-20']),
         'chosen'        => ResolvedOptions::of($resolved),
@@ -48,7 +48,7 @@ it('sends no delivery date when none is stored', function () {
     $defaultOptions = Mockery::mock(DefaultOptions::class);
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE);
 
-    $subject = createOrderShipmentOptions([
+    $subject = createOrderExportOptions([
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromCheckoutData(['deliveryType' => 'standard', 'date' => '']),
         'chosen'        => ResolvedOptions::of([]),

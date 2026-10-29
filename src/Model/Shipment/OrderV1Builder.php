@@ -30,7 +30,7 @@ use RuntimeException;
  * Turns one Magento order into an Order v1 order for the v11 SDK, tagged with its own store's API key.
  *
  * The counterpart of ShipmentBuilder: carrier, package type and the option set come from the
- * OrderShipmentOptions both share, and what is decided here is what only an Order v1 order needs — the
+ * OrderExportOptions both share, and what is decided here is what only an Order v1 order needs — the
  * two Recipients, the order lines and the order weight.
  *
  * Trap: setCarrierId() is mandatory. Carrier is shipment-level data in the Order v1 payload, and
@@ -57,7 +57,7 @@ class OrderV1Builder
      */
     public function build(Order $magentoOrder): SdkOrderV1
     {
-        $orderOptions = new OrderShipmentOptions($this->objectManager, $magentoOrder, new DefaultOptions($magentoOrder));
+        $orderOptions = new OrderExportOptions($this->objectManager, $magentoOrder, new DefaultOptions($magentoOrder));
 
         $apiKey            = $this->apiProvider->apiKeyForStore((int) $magentoOrder->getStoreId());
         $deliveryOptions   = $orderOptions->deliveryOptionsToShip();

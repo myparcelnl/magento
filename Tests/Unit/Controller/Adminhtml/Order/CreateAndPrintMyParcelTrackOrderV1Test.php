@@ -14,7 +14,7 @@ use MyParcelNL\Magento\Service\Export\ExportResponse;
 
 /**
  * The order grid's Order v1 export. The collection's constructor defaults are a mass action's, and
- * OrderShipmentOptions reads a carrier in them as the admin's override of the checkout carrier —
+ * OrderExportOptions reads a carrier in them as the admin's override of the checkout carrier —
  * so the Order v1 branch has to run the request through setOptionsFromParameters() like every other
  * caller of exportAsOrderV1() does, or the modal's choice is ignored and a default is exported.
  *
