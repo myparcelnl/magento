@@ -35,6 +35,13 @@ what each fact does.
 
 The row order is the order of the settings form.
 
+### An option that an order must keep
+
+Add it to `ShipmentOption::LIMIT_CHECKOUT_OPTIONS`, as for the age check of an 18+ order. The checkout
+then sends the option in its capabilities lookup, and does not offer a carrier, package type or
+delivery type that cannot carry it. A default such as signature must not be one: the PostNL mailbox
+excludes it, so mailbox would disappear for every cart.
+
 ### An option in the checkout
 
 `checkout` adds only the settings fields and the fee in the rate. The checkout widget must support the option, and
