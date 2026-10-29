@@ -278,8 +278,10 @@ function(
   return Model;
 
   /**
-   * The subtotal after the discount on the items. Shipping and its discount are left out: choosing a delivery option
-   * changes those and must not fetch the prices again.
+   * A value that changes when the subtotal after discount changes, not the exact order amount: it mixes
+   * subtotal_incl_tax with item discounts that exclude tax in most setups. Only use it to detect a change;
+   * the backend computes the order amount the matrix compares. Shipping and its discount are left out:
+   * choosing a delivery option changes those and must not fetch the prices again.
    *
    * @param {Object|null} totals - Totals of the quote.
    * @returns {number|null}
