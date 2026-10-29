@@ -57,15 +57,24 @@ class Refresh extends AbstractShipmentOptions
         $deliveryType = (string) ($request->getParam('delivery_type') ?: DeliveryType::STANDARD_NAME);
         $ticked       = array_values(array_filter((array) $request->getParam('options', []), [ShipmentOption::class, 'isOptionName']));
         $form         = $this->formFactory->create(['order' => $orders[0]]);
-        $states       = $form->optionStates($carrier, $packageType, $deliveryType, $ticked);
-        $answer       = [
-            'allowedDeliveryTypes' => $form->allowedDeliveryTypes($carrier, $packageType, $ticked),
+        $allowed      = $form->allowedDeliveryTypes($carrier, $packageType, $ticked);
+        $deliveries   = null;
+
+        if ('1' === (string) $request->getParam('with_dates')) {
+            $deliveries = $this->deliveries($form, $orders[0], $carrier, $packageType, $allowed);
+            // The modal posts the stored type before its list exists; the list may preselect another one.
+            $deliveryType = DeliveryList::selectedType($deliveries) ?? $deliveryType;
+        }
+
+        $states = $form->optionStates($carrier, $packageType, $deliveryType, $ticked);
+        $answer = [
+            'allowedDeliveryTypes' => $allowed,
             'optionsHtml'          => [] === $states ? '' : $this->optionsHtml($form, $carrier, $packageType, $states),
             'emptyAnswer'          => $form->emptyAnswer(),
         ];
 
-        if ('1' === (string) $request->getParam('with_dates')) {
-            $answer['deliveries'] = $this->deliveries($form, $orders[0], $carrier, $packageType, $answer['allowedDeliveryTypes']);
+        if (null !== $deliveries) {
+            $answer['deliveries'] = $deliveries;
         }
 
         return $answer;
