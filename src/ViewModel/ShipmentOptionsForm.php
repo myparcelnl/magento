@@ -156,11 +156,6 @@ class ShipmentOptionsForm implements ArgumentInterface
         return null === $error || '' === $error ? null : (string) $error;
     }
 
-    public function isPickup(): bool
-    {
-        return DeliveryType::PICKUP_NAME === $this->storedDeliveryTypeName();
-    }
-
     /**
      * Null means the order carries a delivery type we do not recognise, so callers withhold
      * anything that depends on it rather than guessing. Absent is different: no stored type means
