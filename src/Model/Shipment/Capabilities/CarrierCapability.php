@@ -129,6 +129,7 @@ final class CarrierCapability
         return $this->options;
     }
 
+    /** The most colli one shipment may have. Null when the answer gives no maximum. */
     public function colloMax(): ?int
     {
         return $this->colloMax;

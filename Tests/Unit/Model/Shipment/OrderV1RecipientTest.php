@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
+use MyParcelNL\Magento\Model\Shipment\OrderV1Builder;
 use MyParcelNL\Sdk\Model\Recipient;
 
 /**
@@ -25,7 +25,7 @@ function recipientForAddress(
     ));
 
     return invokePrivateMethod(
-        newInstanceWithoutConstructor(FulfilmentOrderBuilder::class),
+        newInstanceWithoutConstructor(OrderV1Builder::class),
         'shippingRecipient',
         [$order, $localCountry]
     );

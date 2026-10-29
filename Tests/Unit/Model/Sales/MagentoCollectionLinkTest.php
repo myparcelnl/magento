@@ -107,7 +107,7 @@ it('does not blank a stored link on an empty string', function () {
 });
 
 it('leaves a track the response said nothing about untouched', function () {
-    // This is the shape a PPS track has before its shipment id is stored: nothing to refresh by.
+    // This is the shape an Order v1 track has before its shipment id is stored: nothing to refresh by.
     [$collection, $saved] = collectionRefreshing(0, []);
 
     $collection->updateMagentoTrack();
@@ -120,7 +120,7 @@ it('leaves a track the response said nothing about untouched', function () {
 it('reads the tracks from their own query, never from the shipment cache', function () {
     // The guarantee, not the mechanism. A Shipment caches its own tracks in a private field with no
     // way to reset it, so updateMagentoTrack() would read the tracks as they were before
-    // setFulfilmentTrackData() wrote to them — and a track with a barcode leaves the cron's scope,
+    // setOrderV1TrackData() wrote to them — and a track with a barcode leaves the cron's scope,
     // so a link missed on that pass is missed for good.
     //
     // The query answer is now memoised, which keeps that guarantee: every writer mutates the Track
@@ -177,7 +177,7 @@ it('reads the tracks from their own query, never from the shipment cache', funct
 });
 
 it('hands every caller the same track objects, so a write by one is seen by the next', function () {
-    // setFulfilmentTrackData() writes the shipment id onto these objects and updateMagentoTrack()
+    // setOrderV1TrackData() writes the shipment id onto these objects and updateMagentoTrack()
     // reads it back. Handing out fresh instances instead would lose it unless every writer saved
     // first, which is the bug the fresh-read rule was guarding against.
     $track      = recordingTrack([], ['getParentId' => 7]);

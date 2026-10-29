@@ -8,7 +8,6 @@ use Magento\Config\Model\Config\Source\Yesno;
 use MyParcelNL\Magento\Block\System\Config\Form\ApiAccessTokenButton;
 use MyParcelNL\Magento\Block\System\Config\Form\DeliveryCostsMatrix;
 use MyParcelNL\Magento\Block\System\Config\Form\InsuranceAmount;
-use MyParcelNL\Magento\Block\System\Config\Form\OrderManagementInfo;
 use MyParcelNL\Magento\Block\System\Config\Form\SettingsButton;
 use MyParcelNL\Magento\Block\System\Config\Form\WeightUnitNote;
 use MyParcelNL\Magento\Model\Settings\InsuranceAmountSetting;
@@ -139,7 +138,6 @@ final class Catalogue
             self::shippingMethodsGroup(),
             self::deliveryTitlesGroup($facts),
             self::apiAccessGroup(),
-            self::accountGroup(),
         ]);
     }
 
@@ -525,7 +523,7 @@ final class Catalogue
                 ->withDefault('%order_nr%'),
             // No default: an empty value is the account's home country, read at export.
             Field::text($path . 'country_of_origin', 'Country of origin')
-                ->withTooltip('This country will appear on the international consignment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.'),
+                ->withTooltip('This country will appear on the international shipment labels. This is where your products are shipped from. You can use NL, BE, DE etc. This will be overridden by country of manufacture on product level.'),
             Field::select($path . 'create_concept_after_invoice', 'Create Concept', Yesno::class)
                 ->withTooltip('Enable create label concept, when invoice is printed.')
                 ->withDefault('0'),
@@ -578,13 +576,6 @@ final class Catalogue
             Field::select($path . 'pop_up_map', 'Pop-up map', Yesno::class)
                 ->withTooltip('When enabled, the pickup location map is displayed in a pop-up.')
                 ->withDefault('0'),
-        ]);
-    }
-
-    private static function accountGroup(): Group
-    {
-        return new Group('account', 'Account', [
-            Field::button(Config::XML_PATH_GENERAL . 'account/order_management', 'Account features', OrderManagementInfo::class),
         ]);
     }
 

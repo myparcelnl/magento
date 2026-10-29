@@ -3,10 +3,12 @@
 What the code cannot say about itself. The reasoning behind the migration is in the classes it
 produced and in the tests that pin them; this file holds the facts that live outside the module.
 
-**PPS** is the export mode `Config::EXPORT_MODE_PPS`: setting *Mode* = "Export entire order"
-(`myparcelnl_magento_general/print/export_mode`). The module then sends each order to the Order v1
-API through the SDK's `Fulfilment` classes, and the back office makes the shipments. The code also
-calls this mode "fulfilment" and "Order v1".
+**Order v1** is the export of whole orders. An account with the `LEGACY_ORDER_MANAGEMENT` feature
+sends each order to the Order v1 API (`OrderV1Builder`, `MagentoOrderCollection::exportAsOrderV1()`),
+and the back office makes the shipments; every other account creates shipments. The mode used to be
+called PPS, Pick Pack Ship ([glossary](https://myparcelnl.atlassian.net/wiki/spaces/MD/pages/10554129/Woordenboek)).
+The SDK names the endpoint `fulfilment/orders` and its classes `Fulfilment`; in this module
+"fulfilment" means only the partner service that handles orders.
 
 The first two sections are ADR-shaped and belong in
 [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr). Raise
@@ -48,19 +50,9 @@ Three rules run through the result:
 3. **Carrier and country facts are tested against a stubbed capabilities response**, never pinned as
    module truth.
 
-**When capabilities cannot be had, the module serves the last answer, else everything.**
-`Capabilities\Repository` answers a permissive set for a store with no API key and for a request that
-will not serialise. Four more cases serve the shape's last good answer from `Capabilities\StoredAnswers`
-(Magento's `flag` table, so it survives `cache:clean` and a Redis restart), and a permissive set only
-when the shape was never answered: a shape that failed within the last 60 seconds, a failed fetch,
-a cache or lock backend that throws, and a shape another request is already fetching. The last one
-is a lock taken with a zero wait, not a queue — after `cache:clean` every concurrent render misses
-the same shape at once, and making them wait for one call is the cost being avoided, not the fix. `AccountSettings\Maintenance` deletes the
-stored answers of an API key that is configured nowhere any more.
-
-A cached answer lives three hours. Then the next lookup of that shape fetches again, and a failed
-refresh serves the stored answer. That is the longest a capabilities change, a bugfix included, takes
-to reach a shop. To get it sooner, flush the "MyParcel carrier capabilities" cache type.
+**When capabilities cannot be had, the module serves the last answer, else everything**
+(`Capabilities\Repository`). A cached answer lives three hours, which is the longest a capabilities
+change takes to reach a shop. To get it sooner, flush the "MyParcel carrier capabilities" cache type.
 
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
@@ -70,7 +62,7 @@ that.
 
 ## Deliberate divergences from `myparcelnl/pdk`
 
-Four, all deliberate. A reader who finds them should treat them as decisions, not omissions.
+Six, all deliberate. A reader who finds them should treat them as decisions, not omissions.
 
 1. **The module reuses the SDK's `CapabilitiesMapper::mapToCoreApi()`** rather than porting PDK's
    private `hydrateModel()`. The mapper builds typed generated models through typed setters, so wire
@@ -90,6 +82,11 @@ Four, all deliberate. A reader who finds them should treat them as decisions, no
    checkout first rules out a package type that cannot carry a forced option
    (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`), so an 18+ order keeps its
    age check where a package type can carry it. An option dropped at export is logged.
+5. **`requires` adds one level only.** The PDK follows the chain and then undoes the damage, which
+   rests on statement order in one method: PostNL receipt code requires insurance, which requires
+   the signature that receipt code excludes.
+6. **An `excludes` conflict is won by where the value came from** (`OptionSource`). In the PDK, the
+   definition that sorts first alphabetically wins, so renaming a class flips the outcome.
 
 ## Vocabulary per boundary
 
@@ -144,9 +141,9 @@ Each workaround names what to delete once the fix lands.
 | 3 | `CapabilitiesMapper::mapFromCoreApi()` keeps only option keys, dropping insurance bounds | The module reads the decoded body into its own value objects |
 | 4 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
-| 6 | `Collection\Fulfilment\OrderCollection::query()` is static and sends no user agent | None possible; the PPS status poll is the one unidentified call |
-| 7 | `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters | None; affects the PPS path only |
-| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so a PPS refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
+| 6 | `Collection\Fulfilment\OrderCollection::query()` is static and sends no user agent | None possible; the Order v1 status poll is the one unidentified call |
+| 7 | `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters | None; affects the Order v1 path only |
+| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 
 Defect 1 breaks capabilities for every SDK consumer on beta.25 and later, so other integrations will
 hit it.
@@ -166,7 +163,12 @@ never by id.
   drops its order out of a mass action before export.
 - The per-country print-position rule on the order and shipment views. It answered the same for
   every order, and the grid never used it; positions are offered everywhere.
-- The rule that forced a PPS pickup to package type `package`. A pickup ships as the type stored.
+- The rule that forced an Order v1 pickup to package type `package`. A pickup ships as the type stored.
+- The "Export mode" setting. An account with order v1 exports orders, every other account
+  exports shipments. A grid selection that mixes the two is refused.
+- PostNL Monday delivery and the GLS Saturday fields. Saturday delivery is the `saturday_delivery`
+  option.
+- A carrier outside the account's contract leaves the checkout, also when its switch is on.
 
 **Corrected**
 
@@ -180,11 +182,11 @@ never by id.
 - The HS code is stored as text of up to 18 characters. It was an INT column that clamped long codes.
 - Age check: the product attribute and carrier default tiers work, the New Shipment form pre-checks
   the box from the same answer the export uses, and there is no NL-only gate.
-- A PPS order's barcode, MyParcel shipment id, status and track & trace link reach its Magento track,
+- An Order v1 order's barcode, MyParcel shipment id, status and track & trace link reach its Magento track,
   and the status cron recovers rows an earlier run left stamped with a placeholder.
 - Every collo of a multicollo gets its own track and barcode, in both export modes.
 - Return labels and status polling use each order's own account, not the first order's.
-- The order grid's PPS export honours the carrier and package type saved in the options modal.
+- The order grid's Order v1 export honours the carrier and package type saved in the options modal.
 - An order without a delivery date no longer ships with tomorrow as its date, and a malformed date
   no longer stops the export. DPD, bpost and a collect shipment get no delivery date: the API
   refuses one there.
@@ -201,6 +203,8 @@ never by id.
 - The export no longer navigates: the grid keeps its selection and reloads once the labels exist.
 - The track & trace link comes from the API. The fallback host follows the account's proposition.
 - A dedicated capabilities cache type, enabled once on upgrade when `env.php` does not mention it.
+- The settings form shows, per scope, the carriers and options of that scope's contract. A new
+  install starts with every carrier, option and fee off. An existing install keeps its values.
 - A shipment options modal on the order grid, the shipment grid, the order and shipment views and
   the New Shipment page. It saves carrier, package type, options, insurance, label amount,
   digital stamp weight, the delivery date (or its removal) and the package dimensions on the order,
@@ -221,7 +225,7 @@ never by id.
 - **The SDK defects above** leave workaround code in place until they land.
 - **The REST transformers** bind to the generated Order API enums, the highest-churn SDK surface.
   `ShipmentOptionsTransformerTest` asserts the `attributeMap()` keys verbatim.
-- **The PPS status poll asks for every order the account has.** `OrderCollection::query()` is given
+- **The Order v1 status poll asks for every order the account has.** `OrderCollection::query()` is given
   no parameters, so the API answers with its own default page and the increment ids are matched in
   PHP afterwards — an order past that page never matches, and the call is made once per API key per
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
