@@ -16,7 +16,6 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Proxy\ProxyConfig;
 use PHPUnit\Framework\Assert;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
-use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
 const CAPABILITIES_TEST_API_KEY = 'test-api-key-do-not-log';
 
@@ -355,24 +354,4 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
     setPrivateProperty($lookup, 'answers', $seeded);
 
     return $lookup;
-}
-
-/**
- * A lookup whose repository records every request it is asked.
- *
- * @return array{0: ShapeLookup, 1: ArrayObject<int, CapabilitiesRequest>}
- */
-function recordingShapeLookup(): array
-{
-    $requests   = new ArrayObject();
-    $repository = Mockery::mock(CapabilitiesRepository::class);
-    $repository->shouldReceive('forStore')->andReturnUsing(
-        static function (?int $storeId, CapabilitiesRequest $request) use ($requests): CapabilitySet {
-            $requests[] = $request;
-
-            return CapabilitySet::fromApiResults([]);
-        }
-    );
-
-    return [new ShapeLookup($repository), $requests];
 }

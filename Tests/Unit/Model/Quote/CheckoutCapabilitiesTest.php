@@ -8,12 +8,12 @@ use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Quote\Checkout;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\CartShippingRules;
+use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
 
 // capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php.
@@ -33,7 +33,7 @@ use MyParcelNL\Magento\Service\PackageTypeResolver;
  *
  * @return array{checkout: Checkout, packageTypes: PackageTypeResolver, cartRules: CartShippingRules, calls: object}
  */
-function createCheckoutWith(array $capabilities, string $country = 'NL', array $forced = [], ?ShapeLookup $lookup = null): array
+function createCheckoutWith(array $capabilities, string $country = 'NL', array $forced = []): array
 {
     $calls = new class {
         public ?PackageTypeCandidates $candidates = null;
@@ -62,10 +62,10 @@ function createCheckoutWith(array $capabilities, string $country = 'NL', array $
     setPrivateProperty($checkout, 'packageTypes', $packageTypes);
     setPrivateProperty($checkout, 'cartRules', $cartRules);
     setPrivateProperty($checkout, 'config', $config);
-    setPrivateProperty($checkout, 'dropOffSettings', new MyParcelNL\Magento\Service\DropOffSettings($config));
+    setPrivateProperty($checkout, 'dropOffSettings', new DropOffSettings($config));
     setPrivateProperty($checkout, 'quote', $quote);
     setPrivateProperty($checkout, 'storeId', 1);
-    setPrivateProperty($checkout, 'capabilityLookup', $lookup ?? capabilityLookupWith($capabilities, $country, 1));
+    setPrivateProperty($checkout, 'capabilityLookup', capabilityLookupWith($capabilities, $country, 1));
     setPrivateProperty($checkout, 'storedAccount', storedAccountAt('NL'));
     setPrivateProperty($checkout, 'contractDefinitions', contractFor($capabilities));
 
@@ -167,33 +167,9 @@ it('answers per carrier, not once for the store', function () {
         ->and(candidateWasOffered($dpd['calls'], PackageType::DIGITAL_STAMP_NAME))->toBeFalse();
 });
 
-it('sends the forced age check as a capabilities option filter', function () {
-    [$lookup, $requests] = recordingShapeLookup();
-
-    createCheckoutWith([], 'NL', [ShipmentOption::AGE_CHECK], $lookup)['checkout']->checkPackageType('postnl', 'NL');
-
-    expect($requests)->not->toBeEmpty();
-
-    foreach ($requests as $request) {
-        expect($request->getOptions())->toBe([ShipmentOption::AGE_CHECK => null]);
-    }
-});
-
-it('sends no option filter for a cart that forces nothing', function () {
-    [$lookup, $requests] = recordingShapeLookup();
-
-    createCheckoutWith([], 'NL', [], $lookup)['checkout']->checkPackageType('postnl', 'NL');
-
-    expect($requests)->not->toBeEmpty();
-
-    foreach ($requests as $request) {
-        expect($request->getOptions())->toBeNull();
-    }
-});
-
 it('offers no mailbox when the filtered answer leaves it out', function () {
-    // Seeding only the filtered shape also proves the unfiltered one is never asked: it would reach
-    // the repository, which is not set here, and fatal.
+    // Seeding only the filtered shape also proves the forced option is sent, and nothing else is
+    // asked: any other lookup would reach the repository, which is not set here, and fatal.
     $c = createCheckoutWith(
         ['|age_check' => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['PACKAGE']])])],
         'NL',
@@ -283,7 +259,8 @@ it('does not offer a carrier that cannot carry a forced option on the resolved p
     // still land mailbox in front of a PostNL customer. PostNL is left out of carrierSettings instead
     // of failing later: widget v7 ignores allowDeliveryOptions.
     $capabilities = [
-        // isPickupAllowed() re-resolves the package type, so the agnostic shape is reached too.
+        // isPickupAllowed() re-resolves the package type, so the package-type-agnostic filtered
+        // shape is reached too.
         '|age_check'        => CapabilitySet::fromApiResults([
             capabilityResult(['packageTypes' => ['PACKAGE']]),
             capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['PACKAGE', 'MAILBOX']]),
