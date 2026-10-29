@@ -25,7 +25,7 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
-use MyParcelNL\Magento\Service\Config;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 
 /**
@@ -43,7 +43,7 @@ class NewShipment implements ObserverInterface
     private RedirectFactory         $redirectFactory;
     private RequestInterface        $request;
     private ?MagentoOrderCollection $orderCollection;
-    private Config                  $config;
+    private StoredAccount           $storedAccount;
     private OrderGridColumns        $gridColumns;
 
     /**
@@ -58,7 +58,7 @@ class NewShipment implements ObserverInterface
         $this->redirectFactory = $this->objectManager->get(RedirectFactory::class);
         $this->messageManager  = $this->objectManager->get(ManagerInterface::class);
         $this->orderCollection = $orderCollection;
-        $this->config          = $this->objectManager->get(Config::class);
+        $this->storedAccount   = $this->objectManager->get(StoredAccount::class);
         $this->gridColumns     = $this->objectManager->get(OrderGridColumns::class);
     }
 
@@ -114,6 +114,9 @@ class NewShipment implements ObserverInterface
      */
     private function setMagentoAndMyParcelTrack(Shipment $shipment): void
     {
+        // First: it refuses an account without stored features, before a track exists.
+        $orderV1 = $this->storedAccount->hasOrderV1ForExport((int) $shipment->getStoreId());
+
         $options = $this->orderCollection()->setOptionsFromParameters()
                                          ->getOptions()
         ;
@@ -157,7 +160,7 @@ class NewShipment implements ObserverInterface
             }
         }
 
-        if (Config::EXPORT_MODE_PPS === $this->config->getExportMode()) {
+        if ($orderV1) {
             $this->exportEntireOrder($shipment);
             $this->updateTrackGrid($shipment, true);
 

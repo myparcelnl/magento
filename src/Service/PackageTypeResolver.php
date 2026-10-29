@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Service;
 
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 
 /**
  * Which package type one cart ships as with one carrier.
@@ -33,18 +33,21 @@ class PackageTypeResolver
     private Config               $config;
     private Weight               $weight;
     private MailboxInternational $mailboxInternational;
+    private StoredAccount        $storedAccount;
 
     public function __construct(
         Config               $config,
         ProductAttributes    $attributes,
         Weight               $weight,
-        MailboxInternational $mailboxInternational
+        MailboxInternational $mailboxInternational,
+        StoredAccount        $storedAccount
     )
     {
         $this->config               = $config;
         $this->attributes           = $attributes;
         $this->weight               = $weight;
         $this->mailboxInternational = $mailboxInternational;
+        $this->storedAccount        = $storedAccount;
     }
 
     /**
@@ -109,7 +112,6 @@ class PackageTypeResolver
 
         if ($digitalStamp
             && $candidates->has(PackageType::DIGITAL_STAMP_NAME)
-            && CountryCode::CC_NL === $country
             && $this->weight->convertToGrams($weight) <= $this->maxDigitalStampWeight($carrierPath, $storeId)
         ) {
             return PackageType::DIGITAL_STAMP_NAME;
@@ -222,7 +224,7 @@ class PackageTypeResolver
      */
     private function mailboxAllowedTo(string $country, string $carrierName, ?int $storeId): bool
     {
-        if (CountryCode::CC_NL === $country) {
+        if ($this->storedAccount->homeCountryForStore($storeId) === $country) {
             return true;
         }
 
