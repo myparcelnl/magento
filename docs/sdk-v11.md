@@ -147,7 +147,7 @@ Each workaround names what to delete once the fix lands.
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
 | 6 | `Collection\Fulfilment\OrderCollection::query()` is static and sends the SDK user agent, not the Magento one | None. The module could build the request by hand with `setUserAgents()`, but the fix belongs in the SDK: `query()` takes user agents |
 | 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
-| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
+| 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 
 Defects 1 and 3 were capabilities defects. The module now uses the generated `ShipmentApi` and reads
 the generated models, so it has no workaround for them; the numbers stay so references to the others
