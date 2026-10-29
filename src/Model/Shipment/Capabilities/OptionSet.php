@@ -29,6 +29,7 @@ final class OptionSet
         return new self($options);
     }
 
+    /** Whether capabilities offer the option. Takes the module name, not the wire key. */
     public function has(string $moduleOptionName): bool
     {
         return array_key_exists(ShipmentOption::toV2Name($moduleOptionName), $this->raw);

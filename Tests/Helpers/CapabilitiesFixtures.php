@@ -108,12 +108,12 @@ function accountSettingsRow(array $items, array $overrides = []): string
  * @param  \GuzzleHttp\Psr7\Response[]|\Throwable[] $responses
  * @return array{client: CapabilitiesClient, history: array, handler: \GuzzleHttp\Handler\MockHandler}
  */
-function makeCapabilitiesClient(array $responses = [], ?string $host = null): array
+function makeCapabilitiesClient(array $responses = []): array
 {
     $http = makeGuzzleWithHistory($responses);
 
     return [
-        'client'  => new CapabilitiesClient($http['client'], createUserAgent(), null, $host),
+        'client'  => new CapabilitiesClient($http['client'], createUserAgent()),
         'history' => &$http['history'],
         'handler' => $http['handler'],
     ];
@@ -327,8 +327,10 @@ function assertFlatInsuranceShape(array $results): void
  * A ShapeLookup that already holds its answers, so the repository is never reached — reaching it
  * fatals, and that is the assertion that the code asked only the shapes the test seeded.
  *
- * Shapes are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a
- * single CapabilitySet to seed every shape at once, for a test the shape distinction is not about.
+ * Shapes are keyed by module package type name, with '' for the package-type-agnostic lookup, and
+ * '<package type>|<option,option>|<delivery type>' for a lookup with an option filter or a delivery
+ * type; options in sorted order. Pass a single CapabilitySet to seed every unfiltered shape at once,
+ * for a test the shape distinction is not about.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $answers
  */
@@ -340,9 +342,12 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
 
     $seeded = [];
 
-    foreach ($answers as $packageType => $set) {
-        // Same shape as ShapeLookup::answer() builds: scope, country, package type, carrier.
-        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|'] = $set;
+    foreach ($answers as $shape => $set) {
+        [$packageType, $options, $deliveryType] = array_pad(explode('|', (string) $shape, 3), 3, '');
+
+        // Same shape as ShapeLookup::answer() builds: scope, country, package type, carrier, delivery
+        // type, options. Carrier stays empty.
+        $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '||' . $deliveryType . '|' . $options] = $set;
     }
 
     $lookup = newInstanceWithoutConstructor(ShapeLookup::class);

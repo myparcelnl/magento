@@ -2,92 +2,70 @@
 
 declare(strict_types=1);
 
-use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
-use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
+use MyParcelNL\Magento\Model\Shipment\OptionSource;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 
 // createShipmentOptions() lives in Tests/Helpers/ShipmentOptionsResolverFixtures.php.
 
 /**
- * Receipt code is standard delivery only. The country and carrier are the API's business.
+ * Receipt code on a delivery type is the capabilities' answer for that delivery type. The module has
+ * no rule of its own.
+ *
+ * @param array<string,mixed> $offered the capabilities `options` for the asked delivery type
  */
-function receiptCodeFor(string $deliveryType, string $countryId = 'NL', string $carrier = CarrierPostNL::NAME): bool
+function receiptCodeResolved(string $deliveryType, array $offered, ?array &$history = null): bool
 {
-    return createShipmentOptions(
-        $countryId,
-        $carrier,
-        [ShipmentOption::RECEIPT_CODE => true],
+    // A dropped option is logged.
+    captureNotices();
+
+    $doubles = makeCapabilitiesRepository([
+        new GuzzleResponse(200, [], capabilitiesBody([
+            capabilityResult(['packageTypes' => ['PACKAGE'], 'options' => $offered]),
+        ])),
+    ]);
+
+    $resolved = createShipmentOptions(
+        'NL',
+        'postnl',
+        [],
         false,
-        ['deliveryType' => $deliveryType]
-    )->hasReceiptCode();
+        ['deliveryType' => $deliveryType, 'packageType' => PackageType::PACKAGE_NAME],
+        $doubles['repository'],
+        dependencyDefaultOptions([ShipmentOption::RECEIPT_CODE => OptionSource::CHECKOUT])
+    )->resolve()->toArray()[ShipmentOption::RECEIPT_CODE];
+
+    $history = $doubles['history'];
+
+    return $resolved;
 }
 
-it('allows receipt code on standard delivery', function () {
-    expect(receiptCodeFor(DeliveryType::STANDARD_NAME))->toBeTrue();
+function offeringReceiptCode(): array
+{
+    return capabilityOptions(['requiresReceiptCode' => ['isRequired' => false, 'isSelectedByDefault' => false]]);
+}
+
+it('drops receipt code when capabilities for the delivery type do not offer it', function () {
+    expect(receiptCodeResolved(DeliveryType::MORNING_NAME, capabilityOptions()))->toBeFalse();
 });
 
-it('refuses receipt code on every non-standard delivery type', function (string $deliveryType) {
-    expect(receiptCodeFor($deliveryType))->toBeFalse();
-})->with([
-    DeliveryType::MORNING_NAME,
-    DeliveryType::EVENING_NAME,
-    DeliveryType::PICKUP_NAME,
-    DeliveryType::SAME_DAY_NAME,
-    DeliveryType::EXPRESS_NAME,
-    DeliveryType::EARLY_MORNING_NAME,
-]);
+it('keeps receipt code when capabilities for the delivery type offer it', function (string $deliveryType) {
+    expect(receiptCodeResolved($deliveryType, offeringReceiptCode()))->toBeTrue();
+})->with([DeliveryType::STANDARD_NAME, DeliveryType::EVENING_NAME]);
 
-it('treats an order without stored delivery options as standard', function () {
+it('asks capabilities with the stored delivery type', function () {
+    receiptCodeResolved(DeliveryType::MORNING_NAME, capabilityOptions(), $history);
+
+    expect((string) $history[0]['request']->getBody())->toContain(DeliveryType::toV2Name(DeliveryType::MORNING_NAME));
+});
+
+it('treats an order without stored delivery options as chosen', function () {
     // The admin New Shipment form creates shipments for orders that never passed the widget.
-    $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [
+    $shipmentOptions = createShipmentOptions('NL', 'postnl', [
         ShipmentOption::RECEIPT_CODE => true,
     ]);
 
     expect($shipmentOptions->hasReceiptCode())->toBeTrue();
-});
-
-/**
- * The country and carrier gates are gone; the delivery-type one stays.
- *
- * Which carrier offers receipt code where is the API's answer — the same reasoning hasAgeCheck()
- * already carried — and per docs/sdk-v11.md the API is the validator. The delivery-type rule is the
- * module's own, because capabilities answer per carrier and package type, never per delivery type.
- */
-it('leaves country and carrier to the api, and keeps only the delivery-type rule', function () {
-    expect(receiptCodeFor(DeliveryType::STANDARD_NAME, 'BE'))->toBeTrue()
-        ->and(receiptCodeFor(DeliveryType::STANDARD_NAME, 'NL', 'dhlforyou'))->toBeTrue()
-        ->and(receiptCodeFor(DeliveryType::EVENING_NAME, 'BE'))->toBeFalse();
-});
-
-it('refuses receipt code when it was explicitly declined', function () {
-    // The fallback is forced to true, so false here can only come from the explicit choice.
-    $shipmentOptions = createShipmentOptions('NL', CarrierPostNL::NAME, [
-        ShipmentOption::RECEIPT_CODE => false,
-    ], true, ['deliveryType' => DeliveryType::STANDARD_NAME]);
-
-    expect($shipmentOptions->hasReceiptCode())->toBeFalse();
-});
-
-it('falls back to the configured default when the live options carry no choice', function () {
-    $shipmentOptions = createShipmentOptions(
-        'NL',
-        CarrierPostNL::NAME,
-        [],
-        true,
-        ['deliveryType' => DeliveryType::STANDARD_NAME]
-    );
-
-    expect($shipmentOptions->hasReceiptCode())->toBeTrue();
-});
-
-it('refuses receipt code without a choice anywhere', function () {
-    $shipmentOptions = createShipmentOptions(
-        'NL',
-        CarrierPostNL::NAME,
-        [],
-        false,
-        ['deliveryType' => DeliveryType::STANDARD_NAME]
-    );
-
-    expect($shipmentOptions->hasReceiptCode())->toBeFalse();
 });

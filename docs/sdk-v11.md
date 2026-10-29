@@ -79,9 +79,10 @@ Six, all deliberate. A reader who finds them should treat them as decisions, not
 4. **An option the package type cannot carry also narrows the package type at checkout.** The
    export drops an option the carrier does not offer for the shipment, as the PDK does
    (`ShipmentOptionsResolver::dropNotOffered()`), so the API never refuses a shipment for it. The
-   checkout first rules out a package type that cannot carry a forced option
-   (`Checkout::checkPackageType()`, `ShipmentOption::LIMIT_PACKAGE_TYPE`), so an 18+ order keeps its
-   age check where a package type can carry it. An option dropped at export is logged.
+   checkout sends the forced options of `ShipmentOption::LIMIT_CHECKOUT_OPTIONS` to capabilities as
+   a filter, so a package type or delivery type that cannot carry them is not offered, and an 18+
+   order keeps its age check. The PDK sends no options and drops the age check at export. An
+   option dropped at export is logged.
 5. **`requires` adds one level only.** The PDK follows the chain and then undoes the damage, which
    rests on statement order in one method: PostNL receipt code requires insurance, which requires
    the signature that receipt code excludes.
@@ -144,6 +145,7 @@ Each workaround names what to delete once the fix lands.
 | 6 | `Collection\Fulfilment\OrderCollection::query()` is static and sends no user agent | None possible; the Order v1 status poll is the one unidentified call |
 | 7 | `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters | None; affects the Order v1 path only |
 | 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed PPS save as not confirmed; tell a 4xx apart there once the exception carries the status |
+| 9 | `ShipmentResponsesDeliveryOptionsDeliveryPossibilityType` is a generated wrapper without properties, so `getDeliveryOptions()` returns each possibility's `type` (the delivery type) empty | `ShipmentOptions\DeliveryDates` sends the request `getDeliveryOptionsRequest()` builds and reads the raw body |
 
 Defect 1 breaks capabilities for every SDK consumer on beta.25 and later, so other integrations will
 hit it.

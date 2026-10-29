@@ -91,6 +91,10 @@ class Repository
         return $this->forApiKey($apiKey, $request);
     }
 
+    /**
+     * The capabilities for this request, from the cache or the API. When the API fails, or another
+     * request is fetching the same shape, the last stored answer, else a permissive set.
+     */
     public function forApiKey(string $apiKey, CapabilitiesRequest $request): CapabilitySet
     {
         try {

@@ -8,6 +8,7 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Magento\Service\CartShippingRules;
+use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
 
 /**
@@ -27,6 +28,7 @@ function pickupPriceSettings(bool $totalView, float $pickupFee): array
 
     $cartRules = Mockery::mock(CartShippingRules::class);
     $cartRules->shouldReceive('forcedLimitingOptions')->andReturn([])->byDefault();
+    $cartRules->shouldReceive('forcedCheckoutOptions')->andReturn([])->byDefault();
     $cartRules->shouldReceive('hidesDeliveryOptions')->andReturn(false)->byDefault();
     $cartRules->shouldReceive('allowsPriorityDelivery')->andReturn(false)->byDefault();
     $cartRules->shouldReceive('excludesParcelLockers')->andReturn(false)->byDefault();
@@ -56,6 +58,7 @@ function pickupPriceSettings(bool $totalView, float $pickupFee): array
     setPrivateProperty($checkout, 'capabilityLookup', capabilityLookupWith(CapabilitySet::permissive(), 'NL', 1));
     setPrivateProperty($checkout, 'storedAccount', storedAccountAt('NL'));
     setPrivateProperty($checkout, 'contractDefinitions', storedContractFor(1, ['POSTNL']));
+    setPrivateProperty($checkout, 'dropOffSettings', new DropOffSettings($config));
 
     $tax = Mockery::mock(MyParcelNL\Magento\Service\Tax::class);
     $tax->shouldReceive('shippingPrice')->andReturnUsing(static fn ($price) => $price * 2)->byDefault();

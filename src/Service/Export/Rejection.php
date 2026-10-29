@@ -155,6 +155,7 @@ final class Rejection
         return implode('; ', $parts);
     }
 
+    /** Whether one of the API's errors points at this order. */
     public function blames(string $incrementId): bool
     {
         return isset($this->reasons[$incrementId]);
@@ -166,6 +167,7 @@ final class Rejection
         return $this->reasons;
     }
 
+    /** The API's own sentence for the refusal, or the exception message when it gave none. */
     public function summary(): string
     {
         return $this->summary;

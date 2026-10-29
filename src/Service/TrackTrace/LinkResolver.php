@@ -91,6 +91,10 @@ class LinkResolver
         return $this->urlFor($row);
     }
 
+    /**
+     * The track & trace links of one order, as html() renders them. Empty when it has no MyParcel
+     * track.
+     */
     public function htmlForOrder(int $orderId): string
     {
         return $this->html($this->forOrders([$orderId])[$orderId] ?? []);

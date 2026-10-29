@@ -69,23 +69,16 @@ class Client
     private GuzzleClient       $httpClient;
     private UserAgent          $userAgent;
     private CapabilitiesMapper $mapper;
-    private ?string            $host;
 
-    /**
-     * @param string|null $host overrides the SDK's production host; the SDK knows no other, so this
-     *                          is the only seam for testing against acceptance.
-     */
     public function __construct(
         GuzzleClient        $httpClient,
         UserAgent           $userAgent,
-        ?CapabilitiesMapper $mapper = null,
-        ?string             $host = null
+        ?CapabilitiesMapper $mapper = null
     )
     {
         $this->httpClient = $httpClient;
         $this->userAgent  = $userAgent;
         $this->mapper     = $mapper ?? new CapabilitiesMapper();
-        $this->host       = $host;
     }
 
     /**
@@ -277,6 +270,6 @@ class Client
 
     private function url(string $path): string
     {
-        return ($this->host ?? (new Configuration())->getHost()) . $path;
+        return (new Configuration())->getHost() . $path;
     }
 }

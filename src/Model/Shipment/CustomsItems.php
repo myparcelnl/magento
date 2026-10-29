@@ -128,11 +128,13 @@ class CustomsItems
         return null;
     }
 
+    /** The product name, shortened to MAX_DESCRIPTION_LENGTH characters with `...` at the end. */
     public function description(string $name): string
     {
         return Str::limit($name, self::MAX_DESCRIPTION_LENGTH);
     }
 
+    /** The HS code, cut to MAX_CLASSIFICATION_LENGTH characters, the most the API accepts. */
     public function classification(string $classification): string
     {
         return substr($classification, 0, self::MAX_CLASSIFICATION_LENGTH);

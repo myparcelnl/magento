@@ -9,7 +9,7 @@ use MyParcelNL\Magento\Service\Config;
 /**
  * A forced option is one the order gets whatever the shopper picks: set on a product, or on in the
  * carrier's export settings. Both tiers are always read, because a future entry in
- * ShipmentOption::LIMIT_PACKAGE_TYPE may have only one of them.
+ * ShipmentOption::LIMIT_CHECKOUT_OPTIONS may have only one of them.
  *
  * @param array<string,mixed>            $config config path => value
  * @param array<int,array<string,string>> $rows   product id => myparcel_* attribute => value
@@ -31,13 +31,13 @@ const POSTNL_PATH           = 'myparcelnl_magento_postnl_settings/';
 it('finds nothing forced when neither the product nor the export setting says so', function () {
     $rules = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => '0'], [1 => []]);
 
-    expect($rules->forcedLimitingOptions([quoteItemFor()], POSTNL_PATH))->toBe([]);
+    expect($rules->forcedCheckoutOptions([quoteItemFor()], POSTNL_PATH))->toBe([]);
 });
 
 it('reads a forced option from the export settings', function () {
     $rules = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => '1']);
 
-    expect($rules->forcedLimitingOptions([], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK]);
+    expect($rules->forcedCheckoutOptions([], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK]);
 });
 
 it('reads a forced option from a product, even with the export setting off', function () {
@@ -46,7 +46,7 @@ it('reads a forced option from a product, even with the export setting off', fun
         [1 => ['myparcel_age_check' => '1']]
     );
 
-    expect($rules->forcedLimitingOptions([quoteItemFor()], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK]);
+    expect($rules->forcedCheckoutOptions([quoteItemFor()], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK]);
 });
 
 it('treats a config path that does not exist as not forced', function () {
@@ -54,7 +54,7 @@ it('treats a config path that does not exist as not forced', function () {
     // never an error.
     $rules = createCartShippingRules([]);
 
-    expect($rules->forcedLimitingOptions([], 'myparcelnl_magento_dpd_settings/'))->toBe([]);
+    expect($rules->forcedCheckoutOptions([], 'myparcelnl_magento_dpd_settings/'))->toBe([]);
 });
 
 it('does not read a threshold or a stray string as on', function () {
@@ -63,7 +63,7 @@ it('does not read a threshold or a stray string as on', function () {
     foreach (['No', 'price', '0', ''] as $value) {
         $rules = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => $value]);
 
-        expect($rules->forcedLimitingOptions([], POSTNL_PATH))
+        expect($rules->forcedCheckoutOptions([], POSTNL_PATH))
             ->toBe([], sprintf('"%s" was read as forced', $value));
     }
 });
@@ -86,7 +86,7 @@ it('loads the product batch once however often it is asked', function () {
     $products = [quoteItemFor(1), quoteItemFor(2)];
 
     foreach ([1, 2, 3] as $ignored) {
-        $rules->forcedLimitingOptions($products, POSTNL_PATH);
+        $rules->forcedCheckoutOptions($products, POSTNL_PATH);
     }
 
     expect($loads)->toHaveCount(1)
@@ -99,6 +99,6 @@ it('answers the same for a second cart, so nothing carried over from the first',
         [1 => ['myparcel_age_check' => '1'], 2 => []]
     );
 
-    expect($rules->forcedLimitingOptions([quoteItemFor(1)], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK])
-        ->and($rules->forcedLimitingOptions([quoteItemFor(2)], POSTNL_PATH))->toBe([]);
+    expect($rules->forcedCheckoutOptions([quoteItemFor(1)], POSTNL_PATH))->toBe([ShipmentOption::AGE_CHECK])
+        ->and($rules->forcedCheckoutOptions([quoteItemFor(2)], POSTNL_PATH))->toBe([]);
 });

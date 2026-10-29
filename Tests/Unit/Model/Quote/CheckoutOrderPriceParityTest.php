@@ -17,6 +17,7 @@ use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\PriceDeliveryOptionsView;
 use MyParcelNL\Magento\Service\CartShippingRules;
+use MyParcelNL\Magento\Service\DropOffSettings;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
@@ -113,7 +114,7 @@ function flowWidgetPrices(Config $config, DeliveryCosts $deliveryCosts, Quote $q
     $packageTypes->shouldReceive('cartWeight')->andReturn(100.0)->byDefault();
 
     $cartRules = Mockery::mock(CartShippingRules::class);
-    foreach (['forcedLimitingOptions' => [], 'hidesDeliveryOptions' => false, 'allowsPriorityDelivery' => false,
+    foreach (['forcedLimitingOptions' => [], 'forcedCheckoutOptions' => [], 'hidesDeliveryOptions' => false, 'allowsPriorityDelivery' => false,
               'excludesParcelLockers' => false, 'forcesAgeCheck' => false, 'dropOffDelay' => null] as $fn => $answer) {
         $cartRules->shouldReceive($fn)->andReturn($answer)->byDefault();
     }
@@ -130,6 +131,7 @@ function flowWidgetPrices(Config $config, DeliveryCosts $deliveryCosts, Quote $q
     setPrivateProperty($checkout, 'capabilityLookup', capabilityLookupWith(CapabilitySet::permissive(), 'NL', 1));
     setPrivateProperty($checkout, 'storedAccount', storedAccountAt('NL'));
     setPrivateProperty($checkout, 'contractDefinitions', storedContractFor(1, ['POSTNL']));
+    setPrivateProperty($checkout, 'dropOffSettings', new DropOffSettings($config));
     setPrivateProperty($checkout, 'tax', $tax);
     setPrivateProperty($checkout, 'deliveryCosts', $deliveryCosts);
 

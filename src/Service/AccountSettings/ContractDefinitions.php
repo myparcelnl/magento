@@ -41,6 +41,10 @@ class ContractDefinitions
         $this->config      = $config;
     }
 
+    /**
+     * The capabilities stored with the account settings of this key, not a live lookup. Permissive
+     * when the key is empty or nothing is stored.
+     */
     public function forApiKey(string $apiKey): CapabilitySet
     {
         if ('' === $apiKey) {
