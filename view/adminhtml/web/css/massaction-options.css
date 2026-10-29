@@ -79,3 +79,15 @@ input[type=checkbox]:not(:checked) + label.mypa_position_selector-item:after {
 .mypa-options-dimensions input {
     width: 8rem;
 }
+
+/* An option the carrier offers, but not with the current delivery or options. */
+.mypa-option-greyed {
+    opacity: 0.5;
+}
+
+/* The pickup locations near the shipping address; the API returns about twenty. */
+[data-mypa-pickup-list] {
+    max-height: 20rem;
+    margin-top: 1rem;
+    overflow-y: auto;
+}

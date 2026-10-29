@@ -3,7 +3,8 @@
  * only the fields the merchant changed, so every other field keeps inheriting.
  *
  * The form marks what it needs with data-mypa-* attributes; data-initial holds the value it
- * rendered with, which is what "changed" is measured against.
+ * rendered with, which is what "changed" is measured against. For one order, the refresh endpoint
+ * fills the delivery list and re-renders the option block of the selection.
  */
 define(
     [
@@ -13,6 +14,11 @@ define(
     ],
     function ($, modal) {
         'use strict';
+
+        /** Wait this long after the last click before asking the server again. */
+        var REFRESH_DELAY = 300;
+        var STANDARD = 'standard|';
+        var PICKUP = 'pickup|';
 
         /** An admin POST with the form key; resolves with the decoded JSON answer. */
         function post(url, params) {
@@ -84,10 +90,134 @@ define(
             }
 
             packageBlock($root).show();
+        }
 
-            $root.find('[data-mypa-pickup-warning]').toggle(
-                '1' === String($root.data('pickup')) && selectedCarrier($root) !== String($root.data('carrier'))
-            );
+        function deliveryRoot($root) {
+            return $root.find('[data-mypa-delivery]');
+        }
+
+        function pickupRoot($root) {
+            return $root.find('[data-mypa-pickup-list]');
+        }
+
+        /** The selected delivery list value, "<delivery type>|<Y-m-d or empty>", or '' before the list loads. */
+        function selectedDelivery($root) {
+            return deliveryRoot($root).find('select').val() || '';
+        }
+
+        function selectedLocation($root) {
+            return pickupRoot($root).find('[data-mypa-pickup-location]:checked').val() || '';
+        }
+
+        function tickedOptions($root) {
+            return packageBlock($root).find('[data-mypa-option]:checked').map(function () {
+                return $(this).attr('data-mypa-option');
+            }).get();
+        }
+
+        /** A date group label in the merchant's locale, for example "Thu 29 Oct". */
+        function dateLabel(date) {
+            return new Date(date + 'T00:00:00').toLocaleDateString(document.documentElement.lang || undefined, {
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short'
+            });
+        }
+
+        function warning(text) {
+            return $('<div class="message message-warning warning"></div>').append($('<div></div>').text(text));
+        }
+
+        /** @param {Object} list - DeliveryList::build(): groups, pickup, warning */
+        function renderDeliveries($root, list) {
+            var $select = $('<select class="admin__control-select" id="mypa_opt_delivery"></select>');
+            var $container = deliveryRoot($root).empty();
+
+            if (list.warning) {
+                $container.append(warning(list.warning));
+            }
+
+            list.groups.forEach(function (group) {
+                var $group;
+
+                if (!group.entries.length) {
+                    return;
+                }
+
+                $group = $('<optgroup></optgroup>').attr('label', group.date ? dateLabel(group.date) : group.label);
+
+                group.entries.forEach(function (entry) {
+                    $group.append($('<option></option>')
+                        .val(entry.value)
+                        .text(entry.label)
+                        .attr('data-delivery-type', entry.deliveryType)
+                        .attr('data-stored', entry.stored ? '1' : '0')
+                        .prop('selected', entry.selected));
+                });
+
+                $select.append($group);
+            });
+
+            $container.append($select);
+        }
+
+        /**
+         * Disables the entries capabilities do not allow with the ticked options. Standard and a stored
+         * extra entry stay; a disabled selection falls back to standard without a date.
+         */
+        function filterDeliveries($root, allowed) {
+            var $select = deliveryRoot($root).find('select');
+
+            $select.find('option').each(function () {
+                var $option = $(this);
+                var type = $option.attr('data-delivery-type');
+                var ok = '1' === $option.attr('data-stored') || 'standard' === type || -1 !== allowed.indexOf(type);
+
+                $option.prop('disabled', !ok).prop('hidden', !ok);
+            });
+
+            $select.find('optgroup').each(function () {
+                $(this).prop('hidden', 0 === $(this).find('option:not(:disabled)').length);
+            });
+
+            if ($select.find('option:selected').prop('disabled')) {
+                $select.val(STANDARD);
+            }
+        }
+
+        function locationLabel(location) {
+            var distance = Number(location.distance);
+            var away = 1000 <= distance ? (distance / 1000).toFixed(1) + ' km' : distance + ' m';
+
+            return location.location_name + ' — ' + location.street + ' ' + location.number + ', '
+                + location.postal_code + ' ' + location.city + ' (' + away + ')';
+        }
+
+        /** Radios for the locations; the stored one is preselected, and kept when the API no longer lists it. */
+        function renderLocations($root, locations) {
+            var $list = pickupRoot($root).empty();
+            var stored = String(pickupRoot($root).attr('data-initial') || '');
+            var listed = locations.some(function (location) {
+                return location.location_code === stored;
+            });
+
+            function radio(code, label) {
+                var id = 'mypa_opt_pickup_' + code;
+
+                return $('<div class="admin__field admin__field-option"></div>').append(
+                    $('<input type="radio" class="admin__control-radio" name="mypa_opt_pickup_location" data-mypa-pickup-location>')
+                        .attr('id', id).val(code).prop('checked', code === stored),
+                    $('<label class="admin__field-label"></label>').attr('for', id).text(label)
+                );
+            }
+
+            if (stored && !listed) {
+                $list.append(radio(stored, $.mage.__('Current pickup location')));
+            }
+
+            locations.forEach(function (location) {
+                $list.append(radio(location.location_code, locationLabel(location)));
+            });
         }
 
         function differs($input) {
@@ -127,12 +257,6 @@ define(
                 add($root.find('[data-mypa-field]'), '');
                 add($root.find('[data-mypa-option]'), '[options]');
 
-                if ('remove' === $root.find('[data-mypa-bulk-date]').val()) {
-                    params['changes[delivery_date]'] = 'none';
-                } else if ('set' === $root.find('[data-mypa-bulk-date]').val() && $root.find('[data-mypa-bulk-date-value]').val()) {
-                    params['changes[delivery_date]'] = $root.find('[data-mypa-bulk-date-value]').val();
-                }
-
                 return params;
             }
 
@@ -149,10 +273,39 @@ define(
             }
 
             add($scope.find('[data-mypa-field]'), '');
-            add($scope.find('[data-mypa-option]').not(':disabled'), '[options]');
+            // A greyed option is disabled but posts as off; a locked one is never posted.
+            add($scope.find('[data-mypa-option]').filter(function () {
+                return !this.disabled || 0 < $(this).closest('.mypa-option-greyed').length;
+            }), '[options]');
             add($root.find('[data-mypa-order-field]'), '');
+            addDelivery($root, params);
 
             return params;
+        }
+
+        /** The delivery fields, when the selection differs from what the order stores. */
+        function addDelivery($root, params) {
+            var delivery = selectedDelivery($root);
+            var location = selectedLocation($root);
+            var parts = delivery.split('|');
+            var changed = delivery !== String(deliveryRoot($root).attr('data-initial') || '')
+                || (PICKUP === delivery && location !== String(pickupRoot($root).attr('data-initial') || ''));
+
+            if (!delivery || !changed) {
+                return;
+            }
+
+            params['changes[delivery_type]'] = parts[0];
+
+            if (PICKUP === delivery) {
+                if (location) {
+                    params['changes[pickup_location_code]'] = location;
+                }
+
+                return;
+            }
+
+            params['changes[delivery_date]'] = parts[1] || 'none';
         }
 
         /**
@@ -180,6 +333,105 @@ define(
             var $footer;
             var closed = false;
             var api;
+            var state = {sequence: 0, timer: null, locations: {}};
+
+            /** Asks the server what the selection allows; an answer older than the last request is dropped. */
+            function refresh(withDates) {
+                var sequence = ++state.sequence;
+                var deliveryType = (selectedDelivery($root) || deliveryRoot($root).attr('data-initial') || STANDARD).split('|')[0];
+                var params = $.extend(idParams(config.ids, config.idType), {
+                    carrier: selectedCarrier($root),
+                    package_type: selectedPackageType($root),
+                    delivery_type: deliveryType,
+                    with_dates: withDates ? '1' : '0'
+                });
+
+                clearTimeout(state.timer);
+
+                tickedOptions($root).forEach(function (option, index) {
+                    params['options[' + index + ']'] = option;
+                });
+
+                if (withDates) {
+                    deliveryRoot($root).empty().append($('<div class="mypa-options-loading"></div>').text($.mage.__('Loading...')));
+                }
+
+                return post(config.refreshUrl, params)
+                    .catch(function () {
+                        return {error: $.mage.__('The MyParcel options could not be loaded.')};
+                    })
+                    .then(function (answer) {
+                        if (sequence !== state.sequence) {
+                            return;
+                        }
+
+                        if (answer.error) {
+                            deliveryRoot($root).find('.mypa-options-loading').remove();
+                            api.error(answer.error);
+
+                            return;
+                        }
+
+                        if (answer.optionsHtml) {
+                            packageBlock($root).find('[data-mypa-options-block]').replaceWith(answer.optionsHtml);
+                        }
+
+                        if (answer.deliveries) {
+                            renderDeliveries($root, answer.deliveries);
+                        }
+
+                        filterDeliveries($root, answer.allowedDeliveryTypes || []);
+                        togglePickup();
+                    });
+            }
+
+            function refreshSoon() {
+                clearTimeout(state.timer);
+                state.timer = setTimeout(function () {
+                    refresh(false);
+                }, REFRESH_DELAY);
+            }
+
+            /** Shows the pickup list while pickup is selected, loading it once per carrier. */
+            function togglePickup() {
+                var carrier = selectedCarrier($root);
+                var $list = pickupRoot($root);
+
+                if (PICKUP !== selectedDelivery($root)) {
+                    $list.hide();
+
+                    return;
+                }
+
+                $list.show();
+
+                if (state.locations[carrier]) {
+                    renderLocations($root, state.locations[carrier]);
+
+                    return;
+                }
+
+                $list.empty().append($('<div class="mypa-options-loading"></div>').text($.mage.__('Loading...')));
+
+                post(config.pickupLocationsUrl, $.extend(idParams(config.ids, config.idType), {carrier: carrier}))
+                    .catch(function () {
+                        return {error: $.mage.__('The MyParcel options could not be loaded.')};
+                    })
+                    .then(function (answer) {
+                        if (carrier !== selectedCarrier($root)) {
+                            return;
+                        }
+
+                        if (answer.error) {
+                            $list.empty().append(warning(answer.error));
+
+                            return;
+                        }
+
+                        state.locations[carrier] = answer.locations || [];
+                        renderLocations($root, state.locations[carrier]);
+                    });
+            }
 
             $content.append($loading, $messages, $form, $extra);
 
@@ -289,18 +541,34 @@ define(
                     $root = $form.find('[data-mypa-options]');
                     $root.on('change', '[data-mypa-carrier], [data-mypa-package-type]', function () {
                         toggle($root);
-                    });
-                    $root.on('change', '[data-mypa-no-date]', function () {
-                        var $date = $root.find('[data-mypa-field="delivery_date"]');
 
-                        $date.prop('disabled', this.checked).val(this.checked ? '' : $date.attr('data-initial'));
-                    });
-                    $root.on('change', '[data-mypa-bulk-date]', function () {
-                        $root.find('[data-mypa-bulk-date-value]').toggle('set' === $(this).val());
+                        if (!isBulk($root)) {
+                            refresh(true);
+                        }
                     });
 
                     if (!isBulk($root)) {
+                        $root.on('change', '[data-mypa-delivery] select', function () {
+                            togglePickup();
+                            refreshSoon();
+                        });
+                        $root.on('change', '[data-mypa-option]', function () {
+                            var $box = $(this);
+                            var $block = $box.closest('[data-mypa-options-block]');
+                            var requires = JSON.parse($block.attr('data-mypa-requires') || '{}');
+
+                            // An option also ticks what it requires, so capabilities get a valid combination.
+                            if ($box.prop('checked')) {
+                                (requires[$box.attr('data-mypa-option')] || []).forEach(function (option) {
+                                    $block.find('[data-mypa-option="' + option + '"]').not(':disabled').prop('checked', true);
+                                });
+                            }
+
+                            refreshSoon();
+                        });
+
                         toggle($root);
+                        refresh(true);
                     }
 
                     if (config.onOpened) {
