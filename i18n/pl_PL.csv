@@ -328,6 +328,7 @@ Minimum order amount,Minimalna kwota zamówienia
 Maximum order amount,Maksymalna kwota zamówienia
 Delivery type,Typ dostawy
 Set the fees to 0 when the matrix fully sets the price per delivery type.,"Ustaw opłaty na 0, jeśli macierz w pełni ustala cenę dla każdego typu dostawy."
+"The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.","Warunek typu dostawy obejmuje dostawę standardową, odbiór, dostawę poranną i wieczorną: tylko te są wyceniane według typu dostawy w checkout."
 No rules defined. Click Add rule to create a new rule.,"Nie zdefiniowano reguł. Kliknij 'Dodaj regułę', aby utworzyć nową regułę."
 Add rule,Dodaj regułę
 Price,Cena

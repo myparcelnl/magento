@@ -328,6 +328,7 @@ Minimum order amount,Importo minimo dell'ordine
 Maximum order amount,Importo massimo dell'ordine
 Delivery type,Tipo di consegna
 Set the fees to 0 when the matrix fully sets the price per delivery type.,Imposta le tariffe a 0 se la matrice stabilisce interamente il prezzo per tipo di consegna.
+"The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.","La condizione tipo di consegna copre consegna standard, ritiro, consegna mattutina e serale: solo questi vengono prezzati per tipo di consegna nel checkout."
 No rules defined. Click Add rule to create a new rule.,Nessuna regola definita. Clicca su 'Aggiungi regola' per crearne una nuova.
 Add rule,Aggiungi regola
 Price,Prezzo

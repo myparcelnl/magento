@@ -71,7 +71,8 @@ define(
 
                     const helpText = document.createElement('p');
                     helpText.className = 'note';
-                    helpText.textContent = this.translations['Set the fees to 0 when the matrix fully sets the price per delivery type.'];
+                    helpText.textContent = this.translations['Set the fees to 0 when the matrix fully sets the price per delivery type.'] + ' ' +
+                        this.translations['The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.'];
                     this.matrixElement.appendChild(helpText);
 
                     // If there are no rules, show an empty message
