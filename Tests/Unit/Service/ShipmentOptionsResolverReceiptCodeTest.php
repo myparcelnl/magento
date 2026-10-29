@@ -51,13 +51,9 @@ it('drops receipt code when capabilities for the delivery type do not offer it',
     expect(receiptCodeResolved(DeliveryType::MORNING_NAME, capabilityOptions()))->toBeFalse();
 });
 
-it('keeps receipt code when capabilities for the delivery type offer it', function () {
-    expect(receiptCodeResolved(DeliveryType::STANDARD_NAME, offeringReceiptCode()))->toBeTrue();
-});
-
-it('keeps receipt code on a non-standard delivery type when capabilities offer it', function () {
-    expect(receiptCodeResolved(DeliveryType::EVENING_NAME, offeringReceiptCode()))->toBeTrue();
-});
+it('keeps receipt code when capabilities for the delivery type offer it', function (string $deliveryType) {
+    expect(receiptCodeResolved($deliveryType, offeringReceiptCode()))->toBeTrue();
+})->with([DeliveryType::STANDARD_NAME, DeliveryType::EVENING_NAME]);
 
 it('asks capabilities with the stored delivery type', function () {
     receiptCodeResolved(DeliveryType::MORNING_NAME, capabilityOptions(), $history);
