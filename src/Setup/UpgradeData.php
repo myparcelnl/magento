@@ -42,6 +42,7 @@ use MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows;
 use MyParcelNL\Magento\Setup\Migrations\RenameUpsSettingsPath;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\ShipmentOptionsFalseToNull;
+use MyParcelNL\Magento\Setup\Migrations\SortProductAttributes;
 use MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication;
 
 /**
@@ -50,7 +51,7 @@ use MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication;
  */
 class UpgradeData implements UpgradeDataInterface
 {
-    private const GROUP_NAME = 'MyParcel Options';
+    public const GROUP_NAME = 'MyParcel Options';
 
     private const DEFAULT_ATTRIBUTES = [
         'group'                   => self::GROUP_NAME,
@@ -148,6 +149,8 @@ class UpgradeData implements UpgradeDataInterface
 
     private ShipmentOptionsFalseToNull $shipmentOptionsFalseToNull;
 
+    private SortProductAttributes $sortProductAttributes;
+
     /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                     $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                              $eavSetupFactory
@@ -164,6 +167,7 @@ class UpgradeData implements UpgradeDataInterface
      * @param  \MyParcelNL\Magento\Setup\Migrations\RemoveExportModeRows $removeExportModeRows
      * @param  \MyParcelNL\Magento\Setup\Migrations\ImportAccountSettings $importAccountSettings
      * @param  \MyParcelNL\Magento\Setup\Migrations\ShipmentOptionsFalseToNull $shipmentOptionsFalseToNull
+     * @param  \MyParcelNL\Magento\Setup\Migrations\SortProductAttributes $sortProductAttributes
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -180,7 +184,8 @@ class UpgradeData implements UpgradeDataInterface
         LegacyConfigDefaults $legacyConfigDefaults,
         RemoveExportModeRows $removeExportModeRows,
         ImportAccountSettings $importAccountSettings,
-        ShipmentOptionsFalseToNull $shipmentOptionsFalseToNull
+        ShipmentOptionsFalseToNull $shipmentOptionsFalseToNull,
+        SortProductAttributes $sortProductAttributes
     ) {
         $this->categorySetupFactory            = $categorySetupFactory;
         $this->eavSetupFactory                 = $eavSetupFactory;
@@ -197,6 +202,7 @@ class UpgradeData implements UpgradeDataInterface
         $this->removeExportModeRows            = $removeExportModeRows;
         $this->importAccountSettings           = $importAccountSettings;
         $this->shipmentOptionsFalseToNull      = $shipmentOptionsFalseToNull;
+        $this->sortProductAttributes           = $sortProductAttributes;
     }
 
     /**
@@ -1161,6 +1167,20 @@ class UpgradeData implements UpgradeDataInterface
             $this->removePickupMailboxRows->run();
             $this->removeExportModeRows->run();
             $this->shipmentOptionsFalseToNull->run();
+            $eavSetup->addAttribute(
+                Product::ENTITY,
+                'myparcel_external_product_reference',
+                array_merge(self::DEFAULT_ATTRIBUTES, [
+                        'note'    => 'Enter the external product reference, for example the Zonos Catalog Item ID of this product.',
+                        'label'   => 'External product reference',
+                        'input'   => 'text',
+                        'type'    => 'varchar',
+                        'class'   => 'validate-length maximum-length-64',
+                        'default' => '',
+                    ]
+                )
+            );
+            $this->sortProductAttributes->run($eavSetup);
             if ('' !== (string) $context->getVersion()) {
                 $this->legacyConfigDefaults->run();
                 // The export mode is read from the features, which no row imported before 5.11 has.
