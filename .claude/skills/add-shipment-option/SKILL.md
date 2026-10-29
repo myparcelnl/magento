@@ -20,7 +20,9 @@ Ask these questions one at a time. Ask all of them.
 4. **Mailbox.** "Can it ship in a mailbox, with its settings in the mailbox group?"
 5. **Fail-open.** "Must the form show it when capabilities cannot be read?"
 6. **Rule.** "Does a rule decide it that capabilities do not give, such as a country rule?"
-7. **Product toggle.** "Must a product be able to switch it on? If yes: does the product decide the
+7. **Keep at checkout.** "Must an order keep it, so that the checkout offers no carrier, package type
+   or delivery type that cannot carry it?"
+8. **Product toggle.** "Must a product be able to switch it on? If yes: does the product decide the
    option at export, or what the consumer may choose at checkout?"
 
 ## Then do
@@ -32,7 +34,8 @@ For each yes, follow the matching subsection of `CONTRIBUTING.md`:
 | 2, 3, 4, 5 | A row in `ShipmentOption::DEFINITIONS`: only the facts these answers need |
 | 3 (checkout fee) | An option in the checkout |
 | 6 | A rule that capabilities do not give |
-| 7 | A toggle on the product |
+| 7 | An option that an order must keep |
+| 8 | A toggle on the product |
 
 Then run `vendor/bin/pest`. `ShipmentOptionParityTest` checks that every `toggle` option in
 `ShipmentOption::DEFINITIONS` reaches the shipment that the API receives.
