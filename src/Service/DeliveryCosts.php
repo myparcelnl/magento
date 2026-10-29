@@ -255,13 +255,15 @@ class DeliveryCosts
             $value              = $definedCondition['value'] ?? '';
 
             switch ($condition) {
+                // an empty or non-numeric threshold is an unfinished rule: never met, so the excluding
+                // conditions rule the definition out instead of (float) '' making it match every order
                 case 'minimum_order_amount':
-                    if ((float) $conditions['order_amount'] >= (float) $value) {
+                    if (is_numeric($value) && (float) $conditions['order_amount'] >= (float) $value) {
                         return self::CONDITIONS[$condition];
                     }
                     break;
                 case 'maximum_order_amount':
-                    if ((float) $conditions['order_amount'] < (float) $value) {
+                    if (is_numeric($value) && (float) $conditions['order_amount'] < (float) $value) {
                         return self::CONDITIONS[$condition];
                     }
                     break;
