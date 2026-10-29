@@ -220,3 +220,25 @@ it('lets the lowest met maximum win between tiered thresholds, whatever their or
         ->and(priceFor(deliveryCostsWithMatrix(array_reverse($tiers)), 10.0))->toBe(7.95)
         ->and(priceFor(deliveryCostsWithMatrix($tiers), 50.0))->toBe(5.95);
 });
+
+it('never lets an unfinished order amount rule match', function ($value) {
+    // the matrix UI stores the value only once typed, but an empty or non-numeric value can still
+    // arrive through the JSON textarea or an old save; (float) would turn it into 0 and match everything
+    $deliveryCosts = deliveryCostsWithMatrix([
+        ['name' => 'Base', 'price' => 6.95, 'conditions' => [['type' => 'country', 'value' => 'NL']]],
+        ['name' => 'Unfinished minimum', 'price' => 99.0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => $value]]],
+        ['name' => 'Unfinished maximum', 'price' => 88.0, 'conditions' => [['type' => 'maximum_order_amount', 'value' => $value]]],
+    ]);
+
+    expect(priceFor($deliveryCosts, 10.0))->toBe(6.95)
+        ->and(priceFor($deliveryCosts, 500.0))->toBe(6.95);
+})->with(['an empty value' => [''], 'a non-numeric value' => ['abc']]);
+
+it('lets an explicit zero minimum match, as a merchant typed it on purpose', function () {
+    $deliveryCosts = deliveryCostsWithMatrix([
+        ['name' => 'Base', 'price' => 6.95, 'conditions' => [['type' => 'country', 'value' => 'NL']]],
+        ['name' => 'From zero', 'price' => 1.0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => 0]]],
+    ]);
+
+    expect(priceFor($deliveryCosts, 10.0))->toBe(1.0);
+});

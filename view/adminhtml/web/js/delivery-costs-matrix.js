@@ -275,6 +275,7 @@ define(
                         conditionValues = document.createElement('input');
                         conditionValues.type = 'number';
                         conditionValues.step = 'any';
+                        conditionValues.className = 'required-entry validate-number'; // the config form blocks saving an empty value
                         conditionValues.value = condition.value;
                         conditionValues.addEventListener('change', (e) => this.updateCondition(ruleIndex, conditionIndex, 'value', e.target.value));
                     } else {
@@ -302,6 +303,7 @@ define(
                             newValueInput = document.createElement('input');
                             newValueInput.type = 'number';
                             newValueInput.step = 'any';
+                            newValueInput.className = 'required-entry validate-number'; // the config form blocks saving an empty value
                             newValueInput.value = '';
                             newValueInput.addEventListener('change', (ev) => this.updateCondition(ruleIndex, conditionIndex, 'value', ev.target.value));
                         } else {
@@ -329,7 +331,8 @@ define(
 
                 // Update a specific condition's field value
                 updateCondition: function(ruleIndex, conditionIndex, field, value) {
-                    if (false === isNaN(value)) value = Number(value);
+                    // an empty value stays empty (the backend skips the rule) instead of Number('') making it 0
+                    if ('' !== value && false === isNaN(value)) value = Number(value);
                     this.ruleData[ruleIndex].conditions[conditionIndex][field] = value;
                     this.save();
                 },
