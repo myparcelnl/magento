@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service;
 
 use Magento\Quote\Model\Quote;
+use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Services\CountryCodes;
 
 class DeliveryCosts
@@ -75,8 +76,8 @@ class DeliveryCosts
         $defaultOptions = new DefaultOptions($quote);
 
         $carrierName = $carrierName ?? $defaultOptions->getCarrierName();
-        $packageType = AbstractConsignment::PACKAGE_TYPES_NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
-        $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? AbstractConsignment::CC_NL;
+        $packageType = PackageType::NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
+        $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? CountryCode::CC_NL;
         $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
                        + $this->weight->getQuoteWeightInGrams($quote);
 
@@ -216,12 +217,28 @@ class DeliveryCosts
 
 
     /**
+     * Rounded, not truncated: 0.29 * 100 is 28.999999999999996 in binary floating point, and a cast
+     * would make 29 cents into 28 — on a customs value, a delivery cost and an insured amount alike.
+     *
      * @param float $price in Euros
      *
      * @return int price in cents
      */
     public static function getPriceInCents(float $price): int
     {
-        return (int) ($price * 100);
+        return self::roundHalfUp($price * 100);
+    }
+
+    /**
+     * Half up, spelled out rather than left to round().
+     *
+     * round() pre-rounded a value within epsilon of a .5 boundary up to it until PHP 8.3 and no
+     * longer does, so 1.005 * 100, which is really 100.49999999999999, answered 101 on three PHP
+     * versions and 100 on the fourth. Money may not depend on the PHP version, so every cent the
+     * module rounds comes through here.
+     */
+    public static function roundHalfUp(float $value): int
+    {
+        return (int) floor($value + 0.5);
     }
 }

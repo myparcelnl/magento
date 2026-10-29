@@ -17,6 +17,7 @@ namespace MyParcelNL\Magento\Block\Sales;
 use Magento\Backend\Block\Template;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\ObjectManager;
+use MyParcelNL\Magento\Controller\Adminhtml\Order\PrintMyParcelLabels;
 use MyParcelNL\Magento\Service\Config;
 
 class OrdersAction extends Template
@@ -32,7 +33,7 @@ class OrdersAction extends Template
         array   $data = []
     )
     {
-        $this->config = $this->Config = (ObjectManager::getInstance())->get(Config::class);
+        $this->config = (ObjectManager::getInstance())->get(Config::class);
 
         parent::__construct($context, $data);
     }
@@ -67,15 +68,32 @@ class OrdersAction extends Template
         return $this->_urlBuilder->getUrl('myparcel/order/SendMyParcelReturnMail');
     }
 
+
+    /**
+     * The grid's data source component, so the export can refresh the rows it changed without a page
+     * load. The name is <namespace>.<dataSource name>, and the namespace is the ui_component file's
+     * own name because those <listing> roots carry no name attribute.
+     */
+    public function getGridDataSource(): string
+    {
+        return 'sales_order_grid.sales_order_grid_data_source';
+    }
+
     /**
      * Get print settings
      *
      * @return string
      */
-    public function getPrintSettings()
+    public function getPrintSettings(): string
     {
         $settings = $this->config->getGeneralConfig('print');
 
         return json_encode($settings);
+    }
+
+    /** The response header that label-download.js reads to warn about a PDF with missing labels. */
+    public function getLabelWarningHeader(): string
+    {
+        return PrintMyParcelLabels::HEADER_INCOMPLETE;
     }
 }

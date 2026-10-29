@@ -30,9 +30,6 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Sdk\Helper\ValidatePostalCode;
-use MyParcelNL\Sdk\Helper\ValidateStreet;
-use MyParcelNL\Sdk\Model\Consignment\AbstractConsignment;
 use MyParcelNL\Sdk\Support\Str;
 
 class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
@@ -65,20 +62,9 @@ class SaveOrderBeforeSalesModelQuoteObserver implements ObserverInterface
         /* @var Order $order */
         $order = $observer->getEvent()->getData('order');
 
+        // Nothing below reads the address, but this still gates the observer for orders without one.
         if ($order->getShippingAddress() === null) {
             return $this;
-        }
-
-        $fullStreet         = implode(' ', $order->getShippingAddress()->getStreet() ?? []);
-        $postcode           = $order->getShippingAddress()->getPostcode();
-        $destinationCountry = $order->getShippingAddress()->getCountryId();
-
-        if (!ValidateStreet::validate($fullStreet, AbstractConsignment::CC_NL, $destinationCountry)) {
-            $order->setData(Config::FIELD_TRACK_STATUS, __('⚠️&#160; Please check street'));
-        }
-
-        if (!ValidatePostalCode::validate($postcode, $destinationCountry)) {
-            $order->setData(Config::FIELD_TRACK_STATUS, __('⚠️&#160; Please check postal code'));
         }
 
         if ($quote->hasData(Config::FIELD_DELIVERY_OPTIONS) && $this->hasMyParcelDeliveryOptions($quote)) {

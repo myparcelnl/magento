@@ -18,6 +18,10 @@ use Magento\Framework\Data\OptionSourceInterface;
 
 class PaperType implements OptionSourceInterface
 {
+    /** The stored values. LabelPositions turns A4 into slots; anything else prints A6. */
+    public const A4 = 'A4';
+    public const A6 = 'A6';
+
     /**
      * Options getter
      *
@@ -25,7 +29,7 @@ class PaperType implements OptionSourceInterface
      */
     public function toOptionArray()
     {
-        return [['value' => 'A4', 'label' => __('A4')], ['value' => 'A6', 'label' => __('A6')]];
+        return [['value' => self::A4, 'label' => __('A4')], ['value' => self::A6, 'label' => __('A6')]];
     }
 
     /**
@@ -35,6 +39,6 @@ class PaperType implements OptionSourceInterface
      */
     public function toArray()
     {
-        return ['A4' => __('A4'), 'A6' => __('A6')];
+        return [self::A4 => __('A4'), self::A6 => __('A6')];
     }
 }

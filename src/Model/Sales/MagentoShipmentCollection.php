@@ -2,6 +2,8 @@
 namespace MyParcelNL\Magento\Model\Sales;
 
 use Magento\Sales\Model\Order;
+use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Service\LogContext;
 
 /**
  * Class MagentoOrderCollection
@@ -22,13 +24,13 @@ class MagentoShipmentCollection extends MagentoCollection
     {
         return $this->getShipmentsCollection();
     }
-    /**
-     * Get all Magento shipments
-     *
-     * @return \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
-     */
+    /** @throws \RuntimeException when setShipmentCollection() has not run yet */
     protected function getShipmentsCollection(): \Magento\Sales\Model\ResourceModel\Order\Shipment\Collection
     {
+        if (null === $this->shipments) {
+            throw new \RuntimeException('No shipment collection was set on this export');
+        }
+
         return $this->shipments;
     }
 
@@ -44,6 +46,7 @@ class MagentoShipmentCollection extends MagentoCollection
     ): self
     {
         $this->shipments = $shipmentCollection;
+        $this->forgetTracks();
 
         return $this;
     }
@@ -60,8 +63,10 @@ class MagentoShipmentCollection extends MagentoCollection
          * @var Order          $order
          * @var Order\Shipment $shipment
          */
+        $tracks = $this->tracksByShipmentId();
+
         foreach ($this->getShipmentsCollection() as $shipment) {
-            if ($this->shipmentHasTrack($shipment) == false ||
+            if (! ($tracks[(int) $shipment->getId()] ?? []) ||
                 $this->getOption('create_track_if_one_already_exist')
             ) {
                 $this->setNewMagentoTrack($shipment);
@@ -73,48 +78,16 @@ class MagentoShipmentCollection extends MagentoCollection
         return $this;
     }
 
-    /**
-     * Set PDF content and convert status 'Concept' to 'Registered'
-     *
-     * @return self
-     * @throws \Exception
-     */
-    public function setPdfOfLabels(): self
-    {
-        $this->myParcelCollection->setPdfOfLabels($this->options['positions']);
 
-        return $this;
-    }
 
-    /**
-     * Download PDF directly
-     *
-     * @return self
-     * @throws \Exception
-     */
-    public function downloadPdfOfLabels(): self
-    {
-        $inlineDownload = $this->options['request_type'] === 'open_new_tab';
-        $this->myParcelCollection->downloadPdfOfLabels($inlineDownload);
-
-        return $this;
-    }
-
-    /**
-     * Update MyParcel collection
-     *
-     * @return $this
-     * @throws \Exception
-     */
-    public function setLatestData()
-    {
-        $this->myParcelCollection->setLatestData();
-
-        return $this;
-    }
 
     /**
      * Send shipment email with Track and trace variable
+     *
+     * One failure is one shipment's: a bounced address or a refused SMTP handshake used to abort the
+     * loop, so every shipment after it went unmailed with nothing said. Whether a send blocks the
+     * request at all is Magento's own `sales_email/general/async_sending` — with it off, a large
+     * batch pays one SMTP round trip per shipment before the label PDF reaches the admin.
      *
      * @return $this
      */
@@ -128,8 +101,17 @@ class MagentoShipmentCollection extends MagentoCollection
         }
 
         foreach ($this->shipments as $shipment) {
-            if ($shipment->getEmailSent() == null) {
+            if ($shipment->getEmailSent() != null) {
+                continue;
+            }
+
+            try {
                 $this->trackSender->send($shipment);
+            } catch (\Throwable $e) {
+                Logger::warning(
+                    sprintf('MyParcel: the track & trace email for shipment %s could not be sent', $shipment->getId()),
+                    LogContext::of($e)
+                );
             }
         }
 
