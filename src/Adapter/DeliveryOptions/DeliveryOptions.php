@@ -188,10 +188,18 @@ final class DeliveryOptions
         $data['carrier'] = $carrier;
 
         if ($previous && $carrier !== $previous && ! empty($data['isPickup'])) {
-            $data['pickupLocation'] = null;
-            $data['isPickup']       = false;
-            $data['deliveryType']   = DeliveryType::STANDARD_NAME;
+            return self::asHomeDelivery($data);
         }
+
+        return $data;
+    }
+
+    /** Stored data as a home delivery of this type: no pickup, no location. */
+    public static function asHomeDelivery(array $data, string $deliveryType = DeliveryType::STANDARD_NAME): array
+    {
+        $data['deliveryType']   = $deliveryType;
+        $data['isPickup']       = false;
+        $data['pickupLocation'] = null;
 
         return $data;
     }

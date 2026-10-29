@@ -58,6 +58,17 @@ function mockRandomBytesGenerator(?string $forced = null): RandomBytesGeneratorI
     return $gen;
 }
 
+/** @param array<string,mixed> $params what getParam() answers, by name; the default for any other */
+function mockRequestWithParams(array $params): RequestInterface
+{
+    $request = Mockery::mock(RequestInterface::class);
+    $request->shouldReceive('getParam')->andReturnUsing(
+        static fn(string $name, $default = null) => $params[$name] ?? $default
+    );
+
+    return $request;
+}
+
 function mockRequestWithAuthorization(?string $value): RequestInterface
 {
     $request = Mockery::mock(RequestInterface::class);
