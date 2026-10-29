@@ -129,6 +129,20 @@ final class DeliveryList
         return $type . '|' . (null === $date || '' === $date ? '' : substr($date, 0, 10));
     }
 
+    /** The delivery type of the selected entry of a built list. */
+    public static function selectedType(array $list): ?string
+    {
+        foreach ($list['groups'] as $group) {
+            foreach ($group['entries'] as $entry) {
+                if ($entry['selected']) {
+                    return $entry['deliveryType'];
+                }
+            }
+        }
+
+        return null;
+    }
+
     /** The translated label of a delivery type; an unknown type is its own label. */
     public static function labelFor(string $type): string
     {
