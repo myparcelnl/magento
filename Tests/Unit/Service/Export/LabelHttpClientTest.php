@@ -14,10 +14,13 @@ use Psr\Http\Client\ClientInterface;
  */
 function loggingClientOver(Response $response): LabelHttpClient
 {
-    $inner = Mockery::mock(ClientInterface::class);
-    $inner->shouldReceive('sendRequest')->andReturn($response);
+    $httpClient = Mockery::mock(ClientInterface::class);
+    $httpClient->shouldReceive('sendRequest')->andReturn($response);
 
-    return new LabelHttpClient($inner);
+    $client = new LabelHttpClient();
+    setPrivateProperty($client, 'httpClient', $httpClient);
+
+    return $client;
 }
 
 function labelRequest(): GuzzleHttp\Psr7\Request
@@ -90,15 +93,16 @@ function uriSentFor(string $url): string
 {
     $sent = null;
 
-    $inner = Mockery::mock(ClientInterface::class);
-    $inner->shouldReceive('sendRequest')->andReturnUsing(function ($request) use (&$sent) {
+    $httpClient = Mockery::mock(ClientInterface::class);
+    $httpClient->shouldReceive('sendRequest')->andReturnUsing(function ($request) use (&$sent) {
         $sent = (string) $request->getUri();
 
         return new Response(200, ['Content-Type' => 'application/pdf'], '%PDF-1.4 label');
     });
 
-    (new MyParcelNL\Magento\Service\Export\LabelHttpClient($inner))
-        ->sendRequest(new GuzzleHttp\Psr7\Request('GET', $url));
+    $client = new LabelHttpClient();
+    setPrivateProperty($client, 'httpClient', $httpClient);
+    $client->sendRequest(new GuzzleHttp\Psr7\Request('GET', $url));
 
     return $sent;
 }
