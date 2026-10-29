@@ -8,13 +8,13 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
 /**
- * The one insurance clamp. Both inputs run through it: the posted admin amount and the
- * amount the merchant's configuration resolves to.
+ * The one insurance clamp. Both inputs run through it: the amount the merchant saved on the order
+ * and the amount the configuration resolves to.
  *
  * @param array<string, mixed> $insuranceOption the option value the account reports, in cents
  */
 function insuranceResolver(
-    $postedAmount,
+    $savedAmount,
     ?array $insuranceOption = null,
     ?int $configuredDefault = null,
     string $countryId = 'NL',
@@ -42,7 +42,7 @@ function insuranceResolver(
     return createShipmentOptions(
         $countryId,
         'postnl',
-        null === $postedAmount ? [] : ['insurance' => $postedAmount],
+        null === $savedAmount ? [] : ['insurance' => $savedAmount],
         false,
         ['deliveryType' => DeliveryType::STANDARD_NAME, 'packageType' => $packageType],
         $repository,
@@ -78,7 +78,7 @@ it('clamps an amount below the contract minimum up, never to zero', function () 
     expect(insuranceResolver(25, bounds(10000, 250000))->getInsurance())->toBe(100);
 });
 
-it('clamps the configured default too, not only a posted amount', function () {
+it('clamps the configured default too, not only a saved amount', function () {
     mockLoggerFacade()->shouldReceive('notice')->once();
 
     expect(insuranceResolver(null, bounds(0, 250000), 5000)->getInsurance())->toBe(2500);
