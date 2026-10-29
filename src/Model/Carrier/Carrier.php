@@ -32,6 +32,7 @@ use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
@@ -55,13 +56,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private ResultFactory $rateResultFactory;
     private MethodFactory $rateMethodFactory;
     private DeliveryCosts $deliveryCosts;
-
-    private const DELIVERY_TYPE_TITLES = [
-        'standard' => 'Standard Delivery',
-        'pickup'   => 'Pickup locations',
-        'morning'  => 'Morning Delivery',
-        'evening'  => 'Evening Delivery',
-    ];
 
     private const PACKAGE_TYPE_TITLES = [
         'package'       => 'Package',
@@ -163,7 +157,13 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $carrier         = $deliveryOptions->getCarrier();
         $configPath      = null === $carrier ? '' : Config::carrierPath($carrier);
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::of([]);
-        $shipmentFees    = ["{$deliveryOptions->getDeliveryType()}/fee" => true];
+        $deliveryType    = $deliveryOptions->getDeliveryType();
+        // same day's fee lives under delivery/, unlike the other types' own groups, so the
+        // checkout's same day fee reaches the order too
+        $deliveryTypeFee = DeliveryType::SAME_DAY_NAME === $deliveryType
+            ? 'delivery/same_day_delivery_fee'
+            : "$deliveryType/fee";
+        $shipmentFees    = [$deliveryTypeFee => true];
 
         foreach (['delivery' => 'checkout', 'mailbox' => 'mailbox'] as $group => $flag) {
             foreach (ShipmentOption::having($flag) as $option) {
@@ -201,7 +201,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $carrierHuman = $carrierName;
         }
 
-        $deliveryTypeTitle = self::DELIVERY_TYPE_TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
+        $deliveryTypeTitle = DeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
         $packageTypeTitle  = self::PACKAGE_TYPE_TITLES[$deliveryOptions->getPackageType()] ?? $deliveryOptions->getPackageType();
 
         ob_start();

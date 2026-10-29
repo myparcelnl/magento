@@ -78,17 +78,11 @@ class DeliveryCostsMatrix extends Field
      */
     public function getDeliveryTypes(): array
     {
-        $labels = [
-            DeliveryType::STANDARD_NAME => __('Standard delivery'),
-            DeliveryType::PICKUP_NAME   => __('Pickup'),
-            DeliveryType::MORNING_NAME  => __('Morning delivery'),
-            DeliveryType::EVENING_NAME  => __('Evening delivery'),
-        ];
-
         $deliveryTypes = [];
         foreach (DeliveryType::pricedPerTypeNames() as $name) {
-            // a type newer than the label map falls back to a readable, untranslated label
-            $deliveryTypes[$name] = $labels[$name] ?? __(ucfirst(str_replace('_', ' ', $name)) . ' delivery');
+            // DeliveryType::TITLES keeps one label per type shop-wide; a type newer than the map
+            // falls back to a readable, untranslated label
+            $deliveryTypes[$name] = __(DeliveryType::TITLES[$name] ?? ucfirst(str_replace('_', ' ', $name)) . ' delivery');
         }
 
         return $deliveryTypes;

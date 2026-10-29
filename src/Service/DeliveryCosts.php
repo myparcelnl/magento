@@ -133,10 +133,9 @@ class DeliveryCosts
      */
     private function computeOrderAmount(Quote $quote): float
     {
-        $storeId = (int) $quote->getStoreId();
         // the item discount excludes tax, unless Magento applies discounts on prices including tax
-        $discountIncludesTax = '1' === (string) $this->config->getConfigValue('tax/calculation/discount_tax', $storeId);
-        $taxAfterDiscount    = '0' !== (string) $this->config->getConfigValue('tax/calculation/apply_after_discount', $storeId);
+        $discountIncludesTax = $this->tax->discountIncludesTax($quote);
+        $taxAfterDiscount    = $this->tax->appliesTaxAfterDiscount($quote);
         $amount              = 0.0;
 
         foreach ($quote->getAllVisibleItems() as $item) {
@@ -168,6 +167,13 @@ class DeliveryCosts
             if (! isset($conditions[$required])) {
                 throw new \InvalidArgumentException('Missing required conditions');
             }
+        }
+
+        // The matrix prices only the types in DeliveryType::pricedPerTypeNames(). Any other type
+        // (same day, express) is a fee on top of standard delivery, so it prices as standard —
+        // the same price the checkout shows for it, instead of skipping the standard rules.
+        if (! in_array($conditions['delivery_type'], DeliveryType::pricedPerTypeNames(), true)) {
+            $conditions['delivery_type'] = DeliveryType::DEFAULT_NAME;
         }
 
         $json = $this->config->getGeneralConfig('matrix/delivery_costs');
