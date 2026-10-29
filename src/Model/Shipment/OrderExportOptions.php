@@ -34,7 +34,7 @@ use RuntimeException;
  * Generated-model traps: booleans must be a literal 1 or 0 (a PHP bool throws at serialization),
  * setLabelDescription() throws above its limit, and setDeliveryType() throws on a string enum name.
  */
-class OrderShipmentOptions
+class OrderExportOptions
 {
     /**
      * Copy of the maxLength RefShipmentShipmentOptions::setLabelDescription() enforces.
