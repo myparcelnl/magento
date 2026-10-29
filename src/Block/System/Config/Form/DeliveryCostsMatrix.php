@@ -69,6 +69,12 @@ class DeliveryCostsMatrix extends Field
 
     /**
      * Keyed by the name the checkout stores as delivery type, which the delivery_type condition compares.
+     *
+     * Only the types the checkout prices per delivery type. Same day and express are left out: the checkout
+     * prices them as a fee on top of the standard price, while the carrier would charge the matrix price
+     * (Trunkrs carries same day and UPS Express Saver carries express as its own delivery type), so a rule
+     * on them would show one price in the widget and charge another. Monday is no delivery type at all: the
+     * widget sends it as an option on standard delivery, like Saturday, so a rule on it could never match.
      */
     public function getDeliveryTypes(): array
     {
@@ -77,8 +83,6 @@ class DeliveryCostsMatrix extends Field
             DeliveryType::PICKUP_NAME   => __('Pickup'),
             DeliveryType::MORNING_NAME  => __('Morning delivery'),
             DeliveryType::EVENING_NAME  => __('Evening delivery'),
-            DeliveryType::SAME_DAY_NAME => __('Same day delivery'),
-            DeliveryType::EXPRESS_NAME  => __('Express delivery'),
         ];
     }
 
@@ -136,6 +140,7 @@ class DeliveryCostsMatrix extends Field
             'Maximum order amount' => __('Maximum order amount'),
             'Delivery type' => __('Delivery type'),
             'Set the fees to 0 when the matrix fully sets the price per delivery type.' => __('Set the fees to 0 when the matrix fully sets the price per delivery type.'),
+            'The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.' => __('The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
             'Invalid JSON in textarea' => __('Invalid JSON in textarea'),

@@ -328,6 +328,7 @@ Minimum order amount,Minimumsordrebeløb
 Maximum order amount,Maksimalt ordrebeløb
 Delivery type,Leveringstype
 Set the fees to 0 when the matrix fully sets the price per delivery type.,"Sæt gebyrerne til 0, når matrixen fastsætter prisen pr. leveringstype fuldt ud."
+"The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.","Betingelsen leveringstype dækker standardlevering, afhentning, morgen- og aftenlevering: kun disse prissættes pr. leveringstype i checkout."
 No rules defined. Click Add rule to create a new rule.,Ingen regler defineret. Klik på 'Tilføj regel' for at oprette en ny regel.
 Add rule,Tilføj regel
 Price,Pris
