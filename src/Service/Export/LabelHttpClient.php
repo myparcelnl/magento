@@ -28,17 +28,17 @@ class LabelHttpClient implements ClientInterface
     /** Enough for the `%PDF-1` signature the SDK matches on. */
     private const SIGNATURE_LENGTH = 8;
 
-    private ClientInterface $inner;
+    private ClientInterface $httpClient;
 
-    public function __construct(?ClientInterface $inner = null)
+    public function __construct()
     {
-        $this->inner = $inner ?? new GuzzleClient(['timeout' => ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT]);
+        $this->httpClient = new GuzzleClient(['timeout' => ShipmentApiFactory::DEFAULT_HTTP_TIMEOUT]);
     }
 
     public function sendRequest(RequestInterface $request): ResponseInterface
     {
         $sent     = $this->withRawSeparators($request);
-        $response = $this->inner->sendRequest($sent);
+        $response = $this->httpClient->sendRequest($sent);
         $stream   = $response->getBody();
 
         if ($stream->isSeekable()) {
