@@ -28,19 +28,25 @@ final class RefreshWithoutLayout extends Refresh
 
 /**
  * A Refresh controller over a form double and a DeliveryDates double, called with these params.
+ * The form answers option states only for the delivery type $statesFor.
  *
  * @param array<string,mixed> $params
  */
-function refreshAnswer(array $params, ?DeliveryDates $dates = null, int $orderCount = 1): array
-{
+function refreshAnswer(
+    array          $params,
+    ?DeliveryDates $dates = null,
+    int            $orderCount = 1,
+    array          $stored = ['carrier' => 'postnl', 'deliveryType' => 'standard'],
+    string         $statesFor = 'morning'
+): array {
     $request = Mockery::mock(RequestInterface::class);
     $request->shouldReceive('getParam')->andReturnUsing(static fn(string $name, $default = null) => $params[$name] ?? $default);
 
     $form = Mockery::mock(ShipmentOptionsForm::class);
-    $form->shouldReceive('optionStates')->with('postnl', 'package', 'morning', ['signature'])->andReturn(['signature' => ['checked' => true, 'disabled' => false, 'greyed' => false]]);
+    $form->shouldReceive('optionStates')->with('postnl', 'package', $statesFor, ['signature'])->andReturn(['signature' => ['checked' => true, 'disabled' => false, 'greyed' => false]]);
     $form->shouldReceive('emptyAnswer')->andReturn(false);
     $form->shouldReceive('allowedDeliveryTypes')->with('postnl', 'package', ['signature'])->andReturn(['standard', 'morning']);
-    $form->shouldReceive('storedDelivery')->andReturn(storedDeliveryOptions(['carrier' => 'postnl', 'deliveryType' => 'standard']));
+    $form->shouldReceive('storedDelivery')->andReturn(storedDeliveryOptions($stored));
 
     $formFactory = Mockery::mock(ShipmentOptionsFormFactory::class);
     $formFactory->shouldReceive('create')->andReturn($form);
@@ -69,10 +75,21 @@ it('adds the delivery list when asked with dates', function () {
     $dates = Mockery::mock(DeliveryDates::class);
     $dates->shouldReceive('forOrder')->andReturn([datedDelivery('2026-10-29', 'morning', '08:00', '12:00')]);
 
-    $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates);
+    $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates, 1, ['carrier' => 'postnl', 'deliveryType' => 'morning', 'date' => '2026-10-29 00:00:00']);
 
     expect(deliveryValues($answer['deliveries']))->toBe(['standard|', 'morning|2026-10-29'])
         ->and($answer['deliveries']['warning'])->toBeNull();
+});
+
+it('answers the option block for the delivery the list preselects, not the posted one', function () {
+    $dates = Mockery::mock(DeliveryDates::class);
+    $dates->shouldReceive('forOrder')->andReturn([datedDelivery('2026-10-30', 'morning', '08:00', '12:00')]);
+
+    // A stored morning without a date is not in the list, so the list preselects standard.
+    $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates, 1, ['carrier' => 'postnl', 'deliveryType' => 'morning'], 'standard');
+
+    expect(selectedDelivery($answer['deliveries']))->toBe('standard|')
+        ->and($answer['optionsHtml'])->toBe('<options signature>');
 });
 
 it('still answers the delivery list, with a warning, when the dates cannot be read', function () {
@@ -80,7 +97,7 @@ it('still answers the delivery list, with a warning, when the dates cannot be re
     $dates = Mockery::mock(DeliveryDates::class);
     $dates->shouldReceive('forOrder')->andThrow(new RuntimeException('the delivery options answered 500'));
 
-    $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates);
+    $answer = refreshAnswer(REFRESH_PARAMS + ['with_dates' => '1'], $dates, 1, ['carrier' => 'postnl', 'deliveryType' => 'standard'], 'standard');
 
     expect(deliveryValues($answer['deliveries']))->toBe(['standard|'])
         ->and($answer['deliveries']['warning'])->toBeString();
