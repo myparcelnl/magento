@@ -47,3 +47,29 @@ it('reads the fees of a carrier under its derived settings path', function (stri
         $path . 'delivery/signature_fee'  => '1',
     ]))->toBe(8.5);
 })->with(['postnl', 'bpost']);
+
+it('prices the delivery type chosen in the checkout', function () {
+    $config = Mockery::mock(Config::class);
+    $config->shouldReceive('getConfigValue')->andReturn(null);
+
+    $deliveryCosts = Mockery::mock(DeliveryCosts::class);
+    $deliveryCosts->shouldReceive('getBasePrice')
+        ->with(Mockery::type(Quote::class), null, null, null, DeliveryType::MORNING_NAME)
+        ->once()
+        ->andReturn(0.0);
+
+    $method = newInstanceWithoutConstructor(Carrier::class);
+
+    (function () use ($config, $deliveryCosts): void {
+        $this->config        = $config;
+        $this->deliveryCosts = $deliveryCosts;
+    })->call($method);
+
+    setPrivateProperty($method, 'deliveryOptions', DeliveryOptions::fromCheckoutData([
+        'carrier'      => 'postnl',
+        'packageType'  => PackageType::PACKAGE_NAME,
+        'deliveryType' => DeliveryType::MORNING_NAME,
+    ]));
+
+    expect(invokePrivateMethod($method, 'getMethodAmount', [Mockery::mock(Quote::class)]))->toBe(0.0);
+});

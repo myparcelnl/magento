@@ -323,6 +323,11 @@ Country,Pays
 Package type,Type de colis
 Maximum weight (in grams),Poids maximum en grammes
 Country part of,Partie du pays
+Minimum order amount,Montant minimum de commande
+Maximum order amount,Montant maximum de commande
+Delivery type,Type de livraison
+Set the fees to 0 if you fully set the price per delivery type via the matrix.,Mettez les frais à 0 si la matrice fixe entièrement le prix par type de livraison.
+"The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.","La condition type de livraison couvre la livraison standard, le retrait, la livraison du matin et du soir : seuls ceux-ci sont tarifés par type de livraison dans le checkout."
 No rules defined. Click Add rule to create a new rule.,Aucune règle définie. Cliquez sur Ajouter une règle pour en créer une nouvelle.
 Add rule,Ajouter une règle
 Price,Prix

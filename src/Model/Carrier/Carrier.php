@@ -32,6 +32,7 @@ use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
@@ -54,13 +55,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
     private ResultFactory $rateResultFactory;
     private MethodFactory $rateMethodFactory;
     private DeliveryCosts $deliveryCosts;
-
-    private const DELIVERY_TYPE_TITLES = [
-        'standard' => 'Standard Delivery',
-        'pickup'   => 'Pickup locations',
-        'morning'  => 'Morning Delivery',
-        'evening'  => 'Evening Delivery',
-    ];
 
     private const PACKAGE_TYPE_TITLES = [
         'package'       => 'Package',
@@ -171,15 +165,22 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $carrier         = $deliveryOptions->getCarrier();
         $configPath      = null === $carrier ? '' : Config::carrierPath($carrier);
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::of([]);
+        $deliveryType    = $deliveryOptions->getDeliveryType();
+        // same day's fee lives under delivery/, unlike the other types' own groups, so the
+        // checkout's same day fee reaches the order too
+        $deliveryTypeFee = DeliveryType::SAME_DAY_NAME === $deliveryType
+            ? 'delivery/same_day_delivery_fee'
+            : "$deliveryType/fee";
         $shipmentFees    = [
-            "{$deliveryOptions->getDeliveryType()}/fee" => true,
+            $deliveryTypeFee => true,
             'delivery/only_recipient_fee'               => $shipmentOptions->hasOnlyRecipient(),
             'delivery/signature_fee'                    => $shipmentOptions->hasSignature(),
             'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
             'mailbox/priority_delivery_fee'            => $shipmentOptions->hasPriorityDelivery(),
         ];
 
-        $amount = $this->deliveryCosts->getBasePrice($quote);
+        // the nulls take carrier, package type and country from the quote; named arguments need PHP 8.0, composer allows 7.4
+        $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryOptions->getDeliveryType());
 
         foreach ($shipmentFees as $key => $value) {
             if (! $value) {
@@ -208,7 +209,7 @@ class Carrier extends AbstractCarrier implements CarrierInterface
             $carrierHuman = $carrierName;
         }
 
-        $deliveryTypeTitle = self::DELIVERY_TYPE_TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
+        $deliveryTypeTitle = DeliveryType::TITLES[$deliveryOptions->getDeliveryType()] ?? $deliveryOptions->getDeliveryType();
         $packageTypeTitle  = self::PACKAGE_TYPE_TITLES[$deliveryOptions->getPackageType()] ?? $deliveryOptions->getPackageType();
 
         ob_start();
