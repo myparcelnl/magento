@@ -23,3 +23,13 @@ it('never shows a negative total', function () {
     expect(deliveryTypePrice(['standard' => 6.95, 'morning' => 1.0], 'morning', -3.0, true))->toBe(0.0)
         ->and(deliveryTypePrice(['standard' => 6.95, 'morning' => 1.0], 'morning', -3.0, false))->toBe(-6.95);
 });
+
+it('builds the widget price key from the delivery type', function (string $deliveryType, string $priceKey) {
+    expect(invokePrivateMethod(newInstanceWithoutConstructor(Checkout::class), 'getPriceKeyFromDeliveryType', [$deliveryType]))->toBe($priceKey);
+})->with([
+    ['standard', 'priceStandardDelivery'],
+    ['morning', 'priceMorningDelivery'],
+    ['evening', 'priceEveningDelivery'],
+    ['pickup', 'pricePickup'],
+    ['same_day', 'priceSameDayDelivery'],
+]);

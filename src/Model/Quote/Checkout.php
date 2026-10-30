@@ -274,12 +274,8 @@ class Checkout
                 $typeFee     = DeliveryType::DEFAULT_NAME === $deliveryType
                     ? 0.0
                     : $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, "$deliveryType/fee"), $quote);
-                // the widget takes pickup as pricePickup, every other type as price{Name}Delivery
-                $priceKey    = DeliveryType::PICKUP_NAME === $deliveryType
-                    ? 'pricePickup'
-                    : 'price' . str_replace('_', '', ucwords($deliveryType, '_')) . 'Delivery';
 
-                $deliveryTypePrices[$priceKey] = $canHaveType
+                $deliveryTypePrices[self::getPriceKeyFromDeliveryType($deliveryType)] = $canHaveType
                     ? self::deliveryTypePrice($basePrices, $deliveryType, $typeFee, $showTotalPrice)
                     : 0;
             }
@@ -340,6 +336,18 @@ class Checkout
         }
 
         return $myParcelConfig;
+    }
+
+    /**
+     * The widget takes pickup as pricePickup, every other delivery type as price{Name}Delivery.
+     */
+    private static function getPriceKeyFromDeliveryType(string $deliveryType): string
+    {
+        if (DeliveryType::PICKUP_NAME === $deliveryType) {
+            return 'pricePickup';
+        }
+
+        return 'price' . str_replace('_', '', ucwords($deliveryType, '_')) . 'Delivery';
     }
 
     /**
