@@ -20,6 +20,14 @@ class DeliveryCosts
     private Tax    $tax;
 
     /**
+     * One request prices several delivery types for several carriers over the same quote, so the amounts summed
+     * from the items are kept per quote (keyed by object id) and the matrix is decoded once per JSON value.
+     */
+    private array $orderAmountPerQuote   = [];
+    private array $weightInGramsPerQuote = [];
+    private array $matrixPerJson         = [];
+
+    /**
      * The points will be added to the total points for each condition that is met.
      * The price associated with the condition with the most points will be used.
      * Distribute points in a way that the most specific condition has the most points, and less specific conditions
@@ -53,14 +61,6 @@ class DeliveryCosts
         $this->config = $config;
         $this->tax    = $tax;
     }
-
-    /**
-     * One request prices several delivery types for several carriers over the same quote, so the amounts summed
-     * from the items are kept per quote (keyed by object id) and the matrix is decoded once per JSON value.
-     */
-    private array $orderAmountPerQuote   = [];
-    private array $weightInGramsPerQuote = [];
-    private array $matrixPerJson         = [];
 
     /**
      * Returns the base price with Magento tax settings applied, for displaying to the client.
@@ -169,9 +169,7 @@ class DeliveryCosts
             }
         }
 
-        // The matrix prices only the types in DeliveryType::pricedPerTypeNames(). Any other type
-        // (same day, express) is a fee on top of standard delivery, so it prices as standard —
-        // the same price the checkout shows for it, instead of skipping the standard rules.
+        // a type outside DeliveryType::pricedPerTypeNames() is a fee on top of standard delivery
         if (! in_array($conditions['delivery_type'], DeliveryType::pricedPerTypeNames(), true)) {
             $conditions['delivery_type'] = DeliveryType::DEFAULT_NAME;
         }
@@ -206,15 +204,20 @@ class DeliveryCosts
             }
 
             // the tightest met thresholds of this definition, for the tie-break in the sort below
-            $minimum = -INF;
-            $maximum = INF;
+            $minimum     = -INF;
+            $maximum     = INF;
+            $orderAmount = (float) $conditions['order_amount'];
             foreach ($definedConditions as $definedCondition) {
-                $value = (float) ($definedCondition['value'] ?? 0);
-                if ('minimum_order_amount' === ($definedCondition['type'] ?? '')) {
-                    $minimum = max($minimum, $value);
+                $type  = $definedCondition['type'] ?? '';
+                $value = $definedCondition['value'] ?? '';
+                if (! is_numeric($value)) {
+                    continue;
                 }
-                if ('maximum_order_amount' === ($definedCondition['type'] ?? '')) {
-                    $maximum = min($maximum, $value);
+                if ('minimum_order_amount' === $type && $orderAmount >= (float) $value) {
+                    $minimum = max($minimum, (float) $value);
+                }
+                if ('maximum_order_amount' === $type && $orderAmount < (float) $value) {
+                    $maximum = min($maximum, (float) $value);
                 }
             }
 

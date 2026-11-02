@@ -221,6 +221,20 @@ it('lets the lowest met maximum win between tiered thresholds, whatever their or
         ->and(priceFor(deliveryCostsWithMatrix($tiers), 50.0))->toBe(5.95);
 });
 
+it('ranks a rule by the thresholds it meets, not by the ones it misses', function () {
+    // at 90 the first rule matches through its minimum of 50 only, so the minimum of 80 is tighter
+    $deliveryCosts = deliveryCostsWithMatrix([
+        ['name' => 'From 50 or 100', 'price' => 3.0, 'conditions' => [
+            ['type' => 'minimum_order_amount', 'value' => 50],
+            ['type' => 'minimum_order_amount', 'value' => 100],
+        ]],
+        ['name' => 'From 80', 'price' => 1.0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => 80]]],
+    ]);
+
+    expect(priceFor($deliveryCosts, 90.0))->toBe(1.0)
+        ->and(priceFor($deliveryCosts, 120.0))->toBe(3.0);
+});
+
 it('never lets an unfinished order amount rule match', function ($value) {
     // the matrix UI stores the value only once typed, but an empty or non-numeric value can still
     // arrive through the JSON textarea or an old save; (float) would turn it into 0 and match everything
