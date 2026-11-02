@@ -235,20 +235,23 @@ class Checkout
                 $packageType,
                 $this->cartRules->forcedCheckoutOptions($items, $carrierPath, $this->storeId)
             );
-            $basePrices  = [];
+            $basePrices          = [];
+            $canHaveDeliveryType = [];
 
             // the matrix can price each delivery type differently, the fees come on top of that
             foreach (DeliveryType::pricedPerTypeNames() as $deliveryType) {
-                $basePrices[$deliveryType] = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country, $deliveryType);
+                $basePrices[$deliveryType]          = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country, $deliveryType);
+                $canHaveDeliveryType[$deliveryType] = DeliveryType::DEFAULT_NAME === $deliveryType
+                                                      || $caps->hasDeliveryType($carrierName, $packageType, $deliveryType);
             }
 
             $basePrice = $basePrices[DeliveryType::STANDARD_NAME];
 
             $canHaveSameDay          = $caps->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
-            $canHaveMorning          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::MORNING_NAME);
-            $canHaveEvening          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::EVENING_NAME);
+            $canHaveMorning          = $canHaveDeliveryType[DeliveryType::MORNING_NAME];
+            $canHaveEvening          = $canHaveDeliveryType[DeliveryType::EVENING_NAME];
             $canHaveExpress          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::EXPRESS_NAME);
-            $canHavePickup           = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::PICKUP_NAME);
+            $canHavePickup           = $canHaveDeliveryType[DeliveryType::PICKUP_NAME];
             $canHaveSignature        = $caps->hasOption($carrierName, $packageType, ShipmentOption::SIGNATURE);
             $canHaveCollect          = $caps->hasOption($carrierName, $packageType, ShipmentOption::COLLECT);
             $canHaveReceiptCode      = $caps->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
@@ -263,19 +266,14 @@ class Checkout
             $priorityDeliveryFee = $canHavePriorityDelivery ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'mailbox/priority_delivery_fee'), $quote) : 0;
             $onlyRecipientFee    = $canHaveOnlyRecipient ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/only_recipient_fee'), $quote) : 0;
 
-            // The price per matrix-priced delivery type, its name mapped onto a price{Name}Delivery
-            // key, with the fee from the type's own config group on top — the SDK's type list drives
-            // this (see DeliveryType::pricedPerTypeNames()), so a new type is priced by default.
-            // Standard has no fee group of its own.
+            // the price per delivery type, with the fee of its own config group on top (standard has none)
             $deliveryTypePrices = [];
             foreach (DeliveryType::pricedPerTypeNames() as $deliveryType) {
-                $canHaveType = DeliveryType::DEFAULT_NAME === $deliveryType
-                               || $caps->hasDeliveryType($carrierName, $packageType, $deliveryType);
-                $typeFee     = DeliveryType::DEFAULT_NAME === $deliveryType
+                $typeFee = DeliveryType::DEFAULT_NAME === $deliveryType
                     ? 0.0
                     : $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, "$deliveryType/fee"), $quote);
 
-                $deliveryTypePrices[self::getPriceKeyFromDeliveryType($deliveryType)] = $canHaveType
+                $deliveryTypePrices[self::getPriceKeyFromDeliveryType($deliveryType)] = $canHaveDeliveryType[$deliveryType]
                     ? self::deliveryTypePrice($basePrices, $deliveryType, $typeFee, $showTotalPrice)
                     : 0;
             }
@@ -340,6 +338,9 @@ class Checkout
 
     /**
      * The widget takes pickup as pricePickup, every other delivery type as price{Name}Delivery.
+     *
+     * @see https://github.com/myparcelnl/delivery-options/blob/main/libs/shared/src/utils/capabilitiesMapping.ts
+     *      toDeliveryPriceKey() builds the same keys in the widget, keep the two the same
      */
     private static function getPriceKeyFromDeliveryType(string $deliveryType): string
     {

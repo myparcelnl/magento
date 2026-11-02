@@ -69,12 +69,8 @@ final class DeliveryType
         ];
 
     /**
-     * The delivery types the checkout prices per type from the matrix, and the matrix offers as a
-     * delivery_type condition: every type the SDK defines, minus the named exceptions, so a new SDK
-     * type is priced per type by default. Exceptions: same day and express are still a fee on top
-     * of the standard price (pricing them per type needs a per-carrier split first, since DHL
-     * carries same day as an option on standard where Trunkrs and UPS Express Saver carry their
-     * own type), and early morning is not offered in the checkout at all.
+     * The delivery types the matrix prices per type: every type the SDK defines, except same day,
+     * express and early morning.
      *
      * @todo INT-1563 shrinks the exceptions with the capabilities refactor.
      * @return string[] delivery type names, see self::NAMES_IDS_MAP
