@@ -39,8 +39,12 @@ function merchantConditionsMatrix(): array
 {
     return [
         ['name' => 'Base', 'price' => 6.95, 'conditions' => [['type' => 'country', 'value' => 'NL']]],
-        ['name' => 'Free pickup', 'price' => 0, 'conditions' => [['type' => 'delivery_type', 'value' => 'pickup']]],
+        ['name' => 'Free pickup', 'price' => 0, 'conditions' => [
+            ['type' => 'country', 'value' => 'NL'],
+            ['type' => 'delivery_type', 'value' => 'pickup'],
+        ]],
         ['name' => 'Home delivery from 50', 'price' => 1, 'conditions' => [
+            ['type' => 'country', 'value' => 'NL'],
             ['type' => 'minimum_order_amount', 'value' => 50],
             ['type' => 'delivery_type', 'value' => 'standard'],
         ]],
@@ -68,17 +72,31 @@ it('applies a maximum order amount below the value only', function () {
         ->and(priceFor($deliveryCosts, 20.0))->toBe(4.95);
 });
 
-it('lets an order amount rule win from a more specific rule without one', function () {
+it('changes the price of a country only through a rule for that country', function () {
+    // free above 50 in NL and BE through one rule; FR stays at 15 until 80. The generic free
+    // shipping rule reaches only a country without a price of its own.
     $deliveryCosts = deliveryCostsWithMatrix([
-        ['price' => 6.95, 'conditions' => [
+        ['name' => 'NL', 'price' => 6.95, 'conditions' => [['type' => 'country', 'value' => 'NL']]],
+        ['name' => 'BE', 'price' => 9.95, 'conditions' => [['type' => 'country', 'value' => 'BE']]],
+        ['name' => 'FR', 'price' => 15.0, 'conditions' => [['type' => 'country', 'value' => 'FR']]],
+        ['name' => 'NL and BE from 50', 'price' => 0, 'conditions' => [
             ['type' => 'country', 'value' => 'NL'],
-            ['type' => 'carrier_name', 'value' => 'postnl'],
-            ['type' => 'package_type', 'value' => 1],
+            ['type' => 'country', 'value' => 'BE'],
+            ['type' => 'minimum_order_amount', 'value' => 50],
         ]],
-        ['price' => 0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => 50]]],
+        ['name' => 'FR from 80', 'price' => 0, 'conditions' => [
+            ['type' => 'country', 'value' => 'FR'],
+            ['type' => 'minimum_order_amount', 'value' => 80],
+        ]],
+        ['name' => 'Elsewhere from 50', 'price' => 0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => 50]]],
     ]);
 
-    expect(priceFor($deliveryCosts, 75.0))->toBe(0.0);
+    expect(priceFor($deliveryCosts, 40.0, 'standard', 'NL'))->toBe(6.95)
+        ->and(priceFor($deliveryCosts, 60.0, 'standard', 'NL'))->toBe(0.0)
+        ->and(priceFor($deliveryCosts, 60.0, 'standard', 'BE'))->toBe(0.0)
+        ->and(priceFor($deliveryCosts, 60.0, 'standard', 'FR'))->toBe(15.0)
+        ->and(priceFor($deliveryCosts, 90.0, 'standard', 'FR'))->toBe(0.0)
+        ->and(priceFor($deliveryCosts, 60.0, 'standard', 'DE'))->toBe(0.0);
 });
 
 it('falls back to the flat rate when every rule is ruled out', function () {
@@ -218,7 +236,10 @@ it('never lets an unfinished order amount rule match', function ($value) {
 it('lets an explicit zero minimum match, as a merchant typed it on purpose', function () {
     $deliveryCosts = deliveryCostsWithMatrix([
         ['name' => 'Base', 'price' => 6.95, 'conditions' => [['type' => 'country', 'value' => 'NL']]],
-        ['name' => 'From zero', 'price' => 1.0, 'conditions' => [['type' => 'minimum_order_amount', 'value' => 0]]],
+        ['name' => 'From zero', 'price' => 1.0, 'conditions' => [
+            ['type' => 'country', 'value' => 'NL'],
+            ['type' => 'minimum_order_amount', 'value' => 0],
+        ]],
     ]);
 
     expect(priceFor($deliveryCosts, 10.0))->toBe(1.0);
