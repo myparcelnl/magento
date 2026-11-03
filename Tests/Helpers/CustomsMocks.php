@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
@@ -52,10 +53,22 @@ function customsObjectManager(
     $objectManager->shouldReceive('get')->with(Config::class)->andReturn($config);
     $objectManager->shouldReceive('get')->with(Weight::class)->andReturn(new Weight($config));
     $objectManager->shouldReceive('get')->with(StoredAccount::class)->andReturn(storedAccountAt($homeCountry));
+    $objectManager->shouldReceive('get')->with(ProductResource::class)->andReturn(skuResource());
 
     if ($asGlobalInstance) {
         ObjectManager::setInstance($objectManager);
     }
 
     return $objectManager;
+}
+
+/** A product resource that answers `SKU-<id>` as the SKU of every product id. */
+function skuResource(): ProductResource
+{
+    $resource = Mockery::mock(ProductResource::class);
+    $resource->shouldReceive('getProductsSku')->andReturnUsing(
+        static fn(array $ids) => array_map(static fn(int $id) => ['entity_id' => $id, 'sku' => 'SKU-' . $id], $ids)
+    );
+
+    return $resource;
 }
