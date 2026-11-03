@@ -64,7 +64,7 @@ class CartShippingRules
             }
 
             foreach ($items as $item) {
-                if ((bool) $this->attributes->itemValue($item, 'exclude_parcel_lockers')) {
+                if ((bool) $this->attributes->itemValue($item, ProductAttributes::EXCLUDE_PARCEL_LOCKERS)) {
                     return true;
                 }
             }
@@ -87,7 +87,7 @@ class CartShippingRules
         $this->attributes->preloadItems($items);
 
         foreach ($items as $item) {
-            if ((bool) $this->attributes->itemValue($item, 'priority_delivery')) {
+            if ((bool) $this->attributes->itemValue($item, ProductAttributes::PRIORITY_DELIVERY)) {
                 return true;
             }
         }
@@ -105,7 +105,7 @@ class CartShippingRules
         $this->attributes->preloadItems($items);
 
         foreach ($items as $item) {
-            if ((bool) $this->attributes->itemValue($item, 'disable_checkout')) {
+            if ((bool) $this->attributes->itemValue($item, ProductAttributes::DISABLE_CHECKOUT)) {
                 return true;
             }
         }
@@ -125,7 +125,7 @@ class CartShippingRules
         $highest = null;
 
         foreach ($items as $item) {
-            $delay = $this->attributes->itemValue($item, 'dropoff_delay');
+            $delay = $this->attributes->itemValue($item, ProductAttributes::DROPOFF_DELAY);
 
             if ($delay > $highest) {
                 $highest = $delay;
