@@ -263,4 +263,4 @@ it('refuses an external product reference above 64 characters and names the prod
     $item = createShipmentItem(['name' => 'Widget', 'sku' => 'SKU-99', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
 
     buildCustomsFor([$item], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
-})->throws(RuntimeException::class, 'Customs item "Widget" (SKU-99): invalid length for $external_product_reference');
+})->throws(RuntimeException::class, 'customs item "Widget" (SKU-99): invalid length for $external_product_reference');

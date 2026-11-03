@@ -58,6 +58,7 @@ class OrderCustomsDeclarationBuilder
 
             $lines[] = [
                 'name'       => (string) $item->getName(),
+                'sku'        => (string) $item->getSku(),
                 'weight'     => (float) $item->getWeight(),
                 // A zero-quantity line is one the API refuses, and a fractional quantity casts to 0.
                 // The database gives "0.0000", which is truthy: cast before the fallback.
@@ -80,8 +81,8 @@ class OrderCustomsDeclarationBuilder
             $lineWeight   = $this->items->lineWeightInGrams($line['weight'], $amount);
             $totalWeight += $lineWeight;
 
-            $customsDeclaration->addCustomsItem(
-                (new MyParcelCustomsItem())
+            try {
+                $customsItem = (new MyParcelCustomsItem())
                     ->setDescription($this->items->description($line['name']))
                     ->setAmount($amount)
                     ->setWeight($lineWeight)
@@ -91,8 +92,12 @@ class OrderCustomsDeclarationBuilder
                     ])
                     ->setCountry($customsData[$index]['country'])
                     ->setClassification($this->items->classification($customsData[$index]['classification']))
-                    ->setExternalProductReference($customsData[$index]['external_product_reference'])
-            );
+                    ->setExternalProductReference($customsData[$index]['external_product_reference']);
+            } catch (\InvalidArgumentException $e) {
+                throw CustomsItems::refused($line['name'], $line['sku'], $e);
+            }
+
+            $customsDeclaration->addCustomsItem($customsItem);
         }
 
         $customsDeclaration

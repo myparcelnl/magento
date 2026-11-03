@@ -44,8 +44,9 @@ it('declares a weightless line at the default weight, never at zero grams', func
  * they are keyed by row_id.
  *
  * @param array<int,string|null> $classifications product id => stored HS code
+ * @param array<int,string>      $references      product id => stored external product reference
  */
-function customsItemsReading(array $classifications): CustomsItems
+function customsItemsReading(array $classifications, array $references = []): CustomsItems
 {
     $config   = createConfig(['print/weight_indication' => 'gram', 'print/country_of_origin' => 'NL']);
     $filtered = [];
@@ -60,7 +61,7 @@ function customsItemsReading(array $classifications): CustomsItems
     );
     $collection->shouldReceive('addAttributeToSelect')->andReturnSelf();
     $collection->shouldReceive('getItems')->andReturnUsing(
-        static function () use (&$filtered, $classifications): array {
+        static function () use (&$filtered, $classifications, $references): array {
             $products = [];
 
             foreach ($filtered as $id) {
@@ -68,9 +69,10 @@ function customsItemsReading(array $classifications): CustomsItems
                 $product->shouldReceive('getId')->andReturn($id);
                 $product->shouldReceive('getCountryOfManufacture')->andReturnNull();
                 $product->shouldReceive('getData')->andReturnUsing(
-                    static fn(string $code) => 'myparcel_classification' === $code
-                        ? ($classifications[$id] ?? null)
-                        : null
+                    static fn(string $code) => [
+                        'myparcel_classification'             => $classifications[$id] ?? null,
+                        'myparcel_external_product_reference' => $references[$id] ?? null,
+                    ][$code] ?? null
                 );
                 $products[] = $product;
             }
@@ -95,4 +97,12 @@ it('gives a line whose product has no HS code an empty one, and no reference', f
     $data = customsItemsReading([7 => '6109.10'])->customsDataFor([[7], [9]], 1);
 
     expect($data[1])->toBe(['classification' => '', 'country' => 'NL', 'external_product_reference' => null]);
+});
+
+it('takes the variant reference when the variant has its own', function () {
+    $references = [7 => 'VARIANT-REF', 9 => 'PARENT-REF'];
+
+    $data = customsItemsReading([], $references)->customsDataFor([[7, 9]], 1);
+
+    expect($data[0]['external_product_reference'])->toBe('VARIANT-REF');
 });
