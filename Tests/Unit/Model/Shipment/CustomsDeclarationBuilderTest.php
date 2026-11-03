@@ -242,4 +242,4 @@ it('takes a configurable item its external product reference from the variant, o
 
 it('refuses an external product reference above 64 characters instead of cutting it', function () {
     buildCustomsFor([widgetItem()], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
-})->throws(InvalidArgumentException::class);
+})->throws(RuntimeException::class, 'Product "SKU-99": the External product reference has 65 characters');

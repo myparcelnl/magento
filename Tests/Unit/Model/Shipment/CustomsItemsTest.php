@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Model\Shipment\CustomsItems;
@@ -40,8 +41,9 @@ it('leaves a line that converts exactly alone', function () {
  * Commerce those are keyed by row_id, and the raw read answered nothing there.
  *
  * @param array<int,string|null> $classifications product id => stored HS code
+ * @param array<int,string>      $references      product id => stored external product reference
  */
-function customsItemsReading(array $classifications): CustomsItems
+function customsItemsReading(array $classifications, array $references = []): CustomsItems
 {
     $config   = createConfig(['print/weight_indication' => 'gram', 'print/country_of_origin' => 'NL']);
     $filtered = [];
@@ -56,7 +58,7 @@ function customsItemsReading(array $classifications): CustomsItems
     );
     $collection->shouldReceive('addAttributeToSelect')->andReturnSelf();
     $collection->shouldReceive('getItems')->andReturnUsing(
-        static function () use (&$filtered, $classifications): array {
+        static function () use (&$filtered, $classifications, $references): array {
             $products = [];
 
             foreach ($filtered as $id) {
@@ -64,9 +66,10 @@ function customsItemsReading(array $classifications): CustomsItems
                 $product->shouldReceive('getId')->andReturn($id);
                 $product->shouldReceive('getCountryOfManufacture')->andReturnNull();
                 $product->shouldReceive('getData')->andReturnUsing(
-                    static fn(string $code) => 'myparcel_classification' === $code
-                        ? ($classifications[$id] ?? null)
-                        : null
+                    static fn(string $code) => [
+                        'myparcel_classification'             => $classifications[$id] ?? null,
+                        'myparcel_external_product_reference' => $references[$id] ?? null,
+                    ][$code] ?? null
                 );
                 $products[] = $product;
             }
@@ -77,6 +80,7 @@ function customsItemsReading(array $classifications): CustomsItems
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($collection);
+    $objectManager->shouldReceive('get')->with(ProductResource::class)->andReturn(skuResource());
 
     return new CustomsItems($objectManager, $config, new Weight($config));
 }
@@ -91,4 +95,29 @@ it('gives a line whose product has no HS code an empty one, and no reference', f
     $data = customsItemsReading([7 => '6109.10'])->customsDataFor([[7], [9]], 1);
 
     expect($data[1])->toBe(['classification' => '', 'country' => 'NL', 'external_product_reference' => null]);
+});
+
+it('sends a reference of exactly the maximum length', function () {
+    $reference = str_repeat('a', CustomsItems::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH);
+
+    $data = customsItemsReading([], [7 => $reference])->customsDataFor([[7]], 1);
+
+    expect($data[0]['external_product_reference'])->toBe($reference);
+});
+
+it('names the product and the attribute when a reference is too long', function () {
+    $reference = str_repeat('a', CustomsItems::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH + 1);
+
+    customsItemsReading([], [7 => $reference])->customsDataFor([[7]], 1);
+})->throws(
+    RuntimeException::class,
+    'Product "SKU-7": the External product reference has 65 characters; the maximum is 64'
+);
+
+it('ignores a too long parent reference when the variant has its own', function () {
+    $references = [7 => 'VARIANT-REF', 9 => str_repeat('a', CustomsItems::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH + 1)];
+
+    $data = customsItemsReading([], $references)->customsDataFor([[7, 9]], 1);
+
+    expect($data[0]['external_product_reference'])->toBe('VARIANT-REF');
 });
