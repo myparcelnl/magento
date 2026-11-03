@@ -105,7 +105,7 @@ class PackageTypeResolver
                 continue;
             }
 
-            if ($digitalStamp && ! $this->attributes->itemValue($item, 'digital_stamp')) {
+            if ($digitalStamp && ! $this->attributes->itemValue($item, ProductAttributes::DIGITAL_STAMP)) {
                 $digitalStamp = false;
             }
 
@@ -115,7 +115,7 @@ class PackageTypeResolver
 
             // No row means 0, so the weight decides. A product gets the -1 default only when it is
             // saved in the admin.
-            $mailboxQty = $this->attributes->itemValue($item, 'fit_in_mailbox') ?? 0;
+            $mailboxQty = $this->attributes->itemValue($item, ProductAttributes::FIT_IN_MAILBOX) ?? 0;
 
             if (-1 === $mailboxQty) {
                 $percentage = 101;
