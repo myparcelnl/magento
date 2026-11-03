@@ -165,39 +165,6 @@ it('takes 0 for a quote without items', function () {
     expect(orderAmountFor([]))->toBe(0.0);
 });
 
-it('sums the order amount once per quote and keeps quotes apart', function () {
-    $itemFor = static function (float $rowTotal, float $inclTax): Item {
-        $item = Mockery::mock(Item::class);
-        $item->shouldReceive('getRowTotal')->andReturn($rowTotal);
-        $item->shouldReceive('getRowTotalInclTax')->andReturn($inclTax);
-        $item->shouldReceive('getDiscountAmount')->andReturn(0.0);
-
-        return $item;
-    };
-    // once(): a second computation over the items fails the test
-    $quoteFor = static function (Item $item): Quote {
-        $quote = Mockery::mock(Quote::class);
-        $quote->shouldReceive('getStoreId')->andReturn(1);
-        $quote->shouldReceive('getAllVisibleItems')->once()->andReturn([$item]);
-
-        return $quote;
-    };
-
-    $tax = Mockery::mock(Tax::class);
-    $tax->shouldReceive('discountIncludesTax')->andReturn(false);
-    $tax->shouldReceive('appliesTaxAfterDiscount')->andReturn(true);
-
-    $deliveryCosts = newInstanceWithoutConstructor(DeliveryCosts::class);
-    setPrivateProperty($deliveryCosts, 'tax', $tax);
-
-    $one = $quoteFor($itemFor(100.0, 121.0));
-    $two = $quoteFor($itemFor(50.0, 54.5));
-
-    expect(invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$one]))->toBe(121.0)
-        ->and(invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$one]))->toBe(121.0)
-        ->and(invokePrivateMethod($deliveryCosts, 'getOrderAmount', [$two]))->toBe(54.5);
-});
-
 it('lets the highest met minimum win between tiered thresholds, whatever their order', function () {
     // 3.00 from 50 and free from 100: at 120 both match, the 100 tier is the one the merchant meant
     $tiers = [
@@ -221,8 +188,8 @@ it('lets the lowest met maximum win between tiered thresholds, whatever their or
         ->and(priceFor(deliveryCostsWithMatrix($tiers), 50.0))->toBe(5.95);
 });
 
-it('ranks a rule by the thresholds it meets, not by the ones it misses', function () {
-    // at 90 the first rule matches through its minimum of 50 only, so the minimum of 80 is tighter
+it('requires every order amount threshold of a rule', function () {
+    // at 90 the first rule misses its minimum of 100, so the minimum of 80 prices it
     $deliveryCosts = deliveryCostsWithMatrix([
         ['name' => 'From 50 or 100', 'price' => 3.0, 'conditions' => [
             ['type' => 'minimum_order_amount', 'value' => 50],
@@ -265,4 +232,37 @@ it('prices a delivery type the matrix does not offer as standard, the price the 
     expect(priceFor($deliveryCosts, 120.0, 'same_day'))->toBe(1.0)
         ->and(priceFor($deliveryCosts, 10.0, 'same_day'))->toBe(6.95)
         ->and(priceFor($deliveryCosts, 120.0, 'express'))->toBe(1.0);
+});
+
+it('rules out a rule with any unmet condition, so a rule without conditions is the default', function () {
+    // NL + max 2000 g scores more than the rule without conditions, but a 3 kg parcel misses its weight
+    $deliveryCosts = deliveryCostsWithMatrix([
+        ['name' => 'NL light', 'price' => 5.0, 'conditions' => [
+            ['type' => 'country', 'value' => 'NL'],
+            ['type' => 'maximum_weight', 'value' => 2000],
+        ]],
+        ['name' => 'Default', 'price' => 10.0, 'conditions' => []],
+    ]);
+
+    $priceForWeight = static function (int $weight) use ($deliveryCosts): float {
+        return invokePrivateMethod($deliveryCosts, 'calculate', [[
+            'carrier_name'  => 'postnl',
+            'package_type'  => 1,
+            'country'       => 'NL',
+            'weight'        => $weight,
+            'order_amount'  => 30.0,
+            'delivery_type' => 'standard',
+        ]]);
+    };
+
+    expect($priceForWeight(1000))->toBe(5.0)
+        ->and($priceForWeight(3000))->toBe(10.0);
+});
+
+it('falls back to the carrier shipping cost when no rule is fully met', function () {
+    $deliveryCosts = deliveryCostsWithMatrix([
+        ['name' => 'BE only', 'price' => 9.95, 'conditions' => [['type' => 'country', 'value' => 'BE']]],
+    ], 4.5);
+
+    expect(priceFor($deliveryCosts, 30.0))->toBe(4.5);
 });

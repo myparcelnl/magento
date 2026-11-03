@@ -65,8 +65,11 @@ function pickupPriceSettings(bool $totalView, float $pickupFee): array
     setPrivateProperty($checkout, 'tax', $tax);
 
     $deliveryCosts = Mockery::mock(MyParcelNL\Magento\Service\DeliveryCosts::class);
+    // once(): the checkout sums the order amount once per request and hands it to every lookup;
+    // a lookup without it would price standard at 99.0
+    $deliveryCosts->shouldReceive('getOrderAmount')->once()->andReturn(42.0);
     $deliveryCosts->shouldReceive('getBasePriceForClient')->andReturnUsing(
-        static fn ($quote, $carrier, $packageType, $country, $deliveryType) => 'pickup' === $deliveryType ? 0.0 : 6.95
+        static fn ($quote, $carrier, $packageType, $country, $deliveryType, $orderAmount) => 'pickup' === $deliveryType ? 0.0 : (42.0 === $orderAmount ? 6.95 : 99.0)
     )->byDefault();
     setPrivateProperty($checkout, 'deliveryCosts', $deliveryCosts);
 

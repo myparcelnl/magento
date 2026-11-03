@@ -166,21 +166,23 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $configPath      = null === $carrier ? '' : Config::carrierPath($carrier);
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::of([]);
         $deliveryType    = $deliveryOptions->getDeliveryType();
-        // same day's fee lives under delivery/, unlike the other types' own groups, so the
-        // checkout's same day fee reaches the order too
-        $deliveryTypeFee = DeliveryType::SAME_DAY_NAME === $deliveryType
-            ? 'delivery/same_day_delivery_fee'
-            : "$deliveryType/fee";
+        $isSameDayType   = DeliveryType::SAME_DAY_NAME === $deliveryType;
         $shipmentFees    = [
-            $deliveryTypeFee => true,
-            'delivery/only_recipient_fee'               => $shipmentOptions->hasOnlyRecipient(),
-            'delivery/signature_fee'                    => $shipmentOptions->hasSignature(),
-            'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
-            'mailbox/priority_delivery_fee'            => $shipmentOptions->hasPriorityDelivery(),
+            // a delivery type for one carrier, an option on standard delivery for another
+            'delivery/same_day_delivery_fee' => $isSameDayType || $shipmentOptions->hasSameDayDelivery(),
+            'delivery/only_recipient_fee'    => $shipmentOptions->hasOnlyRecipient(),
+            'delivery/signature_fee'         => $shipmentOptions->hasSignature(),
+            'delivery/receipt_code_fee'      => $shipmentOptions->hasReceiptCode(),
+            'mailbox/priority_delivery_fee'  => $shipmentOptions->hasPriorityDelivery(),
         ];
 
         // the nulls take carrier, package type and country from the quote; named arguments need PHP 8.0, composer allows 7.4
-        $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryOptions->getDeliveryType());
+        $amount = $this->deliveryCosts->getBasePrice($quote, null, null, null, $deliveryType);
+
+        if (! $isSameDayType) {
+            // the delivery type is never below 0 before the option fees, as Checkout::deliveryTypePrice() shows it
+            $amount = max(0.0, $amount + (float) $this->config->getConfigValue("$configPath$deliveryType/fee"));
+        }
 
         foreach ($shipmentFees as $key => $value) {
             if (! $value) {

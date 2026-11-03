@@ -80,9 +80,7 @@ class DeliveryCostsMatrix extends Field
     {
         $deliveryTypes = [];
         foreach (DeliveryType::pricedPerTypeNames() as $name) {
-            // DeliveryType::TITLES keeps one label per type shop-wide; a type newer than the map
-            // falls back to a readable, untranslated label
-            $deliveryTypes[$name] = __(DeliveryType::TITLES[$name] ?? ucfirst(str_replace('_', ' ', $name)) . ' delivery');
+            $deliveryTypes[$name] = __(DeliveryType::TITLES[$name]);
         }
 
         return $deliveryTypes;
@@ -142,7 +140,6 @@ class DeliveryCostsMatrix extends Field
             'Maximum order amount' => __('Maximum order amount'),
             'Delivery type' => __('Delivery type'),
             'Set the fees to 0 if you fully set the price per delivery type via the matrix.' => __('Set the fees to 0 if you fully set the price per delivery type via the matrix.'),
-            'The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.' => __('The delivery type condition covers standard delivery, pickup, morning and evening delivery: the checkout prices only those per delivery type.'),
             'New rule' => __('New rule'),
             'Show or hide JSON textarea' => __('Show or hide JSON textarea'),
             'Invalid JSON in textarea' => __('Invalid JSON in textarea'),
