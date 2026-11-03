@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\ObjectManagerInterface;
@@ -12,15 +13,15 @@ use MyParcelNL\Magento\Service\Weight;
 /**
  * Object manager wired for CustomsItems' two batch lookups, shared by both customs paths.
  *
- * Product data (HS code, country of manufacture) is fetched in two batch queries keyed by product
- * id, never per item — that is what these mocks model.
+ * Product data (the myparcel_ attributes, country of manufacture) is fetched in batch queries keyed
+ * by product id, never per item — that is what these mocks model. Only ids in $countries exist.
  *
- * @param array<int,string>      $classifications product id => HS code
- * @param array<int,string|null> $countries       product id => country of manufacture
- * @param string                 $homeCountry     the account's, which an empty country of origin setting falls back to
+ * @param array<string,array<int,string>> $attributes  column without myparcel_ => product id => value
+ * @param array<int,string|null>          $countries   product id => country of manufacture
+ * @param string                          $homeCountry the account's, which an empty country of origin setting falls back to
  */
 function customsObjectManager(
-    array  $classifications,
+    array  $attributes,
     array  $countries,
     Config $config,
     bool   $asGlobalInstance = false,
@@ -33,10 +34,8 @@ function customsObjectManager(
         $product->shouldReceive('getId')->andReturn($productId);
         $product->shouldReceive('getCountryOfManufacture')->andReturn($country);
         $product->shouldReceive('getData')->andReturnUsing(
-            static function (string $code) use ($productId, $classifications) {
-                return 'myparcel_classification' === $code
-                    ? ($classifications[$productId] ?? null)
-                    : null;
+            static function (string $code) use ($productId, $attributes) {
+                return $attributes[substr($code, strlen('myparcel_'))][$productId] ?? null;
             }
         );
         $products[] = $product;
@@ -54,10 +53,22 @@ function customsObjectManager(
     $objectManager->shouldReceive('get')->with(Config::class)->andReturn($config);
     $objectManager->shouldReceive('get')->with(Weight::class)->andReturn(new Weight($config));
     $objectManager->shouldReceive('get')->with(StoredAccount::class)->andReturn(storedAccountAt($homeCountry));
+    $objectManager->shouldReceive('get')->with(ProductResource::class)->andReturn(skuResource());
 
     if ($asGlobalInstance) {
         ObjectManager::setInstance($objectManager);
     }
 
     return $objectManager;
+}
+
+/** A product resource that answers `SKU-<id>` as the SKU of every product id. */
+function skuResource(): ProductResource
+{
+    $resource = Mockery::mock(ProductResource::class);
+    $resource->shouldReceive('getProductsSku')->andReturnUsing(
+        static fn(array $ids) => array_map(static fn(int $id) => ['entity_id' => $id, 'sku' => 'SKU-' . $id], $ids)
+    );
+
+    return $resource;
 }

@@ -75,7 +75,8 @@ class CustomsDeclarationBuilder
                 (float) $item->getWeight(),
                 (float) $item->getPrice(),
                 $customsData[$line]['classification'],
-                $customsData[$line]['country']
+                $customsData[$line]['country'],
+                $customsData[$line]['external_product_reference']
             );
         }
 
@@ -101,12 +102,13 @@ class CustomsDeclarationBuilder
     }
 
     private function buildItem(
-        string $name,
-        int    $qty,
-        float  $unitWeight,
-        float  $unitPrice,
-        string $classification,
-        string $countryOfOrigin
+        string  $name,
+        int     $qty,
+        float   $unitWeight,
+        float   $unitPrice,
+        string  $classification,
+        string  $countryOfOrigin,
+        ?string $externalProductReference
     ): RefShipmentCustomsDeclarationItem
     {
         // Truncating would under-declare the pieces, the weight and the value at once, because
@@ -127,12 +129,19 @@ class CustomsDeclarationBuilder
             ->setCurrency(RefTypesMoney::CURRENCY_EUR)
             ->setAmount($this->items->lineValueInCents($unitPrice, (float) $amount));
 
-        return (new RefShipmentCustomsDeclarationItem(['country' => $countryOfOrigin]))
+        $item = (new RefShipmentCustomsDeclarationItem(['country' => $countryOfOrigin]))
             ->setDescription($this->items->description($name))
             ->setAmount($amount)
             ->setWeight($this->items->lineWeightInGrams($unitWeight, (float) $amount))
             ->setItemValue($itemValue)
             ->setClassification($this->items->classification($classification));
+
+        // Setting null marks the key as sent, so a missing value is not set at all.
+        if (null !== $externalProductReference) {
+            $item->setExternalProductReference($externalProductReference);
+        }
+
+        return $item;
     }
 
 

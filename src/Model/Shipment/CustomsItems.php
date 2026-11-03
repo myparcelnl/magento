@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment;
 
+use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
@@ -36,6 +37,9 @@ class CustomsItems
     /** The HS code attribute's own cap; the API declares no maximum of its own. */
     private const MAX_CLASSIFICATION_LENGTH = 18;
 
+    /** The API's cap. Only the admin form checks it; an import or the REST API can store more. */
+    public const MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH = 64;
+
     private ObjectManagerInterface $objectManager;
     private Config                 $config;
     private Weight                 $weight;
@@ -49,18 +53,6 @@ class CustomsItems
         $this->weight        = $weight;
     }
 
-    /**
-     * HS codes: up to 18 characters, digits and dots (6109.10). The int column they moved from
-     * dropped leading zeroes and dots.
-     *
-     * @param  int[] $productIds
-     * @return array<int,string> product id => HS code
-     */
-    public function classificationsFor(array $productIds): array
-    {
-        return $this->attributes()->column($productIds, 'classification');
-    }
-
     /** Held for the instance, which is what keeps a multi-item declaration to one product load. */
     private function attributes(): ProductAttributes
     {
@@ -72,13 +64,14 @@ class CustomsItems
     }
 
     /**
-     * The HS code and country of origin of each customs line.
+     * The HS code, country of origin and external product reference of each customs line.
      *
      * A line lists its products most specific first: a configurable item's variant, then its parent.
      * The first product with a value wins. A country falls back to the store's `print/country_of_origin`
-     * setting, then to the account's home country; an HS code has no fallback.
+     * setting, then to the account's home country; an HS code has no fallback and a reference is null.
      *
-     * @return array<int|string, array{classification: string, country: string}>
+     * @throws \RuntimeException when a line's reference is longer than the API accepts
+     * @return array<int|string, array{classification: string, country: string, external_product_reference: ?string}>
      */
     public function customsDataFor(array $productIdsByLine, int $storeId): array
     {
@@ -89,7 +82,8 @@ class CustomsItems
         }
 
         $productIds      = array_values(array_unique($productIds));
-        $classifications = $productIds ? $this->classificationsFor($productIds) : [];
+        $classifications = $this->attributes()->column($productIds, ProductAttributes::CLASSIFICATION);
+        $references      = $this->attributes()->column($productIds, ProductAttributes::EXTERNAL_PRODUCT_REFERENCE);
         $countries       = $productIds ? $this->manufacturingCountriesFor($productIds) : [];
         $fallback        = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
             ?: $this->objectManager->get(StoredAccount::class)->homeCountryForStore($storeId);
@@ -97,9 +91,16 @@ class CustomsItems
         $data = [];
 
         foreach ($productIdsByLine as $line => $ids) {
+            $referenceId = self::firstIdOf($ids, $references);
+
+            if (null !== $referenceId) {
+                $this->assertReferenceLength($referenceId, $references[$referenceId]);
+            }
+
             $data[$line] = [
-                'classification' => self::firstOf($ids, $classifications) ?? '',
-                'country'        => self::firstOf($ids, $countries) ?? $fallback,
+                'classification'             => self::firstOf($ids, $classifications) ?? '',
+                'country'                    => self::firstOf($ids, $countries) ?? $fallback,
+                'external_product_reference' => null === $referenceId ? null : $references[$referenceId],
             ];
         }
 
@@ -127,11 +128,36 @@ class CustomsItems
         return $countries;
     }
 
+    /** The SDK throws on a longer reference without naming the product, so the check is made here. */
+    private function assertReferenceLength(int $productId, string $reference): void
+    {
+        $length = mb_strlen($reference);
+
+        if (self::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH < $length) {
+            $rows = $this->objectManager->get(ProductResource::class)->getProductsSku([$productId]);
+
+            throw new \RuntimeException(sprintf(
+                'Product "%s": the External product reference has %d characters; the maximum is %d',
+                $rows[0]['sku'] ?? $productId,
+                $length,
+                self::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH
+            ));
+        }
+    }
+
     private static function firstOf(array $ids, array $values): ?string
+    {
+        $id = self::firstIdOf($ids, $values);
+
+        return null === $id ? null : (string) $values[$id];
+    }
+
+    /** The first id in $ids that has a non-empty value in $values. */
+    private static function firstIdOf(array $ids, array $values): ?int
     {
         foreach ($ids as $id) {
             if ('' !== (string) ($values[$id] ?? '')) {
-                return (string) $values[$id];
+                return (int) $id;
             }
         }
 

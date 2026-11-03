@@ -104,6 +104,7 @@ class CustomsDeclarationFromOrder
                     // setClassification() cuts to 10 inside the SDK, so a longer code is truncated
                     // here where the v11 shipment path carries it whole. Raised with the SDK.
                     ->setClassification($this->items->classification($customsData[$index]['classification']))
+                    ->setExternalProductReference($customsData[$index]['external_product_reference'])
             );
         }
 
