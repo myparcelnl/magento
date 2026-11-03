@@ -21,9 +21,9 @@ use MyParcelNL\Magento\Service\Weight;
  *
  * @return object{collection: MagentoOrderCollection, chunks: array} filled once setFulfilment() runs
  */
-function ppsChunkCollection(array $storeIdsByIncrementId, $chunkSize = null): object
+function ppsChunkCollection(array $storeIdsByIncrementId, $chunkSize = null, array $sentBefore = []): object
 {
-    $did = new class { public array $chunks = []; public $collection = null; };
+    $did = new class { public array $chunks = []; public $collection = null; public array $notices = []; };
 
     $config = createConfig(['print/export_chunk_size' => $chunkSize]);
 
@@ -45,6 +45,8 @@ function ppsChunkCollection(array $storeIdsByIncrementId, $chunkSize = null): ob
         $order = Mockery::mock(Order::class);
         $order->shouldReceive('getStoreId')->andReturn($storeId);
         $order->shouldReceive('getIncrementId')->andReturn((string) $incrementId);
+        $order->shouldReceive('getData')->with('myparcel_uuid')
+            ->andReturn(in_array((string) $incrementId, $sentBefore, true) ? 'uuid-' . $incrementId : null);
         $orders[] = $order;
     }
 
@@ -61,6 +63,14 @@ function ppsChunkCollection(array $storeIdsByIncrementId, $chunkSize = null): ob
     setPrivateProperty($collection, 'apiProvider', $apiProvider);
     setPrivateProperty($collection, 'objectManager', $objectManager);
     setPrivateProperty($collection, 'userAgent', $userAgent);
+
+    $messages = Mockery::mock(\Magento\Framework\Message\ManagerInterface::class);
+    $messages->shouldReceive('addNoticeMessage')->andReturnUsing(static function ($message) use ($did) {
+        $did->notices[] = (string) $message;
+
+        return null;
+    });
+    setPrivateProperty($collection, 'messageManager', $messages);
     $collection->setOrderCollection($orders);
 
     $did->collection = $collection;
@@ -102,4 +112,15 @@ it('sends nothing at all for an empty selection', function () {
     $did->collection->setFulfilment();
 
     expect($did->chunks)->toBeEmpty();
+});
+
+it('sends an order again, and says which orders were sent before', function () {
+    $did = ppsChunkCollection(['1' => 1, '2' => 1], 10, ['2']);
+
+    $did->collection->setFulfilment();
+
+    expect($did->chunks)->toBe([['1', '2']])
+        ->and($did->notices)->toHaveCount(1)
+        ->and($did->notices[0])->toContain('2')
+        ->and($did->notices[0])->not->toContain('1,');
 });

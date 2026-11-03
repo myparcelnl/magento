@@ -11,7 +11,13 @@ use MyParcelNL\Magento\Service\Config;
  * Which tier switched an option on, which ShipmentOptionsResolver reads to settle an excludes
  * conflict. mockAttributeValueLookup() lives in Tests/Helpers/ShipmentBuilderMocks.php.
  */
-function optionSourceFor(string $option, array $settings, array $chosen = [], string $productAgeCheck = ''): ?int
+function optionSourceFor(
+    string $option,
+    array  $settings,
+    array  $chosen = [],
+    string $productAgeCheck = '',
+    array  $merchantOptions = []
+): ?int
 {
     $config = createConfig([], ['postnl' => ['default_options' => $settings]]);
 
@@ -19,7 +25,12 @@ function optionSourceFor(string $option, array $settings, array $chosen = [], st
 
     $order = createOrder([
         'getItems'        => [createOrderItem(['product_id' => '7'])],
-        'deliveryOptions' => json_encode(['carrier' => 'postnl', 'deliveryType' => 'standard', 'shipmentOptions' => $chosen]),
+        'deliveryOptions' => json_encode([
+            'carrier'         => 'postnl',
+            'deliveryType'    => 'standard',
+            'shipmentOptions' => $chosen,
+            'merchantOptions' => $merchantOptions,
+        ]),
     ]);
 
     return (new DefaultOptions($order))->sourceOf($option, 'postnl');
@@ -34,9 +45,36 @@ it('names the checkout when the customer chose the option', function () {
         ->toBe(OptionSource::CHECKOUT);
 });
 
+it('names the merchant when the merchant switched the option on', function () {
+    expect(optionSourceFor(ShipmentOption::SIGNATURE, [], [ShipmentOption::SIGNATURE => true], '', [ShipmentOption::SIGNATURE]))
+        ->toBe(OptionSource::MERCHANT);
+});
+
+it('names the product for an 18+ order, even when the merchant switched the age check on', function () {
+    expect(optionSourceFor(ShipmentOption::AGE_CHECK, [], [ShipmentOption::AGE_CHECK => true], '1', [ShipmentOption::AGE_CHECK]))
+        ->toBe(OptionSource::PRODUCT);
+});
+
 it('names the product for an 18+ order, even when the checkout chose the age check too', function () {
     expect(optionSourceFor(ShipmentOption::AGE_CHECK, [], [ShipmentOption::AGE_CHECK => true], '1'))
         ->toBe(OptionSource::PRODUCT);
+});
+
+it('switches an option off that is stored off, against the carrier setting', function () {
+    expect(optionSourceFor(ShipmentOption::SIGNATURE, ['signature_active' => '1'], [ShipmentOption::SIGNATURE => false]))
+        ->toBeNull()
+        ->and(optionSourceFor(ShipmentOption::LARGE_FORMAT, [], [ShipmentOption::LARGE_FORMAT => true]))
+        ->toBe(OptionSource::CHECKOUT);
+});
+
+it('falls to the carrier setting for an option stored as inherit', function () {
+    expect(optionSourceFor(ShipmentOption::SIGNATURE, ['signature_active' => '1'], [ShipmentOption::SIGNATURE => null]))
+        ->toBe(OptionSource::CONFIGURATION);
+});
+
+it('switches off the age check of an 18+ product when the order stores it off: the merchant decides', function () {
+    expect(optionSourceFor(ShipmentOption::AGE_CHECK, [], [ShipmentOption::AGE_CHECK => false], '1'))
+        ->toBeNull();
 });
 
 it('names nothing for an option that is off', function () {
