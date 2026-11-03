@@ -24,7 +24,6 @@ function sdkOptionsFor(ResolvedOptions $resolved, array $storedDeliveryOptions =
     $defaultOptions->shouldReceive('getPackageType')->andReturn(PackageType::PACKAGE);
 
     return createOrderShipmentOptions([
-        'options'         => [],
         'order'           => createOrder(),
         'defaultOptions'  => $defaultOptions,
         'deliveryOptions' => DeliveryOptions::fromOrderFallback($storedDeliveryOptions),
@@ -41,7 +40,7 @@ it('reads the option out of the posted changes', function (string $option) {
     expect(OptionChanges::fromRequest(['options' => [$option => '1']])->options()[$option] ?? null)->toBeTrue();
 })->with(ShipmentOption::TO_CHECK);
 
-it('resolves the option from the posted options', function (string $option) {
+it('resolves the option the order holds', function (string $option) {
     $resolved = createShipmentOptions('NL', 'postnl', [$option => '1'])->resolve();
 
     expect($resolved->toArray()[$option] ?? null)->toBeTrue();

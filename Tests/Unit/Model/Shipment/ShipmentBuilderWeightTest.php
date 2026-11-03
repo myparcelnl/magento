@@ -12,9 +12,8 @@ use MyParcelNL\Magento\Service\Weight;
  * consignment, so these read the return value rather than the built object. The
  * expected numbers are unchanged; only where the answer is read from moved.
  *
- * The preset is now $options['digital_stamp_weight'], which is the only way a
- * weight was ever preset — the old signature took it as a bare argument that
- * one caller filled from exactly that option.
+ * The digital stamp preset is DefaultOptions::getDigitalStampDefaultWeight(): the weight saved on
+ * the order, else the configured default.
  */
 function createBuilderForWeight(array $configValues = []): ShipmentBuilder
 {
@@ -24,19 +23,22 @@ function createBuilderForWeight(array $configValues = []): ShipmentBuilder
 }
 
 it('uses the preset weight and never touches the shipment', function () {
-    $builder = createBuilderForWeight();
+    $defaultOptions = Mockery::mock(MyParcelNL\Magento\Model\Source\DefaultOptions::class);
+    $defaultOptions->shouldReceive('getDigitalStampDefaultWeight')->andReturn(500);
+
+    $builder = createShipmentBuilder(['weight' => new Weight(createConfig()), 'defaultOptions' => $defaultOptions]);
     // No getShipment() expectation: weightInGrams() only reaches the shipment
     // for a package type other than digital stamp, so a call here would mean
     // the preset branch stopped short-circuiting.
     $track = Mockery::mock(Track::class);
 
-    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, ['digital_stamp_weight' => 500], PackageType::DIGITAL_STAMP]);
+    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, PackageType::DIGITAL_STAMP]);
 
     expect($weight)->toBe(500);
 });
 
 it('falls back to the item weights when no digital stamp weight is preset anywhere', function () {
-    // Nothing posted and no default configured casts to 0, and the API refuses a zero weight — the
+    // Nothing saved and no default configured casts to 0, and the API refuses a zero weight — the
     // consignment path summed the items in that case, so this does too.
     $defaultOptions = Mockery::mock(MyParcelNL\Magento\Model\Source\DefaultOptions::class);
     $defaultOptions->shouldReceive('getDigitalStampDefaultWeight')->andReturn(0);
@@ -50,7 +52,7 @@ it('falls back to the item weights when no digital stamp weight is preset anywhe
     ]]);
     $track = createShipmentTrack(['getShipment' => $shipment]);
 
-    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, [], PackageType::DIGITAL_STAMP]);
+    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, PackageType::DIGITAL_STAMP]);
 
     expect($weight)->toBe(240);
 });
@@ -63,7 +65,7 @@ it('sums item weight times quantity plus the empty package weight, in grams', fu
     ]]);
     $track = createShipmentTrack(['getShipment' => $shipment]);
 
-    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, [], PackageType::PACKAGE]);
+    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, PackageType::PACKAGE]);
 
     expect($weight)->toBe(2 * 300 + 150 + 50);
 });
@@ -75,7 +77,7 @@ it('sums item weight times quantity plus the empty package weight, in kilo mode'
     ]]);
     $track = createShipmentTrack(['getShipment' => $shipment]);
 
-    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, [], PackageType::MAILBOX]);
+    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, PackageType::MAILBOX]);
 
     expect($weight)->toBe((int) (1.5 * 2 * 1000) + 20);
 });
@@ -87,7 +89,7 @@ it('floors a zero-weight shipment at the configured default weight', function ()
     ]]);
     $track = createShipmentTrack(['getShipment' => $shipment]);
 
-    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, [], PackageType::PACKAGE]);
+    $weight = invokePrivateMethod($builder, 'weightInGrams', [$track, PackageType::PACKAGE]);
 
     expect($weight)->toBe(Weight::DEFAULT_WEIGHT);
 });
