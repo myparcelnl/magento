@@ -8,7 +8,7 @@ This module is not built on the PDK. The other plugins ([myparcelnl/woocommerce]
 
 What this module shares with the stack:
 
-- [myparcelnl/sdk](https://github.com/myparcelnl/sdk) does all API communication. Carriers, delivery types and package types come from the SDK. Do not add definitions of them to this module.
+- [myparcelnl/sdk](https://github.com/myparcelnl/sdk) (`^11.1.0`) does all API communication. Carriers, delivery types and package types come from the SDK. Do not add definitions of them to this module.
 - The checkout loads the delivery options widget ([myparcelnl/delivery-options](https://github.com/myparcelnl/delivery-options)) from the jsdelivr CDN, in `view/frontend/requirejs-config.js`.
 
 Only change code in this repository. When a task needs an SDK change, explain the change to the user and do not make it.
