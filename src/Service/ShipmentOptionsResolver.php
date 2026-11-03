@@ -245,7 +245,7 @@ class ShipmentOptionsResolver
         // The request's shared reader: one load for the whole quote. A new reader per call loads again.
         $ageChecks   = ObjectManager::getInstance()
             ->get(ProductAttributes::class)
-            ->getColumn($productIds, ShipmentOption::AGE_CHECK);
+            ->getColumn($productIds, ProductAttributes::AGE_CHECK);
         $hasAgeCheck = null;
 
         foreach ($productIds as $productId) {

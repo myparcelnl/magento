@@ -68,8 +68,8 @@ steps in this order:
    `$this->sortProductAttributes->run($eavSetup)` at the end of the new step. The sort must run after
    the last `addAttribute`, or the new attribute goes to the end of the group.
 3. **Translate it.** Add the `label` and the `note` to every file in `i18n/`.
-4. **Name it for the readers.** Add the name without the `myparcel_` prefix to
-   `Service\ProductAttributes::ATTRIBUTES`, so that one load reads it with the others.
+4. **Name it for the readers.** Add a constant without the `myparcel_` prefix to
+   `Service\ProductAttributes`, and add it to `ATTRIBUTES`, so that one load reads it with the others.
 5. **Read it where it applies:**
    - For the shipment, the attribute sets the order's default for the option: read it in
      `Model\Source\DefaultOptions::sourceOf()` and return `OptionSource::PRODUCT`, as `age_check`
