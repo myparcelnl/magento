@@ -155,7 +155,7 @@ The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::set
 ## Dependencies
 
 - PHP 7.4+ or 8.0+ (CI tests run on 8.1–8.4 only; 7.4 and 8.0 are compatible but untested)
-- MyParcel SDK v11 (beta)
+- MyParcel SDK v11 (`^11.1.0`)
 - Magento Framework 101.0.8+ or 102.0.1+
 - Yarn 4.0.1 (frontend)
 
