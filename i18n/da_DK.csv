@@ -216,6 +216,7 @@ Printerless return,Returnering uden printer
 Frozen,Frossen
 Fresh food,Friske fødevarer
 Priority delivery,Prioriteret levering
+"No tracking","Ingen sporing"
 Morning title,Titel for morgenlevering
 Evening title,Titel for aftenlevering
 Mailbox title,Titel for brevkasse
@@ -450,6 +451,7 @@ Return if no answer,Returner hvis intet svar
 "Insurance amount %1 was not saved: your contract allows € %2 to € %3.","Forsikringsbeløbet %1 blev ikke gemt: din kontrakt tillader € %2 til € %3."
 "Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Din kontrakt tillader € %1 til € %2. Forsikring er påkrævet for denne transportør og kan ikke slås fra."
 "Insurance amount ""%1"" was not saved: enter a whole number of euros.","Forsikringsbeløbet ""%1"" blev ikke gemt: indtast et helt beløb i euro."
+"Automate ""%1"" was not saved: it cannot ship together with ""%2"", which is already automated.","Automatisering af ""%1"" blev ikke gemt: den kan ikke sendes sammen med ""%2"", som allerede er automatiseret."
 "Importing the MyParcel Backoffice settings failed:","Import af MyParcel Backoffice-indstillingerne mislykkedes:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","Import af MyParcel Backoffice-indstillingerne mislykkedes. Se loggen for detaljer."
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-indstillingerne er importeret."

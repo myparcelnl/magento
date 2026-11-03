@@ -9,9 +9,11 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
+use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use Throwable;
@@ -71,6 +73,11 @@ class ShipmentOptionsResolver
 
     /** @var array|null the label's product row, read at most once per resolver */
     private ?array $labelProductRows = null;
+
+    /** Whether shapeCapabilities() asked already; its answer may be null. */
+    private bool $shapeAsked = false;
+
+    private ?CapabilitySet $shapeCapabilities = null;
 
     /**
      * @param DefaultOptions         $defaultOptions
@@ -171,32 +178,49 @@ class ShipmentOptionsResolver
 
     private function insuranceRange(): ?InsuranceRange
     {
-        // The exported type, not the stored one. An admin who switches a mailbox order to a package
-        // would otherwise be clamped to the mailbox contract and ship under-insured.
-        $packageType = $this->packageType;
+        $capabilities = $this->shapeCapabilities();
 
-        // Both are needed to ask a question narrow enough to trust: without the package type the
-        // answer is a union across package types, and a union bound is not this shipment's bound.
-        if (null === $this->cc || null === $packageType) {
-            return null;
-        }
-
-        try {
-            $capabilities = $this->objectManager->get(ShapeLookup::class)->forShape(
-                (int) $this->order->getStoreId(),
-                $this->cc,
-                $packageType,
-                $this->carrier
-            );
-        } catch (Throwable $e) {
-            Logger::notice('Could not resolve the insurance range', LogContext::of($e));
-
+        if (null === $capabilities) {
             return null;
         }
 
         return InsuranceRange::fromOptionValue(
-            $capabilities->optionValue($this->carrier, $packageType, ShipmentOption::INSURANCE)
+            $capabilities->optionValue($this->carrier, (string) $this->packageType, ShipmentOption::INSURANCE)
         );
+    }
+
+    /**
+     * What the account allows for this exact shipment, or null when that cannot be asked. Shared by
+     * the insurance clamp and the dependency passes, so one resolve() asks once.
+     */
+    private function shapeCapabilities(): ?CapabilitySet
+    {
+        if ($this->shapeAsked) {
+            return $this->shapeCapabilities;
+        }
+
+        $this->shapeAsked = true;
+
+        // The exported type, not the stored one. An admin who switches a mailbox order to a package
+        // would otherwise be clamped to the mailbox contract and ship under-insured. Both are needed
+        // to ask a question narrow enough to trust: without the package type the answer is a union
+        // across package types, and a union bound is not this shipment's bound.
+        if (null === $this->cc || null === $this->packageType) {
+            return null;
+        }
+
+        try {
+            $this->shapeCapabilities = $this->objectManager->get(ShapeLookup::class)->forShape(
+                (int) $this->order->getStoreId(),
+                $this->cc,
+                $this->packageType,
+                $this->carrier
+            );
+        } catch (Throwable $e) {
+            Logger::notice('Could not resolve the capabilities for this shipment', LogContext::of($e));
+        }
+
+        return $this->shapeCapabilities;
     }
 
     public function hasSignature(): bool
@@ -426,7 +450,30 @@ class ShipmentOptionsResolver
                        $this->defaultOptions->hasOptionSet($optionKey, $this->carrier));
     }
 
-    /** Every option here is non-null, except extra_assurance, which nothing decides. */
+    /**
+     * Which OptionSource tier decided an option that is on. The sibling of optionIsEnabled(), read
+     * only to settle an excludes conflict.
+     */
+    private function decidedBy(string $option): int
+    {
+        if (isset($this->options[$option])) {
+            return OptionSource::POSTED;
+        }
+
+        if (ShipmentOption::INSURANCE === $option) {
+            return OptionSource::CONFIGURATION;
+        }
+
+        return $this->defaultOptions->sourceOf($option, $this->carrier) ?? OptionSource::CONFIGURATION;
+    }
+
+    /**
+     * Every option here is non-null, except extra_assurance, which nothing decides.
+     *
+     * With the account's capabilities for this shipment, an option they offer and the module has no
+     * rule for is decided like any other, then excludes and requires are applied. Without them, the
+     * options stay as chosen and the API decides.
+     */
     public function resolve(): ShipmentOptions
     {
         $values = [
@@ -441,6 +488,158 @@ class ShipmentOptionsResolver
                 : $this->optionIsEnabled($option);
         }
 
-        return ShipmentOptions::of($values);
+        $capabilities = $this->shapeCapabilities();
+
+        if (null === $capabilities || $capabilities->isPermissive()) {
+            return ShipmentOptions::resolved($values);
+        }
+
+        foreach ($capabilities->optionsFor($this->carrier, $this->packageType) as $option) {
+            if (! array_key_exists($option, $values)) {
+                $values[$option] = $this->optionIsEnabled($option);
+            }
+        }
+
+        // Excludes first: an option that loses must not leave a companion behind.
+        $values = $this->dropExcluded($capabilities, $values);
+
+        return ShipmentOptions::resolved($this->addRequired($capabilities, $values));
+    }
+
+    /**
+     * Switches off each option that conflicts with one decided on a higher tier. Options are visited
+     * best tier first, so an option only ever loses to one that stays.
+     */
+    private function dropExcluded(CapabilitySet $capabilities, array $values): array
+    {
+        $ranked = [];
+
+        foreach (array_keys($this->optionsOn($values)) as $position => $option) {
+            $ranked[] = [$this->decidedBy($option), $position, $option];
+        }
+
+        // The position breaks ties, because usort() is not stable before PHP 8.
+        usort($ranked, static function (array $a, array $b): int {
+            return [$a[0], $a[1]] <=> [$b[0], $b[1]];
+        });
+
+        $kept = [];
+
+        foreach ($ranked as [$tier, , $option]) {
+            foreach ($kept as $winner => $winnerTier) {
+                if ($winnerTier < $tier && $this->excludes($capabilities, $option, $winner)) {
+                    $values[$option] = ShipmentOption::INSURANCE === $option ? 0 : false;
+
+                    Logger::notice(sprintf(
+                        'Shipment option %s left off order %s: it excludes %s, which was decided with more weight.',
+                        $option,
+                        $this->order->getIncrementId(),
+                        $winner
+                    ));
+
+                    continue 2;
+                }
+            }
+
+            $kept[$option] = $tier;
+        }
+
+        return $values;
+    }
+
+    /**
+     * Switches on each companion an option requires. One level only, and never a companion that an
+     * option already on excludes: PostNL insurance requires signature, which receipt code excludes.
+     */
+    private function addRequired(CapabilitySet $capabilities, array $values): array
+    {
+        $on = array_keys($this->optionsOn($values));
+
+        foreach ($on as $option) {
+            foreach ($capabilities->requiresFor($this->carrier, $this->packageType, $option) as $companion) {
+                if ($this->isOn($values, $companion) || $this->excludedByAny($capabilities, $companion, $on)) {
+                    continue;
+                }
+
+                if (ShipmentOption::INSURANCE === $companion) {
+                    $amount = $this->requiredInsurance();
+
+                    if (0 === $amount) {
+                        Logger::notice(sprintf(
+                            'Order %s: %s requires insurance, but no insurance amount is configured and the contract sets no minimum.',
+                            $this->order->getIncrementId(),
+                            $option
+                        ));
+
+                        continue;
+                    }
+
+                    $values[$companion] = $amount;
+                } else {
+                    $values[$companion] = true;
+                }
+
+                // The customer may not have been offered this option, and did not pay for it.
+                Logger::notice(sprintf(
+                    'Shipment option %s added to order %s, because %s requires it.',
+                    $companion,
+                    $this->order->getIncrementId(),
+                    $option
+                ));
+            }
+        }
+
+        return $values;
+    }
+
+    /** The configured amount without the from-price, then the contract minimum, clamped. */
+    private function requiredInsurance(): int
+    {
+        $amount = $this->defaultOptions->getRequiredInsurance($this->carrier);
+
+        if (0 === $amount) {
+            $range  = $this->insuranceRange();
+            $amount = null === $range ? 0 : $range->min();
+        }
+
+        return $this->clampInsurance($amount);
+    }
+
+    /** @return array<string,mixed> the entries of $values that are shipment options and on */
+    private function optionsOn(array $values): array
+    {
+        unset($values[self::LABEL_DESCRIPTION]);
+
+        return array_filter($values, function (string $option) use ($values): bool {
+            return $this->isOn($values, $option);
+        }, ARRAY_FILTER_USE_KEY);
+    }
+
+    private function isOn(array $values, string $option): bool
+    {
+        if (ShipmentOption::INSURANCE === $option) {
+            return 0 < (int) ($values[$option] ?? 0);
+        }
+
+        return (bool) ($values[$option] ?? false);
+    }
+
+    /** Either side may list the exclusion: the API does not promise to list it on both. */
+    private function excludes(CapabilitySet $capabilities, string $option, string $other): bool
+    {
+        return in_array($other, $capabilities->excludesFor($this->carrier, $this->packageType, $option), true)
+               || in_array($option, $capabilities->excludesFor($this->carrier, $this->packageType, $other), true);
+    }
+
+    /** @param string[] $options */
+    private function excludedByAny(CapabilitySet $capabilities, string $option, array $options): bool
+    {
+        foreach ($options as $other) {
+            if ($this->excludes($capabilities, $option, $other)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

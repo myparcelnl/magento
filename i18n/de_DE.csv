@@ -216,6 +216,7 @@ Printerless return,Retoure ohne Drucker
 Frozen,Tiefgekühlt
 Fresh food,Frische Lebensmittel
 Priority delivery,Prio-Lieferung
+"No tracking","Keine Sendungsverfolgung"
 Morning title,Titel Morgenzustellung
 Evening title,Titel Abendzustellung
 Mailbox title,Titel Briefkastenpaket
@@ -454,6 +455,7 @@ Return if no answer,Bei Nichtannahme zurücksenden
 "Insurance amount %1 was not saved: your contract allows € %2 to € %3.","Versicherungsbetrag %1 wurde nicht gespeichert: Ihr Vertrag erlaubt € %2 bis € %3."
 "Your contract allows € %1 to € %2. Insurance is required for this carrier, so it cannot be switched off.","Ihr Vertrag erlaubt € %1 bis € %2. Für diesen Transporteur ist eine Versicherung vorgeschrieben und kann nicht ausgeschaltet werden."
 "Insurance amount ""%1"" was not saved: enter a whole number of euros.","Versicherungsbetrag ""%1"" wurde nicht gespeichert: Geben Sie einen ganzen Euro-Betrag ein."
+"Automate ""%1"" was not saved: it cannot ship together with ""%2"", which is already automated.","Automatisieren von ""%1"" wurde nicht gespeichert: Es kann nicht zusammen mit ""%2"" versendet werden, das bereits automatisiert ist."
 "Importing the MyParcel Backoffice settings failed:","Der Import der MyParcel Backoffice-Einstellungen ist fehlgeschlagen:"
 "Importing the MyParcel Backoffice settings failed. Check the log for details.","Der Import der MyParcel Backoffice-Einstellungen ist fehlgeschlagen. Details finden Sie im Protokoll."
 "MyParcel Backoffice settings imported.","MyParcel Backoffice-Einstellungen wurden importiert."

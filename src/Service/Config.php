@@ -47,6 +47,9 @@ class Config extends AbstractHelper
     public const XML_PATH_TRUNKRS_SETTINGS          = 'myparcelnl_magento_trunkrs_settings/';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
 
+    /** API feature flags, as headers; see Confluence "API feature flags". Enables noTracking. */
+    public const API_FEATURE_FLAGS                  = ['x-dmp-no-tracking' => 'true'];
+
     /** Records or shipments per export request. Both export paths chunk by it. */
     public const DEFAULT_EXPORT_CHUNK_SIZE          = 20;
     private const MAX_EXPORT_CHUNK_SIZE             = 100;
