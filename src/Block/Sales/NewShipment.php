@@ -249,11 +249,11 @@ class NewShipment extends AbstractItems
      */
     public function getShipmentOptions(string $carrier, string $packageType): array
     {
-        $caps = $this->getCapabilities($packageType);
+        $capabilities = $this->getCapabilities($packageType);
 
-        $options = $caps->isPermissive()
+        $options = $capabilities->isPermissive()
             ? ShipmentOption::TO_CHECK
-            : $caps->optionsFor($carrier, $packageType);
+            : $capabilities->optionsFor($carrier, $packageType);
 
         return array_values(array_filter(
             $options,
