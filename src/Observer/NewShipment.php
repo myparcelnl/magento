@@ -27,6 +27,7 @@ use MyParcelNL\Magento\Model\Shipment\BuiltShipment;
 use MyParcelNL\Magento\Model\Shipment\ShipmentBuilder;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ExportErrorRecorder;
 use MyParcelNL\Magento\Service\OrderGridColumns;
 
@@ -170,7 +171,7 @@ class NewShipment implements ObserverInterface
 
         // Each built shipment carries its own track, so nothing is paired by position any more.
         foreach ($builtShipments as $built) {
-            if (! $built->track()->getData('myparcel_consignment_id')) {
+            if (! $built->track()->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID)) {
                 continue;
             }
 
@@ -185,14 +186,14 @@ class NewShipment implements ObserverInterface
      *
      * Magento saves $shipment->getOrder() once more after this observer, in
      * Shipment\Save::_saveShipment(). A second instance still carries myparcel_uuid => null, and that
-     * save writes the null back over the uuid setFulfilment() just stored.
+     * save writes the null back over the uuid exportAsOrderV1() just stored.
      *
      * @throws \Exception
      */
     private function exportEntireOrder(Shipment $shipment): void
     {
         $this->orderCollection()->setOrderCollection([$shipment->getOrder()]);
-        $this->orderCollection()->setFulfilment();
+        $this->orderCollection()->exportAsOrderV1();
     }
 
     /**

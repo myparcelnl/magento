@@ -30,6 +30,7 @@ final class CapabilitySet
         $this->permissive   = $permissive;
     }
 
+    /** The set from a capabilities answer. An entry that is not an object is logged and skipped. */
     public static function fromApiResults(array $results): self
     {
         $capabilities = [];

@@ -76,7 +76,7 @@ class ShipmentApiProvider
      *
      * @return array<string,int[]>
      */
-    public function consignmentIdsByApiKey(iterable $shipments, array $tracksByShipmentId): array
+    public function myParcelShipmentIdsByApiKey(iterable $shipments, array $tracksByShipmentId): array
     {
         $grouped = [];
 
@@ -88,12 +88,12 @@ class ShipmentApiProvider
             }
 
             foreach ($tracksByShipmentId[(int) $shipment->getId()] ?? [] as $track) {
-                $consignmentId = (int) $track->getData('myparcel_consignment_id');
+                $myParcelShipmentId = (int) $track->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
-                if (0 < $consignmentId) {
+                if (0 < $myParcelShipmentId) {
                     // Keyed, not appended: a multicollo's colli share the parent's id until the
                     // query response names them, and asking for the same shipment twice is waste.
-                    $grouped[$apiKey][$consignmentId] = $consignmentId;
+                    $grouped[$apiKey][$myParcelShipmentId] = $myParcelShipmentId;
                 }
             }
         }

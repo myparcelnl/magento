@@ -13,8 +13,8 @@ use MyParcelNL\Magento\Observer\NewShipment;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 
 /**
- * PPS export from the New Shipment page. Magento saves $shipment->getOrder() once more after this
- * observer, so the uuid setFulfilment() stores has to land on that same instance. Exporting a
+ * Order v1 export from the New Shipment page. Magento saves $shipment->getOrder() once more after this
+ * observer, so the uuid exportAsOrderV1() stores has to land on that same instance. Exporting a
  * reload of the order puts it on a copy, and the later save writes myparcel_uuid back to null.
  *
  * createOrder() and createShipment() live in Tests/Helpers/OrderMocks.php.
@@ -33,7 +33,7 @@ it('exports the order instance the shipment holds, not a reload of it', function
 
                    return $collection;
                });
-    $collection->shouldReceive('setFulfilment')->once()->andReturnSelf();
+    $collection->shouldReceive('exportAsOrderV1')->once()->andReturnSelf();
 
     $observer = newInstanceWithoutConstructor(NewShipment::class);
     setPrivateProperty($observer, 'orderCollection', $collection);
@@ -80,7 +80,7 @@ it('writes the two grid columns without saving the order', function () {
         ->and($set)->toBe($columns);
 });
 
-it('marks a PPS export exported rather than reading it off the tracks', function () {
+it('marks an Order v1 export exported rather than reading it off the tracks', function () {
     $order = createOrder(['getEntityId' => 7]);
     $order->shouldReceive('setData')->andReturnSelf();
 

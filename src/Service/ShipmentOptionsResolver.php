@@ -31,7 +31,7 @@ class ShipmentOptionsResolver
     private const LABEL_DESCRIPTION = 'label_description';
 
     /**
-     * The checkboxes with a rule of their own; every other one in ShipmentOption::TO_CHECK is taken
+     * The checkboxes with a rule of their own; every other one in ShipmentOption::KNOWN_TOGGLES is taken
      * as chosen. Add an entry only when an option needs one.
      */
     private const RULES = [
@@ -62,7 +62,7 @@ class ShipmentOptionsResolver
 
     private ?string $cc;
 
-    /** Null on the PPS path: a fulfilment order has no Magento shipment yet. */
+    /** Null on the Order v1 path: an Order v1 order has no Magento shipment yet. */
     private ?int $shipmentId;
 
     /**
@@ -401,7 +401,7 @@ class ShipmentOptionsResolver
     /**
      * The row %product_id%, %product_name% and %product_qty% read from.
      *
-     * sales_shipment_item.parent_id is the *shipment* entity id, never the order id. A fulfilment
+     * sales_shipment_item.parent_id is the *shipment* entity id, never the order id. An Order v1
      * order has no shipment yet, so that path reads the order's own items instead.
      *
      * Ordered and limited: only the first row is ever read, and without an order which row that is
@@ -461,7 +461,7 @@ class ShipmentOptionsResolver
             ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
         ];
 
-        foreach (ShipmentOption::TO_CHECK as $option) {
+        foreach (ShipmentOption::KNOWN_TOGGLES as $option) {
             $values[$option] = isset(self::RULES[$option])
                 ? $this->{self::RULES[$option]}()
                 : $this->optionIsEnabled($option);
@@ -497,7 +497,7 @@ class ShipmentOptionsResolver
      */
     private function dropNotOffered(array $offered, array $values): array
     {
-        $options = array_merge(ShipmentOption::TO_CHECK, [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY]);
+        $options = array_merge(ShipmentOption::KNOWN_TOGGLES, [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY]);
 
         foreach (array_keys($this->optionsOn($values)) as $option) {
             if (! in_array($option, $options, true) || in_array($option, $offered, true)) {

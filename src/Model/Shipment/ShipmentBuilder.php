@@ -24,7 +24,7 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
 /**
  * Turns one Magento shipment track into a v11 Shipment, paired with its track and API key.
  *
- * Carrier, package type and the option set come from OrderShipmentOptions, which the fulfilment
+ * Carrier, package type and the option set come from OrderExportOptions, which the Order v1
  * path shares. What is decided here is what only a label needs: the weight of these shipment items,
  * the recipient array and the pickup model. A shipment that cannot be built fails on its own,
  * naming the order — never by substituting a value the merchant did not choose.
@@ -39,8 +39,8 @@ class ShipmentBuilder
     private CustomsDeclarationBuilder $customsBuilder;
     private StoredAccount             $storedAccount;
 
-    /** @var array<int,OrderShipmentOptions> by shipment; a multicollo order asks per collo */
-    private array $shipmentOptions = [];
+    /** @var array<int,OrderExportOptions> by shipment; a multicollo order asks per collo */
+    private array $orderOptions = [];
 
     public function __construct(ObjectManagerInterface $objectManager, Order $order)
     {
@@ -57,9 +57,9 @@ class ShipmentBuilder
      * Resolved once per shipment, not once per collo: each instance re-reads the order's delivery
      * options and, for a label description that names a product, its items.
      */
-    private function shipmentOptionsFor(Order $order, int $shipmentId): OrderShipmentOptions
+    private function orderOptionsFor(Order $order, int $shipmentId): OrderExportOptions
     {
-        return $this->shipmentOptions[$shipmentId] ?? $this->shipmentOptions[$shipmentId] = new OrderShipmentOptions(
+        return $this->orderOptions[$shipmentId] ?? $this->orderOptions[$shipmentId] = new OrderExportOptions(
             $this->objectManager,
             $order,
             $this->defaultOptions,
@@ -84,17 +84,17 @@ class ShipmentBuilder
         $incrementId = (string) $order->getIncrementId();
         $apiKey      = $this->apiProvider->apiKeyForStore((int) $order->getStoreId());
 
-        $shipmentOptions = $this->shipmentOptionsFor($order, (int) $magentoShipment->getEntityId());
-        $deliveryOptions = $shipmentOptions->deliveryOptions();
-        $packageType     = $shipmentOptions->packageType();
+        $orderOptions    = $this->orderOptionsFor($order, (int) $magentoShipment->getEntityId());
+        $deliveryOptions = $orderOptions->deliveryOptionsToShip();
+        $packageType     = $orderOptions->packageTypeToShip();
         $weight          = $this->weightInGrams($magentoTrack, $packageType);
 
         $shipment = (new Shipment())
-            ->setCarrier($shipmentOptions->carrierId())
+            ->setCarrier($orderOptions->carrierIdToShip())
             ->setReferenceIdentifier(self::referenceIdentifierFor((int) $magentoShipment->getEntityId(), $colloNumber))
             ->setRecipient($this->recipient($address, $this->storedAccount->homeCountryForApiKey($apiKey)))
             ->setPhysicalProperties(self::physicalProperties($weight, $deliveryOptions))
-            ->setOptions($shipmentOptions->shipmentOptions());
+            ->setOptions($orderOptions->sdkShipmentOptions());
 
         if ($deliveryOptions->isPickup()) {
             $shipment->setPickup($this->pickup($deliveryOptions));

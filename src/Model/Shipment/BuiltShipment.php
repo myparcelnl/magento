@@ -23,7 +23,7 @@ class BuiltShipment
      * The order's remaining id-less tracks, when this is a multicollo.
      *
      * label_amount rows are created before anyone knows the order will ship as one multicollo, so
-     * the rest would otherwise sit at consignment id 0 and be exported again as new billable
+     * the rest would otherwise sit at MyParcel shipment id 0 and be exported again as new billable
      * shipments. persist() stamps them with the parent's id; addSecondaryShipmentTracks() then
      * gives each its own collo id instead of adding a row.
      *

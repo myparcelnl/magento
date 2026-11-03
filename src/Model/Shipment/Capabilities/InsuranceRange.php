@@ -87,6 +87,10 @@ final class InsuranceRange
         return $this->required;
     }
 
+    /**
+     * Whether the amount is within the bounds, both included. allows() also accepts zero when
+     * insurance is optional.
+     */
     public function contains(int $euros): bool
     {
         return $euros >= $this->min && $euros <= $this->max;

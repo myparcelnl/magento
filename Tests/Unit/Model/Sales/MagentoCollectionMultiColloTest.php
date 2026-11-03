@@ -92,7 +92,7 @@ it('refuses rather than fails open when the maximum is unknown', function () {
     mockLoggerFacade()->shouldReceive('warning')->byDefault();
 
     // Deliberately not the fail-open the rest of the layer does: this picks between two ways to
-    // export, and separate consignments are the branch that always works.
+    // export, and separate shipments are the branch that always works.
     $c = createCollectionAnswering([new GuzzleHttp\Psr7\Response(500, [], '')]);
 
     expect($c['collection']->canUseMultiCollo(

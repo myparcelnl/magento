@@ -52,7 +52,7 @@ vendor/bin/pest --filter=WeightTest  # run a specific test
 
 ### Data Flow
 ```
-Magento Order → Adapter → SDK Consignment → MyParcel API
+Magento Order → Adapter → SDK Shipment → MyParcel API
       ↑                                          ↓
       └──────── Track & Trace Update ────────────┘
 ```
@@ -65,7 +65,7 @@ Magento Order → Adapter → SDK Consignment → MyParcel API
 - **Checkout** (`src/Model/Checkout/DeliveryOptions.php`): Delivery options logic for frontend; frontend JS uses RequireJS + Knockout.js
 - **Collections** (`src/Model/Sales/MagentoOrderCollection.php`, `MagentoShipmentCollection.php`): Bridge Magento orders/shipments to SDK for batch API operations
 - **Package type** (`src/Service/PackageTypeResolver.php`, `src/Service/CartShippingRules.php`): Package type determination (mailbox, digital stamp, package small) from weight, carrier, capabilities and config, plus what the cart's own products say about how it may ship. Both are stateless; `Tests/Unit/Service/StatelessServicesTest.php` keeps them that way
-- **Export modes** (`Config::EXPORT_MODE_*`): `shipments` creates shipments; `pps` ("Export entire order") sends whole orders to the Order v1 API. Code and docs also call `pps` "fulfilment" or "Order v1". See `docs/sdk-v11.md`.
+- **Order v1 export** (`OrderV1Builder`, `MagentoOrderCollection::exportAsOrderV1()`): an account with the `LEGACY_ORDER_MANAGEMENT` feature exports whole orders to the Order v1 API; every other account creates shipments. See `docs/sdk-v11.md`.
 
 ### Extension Points
 
@@ -96,7 +96,6 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 - **ADRs**: Architectural Decision Records live in the engineering-wide [`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr) repo, not in this module.
 - **SDK v11** ([`docs/sdk-v11.md`](docs/sdk-v11.md)): why the module owns its shipment domain layer, the deliberate divergences from `myparcelnl/pdk`, which vocabulary each boundary takes, the three money scales, and the SDK defects the module works around. Read it before touching `src/Model/Shipment/` or `src/Service/Export/`.
-- **Capabilities-driven settings** ([`docs/design/capabilities-driven-settings.md`](docs/design/capabilities-driven-settings.md)): the INT-1289 stack that generates the settings form per scope from account capabilities. PR 4 of 6 replaced `etc/dynamic_settings.json` with `src/Model/Settings/Blueprint/`. Read it before touching `Blueprint/Catalogue.php` or `Model/Shipment/Carrier.php`.
 - **FRs** (`docs/functional-requirements/`): Functional requirement specifications
 - **TRs** (`docs/technical-requirements/`): Technical requirement specifications
 - **OpenAPI** — Core API spec: `https://api.myparcel.nl/openapi.min.json`; Order API spec (enums, ShipmentOptions): `https://order.api.myparcel.nl/openapi.json`
@@ -126,7 +125,7 @@ For endpoints that must be callable with an API access token (3-tier scoped: def
 
 Extends `sales_order` with columns: `track_status`, `track_number`, `drop_off_day`, `myparcel_carrier`, `myparcel_export_error`. Schema in `src/Setup/UpgradeSchema.php`.
 
-A shipment option stored in `myparcel_delivery_options` is tri-state: `null` inherits, `true` is on, `false` is off. A checkout write turns the widget's `false` into `null`. See [`docs/design/shipment-options-modal.md`](docs/design/shipment-options-modal.md).
+A shipment option stored in `myparcel_delivery_options` is tri-state: see [`docs/design/shipment-options-modal.md`](docs/design/shipment-options-modal.md).
 
 ### File Structure Notes
 
@@ -142,15 +141,15 @@ A carrier that capabilities report needs no code, and the module lists no carrie
 
 ## Adding a Shipment Option
 
-An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module name from the wire key (`noTracking` becomes `no_tracking`), the shipment options modal renders it under a label read from that name and stores it on the order, `ShipmentOptionsResolver::resolve()` decides it, and `OrderShipmentOptions` sends it when the SDK has a setter. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies. An option capabilities do not offer for the shipment is left off at export. A merchant's stored `false` beats every default, an 18+ product included.
+An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module name from the wire key (`noTracking` becomes `no_tracking`), the shipment options modal renders it under a label read from that name and stores it on the order, `ShipmentOptionsResolver::resolve()` decides it, and `OrderExportOptions` sends it when the SDK has a setter. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies. An option capabilities do not offer for the shipment is left off at export.
 
 Add code only for what capabilities cannot say:
 
 1. A label of its own: an entry in `ShipmentOption::LABELS`, and its translation in `i18n/`. Without one, the label is the name, translated through `i18n/`. The settings form gives the option a bare Automate toggle; add it to `Catalogue::FEE_OPTIONS` or `Catalogue::FROM_PRICE_OPTIONS` for a fee or a from-price.
 2. A country or delivery type rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map.
-3. A place in the fail-open form: `ShipmentOption::TO_CHECK` is what the form shows when capabilities could not be read, and the fixed front of the persisted key order in `ShipmentOptions::KEYS`. It needs a constant in `ShipmentOption.php`, and an entry in `V2_NAMES_MAP` only when the name does not derive from the wire key.
+3. A place in the fail-open form: `ShipmentOption::KNOWN_TOGGLES` is what the form shows when capabilities could not be read, and the fixed front of the persisted key order in `ShipmentOptions::KEYS`. It needs a constant in `ShipmentOption.php`, and an entry in `V2_NAMES_MAP` only when the name does not derive from the wire key.
 
-The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `TO_CHECK` does not reach the shipment the API receives.
+The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `KNOWN_TOGGLES` does not reach the shipment the API receives.
 
 ## Dependencies
 

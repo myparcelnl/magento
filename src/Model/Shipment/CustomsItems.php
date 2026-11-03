@@ -17,7 +17,7 @@ use MyParcelNL\Sdk\Support\Str;
  * The customs facts both export paths share: HS codes, countries of origin, and the line arithmetic.
  *
  * The two paths keep their own item source on purpose. A shipment declares what was shipped, with
- * the item's own weight and price; a fulfilment order declares what was ordered, with the product's.
+ * the item's own weight and price; an Order v1 order declares what was ordered, with the product's.
  * Only the lookups and the per-line maths are the same, and only those live here.
  *
  * Both lookups take every product id at once. Asking per item is what made a 40-line order outside
@@ -138,11 +138,13 @@ class CustomsItems
         return null;
     }
 
+    /** The product name, shortened to MAX_DESCRIPTION_LENGTH characters with `...` at the end. */
     public function description(string $name): string
     {
         return Str::limit($name, self::MAX_DESCRIPTION_LENGTH);
     }
 
+    /** The HS code, cut to MAX_CLASSIFICATION_LENGTH characters, the most the API accepts. */
     public function classification(string $classification): string
     {
         return substr($classification, 0, self::MAX_CLASSIFICATION_LENGTH);
@@ -151,7 +153,7 @@ class CustomsItems
     /**
      * Weight and value are line-level while amount carries the count, so both multiply by quantity.
      *
-     * @param float $quantity kept as a float: a fulfilment order ships qtyShipped, which can be one
+     * @param float $quantity kept as a float: an Order v1 order ships qtyShipped, which can be one
      */
     public function lineWeightInGrams(float $unitWeight, float $quantity): int
     {

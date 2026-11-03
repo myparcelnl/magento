@@ -33,11 +33,12 @@ use MyParcelNL\Magento\Api\ShipmentStatus;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Sales\MagentoCollection;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
+use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\LogContext;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
-use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
+use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
 use MyParcelNL\Sdk\Exception\AccountNotActiveException;
 use MyParcelNL\Sdk\Exception\ApiException;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
@@ -90,24 +91,24 @@ class UpdateStatus
      */
     public function execute(): self
     {
-        // Not gated on the account's current mode: the PPS pass selects only orders a PPS export
-        // marked, so an account that moved off order v1 still gets its in-flight orders. PPS only
+        // Not gated on the account's current mode: the Order v1 pass selects only orders an Order v1 export
+        // marked, so an account that moved off order v1 still gets its in-flight orders. Order v1 only
         // acquires barcodes, and the poll below carries a shipment on from there, for either mode.
-        $this->updateStatusPPS();
+        $this->updateOrderV1Status();
 
         return $this->pollShipmentStatuses();
     }
 
     /**
-     * Handles orders exported with PPS (order management v1).
+     * Handles orders exported to Order v1 (legacy order management).
      * Gets the eligible orders from Magento, gets the account's orders from the api. When the api
      * order is one of them and it has shipped, adds the shipment in Magento.
      *
-     * A fulfilment order can hold several shipments, and they are all created in one go: either as
+     * An Order v1 order can hold several shipments, and they are all created in one go: either as
      * separate shipments side by side, which is one order_shipments entry each, or as one multicollo,
      * which is one entry carrying secondary_shipments. This method handles the first shape by reading
      * every entry; the second is expanded from the shipment API by updateMagentoTrack(), because the
-     * fulfilment response is not where a collo's own barcode is read.
+     * Order v1 response is not where a collo's own barcode is read.
      *
      * Each shipment gets its own track. There is no per-shipment item split to make a second Magento
      * shipment out of — the colli hold the same goods.
@@ -132,10 +133,10 @@ class UpdateStatus
      * @throws MissingFieldException
      * @throws Exception
      */
-    private function updateStatusPPS(): self
+    private function updateOrderV1Status(): self
     {
         $orderRows  = $this->ordersAwaitingBarcode();
-        $fulfilment = [];
+        $orderV1ShipmentsByIncrementId = [];
         // One line at the end beats guessing which of five steps dropped an order.
         $tally = ['awaiting' => count($orderRows), 'accounts' => 0, 'returned' => 0, 'matched' => 0,
                   'shipped'  => 0, 'shipments' => 0, 'without_id' => 0, 'order_row' => 0];
@@ -145,7 +146,7 @@ class UpdateStatus
                 $apiOrders = $this->queryApiOrders($apiKey);
             } catch (Throwable $e) {
                 // One unreachable account must not cost the other accounts their update.
-                Logger::warning('PPS: could not poll one account', LogContext::of($e));
+                Logger::warning('Order v1: could not poll one account', LogContext::of($e));
                 continue;
             }
 
@@ -156,7 +157,7 @@ class UpdateStatus
                 $incrementId = $apiOrder->getExternalIdentifier();
 
                 if (! $incrementId
-                    || isset($fulfilment[$incrementId])
+                    || isset($orderV1ShipmentsByIncrementId[$incrementId])
                     || ! isset($orderIdsToCheck[$incrementId])) {
                     continue;
                 }
@@ -180,14 +181,14 @@ class UpdateStatus
                     }
                 }
 
-                $fulfilment[$incrementId] = $shipments;
+                $orderV1ShipmentsByIncrementId[$incrementId] = $shipments;
             }
         }
 
         // Debug, not notice: this runs every minute and says nothing happened most of the time.
         // What is worth a place in system.log is below, and only when something actually did.
         Logger::debug(sprintf(
-            'PPS: %d order(s) awaiting a barcode over %d account(s); the API returned %d, of which '
+            'Order v1: %d order(s) awaiting a barcode over %d account(s); the API returned %d, of which '
             . '%d matched and %d shipped, carrying %d shipment(s)',
             $tally['awaiting'],
             $tally['accounts'],
@@ -197,11 +198,11 @@ class UpdateStatus
             $tally['shipments']
         ));
 
-        if (! $fulfilment) {
+        if (! $orderV1ShipmentsByIncrementId) {
             return $this;
         }
 
-        $orderIncrementIds = array_keys($fulfilment);
+        $orderIncrementIds = array_keys($orderV1ShipmentsByIncrementId);
         $orderEntityIds    = [];
 
         foreach ($orderRows as $arrayWithIds) {
@@ -215,12 +216,12 @@ class UpdateStatus
             return $this;
         }
 
-        Logger::notice(sprintf('PPS: update orders %s', implode(', ', $orderIncrementIds)));
+        Logger::notice(sprintf('Order v1: update orders %s', implode(', ', $orderIncrementIds)));
         $this->addOrdersToCollection($orderEntityIds);
 
         // setNewMyParcelTracks() is deliberately absent: it builds a v11 Shipment per track for a
-        // create this cron never issues. What a PPS order needs is the id and barcode its
-        // fulfilment order already has, after which updateMagentoTrack() refreshes it like any
+        // create this cron never issues. What an Order v1 order needs is the id and barcode its
+        // Order v1 order already has, after which updateMagentoTrack() refreshes it like any
         // other shipment — status and track & trace link included.
         //
         // An order that already has a track reaches setMagentoTrack() now, so the mass-action
@@ -228,14 +229,14 @@ class UpdateStatus
         $this->orderCollection->setOption('create_track_if_one_already_exist', false)
                               ->setNewMagentoShipment(false)
                               ->setMagentoTrack()
-                              ->setFulfilmentTrackData($fulfilment)
+                              ->setOrderV1TrackData($orderV1ShipmentsByIncrementId)
                               ->updateMagentoTrack();
 
-        $tally['order_row'] = $this->writeBarcodeWhereNoTrack($fulfilment);
+        $tally['order_row'] = $this->writeBarcodeWhereNoTrack($orderV1ShipmentsByIncrementId);
 
         if ($tally['order_row'] || $tally['without_id']) {
             Logger::notice(sprintf(
-                'PPS: %d order(s) got their barcode on the order row for want of a track; '
+                'Order v1: %d order(s) got their barcode on the order row for want of a track; '
                 . '%d shipment(s) came back with no id, so they get no status and no link',
                 $tally['order_row'],
                 $tally['without_id']
@@ -246,7 +247,7 @@ class UpdateStatus
     }
 
     /**
-     * The PPS orders still waiting for a barcode.
+     * The Order v1 orders still waiting for a barcode.
      *
      * Keyed on the export marker and on the absence of a real barcode — not on
      * sales_order.track_number being null. That column is a grid display value, and anything
@@ -312,16 +313,16 @@ class UpdateStatus
     }
 
     /**
-     * Every shipped shipment of one fulfilment order, in the order the API listed them.
+     * Every shipped shipment of one Order v1 order, in the order the API listed them.
      *
      * order_shipments passes through the SDK as a raw array with no model behind it, so each key is
-     * read defensively. The shipped check is per entry: a fulfilment order can hold a concept or a
+     * read defensively. The shipped check is per entry: an Order v1 order can hold a concept or a
      * cancelled shipment beside shipped ones, and reading only the first entry is what hid an order
      * whose second shipment had shipped while its first was still a concept.
      *
      * @return array<int,array{barcode: string, shipmentId: int|null}>
      */
-    private function shippedShipments(FulfilmentOrder $apiOrder): array
+    private function shippedShipments(SdkOrderV1 $apiOrder): array
     {
         $shipments = [];
         $seenIds   = [];
@@ -360,15 +361,15 @@ class UpdateStatus
      * Such an order gets a barcode and never a link: myparcel_tracktrace_url is a column on
      * sales_shipment_track.
      *
-     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilment
+     * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $orderV1ShipmentsByIncrementId
      *
      * @return int how many orders were written
      */
-    private function writeBarcodeWhereNoTrack(array $fulfilment): int
+    private function writeBarcodeWhereNoTrack(array $orderV1ShipmentsByIncrementId): int
     {
         $barcodesByIncrementId = [];
 
-        foreach ($fulfilment as $incrementId => $shipments) {
+        foreach ($orderV1ShipmentsByIncrementId as $incrementId => $shipments) {
             $barcodes = array_values(array_unique(array_filter(
                 array_column($shipments, 'barcode'),
                 static function (string $barcode): bool {
@@ -508,15 +509,15 @@ class UpdateStatus
      * Carries every exported shipment on to its next status, whatever export mode made it.
      *
      * It selects on the track rather than on the order — a MyParcel shipment id and a status that
-     * is not final yet — and a PPS shipment answers to both. setOrdersToUpdate() replaces the
-     * collection the PPS pass left behind.
+     * is not final yet — and an Order v1 shipment answers to both. setOrdersToUpdate() replaces the
+     * collection the Order v1 pass left behind.
      *
      * @throws LocalizedException
      * @throws Exception
      */
     private function pollShipmentStatuses(): self
     {
-        // setNewMyParcelTracks() is deliberately absent, as it is in the PPS branch above: it
+        // setNewMyParcelTracks() is deliberately absent, as it is in the Order v1 branch above: it
         // builds a v11 Shipment per id-less track — capabilities, customs, validation — for a
         // create this cron never issues, and nothing here reads what it collects.
         $this->setOrdersToUpdate();
@@ -590,7 +591,7 @@ class UpdateStatus
         $trackCollection
             ->addFieldToSelect('order_id')
             ->addAttributeToFilter('myparcel_status', [1, 2, 3, 4, 5, 6, 8])
-            ->addAttributeToFilter('myparcel_consignment_id', ['notnull' => true])
+            ->addAttributeToFilter(Config::FIELD_MYPARCEL_SHIPMENT_ID, ['notnull' => true])
             ->setPageSize(self::PAGE_SIZE)
             ->setOrder('order_id', 'DESC');
         MyParcelTracks::scopeCollection($trackCollection);

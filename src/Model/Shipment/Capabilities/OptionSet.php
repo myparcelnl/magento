@@ -29,6 +29,7 @@ final class OptionSet
         return new self($options);
     }
 
+    /** Whether capabilities offer the option. Takes the module name, not the wire key. */
     public function has(string $moduleOptionName): bool
     {
         return array_key_exists(ShipmentOption::toV2Name($moduleOptionName), $this->raw);
@@ -64,7 +65,7 @@ final class OptionSet
 
     /**
      * The companions the option needs, in module names. Single level: the caller must not follow a
-     * companion's own requires, see docs/design/capability-option-dependencies.md.
+     * companion's own requires, see docs/sdk-v11.md.
      *
      * @return string[]
      */

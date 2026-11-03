@@ -9,7 +9,7 @@ use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use RuntimeException;
 
 /**
- * Records which API keys the PPS cron polled, and answers each with a prepared collection — or
+ * Records which API keys the Order v1 cron polled, and answers each with a prepared collection — or
  * throws for the keys named in $failingKeys, to stand in for one unreachable account.
  */
 class RecordingUpdateStatus extends UpdateStatus
@@ -26,7 +26,7 @@ class RecordingUpdateStatus extends UpdateStatus
     /** @var array[] sales_order rows the selector would have returned */
     public array $orderRows = [];
 
-    /** Whether the PPS pass asked for the orders awaiting a barcode. */
+    /** Whether the Order v1 pass asked for the orders awaiting a barcode. */
     public bool $barcodePassRan = false;
 
     protected function ordersAwaitingBarcode(): array

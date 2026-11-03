@@ -136,7 +136,7 @@ it('only counts this module carrier tracks', function () {
 });
 
 /**
- * Runs execute() with nothing awaiting a barcode, so the PPS pass returns at once and only the
+ * Runs execute() with nothing awaiting a barcode, so the Order v1 pass returns at once and only the
  * status poll can reach the collection.
  *
  * @return array{0: RecordingUpdateStatus, 1: object} the cron, and whether updateMagentoTrack() was reached
@@ -203,7 +203,7 @@ function runCron(): array
 }
 
 it('runs the barcode pass and the status poll on every tick, whatever the accounts export', function () {
-    // An account that moved off order v1 still has PPS orders awaiting a barcode, and a PPS order
+    // An account that moved off order v1 still has Order v1 orders awaiting a barcode, and an Order v1 order
     // needs the poll after its barcode pass, or its myparcel_status stays where that pass left it.
     [$cron, $reached] = runCron();
 
