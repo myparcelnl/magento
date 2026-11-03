@@ -85,7 +85,7 @@ class PackageTypeResolver
                 $weight += $itemWeight * $itemQty;
             }
 
-            if ($digitalStamp && ! $this->attributeOf($item, 'digital_stamp')) {
+            if ($digitalStamp && ! $this->attributeOf($item, ProductAttributes::DIGITAL_STAMP)) {
                 $digitalStamp = false;
             }
 
@@ -94,7 +94,7 @@ class PackageTypeResolver
             }
 
             // No row means the attribute's own default, which UpgradeData sets to -1.
-            $mailboxQty = $this->attributeOf($item, 'fit_in_mailbox') ?? -1;
+            $mailboxQty = $this->attributeOf($item, ProductAttributes::FIT_IN_MAILBOX) ?? -1;
 
             if (-1 === $mailboxQty) {
                 $percentage = 101;
