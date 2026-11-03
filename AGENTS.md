@@ -58,7 +58,7 @@ Magento order -> Adapter -> SDK consignment -> MyParcel API
 
 ### REST API (`src/Model/Rest/`)
 
-A new versioned endpoint has an interface in `Api/`, an endpoint class that extends `AbstractEndpoint`, one request and one resource class per version, and entries in `etc/webapi.xml` and `etc/di.xml`. Versions come from the `Content-Type` and `Accept` headers, see [ADR-0011](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md). Errors are RFC 9457 `ProblemDetails`.
+A new versioned endpoint has an interface in `src/Api/`, an endpoint class that extends `AbstractEndpoint`, one request and one resource class per version, and entries in `etc/webapi.xml` and `etc/di.xml`. Versions come from the `Content-Type` and `Accept` headers, see [ADR-0011](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0011-api-versioning-via-headers.md). Errors are RFC 9457 `ProblemDetails`.
 
 The response plugins are in `src/Plugin/Magento/Framework/Webapi/Rest/Response/`.
 
