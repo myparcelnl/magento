@@ -193,24 +193,24 @@ class Checkout
         $carrierPaths   = Config::CARRIERS_XML_PATH_MAP;
         $showTotalPrice = $this->config->getConfigValue(Config::XML_PATH_GENERAL . 'shipping_methods/delivery_options_prices') === PriceDeliveryOptionsView::TOTAL;
 
-        $quote = $this->quote;
-        $caps  = $this->getCapabilities($country, $packageType);
+        $quote        = $this->quote;
+        $capabilities = $this->getCapabilities($country, $packageType);
 
         foreach ($activeCarriers as $carrierName) {
             $carrierPath = $carrierPaths[$carrierName];
             $basePrice   = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country);
 
-            $canHaveSameDay          = $caps->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
-            $canHaveMorning          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::MORNING_NAME);
-            $canHaveEvening          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::EVENING_NAME);
-            $canHaveExpress          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::EXPRESS_NAME);
-            $canHavePickup           = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::PICKUP_NAME);
-            $canHaveSignature        = $caps->hasOption($carrierName, $packageType, ShipmentOption::SIGNATURE);
-            $canHaveCollect          = $caps->hasOption($carrierName, $packageType, ShipmentOption::COLLECT);
-            $canHaveReceiptCode      = $caps->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
-            $canHavePriorityDelivery = $caps->hasOption($carrierName, $packageType, ShipmentOption::PRIORITY_DELIVERY);
-            $canHaveOnlyRecipient    = $caps->hasOption($carrierName, $packageType, ShipmentOption::ONLY_RECIPIENT);
-            $canHaveAgeCheck         = $caps->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
+            $canHaveSameDay          = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
+            $canHaveMorning          = $capabilities->hasDeliveryType($carrierName, $packageType, DeliveryType::MORNING_NAME);
+            $canHaveEvening          = $capabilities->hasDeliveryType($carrierName, $packageType, DeliveryType::EVENING_NAME);
+            $canHaveExpress          = $capabilities->hasDeliveryType($carrierName, $packageType, DeliveryType::EXPRESS_NAME);
+            $canHavePickup           = $capabilities->hasDeliveryType($carrierName, $packageType, DeliveryType::PICKUP_NAME);
+            $canHaveSignature        = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::SIGNATURE);
+            $canHaveCollect          = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::COLLECT);
+            $canHaveReceiptCode      = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
+            $canHavePriorityDelivery = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::PRIORITY_DELIVERY);
+            $canHaveOnlyRecipient    = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::ONLY_RECIPIENT);
+            $canHaveAgeCheck         = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::AGE_CHECK);
             // Monday delivery is not a capability the API reports, so configuration alone decides.
             // Offering it and letting the API refuse beats hiding a feature the merchant pays for.
             $canHaveMonday           = true;
@@ -234,9 +234,9 @@ class Checkout
             $allowExpressDelivery  = $canHaveExpress && $this->config->getBoolConfig($carrierPath, 'express/active');
             // One package type serves the whole checkout, so a type another carrier can carry a
             // forced option on still reaches this one. Not offering it beats offering a method
-            // that fails at export. $caps is already narrowed to $packageType, so this is free.
+            // that fails at export. $capabilities is already narrowed to $packageType, so this is free.
             $canCarryForced        = $this->canCarry(
-                $caps,
+                $capabilities,
                 $carrierName,
                 $packageType,
                 $this->package->forcedLimitingOptions($quote->getAllItems(), $carrierPath)
@@ -425,14 +425,14 @@ class Checkout
     {
         // The package-type-agnostic question: this method is what decides the package type, so
         // there is none to narrow by yet.
-        $caps = $this->getCapabilities($country);
+        $capabilities = $this->getCapabilities($country);
 
         $carrierPath         = Config::CARRIERS_XML_PATH_MAP[$carrierName];
         $products            = $this->quote->getAllItems();
         $forced              = $this->package->forcedLimitingOptions($products, $carrierPath);
-        $canHaveDigitalStamp = $this->isPackageTypeCandidate($caps, $carrierName, $country, PackageType::DIGITAL_STAMP_NAME, $forced);
-        $canHaveMailbox      = $this->isPackageTypeCandidate($caps, $carrierName, $country, PackageType::MAILBOX_NAME, $forced);
-        $canHavePackageSmall = $this->isPackageTypeCandidate($caps, $carrierName, $country, PackageType::PACKAGE_SMALL_NAME, $forced);
+        $canHaveDigitalStamp = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, PackageType::DIGITAL_STAMP_NAME, $forced);
+        $canHaveMailbox      = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, PackageType::MAILBOX_NAME, $forced);
+        $canHavePackageSmall = $this->isPackageTypeCandidate($capabilities, $carrierName, $country, PackageType::PACKAGE_SMALL_NAME, $forced);
 
         $this->package->setMailboxSettings($carrierPath);
         $this->package->setDigitalStampSettings($carrierPath);
@@ -466,20 +466,20 @@ class Checkout
      * @param string[] $forcedOptions
      */
     private function isPackageTypeCandidate(
-        CapabilitySet $caps,
+        CapabilitySet $capabilities,
         string        $carrierName,
         string        $country,
         string        $packageType,
         array         $forcedOptions
     ): bool
     {
-        if (! $caps->hasPackageType($carrierName, $packageType)) {
+        if (! $capabilities->hasPackageType($carrierName, $packageType)) {
             return false;
         }
 
         // A permissive set means the service could not be reached; the narrowed call would fail the
         // same way, so ask nothing and restrict nothing.
-        if (! $forcedOptions || $caps->isPermissive()) {
+        if (! $forcedOptions || $capabilities->isPermissive()) {
             return true;
         }
 
@@ -497,10 +497,10 @@ class Checkout
      *
      * @param string[] $options
      */
-    private function canCarry(CapabilitySet $caps, string $carrierName, string $packageType, array $options): bool
+    private function canCarry(CapabilitySet $capabilities, string $carrierName, string $packageType, array $options): bool
     {
         foreach ($options as $option) {
-            if (! $caps->hasOption($carrierName, $packageType, $option)) {
+            if (! $capabilities->hasOption($carrierName, $packageType, $option)) {
                 return false;
             }
         }
