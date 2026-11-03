@@ -74,7 +74,7 @@ class CartShippingRules
             }
 
             foreach ($items as $item) {
-                if ((bool) $this->attributeOf($item, 'exclude_parcel_lockers')) {
+                if ((bool) $this->attributeOf($item, ProductAttributes::EXCLUDE_PARCEL_LOCKERS)) {
                     return true;
                 }
             }
@@ -97,7 +97,7 @@ class CartShippingRules
         $this->warmAttributes($items);
 
         foreach ($items as $item) {
-            if ((bool) $this->attributeOf($item, 'priority_delivery')) {
+            if ((bool) $this->attributeOf($item, ProductAttributes::PRIORITY_DELIVERY)) {
                 return true;
             }
         }
@@ -118,7 +118,7 @@ class CartShippingRules
         $this->warmAttributes($items);
 
         foreach ($items as $item) {
-            if ((bool) $this->attributeOf($item, 'disable_checkout')) {
+            if ((bool) $this->attributeOf($item, ProductAttributes::DISABLE_CHECKOUT)) {
                 return true;
             }
         }
@@ -138,7 +138,7 @@ class CartShippingRules
         $highest = null;
 
         foreach ($items as $item) {
-            $delay = $this->attributeOf($item, 'dropoff_delay');
+            $delay = $this->attributeOf($item, ProductAttributes::DROPOFF_DELAY);
 
             if ($delay > $highest) {
                 $highest = $delay;

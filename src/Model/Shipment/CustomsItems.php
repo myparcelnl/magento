@@ -82,8 +82,8 @@ class CustomsItems
         }
 
         $productIds      = array_values(array_unique($productIds));
-        $classifications = $this->attributes()->column($productIds, 'classification');
-        $references      = $this->attributes()->column($productIds, 'external_product_reference');
+        $classifications = $this->attributes()->column($productIds, ProductAttributes::CLASSIFICATION);
+        $references      = $this->attributes()->column($productIds, ProductAttributes::EXTERNAL_PRODUCT_REFERENCE);
         $countries       = $productIds ? $this->manufacturingCountriesFor($productIds) : [];
         $fallback        = (string) $this->config->getGeneralConfig('print/country_of_origin', $storeId)
             ?: $this->objectManager->get(StoredAccount::class)->homeCountryForStore($storeId);
