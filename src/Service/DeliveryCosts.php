@@ -28,15 +28,16 @@ class DeliveryCosts
      * Distribute points in a way that the most specific condition has the most points, and less specific conditions
      * cannot override more specific conditions.
      *
-     * Every condition a rule names must be met, or the rule is ruled out. A rule without conditions is the
-     * merchant's default, and without any rule left the carrier's shipping cost applies.
+     * The country conditions outrank all others together, so the price of a country changes only through a rule for
+     * that country. Every condition a rule names must be met, or the rule is ruled out. A rule without conditions is
+     * the merchant's default, and without any rule left the carrier's shipping cost applies.
      */
     private const CONDITIONS = [
-        'delivery_type'        => 256,
-        'minimum_order_amount' => 128,
-        'maximum_order_amount' => 64,
-        'country'              => 32,
-        'country_part_of'      => 16,
+        'country'              => 256,
+        'country_part_of'      => 128,
+        'delivery_type'        => 64,
+        'minimum_order_amount' => 32,
+        'maximum_order_amount' => 16,
         'package_type'         => 8,
         'carrier_name'         => 4,
         'maximum_weight'       => 2,

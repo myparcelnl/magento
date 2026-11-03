@@ -28,8 +28,12 @@ function flowConfig(bool $totalView): Config
 {
     $matrix = [
         ['name' => 'Base', 'price' => 6.95, 'conditions' => [['type' => 'country', 'value' => 'NL']]],
-        ['name' => 'Free pickup', 'price' => 0, 'conditions' => [['type' => 'delivery_type', 'value' => 'pickup']]],
+        ['name' => 'Free pickup', 'price' => 0, 'conditions' => [
+            ['type' => 'country', 'value' => 'NL'],
+            ['type' => 'delivery_type', 'value' => 'pickup'],
+        ]],
         ['name' => 'Home delivery from 50', 'price' => 1, 'conditions' => [
+            ['type' => 'country', 'value' => 'NL'],
             ['type' => 'minimum_order_amount', 'value' => 50],
             ['type' => 'delivery_type', 'value' => 'standard'],
         ]],
