@@ -818,7 +818,9 @@ class UpgradeData implements UpgradeDataInterface
                     continue;
                 }
 
-                foreach (Config::CARRIERS_XML_PATH_MAP as $carrierName => $carrierPath) {
+                // The carriers that had these per-carrier date rows; a later carrier never stored one.
+                foreach (['postnl', 'dhlforyou', 'dhleuroplus', 'dhlparcelconnect', 'upsstandard', 'dpd', 'gls', 'trunkrs'] as $carrierName) {
+                    $carrierPath = Config::carrierPath($carrierName);
                     echo "\nMigrating $carrierName for scope $scope ($scopeId)";
                     /**
                      * update the carrier specific date settings to a single setting for later

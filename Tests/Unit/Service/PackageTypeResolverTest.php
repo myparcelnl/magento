@@ -7,7 +7,7 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\PackageTypeResolver;
-use MyParcelNL\Magento\Service\PostnlMailboxInternational;
+use MyParcelNL\Magento\Service\MailboxInternational;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
@@ -43,9 +43,11 @@ function runPackageTypeCaseOnResolver(array $case): string
     $carrierPath = packageTypeCarrierPath($case['carrier']);
     $config      = packageTypeConfigFor($map);
 
-    $postnl = Mockery::mock(PostnlMailboxInternational::class);
-    $postnl->shouldReceive('isEnabled')
-           ->andReturn((bool) ($case['account']['postnl_mailbox_international'] ?? false));
+    // The cases name PostNL's flag, so only PostNL answers yes.
+    $postnl = Mockery::mock(MailboxInternational::class);
+    $postnl->shouldReceive('isEnabledFor')->andReturnUsing(static function (string $carrier) use ($case): bool {
+        return 'postnl' === $carrier && (bool) ($case['account']['postnl_mailbox_international'] ?? false);
+    });
 
     $resolver = new PackageTypeResolver(
         $config,
@@ -93,7 +95,7 @@ it('sums the cart weight without consulting any configuration', function () {
         packageTypeConfigFor([]),
         productAttributesFor([]),
         new Weight(packageTypeConfigFor([])),
-        Mockery::mock(PostnlMailboxInternational::class)
+        Mockery::mock(MailboxInternational::class)
     );
 
     $items = [quoteItemFor(1, 2.0, 1.5), quoteItemFor(2, 0.0, 99.0), quoteItemFor(3, 1.0, 0.0)];
