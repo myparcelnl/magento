@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\ViewModel;
 
+use BadMethodCallException;
+use InvalidArgumentException;
 use Magento\Framework\View\Element\Block\ArgumentInterface;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
+use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Block\Sales\NewShipmentForm;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
@@ -23,7 +26,7 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
-use MyParcelNL\Magento\Service\Dating;
+use MyParcelNL\Magento\Service\ShipmentOptions\DeliveryList;
 use MyParcelNL\Magento\Service\Weight;
 
 /**
@@ -43,7 +46,6 @@ class ShipmentOptionsForm implements ArgumentInterface
     private ContractDefinitions $contractDefinitions;
     private Weight              $weightService;
     private StoredAccount       $storedAccount;
-    private Dating              $dating;
     private bool                $bulk = false;
 
     public function __construct(
@@ -52,7 +54,6 @@ class ShipmentOptionsForm implements ArgumentInterface
         ContractDefinitions    $contractDefinitions,
         Weight                 $weightService,
         StoredAccount          $storedAccount,
-        Dating                 $dating,
         bool                   $bulk = false
     ) {
         $this->order               = $order;
@@ -62,7 +63,6 @@ class ShipmentOptionsForm implements ArgumentInterface
         $this->defaultOptions      = new DefaultOptions($order);
         $this->weightService       = $weightService;
         $this->storedAccount       = $storedAccount;
-        $this->dating              = $dating;
         $this->bulk                = $bulk;
     }
 
@@ -155,11 +155,6 @@ class ShipmentOptionsForm implements ArgumentInterface
         return null === $error || '' === $error ? null : (string) $error;
     }
 
-    public function isPickup(): bool
-    {
-        return DeliveryType::PICKUP_NAME === $this->storedDeliveryTypeName();
-    }
-
     /**
      * Null means the order carries a delivery type we do not recognise, so callers withhold
      * anything that depends on it rather than guessing. Absent is different: no stored type means
@@ -199,12 +194,6 @@ class ShipmentOptionsForm implements ArgumentInterface
         $timestamp = '' === $date ? false : strtotime($date);
 
         return false === $timestamp ? null : date('Y-m-d', $timestamp);
-    }
-
-    /** The earliest date the form offers: the export moves an earlier one to tomorrow anyway. */
-    public function getEarliestDeliveryDate(): string
-    {
-        return $this->dating->tomorrow($this->order);
     }
 
     /** @return array<string,int> the length, width and height in cm saved on the order, only the ones set */
@@ -302,18 +291,6 @@ class ShipmentOptionsForm implements ArgumentInterface
 
     public function hasShipmentOption(string $carrier, string $packageType, string $shipmentOption): bool
     {
-        // getDeliveryType() answers null for a stored type the module does not know, and
-        // allowedForDeliveryType() reads that as standard, so name it explicitly instead. In bulk
-        // each order has its own delivery type, so the save decides instead.
-        if (! $this->bulk) {
-            $deliveryTypeId = $this->getDeliveryType();
-            $deliveryType   = null === $deliveryTypeId ? 'unknown' : DeliveryType::nameFromIdOrNull($deliveryTypeId);
-
-            if (! ShipmentOption::allowedForDeliveryType($shipmentOption, $deliveryType)) {
-                return false;
-            }
-        }
-
         return $this->getCapabilities($packageType)->hasOption($carrier, $packageType, $shipmentOption);
     }
 
@@ -345,6 +322,183 @@ class ShipmentOptionsForm implements ArgumentInterface
         }
 
         return $dropped;
+    }
+
+    /**
+     * The options of a block that are on: the stored or default ones, and the ones the contract
+     * makes compulsory. The modal sends these to capabilities as a filter.
+     *
+     * @return string[]
+     */
+    public function tickedOptions(string $carrier, string $packageType): array
+    {
+        return array_values(array_filter(
+            $this->getShipmentOptions($carrier, $packageType),
+            fn(string $option): bool => $this->hasDefaultOption($option, $carrier)
+                                        || $this->isLocked($option, $carrier, $packageType)
+        ));
+    }
+
+    /**
+     * Per option of the block: on, changeable, and greyed out when the carrier offers it for the
+     * package type but not with this delivery type and these ticked options. When emptyAnswer(),
+     * the answer without options decides instead.
+     *
+     * @param string[] $ticked
+     *
+     * @return array<string,array{checked:bool,disabled:bool,greyed:bool}>
+     */
+    public function optionStates(string $carrier, string $packageType, string $deliveryType, array $ticked): array
+    {
+        $answer = $this->selectionCapabilities(
+            $packageType,
+            $deliveryType,
+            $this->emptyAnswer($carrier, $packageType, $deliveryType, $ticked) ? [] : $ticked
+        );
+        $states = [];
+
+        foreach ($this->getShipmentOptions($carrier, $packageType) as $option) {
+            $offered = $answer->hasOption($carrier, $packageType, $option);
+
+            $states[$option] = [
+                'checked'  => $offered && in_array($option, $ticked, true),
+                'disabled' => ! $offered || $this->isLocked($option, $carrier, $packageType),
+                'greyed'   => ! $offered,
+            ];
+        }
+
+        return $states;
+    }
+
+    /**
+     * The states before the modal's first refresh: on when default or locked, nothing greyed. It
+     * asks no capabilities per delivery type, so opening the form costs no extra request per block.
+     *
+     * @return array<string,array{checked:bool,disabled:bool,greyed:bool}>
+     */
+    public function initialOptionStates(string $carrier, string $packageType): array
+    {
+        $ticked = $this->tickedOptions($carrier, $packageType);
+        $states = [];
+
+        foreach ($this->getShipmentOptions($carrier, $packageType) as $option) {
+            $states[$option] = [
+                'checked'  => in_array($option, $ticked, true),
+                'disabled' => $this->isLocked($option, $carrier, $packageType),
+                'greyed'   => false,
+            ];
+        }
+
+        return $states;
+    }
+
+    /**
+     * Whether capabilities have no result for the carrier with these ticked options. The lookup is
+     * memoised, so optionStates() asking the same question again costs no request.
+     *
+     * @param string[] $ticked
+     */
+    public function emptyAnswer(string $carrier, string $packageType, string $deliveryType, array $ticked): bool
+    {
+        $answer = $this->selectionCapabilities($packageType, $deliveryType, $ticked);
+
+        return ! $answer->isPermissive() && ! in_array($carrier, $answer->carriers(), true);
+    }
+
+    /**
+     * The delivery types capabilities allow with the ticked options. Every type the modal offers
+     * while capabilities are unknown.
+     *
+     * @param string[] $ticked
+     *
+     * @return string[] module delivery type names
+     */
+    public function allowedDeliveryTypes(string $carrier, string $packageType, array $ticked): array
+    {
+        $answer = $this->selectionCapabilities($packageType, null, $ticked);
+
+        if ($answer->isPermissive()) {
+            return array_merge(DeliveryList::CHOOSABLE, [DeliveryType::PICKUP_NAME]);
+        }
+
+        return $answer->deliveryTypesFor($carrier, $packageType);
+    }
+
+    /** @return array<string,string[]> per option of the block, the options capabilities say it requires */
+    public function requiresMap(string $carrier, string $packageType): array
+    {
+        $requires = [];
+
+        foreach ($this->getShipmentOptions($carrier, $packageType) as $option) {
+            $required = $this->getCapabilities($packageType)->requiresFor($carrier, $packageType, $option);
+
+            if ([] !== $required) {
+                $requires[$option] = $required;
+            }
+        }
+
+        return $requires;
+    }
+
+    /** The stored delivery as a DeliveryList value; "Standard, no date" when none is stored. */
+    public function storedDeliveryValue(): string
+    {
+        return DeliveryList::valueOf($this->storedDeliveryTypeName(), $this->getDeliveryDate())
+               ?? DeliveryList::STANDARD_VALUE;
+    }
+
+    /** The stored delivery options; a pickup without a readable location counts as a home delivery. */
+    public function storedDelivery(): DeliveryOptions
+    {
+        try {
+            return DeliveryOptionsFactory::create($this->stored());
+        } catch (InvalidArgumentException $e) {
+            return DeliveryOptions::fromOrderFallback(DeliveryOptions::asHomeDelivery($this->stored()));
+        } catch (BadMethodCallException $e) {
+            return DeliveryOptions::fromOrderFallback($this->stored());
+        }
+    }
+
+    public function storedPickupLocationCode(): ?string
+    {
+        $code = $this->stored()['pickupLocation']['location_code'] ?? null;
+
+        return null === $code || '' === $code ? null : (string) $code;
+    }
+
+    /** The stored delivery in one line, for the New Shipment summary. */
+    public function deliverySummary(): string
+    {
+        $type = $this->storedDeliveryTypeName() ?? DeliveryType::STANDARD_NAME;
+
+        if (DeliveryType::PICKUP_NAME === $type) {
+            return DeliveryList::labelFor($type) . ' · ' . (string) ($this->stored()['pickupLocation']['location_name'] ?? '');
+        }
+
+        $date = $this->getDeliveryDate();
+
+        return DeliveryList::labelFor($type) . (null === $date ? '' : ' · ' . date('d-m-Y', (int) strtotime($date)));
+    }
+
+    /**
+     * What capabilities allow for this selection. In bulk the orders differ, so the contract answers.
+     *
+     * @param string[] $ticked
+     */
+    private function selectionCapabilities(string $packageType, ?string $deliveryType, array $ticked): CapabilitySet
+    {
+        if ($this->bulk) {
+            return $this->getCapabilities($packageType);
+        }
+
+        return $this->capabilityLookup->forShape(
+            (int) $this->order->getStoreId(),
+            $this->getCountry(),
+            $packageType,
+            null,
+            $deliveryType,
+            $ticked
+        );
     }
 
     /**
@@ -534,8 +688,7 @@ class ShipmentOptionsForm implements ArgumentInterface
 
         $summary[(string) __('Label amount:')] = (string) $this->getLabelAmount();
 
-        $date = $this->getDeliveryDate();
-        $summary[(string) __('Delivery date')] = null === $date ? (string) __('None') : date('d-m-Y', (int) strtotime($date));
+        $summary[(string) __('Delivery')] = $this->deliverySummary();
 
         if ([] !== $this->getDimensions()) {
             $summary[(string) __('Dimensions (cm)')] = implode(' x ', $this->getDimensions());
