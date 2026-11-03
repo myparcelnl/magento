@@ -19,13 +19,8 @@ class DeliveryCosts
     private Config $config;
     private Tax    $tax;
 
-    /**
-     * One request prices several delivery types for several carriers over the same quote, so the amounts summed
-     * from the items are kept per quote (keyed by object id) and the matrix is decoded once per JSON value.
-     */
-    private array $orderAmountPerQuote   = [];
-    private array $weightInGramsPerQuote = [];
-    private array $matrixPerJson         = [];
+    /** Decoded once per JSON value, the checkout reads the matrix for every delivery type of every carrier. */
+    private array $matrixPerJson = [];
 
     /**
      * The points will be added to the total points for each condition that is met.
@@ -33,9 +28,8 @@ class DeliveryCosts
      * Distribute points in a way that the most specific condition has the most points, and less specific conditions
      * cannot override more specific conditions.
      *
-     * The order amount and delivery type conditions outrank all others together, so a rule holding one of them wins
-     * from a rule without it. Unlike the others they also rule a definition out when not met: a free shipping
-     * threshold or a pickup price must never reach an order below the threshold or a home delivery.
+     * Every condition a rule names must be met, or the rule is ruled out. A rule without conditions is the
+     * merchant's default, and without any rule left the carrier's shipping cost applies.
      */
     private const CONDITIONS = [
         'delivery_type'        => 256,
@@ -52,9 +46,6 @@ class DeliveryCosts
     /** The quote values every calculate() call must supply, see getBasePrice(). */
     private const REQUIRED_CONDITIONS = ['carrier_name', 'package_type', 'country', 'weight', 'order_amount', 'delivery_type'];
 
-    /** Not met, these rule a definition out instead of scoring 0, see self::CONDITIONS. */
-    private const EXCLUDING_CONDITIONS = ['delivery_type', 'minimum_order_amount', 'maximum_order_amount'];
-
     public function __construct(Weight $weight, Config $config, Tax $tax)
     {
         $this->weight = $weight;
@@ -70,12 +61,13 @@ class DeliveryCosts
      * @param string|null $packageTypeName override package type from quote if you want
      * @param string|null $countryCode override country from quote->shippingAddress if you want
      * @param string|null $deliveryTypeName the delivery type to price, standard when null
+     * @param float|null  $orderAmount see getOrderAmount(), computed from the quote when null
      * @return float
      * @uses DeliveryCosts::getBasePrice()
      */
-    public function getBasePriceForClient(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null, ?string $deliveryTypeName = null): float
+    public function getBasePriceForClient(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null, ?string $deliveryTypeName = null, ?float $orderAmount = null): float
     {
-        $price = $this->getBasePrice($quote, $carrierName, $packageTypeName, $countryCode, $deliveryTypeName);
+        $price = $this->getBasePrice($quote, $carrierName, $packageTypeName, $countryCode, $deliveryTypeName, $orderAmount);
 
         return $this->tax->shippingPrice($price, $quote);
     }
@@ -88,9 +80,10 @@ class DeliveryCosts
      * @param string|null $packageTypeName override package type from quote if you want
      * @param string|null $countryCode override country from quote->shippingAddress if you want
      * @param string|null $deliveryTypeName the delivery type to price, standard when null
+     * @param float|null  $orderAmount see getOrderAmount(), computed from the quote when null
      * @return float
      */
-    public function getBasePrice(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null, ?string $deliveryTypeName = null): float
+    public function getBasePrice(Quote $quote, ?string $carrierName = null, ?string $packageTypeName = null, ?string $countryCode = null, ?string $deliveryTypeName = null, ?float $orderAmount = null): float
     {
         if ($this->config->getGeneralConfig('matrix/use_free_shipping')
             && $this->isFreeShippingAvailable()
@@ -103,7 +96,7 @@ class DeliveryCosts
         $packageType = PackageType::NAMES_IDS_MAP[$packageTypeName] ?? $defaultOptions->getPackageType();
         $countryCode = $countryCode ?? $quote->getShippingAddress()->getCountryId() ?? CountryCode::CC_NL;
         $weight      = $this->weight->getEmptyPackageWeightInGrams($packageType)
-                       + ($this->weightInGramsPerQuote[spl_object_id($quote)] ??= $this->weight->getQuoteWeightInGrams($quote));
+                       + $this->weight->getQuoteWeightInGrams($quote);
 
         return $this->calculate(
             [
@@ -111,7 +104,7 @@ class DeliveryCosts
                 'package_type'  => $packageType,
                 'country'       => $countryCode,
                 'weight'        => $weight,
-                'order_amount'  => $this->getOrderAmount($quote),
+                'order_amount'  => $orderAmount ?? $this->getOrderAmount($quote),
                 'delivery_type' => $deliveryTypeName ?? DeliveryType::DEFAULT_NAME,
             ]
         );
@@ -119,19 +112,10 @@ class DeliveryCosts
 
     /**
      * The amount the order amount conditions compare: the subtotal after discount, including tax, in the currency of
-     * the store view. Shipping and its discount are no part of it. Computed once per quote: the items do not change
-     * between the delivery type lookups of one request.
+     * the store view. Shipping and its discount are no part of it. Summed from the items, whose totals (subtotal,
+     * subtotal including tax and discount) Magento collects before it collects the shipping rates.
      */
-    private function getOrderAmount(Quote $quote): float
-    {
-        return $this->orderAmountPerQuote[spl_object_id($quote)] ??= $this->computeOrderAmount($quote);
-    }
-
-    /**
-     * Summed from the items, whose totals (subtotal, subtotal including tax and discount) Magento collects
-     * before it collects the shipping rates.
-     */
-    private function computeOrderAmount(Quote $quote): float
+    public function getOrderAmount(Quote $quote): float
     {
         // the item discount excludes tax, unless Magento applies discounts on prices including tax
         $discountIncludesTax = $this->tax->discountIncludesTax($quote);
@@ -187,37 +171,22 @@ class DeliveryCosts
                 continue;
             }
 
-            // Weigh this option (definition) by the hierarchy points of the conditions it meets.
-            $totalPoints = 0;
-            foreach (self::CONDITIONS as $condition => $points) {
-                if ('unspecified' === $condition) {
-                    continue;
-                }
+            $totalPoints = $this->scoreDefinition($conditions, $definedConditions);
 
-                $score = $this->scoreCondition($condition, $conditions, $definedConditions);
-
-                if (0 === $score && in_array($condition, self::EXCLUDING_CONDITIONS, true)) {
-                    continue 2;
-                }
-
-                $totalPoints += $score;
+            if (null === $totalPoints) {
+                continue;
             }
 
-            // the tightest met thresholds of this definition, for the tie-break in the sort below
-            $minimum     = -INF;
-            $maximum     = INF;
-            $orderAmount = (float) $conditions['order_amount'];
+            // the tightest thresholds of this definition, all met, for the tie-break in the sort below
+            $minimum = -INF;
+            $maximum = INF;
             foreach ($definedConditions as $definedCondition) {
-                $type  = $definedCondition['type'] ?? '';
-                $value = $definedCondition['value'] ?? '';
-                if (! is_numeric($value)) {
-                    continue;
+                $value = (float) ($definedCondition['value'] ?? 0);
+                if ('minimum_order_amount' === ($definedCondition['type'] ?? '')) {
+                    $minimum = max($minimum, $value);
                 }
-                if ('minimum_order_amount' === $type && $orderAmount >= (float) $value) {
-                    $minimum = max($minimum, (float) $value);
-                }
-                if ('maximum_order_amount' === $type && $orderAmount < (float) $value) {
-                    $maximum = min($maximum, (float) $value);
+                if ('maximum_order_amount' === ($definedCondition['type'] ?? '')) {
+                    $maximum = min($maximum, $value);
                 }
             }
 
@@ -244,7 +213,35 @@ class DeliveryCosts
     }
 
     /**
-     * Score one condition of the quote against the defined conditions in the matrix.
+     * Adds the points of every condition of a definition, see self::CONDITIONS.
+     *
+     * @param array $conditions actual conditions from the quote
+     * @param array $definedConditions from the matrix
+     * @return int|null null when a condition of the definition is not met
+     */
+    private function scoreDefinition(array $conditions, array $definedConditions): ?int
+    {
+        $totalPoints = 0;
+        foreach (array_keys(self::CONDITIONS) as $condition) {
+            if ('unspecified' === $condition) {
+                continue;
+            }
+
+            $score = $this->scoreCondition($condition, $conditions, $definedConditions);
+
+            if (0 === $score) {
+                return null;
+            }
+
+            $totalPoints += $score;
+        }
+
+        return $totalPoints;
+    }
+
+    /**
+     * Scores a specific condition against the defined conditions in the matrix, using the actual conditions from the quote.
+     * Several conditions of one type match when one of them matches, except the order amounts: a rule must meet each.
      *
      * @param string $condition the name of the condition from self::CONDITIONS
      * @param array  $conditions actual conditions from the quote
@@ -266,16 +263,15 @@ class DeliveryCosts
             $value              = $definedCondition['value'] ?? '';
 
             switch ($condition) {
-                // an empty or non-numeric threshold is an unfinished rule: never met, so the excluding
-                // conditions rule the definition out instead of (float) '' making it match every order
+                // an empty or non-numeric threshold is an unfinished rule, never met, instead of (float) '' matching every order
                 case 'minimum_order_amount':
-                    if (is_numeric($value) && (float) $conditions['order_amount'] >= (float) $value) {
-                        return self::CONDITIONS[$condition];
+                    if (! is_numeric($value) || (float) $conditions['order_amount'] < (float) $value) {
+                        return 0;
                     }
                     break;
                 case 'maximum_order_amount':
-                    if (is_numeric($value) && (float) $conditions['order_amount'] < (float) $value) {
-                        return self::CONDITIONS[$condition];
+                    if (! is_numeric($value) || (float) $conditions['order_amount'] >= (float) $value) {
+                        return 0;
                     }
                     break;
                 case 'maximum_weight':
@@ -299,6 +295,11 @@ class DeliveryCosts
         // consider unspecified conditions as valid
         if (! $conditionIsChecked) {
             return self::CONDITIONS['unspecified'];
+        }
+
+        // every order amount threshold was met
+        if (in_array($condition, ['minimum_order_amount', 'maximum_order_amount'], true)) {
+            return self::CONDITIONS[$condition];
         }
 
         // condition was checked, but not met

@@ -226,6 +226,8 @@ class Checkout
         $quote           = $this->quote;
         $items           = $quote->getAllItems();
         $hidesForProduct = $this->cartRules->hidesDeliveryOptions($items);
+        // once per request: every delivery type of every carrier compares the same amount
+        $orderAmount     = $this->deliveryCosts->getOrderAmount($quote);
 
         foreach ($activeCarriers as $carrierName) {
             $carrierPath  = Config::carrierPath($carrierName);
@@ -240,7 +242,7 @@ class Checkout
 
             // the matrix can price each delivery type differently, the fees come on top of that
             foreach (DeliveryType::pricedPerTypeNames() as $deliveryType) {
-                $basePrices[$deliveryType]          = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country, $deliveryType);
+                $basePrices[$deliveryType]          = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country, $deliveryType, $orderAmount);
                 $canHaveDeliveryType[$deliveryType] = DeliveryType::DEFAULT_NAME === $deliveryType
                                                       || $capabilities->hasDeliveryType($carrierName, $packageType, $deliveryType);
             }
