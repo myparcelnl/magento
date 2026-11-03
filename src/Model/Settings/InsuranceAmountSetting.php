@@ -34,14 +34,6 @@ final class InsuranceAmountSetting
             return null;
         }
 
-        // The path segment is not the carrier name — `ups` in a path is `upsstandard` — so the carrier
-        // comes from reversing the path map rather than from parsing the string.
-        foreach (Config::CARRIERS_XML_PATH_MAP as $carrierName => $pathPrefix) {
-            if (0 === strpos($path, $pathPrefix)) {
-                return $carrierName;
-            }
-        }
-
-        return null;
+        return Config::carrierFromPath($path);
     }
 }

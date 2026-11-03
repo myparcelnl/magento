@@ -36,6 +36,7 @@ use MyParcelNL\Magento\Setup\Migrations\FingerprintAccountSettingsPaths;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDisableCheckout;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceDpzRange;
 use MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows;
+use MyParcelNL\Magento\Setup\Migrations\RenameUpsSettingsPath;
 use MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox;
 use MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication;
 
@@ -122,6 +123,11 @@ class UpgradeData implements UpgradeDataInterface
     private $removePickupMailboxRows;
 
     /**
+     * @var \MyParcelNL\Magento\Setup\Migrations\RenameUpsSettingsPath
+     */
+    private $renameUpsSettingsPath;
+
+    /**
      * @param  \Magento\Catalog\Setup\CategorySetupFactory                     $categorySetupFactory
      * @param  \Magento\Eav\Setup\EavSetupFactory                              $eavSetupFactory
      * @param  \MyParcelNL\Magento\Setup\Migrations\ReplaceFitInMailbox    $replaceFitInMailbox
@@ -132,6 +138,7 @@ class UpgradeData implements UpgradeDataInterface
      * @param  \MyParcelNL\Magento\Setup\Migrations\ClassificationToVarchar $classificationToVarchar
      * @param  \MyParcelNL\Magento\Setup\Migrations\UnscopeWeightIndication $unscopeWeightIndication
      * @param  \MyParcelNL\Magento\Setup\Migrations\RemovePickupMailboxRows $removePickupMailboxRows
+     * @param  \MyParcelNL\Magento\Setup\Migrations\RenameUpsSettingsPath $renameUpsSettingsPath
      */
     public function __construct(
         \Magento\Catalog\Setup\CategorySetupFactory $categorySetupFactory,
@@ -143,7 +150,8 @@ class UpgradeData implements UpgradeDataInterface
         EnableCapabilitiesCache $enableCapabilitiesCache,
         ClassificationToVarchar $classificationToVarchar,
         UnscopeWeightIndication $unscopeWeightIndication,
-        RemovePickupMailboxRows $removePickupMailboxRows
+        RemovePickupMailboxRows $removePickupMailboxRows,
+        RenameUpsSettingsPath $renameUpsSettingsPath
     ) {
         $this->categorySetupFactory            = $categorySetupFactory;
         $this->eavSetupFactory                 = $eavSetupFactory;
@@ -155,6 +163,7 @@ class UpgradeData implements UpgradeDataInterface
         $this->classificationToVarchar         = $classificationToVarchar;
         $this->unscopeWeightIndication         = $unscopeWeightIndication;
         $this->removePickupMailboxRows         = $removePickupMailboxRows;
+        $this->renameUpsSettingsPath           = $renameUpsSettingsPath;
     }
 
     /**
@@ -1112,6 +1121,8 @@ class UpgradeData implements UpgradeDataInterface
             $this->enableCapabilitiesCache->run();
             $this->classificationToVarchar->run($eavSetup);
             $this->unscopeWeightIndication->run();
+            // Rename first: the removal reads the carrier map, which only knows the new UPS path.
+            $this->renameUpsSettingsPath->run();
             $this->removePickupMailboxRows->run();
         }
 

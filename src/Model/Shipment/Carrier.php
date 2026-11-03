@@ -63,6 +63,15 @@ final class Carrier
             self::TRUNKRS            => CountryCode::CC_NL,
         ];
 
+    /**
+     * The module name for any v2 carrier name. The rule reproduces every name in V2_NAMES_MAP; it is
+     * one-way, so toV2Name() cannot use it: `upsstandard` could have been `UPS_STANDARD` or `UPSSTANDARD`.
+     */
+    public static function fromV2Name(string $v2Name): string
+    {
+        return strtolower(str_replace('_', '', $v2Name));
+    }
+
     /** Falls back to NL, which is what every carrier but DPD answers and what the old code hardcoded. */
     public static function localCountryCodeFor(?string $name): string
     {
