@@ -237,6 +237,16 @@ it('keeps the capability cache when the api key did not change', function () {
     $result['caches']->shouldNotHaveReceived('cleanType');
 });
 
+it('trims the api key on save, the one place it is trimmed, and leaves a clean key alone', function () {
+    $result = saveDynamicSettings([API_KEY_PATH => ['value' => " new-key\n"]], [], [API_KEY_PATH => 'old-key']);
+
+    $result['writer']->shouldHaveReceived('save')->with(API_KEY_PATH, 'new-key');
+
+    $unchanged = saveDynamicSettings([API_KEY_PATH => ['value' => ' old-key ']], [], [API_KEY_PATH => 'old-key']);
+
+    $unchanged['writer']->shouldNotHaveReceived('save');
+});
+
 it('drops the capability cache when the api key changed', function () {
     $result = saveDynamicSettings(
         [API_KEY_PATH => ['value' => 'new-key']],

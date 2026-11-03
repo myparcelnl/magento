@@ -10,6 +10,7 @@ use Magento\Framework\App\Config\Scope\Converter;
 use Magento\Framework\App\DeploymentConfig;
 use Magento\Framework\DataObject;
 use MyParcelNL\Magento\Model\Settings\Blueprint\Generator;
+use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
@@ -82,7 +83,11 @@ class GeneratedDefaults implements ConfigSourceInterface
             return $defaults;
         }
 
-        return array_merge($defaults, Generator::for(CapabilitySet::fromContractDefinitionItems($items))->defaults());
+        // The default proposition has every insurance zone, so a Dutch account's Belgian cap has its default.
+        return array_merge(
+            $defaults,
+            Generator::for(CapabilitySet::fromContractDefinitionItems($items), [], Proposition::default())->defaults()
+        );
     }
 
     /**
@@ -94,7 +99,7 @@ class GeneratedDefaults implements ConfigSourceInterface
         $paths = [];
 
         foreach ($this->rows(['path' => Config::XML_PATH_API_KEY]) as $row) {
-            $apiKey = trim((string) $row->getData('value'));
+            $apiKey = (string) $row->getData('value');
 
             if ('' !== $apiKey) {
                 $paths[] = Config::XML_PATH_ACCOUNT_SETTINGS . $this->fingerprint->of($apiKey);

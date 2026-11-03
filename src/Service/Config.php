@@ -17,7 +17,6 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 class Config extends AbstractHelper
 {
     public const MODULE_NAME                        = 'MyParcelNL_Magento';
-    public const PLATFORM                           = 'myparcel';
     public const XML_PATH_MAGENTO_CARRIER           = 'carriers/' . Carrier::CODE . '/';
     public const XML_PATH_GENERAL                   = 'myparcelnl_magento_general/';
     public const XML_PATH_API_KEY                   = self::XML_PATH_GENERAL . 'api/key';
@@ -43,8 +42,6 @@ class Config extends AbstractHelper
     public const FIELD_DELIVERY_OPTIONS             = 'myparcel_delivery_options';
     public const FIELD_TRACK_STATUS                 = 'track_status';
     public const MYPARCEL_TRACK_TITLE               = 'MyParcel';
-    public const EXPORT_MODE_PPS                    = 'pps';
-    public const EXPORT_MODE_SHIPMENTS              = 'shipments';
 
     private const CARRIER_PATH_PREFIX = 'myparcelnl_magento_';
     private const CARRIER_PATH_SUFFIX = '_settings';
@@ -272,14 +269,6 @@ class Config extends AbstractHelper
         return 1 <= $size && $size <= self::MAX_EXPORT_CHUNK_SIZE
             ? $size
             : self::DEFAULT_EXPORT_CHUNK_SIZE;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getExportMode(): ?string
-    {
-        return $this->getGeneralConfig('print/export_mode');
     }
 
     /**

@@ -32,6 +32,9 @@ class AccountSettings extends BaseModel
     /** @var array<string, mixed> */
     private array $generalSettings = [];
 
+    /** @var string[]|null */
+    private ?array $features = null;
+
     /**
      * @var string $apiKey the api key (shop identifier) to get the account settings for
      */
@@ -69,6 +72,26 @@ class AccountSettings extends BaseModel
         $this->generalSettings = is_array($decoded['account']['general_settings'] ?? null)
             ? $decoded['account']['general_settings']
             : [];
+        $this->features        = self::featuresIn($decoded);
+    }
+
+    /**
+     * The `features` of a decoded row; null for a row stored before they were imported.
+     *
+     * @param  array<string, mixed> $decoded
+     * @return string[]|null
+     */
+    public static function featuresIn(array $decoded): ?array
+    {
+        return is_array($decoded['features'] ?? null)
+            ? array_values(array_filter($decoded['features'], 'is_string'))
+            : null;
+    }
+
+    /** @return string[]|null the account's IAM features; null for a row imported before they were stored */
+    public function getFeatures(): ?array
+    {
+        return $this->features;
     }
 
     /** @return array<string, mixed> the stored `account.general_settings`, empty for an unusable row */

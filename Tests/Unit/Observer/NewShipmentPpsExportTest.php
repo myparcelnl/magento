@@ -2,8 +2,15 @@
 
 declare(strict_types=1);
 
+use Magento\Framework\App\RequestInterface;
+use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Controller\Result\RedirectFactory;
+use Magento\Framework\DataObject;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Message\ManagerInterface;
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
 use MyParcelNL\Magento\Observer\NewShipment;
+use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 
 /**
  * PPS export from the New Shipment page. Magento saves $shipment->getOrder() once more after this
@@ -97,4 +104,38 @@ it('marks a PPS export exported rather than reading it off the tracks', function
     invokePrivateMethod($observer, 'updateTrackGrid', [$shipment, true]);
 
     expect($written['track_status'])->toBe(MyParcelNL\Magento\Cron\UpdateStatus::ORDER_STATUS_EXPORTED);
+});
+
+it('refuses the export with the import error, before it creates a track, when the account has no stored features', function () {
+    stubAccountSettingsReader([
+        settingsPathFor('old-row-key') => accountSettingsRow([], ['account' => ['id' => 6, 'proposition_id' => 1]]),
+    ]);
+
+    $request = Mockery::mock(RequestInterface::class);
+    $request->shouldReceive('getParam')->with('mypa_create_from_observer')->andReturn('1');
+    $request->shouldReceive('setParams');
+
+    // Exact text: any other failure in the export also ends as an error message.
+    $messages = Mockery::mock(ManagerInterface::class);
+    $messages->shouldReceive('addErrorMessage')->once()->with(StoredAccount::ERROR_FEATURES_UNKNOWN);
+    $messages->shouldReceive('hasMessages')->andReturnTrue();
+
+    $redirect = Mockery::mock(Redirect::class);
+    $redirect->shouldReceive('setPath')->once()->with('*/*/');
+    $redirectFactory = Mockery::mock(RedirectFactory::class, ['create' => $redirect]);
+
+    $shipment = createShipment(['getStoreId' => 4]);
+
+    $event = Mockery::mock(Observer::class);
+    $event->shouldReceive('getEvent')->andReturn(new DataObject(['shipment' => $shipment]));
+
+    $observer = newInstanceWithoutConstructor(NewShipment::class);
+    setPrivateProperty($observer, 'request', $request);
+    setPrivateProperty($observer, 'messageManager', $messages);
+    setPrivateProperty($observer, 'redirectFactory', $redirectFactory);
+    setPrivateProperty($observer, 'storedAccount', storedAccountForStores([4 => 'old-row-key']));
+    // Unstubbed: reading the options, the first step of an export, fails this test.
+    setPrivateProperty($observer, 'orderCollection', Mockery::mock(MagentoOrderCollection::class));
+
+    $observer->execute($event);
 });

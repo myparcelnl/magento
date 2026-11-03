@@ -98,15 +98,10 @@
             </argument>
         </arguments>
     </type>
-    <!-- Fallback track & trace url, used only for shipments stored before the module read the link
-         from the API. Keys are the API's platform ids: 1 myparcel, 2 flespakket, 3 belgie,
-         4 delivery_dutch, 5 postnl_customer, 6 italy. A platform not listed keeps the default. -->
-    <type name="MyParcelNL\Magento\Service\TrackTraceUrl">
+    <!-- A proxy: the importer's graph reaches the admin session, which setup:upgrade must not build unless the migration runs. -->
+    <type name="MyParcelNL\Magento\Setup\Migrations\ImportAccountSettings">
         <arguments>
-            <argument name="defaultBaseUrl" xsi:type="string">https://myparcel.me/track-trace/</argument>
-            <argument name="baseUrlsByPlatform" xsi:type="array">
-                <item name="3" xsi:type="string">https://sendmyparcel.me/track-trace/</item>
-            </argument>
+            <argument name="importer" xsi:type="object">MyParcelNL\Magento\Service\AccountSettings\Importer\Proxy</argument>
         </arguments>
     </type>
 </config>
