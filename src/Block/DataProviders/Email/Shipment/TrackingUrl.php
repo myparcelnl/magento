@@ -31,7 +31,7 @@ if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl'
 
             return TrackTraceUrl::create(
                 $track->getNumber(),
-                $order->getShippingAddress()->getPostcode(),
+                (string) $order->getShippingAddress()->getPostcode(),
                 $order->getShippingAddress()->getCountryId()
             );
         }
@@ -60,7 +60,7 @@ if (class_exists('\Magento\Sales\Block\DataProviders\Email\Shipment\TrackingUrl'
 
             return TrackTraceUrl::create(
                 $track->getNumber(),
-                $order->getShippingAddress()->getPostcode(),
+                (string) $order->getShippingAddress()->getPostcode(),
                 $order->getShippingAddress()->getCountryId()
             );
         }
