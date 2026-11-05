@@ -5,26 +5,27 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Rest\Transformer;
 
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\ShipmentOptions as OrderApiShipmentOptions;
+use MyParcelNL\Sdk\Services\Mapping\ShipmentOptionMapper;
 
 class ShipmentOptionsTransformer
 {
     /**
-     * Map of adapter boolean getter → Order API shipment-option snake_case key.
-     * The camelCase API field name is resolved via OrderApiShipmentOptions::attributeMap()
-     * so field renames in the SDK propagate automatically.
+     * Map of adapter boolean getter → module option name. ShipmentOptionMapper gives the API key
+     * and OrderApiShipmentOptions::attributeMap() its camelCase field, so SDK renames propagate.
      */
-    private const BOOLEAN_GETTER_TO_ORDER_API_KEY = [
-        'hasAgeCheck'         => 'requires_age_verification',
-        'hasSignature'        => 'requires_signature',
-        'hasOnlyRecipient'    => 'recipient_only_delivery',
-        'hasLargeFormat'      => 'oversized_package',
-        'hasReturn'           => 'print_return_label_at_drop_off',
-        'hasHideSender'       => 'hide_sender',
-        'hasPriorityDelivery' => 'priority_delivery',
-        'hasReceiptCode'      => 'requires_receipt_code',
-        'hasSameDayDelivery'  => 'same_day_delivery',
-        'hasCollect'          => 'scheduled_collection',
+    private const BOOLEAN_GETTER_TO_OPTION = [
+        'hasAgeCheck'         => ShipmentOption::AGE_CHECK,
+        'hasSignature'        => ShipmentOption::SIGNATURE,
+        'hasOnlyRecipient'    => ShipmentOption::ONLY_RECIPIENT,
+        'hasLargeFormat'      => ShipmentOption::LARGE_FORMAT,
+        'hasReturn'           => ShipmentOption::RETURN,
+        'hasHideSender'       => ShipmentOption::HIDE_SENDER,
+        'hasPriorityDelivery' => ShipmentOption::PRIORITY_DELIVERY,
+        'hasReceiptCode'      => ShipmentOption::RECEIPT_CODE,
+        'hasSameDayDelivery'  => ShipmentOption::SAME_DAY_DELIVERY,
+        'hasCollect'          => ShipmentOption::COLLECT,
     ];
 
     public function transform(?ShipmentOptions $shipmentOptions): ?\stdClass
@@ -34,14 +35,16 @@ class ShipmentOptionsTransformer
         }
 
         $attributeMap = OrderApiShipmentOptions::attributeMap();
+        $optionMapper = new ShipmentOptionMapper();
         $result = new \stdClass();
 
-        foreach (self::BOOLEAN_GETTER_TO_ORDER_API_KEY as $getter => $snakeKey) {
+        foreach (self::BOOLEAN_GETTER_TO_OPTION as $getter => $option) {
             if ($shipmentOptions->$getter() !== true) {
                 continue;
             }
 
-            $apiField = $this->resolveApiField($snakeKey, $attributeMap);
+            $snakeKey = $optionMapper->v2PropertyFromName($option);
+            $apiField = $snakeKey === null ? null : $this->resolveApiField($snakeKey, $attributeMap);
             if ($apiField === null) {
                 continue;
             }
