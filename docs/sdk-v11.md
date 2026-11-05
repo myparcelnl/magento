@@ -1,7 +1,7 @@
-# SDK v11
+# Magento and SDK v11
 
-What the code cannot say about itself. The reasoning behind the migration is in the classes it
-produced and in the tests that pin them; this file holds the facts that live outside the module.
+How this module uses SDK v11 and why. Keep it current: change it in the same PR as the code it
+describes.
 
 **Order v1** is the export of whole orders. An account with the `LEGACY_ORDER_MANAGEMENT` feature
 sends each order to the Order v1 API (`OrderV1Builder`, `MagentoOrderCollection::exportAsOrderV1()`),
@@ -9,10 +9,6 @@ and the back office makes the shipments; every other account creates shipments. 
 called PPS, Pick Pack Ship ([glossary](https://myparcelnl.atlassian.net/wiki/spaces/MD/pages/10554129/Woordenboek)).
 The SDK names the endpoint `fulfilment/orders` and its classes `Fulfilment`; in this module
 "fulfilment" means only the partner service that handles orders.
-
-The first two sections are ADR-shaped and belong in
-[`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr). Raise
-them there when you have access.
 
 ## Why the module owns its shipment domain layer
 
