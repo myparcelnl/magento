@@ -203,6 +203,6 @@ never by id.
   PHP afterwards — an order past that page never matches, and the call is made once per API key per
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
   spec names a filter for the external identifier, so the parameter name has to come from the API
-  team before this can be narrowed. Defect 6 covers the missing user agent on the same call.
+  team before this can be narrowed. Defect 6 covers the user agent on the same call.
 - **`extra_assurance`** stays in `Adapter\DeliveryOptions\ShipmentOptions`'s key list with no reader:
   the key order is a persisted format, so removing it is a data question, not a code question.
