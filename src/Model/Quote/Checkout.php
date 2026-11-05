@@ -230,13 +230,14 @@ class Checkout
         $orderAmount     = $this->deliveryCosts->getOrderAmount($quote);
 
         foreach ($activeCarriers as $carrierName) {
-            $carrierPath = Config::carrierPath($carrierName);
+            $carrierPath  = Config::carrierPath($carrierName);
             // Per carrier: the carrier's own default option setting can force an option.
-            $caps        = $this->getCapabilities(
+            $capabilities = $this->getCapabilities(
                 $country,
                 $packageType,
                 $this->cartRules->forcedCheckoutOptions($items, $carrierPath, $this->storeId)
             );
+
             $basePrices          = [];
             $canHaveDeliveryType = [];
 
@@ -244,21 +245,21 @@ class Checkout
             foreach (DeliveryType::pricedPerTypeNames() as $deliveryType) {
                 $basePrices[$deliveryType]          = $this->deliveryCosts->getBasePriceForClient($quote, $carrierName, $packageType, $country, $deliveryType, $orderAmount);
                 $canHaveDeliveryType[$deliveryType] = DeliveryType::DEFAULT_NAME === $deliveryType
-                                                      || $caps->hasDeliveryType($carrierName, $packageType, $deliveryType);
+                                                      || $capabilities->hasDeliveryType($carrierName, $packageType, $deliveryType);
             }
 
             $basePrice = $basePrices[DeliveryType::STANDARD_NAME];
 
-            $canHaveSameDay          = $caps->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
+            $canHaveSameDay          = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::SAME_DAY_DELIVERY);
             $canHaveMorning          = $canHaveDeliveryType[DeliveryType::MORNING_NAME];
             $canHaveEvening          = $canHaveDeliveryType[DeliveryType::EVENING_NAME];
-            $canHaveExpress          = $caps->hasDeliveryType($carrierName, $packageType, DeliveryType::EXPRESS_NAME);
+            $canHaveExpress          = $capabilities->hasDeliveryType($carrierName, $packageType, DeliveryType::EXPRESS_NAME);
             $canHavePickup           = $canHaveDeliveryType[DeliveryType::PICKUP_NAME];
-            $canHaveSignature        = $caps->hasOption($carrierName, $packageType, ShipmentOption::SIGNATURE);
-            $canHaveCollect          = $caps->hasOption($carrierName, $packageType, ShipmentOption::COLLECT);
-            $canHaveReceiptCode      = $caps->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
-            $canHavePriorityDelivery = $caps->hasOption($carrierName, $packageType, ShipmentOption::PRIORITY_DELIVERY);
-            $canHaveOnlyRecipient    = $caps->hasOption($carrierName, $packageType, ShipmentOption::ONLY_RECIPIENT);
+            $canHaveSignature        = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::SIGNATURE);
+            $canHaveCollect          = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::COLLECT);
+            $canHaveReceiptCode      = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::RECEIPT_CODE);
+            $canHavePriorityDelivery = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::PRIORITY_DELIVERY);
+            $canHaveOnlyRecipient    = $capabilities->hasOption($carrierName, $packageType, ShipmentOption::ONLY_RECIPIENT);
 
             $addBasePrice        = ($showTotalPrice) ? $basePrice : 0;
             $sameDayFee          = $canHaveSameDay ? $this->tax->shippingPrice($this->config->getFloatConfig($carrierPath, 'delivery/same_day_delivery_fee'), $quote) + $addBasePrice : 0;
@@ -286,9 +287,9 @@ class Checkout
             $allowEveningDelivery  = $canHaveEvening && $this->config->getBoolConfig($carrierPath, 'evening/active');
             $allowExpressDelivery  = $canHaveExpress && $this->config->getBoolConfig($carrierPath, 'express/active');
             // One package type serves the whole checkout, so a type another carrier can carry a
-            // forced option on still reaches this one. $caps is filtered by the forced options, so
+            // forced option on still reaches this one. $capabilities is filtered by the forced options, so
             // a carrier that cannot carry them on this package type has no result for it.
-            $allowDeliveryOptions  = $caps->hasPackageType($carrierName, $packageType)
+            $allowDeliveryOptions  = $capabilities->hasPackageType($carrierName, $packageType)
                                      && ! $hidesForProduct
                                      && ($allowPickup || $allowStandardDelivery || $allowMorningDelivery || $allowEveningDelivery);
 
@@ -499,15 +500,15 @@ class Checkout
         // The package-type-agnostic question: this method is what decides the package type, so
         // there is none to narrow by yet. The forced options filter it, so a package type that
         // cannot carry them is not in the answer. A permissive answer restricts nothing.
-        $caps = $this->getCapabilities(
+        $capabilities = $this->getCapabilities(
             $country,
             null,
             $this->cartRules->forcedCheckoutOptions($products, $carrierPath, $this->storeId)
         );
 
-        $canHaveDigitalStamp = $caps->hasPackageType($carrierName, PackageType::DIGITAL_STAMP_NAME);
-        $canHaveMailbox      = $caps->hasPackageType($carrierName, PackageType::MAILBOX_NAME);
-        $canHavePackageSmall = $caps->hasPackageType($carrierName, PackageType::PACKAGE_SMALL_NAME);
+        $canHaveDigitalStamp = $capabilities->hasPackageType($carrierName, PackageType::DIGITAL_STAMP_NAME);
+        $canHaveMailbox      = $capabilities->hasPackageType($carrierName, PackageType::MAILBOX_NAME);
+        $canHavePackageSmall = $capabilities->hasPackageType($carrierName, PackageType::PACKAGE_SMALL_NAME);
 
         // Abroad the international toggle decides, so a carrier switched off at home can still ship
         // a mailbox. && short-circuits per entry, so a config key is not read once the capability
