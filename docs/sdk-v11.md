@@ -138,7 +138,7 @@ Each workaround names what to delete once the fix lands.
 | 3 | `CapabilitiesMapper::mapFromCoreApi()` keeps only option keys, dropping insurance bounds | The module reads the decoded body into its own value objects |
 | 4 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
-| 6 | `Collection\Fulfilment\OrderCollection::query()` is static and sends no user agent | None possible; the Order v1 status poll is the one unidentified call |
+| 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. Each step of `query()` is public, so the module could build the request itself, but that copies SDK internals. Fix it in the SDK: let `query()` take user agents |
 | 7 | `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters | None; affects the Order v1 path only |
 | 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 | 9 | `ShipmentResponsesDeliveryOptionsDeliveryPossibilityType` is a generated wrapper without properties, so `getDeliveryOptions()` returns each possibility's `type` (the delivery type) empty | `ShipmentOptions\DeliveryDates` sends the request `getDeliveryOptionsRequest()` builds and reads the raw body |
@@ -228,6 +228,6 @@ never by id.
   PHP afterwards — an order past that page never matches, and the call is made once per API key per
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
   spec names a filter for the external identifier, so the parameter name has to come from the API
-  team before this can be narrowed. Defect 6 covers the missing user agent on the same call.
+  team before this can be narrowed. Defect 6 covers the user agent on the same call.
 - **`extra_assurance`** stays in `Adapter\DeliveryOptions\ShipmentOptions`'s key list with no reader:
   the key order is a persisted format, so removing it is a data question, not a code question.
