@@ -156,3 +156,13 @@ it('answers null for a package or delivery type it does not know rather than inv
     expect(PackageType::fromV2Name('HOVERCRAFT'))->toBeNull()
         ->and(DeliveryType::fromV2Name('TELEPORT_DELIVERY'))->toBeNull();
 });
+
+it('prices every SDK delivery type per type, minus the named exceptions', function () {
+    // derived from the SDK enum, so a type the SDK adds is priced per type without an entry here
+    expect(DeliveryType::pricedPerTypeNames())->toBe([
+        DeliveryType::MORNING_NAME,
+        DeliveryType::STANDARD_NAME,
+        DeliveryType::EVENING_NAME,
+        DeliveryType::PICKUP_NAME,
+    ]);
+});
