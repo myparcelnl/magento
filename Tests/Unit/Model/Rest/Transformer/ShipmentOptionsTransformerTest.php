@@ -21,7 +21,7 @@ it('maps each boolean option to the Order API camelCase field from attributeMap'
         'hasSignature'        => $apiFields['requires_signature'],
         'hasOnlyRecipient'    => $apiFields['recipient_only_delivery'],
         'hasLargeFormat'      => $apiFields['oversized_package'],
-        'hasReturn'           => $apiFields['print_return_label_at_drop_off'],
+        'hasReturn'           => $apiFields['return_on_first_failed_delivery'],
         'hasHideSender'       => $apiFields['hide_sender'],
         'hasPriorityDelivery' => $apiFields['priority_delivery'],
         'hasReceiptCode'      => $apiFields['requires_receipt_code'],
