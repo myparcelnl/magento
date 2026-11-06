@@ -8,6 +8,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Shipment\CustomsItems;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
@@ -90,14 +91,12 @@ class CustomsDeclarationFromOrder
                                             'currency' => $currency,
                                         ])
                     ->setCountry((string) ($countries[$productId] ?? ''))
-                    // setClassification() cuts to 10 inside the SDK, so a longer code is truncated
-                    // here where the v11 shipment path carries it whole. Raised with the SDK.
                     ->setClassification($this->items->classification((string) ($classifications[$productId] ?? '')))
             );
         }
 
         $customsDeclaration
-            ->setContents(CustomsItems::CONTENTS_COMMERCIAL_GOODS)
+            ->setContents(ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS)
             ->setInvoice($this->order->getIncrementId())
             ->setWeight($totalWeight)
         ;
