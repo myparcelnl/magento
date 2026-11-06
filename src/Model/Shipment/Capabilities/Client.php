@@ -23,7 +23,7 @@ use Throwable;
  *
  * Two endpoints, one transport: shipment capabilities answer for a shipment shape, contract
  * definitions answer per carrier with no shipment in hand. They differ only in path, request body
- * and envelope key, so they share the retry ladder, auth and host override.
+ * and envelope key, so they share auth and the host override.
  *
  * The SDK builds the request — CapabilitiesRequest and CapabilitiesMapper carry domain knowledge we
  * would otherwise rediscover — but not the response: a generated response model reads only its own
@@ -52,19 +52,6 @@ class Client
      * the full read timeout.
      */
     private const CONNECT_TIMEOUT_SECONDS = 2;
-
-    /** Statuses that mean "ask again", as opposed to "this request is wrong". */
-    private const RETRYABLE_STATUSES = [429, 503, 529];
-
-    /**
-     * Longest we will hold a page open waiting out a throttle. A Retry-After beyond this is honoured
-     * by not retrying at all: the negative cache entry the Repository writes is the better answer
-     * than a page that hangs.
-     */
-    private const MAX_RETRY_WAIT_SECONDS = 2.0;
-
-    /** Used when a throttling response names no Retry-After. */
-    private const DEFAULT_RETRY_WAIT_SECONDS = 0.5;
 
     private GuzzleClient       $httpClient;
     private UserAgent          $userAgent;
@@ -107,7 +94,7 @@ class Client
      *
      * Sent through this client's own transport rather than the generated
      * postCapabilitiesContractDefinitions(), so both capability calls share the error mapping and
-     * the 429 retry. The generated method itself is fine: the reversed-argument defect is in
+     * the timeouts. The generated method itself is fine: the reversed-argument defect is in
      * HttpCapabilitiesClient, which has no contract-definitions method.
      *
      * @return array the response's `items` entries, verbatim
@@ -133,35 +120,6 @@ class Client
     {
         $response = $this->request($apiKey, $body, $path);
         $status   = $response->getStatusCode();
-
-        if (in_array($status, self::RETRYABLE_STATUSES, true)) {
-            $wait = $this->retryWaitFor($response);
-
-            if (null === $wait) {
-                throw new RuntimeException(sprintf(
-                    '%s responded %d and asked to wait longer than %.1fs',
-                    $label,
-                    $status,
-                    self::MAX_RETRY_WAIT_SECONDS
-                ));
-            }
-
-            Logger::notice(sprintf(
-                '%s throttled with %d; retrying once after %.2fs.',
-                ucfirst($label),
-                $status,
-                $wait
-            ));
-
-            if ($wait > 0.0) {
-                usleep((int) round($wait * 1000000));
-            }
-
-            // One retry only. A second would double a latency budget the admin form already spends
-            // once per package type.
-            $response = $this->request($apiKey, $body, $path);
-            $status   = $response->getStatusCode();
-        }
 
         if ($status < 200 || $status > 299) {
             throw new RuntimeException(sprintf('%s responded %d', $label, $status));
@@ -196,44 +154,8 @@ class Client
                 RequestOptions::CONNECT_TIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
             ]);
         } catch (Throwable $e) {
-            // A timeout is deliberately not retried: it has already spent the whole budget, and a
-            // second attempt would double the worst case rather than improve it.
             throw new RuntimeException('capabilities request failed: ' . $e->getMessage(), 0, $e);
         }
-    }
-
-    /**
-     * Seconds to wait before the single retry, or null when the API asks for longer than we are
-     * willing to hold a page open.
-     *
-     * Retry-After is either a number of seconds or an HTTP date; both are accepted, and anything
-     * unparseable falls back to the default rather than being treated as zero.
-     */
-    private function retryWaitFor(ResponseInterface $response): ?float
-    {
-        $header = trim($response->getHeaderLine('Retry-After'));
-
-        if ('' === $header) {
-            return self::DEFAULT_RETRY_WAIT_SECONDS;
-        }
-
-        if (is_numeric($header)) {
-            $wait = (float) $header;
-        } else {
-            $at = strtotime($header);
-
-            if (false === $at) {
-                return self::DEFAULT_RETRY_WAIT_SECONDS;
-            }
-
-            $wait = (float) ($at - time());
-        }
-
-        if ($wait <= 0.0) {
-            return 0.0;
-        }
-
-        return $wait > self::MAX_RETRY_WAIT_SECONDS ? null : $wait;
     }
 
     /**
