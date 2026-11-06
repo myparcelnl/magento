@@ -72,7 +72,12 @@ it('round-trips every stored option name through its wire key', function () {
 });
 
 it('keeps an alias only for a stored name the rule cannot produce', function () {
-    foreach (ShipmentOption::V2_NAMES_MAP as $moduleName => $v2Key) {
+    foreach (ShipmentOption::DEFINITIONS as $moduleName => $row) {
+        if (! isset($row['v2Name'])) {
+            continue;
+        }
+
+        $v2Key   = $row['v2Name'];
         $derived = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $v2Key));
 
         expect($derived)->not->toBe($moduleName, "'$moduleName' derives from '$v2Key' and needs no alias");

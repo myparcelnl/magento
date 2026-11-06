@@ -29,6 +29,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\LogContext;
@@ -163,10 +164,10 @@ class View extends AbstractOrder
         $shipmentOptions = $deliveryOptions->getShipmentOptions();
 
         if (null !== $shipmentOptions) {
-            if ($shipmentOptions->hasSignature()) {
+            if ($shipmentOptions->option(ShipmentOption::SIGNATURE)) {
                 echo ', ', __('Signature on receipt');
             }
-            if ($shipmentOptions->hasOnlyRecipient()) {
+            if ($shipmentOptions->option(ShipmentOption::ONLY_RECIPIENT)) {
                 echo ', ', __('Only recipient');
             }
         }

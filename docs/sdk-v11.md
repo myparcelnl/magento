@@ -75,9 +75,9 @@ Six, all deliberate. A reader who finds them should treat them as decisions, not
 4. **An option the package type cannot carry also narrows the package type at checkout.** The
    export drops an option the carrier does not offer for the shipment, as the PDK does
    (`ShipmentOptionsResolver::dropNotOffered()`), so the API never refuses a shipment for it. The
-   checkout sends the forced options of `ShipmentOption::LIMIT_CHECKOUT_OPTIONS` to capabilities as
-   a filter, so a package type or delivery type that cannot carry them is not offered, and an 18+
-   order keeps its age check. The PDK sends no options and drops the age check at export. An
+   checkout sends the forced `keepAtCheckout` options of `ShipmentOption::DEFINITIONS` to
+   capabilities as a filter, so a package type or delivery type that cannot carry them is not
+   offered, and an 18+ order keeps its age check. The PDK sends no options and drops the age check at export. An
    option dropped at export is logged.
 5. **`requires` adds one level only.** The PDK follows the chain and then undoes the damage, which
    rests on statement order in one method: PostNL receipt code requires insurance, which requires
@@ -97,8 +97,8 @@ Four vocabularies for the same five facts. Hand each boundary the one it expects
 | `core_config_data`, the order's delivery-options JSON, the checkout widget | **module snake_case** | Persisted data; cannot change without a migration |
 
 One map per kind, on the facade that owns the names: `PackageType::V2_NAMES_MAP`,
-`DeliveryType::V2_NAMES_MAP`, `ShipmentOption::V2_NAMES_MAP`. `Carrier` has no map and reads the
-SDK's carrier table instead. Each has a `toV2*()` and a `fromV2*()`. **`PackageType::fromV2Name()` and `DeliveryType::fromV2Name()`
+`DeliveryType::V2_NAMES_MAP`, and the `v2Name` facts in `ShipmentOption::DEFINITIONS`. `Carrier`
+has no map and reads the SDK's carrier table instead. Each has a `toV2*()` and a `fromV2*()`. **`PackageType::fromV2Name()` and `DeliveryType::fromV2Name()`
 return null for a value the module does not know, and the caller logs it** rather than substituting
 one. `Carrier` and `ShipmentOption` derive a name for every value (INT-1289), so a carrier is
 reported only when the SDK does not know it, and an option is never reported.
@@ -251,5 +251,3 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   spec names a filter for the external identifier, so the parameter name has to come from the API
   team before this can be narrowed. Defect 6 covers the user agent on the same call.
 - **`MultiColloShipmentService` takes no API key** while every other export service does.
-- **`extra_assurance`** stays in `Adapter\DeliveryOptions\ShipmentOptions`'s key list with no reader:
-  the key order is a persisted format, so removing it is a data question, not a code question.

@@ -33,7 +33,7 @@ class CartShippingRules
     }
 
     /**
-     * The options of ShipmentOption::LIMIT_CHECKOUT_OPTIONS this cart carries whatever the shopper
+     * The keepAtCheckout options this cart carries whatever the shopper
      * picks, by a product or by the carrier's default option setting.
      *
      * @param  \Magento\Quote\Model\Quote\Item[] $items
@@ -42,7 +42,7 @@ class CartShippingRules
     public function forcedCheckoutOptions(array $items, string $carrierPath, ?int $storeId = null): array
     {
         return array_values(array_filter(
-            ShipmentOption::LIMIT_CHECKOUT_OPTIONS,
+            ShipmentOption::having('keepAtCheckout'),
             fn(string $option): bool => $this->optionForcedOn($items, $carrierPath, $option, $storeId)
         ));
     }
