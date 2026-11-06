@@ -141,16 +141,8 @@ A carrier that capabilities report needs no code, and the module lists no carrie
 
 ## Adding a Shipment Option
 
-An option that capabilities offer needs no code. `CapabilitySet::optionsFor()` derives its module name from the wire key (`noTracking` becomes `no_tracking`), the shipment options modal renders it under a label read from that name and stores it on the order, `ShipmentOptionsResolver::resolve()` decides it, and `OrderExportOptions` sends it when the SDK has a setter. Combination rules come from the capabilities `requires` and `excludes`, which `resolve()` applies. An option capabilities do not offer for the shipment is left off at export.
-
-Add code only for what capabilities cannot say:
-
-1. A label of its own: an entry in `ShipmentOption::LABELS`, and its translation in `i18n/`. Without one, the label is the name, translated through `i18n/`. The settings form gives the option a bare Automate toggle; add it to `Catalogue::FEE_OPTIONS` or `Catalogue::FROM_PRICE_OPTIONS` for a fee or a from-price.
-2. A rule that capabilities do not give, such as a country rule or a product attribute: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. A delivery type rule needs no code, because the capabilities lookup sends the delivery type.
-3. A place in the fail-open form: `ShipmentOption::KNOWN_TOGGLES` is what the form shows when capabilities could not be read, and the fixed front of the persisted key order in `ShipmentOptions::KEYS`. It needs a constant in `ShipmentOption.php`, and an entry in `V2_NAMES_MAP` only when the name does not derive from the wire key.
-4. An option that an order must keep, as the age check of an 18+ order: an entry in `ShipmentOption::LIMIT_CHECKOUT_OPTIONS`. The checkout then sends the option in its capabilities lookup, and offers no carrier, package type or delivery type that cannot carry it.
-
-The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option in `KNOWN_TOGGLES` does not reach the shipment the API receives.
+Use the `add-shipment-option` skill. It follows "Adding a shipment option" in
+[`CONTRIBUTING.md`](CONTRIBUTING.md), which also covers a toggle on the product.
 
 ## Dependencies
 
