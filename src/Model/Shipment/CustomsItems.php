@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment;
 
-use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
@@ -26,19 +25,14 @@ use MyParcelNL\Sdk\Support\Str;
  */
 class CustomsItems
 {
-    /** Sent by the legacy encoder for every shipment; the module never chose another value. */
-    public const CONTENTS_COMMERCIAL_GOODS = 1;
-
+    /** The API's maximum. setDescription() throws above it, so a longer name is shortened. */
     public const MAX_DESCRIPTION_LENGTH = 50;
 
     /** Magento's configurable product type code, without a dependency on Magento_ConfigurableProduct. */
     public const CONFIGURABLE = 'configurable';
 
-    /** The HS code attribute's own cap; the API declares no maximum of its own. */
-    private const MAX_CLASSIFICATION_LENGTH = 18;
-
-    /** The API's cap. Only the admin form checks it; an import or the REST API can store more. */
-    public const MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH = 64;
+    /** The HS code length sent: TARIC, the Order API maximum. See "HS code length" in docs/sdk-v11.md. */
+    private const MAX_CLASSIFICATION_LENGTH = 10;
 
     private ObjectManagerInterface $objectManager;
     private Config                 $config;
@@ -93,10 +87,6 @@ class CustomsItems
         foreach ($productIdsByLine as $line => $ids) {
             $referenceId = self::firstIdOf($ids, $references);
 
-            if (null !== $referenceId) {
-                $this->assertReferenceLength($referenceId, $references[$referenceId]);
-            }
-
             $data[$line] = [
                 'classification'             => self::firstOf($ids, $classifications) ?? '',
                 'country'                    => self::firstOf($ids, $countries) ?? $fallback,
@@ -129,22 +119,6 @@ class CustomsItems
     }
 
     /** The SDK throws on a longer reference without naming the product, so the check is made here. */
-    private function assertReferenceLength(int $productId, string $reference): void
-    {
-        $length = mb_strlen($reference);
-
-        if (self::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH < $length) {
-            $rows = $this->objectManager->get(ProductResource::class)->getProductsSku([$productId]);
-
-            throw new \RuntimeException(sprintf(
-                'Product "%s": the External product reference has %d characters; the maximum is %d',
-                $rows[0]['sku'] ?? $productId,
-                $length,
-                self::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH
-            ));
-        }
-    }
-
     private static function firstOf(array $ids, array $values): ?string
     {
         $id = self::firstIdOf($ids, $values);
@@ -164,16 +138,24 @@ class CustomsItems
         return null;
     }
 
+    /** The SDK's refusal of a customs item, with the product named so the merchant can find it. */
+    public static function refused(string $name, ?string $sku, \InvalidArgumentException $e): \RuntimeException
+    {
+        $product = null === $sku || '' === $sku ? sprintf('"%s"', $name) : sprintf('"%s" (%s)', $name, $sku);
+
+        return new \RuntimeException(sprintf('Customs item %s: %s', $product, $e->getMessage()), 0, $e);
+    }
+
     /** The product name, shortened to MAX_DESCRIPTION_LENGTH characters with `...` at the end. */
     public function description(string $name): string
     {
         return Str::limit($name, self::MAX_DESCRIPTION_LENGTH);
     }
 
-    /** The HS code, cut to MAX_CLASSIFICATION_LENGTH characters, the most the API accepts. */
+    /** The HS code as digits only, cut to its parent code at MAX_CLASSIFICATION_LENGTH digits. */
     public function classification(string $classification): string
     {
-        return substr($classification, 0, self::MAX_CLASSIFICATION_LENGTH);
+        return substr((string) preg_replace('/\D/', '', $classification), 0, self::MAX_CLASSIFICATION_LENGTH);
     }
 
     /**

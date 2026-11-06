@@ -373,10 +373,9 @@ class UpgradeData implements UpgradeDataInterface
                         'note'    => 'HS Codes are used for MyParcel world shipments, you can find the appropriate code on the site of the Dutch Customs',
                         'label'   => 'HS code',
                         'input'   => 'text',
-                        // An HS code is a numeric string of up to 18 characters and may carry dots
-                        // (6109.10). DEFAULT_ATTRIBUTES types everything int, which holds none of
-                        // that: dots are impossible, leading zeros are lost, and anything above
-                        // 2147483647 is clamped to it.
+                        // Text, because a merchant types dots (6109.10) and leading zeros, and an int
+                        // clamps above 2147483647. 18 is the longest declaration code, see "HS code
+                        // length" in docs/sdk-v11.md.
                         'type'    => 'varchar',
                         'class'   => 'validate-length maximum-length-18',
                         'default' => '',

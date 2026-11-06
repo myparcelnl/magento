@@ -56,9 +56,9 @@ final class CarrierShape
         return new self(
             $packageTypes,
             $capabilities->deliveryTypesFor($carrier),
-            array_values(array_diff($options, Catalogue::MAILBOX_OPTIONS)),
-            array_values(array_intersect(Catalogue::CHECKOUT_OPTIONS, $options)),
-            array_values(array_intersect(Catalogue::MAILBOX_OPTIONS, $mailbox))
+            array_values(array_diff($options, ShipmentOption::having('mailbox'))),
+            array_values(array_intersect(ShipmentOption::having('checkout'), $options)),
+            array_values(array_intersect(ShipmentOption::having('mailbox'), $mailbox))
         );
     }
 

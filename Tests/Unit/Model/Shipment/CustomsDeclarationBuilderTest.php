@@ -110,7 +110,7 @@ it('refuses a line above the API maximum rather than truncating it', function ()
     ]);
 
     expect(fn() => buildCustomsFor([$item]))
-        ->toThrow(RuntimeException::class, 'Customs item "Widget" has 100000 pieces; the maximum per item is 99999');
+        ->toThrow(RuntimeException::class, 'Customs item "Widget": invalid value for $amount');
 });
 
 it('adds each shipment item to the consignment exactly once', function () {
@@ -140,11 +140,7 @@ it('truncates a description the API would refuse rather than throwing', function
     expect($items[0]->getDescription())->toBe(str_repeat('a', 47) . '...');
 });
 
-/**
- * An HS code is a numeric string of up to 18 characters that may carry dots (6109.10 is cotton
- * t-shirts). It used to be stored in an int column and read with an (int) cast, so a leading zero
- * was lost, a dot was impossible, and anything past 2147483647 was clamped to it.
- */
+/** The stored HS code as the shipment carries it. See "HS code length" in docs/sdk-v11.md. */
 function classificationOf(string $stored): string
 {
     [, $items] = buildCustomsFor([widgetItem()], $stored);
@@ -156,14 +152,12 @@ it('keeps the leading zero of an HS code', function () {
     expect(classificationOf('0901'))->toBe('0901');
 });
 
-it('keeps the dot in a subheading HS code', function () {
-    expect(classificationOf('6109.10'))->toBe('6109.10');
+it('sends a dotted HS code as digits', function () {
+    expect(classificationOf('6109.10'))->toBe('610910');
 });
 
-it('carries an HS code of the full eighteen characters', function () {
-    // The previous cap was 10, which is ours rather than the API's — the Core API types this field
-    // as a plain string with no maximum.
-    expect(classificationOf('610910.0010.123456'))->toBe('610910.0010.123456');
+it('cuts a national tariff code to its ten digit parent', function () {
+    expect(classificationOf('6109.10.00.10.123'))->toBe('6109100010');
 });
 
 /*
@@ -198,7 +192,7 @@ it('declares a configurable item with the variant its customs data, or else the 
     expect(['classification' => $line->getClassification(), 'country' => $line->getCountry()])->toBe($expected);
 })->with([
     'the variant has customs data' => [[4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ'], ['classification' => '0090902341', 'country' => 'AQ']],
-    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['classification' => '6109.10', 'country' => 'CN']],
+    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['classification' => '610910', 'country' => 'CN']],
 ]);
 
 it('leaves out the variant item ShipmentFactory marked deleted, so a configurable is one line', function () {
@@ -240,6 +234,8 @@ it('takes a configurable item its external product reference from the variant, o
     'the variant has none' => [[4 => 'zonos-parent'], 'zonos-parent'],
 ]);
 
-it('refuses an external product reference above 64 characters instead of cutting it', function () {
-    buildCustomsFor([widgetItem()], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
-})->throws(RuntimeException::class, 'Product "SKU-99": the External product reference has 65 characters');
+it('refuses an external product reference above 64 characters and names the product', function () {
+    $item = createShipmentItem(['name' => 'Widget', 'sku' => 'SKU-99', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
+
+    buildCustomsFor([$item], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
+})->throws(RuntimeException::class, 'Customs item "Widget" (SKU-99): invalid length for $external_product_reference');

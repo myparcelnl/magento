@@ -323,7 +323,7 @@ class Checkout
     /**
      * @see ShapeLookup::forShape() for what a null package type asks, and what it must not be used for.
      *
-     * @param string[] $forced the forced ShipmentOption::LIMIT_CHECKOUT_OPTIONS, sent as a filter
+     * @param string[] $forced the forced keepAtCheckout options, sent as a filter
      */
     private function getCapabilities(string $country, ?string $packageType = null, array $forced = []): CapabilitySet
     {

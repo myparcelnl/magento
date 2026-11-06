@@ -10,34 +10,37 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 
 /**
  * Delivery options fixtures for the REST layer tests. Real value objects, not doubles, so a fixture
- * cannot express a state production cannot reach.
- *
- * Overrides are keyed by getter name and translated to stored keys here, because that is how the
- * tests were already written.
+ * cannot express a state production cannot reach. Overrides are keyed the way the data is stored.
  */
 
 /**
- * @param array<string, mixed> $overrides keyed by getter name, e.g. ['hasSignature' => true]
+ * $data with $overrides applied. An unknown key throws, so a typo cannot pass silently.
+ *
+ * @param array<string, mixed> $data
+ * @param array<string, mixed> $overrides
+ *
+ * @return array<string, mixed>
+ */
+function withStoredOverrides(array $data, array $overrides): array
+{
+    foreach ($overrides as $key => $value) {
+        if (! array_key_exists($key, $data)) {
+            throw new InvalidArgumentException("No stored key is known as '$key'");
+        }
+
+        $data[$key] = $value;
+    }
+
+    return $data;
+}
+
+/**
+ * @param array<string, mixed> $overrides keyed by stored name, e.g. ['signature' => true]
  *
  * @return array<string, mixed> keyed the way the options are stored
  */
 function shipmentOptionsData(array $overrides = []): array
 {
-    $storedKeyForGetter = [
-        'hasAgeCheck'         => 'age_check',
-        'hasSignature'        => 'signature',
-        'hasOnlyRecipient'    => 'only_recipient',
-        'hasLargeFormat'      => 'large_format',
-        'hasReturn'           => 'return',
-        'hasHideSender'       => 'hide_sender',
-        'hasPriorityDelivery' => 'priority_delivery',
-        'hasReceiptCode'      => 'receipt_code',
-        'hasSameDayDelivery'  => 'same_day_delivery',
-        'hasCollect'          => 'collect',
-        'getInsurance'        => 'insurance',
-        'getLabelDescription' => 'label_description',
-    ];
-
     $data = [
         'age_check'         => false,
         'signature'         => false,
@@ -49,19 +52,13 @@ function shipmentOptionsData(array $overrides = []): array
         'receipt_code'      => false,
         'same_day_delivery' => false,
         'collect'           => false,
+        'fresh_food'        => false,
+        'frozen'            => false,
         'insurance'         => null,
         'label_description' => null,
     ];
 
-    foreach ($overrides as $getter => $value) {
-        if (! isset($storedKeyForGetter[$getter])) {
-            throw new InvalidArgumentException("No stored key is known for getter '$getter'");
-        }
-
-        $data[$storedKeyForGetter[$getter]] = $value;
-    }
-
-    return $data;
+    return withStoredOverrides($data, $overrides);
 }
 
 function shipmentOptionsFixture(array $overrides = []): ShipmentOptions
@@ -70,23 +67,12 @@ function shipmentOptionsFixture(array $overrides = []): ShipmentOptions
 }
 
 /**
- * @param array<string, mixed> $overrides keyed by getter name, e.g. ['getCountry' => 'BE']
+ * @param array<string, mixed> $overrides keyed by stored name, e.g. ['cc' => 'BE']
  *
  * @return array<string, mixed> keyed the way a pickup location is stored
  */
 function pickupLocationData(array $overrides = []): array
 {
-    $storedKeyForGetter = [
-        'getLocationCode'    => 'location_code',
-        'getLocationName'    => 'location_name',
-        'getRetailNetworkId' => 'retail_network_id',
-        'getStreet'          => 'street',
-        'getNumber'          => 'number',
-        'getPostalCode'      => 'postal_code',
-        'getCity'            => 'city',
-        'getCountry'         => 'cc',
-    ];
-
     $data = [
         'location_code'     => 'LOC-1',
         'location_name'     => 'Test location',
@@ -98,15 +84,7 @@ function pickupLocationData(array $overrides = []): array
         'cc'                => 'NL',
     ];
 
-    foreach ($overrides as $getter => $value) {
-        if (! isset($storedKeyForGetter[$getter])) {
-            throw new InvalidArgumentException("No stored key is known for getter '$getter'");
-        }
-
-        $data[$storedKeyForGetter[$getter]] = $value;
-    }
-
-    return $data;
+    return withStoredOverrides($data, $overrides);
 }
 
 function pickupLocationFixture(array $overrides = []): PickupLocation
@@ -126,10 +104,10 @@ function fullDeliveryOptions(array $shipmentOverrides = []): DeliveryOptions
         'deliveryType'        => DeliveryType::PICKUP_NAME,
         'date'                => date('Y-m-d', strtotime('+7 days')),
         'shipmentOptions'     => shipmentOptionsData(array_merge([
-            'hasSignature'        => true,
-            'hasOnlyRecipient'    => true,
-            'getInsurance'        => 50,
-            'getLabelDescription' => 'PO-12345',
+            'signature'         => true,
+            'only_recipient'    => true,
+            'insurance'         => 50,
+            'label_description' => 'PO-12345',
         ], $shipmentOverrides)),
         'pickupLocation' => pickupLocationData(),
     ]);

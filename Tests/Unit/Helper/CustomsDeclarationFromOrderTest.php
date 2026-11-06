@@ -103,7 +103,7 @@ it('declares a configurable product once, as the variant, and falls back to the 
         ->and([$items[0]->getClassification(), $items[0]->getCountry()])->toBe($expected);
 })->with([
     'the variant has customs data' => [[4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ'], ['0090902341', 'AQ']],
-    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['6109.10', 'CN']],
+    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['610910', 'CN']],
 ]);
 
 it('takes a configurable line\'s quantity from the parent, which alone records what shipped', function () {
@@ -124,6 +124,10 @@ it('sends the external product reference of a product that has one', function ()
 
     expect($items[0]->getExternalProductReference())->toBe('zonos-item-1');
 });
+
+it('refuses an external product reference above 64 characters and names the product', function () {
+    orderV1CustomsItems(['name' => 'Widget', 'sku' => 'SKU-7'], [], [], 'NL', ['external_product_reference' => [7 => str_repeat('z', 65)]]);
+})->throws(RuntimeException::class, 'Customs item "Widget" (SKU-7): External product reference must be 64 characters or less');
 
 it('sets no external product reference when the product has none', function () {
     expect(orderV1CustomsItems([])[0]->getExternalProductReference())->toBeNull();

@@ -12,7 +12,6 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -31,13 +30,11 @@ class ShipmentOptionsResolver
     private const LABEL_DESCRIPTION = 'label_description';
 
     /**
-     * The checkboxes with a rule of their own; every other one in ShipmentOption::KNOWN_TOGGLES is taken
-     * as chosen. Add an entry only when an option needs one.
+     * The checkboxes with a rule of their own; every other toggle in ShipmentOption::DEFINITIONS is
+     * taken as chosen. Add an entry only when an option needs one.
      */
     private const RULES = [
-        ShipmentOption::SIGNATURE    => 'hasSignature',
         ShipmentOption::RECEIPT_CODE => 'hasReceiptCode',
-        ShipmentOption::LARGE_FORMAT => 'hasLargeFormat',
     ];
 
     private const ORDER_NUMBER      = '%order_nr%';
@@ -220,15 +217,6 @@ class ShipmentOptionsResolver
         return $this->shapeCapabilities;
     }
 
-    public function hasSignature(): bool
-    {
-        if (CountryCode::CC_BE === $this->cc && $this->hasOnlyRecipient()) {
-            return false;
-        }
-
-        return $this->optionIsEnabled(ShipmentOption::SIGNATURE);
-    }
-
     public function hasCollect(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::COLLECT);
@@ -315,15 +303,6 @@ class ShipmentOptionsResolver
         }
 
         return $hasAgeCheck;
-    }
-
-    public function hasLargeFormat(): bool
-    {
-        if (CountryCode::isRow($this->cc)) {
-            return false;
-        }
-
-        return $this->optionIsEnabled(ShipmentOption::LARGE_FORMAT);
     }
 
     public function getLabelDescription(): string
@@ -436,7 +415,7 @@ class ShipmentOptionsResolver
     }
 
     /**
-     * Every option here is non-null, except extra_assurance, which nothing decides.
+     * Every option here is non-null.
      *
      * With the account's capabilities for this shipment, an option they offer and the module has no
      * rule for is decided like any other, an option they do not offer is left off, then excludes and
@@ -450,7 +429,7 @@ class ShipmentOptionsResolver
             ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
         ];
 
-        foreach (ShipmentOption::KNOWN_TOGGLES as $option) {
+        foreach (ShipmentOption::having('toggle') as $option) {
             $values[$option] = isset(self::RULES[$option])
                 ? $this->{self::RULES[$option]}()
                 : $this->optionIsEnabled($option);
@@ -486,7 +465,7 @@ class ShipmentOptionsResolver
      */
     private function dropNotOffered(array $offered, array $values): array
     {
-        $options = array_merge(ShipmentOption::KNOWN_TOGGLES, [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY]);
+        $options = array_merge(ShipmentOption::having('toggle'), [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY]);
 
         foreach (array_keys($this->optionsOn($values)) as $option) {
             if (! in_array($option, $options, true) || in_array($option, $offered, true)) {

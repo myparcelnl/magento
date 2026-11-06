@@ -1,7 +1,7 @@
-# SDK v11
+# Magento and SDK v11
 
-What the code cannot say about itself. The reasoning behind the migration is in the classes it
-produced and in the tests that pin them; this file holds the facts that live outside the module.
+How this module uses SDK v11 and why. Keep it current: change it in the same PR as the code it
+describes.
 
 **Order v1** is the export of whole orders. An account with the `LEGACY_ORDER_MANAGEMENT` feature
 sends each order to the Order v1 API (`OrderV1Builder`, `MagentoOrderCollection::exportAsOrderV1()`),
@@ -9,10 +9,6 @@ and the back office makes the shipments; every other account creates shipments. 
 called PPS, Pick Pack Ship ([glossary](https://myparcelnl.atlassian.net/wiki/spaces/MD/pages/10554129/Woordenboek)).
 The SDK names the endpoint `fulfilment/orders` and its classes `Fulfilment`; in this module
 "fulfilment" means only the partner service that handles orders.
-
-The first two sections are ADR-shaped and belong in
-[`mypadev/engineering-adr`](https://github.com/mypadev/engineering-adr/tree/main/01-adr). Raise
-them there when you have access.
 
 ## Why the module owns its shipment domain layer
 
@@ -79,9 +75,9 @@ Six, all deliberate. A reader who finds them should treat them as decisions, not
 4. **An option the package type cannot carry also narrows the package type at checkout.** The
    export drops an option the carrier does not offer for the shipment, as the PDK does
    (`ShipmentOptionsResolver::dropNotOffered()`), so the API never refuses a shipment for it. The
-   checkout sends the forced options of `ShipmentOption::LIMIT_CHECKOUT_OPTIONS` to capabilities as
-   a filter, so a package type or delivery type that cannot carry them is not offered, and an 18+
-   order keeps its age check. The PDK sends no options and drops the age check at export. An
+   checkout sends the forced `keepAtCheckout` options of `ShipmentOption::DEFINITIONS` to
+   capabilities as a filter, so a package type or delivery type that cannot carry them is not
+   offered, and an 18+ order keeps its age check. The PDK sends no options and drops the age check at export. An
    option dropped at export is logged.
 5. **`requires` adds one level only.** The PDK follows the chain and then undoes the damage, which
    rests on statement order in one method: PostNL receipt code requires insurance, which requires
@@ -101,8 +97,8 @@ Four vocabularies for the same five facts. Hand each boundary the one it expects
 | `core_config_data`, the order's delivery-options JSON, the checkout widget | **module snake_case** | Persisted data; cannot change without a migration |
 
 One map per kind, on the facade that owns the names: `PackageType::V2_NAMES_MAP`,
-`DeliveryType::V2_NAMES_MAP`, `ShipmentOption::V2_NAMES_MAP`. `Carrier` has no map and reads the
-SDK's carrier table instead. Each has a `toV2*()` and a `fromV2*()`. **`PackageType::fromV2Name()` and `DeliveryType::fromV2Name()`
+`DeliveryType::V2_NAMES_MAP`, and the `v2Name` facts in `ShipmentOption::DEFINITIONS`. `Carrier`
+has no map and reads the SDK's carrier table instead. Each has a `toV2*()` and a `fromV2*()`. **`PackageType::fromV2Name()` and `DeliveryType::fromV2Name()`
 return null for a value the module does not know, and the caller logs it** rather than substituting
 one. `Carrier` and `ShipmentOption` derive a name for every value (INT-1289), so a carrier is
 reported only when the SDK does not know it, and an option is never reported.
@@ -142,8 +138,8 @@ Each workaround names what to delete once the fix lands.
 | 3 | `CapabilitiesMapper::mapFromCoreApi()` keeps only option keys, dropping insurance bounds | The module reads the decoded body into its own value objects |
 | 4 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
-| 6 | `Collection\Fulfilment\OrderCollection::query()` is static and sends no user agent | None possible; the Order v1 status poll is the one unidentified call |
-| 7 | `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters | None; affects the Order v1 path only |
+| 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. Each step of `query()` is public, so the module could build the request itself, but that copies SDK internals. Fix it in the SDK: let `query()` take user agents |
+| 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
 | 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 | 9 | `ShipmentResponsesDeliveryOptionsDeliveryPossibilityType` is a generated wrapper without properties, so `getDeliveryOptions()` returns each possibility's `type` (the delivery type) empty | `ShipmentOptions\DeliveryDates` sends the request `getDeliveryOptionsRequest()` builds and reads the raw body |
 
@@ -154,6 +150,26 @@ Two generation traps worth knowing: `RefShipmentCustomsDeclarationItem::setCount
 `''`, so the country goes in through the constructor and `ShipmentValidator` skips customs; and
 `ShipmentDefsShipment::getParentId()` returns a property-less stub, so colli are paired by nesting,
 never by id.
+
+## HS code length
+
+The module stores what the merchant types, up to 18 characters, and sends digits only, at most 10.
+
+- **18 stored:** a customs declaration holds a commodity code of 8 + 2 digits plus 4-character TARIC
+  and national additional codes, UCC data elements 6/14 to 6/17 ([Delegated Regulation 2015/2446,
+  Annex B](https://legislation.gov.uk/eur/2015/2446/annex/B/title/II/adopted)). HMRC counts this
+  "full commodity code" as 18 characters ([CDSSG08010](https://www.gov.uk/hmrc-internal-manuals/customs-cds-volume-3-tariff-step-by-step-guide/cdssg08010)),
+  and the [TARIC extraction notes](https://circabc.europa.eu/d/d/versionStore/version2Store/1d467c48-210b-43e7-82e0-d37639c2d991/Explanation%20for%20the%20Taric%20database%20extractions)
+  give additional codes 4 characters.
+- **10 sent:** 10 digits is TARIC and the UK, US and Canadian tariffs. The Order API takes an `hsCode`
+  of at most 10 characters, the SDK cuts to 10, and the UPU ITMATT check accepts 6, 8 or 10
+  ([ITMATT notes](https://www.upu.int/getmedia/51b0b239-ea60-4c79-84d2-fc688ac482de/complianceWithUpuStandardsExplanatoryNotesITMATTEn.pdf)).
+  The Core API declares no maximum.
+- **What the cut loses:** national tariffs reach 13 digits, China the longest, 12 in the Gulf
+  states ([UPU National Customs Tariff Reference List, January 2025](https://www.upu.int/getmedia/3f7f8f46-03a0-4ec0-8722-bac9936524df/nationalCustomsTariffReferenceList.pdf)).
+  A tariff code is hierarchical, so a cut code is its parent: valid, less specific.
+- **Digits only:** dots and spaces (`6109.10`) are display formatting. Neither API spec gives a
+  pattern, and a code cut by characters could end on a dot.
 
 ## What changed for merchants
 
@@ -181,7 +197,8 @@ never by id.
   only-recipient instead of losing them.
 - The label description uses all 45 characters, is visibly shortened when cut, and the return label
   reads `Retour <description> t/m <date>` so the date always fits.
-- The HS code is stored as text of up to 18 characters. It was an INT column that clamped long codes.
+- The HS code is stored as text of up to 18 characters and sent as digits only, at most 10. It was
+  an INT column that clamped long codes.
 - Age check: the product attribute and carrier default tiers work, the New Shipment form pre-checks
   the box from the same answer the export uses, and there is no NL-only gate.
 - An Order v1 order's barcode, MyParcel shipment id, status and track & trace link reach its Magento track,
@@ -232,7 +249,5 @@ never by id.
   PHP afterwards — an order past that page never matches, and the call is made once per API key per
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
   spec names a filter for the external identifier, so the parameter name has to come from the API
-  team before this can be narrowed. Defect 6 covers the missing user agent on the same call.
+  team before this can be narrowed. Defect 6 covers the user agent on the same call.
 - **`MultiColloShipmentService` takes no API key** while every other export service does.
-- **`extra_assurance`** stays in `Adapter\DeliveryOptions\ShipmentOptions`'s key list with no reader:
-  the key order is a persisted format, so removing it is a data question, not a code question.

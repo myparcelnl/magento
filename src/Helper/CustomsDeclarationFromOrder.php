@@ -8,6 +8,7 @@ use Magento\Sales\Model\Order;
 use MyParcelNL\Magento\Model\Shipment\CustomsItems;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Weight;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
 use MyParcelNL\Sdk\Exception\MissingFieldException;
 use MyParcelNL\Sdk\Model\CustomsDeclaration;
 use MyParcelNL\Sdk\Model\MyParcelCustomsItem;
@@ -88,9 +89,9 @@ class CustomsDeclarationFromOrder
             $lineWeight   = $this->items->lineWeightInGrams((float) $product->getWeight(), $amount);
             $totalWeight += $lineWeight;
 
-            $customsDeclaration->addCustomsItem(
-                (new MyParcelCustomsItem())
-                    ->setDescription($this->items->description((string) $product->getName()))
+            try {
+                $customsItem = (new MyParcelCustomsItem())
+                    ->setDescription((string) $product->getName())
                     ->setAmount($line['amount'])
                     ->setWeight($lineWeight)
                     ->setItemValueArray([
@@ -101,15 +102,17 @@ class CustomsDeclarationFromOrder
                                             'currency' => $currency,
                                         ])
                     ->setCountry($customsData[$index]['country'])
-                    // setClassification() cuts to 10 inside the SDK, so a longer code is truncated
-                    // here where the v11 shipment path carries it whole. Raised with the SDK.
                     ->setClassification($this->items->classification($customsData[$index]['classification']))
-                    ->setExternalProductReference($customsData[$index]['external_product_reference'])
-            );
+                    ->setExternalProductReference($customsData[$index]['external_product_reference']);
+            } catch (\InvalidArgumentException $e) {
+                throw CustomsItems::refused((string) $product->getName(), $product->getSku(), $e);
+            }
+
+            $customsDeclaration->addCustomsItem($customsItem);
         }
 
         $customsDeclaration
-            ->setContents(CustomsItems::CONTENTS_COMMERCIAL_GOODS)
+            ->setContents(ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS)
             ->setInvoice($this->order->getIncrementId())
             ->setWeight($totalWeight)
         ;
