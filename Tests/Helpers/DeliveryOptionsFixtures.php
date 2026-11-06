@@ -52,6 +52,8 @@ function shipmentOptionsData(array $overrides = []): array
         'receipt_code'      => false,
         'same_day_delivery' => false,
         'collect'           => false,
+        'fresh_food'        => false,
+        'frozen'            => false,
         'insurance'         => null,
         'label_description' => null,
     ];

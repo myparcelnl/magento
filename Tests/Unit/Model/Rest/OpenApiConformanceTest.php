@@ -95,6 +95,8 @@ it('response with all boolean shipment options enabled validates', function () {
         'receipt_code'      => true,
         'same_day_delivery' => true,
         'collect'           => true,
+        'fresh_food'        => true,
+        'frozen'            => true,
         'insurance'         => 100,
         'label_description' => 'Test label',
     ]));
