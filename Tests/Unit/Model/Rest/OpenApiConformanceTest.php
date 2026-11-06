@@ -85,18 +85,18 @@ it('full response validates against the DeliveryOptions schema', function () {
 
 it('response with all boolean shipment options enabled validates', function () {
     $response = buildRequestHandler()->transform(fullDeliveryOptions([
-        'hasAgeCheck'         => true,
-        'hasSignature'        => true,
-        'hasOnlyRecipient'    => true,
-        'hasLargeFormat'      => true,
-        'hasReturn'           => true,
-        'hasHideSender'       => true,
-        'hasPriorityDelivery' => true,
-        'hasReceiptCode'      => true,
-        'hasSameDayDelivery'  => true,
-        'hasCollect'          => true,
-        'getInsurance'        => 100,
-        'getLabelDescription' => 'Test label',
+        'age_check'         => true,
+        'signature'         => true,
+        'only_recipient'    => true,
+        'large_format'      => true,
+        'return'            => true,
+        'hide_sender'       => true,
+        'priority_delivery' => true,
+        'receipt_code'      => true,
+        'same_day_delivery' => true,
+        'collect'           => true,
+        'insurance'         => 100,
+        'label_description' => 'Test label',
     ]));
 
     $errors = validateAgainstSpec($response);

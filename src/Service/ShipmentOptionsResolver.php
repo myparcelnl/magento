@@ -29,8 +29,8 @@ class ShipmentOptionsResolver
     private const LABEL_DESCRIPTION = 'label_description';
 
     /**
-     * The checkboxes with a rule of their own; every other one in ShipmentOption::TO_CHECK is taken
-     * as chosen. Add an entry only when an option needs one.
+     * The checkboxes with a rule of their own; every other toggle in ShipmentOption::DEFINITIONS is
+     * taken as chosen. Add an entry only when an option needs one.
      */
     private const RULES = [
         ShipmentOption::SIGNATURE    => 'hasSignature',
@@ -426,7 +426,7 @@ class ShipmentOptionsResolver
                        $this->defaultOptions->hasOptionSet($optionKey, $this->carrier));
     }
 
-    /** Every option here is non-null, except extra_assurance, which nothing decides. */
+    /** Every option here is non-null. */
     public function resolve(): ShipmentOptions
     {
         $values = [
@@ -435,7 +435,7 @@ class ShipmentOptionsResolver
             ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
         ];
 
-        foreach (ShipmentOption::TO_CHECK as $option) {
+        foreach (ShipmentOption::having('toggle') as $option) {
             $values[$option] = isset(self::RULES[$option])
                 ? $this->{self::RULES[$option]}()
                 : $this->optionIsEnabled($option);
