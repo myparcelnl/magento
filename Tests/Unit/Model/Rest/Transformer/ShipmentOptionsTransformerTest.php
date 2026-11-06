@@ -27,6 +27,8 @@ it('maps each boolean option to the Order API camelCase field from attributeMap'
         'receipt_code'      => $apiFields['requires_receipt_code'],
         'same_day_delivery' => $apiFields['same_day_delivery'],
         'collect'           => $apiFields['scheduled_collection'],
+        'fresh_food'        => $apiFields['fresh_food'],
+        'frozen'            => $apiFields['frozen'],
     ];
 
     foreach ($cases as $option => $expectedField) {
