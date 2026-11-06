@@ -31,12 +31,12 @@ final class ShipmentOption
 
     /**
      * The yes/no facts having() takes; a missing one is false. toggle: shown when capabilities could
-     * not be read, and a stored key. restV1: REST v1 publishes it.
+     * not be read, and a stored key.
      */
-    private const FLAGS = ['toggle', 'restV1'];
+    private const FLAGS = ['toggle'];
 
-    /** The text facts fact() takes; a missing one is null. rateTitle: in the shipping method title. */
-    private const TEXTS = ['rateTitle'];
+    /** The text facts fact() takes; a missing one is null. label is English and the i18n msgid. */
+    private const TEXTS = ['label'];
 
     /** @var array<string,string[]> having() per flag */
     private static $having = [];
@@ -44,18 +44,19 @@ final class ShipmentOption
     /** What the module knows about an option, one row per option, in settings form order. */
     public const DEFINITIONS
         = [
-            self::SIGNATURE         => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Signature'],
-            self::RECEIPT_CODE      => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Receipt code'],
-            self::ONLY_RECIPIENT    => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Only recipient'],
-            self::RETURN            => ['toggle' => true, 'restV1' => true],
-            self::LARGE_FORMAT      => ['toggle' => true, 'restV1' => true],
-            self::COLLECT           => ['toggle' => true, 'restV1' => true],
-            self::AGE_CHECK         => ['toggle' => true, 'restV1' => true],
-            self::HIDE_SENDER       => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Hide sender'],
-            self::FRESH_FOOD        => ['toggle' => true],
-            self::FROZEN            => ['toggle' => true],
-            self::PRIORITY_DELIVERY => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Priority delivery'],
-            self::SAME_DAY_DELIVERY => ['restV1' => true, 'rateTitle' => 'Same day delivery'],
+            self::SIGNATURE          => ['toggle' => true, 'label' => 'Signature on receipt'],
+            self::RECEIPT_CODE       => ['toggle' => true, 'label' => 'Receipt code'],
+            self::ONLY_RECIPIENT     => ['toggle' => true, 'label' => 'Only recipient'],
+            self::RETURN             => ['toggle' => true, 'label' => 'Return if no answer'],
+            self::LARGE_FORMAT       => ['toggle' => true, 'label' => 'Large package'],
+            self::COLLECT            => ['toggle' => true, 'label' => 'Collect package'],
+            self::AGE_CHECK          => ['toggle' => true, 'label' => 'Age check 18+'],
+            self::HIDE_SENDER        => ['toggle' => true, 'label' => 'Hide sender'],
+            self::FRESH_FOOD         => ['toggle' => true, 'label' => 'Fresh food'],
+            self::FROZEN             => ['toggle' => true, 'label' => 'Frozen'],
+            self::PRIORITY_DELIVERY  => ['toggle' => true, 'label' => 'Priority delivery'],
+            self::SAME_DAY_DELIVERY  => ['label' => 'Same day delivery'],
+            self::PRINTERLESS_RETURN => ['label' => 'Printerless return'],
         ];
 
     /**
@@ -82,6 +83,12 @@ final class ShipmentOption
         }
 
         return self::DEFINITIONS[$option][$text] ?? null;
+    }
+
+    /** An option without a label reads as its name, so `no_tracking` is "No tracking". */
+    public static function labelFor(string $option): string
+    {
+        return self::fact($option, 'label') ?? ucfirst(str_replace('_', ' ', $option));
     }
 
     /**
