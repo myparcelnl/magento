@@ -175,11 +175,11 @@ class OrderShipmentOptions
             ->setPackageType($packageType)
             ->setDeliveryType($this->deliveryTypeId($deliveryOptions))
             ->setLabelDescription(Str::limit((string) $resolved->getLabelDescription(), self::LABEL_DESCRIPTION_MAX_LENGTH))
-            ->setSameDayDelivery($this->flag($resolved->hasSameDayDelivery()));
+            ->setSameDayDelivery($this->flag($resolved->option(ShipmentOption::SAME_DAY_DELIVERY)));
 
         $values = $resolved->toArray();
 
-        foreach (ShipmentOption::TO_CHECK as $option) {
+        foreach (ShipmentOption::having('toggle') as $option) {
             $setter = SdkShipmentOptions::setters()[$option] ?? null;
 
             if (null === $setter) {

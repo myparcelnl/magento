@@ -44,7 +44,7 @@ it('omits address fields the transformer does not populate', function () {
  * passes the empty string through rather than inventing a country.
  */
 it('passes an unset country through without substituting one', function () {
-    $result = (new PickupLocationTransformer())->transform(pickupLocationFixture(['getCountry' => null]));
+    $result = (new PickupLocationTransformer())->transform(pickupLocationFixture(['cc' => null]));
 
     expect($result->address->cc)->toBe('');
 });
