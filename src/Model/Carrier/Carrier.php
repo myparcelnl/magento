@@ -200,10 +200,8 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         echo $carrierHuman, ' ', __($deliveryTypeTitle), ', ', __($packageTypeTitle);
 
         foreach ($shipmentOptions->toArray() as $key => $value) {
-            $title = $value ? ShipmentOption::fact($key, 'rateTitle') : null;
-
-            if (null !== $title) {
-                echo ', ', __($title);
+            if (true === $value) {
+                echo ', ', __(ShipmentOption::labelFor($key));
             }
         }
 
