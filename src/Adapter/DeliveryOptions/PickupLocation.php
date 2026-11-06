@@ -9,8 +9,7 @@ use InvalidArgumentException;
 /**
  * The pickup point the customer chose at checkout.
  *
- * toArray() nests inside DeliveryOptions::toArray(), which is persisted and published, so its key
- * order is part of the contract.
+ * toArray() nests inside DeliveryOptions::toArray(), which is persisted and published.
  *
  * getRetailNetworkId() answers '' rather than null when unset. That is an SDK quirk the versioned
  * REST v1 contract depends on, so it is kept on purpose.
@@ -142,7 +141,6 @@ final class PickupLocation
         return $this->cc;
     }
 
-    /** Key order is part of the persisted format. Do not rearrange. */
     public function toArray(): array
     {
         return [

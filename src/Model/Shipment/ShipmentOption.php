@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Shipment;
 
 /**
- * Shipment option and extra option keys.
+ * Shipment option and extra option keys, and the facts the module owns about each option.
  *
  * These strings are config path segments and are stored on orders, so renaming one to match the
  * API's own vocabulary would break existing installs. See docs/sdk-v11.md for the API mapping.
@@ -30,24 +30,59 @@ final class ShipmentOption
     public const FROZEN             = 'frozen';
 
     /**
-     * The subset the admin New Shipment form asks the carrier about.
-     *
-     * @var string[]
+     * The yes/no facts having() takes; a missing one is false. toggle: shown when capabilities could
+     * not be read, and a stored key. restV1: REST v1 publishes it.
      */
-    public const TO_CHECK
+    private const FLAGS = ['toggle', 'restV1'];
+
+    /** The text facts fact() takes; a missing one is null. rateTitle: in the shipping method title. */
+    private const TEXTS = ['rateTitle'];
+
+    /** @var array<string,string[]> having() per flag */
+    private static $having = [];
+
+    /** What the module knows about an option, one row per option, in settings form order. */
+    public const DEFINITIONS
         = [
-            self::AGE_CHECK,
-            self::HIDE_SENDER,
-            self::LARGE_FORMAT,
-            self::ONLY_RECIPIENT,
-            self::RETURN,
-            self::SIGNATURE,
-            self::COLLECT,
-            self::RECEIPT_CODE,
-            self::PRIORITY_DELIVERY,
-            self::FRESH_FOOD,
-            self::FROZEN,
+            self::SIGNATURE         => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Signature'],
+            self::RECEIPT_CODE      => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Receipt code'],
+            self::ONLY_RECIPIENT    => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Only recipient'],
+            self::RETURN            => ['toggle' => true, 'restV1' => true],
+            self::LARGE_FORMAT      => ['toggle' => true, 'restV1' => true],
+            self::COLLECT           => ['toggle' => true, 'restV1' => true],
+            self::AGE_CHECK         => ['toggle' => true, 'restV1' => true],
+            self::HIDE_SENDER       => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Hide sender'],
+            self::FRESH_FOOD        => ['toggle' => true],
+            self::FROZEN            => ['toggle' => true],
+            self::PRIORITY_DELIVERY => ['toggle' => true, 'restV1' => true, 'rateTitle' => 'Priority delivery'],
+            self::SAME_DAY_DELIVERY => ['restV1' => true, 'rateTitle' => 'Same day delivery'],
         ];
+
+    /**
+     * The options whose row sets a yes/no fact, in row order.
+     *
+     * @return string[]
+     */
+    public static function having(string $flag): array
+    {
+        if (! in_array($flag, self::FLAGS, true)) {
+            throw new \InvalidArgumentException("Unknown shipment option fact '$flag'");
+        }
+
+        return self::$having[$flag] ??= array_keys(
+            array_filter(self::DEFINITIONS, static fn(array $row): bool => $row[$flag] ?? false)
+        );
+    }
+
+    /** A text fact of an option, or null when its row does not set it. */
+    public static function fact(string $option, string $text): ?string
+    {
+        if (! in_array($text, self::TEXTS, true)) {
+            throw new \InvalidArgumentException("Unknown shipment option fact '$text'");
+        }
+
+        return self::DEFINITIONS[$option][$text] ?? null;
+    }
 
     /**
      * Options that rule out a package type when the merchant has forced them on.

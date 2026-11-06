@@ -252,7 +252,7 @@ class NewShipment extends AbstractItems
         $capabilities = $this->getCapabilities($packageType);
 
         $options = $capabilities->isPermissive()
-            ? ShipmentOption::TO_CHECK
+            ? ShipmentOption::having('toggle')
             : $capabilities->optionsFor($carrier, $packageType);
 
         return array_values(array_filter(
