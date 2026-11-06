@@ -75,3 +75,10 @@ it('shows an option a merchant switched on, and leaves out one switched off or i
 
     expect(array_keys((array) $result))->toBe([$fields['requires_signature']]);
 });
+
+it('leaves out an option the Order API does not know', function () {
+    $options = \MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions::of(['signature' => true, 'requires_foo' => true]);
+
+    expect(array_keys((array) (new ShipmentOptionsTransformer())->transform($options)))
+        ->toBe([OrderApiShipmentOptions::attributeMap()['requires_signature']]);
+});
