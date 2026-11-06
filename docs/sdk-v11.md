@@ -139,7 +139,7 @@ Each workaround names what to delete once the fix lands.
 | 4 | `ObjectSerializer` percent-encodes the `;` separator in the label path and the positions query, and the API answers 500 | `Service\Export\LabelHttpClient` |
 | 5 | `parseCreateResponse()` drops `secondary_shipments`, so a creator never learns the colli ids | `updateMagentoTrack()` reads them from the query response |
 | 6 | `Collection\Fulfilment\OrderCollection::query()` sends the SDK user agent, not the Magento one | None. Each step of `query()` is public, so the module could build the request itself, but that copies SDK internals. Fix it in the SDK: let `query()` take user agents |
-| 7 | `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters | None; affects the Order v1 path only |
+| 7 | Withdrawn: `MyParcelCustomsItem::setClassification()` cuts an HS code to 10 characters, which is the Order API limit. See "HS code length" | None |
 | 8 | `MyParcelRequest::handleErrors()` throws `ApiException` without the HTTP status, so an Order v1 refusal and a timeout look the same | `MagentoOrderCollection::reportUnconfirmed()` reports every failed Order v1 save as not confirmed; tell a 4xx apart there once the exception carries the status |
 | 9 | `ShipmentResponsesDeliveryOptionsDeliveryPossibilityType` is a generated wrapper without properties, so `getDeliveryOptions()` returns each possibility's `type` (the delivery type) empty | `ShipmentOptions\DeliveryDates` sends the request `getDeliveryOptionsRequest()` builds and reads the raw body |
 
@@ -150,6 +150,26 @@ Two generation traps worth knowing: `RefShipmentCustomsDeclarationItem::setCount
 `''`, so the country goes in through the constructor and `ShipmentValidator` skips customs; and
 `ShipmentDefsShipment::getParentId()` returns a property-less stub, so colli are paired by nesting,
 never by id.
+
+## HS code length
+
+The module stores what the merchant types, up to 18 characters, and sends digits only, at most 10.
+
+- **18 stored:** a customs declaration holds a commodity code of 8 + 2 digits plus 4-character TARIC
+  and national additional codes, UCC data elements 6/14 to 6/17 ([Delegated Regulation 2015/2446,
+  Annex B](https://legislation.gov.uk/eur/2015/2446/annex/B/title/II/adopted)). HMRC counts this
+  "full commodity code" as 18 characters ([CDSSG08010](https://www.gov.uk/hmrc-internal-manuals/customs-cds-volume-3-tariff-step-by-step-guide/cdssg08010)),
+  and the [TARIC extraction notes](https://circabc.europa.eu/d/d/versionStore/version2Store/1d467c48-210b-43e7-82e0-d37639c2d991/Explanation%20for%20the%20Taric%20database%20extractions)
+  give additional codes 4 characters.
+- **10 sent:** 10 digits is TARIC and the UK, US and Canadian tariffs. The Order API takes an `hsCode`
+  of at most 10 characters, the SDK cuts to 10, and the UPU ITMATT check accepts 6, 8 or 10
+  ([ITMATT notes](https://www.upu.int/getmedia/51b0b239-ea60-4c79-84d2-fc688ac482de/complianceWithUpuStandardsExplanatoryNotesITMATTEn.pdf)).
+  The Core API declares no maximum.
+- **What the cut loses:** national tariffs reach 13 digits, China the longest, 12 in the Gulf
+  states ([UPU National Customs Tariff Reference List, January 2025](https://www.upu.int/getmedia/3f7f8f46-03a0-4ec0-8722-bac9936524df/nationalCustomsTariffReferenceList.pdf)).
+  A tariff code is hierarchical, so a cut code is its parent: valid, less specific.
+- **Digits only:** dots and spaces (`6109.10`) are display formatting. Neither API spec gives a
+  pattern, and a code cut by characters could end on a dot.
 
 ## What changed for merchants
 
@@ -177,7 +197,8 @@ never by id.
   only-recipient instead of losing them.
 - The label description uses all 45 characters, is visibly shortened when cut, and the return label
   reads `Retour <description> t/m <date>` so the date always fits.
-- The HS code is stored as text of up to 18 characters. It was an INT column that clamped long codes.
+- The HS code is stored as text of up to 18 characters and sent as digits only, at most 10. It was
+  an INT column that clamped long codes.
 - Age check: the product attribute and carrier default tiers work, the New Shipment form pre-checks
   the box from the same answer the export uses, and there is no NL-only gate.
 - An Order v1 order's barcode, MyParcel shipment id, status and track & trace link reach its Magento track,

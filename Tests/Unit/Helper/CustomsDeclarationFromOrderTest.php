@@ -103,7 +103,7 @@ it('declares a configurable product once, as the variant, and falls back to the 
         ->and([$items[0]->getClassification(), $items[0]->getCountry()])->toBe($expected);
 })->with([
     'the variant has customs data' => [[4 => '2147483647', 9 => '0090902341'], [4 => 'CN', 9 => 'AQ'], ['0090902341', 'AQ']],
-    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['6109.10', 'CN']],
+    'the variant has none'         => [[4 => '6109.10'], [4 => 'CN', 9 => null], ['610910', 'CN']],
 ]);
 
 it('takes a configurable line\'s quantity from the parent, which alone records what shipped', function () {
