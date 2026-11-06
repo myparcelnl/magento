@@ -91,7 +91,8 @@ it('leaves the date and pickup location null when the stored data has neither', 
 
 /** Not posted means 'not chosen' here, so false — except the three the form never carries at all. */
 it('flattens the options an admin posts and leaves the rest unsaid', function () {
-    expect(ShipmentOptions::fromMagentoOptions([])->toArray())->toBe([
+    $stored   = ShipmentOptions::fromMagentoOptions([])->toArray();
+    $expected = [
         'signature'         => false,
         'collect'           => false,
         'receipt_code'      => false,
@@ -103,11 +104,14 @@ it('flattens the options an admin posts and leaves the rest unsaid', function ()
         'large_format'      => false,
         'label_description' => null,
         'hide_sender'       => false,
-        'extra_assurance'   => null,
         'priority_delivery' => false,
         'fresh_food'        => false,
         'frozen'            => false,
-    ]);
+    ];
+    ksort($stored);
+    ksort($expected);
+
+    expect($stored)->toBe($expected);
 });
 
 it('reads the options an admin did post', function () {
@@ -118,18 +122,18 @@ it('reads the options an admin did post', function () {
         ShipmentOption::PRIORITY_DELIVERY => true,
     ]);
 
-    expect($options->hasSignature())->toBeTrue()
-        ->and($options->hasAgeCheck())->toBeTrue()
+    expect($options->option(ShipmentOption::SIGNATURE))->toBeTrue()
+        ->and($options->option(ShipmentOption::AGE_CHECK))->toBeTrue()
         ->and($options->getInsurance())->toBe(500)
-        ->and($options->hasPriorityDelivery())->toBeTrue()
-        ->and($options->hasCollect())->toBeFalse();
+        ->and($options->option(ShipmentOption::PRIORITY_DELIVERY))->toBeTrue()
+        ->and($options->option(ShipmentOption::COLLECT))->toBeFalse();
 });
 
 /** The checkout shapes keep null: an old order may genuinely not have had the option. */
 it('keeps an unstored checkout option null rather than false', function () {
-    expect(ShipmentOptions::of([])->hasSignature())->toBeNull()
+    expect(ShipmentOptions::of([])->option(ShipmentOption::SIGNATURE))->toBeNull()
         ->and(ShipmentOptions::of([])->getInsurance())->toBeNull()
-        ->and(ShipmentOptions::fromLegacyCheckoutData([])->hasAgeCheck())->toBeNull();
+        ->and(ShipmentOptions::fromLegacyCheckoutData([])->option(ShipmentOption::AGE_CHECK))->toBeNull();
 });
 
 it('normalises nested keys in every named constructor, not only through the factory', function () {

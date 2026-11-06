@@ -102,7 +102,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected Config                 $config;
     protected LabelPositions         $labelPositions;
 
-    /** Every checkbox in ShipmentOption::TO_CHECK is added by setOptionsFromParameters(). */
+    /** Every toggle in ShipmentOption::DEFINITIONS is added by setOptionsFromParameters(). */
     protected array $options
         = [
             'create_track_if_one_already_exist' => true,
@@ -149,7 +149,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function setOptionsFromParameters()
     {
-        foreach (array_keys($this->options + array_fill_keys(ShipmentOption::TO_CHECK, null)) as $option) {
+        foreach (array_keys($this->options + array_fill_keys(ShipmentOption::having('toggle'), null)) as $option) {
             if ($this->request->getParam('mypa_' . $option) === null) {
                 if ($this->request->getParam('mypa_extra_options_checkboxes_in_form') === null) {
                     // Use default options
