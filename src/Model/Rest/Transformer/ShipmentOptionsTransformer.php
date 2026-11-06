@@ -11,23 +11,6 @@ use MyParcelNL\Sdk\Services\Mapping\ShipmentOptionMapper;
 
 class ShipmentOptionsTransformer
 {
-    /**
-     * Map of adapter boolean getter → module option name. ShipmentOptionMapper gives the API key
-     * and OrderApiShipmentOptions::attributeMap() its camelCase field, so SDK renames propagate.
-     */
-    private const BOOLEAN_GETTER_TO_OPTION = [
-        'hasAgeCheck'         => ShipmentOption::AGE_CHECK,
-        'hasSignature'        => ShipmentOption::SIGNATURE,
-        'hasOnlyRecipient'    => ShipmentOption::ONLY_RECIPIENT,
-        'hasLargeFormat'      => ShipmentOption::LARGE_FORMAT,
-        'hasReturn'           => ShipmentOption::RETURN,
-        'hasHideSender'       => ShipmentOption::HIDE_SENDER,
-        'hasPriorityDelivery' => ShipmentOption::PRIORITY_DELIVERY,
-        'hasReceiptCode'      => ShipmentOption::RECEIPT_CODE,
-        'hasSameDayDelivery'  => ShipmentOption::SAME_DAY_DELIVERY,
-        'hasCollect'          => ShipmentOption::COLLECT,
-    ];
-
     public function transform(?ShipmentOptions $shipmentOptions): ?\stdClass
     {
         if ($shipmentOptions === null) {
@@ -38,8 +21,8 @@ class ShipmentOptionsTransformer
         $optionMapper = new ShipmentOptionMapper();
         $result = new \stdClass();
 
-        foreach (self::BOOLEAN_GETTER_TO_OPTION as $getter => $option) {
-            if ($shipmentOptions->$getter() !== true) {
+        foreach (ShipmentOption::having('restV1') as $option) {
+            if ($shipmentOptions->option($option) !== true) {
                 continue;
             }
 
