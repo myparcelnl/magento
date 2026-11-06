@@ -125,6 +125,10 @@ it('sends the external product reference of a product that has one', function ()
     expect($items[0]->getExternalProductReference())->toBe('zonos-item-1');
 });
 
+it('refuses an external product reference above 64 characters and names the product', function () {
+    orderV1CustomsItems(['name' => 'Widget', 'sku' => 'SKU-7'], [], [], 'NL', ['external_product_reference' => [7 => str_repeat('z', 65)]]);
+})->throws(RuntimeException::class, 'Customs item "Widget" (SKU-7): External product reference must be 64 characters or less');
+
 it('sets no external product reference when the product has none', function () {
     expect(orderV1CustomsItems([])[0]->getExternalProductReference())->toBeNull();
 });

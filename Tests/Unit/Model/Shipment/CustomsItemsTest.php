@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Model\Shipment\CustomsItems;
@@ -80,7 +79,6 @@ function customsItemsReading(array $classifications, array $references = []): Cu
 
     $objectManager = Mockery::mock(ObjectManagerInterface::class);
     $objectManager->shouldReceive('create')->with(ProductCollection::class)->andReturn($collection);
-    $objectManager->shouldReceive('get')->with(ProductResource::class)->andReturn(skuResource());
 
     return new CustomsItems($objectManager, $config, new Weight($config));
 }
@@ -97,25 +95,8 @@ it('gives a line whose product has no HS code an empty one, and no reference', f
     expect($data[1])->toBe(['classification' => '', 'country' => 'NL', 'external_product_reference' => null]);
 });
 
-it('sends a reference of exactly the maximum length', function () {
-    $reference = str_repeat('a', CustomsItems::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH);
-
-    $data = customsItemsReading([], [7 => $reference])->customsDataFor([[7]], 1);
-
-    expect($data[0]['external_product_reference'])->toBe($reference);
-});
-
-it('names the product and the attribute when a reference is too long', function () {
-    $reference = str_repeat('a', CustomsItems::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH + 1);
-
-    customsItemsReading([], [7 => $reference])->customsDataFor([[7]], 1);
-})->throws(
-    RuntimeException::class,
-    'Product "SKU-7": the External product reference has 65 characters; the maximum is 64'
-);
-
-it('ignores a too long parent reference when the variant has its own', function () {
-    $references = [7 => 'VARIANT-REF', 9 => str_repeat('a', CustomsItems::MAX_EXTERNAL_PRODUCT_REFERENCE_LENGTH + 1)];
+it('takes the variant reference when the variant has its own', function () {
+    $references = [7 => 'VARIANT-REF', 9 => 'PARENT-REF'];
 
     $data = customsItemsReading([], $references)->customsDataFor([[7, 9]], 1);
 
