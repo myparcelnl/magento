@@ -15,9 +15,9 @@ Ask these questions one at a time. Ask all of them.
 1. **SDK key.** "What is the snake_case key in `RefShipmentShipmentOptions::setters()`?" If the SDK
    does not have it, stop: the SDK must be updated first. Do not use a plain string for an API option.
 2. **Label.** "Does the option need a label other than its name?"
-3. **Fee.** "Does the merchant charge for it at checkout?" A checkout fee also needs the widget to
-   support the option.
-4. **Mailbox.** "Can it ship in a mailbox, with its fee in the mailbox group?"
+3. **Fee.** "Does the merchant charge for it: a checkout fee, a from-price, or neither?"
+   A checkout fee also needs the widget to support the option.
+4. **Mailbox.** "Can it ship in a mailbox, with its settings in the mailbox group?"
 5. **Fail-open.** "Must the form show it when capabilities cannot be read?"
 6. **Rule.** "Does a rule decide it that capabilities do not give, such as a country rule?"
 7. **Product toggle.** "Must a product be able to switch it on? If yes: does the product decide the
@@ -30,7 +30,7 @@ For each yes, follow the matching subsection of `CONTRIBUTING.md`:
 | Answer | Subsection |
 |---|---|
 | 2, 3, 4, 5 | A row in `ShipmentOption::DEFINITIONS`: only the facts these answers need |
-| 3 | An option in the checkout |
+| 3 (checkout fee) | An option in the checkout |
 | 6 | A rule that capabilities do not give |
 | 7 | A toggle on the product |
 

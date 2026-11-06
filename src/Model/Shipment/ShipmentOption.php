@@ -32,13 +32,13 @@ final class ShipmentOption
 
     /**
      * The yes/no facts having() takes; a missing one is false. toggle: shown when capabilities could
-     * not be read, and a stored key. checkout: in the widget, with a fee. mailbox: its fee is in the
-     * mailbox group.
+     * not be read, and a stored key. checkout: in the widget, with a fee. fromPrice(Tooltip): automated
+     * above an order total. mailbox: set in the mailbox group.
      */
-    private const FLAGS = ['toggle', 'checkout', 'mailbox'];
+    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox'];
 
     /** The text facts fact() takes; a missing one is null. label is English and the i18n msgid. */
-    private const TEXTS = ['label'];
+    private const TEXTS = ['label', 'settingsLabel', 'tooltip'];
 
     /** @var array<string,string[]> having() per flag */
     private static $having = [];
@@ -46,22 +46,81 @@ final class ShipmentOption
     /** @var array<string,string> toV2Name() per name */
     private static $v2Names = [];
 
-    /** What the module knows about an option, one row per option, in settings form order. */
+    /**
+     * What the module knows about an option that capabilities do not say, one row per option, in
+     * settings form order. An option that capabilities offer needs no row.
+     */
     public const DEFINITIONS
         = [
-            self::SIGNATURE          => ['toggle' => true, 'checkout' => true, 'label' => 'Signature on receipt'],
-            self::RECEIPT_CODE       => ['toggle' => true, 'checkout' => true, 'label' => 'Receipt code'],
-            self::ONLY_RECIPIENT     => ['toggle' => true, 'checkout' => true, 'label' => 'Only recipient'],
-            self::RETURN             => ['toggle' => true, 'label' => 'Return if no answer'],
-            self::LARGE_FORMAT       => ['toggle' => true, 'label' => 'Large package'],
-            self::COLLECT            => ['toggle' => true, 'label' => 'Collect package'],
-            self::AGE_CHECK          => ['toggle' => true, 'label' => 'Age check 18+'],
-            self::HIDE_SENDER        => ['toggle' => true, 'label' => 'Hide sender'],
-            self::FRESH_FOOD         => ['toggle' => true, 'label' => 'Fresh food'],
-            self::FROZEN             => ['toggle' => true, 'label' => 'Frozen'],
-            self::PRIORITY_DELIVERY  => ['toggle' => true, 'mailbox' => true, 'label' => 'Priority delivery'],
-            self::SAME_DAY_DELIVERY  => ['label' => 'Same day delivery'],
-            self::PRINTERLESS_RETURN => ['label' => 'Printerless return'],
+            self::SIGNATURE          => [
+                'toggle'           => true,
+                'checkout'         => true,
+                'fromPrice'        => true,
+                'fromPriceTooltip' => true,
+                'label'            => 'Signature on receipt',
+            ],
+            self::RECEIPT_CODE       => [
+                'toggle'    => true,
+                'checkout'  => true,
+                'fromPrice' => true,
+                'label'     => 'Receipt code',
+            ],
+            self::ONLY_RECIPIENT     => [
+                'toggle'           => true,
+                'checkout'         => true,
+                'fromPrice'        => true,
+                'fromPriceTooltip' => true,
+                'label'            => 'Only recipient',
+            ],
+            self::RETURN             => [
+                'toggle'           => true,
+                'fromPrice'        => true,
+                'fromPriceTooltip' => true,
+                'label'            => 'Return if no answer',
+            ],
+            self::LARGE_FORMAT       => [
+                'toggle'           => true,
+                'fromPrice'        => true,
+                'fromPriceTooltip' => true,
+                'label'            => 'Large package',
+                'settingsLabel'    => 'Large format',
+            ],
+            self::COLLECT            => [
+                'toggle'    => true,
+                'fromPrice' => true,
+                'label'     => 'Collect package',
+            ],
+            self::AGE_CHECK          => [
+                'toggle'  => true,
+                'label'   => 'Age check 18+',
+                'tooltip' => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
+            ],
+            self::HIDE_SENDER        => [
+                'toggle'  => true,
+                'label'   => 'Hide sender',
+                'tooltip' => 'Activating the \'hide sender\' option will remove the name and address of the sender from the label',
+            ],
+            self::FRESH_FOOD         => [
+                'toggle'    => true,
+                'fromPrice' => true,
+                'label'     => 'Fresh food',
+            ],
+            self::FROZEN             => [
+                'toggle'    => true,
+                'fromPrice' => true,
+                'label'     => 'Frozen',
+            ],
+            self::PRIORITY_DELIVERY  => [
+                'toggle'  => true,
+                'mailbox' => true,
+                'label'   => 'Priority delivery',
+            ],
+            self::SAME_DAY_DELIVERY  => [
+                'label' => 'Same day delivery',
+            ],
+            self::PRINTERLESS_RETURN => [
+                'label'  => 'Printerless return',
+            ],
         ];
 
     /**
