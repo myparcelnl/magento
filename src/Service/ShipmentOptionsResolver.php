@@ -11,7 +11,6 @@ use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
-use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use Throwable;
@@ -33,9 +32,7 @@ class ShipmentOptionsResolver
      * taken as chosen. Add an entry only when an option needs one.
      */
     private const RULES = [
-        ShipmentOption::SIGNATURE    => 'hasSignature',
         ShipmentOption::RECEIPT_CODE => 'hasReceiptCode',
-        ShipmentOption::LARGE_FORMAT => 'hasLargeFormat',
     ];
 
     private const ORDER_NUMBER      = '%order_nr%';
@@ -199,15 +196,6 @@ class ShipmentOptionsResolver
         );
     }
 
-    public function hasSignature(): bool
-    {
-        if (CountryCode::CC_BE === $this->cc && $this->hasOnlyRecipient()) {
-            return false;
-        }
-
-        return $this->optionIsEnabled(ShipmentOption::SIGNATURE);
-    }
-
     public function hasCollect(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::COLLECT);
@@ -306,15 +294,6 @@ class ShipmentOptionsResolver
         }
 
         return $hasAgeCheck;
-    }
-
-    public function hasLargeFormat(): bool
-    {
-        if (CountryCode::isRow($this->cc)) {
-            return false;
-        }
-
-        return $this->optionIsEnabled(ShipmentOption::LARGE_FORMAT);
     }
 
     public function getLabelDescription(): string
