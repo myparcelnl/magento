@@ -33,9 +33,11 @@ final class ShipmentOption
     /**
      * The yes/no facts having() takes; a missing one is false. toggle: shown when capabilities could
      * not be read, and a stored key. checkout: in the widget, with a fee. fromPrice(Tooltip): automated
-     * above an order total. mailbox: set in the mailbox group.
+     * above an order total. mailbox: set in the mailbox group. keepAtCheckout: a forced cart option the
+     * checkout sends to capabilities as a filter; never a default such as signature, which the PostNL
+     * mailbox excludes.
      */
-    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox'];
+    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox', 'keepAtCheckout'];
 
     /** The text facts fact() takes; a missing one is null. label is English and the i18n msgid. */
     private const TEXTS = ['label', 'settingsLabel', 'tooltip'];
@@ -91,9 +93,10 @@ final class ShipmentOption
                 'label'     => 'Collect package',
             ],
             self::AGE_CHECK          => [
-                'toggle'  => true,
-                'label'   => 'Age check 18+',
-                'tooltip' => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
+                'toggle'         => true,
+                'keepAtCheckout' => true,
+                'label'          => 'Age check 18+',
+                'tooltip'        => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
             ],
             self::HIDE_SENDER        => [
                 'toggle'  => true,
@@ -167,19 +170,6 @@ final class ShipmentOption
     {
         return self::fact($option, 'label') ?? ucfirst(str_replace('_', ' ', $option));
     }
-
-    /**
-     * Options that, when the cart forces them, the checkout sends to capabilities as a filter.
-     *
-     * Capabilities then leave out what cannot carry them: for PostNL, mailbox, morning and evening
-     * for the age check. Which option is a must is the merchant's matter, not a capabilities fact:
-     * the export drops any other option a shipment cannot carry, but an 18+ order must keep its age
-     * check. A default such as signature is not one: the PostNL mailbox excludes it too, so mailbox
-     * would disappear for every cart.
-     *
-     * @var string[]
-     */
-    public const LIMIT_CHECKOUT_OPTIONS = [self::AGE_CHECK];
 
     /** A snake_case module name. Request input that is not one is dropped, never guessed at. */
     public static function isOptionName($value): bool
