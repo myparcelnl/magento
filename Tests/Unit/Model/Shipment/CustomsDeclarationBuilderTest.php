@@ -102,7 +102,7 @@ it('refuses a line above the API maximum rather than truncating it', function ()
     ]);
 
     expect(fn() => buildCustomsFor([$item]))
-        ->toThrow(RuntimeException::class, 'Customs item "Widget" has 100000 pieces; the maximum per item is 99999');
+        ->toThrow(RuntimeException::class, 'Customs item "Widget": invalid value for $amount');
 });
 
 it('adds each shipment item to the consignment exactly once', function () {

@@ -24,6 +24,7 @@ use MyParcelNL\Sdk\Support\Str;
  */
 class CustomsItems
 {
+    /** The API's maximum. setDescription() throws above it, so a longer name is shortened. */
     public const MAX_DESCRIPTION_LENGTH = 50;
 
     /** The HS code length sent: TARIC, the Order API maximum. See "HS code length" in docs/sdk-v11.md. */
@@ -87,6 +88,14 @@ class CustomsItems
 
         // A product that no longer exists still needs a country on its customs item.
         return $countries + array_fill_keys($productIds, $fallback);
+    }
+
+    /** The SDK's refusal of a customs item, with the product named so the merchant can find it. */
+    public static function refused(string $name, ?string $sku, \InvalidArgumentException $e): \RuntimeException
+    {
+        $product = null === $sku || '' === $sku ? sprintf('"%s"', $name) : sprintf('"%s" (%s)', $name, $sku);
+
+        return new \RuntimeException(sprintf('Customs item %s: %s', $product, $e->getMessage()), 0, $e);
     }
 
     public function description(string $name): string
