@@ -110,7 +110,7 @@ it('refuses a line above the API maximum rather than truncating it', function ()
     ]);
 
     expect(fn() => buildCustomsFor([$item]))
-        ->toThrow(RuntimeException::class, 'Customs item "Widget" has 100000 pieces; the maximum per item is 99999');
+        ->toThrow(RuntimeException::class, 'Customs item "Widget": invalid value for $amount');
 });
 
 it('adds each shipment item to the consignment exactly once', function () {
@@ -234,6 +234,8 @@ it('takes a configurable item its external product reference from the variant, o
     'the variant has none' => [[4 => 'zonos-parent'], 'zonos-parent'],
 ]);
 
-it('refuses an external product reference above 64 characters instead of cutting it', function () {
-    buildCustomsFor([widgetItem()], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
-})->throws(RuntimeException::class, 'Product "SKU-99": the External product reference has 65 characters');
+it('refuses an external product reference above 64 characters and names the product', function () {
+    $item = createShipmentItem(['name' => 'Widget', 'sku' => 'SKU-99', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
+
+    buildCustomsFor([$item], '61', ['external_product_reference' => [99 => str_repeat('z', 65)]]);
+})->throws(RuntimeException::class, 'Customs item "Widget" (SKU-99): invalid length for $external_product_reference');
