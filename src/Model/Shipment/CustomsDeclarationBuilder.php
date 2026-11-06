@@ -26,9 +26,6 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentTyp
  */
 class CustomsDeclarationBuilder
 {
-    private const MAX_ITEMS  = 100;
-    private const MAX_AMOUNT = 99999;
-
     private CustomsItems $items;
 
     public function __construct(ObjectManagerInterface $objectManager, Config $config, Weight $weight)
@@ -40,7 +37,7 @@ class CustomsDeclarationBuilder
      * One item per shipped item — the legacy path looped both getData('items') and getItems() and
      * added every item twice. Product data is fetched in two batch queries, not per item.
      *
-     * @throws \RuntimeException when the shipment carries no item, or more than the API accepts
+     * @throws \RuntimeException when the SDK refuses the declaration, for example no item or more than 100
      */
     public function build(Shipment $shipment, int $totalWeightInGrams, string $invoice): RefShipmentCustomsDeclaration
     {
@@ -48,16 +45,6 @@ class CustomsDeclarationBuilder
 
         foreach ($shipment->getItems() as $item) {
             $shipmentItems[] = $item;
-        }
-
-        if (! $shipmentItems) {
-            throw new \RuntimeException('A shipment to a country outside the EU needs at least one customs item');
-        }
-
-        if (self::MAX_ITEMS < count($shipmentItems)) {
-            throw new \RuntimeException(
-                sprintf('A customs declaration takes at most %d items, this shipment has %d', self::MAX_ITEMS, count($shipmentItems))
-            );
         }
 
         $productIds      = array_map(static fn($item): int => (int) $item->getProductId(), $shipmentItems);
@@ -71,6 +58,7 @@ class CustomsDeclarationBuilder
 
             $items[] = $this->buildItem(
                 (string) $item->getName(),
+                $item->getSku(),
                 (int) $item->getQty(),
                 (float) $item->getWeight(),
                 (float) $item->getPrice(),
@@ -79,33 +67,27 @@ class CustomsDeclarationBuilder
             );
         }
 
-        return (new RefShipmentCustomsDeclaration())
-            ->setContents(ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS)
-            ->setWeight($totalWeightInGrams)
-            ->setInvoice($invoice)
-            ->setItems($items);
+        try {
+            return (new RefShipmentCustomsDeclaration())
+                ->setContents(ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS)
+                ->setWeight($totalWeightInGrams)
+                ->setInvoice($invoice)
+                ->setItems($items);
+        } catch (\InvalidArgumentException $e) {
+            throw new \RuntimeException('Customs declaration: ' . $e->getMessage(), 0, $e);
+        }
     }
 
     private function buildItem(
-        string $name,
-        int    $qty,
-        float  $unitWeight,
-        float  $unitPrice,
-        string $classification,
-        string $countryOfOrigin
+        string  $name,
+        ?string $sku,
+        int     $qty,
+        float   $unitWeight,
+        float   $unitPrice,
+        string  $classification,
+        string  $countryOfOrigin
     ): RefShipmentCustomsDeclarationItem
     {
-        // Truncating would under-declare the pieces, the weight and the value at once, because
-        // $amount feeds all three.
-        if (self::MAX_AMOUNT < $qty) {
-            throw new \RuntimeException(sprintf(
-                'Customs item "%s" has %d pieces; the maximum per item is %d',
-                $name,
-                $qty,
-                self::MAX_AMOUNT
-            ));
-        }
-
         // A zero-quantity line is not an error, it is a line the API refuses.
         $amount = max(1, $qty);
 
@@ -113,12 +95,16 @@ class CustomsDeclarationBuilder
             ->setCurrency(RefTypesMoney::CURRENCY_EUR)
             ->setAmount($this->items->lineValueInCents($unitPrice, (float) $amount));
 
-        return (new RefShipmentCustomsDeclarationItem(['country' => $countryOfOrigin]))
-            ->setDescription($this->items->description($name))
-            ->setAmount($amount)
-            ->setWeight($this->items->lineWeightInGrams($unitWeight, (float) $amount))
-            ->setItemValue($itemValue)
-            ->setClassification($this->items->classification($classification));
+        try {
+            return (new RefShipmentCustomsDeclarationItem(['country' => $countryOfOrigin]))
+                ->setDescription($this->items->description($name))
+                ->setAmount($amount)
+                ->setWeight($this->items->lineWeightInGrams($unitWeight, (float) $amount))
+                ->setItemValue($itemValue)
+                ->setClassification($this->items->classification($classification));
+        } catch (\InvalidArgumentException $e) {
+            throw CustomsItems::refused($name, $sku, $e);
+        }
     }
 
 
