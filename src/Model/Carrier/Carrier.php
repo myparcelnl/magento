@@ -32,6 +32,7 @@ use Magento\Shipping\Model\Carrier\AbstractCarrier;
 use Magento\Shipping\Model\Carrier\CarrierInterface;
 use Magento\Shipping\Model\Rate\ResultFactory;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\DeliveryCosts;
 use MyParcelNL\Magento\Service\NeedsQuoteProps;
@@ -61,15 +62,6 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         'mailbox'       => 'Mailbox',
         'digital_stamp' => 'Digital stamp',
         'package_small' => 'Packet',
-    ];
-
-    private const SHIPMENT_OPTION_TITLES = [
-        'signature'         => 'Signature',
-        'only_recipient'    => 'Only recipient',
-        'hide_sender'       => 'Hide sender',
-        'priority_delivery' => 'Priority delivery',
-        'receipt_code'      => 'Receipt code',
-        'same_day_delivery' => 'Same day delivery',
     ];
 
     /**
@@ -166,10 +158,10 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         $shipmentOptions = $deliveryOptions->getShipmentOptions() ?? ShipmentOptions::of([]);
         $shipmentFees    = [
             "{$deliveryOptions->getDeliveryType()}/fee" => true,
-            'delivery/only_recipient_fee'               => $shipmentOptions->hasOnlyRecipient(),
-            'delivery/signature_fee'                    => $shipmentOptions->hasSignature(),
-            'delivery/receipt_code_fee'                 => $shipmentOptions->hasReceiptCode(),
-            'mailbox/priority_delivery_fee'            => $shipmentOptions->hasPriorityDelivery(),
+            'delivery/only_recipient_fee'               => $shipmentOptions->option(ShipmentOption::ONLY_RECIPIENT),
+            'delivery/signature_fee'                    => $shipmentOptions->option(ShipmentOption::SIGNATURE),
+            'delivery/receipt_code_fee'                 => $shipmentOptions->option(ShipmentOption::RECEIPT_CODE),
+            'mailbox/priority_delivery_fee'            => $shipmentOptions->option(ShipmentOption::PRIORITY_DELIVERY),
         ];
 
         $amount = $this->deliveryCosts->getBasePrice($quote);
@@ -208,8 +200,10 @@ class Carrier extends AbstractCarrier implements CarrierInterface
         echo $carrierHuman, ' ', __($deliveryTypeTitle), ', ', __($packageTypeTitle);
 
         foreach ($shipmentOptions->toArray() as $key => $value) {
-            if ($value && isset(self::SHIPMENT_OPTION_TITLES[$key])) {
-                echo ', ', __(self::SHIPMENT_OPTION_TITLES[$key]);
+            $title = $value ? ShipmentOption::fact($key, 'rateTitle') : null;
+
+            if (null !== $title) {
+                echo ', ', __($title);
             }
         }
 

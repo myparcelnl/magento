@@ -9,8 +9,8 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 /**
  * One shipment's options, as stored. ShipmentOptionsResolver decides them; this only holds them.
  *
- * A null field means 'not stored', which is not false. The null survives into toArray(), which is a
- * persisted format whose key order is part of the contract.
+ * A null field means 'not stored', which is not false. The null survives into toArray(), which is
+ * persisted on the order.
  *
  * The named constructors read different stored shapes and deliberately disagree on defaults.
  */
@@ -18,33 +18,10 @@ final class ShipmentOptions
 {
     private const DEFAULT_INSURANCE = 0;
 
-    /**
-     * Every key, in the order toArray() must emit them: that order is a persisted format.
-     *
-     * label_description and extra_assurance are not shipment options, which is why they are literals
-     * rather than ShipmentOption constants. Nothing in the module decides or reads extra_assurance;
-     * it stays because dropping a key from a persisted format is a data question, not a code one.
-     */
-    private const KEYS
-        = [
-            ShipmentOption::SIGNATURE,
-            ShipmentOption::COLLECT,
-            ShipmentOption::RECEIPT_CODE,
-            ShipmentOption::INSURANCE,
-            ShipmentOption::AGE_CHECK,
-            ShipmentOption::ONLY_RECIPIENT,
-            ShipmentOption::RETURN,
-            ShipmentOption::SAME_DAY_DELIVERY,
-            ShipmentOption::LARGE_FORMAT,
-            'label_description',
-            ShipmentOption::HIDE_SENDER,
-            'extra_assurance',
-            ShipmentOption::PRIORITY_DELIVERY,
-            ShipmentOption::FRESH_FOOD,
-            ShipmentOption::FROZEN,
-        ];
+    /** The stored keys that are not toggles. label_description is not a shipment option. */
+    private const OTHER_KEYS = [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY, 'label_description'];
 
-    /** @var array<string,mixed> every keys() entry, in that order; null where nothing was stored */
+    /** @var array<string,mixed> every keys() entry; null where nothing was stored */
     private $values = [];
 
     private function __construct(array $values)
@@ -54,10 +31,9 @@ final class ShipmentOptions
         }
     }
 
-    /** KEYS, then any checkbox it does not name yet: appended, so the persisted order holds. */
     private static function keys(): array
     {
-        return array_values(array_unique(array_merge(self::KEYS, ShipmentOption::TO_CHECK)));
+        return array_merge(ShipmentOption::having('toggle'), self::OTHER_KEYS);
     }
 
     /**
@@ -92,72 +68,19 @@ final class ShipmentOptions
     {
         $values = [ShipmentOption::INSURANCE => (int) ($options[ShipmentOption::INSURANCE] ?? self::DEFAULT_INSURANCE)];
 
-        foreach (ShipmentOption::TO_CHECK as $option) {
+        foreach (ShipmentOption::having('toggle') as $option) {
             $values[$option] = (bool) ($options[$option] ?? false);
         }
 
         return new self($values);
     }
 
-    public function hasSignature(): ?bool
+    /** A shipment option by its ShipmentOption name; null is inherit. */
+    public function option(string $name): ?bool
     {
-        return $this->values[ShipmentOption::SIGNATURE];
-    }
+        $value = $this->values[$name] ?? null;
 
-    public function hasReceiptCode(): ?bool
-    {
-        return $this->values[ShipmentOption::RECEIPT_CODE];
-    }
-
-    public function hasCollect(): ?bool
-    {
-        return $this->values[ShipmentOption::COLLECT];
-    }
-
-    public function hasOnlyRecipient(): ?bool
-    {
-        return $this->values[ShipmentOption::ONLY_RECIPIENT];
-    }
-
-    public function hasAgeCheck(): ?bool
-    {
-        return $this->values[ShipmentOption::AGE_CHECK];
-    }
-
-    public function hasLargeFormat(): ?bool
-    {
-        return $this->values[ShipmentOption::LARGE_FORMAT];
-    }
-
-    public function hasHideSender(): ?bool
-    {
-        return $this->values[ShipmentOption::HIDE_SENDER];
-    }
-
-    /** Return the package if the recipient is not home. */
-    public function hasReturn(): ?bool
-    {
-        return $this->values[ShipmentOption::RETURN];
-    }
-
-    public function hasSameDayDelivery(): ?bool
-    {
-        return $this->values[ShipmentOption::SAME_DAY_DELIVERY];
-    }
-
-    public function hasPriorityDelivery(): ?bool
-    {
-        return $this->values[ShipmentOption::PRIORITY_DELIVERY];
-    }
-
-    public function hasFreshFood(): ?bool
-    {
-        return $this->values[ShipmentOption::FRESH_FOOD];
-    }
-
-    public function hasFrozen(): ?bool
-    {
-        return $this->values[ShipmentOption::FROZEN];
+        return null === $value ? null : (bool) $value;
     }
 
     public function getInsurance(): ?int
@@ -170,7 +93,6 @@ final class ShipmentOptions
         return $this->values['label_description'];
     }
 
-    /** @see self::KEYS — the order is part of the persisted format. */
     public function toArray(): array
     {
         return $this->values;

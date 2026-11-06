@@ -14,8 +14,7 @@ use MyParcelNL\Sdk\Support\Str;
  * The delivery options stored on an order: carrier, date, delivery type, package type, shipment
  * options and, for a pickup, the location. Build one through DeliveryOptionsFactory.
  *
- * toArray() is a persisted and published format — quote data, and Magento's order REST API — so its
- * key order is part of the contract.
+ * toArray() is a persisted and published format: quote data, and Magento's order REST API.
  *
  * The two types are value objects so an unrecognised one survives instead of being defaulted. The
  * plain getters answer with the name; the *Value() getters say whether it resolved.
@@ -218,7 +217,6 @@ final class DeliveryOptions
         return DeliveryType::PICKUP_NAME === $this->deliveryType->name();
     }
 
-    /** Key order is part of the persisted format. Do not rearrange. */
     public function toArray(): array
     {
         return [

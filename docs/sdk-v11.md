@@ -225,5 +225,3 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
   spec names a filter for the external identifier, so the parameter name has to come from the API
   team before this can be narrowed. Defect 6 covers the user agent on the same call.
-- **`extra_assurance`** stays in `Adapter\DeliveryOptions\ShipmentOptions`'s key list with no reader:
-  the key order is a persisted format, so removing it is a data question, not a code question.
