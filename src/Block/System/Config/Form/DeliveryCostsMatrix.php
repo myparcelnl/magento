@@ -70,11 +70,6 @@ class DeliveryCostsMatrix extends Field
     /**
      * Get the delivery types the matrix can price, keyed by the name the checkout stores as delivery
      * type, which the delivery_type condition compares.
-     *
-     * The SDK's type list drives this, through the same DeliveryType::pricedPerTypeNames() the
-     * checkout prices by, so both always offer the same types; that method also says why same day
-     * and express are not among them. Monday is no delivery type at all: the widget sends it as an
-     * option on standard delivery, like Saturday, so a rule on it could never match.
      */
     public function getDeliveryTypes(): array
     {
