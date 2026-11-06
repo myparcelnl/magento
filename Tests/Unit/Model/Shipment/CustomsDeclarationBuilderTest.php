@@ -132,11 +132,7 @@ it('truncates a description the API would refuse rather than throwing', function
     expect($items[0]->getDescription())->toBe(str_repeat('a', 47) . '...');
 });
 
-/**
- * An HS code is a numeric string of up to 18 characters that may carry dots (6109.10 is cotton
- * t-shirts). It used to be stored in an int column and read with an (int) cast, so a leading zero
- * was lost, a dot was impossible, and anything past 2147483647 was clamped to it.
- */
+/** The stored HS code as the shipment carries it. See "HS code length" in docs/sdk-v11.md. */
 function classificationOf(string $stored): string
 {
     $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 1.0, 'product_id' => 99]);
@@ -150,12 +146,10 @@ it('keeps the leading zero of an HS code', function () {
     expect(classificationOf('0901'))->toBe('0901');
 });
 
-it('keeps the dot in a subheading HS code', function () {
-    expect(classificationOf('6109.10'))->toBe('6109.10');
+it('sends a dotted HS code as digits', function () {
+    expect(classificationOf('6109.10'))->toBe('610910');
 });
 
-it('carries an HS code of the full eighteen characters', function () {
-    // The previous cap was 10, which is ours rather than the API's — the Core API types this field
-    // as a plain string with no maximum.
-    expect(classificationOf('610910.0010.123456'))->toBe('610910.0010.123456');
+it('cuts a national tariff code to its ten digit parent', function () {
+    expect(classificationOf('6109.10.00.10.123'))->toBe('6109100010');
 });

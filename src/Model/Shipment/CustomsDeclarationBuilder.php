@@ -11,6 +11,7 @@ use MyParcelNL\Magento\Service\Weight;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclaration;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentCustomsDeclarationItem;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentType;
 
 /**
  * Builds a v11 RefShipmentCustomsDeclaration for a ROW shipment. Stateless; shared across a batch.
@@ -79,7 +80,7 @@ class CustomsDeclarationBuilder
         }
 
         return (new RefShipmentCustomsDeclaration())
-            ->setContents(CustomsItems::CONTENTS_COMMERCIAL_GOODS)
+            ->setContents(ShipmentDefsCustomsShipmentType::COMMERCIAL_GOODS)
             ->setWeight($totalWeightInGrams)
             ->setInvoice($invoice)
             ->setItems($items);
