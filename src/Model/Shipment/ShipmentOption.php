@@ -28,10 +28,10 @@ final class ShipmentOption
     public const FROZEN             = 'frozen';
 
     /** The yes/no facts having() takes. A missing one is false. */
-    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox', 'keepAtCheckout', 'restV1'];
+    private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox', 'keepAtCheckout'];
 
     /** The text facts fact() takes. A missing one is null. */
-    private const TEXTS = ['label', 'settingsLabel', 'tooltip', 'rateTitle', 'v2Name'];
+    private const TEXTS = ['label', 'settingsLabel', 'tooltip', 'v2Name'];
 
     /**
      * What the module knows about an option that capabilities do not say, one row per option. Row
@@ -44,10 +44,8 @@ final class ShipmentOption
      * - keepAtCheckout: when the cart forces it, the checkout sends it to capabilities as a filter,
      *   so it offers nothing that cannot carry it. A default such as signature must not be one:
      *   the PostNL mailbox excludes it, so mailbox would disappear for every cart.
-     * - restV1: REST v1 publishes it.
      * - label: English, also the msgid in i18n/. Without one, the name is the label.
      * - settingsLabel, tooltip: the settings form's own label and tooltip.
-     * - rateTitle: shown in the shipping method title when the option is on.
      * - v2Name: the wire key, only when it does not derive from the name. V2NameMapTest pins each one
      *   to the SDK.
      */
@@ -58,18 +56,14 @@ final class ShipmentOption
                 'checkout'         => true,
                 'fromPrice'        => true,
                 'fromPriceTooltip' => true,
-                'restV1'           => true,
                 'label'            => 'Signature on receipt',
-                'rateTitle'        => 'Signature',
                 'v2Name'           => 'requiresSignature',
             ],
             self::RECEIPT_CODE       => [
                 'toggle'    => true,
                 'checkout'  => true,
                 'fromPrice' => true,
-                'restV1'    => true,
                 'label'     => 'Receipt code',
-                'rateTitle' => 'Receipt code',
                 'v2Name'    => 'requiresReceiptCode',
             ],
             self::ONLY_RECIPIENT     => [
@@ -77,16 +71,13 @@ final class ShipmentOption
                 'checkout'         => true,
                 'fromPrice'        => true,
                 'fromPriceTooltip' => true,
-                'restV1'           => true,
                 'label'            => 'Only recipient',
-                'rateTitle'        => 'Only recipient',
                 'v2Name'           => 'recipientOnlyDelivery',
             ],
             self::RETURN             => [
                 'toggle'           => true,
                 'fromPrice'        => true,
                 'fromPriceTooltip' => true,
-                'restV1'           => true,
                 'label'            => 'Return if no answer',
                 'v2Name'           => 'returnOnFirstFailedDelivery',
             ],
@@ -94,7 +85,6 @@ final class ShipmentOption
                 'toggle'           => true,
                 'fromPrice'        => true,
                 'fromPriceTooltip' => true,
-                'restV1'           => true,
                 'label'            => 'Large package',
                 'settingsLabel'    => 'Large format',
                 'v2Name'           => 'oversizedPackage',
@@ -102,24 +92,20 @@ final class ShipmentOption
             self::COLLECT            => [
                 'toggle'    => true,
                 'fromPrice' => true,
-                'restV1'    => true,
                 'label'     => 'Collect package',
                 'v2Name'    => 'scheduledCollection',
             ],
             self::AGE_CHECK          => [
                 'toggle'         => true,
                 'keepAtCheckout' => true,
-                'restV1'         => true,
                 'label'          => 'Age check 18+',
                 'tooltip'        => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
                 'v2Name'         => 'requiresAgeVerification',
             ],
             self::HIDE_SENDER        => [
-                'toggle'    => true,
-                'restV1'    => true,
-                'label'     => 'Hide sender',
-                'tooltip'   => 'Activating the \'hide sender\' option will remove the name and address of the sender from the label',
-                'rateTitle' => 'Hide sender',
+                'toggle'  => true,
+                'label'   => 'Hide sender',
+                'tooltip' => 'Activating the \'hide sender\' option will remove the name and address of the sender from the label',
             ],
             self::FRESH_FOOD         => [
                 'toggle'    => true,
@@ -132,16 +118,12 @@ final class ShipmentOption
                 'label'     => 'Frozen',
             ],
             self::PRIORITY_DELIVERY  => [
-                'toggle'    => true,
-                'mailbox'   => true,
-                'restV1'    => true,
-                'label'     => 'Priority delivery',
-                'rateTitle' => 'Priority delivery',
+                'toggle'  => true,
+                'mailbox' => true,
+                'label'   => 'Priority delivery',
             ],
             self::SAME_DAY_DELIVERY  => [
-                'restV1'    => true,
-                'label'     => 'Same day delivery',
-                'rateTitle' => 'Same day delivery',
+                'label' => 'Same day delivery',
             ],
             self::PRINTERLESS_RETURN => [
                 'label'  => 'Printerless return',
