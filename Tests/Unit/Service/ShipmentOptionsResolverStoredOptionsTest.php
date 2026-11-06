@@ -19,7 +19,7 @@ function resolvedWithStoredSignature(?bool $stored): ?bool
     $defaults->shouldReceive('hasOptionSet')->with(ShipmentOption::SIGNATURE, Mockery::any())->andReturnUsing([$real, 'hasOptionSet']);
     $defaults->shouldReceive('sourceOf')->with(ShipmentOption::SIGNATURE, Mockery::any())->andReturnUsing([$real, 'sourceOf']);
 
-    return createShipmentOptions('NL', 'postnl', [], false, $blob, null, $defaults)->resolve()->hasSignature();
+    return createShipmentOptions('NL', 'postnl', [], false, $blob, null, $defaults)->resolve()->option(ShipmentOption::SIGNATURE);
 }
 
 it('keeps an option off that the order stores off, against the carrier setting', function () {

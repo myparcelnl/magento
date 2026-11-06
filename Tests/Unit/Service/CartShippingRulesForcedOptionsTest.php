@@ -8,8 +8,8 @@ use MyParcelNL\Magento\Service\Config;
 
 /**
  * A forced option is one the order gets whatever the shopper picks: set on a product, or on in the
- * carrier's export settings. Both tiers are always read, because a future entry in
- * ShipmentOption::LIMIT_CHECKOUT_OPTIONS may have only one of them.
+ * carrier's export settings. Both tiers are always read, because a future keepAtCheckout option in
+ * ShipmentOption::DEFINITIONS may have only one of them.
  *
  * @param array<string,mixed>            $config config path => value
  * @param array<int,array<string,string>> $rows   product id => myparcel_* attribute => value

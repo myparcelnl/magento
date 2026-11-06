@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
@@ -38,14 +39,14 @@ it('keeps a stored false as off when an order is read', function () {
         'shipmentOptions' => ['signature' => false],
     ]);
 
-    expect($options->getShipmentOptions()->hasSignature())->toBeFalse();
+    expect($options->getShipmentOptions()->option(ShipmentOption::SIGNATURE))->toBeFalse();
 });
 
 it('reads a legacy false as inherit, because the legacy checkout wrote it for not ticked', function () {
     $options = ShipmentOptions::fromLegacyCheckoutData(['signature' => false, 'only_recipient' => true, 'insurance' => 0]);
 
-    expect($options->hasSignature())->toBeNull()
-        ->and($options->hasOnlyRecipient())->toBeTrue()
+    expect($options->option(ShipmentOption::SIGNATURE))->toBeNull()
+        ->and($options->option(ShipmentOption::ONLY_RECIPIENT))->toBeTrue()
         ->and($options->getInsurance())->toBeNull();
 });
 

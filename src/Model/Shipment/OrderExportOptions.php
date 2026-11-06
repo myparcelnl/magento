@@ -129,7 +129,7 @@ class OrderExportOptions
             ->setPackageType($this->packageTypeToShip())
             ->setDeliveryType($this->deliveryTypeId($deliveryOptions))
             ->setLabelDescription($this->labelDescriptionWithinLimit($chosen))
-            ->setSameDayDelivery($this->flag($chosen->hasSameDayDelivery()));
+            ->setSameDayDelivery($this->flag($chosen->option(ShipmentOption::SAME_DAY_DELIVERY)));
 
         $this->setKnownToggles($options, $chosen);
         $this->setDiscoveredOptions($options, $chosen);
@@ -151,7 +151,7 @@ class OrderExportOptions
     {
         $values = $chosen->toArray();
 
-        foreach (ShipmentOption::KNOWN_TOGGLES as $option) {
+        foreach (ShipmentOption::having('toggle') as $option) {
             $setter = SdkShipmentOptions::setters()[$option] ?? null;
 
             if (null === $setter) {
@@ -225,7 +225,7 @@ class OrderExportOptions
     {
         $v2Carrier = Carrier::toV2Name((string) $this->carrierNameToShip());
 
-        return ! in_array($v2Carrier, self::CARRIERS_WITHOUT_DELIVERY_DATE, true) && ! $chosen->hasCollect();
+        return ! in_array($v2Carrier, self::CARRIERS_WITHOUT_DELIVERY_DATE, true) && ! $chosen->option(ShipmentOption::COLLECT);
     }
 
     private function carrierNameToShip(): ?string

@@ -26,8 +26,8 @@ use MyParcelNL\Magento\Model\Source\WeightType;
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * The field templates the settings form is built from, and the lists the module owns because
- * capabilities cannot state them.
+ * The field templates the settings form is built from. The option facts it reads are in
+ * ShipmentOption::DEFINITIONS.
  *
  * Every label, tooltip and comment is an i18n msgid. Change one and six locales lose their
  * translation, so add the new string to i18n/ in the same change.
@@ -37,57 +37,6 @@ final class Catalogue
     public const FACT_PACKAGE_TYPE  = 'packageType:';
     public const FACT_DELIVERY_TYPE = 'deliveryType:';
     public const FACT_OPTION        = 'option:';
-
-    /** Options with a checkout surcharge. A price is the merchant's decision, so a new option gets none. */
-    public const FEE_OPTIONS = [ShipmentOption::SIGNATURE, ShipmentOption::ONLY_RECIPIENT, ShipmentOption::RECEIPT_CODE];
-
-    /** Options automated above an order total. The rest are automated for every order. */
-    public const FROM_PRICE_OPTIONS = [
-        ShipmentOption::SIGNATURE,
-        ShipmentOption::RECEIPT_CODE,
-        ShipmentOption::ONLY_RECIPIENT,
-        ShipmentOption::RETURN,
-        ShipmentOption::LARGE_FORMAT,
-        ShipmentOption::COLLECT,
-        ShipmentOption::FRESH_FOOD,
-        ShipmentOption::FROZEN,
-    ];
-
-    /** The options the checkout widget renders, so the only ones with a `delivery` toggle. */
-    public const CHECKOUT_OPTIONS = [ShipmentOption::SIGNATURE, ShipmentOption::RECEIPT_CODE, ShipmentOption::ONLY_RECIPIENT];
-
-    /** Mailbox options, which go in the mailbox group instead of `default_options`. */
-    public const MAILBOX_OPTIONS = [ShipmentOption::PRIORITY_DELIVERY];
-
-    /** The order the Automate toggles show in. An option not listed follows, in capabilities order. */
-    private const DEFAULT_OPTIONS_ORDER = [
-        ShipmentOption::SIGNATURE,
-        ShipmentOption::RECEIPT_CODE,
-        ShipmentOption::ONLY_RECIPIENT,
-        ShipmentOption::RETURN,
-        ShipmentOption::LARGE_FORMAT,
-        ShipmentOption::COLLECT,
-        ShipmentOption::AGE_CHECK,
-        ShipmentOption::HIDE_SENDER,
-        ShipmentOption::FRESH_FOOD,
-        ShipmentOption::FROZEN,
-    ];
-
-    /** The settings say "Large format" where the New Shipment form says "Large package". */
-    private const SETTINGS_LABELS = [ShipmentOption::LARGE_FORMAT => 'Large format'];
-
-    private const OPTION_TOOLTIPS = [
-        ShipmentOption::AGE_CHECK   => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
-        ShipmentOption::HIDE_SENDER => 'Activating the \'hide sender\' option will remove the name and address of the sender from the label',
-    ];
-
-    /** The from-price fields that have a tooltip. It names the option, so a new one would be a new msgid. */
-    private const FROM_PRICE_TOOLTIP_OPTIONS = [
-        ShipmentOption::SIGNATURE,
-        ShipmentOption::ONLY_RECIPIENT,
-        ShipmentOption::RETURN,
-        ShipmentOption::LARGE_FORMAT,
-    ];
 
     /** Each title, and the facts that bring it in. No facts means always. */
     private const TITLES = [
@@ -186,7 +135,7 @@ final class Catalogue
     /** The option's label in the settings, in English. */
     public static function labelFor(string $option): string
     {
-        return self::SETTINGS_LABELS[$option] ?? ShipmentOption::labelFor($option);
+        return ShipmentOption::fact($option, 'settingsLabel') ?? ShipmentOption::labelFor($option);
     }
 
     /** @param Group[] $groups */
@@ -203,13 +152,7 @@ final class Catalogue
 
         foreach ($shape->checkoutOptions() as $option) {
             $label  = self::labelFor($option);
-            array_push($fields, ...self::toggleWithFee(
-                $path,
-                $active,
-                $option,
-                $label,
-                in_array($option, self::FEE_OPTIONS, true)
-            ));
+            array_push($fields, ...self::toggleWithFee($path, $active, $option, $label));
         }
 
         return new Group('delivery', 'Delivery settings', $fields);
@@ -220,13 +163,9 @@ final class Catalogue
      *
      * @return Field[]
      */
-    private static function toggleWithFee(string $path, Field $parent, string $name, string $label, bool $withFee): array
+    private static function toggleWithFee(string $path, Field $parent, string $name, string $label): array
     {
         $toggle = Field::select("{$path}{$name}_active", $label, Yesno::class)->withDefault('0')->dependsOn($parent);
-
-        if (! $withFee) {
-            return [$toggle];
-        }
 
         return [
             $toggle,
@@ -297,7 +236,7 @@ final class Catalogue
      */
     private static function ordered(array $options): array
     {
-        $known = array_values(array_intersect(self::DEFAULT_OPTIONS_ORDER, $options));
+        $known = array_values(array_intersect(array_keys(ShipmentOption::DEFINITIONS), $options));
 
         return array_merge($known, array_values(array_diff($options, $known)));
     }
@@ -313,11 +252,13 @@ final class Catalogue
             $largeFormat ? LargeFormatOptions::class : Yesno::class
         )->withDefault('0');
 
-        if (isset(self::OPTION_TOOLTIPS[$option])) {
-            $toggle = $toggle->withTooltip(self::OPTION_TOOLTIPS[$option]);
+        $tooltip = ShipmentOption::fact($option, 'tooltip');
+
+        if (null !== $tooltip) {
+            $toggle = $toggle->withTooltip($tooltip);
         }
 
-        if (! in_array($option, self::FROM_PRICE_OPTIONS, true)) {
+        if (! in_array($option, ShipmentOption::having('fromPrice'), true)) {
             return [$toggle];
         }
 
@@ -326,7 +267,7 @@ final class Catalogue
             ->withDefault('1')
             ->dependsOn($toggle, $largeFormat ? 'price' : '1');
 
-        if (in_array($option, self::FROM_PRICE_TOOLTIP_OPTIONS, true)) {
+        if (in_array($option, ShipmentOption::having('fromPriceTooltip'), true)) {
             $fromPrice = $fromPrice->withTooltip("'$label' operates above a certain order total amount");
         }
 

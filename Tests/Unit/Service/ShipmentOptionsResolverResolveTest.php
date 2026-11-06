@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
@@ -15,9 +16,6 @@ use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 it('resolves every option to a non-null value', function () {
     $resolved = createShipmentOptions(CountryCode::CC_NL, CarrierPostNL::NAME, [])->resolve()->toArray();
 
-    // extra_assurance is the documented exception: nothing in the module decides it.
-    unset($resolved['extra_assurance']);
-
     expect($resolved)->not->toContain(null)
         ->and(array_keys($resolved))->toHaveCount(14);
 });
@@ -27,8 +25,6 @@ it('resolves every option to a non-null value outside NL too', function () {
     // take their other branch here, which is where a null would hide.
     $resolved = createShipmentOptions('DE', CarrierPostNL::NAME, [])->resolve()->toArray();
 
-    unset($resolved['extra_assurance']);
-
     expect($resolved)->not->toContain(null);
 });
 
@@ -37,10 +33,10 @@ it('types every resolved option as the setters expect', function () {
 
     expect($resolved->getInsurance())->toBeInt()
         ->and($resolved->getLabelDescription())->toBeString()
-        ->and($resolved->hasSignature())->toBeBool()
-        ->and($resolved->hasAgeCheck())->toBeBool()
-        ->and($resolved->hasReceiptCode())->toBeBool()
-        ->and($resolved->hasPriorityDelivery())->toBeBool()
-        ->and($resolved->hasFreshFood())->toBeBool()
-        ->and($resolved->hasFrozen())->toBeBool();
+        ->and($resolved->option(ShipmentOption::SIGNATURE))->toBeBool()
+        ->and($resolved->option(ShipmentOption::AGE_CHECK))->toBeBool()
+        ->and($resolved->option(ShipmentOption::RECEIPT_CODE))->toBeBool()
+        ->and($resolved->option(ShipmentOption::PRIORITY_DELIVERY))->toBeBool()
+        ->and($resolved->option(ShipmentOption::FRESH_FOOD))->toBeBool()
+        ->and($resolved->option(ShipmentOption::FROZEN))->toBeBool();
 });

@@ -16,8 +16,7 @@ use MyParcelNL\Sdk\Support\Str;
  * options, for a pickup the location, and what a merchant saved for the label. Build one through
  * DeliveryOptionsFactory.
  *
- * toArray() is a persisted and published format — quote data, and Magento's order REST API — so its
- * key order is part of the contract.
+ * toArray() is a persisted and published format: quote data, and Magento's order REST API.
  *
  * The two types are value objects so an unrecognised one survives instead of being defaulted. The
  * plain getters answer with the name; the *Value() getters say whether it resolved.
@@ -358,8 +357,7 @@ final class DeliveryOptions
     }
 
     /**
-     * Key order is part of the persisted format. Do not rearrange. The merchant's keys are appended
-     * only when set, so an order without them keeps the exact shape it had.
+     * The merchant's keys are added only when set, so an order without them keeps the shape it had.
      */
     public function toArray(): array
     {

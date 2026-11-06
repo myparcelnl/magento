@@ -31,8 +31,8 @@ class ShipmentOptionsResolver
     private const LABEL_DESCRIPTION = 'label_description';
 
     /**
-     * The checkboxes with a rule of their own; every other one in ShipmentOption::KNOWN_TOGGLES is taken
-     * as chosen. Add an entry only when an option needs one.
+     * The checkboxes with a rule of their own; every other toggle in ShipmentOption::DEFINITIONS is
+     * taken as chosen. Add an entry only when an option needs one.
      */
     private const RULES = [
         ShipmentOption::SIGNATURE    => 'hasSignature',
@@ -436,7 +436,7 @@ class ShipmentOptionsResolver
     }
 
     /**
-     * Every option here is non-null, except extra_assurance, which nothing decides.
+     * Every option here is non-null.
      *
      * With the account's capabilities for this shipment, an option they offer and the module has no
      * rule for is decided like any other, an option they do not offer is left off, then excludes and
@@ -450,7 +450,7 @@ class ShipmentOptionsResolver
             ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
         ];
 
-        foreach (ShipmentOption::KNOWN_TOGGLES as $option) {
+        foreach (ShipmentOption::having('toggle') as $option) {
             $values[$option] = isset(self::RULES[$option])
                 ? $this->{self::RULES[$option]}()
                 : $this->optionIsEnabled($option);
@@ -486,7 +486,7 @@ class ShipmentOptionsResolver
      */
     private function dropNotOffered(array $offered, array $values): array
     {
-        $options = array_merge(ShipmentOption::KNOWN_TOGGLES, [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY]);
+        $options = array_merge(ShipmentOption::having('toggle'), [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY]);
 
         foreach (array_keys($this->optionsOn($values)) as $option) {
             if (! in_array($option, $options, true) || in_array($option, $offered, true)) {
