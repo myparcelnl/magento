@@ -244,6 +244,12 @@ components:
           $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/sameDayDelivery"
         scheduledCollection:
           $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/scheduledCollection"
+        returnOnFirstFailedDelivery:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/returnOnFirstFailedDelivery"
+        freshFood:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/freshFood"
+        frozen:
+          $ref: "https://order.api.myparcel.nl/openapi.yaml#/components/schemas/ShipmentOptionsCommon/properties/frozen"
         insurance:
           type: object
           description: Insurance details. Integer-micro amount (1 EUR = 1 000 000 units).

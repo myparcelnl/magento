@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Rest\Transformer;
 
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
-use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Sdk\Client\Generated\OrderApi\Model\ShipmentOptions as OrderApiShipmentOptions;
 use MyParcelNL\Sdk\Services\Mapping\ShipmentOptionMapper;
 
+/** Every option that is on, under its Order API key. An option the Order API does not know is left out. */
 class ShipmentOptionsTransformer
 {
     public function transform(?ShipmentOptions $shipmentOptions): ?\stdClass
@@ -21,8 +21,8 @@ class ShipmentOptionsTransformer
         $optionMapper = new ShipmentOptionMapper();
         $result = new \stdClass();
 
-        foreach (ShipmentOption::having('restV1') as $option) {
-            if ($shipmentOptions->option($option) !== true) {
+        foreach ($shipmentOptions->toArray() as $option => $value) {
+            if (true !== $value) {
                 continue;
             }
 
