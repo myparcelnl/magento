@@ -24,13 +24,10 @@ use MyParcelNL\Sdk\Support\Str;
  */
 class CustomsItems
 {
-    /** Sent by the legacy encoder for every shipment; the module never chose another value. */
-    public const CONTENTS_COMMERCIAL_GOODS = 1;
-
     public const MAX_DESCRIPTION_LENGTH = 50;
 
-    /** The HS code attribute's own cap; the API declares no maximum of its own. */
-    private const MAX_CLASSIFICATION_LENGTH = 18;
+    /** The HS code length sent: TARIC, the Order API maximum. See "HS code length" in docs/sdk-v11.md. */
+    private const MAX_CLASSIFICATION_LENGTH = 10;
 
     private ObjectManagerInterface $objectManager;
     private Config                 $config;
@@ -97,9 +94,10 @@ class CustomsItems
         return Str::limit($name, self::MAX_DESCRIPTION_LENGTH);
     }
 
+    /** The HS code as digits only, cut to its parent code at MAX_CLASSIFICATION_LENGTH digits. */
     public function classification(string $classification): string
     {
-        return substr($classification, 0, self::MAX_CLASSIFICATION_LENGTH);
+        return substr((string) preg_replace('/\D/', '', $classification), 0, self::MAX_CLASSIFICATION_LENGTH);
     }
 
     /**
