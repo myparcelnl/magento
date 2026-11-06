@@ -79,13 +79,8 @@ For insurance, a new carrier needs the amount fields `insurance_local_amount`, `
 
 ### Adding a shipment option
 
-Every fact the module owns about an option is one row in `ShipmentOption::DEFINITIONS`, in the order of the settings form. The wire key comes from the SDK's `ShipmentOptionMapper`; the module keeps no alias. The New Shipment form and the export both read the options with `toggle`, so a checkbox option needs only:
-
-1. A constant in `src/Model/Shipment/ShipmentOption.php` and a row with `toggle` and `label`. Set `checkout` for a checkout fee, or `mailbox` for a fee in the mailbox group.
-2. A form label in `src/Block/Sales/NewShipmentForm.php`, and its translation in `i18n/`.
-3. Only if the option has a country, delivery type or combination rule: a method on `ShipmentOptionsResolver` and an entry in its `RULES` map. Every other option is taken as chosen.
-
-The name must match the SDK's snake_case key in `RefShipmentShipmentOptions::setters()`. `Tests/Unit/Model/Shipment/ShipmentOptionParityTest.php` fails when an option with `toggle` does not reach the shipment the API receives. Do not add the option by hand to `MagentoCollection::$options`, `resolve()` or the setter loop in `OrderShipmentOptions`.
+Use the `add-shipment-option` skill. It follows "Adding a shipment option" in
+[`CONTRIBUTING.md`](CONTRIBUTING.md), which also covers a toggle on the product.
 
 ## Module rules
 
