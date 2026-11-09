@@ -34,7 +34,7 @@ class Client
     /**
      * Separate from the read timeout, and much shorter.
      *
-     * An unreachable host is the outage that costs a customer real time: checkout asks two shapes
+     * An unreachable host is the outage that costs a customer real time: checkout asks two requests
      * per request, so one budget each is what the page waits. A slow-but-answering API still gets
      * the full read timeout.
      */
