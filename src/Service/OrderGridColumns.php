@@ -62,7 +62,7 @@ class OrderGridColumns
     }
 
     /**
-     * The same write for a caller that already holds the columns, from columnsForOrder().
+     * Write the columns for a caller that already holds them, from columnsForOrder().
      *
      * @param array{track_status: string, track_number: string} $columns
      *
