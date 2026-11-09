@@ -56,7 +56,7 @@ use MyParcelNL\Magento\Service\TrackTrace\ReturnIds;
  * One export run: the shipments built from a Magento order or shipment selection, and the tracks
  * they write back.
  *
- * Read tracks through tracksByShipmentId(), never off a Shipment — see the note there.
+ * Read tracks through tracksByShipmentId(), never off a Shipment. The note there says why.
  */
 abstract class MagentoCollection implements MagentoCollectionInterface
 {
@@ -91,10 +91,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     /**
      * tracksByShipmentId()'s answer for this pass, or null before the first read.
      *
-     * One read per write boundary, not one per caller: a grid export asked five times and paid for
-     * the same query each time. Cleared by setNewMagentoTrack(), the only thing that adds a row —
-     * the export service mutates the Track objects held here in place, so an id it stored is
-     * already visible through the memo.
+     * Only setNewMagentoTrack() adds a row, so only it clears this. The export service changes the
+     * Track objects held here in place, so an id it stores is already visible through the memo.
      */
     private ?array $trackMemo = null;
 
@@ -169,9 +167,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             $this->options['label_amount'] = $label_amount;
         }
 
-        // A paper size only arrives from the modal, where the admin picked one. Without it — the
-        // grid's direct action, a row action — the configured paper type decides, or every such
-        // print would be A6 whatever the setting says.
+        // Only the modal sends a paper size. Without it (the grid's direct action, a row action),
+        // the configured paper type decides, or every such print is A6 whatever the setting says.
         $paperSize = $this->request->getParam('mypa_paper_size');
 
         if (null === $paperSize) {
@@ -214,8 +211,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * For a caller that is not the admin form: the defaults above are a mass action's, and a
-     * background job has no business inheriting them.
+     * Set one transport setting, for a caller that is not the admin form.
      *
      * @param mixed $value
      */
@@ -246,16 +242,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * Every track of the collection's shipments, grouped by shipment id, in one query.
+     * Get every track of the collection's shipments, grouped by shipment id, in one query.
      *
-     * Read fresh on every call, and never off $shipment->getAllTracks(): a Shipment caches its track
-     * collection in a private field with no way to reset it, so a shipment object that outlives a
-     * track write answers with the tracks as they were — and a track & trace link missed on a cron
-     * pass is missed for good. Reading tracks here instead is what lets the shipments collection be
-     * loaded once.
-     *
-     * Take the map once above a loop: every iteration asks about a different shipment, and the
-     * tracks a loop creates it holds itself.
+     * Never read $shipment->getAllTracks(): a Shipment caches its tracks with no way to reset them,
+     * so after a track write it answers with stale tracks, and a cron pass misses the link for good.
      *
      * @return array<int,Track[]>
      */
@@ -269,9 +259,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * Forget what was read for the collection being replaced. Every setter that swaps the
-     * collection out owes this call: the memo is keyed by shipment id, so left standing it answers
-     * the new collection with the old one's rows.
+     * Forget the tracks read for the collection being replaced.
+     *
+     * Every setter that swaps the collection must call this: the memo is keyed by shipment id and
+     * otherwise answers the new collection with the old rows.
      */
     protected function forgetTracks(): void
     {
@@ -348,8 +339,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             return $this;
         }
 
-        // Only the API's own failures are rendered here — build failures were shown where they
-        // happened, so that every caller of setNewMyParcelTracks() sees them, not only this one.
+        // Only the API's own failures show here. Build failures showed where they happened, so
+        // every caller of setNewMyParcelTracks() sees them.
         $report = $this->exportService->createConcepts($this->builtShipments);
 
         foreach ($report->failureMessages() as $message) {
@@ -365,13 +356,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * The Magento shipments that actually carry a MyParcel shipment id, for the page that will fetch
-     * their labels. Order ids would be too wide: after an export in which nothing shipped, they
-     * would still claim labels.
+     * Get the Magento shipments that carry a MyParcel shipment id, for the label page.
      *
-     * A selected order's earlier shipments are included on purpose. Reprint depends on it:
-     * setNewMyParcelTracks() skips tracks that already carry an id, so this scan is the only thing
-     * that finds them and a selection of exported orders would otherwise print nothing.
+     * A selected order's earlier shipments are included on purpose: reprint depends on them,
+     * because setNewMyParcelTracks() skips tracks that already carry an id.
      *
      * @return int[] Magento shipment entity ids
      */
@@ -394,12 +382,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
 
 
     /**
-     * A return label per exported shipment, mailed to the customer, against that shipment's own
-     * account — the consignment path used the first order's key for all of them.
+     * Mail a return label per exported shipment to the customer, against that shipment's own account.
      *
-     * @return bool whether any account was actually asked and answered. False is not "nothing to
-     *              do": a lookup that failed leaves its shipments out of the answer and would
-     *              otherwise read as a successful run that mailed nobody.
+     * @return bool whether any account was asked and answered. False is not "nothing to do": a
+     *              failed lookup leaves its shipments out of the answer.
      */
     public function sendReturnLabelMails(): bool
     {
@@ -511,11 +497,11 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * One row for the return-shipments endpoint.
+     * Get one row for the return-shipments endpoint.
      *
-     * email and name are required beside parent and carrier — the API refuses the row without them
-     * — and they come off the parent's recipient, because the return goes back to that same person.
-     * The parent id is repeated as reference_identifier: the answer echoes only that, not the parent.
+     * The API refuses a row without email and name. They come from the parent's recipient, because
+     * the return goes back to that person. The answer echoes only reference_identifier, so it repeats
+     * the parent id.
      *
      * @param object|null $recipient any recipient model carrying getEmail() and getPerson(); the
      *                               queried and the built shipment each have their own class
@@ -613,7 +599,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
                 try {
                     $built = $this->buildShipment($magentoTrack);
                 } catch (\Throwable $e) {
-                    // The order is named here, not by the builder — one prefix, one owner.
+                    // The order is named here, not by the builder: one prefix, one owner.
                     $incrementId = (string) $shipment->getOrder()->getIncrementId();
                     $this->messageManager->addErrorMessage(sprintf('%s: %s', $incrementId, $e->getMessage()));
                     continue;
@@ -630,12 +616,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         return $this->addGroupedShipments($multiColloConsignments);
     }
 
-    /**
-     * The shipment as a single multicollo, or null when this order must ship as separate colli.
-     *
-     * splitShipment() clones, divides the weight and fills secondary_shipments; it takes no API key
-     * and throws on a quantity of 1, which the guard excludes.
-     */
+    /** Get the shipment as one multicollo, or null when this order must ship as separate colli. */
     public function asMultiCollo(BuiltShipment $built, int $quantity): ?BuiltShipment
     {
         if (1 >= $quantity || ! $this->canUseMultiCollo($built->getShipment(), $built->getApiKey())) {
@@ -674,9 +655,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * One Shipment per collo, each built afresh against its *own* track row. Sharing the first track
-     * would make persist() write every returned shipment id onto one row, leaving the other rows
-     * id-less — unprintable, and re-exported as new billable shipments by the next mass action.
+     * Add one Shipment per collo, each built against its *own* track row.
+     *
+     * A shared track makes persist() write every id onto one row. The other rows then stay id-less:
+     * unprintable, and exported again as new billable shipments by the next mass action.
      *
      * @param Track[] $tracks the shipment's id-less tracks, first one already built
      */
@@ -705,8 +687,8 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         // with the same rows.
         $tracks = $this->tracksByShipmentId();
 
-        // The shipment id is already on each track — the export service wrote it per chunk — so this
-        // only refreshes status and barcode. Nothing is paired by position any more.
+        // The export service already wrote the shipment id on each track, so this only refreshes
+        // status and barcode.
         $latest = $this->exportService->fetchLatest($this->getMyparcelConsignmentIdsByApiKey($tracks));
 
         $claimedIds = [];
@@ -772,19 +754,16 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * A track per multicollo collo beyond the first.
+     * Add a track per multicollo collo beyond the first.
      *
-     * A multicollo is created as one shipment carrying secondary_shipments, and the module keeps
-     * one Track for the whole of it — the SDK's create response drops the secondaries, so colli
-     * 2..N never had an id to store. The query response does carry them, each a full shipment with
-     * its own id, barcode and status, so the rows are made here instead. From the next run on
-     * each is an ordinary track and refreshes itself.
+     * The SDK's create response drops secondary_shipments, so colli 2..N get their ids only from the
+     * query response. From the next run on each is an ordinary track.
      *
      * @param array<int,array{shipment: Order\Shipment, parentId: int, collo: object}> $secondary
      * @param array<int,true>                                                          $claimedIds ids already on a track
      * @param array<int,Track[]>                                                       $spare rows persist() parked on
-     *        the parent's id, by parent id — reused before a row is added, so an order keeps the
-     *        label_amount rows it was given rather than gaining one per collo
+     *        the parent's id, by parent id. They are used first, so an order keeps its label_amount
+     *        rows and does not get one more per collo.
      *
      * @return array<int,array{shipment: Order\Shipment, track: Track}> the rows that came out of this
      *         still without a link, keyed by collo id
@@ -821,15 +800,10 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * The consumer portal link a collo is missing.
+     * Fill the consumer portal link a collo is missing.
      *
-     * The api fills link_consumer_portal in only for a shipment asked for by id, never for one
-     * nested in a parent's secondary_shipments — so a collo reaches here without it. Each now has a
-     * track carrying its own id, which is all the grouping below needs to ask about it.
-     *
-     * Only the colli are asked for: their parents were read moments ago and nothing about them has
-     * changed. A collo whose nested entry did carry a link is not here at all, so the day the api
-     * starts sending them this call stops happening.
+     * The API sets link_consumer_portal only on a shipment asked for by id, never on one nested in
+     * secondary_shipments. So this asks for the colli by their own ids.
      *
      * @param array<int,array{shipment: Order\Shipment, track: Track}> $colli keyed by collo id
      */
@@ -865,8 +839,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     }
 
     /**
-     * The three fields a MyParcel shipment gives its track. Shared so a collo and the shipment it
-     * belongs to can never be written differently.
+     * Write the three fields a MyParcel shipment gives its track, for a collo and its parent alike.
      *
      * @param Track  $magentoTrack
      * @param object $myParcelShipment ShipmentDefsShipment or SecondaryShipmentResource

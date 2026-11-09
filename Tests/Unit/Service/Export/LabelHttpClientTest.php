@@ -8,9 +8,8 @@ use MyParcelNL\Magento\Service\Export\LabelHttpClient;
 use Psr\Http\Client\ClientInterface;
 
 /**
- * ShipmentLabelsService reads the body *after* this decorator does, so the read position matters as
- * much as the logging: leaving the stream at EOF would turn every successful label fetch into
- * "Did not receive expected pdf response" — the very failure this exists to explain.
+ * ShipmentLabelsService reads the body after this decorator does. A stream left at EOF turns every
+ * successful label fetch into "Did not receive expected pdf response".
  */
 function loggingClientOver(Response $response): LabelHttpClient
 {
@@ -84,10 +83,8 @@ it('restores an unseekable body instead of losing it', function () {
 });
 
 /**
- * The API documents `;` as the separator for shipment ids (path) and A4 positions (query), and the
- * SDK joins both correctly — but the generated client percent-encodes them to %3B, which the labels
- * endpoint answers 500 to wherever it appears. beta.15 built the URL by hand and never encoded
- * anything, so this only broke at the v11 migration.
+ * Get the URI sent for a label URL. The API separates shipment ids (path) and A4 positions (query)
+ * with `;`. The generated client encodes it to %3B, and the labels endpoint answers 500 to that.
  */
 function uriSentFor(string $url): string
 {
@@ -116,7 +113,7 @@ it('sends the separator between shipment ids unencoded', function () {
 
 it('sends the separator between A4 positions unencoded too', function () {
     // buildQuery() percent-encodes the joined positions, and the API refuses %3B in the query with
-    // the same 500 it gives the path — the shape a real A4 export produces.
+    // the same 500 it gives the path. A real A4 export has this shape.
     mockLoggerFacade()->shouldNotReceive('warning');
 
     expect(uriSentFor('https://api.myparcel.nl/shipment_labels/1%3B2?format=A4&positions=2%3B4'))

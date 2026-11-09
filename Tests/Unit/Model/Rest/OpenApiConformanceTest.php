@@ -71,7 +71,7 @@ function buildRequestHandler(): OrderDeliveryOptionsV1Request
 }
 
 // ---------------------------------------------------------------------------
-// Schema validation — full pipeline
+// Schema validation: full pipeline
 // ---------------------------------------------------------------------------
 
 it('full response validates against the DeliveryOptions schema', function () {
@@ -114,7 +114,7 @@ it('error response validates against the ProblemDetails schema', function (int $
 })->with([400, 404, 406, 409, 500]);
 
 // ---------------------------------------------------------------------------
-// Negative cases — verify the spec actually rejects invalid output
+// Negative cases: the spec rejects invalid output
 // ---------------------------------------------------------------------------
 
 it('rejects an unknown carrier enum value', function () {

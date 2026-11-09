@@ -7,16 +7,10 @@ namespace MyParcelNL\Magento\Setup\Migrations;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 
 /**
- * The insurance tier lists as SDK v11.0.0-beta.15 held them, frozen.
+ * The insurance tier lists as SDK v11.0.0-beta.15 held them, frozen, in whole euros.
  *
- * Insurance is a range now, so these are not a source of truth about what an account may
- * insure — never validate a merchant's input against them. They survive for one reason:
- * `Setup\UpgradeData` converts pre-4.16 configuration by rounding a stored amount up to a tier. It
- * must reproduce the rows it produced when those tiers were live, and it must run offline, so it
- * cannot ask the API.
- *
- * Values are whole euros, taken from the beta.15 consignment classes by running
- * getInsurancePossibilities() for each zone.
+ * Never validate a merchant's input against them: insurance is a range now. Only `Setup\UpgradeData`
+ * uses them, to round pre-4.16 amounts up to a tier offline, without the API.
  */
 final class LegacyInsuranceTiers
 {

@@ -20,10 +20,8 @@ class ShipmentQuery
     use HasUserAgent;
 
     /**
-     * Ids per request. They all go into one path segment, so an unbounded list becomes a URL the
-     * web server rejects before the API ever sees it — nginx stops at 8 KB by default, which a
-     * four-figure selection passes. A multiple of four, so a caller pairing this with A4 label
-     * positions keeps its sheets aligned.
+     * Ids per request. They share one path segment, and nginx refuses a URL over 8 KB by default.
+     * A multiple of four, so A4 label sheets stay aligned.
      */
     private const CHUNK_SIZE = 100;
 

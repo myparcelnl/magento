@@ -28,7 +28,7 @@ use RuntimeException;
  * Turns one Magento order into a v11 fulfilment (PPS) order, tagged with its own store's API key.
  *
  * The counterpart of ShipmentBuilder: carrier, package type and the option set come from the
- * OrderShipmentOptions both share, and what is decided here is what only a PPS order needs — the
+ * OrderShipmentOptions both share, and what is decided here is what only a PPS order needs: the
  * two Recipients, the order lines and the order weight.
  *
  * Trap: setCarrierId() is mandatory. Carrier is shipment-level data in the Order v1 payload, and
@@ -115,11 +115,10 @@ class FulfilmentOrderBuilder
     }
 
     /**
-     * The fields both recipients share. The shipping one then replaces the street with its split
-     * parts; everything above that is the same address read the same way.
+     * Get the fields both recipients share. The shipping one then replaces the street.
      *
-     * The person is the billing name for both, which is what the fulfilment path has always sent —
-     * a gift order therefore carries the buyer's name, not the recipient's.
+     * The person is the billing name for both, which is what the fulfilment path has always sent, so
+     * a gift order carries the buyer's name, not the recipient's.
      *
      * @param \Magento\Sales\Model\Order\Address $address
      */

@@ -21,15 +21,11 @@ use Throwable;
 use MyParcelNL\Magento\Service\IdList;
 
 /**
- * Streams the label PDF for shipments that have already been exported, then writes back the
- * barcodes that request minted and, when asked (notify), sends the track & trace emails — this is
- * the first moment a barcode exists to put in them.
+ * Streams the label PDF for exported shipments, writes back the barcodes that request minted and,
+ * with notify, sends the track & trace emails. A barcode exists only from this moment.
  *
- * It creates nothing: shipments without a MyParcel shipment id are skipped, never exported.
- *
- * POST only. Both callers already POST: the export sends its shipment id list, which is too long
- * for a URL, and the grid row's "Download label" goes through label-download.js like every other
- * label request. A GET marker would hand a link-follower a request that writes and mails.
+ * It creates nothing: it skips shipments without a MyParcel shipment id.
+ * POST only, because this request writes and sends mail.
  */
 class PrintMyParcelLabels extends Action implements HttpPostActionInterface
 {
@@ -96,10 +92,9 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
     }
 
     /**
-     * The shipments to print, or null when the request names none.
+     * Get the shipments to print, or null when the request names none.
      *
-     * The export passes the exact shipment ids it produced; the grid's per-row "Download label"
-     * knows only its order and means every label that order has.
+     * The export passes shipment ids; the grid row passes its order id and means all its labels.
      */
     private function requestedShipments(): ?ShipmentCollection
     {
@@ -118,14 +113,9 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
     }
 
     /**
-     * Writes the barcodes the label request just brought into existence, and mails them when the
-     * export asked for that (notify).
+     * Write back the barcodes the label request assigned, and mail them when notify is set.
      *
-     * A shipment is created as a concept and has no barcode; asking for its label is what moves it
-     * on and assigns one — so this is the first moment a barcode can be read or mailed.
-     *
-     * The PDF is already in hand, so a failure here is logged rather than thrown: losing the
-     * download over a refresh would trade a small problem for a larger one.
+     * Logs a failure instead of throwing it: the PDF is already in hand and must still download.
      */
     private function refreshTracks(MagentoShipmentCollection $collection): void
     {
@@ -150,11 +140,10 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
     }
 
     /**
-     * Inline for the tab the admin asked to open, an attachment otherwise — the same choice
-     * downloadPdfOfLabels() used to make from the same option.
+     * Build the PDF response: inline for a new tab, an attachment otherwise.
      *
      * A batch spanning several accounts can lose one of them and still merge a PDF. The body is the
-     * document, so the accounts that failed travel in a header the download reads out loud —
+     * document, so the accounts that failed travel in a header the download reads out loud,
      * url-encoded, because API error text is not header-safe.
      *
      * @param string[] $errors one per account that returned no labels
@@ -185,11 +174,9 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
     }
 
     /**
-     * Never a redirect.
+     * Return a JSON failure, never a redirect.
      *
-     * The grid fetches this URL, so a redirect would navigate the page and throw away the export
-     * messages it had just rendered — the admin saw them flash and vanish. JSON lets the grid report
-     * the failure without reloading.
+     * The grid fetches this URL. A redirect navigates the page and removes the export messages.
      */
     private function failure(Phrase $message): ResultInterface
     {

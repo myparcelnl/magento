@@ -132,10 +132,7 @@ it('returns DEFAULT_WEIGHT for empty quote', function () {
     expect($weight->getQuoteWeightInGrams($quote))->toBe(Weight::DEFAULT_WEIGHT);
 });
 
-/**
- * Pallet and envelope are valid ids now but have no empty_package_weight setting, so the answer
- * must stay 0 — widening the vocabulary was meant to be inert here.
- */
+/** Pallet and envelope have no empty_package_weight setting, so the answer must stay 0. */
 it('returns 0 for package types that have no empty weight configured', function () {
     $config = createConfig(['empty_package_weight/package' => '200']);
     $weight = new Weight($config);

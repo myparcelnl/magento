@@ -100,7 +100,7 @@ final class ShipmentOption
      * Options that rule out a package type when the merchant has forced them on.
      *
      * Stated, not derived from the config shape: a forced option only narrows the choice when it
-     * applies to the whole order. Priority delivery is the counter-example — it is a mailbox
+     * applies to the whole order. Priority delivery is the counter-example: it is a mailbox
      * option, so treating it as limiting would rule out every package type but mailbox, backwards.
      *
      * Which types can carry one is the capabilities API's answer, per carrier: DPD may offer an
@@ -115,7 +115,7 @@ final class ShipmentOption
      *
      * Not a capabilities fact: the capabilities response answers per carrier and package type, not
      * per delivery type, so this rule is the module's own. Stating it here keeps the export and the
-     * admin form from disagreeing, which they did — one gated on country and carrier as well.
+     * admin form from disagreeing, which they did, one gated on country and carrier as well.
      *
      * The checkout cannot use this: it builds one config per carrier before the customer has picked
      * a delivery type, and the widget decides what to render under each.

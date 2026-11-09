@@ -64,8 +64,8 @@ it('keeps the shipment ids out of the url, so a large selection stays servable',
 });
 
 it('asks the label request to notify only when told to', function () {
-    // Track & trace emails travel with the label request — that is the first moment a barcode
-    // exists — but only the order grid's flow sends them, so the flag is explicit.
+    // Track & trace emails go with the label request, the first moment a barcode exists. Only the
+    // order grid's flow sends them, so the flag is explicit.
     expect(exportResponseWith()->labels([7], 'download', null, true)['params'])->toHaveKey('notify')
         ->and(exportResponseWith()->labels([7], 'download', null)['params'])->not->toHaveKey('notify');
 });

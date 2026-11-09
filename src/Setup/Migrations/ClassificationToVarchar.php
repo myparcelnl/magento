@@ -17,8 +17,8 @@ use Magento\Framework\EntityManager\MetadataPool;
  * being an `input => 'text'` field, so every code was stored in an INT column. That loses a leading
  * zero (004 becomes 4), cannot hold a dot (6109.10), and clamps anything above 2147483647 to it.
  *
- * Values move as they are. Nothing can recover what the INT column already destroyed — 4 no longer
- * knows it was 004 — so this preserves what survived rather than pretending to repair it.
+ * Values move as they are. Nothing can recover what the INT column already lost (4 no longer knows
+ * it was 004), so this keeps what survived and repairs nothing.
  */
 class ClassificationToVarchar
 {

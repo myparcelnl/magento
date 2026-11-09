@@ -12,7 +12,7 @@ define(['jquery'], function ($) {
 
     /**
      * The admin's own message area: div#messages inside .page-content, per the page layout. It is
-     * not .page-main — that is frontend markup, and prependTo() on a selector that matches nothing
+     * not .page-main: that is frontend markup, and prependTo() on a selector that matches nothing
      * builds the element and inserts it nowhere, losing every message in silence.
      *
      * The wrapper is absent on a page Magento rendered no messages into, so it may need creating.

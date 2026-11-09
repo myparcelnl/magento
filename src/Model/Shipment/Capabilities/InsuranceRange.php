@@ -7,17 +7,9 @@ namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 /**
  * The insurance option's bounds, in whole euros.
  *
- * The API answers in **cents**, while every stored setting and every module value object is in
- * **euros** — a missing division by 100 insures a parcel for a hundredth of what the merchant
- * configured, and nothing throws. That conversion lives here and nowhere else. (The module's own
- * REST v1 response uses a third scale, integer-micro; that one is ShipmentOptionsTransformer's.)
- *
- * Bounds come from the flat `min` / `max` properties. The deprecated nested `insuredAmount`
- * wrapper is not read.
- *
- * Zero is not part of the range and is governed separately, by `isRequired`: a contract that does not
- * require insurance accepts "none", a contract that requires it does not. A minimum above zero bounds
- * what an insured parcel may be insured for; it does not by itself make insurance compulsory.
+ * The API answers in **cents**, the module stores **euros**. This is the only place that converts:
+ * a missing division by 100 insures a parcel for a hundredth of the amount, and nothing throws.
+ * Zero is not in the range: `isRequired` alone decides whether "no insurance" is allowed.
  */
 final class InsuranceRange
 {
@@ -33,8 +25,8 @@ final class InsuranceRange
     }
 
     /**
-     * Null when the option is absent, names no maximum, or names a maximum below one euro — the
-     * caller then has no bound to enforce and must fall open rather than refuse insurance.
+     * Make the range, or null when the option is absent or has no maximum of at least one euro.
+     * On null the caller must fall open and not refuse insurance.
      *
      * @param array<string,mixed>|null $raw the option value as OptionSet::valueFor() returns it
      */
@@ -63,7 +55,7 @@ final class InsuranceRange
         $maximum  = (int) floor($max / 100);
 
         // A maximum under one euro floors to zero, and a [0,0] range makes clamp() answer zero for
-        // every amount — the uninsured parcel clamp() must never produce.
+        // every amount: the uninsured parcel clamp() must never produce.
         if ($maximum < 1 || $min > $maximum) {
             return null;
         }
@@ -83,7 +75,7 @@ final class InsuranceRange
         return $this->max;
     }
 
-    /** Whether the contract makes insurance compulsory for this carrier. */
+    /** Check whether the contract makes insurance compulsory for this carrier. */
     public function isRequired(): bool
     {
         return $this->required;
@@ -94,25 +86,19 @@ final class InsuranceRange
         return $euros >= $this->min && $euros <= $this->max;
     }
 
-    /**
-     * Whether a merchant may enter this amount. The permitted set is the range, plus zero when
-     * insurance is optional — zero being "no insurance", not an insured amount of nothing.
-     */
+    /** Check whether a merchant may enter this amount: the range, plus zero ("none") when optional. */
     public function allows(int $euros): bool
     {
         return (0 === $euros && ! $this->required) || $this->contains($euros);
     }
 
-    /** The lowest enterable amount, for a form control that can only express one span. */
+    /** Get the lowest enterable amount, for a form control that can only express one span. */
     public function lowestAccepted(): int
     {
         return $this->required ? $this->min : 0;
     }
 
-    /**
-     * Never zeroes: an amount above the maximum becomes the maximum, not "uninsured". Shipping a
-     * parcel uninsured because a contract narrowed is the outcome this exists to prevent.
-     */
+    /** Clamp the amount into the range. Never zero: above the maximum becomes the maximum. */
     public function clamp(int $euros): int
     {
         return max($this->min, min($this->max, $euros));

@@ -49,8 +49,8 @@ it('treats an order without stored delivery options as standard', function () {
 /**
  * The country and carrier gates are gone; the delivery-type one stays.
  *
- * Which carrier offers receipt code where is the API's answer — the same reasoning hasAgeCheck()
- * already carried — and per docs/sdk-v11.md the API is the validator. The delivery-type rule is the
+ * Which carrier offers receipt code where is the API's answer (the same reasoning hasAgeCheck()
+ * already carried), and per docs/sdk-v11.md the API is the validator. The delivery-type rule is the
  * module's own, because capabilities answer per carrier and package type, never per delivery type.
  */
 it('leaves country and carrier to the api, and keeps only the delivery-type rule', function () {

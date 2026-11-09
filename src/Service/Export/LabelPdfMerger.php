@@ -10,11 +10,9 @@ use setasign\Fpdi\PdfParser\StreamReader;
 /**
  * Merges the label PDFs of several MyParcel accounts into one document.
  *
- * beta.15 merged inside MyParcelCollection::setPdfOfLabels(); v11's ShipmentLabelsService holds one
- * PDF string per instance and has no cross-account concept, so a mixed batch would otherwise be one
- * download per account. Page order follows the order the PDFs are handed in, so the pages of one
- * account stay together — fetchLabelPdf() asks per key. Interleaving by selection order is not
- * possible: an A4 sheet carries four labels of one account, and a multicollo's pages share one id.
+ * The SDK's ShipmentLabelsService holds one PDF per account. Pages keep the order of the PDFs
+ * handed in, so the pages of one account stay together. Selection order is not possible: an A4
+ * sheet carries four labels of one account.
  */
 class LabelPdfMerger
 {
