@@ -15,8 +15,7 @@ use MyParcelNL\Magento\Service\PackageTypeResolver;
 // capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php.
 
 /**
- * The constructor is skipped: it reads the checkout session. checkPackageType() needs only the
- * quote, the config, the two cart services and the memoised capabilities.
+ * Create a Checkout without its constructor, which reads the checkout session.
  *
  * capabilityLookupWith() seeds the requests; see its doc block for the key format and for what an
  * unseeded request does.

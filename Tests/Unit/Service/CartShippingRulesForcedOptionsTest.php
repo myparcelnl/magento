@@ -77,8 +77,8 @@ it('keeps forcesAgeCheck answering the same question', function () {
 });
 
 /**
- * Checkout asks the same question three times per carrier — the age check, the forced options and
- * the package type all reduce to this — and each pass used to run an EAV query per quote item.
+ * Checkout asks this three times per carrier: for the age check, the forced options and the
+ * package type. Each pass must not run an EAV query per quote item.
  */
 it('loads the product batch once however often it is asked', function () {
     $rules = createCartShippingRules([CART_RULES_AGE_CHECK_PATH => '0'], [1 => [], 2 => []], $loads);
