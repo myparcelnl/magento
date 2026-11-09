@@ -164,7 +164,7 @@ class CreateAndPrintMyParcelTrack extends Action
             $order->load($orderId);
 
             $fullStreet         = implode(" ", $order->getShippingAddress()->getStreet() ?? []);
-            $postcode           = preg_replace('/\s+/', '', $order->getShippingAddress()->getPostcode());
+            $postcode           = preg_replace('/\s+/', '', (string) $order->getShippingAddress()->getPostcode());
             $destinationCountry = $order->getShippingAddress()->getCountryId();
             $keyOrderId         = array_search($orderId, $orderIds, true);
 
