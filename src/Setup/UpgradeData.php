@@ -1174,7 +1174,7 @@ class UpgradeData implements UpgradeDataInterface
                         'label'                   => 'External product reference',
                         'input'                   => 'text',
                         'type'                    => 'varchar',
-                        'class'                   => 'validate-length maximum-length-64',
+                        'frontend_class'          => 'validate-length maximum-length-64',
                         'default'                 => '',
                         'comparable'              => false,
                         'used_in_product_listing' => false,
