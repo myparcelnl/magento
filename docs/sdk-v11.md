@@ -45,16 +45,16 @@ Three rules run through the result:
    module truth.
 
 **When capabilities cannot be had, the module offers everything.** `Capabilities\Repository` answers
-a permissive set in five cases: a store with no API key, a request that will not serialise, a shape
-that failed within the last 60 seconds, a failed fetch, and a shape another request is already
+a permissive set in five cases: a store with no API key, a request that will not serialise, a
+request that failed within the last 60 seconds, a failed fetch, and a request another one is already
 fetching. The last one is a lock taken with a zero wait, not a queue — after `cache:clean` every
-concurrent render misses the same shape at once, and making them wait for one call is the cost being
+concurrent render misses the same request at once, and making them wait for one call is the cost being
 avoided, not the fix.
 
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
-render pays is one connect timeout per *distinct* shape it asks about: `ShapeLookup` memoises per
-store, country, package type and carrier, and the Repository memoises per request shape on top of
+render pays is one connect timeout per *distinct* request it asks: `CapabilitiesLookup` memoises per
+store, country, package type and carrier, and the Repository memoises per request body on top of
 that.
 
 ## Deliberate divergences from `myparcelnl/pdk`

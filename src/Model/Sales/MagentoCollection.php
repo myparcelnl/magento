@@ -41,7 +41,7 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 use MyParcelNL\Magento\Service\Export\ShipmentExportService;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesCarrierReturns;
@@ -83,7 +83,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected OrderGridColumns       $gridColumns;
     protected ShipmentApiProvider    $apiProvider;
     protected UserAgent              $userAgent;
-    protected ShapeLookup            $capabilityLookup;
+    protected CapabilitiesLookup            $capabilityLookup;
 
     /** @var array<int,ShipmentBuilder> one per order, built on first use */
     private array $shipmentBuilders = [];
@@ -137,7 +137,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
         $this->gridColumns    = $objectManager->get(OrderGridColumns::class);
         $this->apiProvider    = $objectManager->get(ShipmentApiProvider::class);
         $this->userAgent      = $objectManager->get(UserAgent::class);
-        $this->capabilityLookup = $objectManager->get(ShapeLookup::class);
+        $this->capabilityLookup = $objectManager->get(CapabilitiesLookup::class);
 
         $this->setSourceItemWhenInventoryApiEnabled();
     }
@@ -942,7 +942,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
             return false;
         }
 
-        $capabilities = $this->capabilityLookup->forApiKeyShape($apiKey, $country, $packageType);
+        $capabilities = $this->capabilityLookup->forApiKeyRequest($apiKey, $country, $packageType);
 
         return 1 < (int) $capabilities->colloMaxFor($carrier, $packageType);
     }
