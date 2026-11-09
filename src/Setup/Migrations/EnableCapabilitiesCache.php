@@ -15,13 +15,9 @@ use Throwable;
 /**
  * Turns the capabilities cache type on for an install that predates it.
  *
- * Magento reads cache types from app/etc/env.php and treats an absent one as disabled, and
- * setup:upgrade does not add newly declared types — verified, not assumed. Without this, every
- * checkout and every admin form on an upgraded install would make an uncached API call, which is
- * the regression this prevents.
- *
- * Idempotent, and it never re-enables a type an admin has since switched off: it only writes when
- * the type is absent from env.php altogether.
+ * setup:upgrade does not add a new cache type to app/etc/env.php, and Magento disables a type that
+ * is not there. This writes only when the type is not in env.php, so a type an admin switched off
+ * stays off.
  */
 class EnableCapabilitiesCache
 {
