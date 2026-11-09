@@ -7,13 +7,8 @@ namespace MyParcelNL\Magento\Model\Shipment;
 /**
  * The digital stamp weight ranges, and the weight to send for each.
  *
- * One declaration for both consumers — the admin default-weight setting
- * ({@see \MyParcelNL\Magento\Model\Source\DigitalStampWeightOptions}) and the admin New Shipment
- * form.
- *
- * `value` is not the upper bound. The merged range sends 200, which sits inside 50-350 rather than
- * on a boundary, so read a range with `max` and send `value`. Labels are translated here because
- * i18n:collect-phrases only finds a literal argument.
+ * `value` is not the upper bound: the 50-350 range sends 200. Read a range with `max`, send `value`.
+ * Labels are translated here because i18n:collect-phrases only finds a literal argument.
  */
 final class DigitalStampWeight
 {
@@ -34,11 +29,7 @@ final class DigitalStampWeight
         ];
     }
 
-    /**
-     * The weight to send for an order of this many grams, or null when it is heavier than any range.
-     * Null is deliberate: the form then pre-selects nothing rather than claiming a range the parcel
-     * does not fall in.
-     */
+    /** Get the weight to send for this many grams, or null when it is heavier than any range. */
     public static function valueFor(int $grams): ?int
     {
         foreach (self::options() as $option) {

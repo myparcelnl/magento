@@ -8,21 +8,15 @@ use MyParcelNL\Magento\Model\Source\PaperType;
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * The A4 label positions, and the paper size that follows from them.
+ * Holds the A4 label positions, and the paper size that follows from them.
  *
- * The API takes no paper size of its own: the SDK reads it from the positions value's *type* — an
- * array means A4 with those slots, a number means A4 from that slot on, and anything else means A6.
- * So an empty array asks for A4 with nowhere to print, which is why encode() answers null and the
- * parameter is left off rather than sent empty.
- *
- * The value also survives a round trip through an admin URL, which cannot carry an array.
+ * The SDK reads the paper size from the positions value's *type*: an array is A4 with those slots,
+ * a number is A4 from that slot on, anything else is A6. An empty array asks for A4 with nowhere
+ * to print, so encode() answers null and the parameter is left off.
  */
 class LabelPositions
 {
-    /**
-     * A whole A4 sheet, in the order the mass-action modal ticks its checkboxes — keep it identical
-     * to _getLabelPosition() in mass-action.js.
-     */
+    /** A whole A4 sheet in the modal's checkbox order. Keep it equal to _getLabelPosition() in mass-action.js. */
     public const A4_SHEET = [2, 4, 1, 3];
 
     private Config $config;
@@ -33,10 +27,8 @@ class LabelPositions
     }
 
     /**
-     * The admin's configured default, for a print that made no choice of its own.
-     *
-     * Read at the admin's own scope, not per order: paper_type is store-scoped and a selection can
-     * span stores, but the paper in the printer is one size.
+     * Get the admin's configured default positions.
+     * Read at the admin's scope, not per order: a selection can span stores, but the printer has one paper size.
      *
      * @return int[]|null null for A6
      */

@@ -6,13 +6,10 @@ use Magento\Sales\Model\Order\Shipment;
 use MyParcelNL\Magento\Service\Export\ShipmentApiProvider;
 
 /**
- * The grouping is the part worth pinning: fetchLabelPdf() needs shipment ids keyed by *resolved API
- * key value*, and the key must come from each order's own store — the same rule the export follows,
- * applied a request later. The grouping lives on ShipmentApiProvider so the label controller and the
- * export collections share one implementation.
+ * A shipment and its tracks. fetchLabelPdf() needs shipment ids keyed by resolved API key value,
+ * and the key must come from each order's own store, as in the export.
  *
- * The tracks are handed in rather than read off the shipment: a Shipment caches its own tracks and
- * would answer with the tracks as they were before this run wrote its shipment ids.
+ * Pass the tracks in: a Shipment caches its own tracks, from before this run wrote its shipment ids.
  *
  * @return array{0: Shipment, 1: array<int,Magento\Sales\Model\Order\Shipment\Track>}
  */
@@ -86,7 +83,7 @@ it('answers POST only, because fetching a label writes and mails', function () {
     // Fetching the labels mints the barcodes, writes them back and, with notify, mails the customer.
     // On POST the admin validates form_key; on GET it falls back to the secret key, which is a
     // config toggle and rides in the href. label-download.js POSTs every request, so nothing needs
-    // the GET half — and re-adding it would hand a link-follower a real side effect.
+    // the GET half. Adding it again would give a link-follower a real side effect.
     expect(class_implements(MyParcelNL\Magento\Controller\Adminhtml\Order\PrintMyParcelLabels::class))
         ->toContain(Magento\Framework\App\Action\HttpPostActionInterface::class)
         ->not->toContain(Magento\Framework\App\Action\HttpGetActionInterface::class);

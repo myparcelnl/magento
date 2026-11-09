@@ -6,15 +6,9 @@ use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
 /**
- * Reads facts off a built shipment without the tests naming its shape.
- *
- * The v11 Shipment replaced the SDK consignment, and it spells every one
- * of these differently — most of them now live inside options rather than on the
- * shipment. Routing the reads through here is what let the rule tests keep their
- * expect() lines across that swap.
- *
- * This covers only what is read *off the built object*. A test asserting the
- * return value of a decision rule is not insulated by anything here.
+ * Reads facts off a built shipment without the tests naming its shape. Most of these facts live
+ * inside the shipment options, not on the shipment. This covers only what is read off the built
+ * object, not the return value of a decision rule.
  */
 function builtShipmentIsPickup(Shipment $shipment): bool
 {

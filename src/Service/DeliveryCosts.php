@@ -58,7 +58,7 @@ class DeliveryCosts
     }
 
     /**
-     * Returns the base price bare, without any tax settings applied, used inside Magento (it will apply tax settings later).
+     * Get the base price without tax settings applied. Magento applies them later.
      *
      * @param Quote       $quote to get the weight and default carrier, package type and country, and calculate tax
      * @param string|null $carrierName override carrier from quote if you want
@@ -117,7 +117,7 @@ class DeliveryCosts
                 continue;
             }
 
-            // calculate relative weight of this option (definition) using hierarchy points by walking through the conditions
+            // Weigh this option (definition) by the hierarchy points of the conditions it meets.
             $totalPoints = 0;
             foreach (self::CONDITIONS as $condition => $points) {
                 if ('unspecified' === $condition) {
@@ -147,11 +147,11 @@ class DeliveryCosts
     }
 
     /**
-     * Scores a specific condition against the defined conditions in the matrix, using the actual conditions from the quote.
+     * Score one condition of the quote against the defined conditions in the matrix.
      *
      * @param string $condition the name of the condition from self::CONDITIONS
      * @param array  $conditions actual conditions from the quote
-     * @param array  $definedConditions from the matrix, each condition is an associative array with 'type' and 'value' keys
+     * @param array  $definedConditions from the matrix, each an array with 'type' and 'value' keys
      * @return int 0 when not met, or the points for the condition when met, or 1 when unspecified.
      */
     private function scoreCondition(string $condition, array $conditions, array $definedConditions): int
@@ -217,8 +217,8 @@ class DeliveryCosts
 
 
     /**
-     * Rounded, not truncated: 0.29 * 100 is 28.999999999999996 in binary floating point, and a cast
-     * would make 29 cents into 28 — on a customs value, a delivery cost and an insured amount alike.
+     * Convert euros to cents. Rounded, not truncated: 0.29 * 100 is 28.999999999999996 in binary
+     * floating point, and a cast makes 29 cents into 28.
      *
      * @param float $price in Euros
      *

@@ -5,17 +5,11 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Service\Export;
 
 /**
- * What happened to each order in a batch, named by increment id.
+ * Records what happened to each order in a chunked export batch, named by increment id.
  *
- * A batch is no longer all-or-nothing: chunking means call four can fail after three have created
- * real, billable shipments, so the admin needs to know which orders shipped before deciding what to
- * retry. Failure messages carry the API's own text; flattening it into "export failed" would cost
- * the admin the one thing that says what to do next.
- *
- * Failures come in two kinds, and the difference is the whole point of this class. A **blamed**
- * order is one the API objected to; it gets its own message. **Collateral** is an order that simply
- * shared a rejected chunk — it is counted, never named, because a per-order line for each one reads
- * as an accusation and buries the one message that matters.
+ * A **blamed** order is one the API objected to: it gets its own message with the API's text.
+ * A **collateral** order only shared a rejected chunk: it is counted, never named, so it does
+ * not hide the message that matters.
  */
 class ExportReport
 {
@@ -31,18 +25,12 @@ class ExportReport
     /** Why the collateral did not ship. The same for all of them, so it is kept once. */
     private string $collateralReason = '';
 
-    /**
-     * Whether every chunk that produced collateral was refused outright.
-     *
-     * One transport failure is enough to make the whole count uncertain, so this only stays true
-     * while every rejection was a refusal.
-     */
+    /** True while every chunk that produced collateral was refused; one transport failure clears it. */
     private bool $collateralRefused = true;
 
     /**
-     * A success never clears a failure: an order exports one shipment per collo under the same
-     * increment id, so one collo succeeding and another failing are both true at once — dropping
-     * either half would tell the admin a partial export was clean.
+     * Record a shipped order. A success never clears a failure: each collo is a shipment under the
+     * same increment id, so one collo can succeed while another fails.
      */
     public function succeed(string $incrementId, int $shipmentId): void
     {
@@ -55,9 +43,8 @@ class ExportReport
     }
 
     /**
-     * Reasons accumulate rather than replace: one rejected shipment can break several rules at once,
-     * and the merchant has to fix all of them before the batch will go through. Overwriting meant a
-     * second fix-and-retry for something the API had already said the first time.
+     * Blame an order. Reasons accumulate: one rejected shipment can break several rules, and the
+     * merchant must fix all of them.
      */
     public function fail(string $incrementId, string $reason): void
     {
@@ -77,7 +64,7 @@ class ExportReport
     }
 
     /**
-     * An order that did not ship because something else in its chunk failed.
+     * Record an order that did not ship because something else in its chunk failed.
      *
      * @param bool $refused the API validated the chunk and refused it, so nothing was created.
      *                      False for a timeout or a 5xx, which changes what the admin is told.
@@ -99,7 +86,7 @@ class ExportReport
         $this->collateralRefused        = $this->collateralRefused && $refused;
     }
 
-    /** Names an order that shipped some colli and not others, which a count of collateral would hide. */
+    /** Blame an order that shipped some colli and not others, which a count of collateral would hide. */
     private function failPartially(string $incrementId, string $reason, bool $refused): void
     {
         $this->fail($incrementId, (string) ($refused
@@ -132,10 +119,7 @@ class ExportReport
     }
 
     /**
-     * One line per blamed order, then at most one line for everything else.
-     *
-     * The collateral line carries no increment ids on purpose: naming twenty orders that are not at
-     * fault is the noise this replaces.
+     * Get one line per blamed order, then at most one line for the collateral, without increment ids.
      *
      * @return string[] ready for the admin message area
      */

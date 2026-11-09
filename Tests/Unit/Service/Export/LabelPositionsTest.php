@@ -5,10 +5,9 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 
 /**
- * The paper size is decided by the *type* of the positions value, not its content: an array means
- * those exact A4 positions, a number means a starting position, and anything else means A6. So the
- * comma string an admin URL can carry has to come back as an array, and an absent value has to stay
- * null rather than defaulting to a number — a default would silently turn every A6 print into A4.
+ * The type of the positions value decides the paper size: an array means those A4 positions, a
+ * number means a starting position, anything else means A6. A comma string from an admin URL must
+ * come back as an array. An absent value must stay null: a default number turns every A6 print into A4.
  */
 it('answers the configured paper type with a whole A4 sheet, or nothing for A6', function ($paperType, $expected) {
     expect(makeLabelPositions($paperType)->configured())->toBe($expected);

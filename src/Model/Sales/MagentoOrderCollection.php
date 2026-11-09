@@ -135,9 +135,8 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Export every order in the collection as a PPS order, grouped by API key and chunked.
      *
-     * The grouping looks redundant — OrderCollection::save() groups too — but its grouped calls are
-     * one method: an exception on the second account escapes before the first account's orders are
-     * marked exported, and the next run creates them again.
+     * Do not leave the grouping to OrderCollection::save(): there, an exception on the second account
+     * escapes before the first account's orders are marked exported, and the next run creates them again.
      *
      * @return $this
      */
@@ -382,8 +381,8 @@ class MagentoOrderCollection extends MagentoCollection
      * myparcel_consignment_id. A PPS order has no id until this runs, so without it the track keeps
      * its placeholder and never joins the status or track & trace refresh at all.
      *
-     * The id is read defensively: it is not in the SDK's model — order_shipments passes through as
-     * a raw array — so an absent one is logged, because it is the one case where the status and the
+     * The id is read defensively: it is not in the SDK's model (order_shipments passes through as
+     * a raw array), so an absent one is logged, because it is the one case where the status and the
      * link can never arrive.
      *
      * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $fulfilmentByIncrementId
@@ -406,7 +405,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * The collection's Magento shipments grouped by their order's increment id.
+     * Get the collection's Magento shipments grouped by their order's increment id.
      *
      * Allocation is per order, never per Magento shipment. An order shipped partly by hand before
      * PPS ran has two Magento shipments, and looking the fulfilment data up once per shipment wrote
@@ -439,10 +438,9 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * One track per fulfilment shipment, for one Magento order.
      *
-     * Three rules, in order: a shipment already on a track is left alone, so a re-run writes
-     * nothing; otherwise it takes a placeholder track nothing has claimed; and only if none is free
-     * does it get a new one. That last step needs an id or a real barcode — a shipment carrying
-     * neither can never be recognised again, so it would earn another row on every run.
+     * A shipment already on a track is left alone. Otherwise it takes a free placeholder track, and
+     * only then a new one. A new track needs an id or a real barcode: without either, the shipment
+     * cannot be recognised again and gets another row on every run.
      *
      * @param Shipment[]                                              $magentoShipments all of one order's
      * @param array<int,array{barcode: string, shipmentId: int|null}> $fulfilmentShipments
@@ -542,9 +540,10 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Loaded once per set of orders. No shipment row is created after setNewMagentoShipment(), and
-     * tracks are read through tracksByShipmentId() rather than off these objects, so nothing here
-     * goes stale within a run. setOrderCollection() — which reload() goes through — drops it.
+     * Get the shipments of the orders, loaded once per set of orders.
+     *
+     * Nothing here goes stale within a run: tracks are read through tracksByShipmentId().
+     * setOrderCollection(), which reload() calls, drops it.
      */
     protected function getShipmentsCollection(): ShipmentResource\Collection
     {
@@ -564,11 +563,9 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * Only the orders this pass actually changed.
+     * Save only the orders this pass changed.
      *
-     * AbstractDb::save() opens and commits a transaction before it notices an unmodified model, so
-     * an untouched order still cost a round trip each way — two hundred of them on a mass action
-     * that changed none.
+     * AbstractDb::save() opens a transaction even for an unmodified model.
      */
     private function save(): void
     {

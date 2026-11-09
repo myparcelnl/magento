@@ -120,9 +120,8 @@ it('alerts with the key fingerprint when a row cannot be used', function () {
 });
 
 /**
- * The mask this replaced was substr(0,4) . str_repeat('*', strlen - 8) . substr(-4), which produces
- * no stars at all once the key is eight characters or shorter — so it printed the key whole,
- * precisely when a truncated key is the thing being reported.
+ * A mask of the first and last four characters prints a key of eight characters or fewer whole.
+ * A truncated key is exactly what this alert reports.
  */
 it('does not print a short api key either', function () {
     expectAlertNames('abcd1234', 'e9cee71ab932', 'abcd1234');
