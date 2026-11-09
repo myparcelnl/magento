@@ -65,7 +65,7 @@ it('answers a column keyed by the public product id', function () {
         9 => ['myparcel_classification' => '0901'],
     ]);
 
-    expect($attributes->column([7, 9], 'classification'))->toBe([7 => '6109.10', 9 => '0901']);
+    expect($attributes->getColumn([7, 9], 'classification'))->toBe([7 => '6109.10', 9 => '0901']);
 });
 
 it('reads a whole batch in one load', function () {
@@ -74,7 +74,7 @@ it('reads a whole batch in one load', function () {
         9 => ['myparcel_classification' => '62'],
     ], $loads);
 
-    $attributes->column([7, 9], 'classification');
+    $attributes->getColumn([7, 9], 'classification');
 
     expect($loads)->toHaveCount(1)
         ->and($loads[0])->toBe([7, 9]);
@@ -83,9 +83,9 @@ it('reads a whole batch in one load', function () {
 it('never asks twice for a product it already loaded', function () {
     $attributes = productAttributesFor([7 => ['myparcel_age_check' => '1']], $loads);
 
-    $attributes->warm([7]);
-    $attributes->value(7, 'age_check');
-    $attributes->column([7], 'age_check');
+    $attributes->preload([7]);
+    $attributes->getValue(7, 'age_check');
+    $attributes->getColumn([7], 'age_check');
 
     expect($loads)->toHaveCount(1);
 });
@@ -93,7 +93,7 @@ it('never asks twice for a product it already loaded', function () {
 it('asks nothing at all for an empty batch', function () {
     $attributes = productAttributesFor([], $loads);
 
-    expect($attributes->column([], 'classification'))->toBe([])
+    expect($attributes->getColumn([], 'classification'))->toBe([])
         ->and($loads)->toBeEmpty();
 });
 
@@ -103,24 +103,24 @@ it('leaves a product with no value out of the map, which is the callers no opini
         9 => [],
     ]);
 
-    expect($attributes->column([7, 9], 'age_check'))->toBe([7 => '1']);
+    expect($attributes->getColumn([7, 9], 'age_check'))->toBe([7 => '1']);
 });
 
 it('treats an empty string as a row that says nothing', function () {
     // The raw reader answered '' here, and every caller then had to test for it separately.
     $attributes = productAttributesFor([7 => ['myparcel_age_check' => '']]);
 
-    expect($attributes->column([7], 'age_check'))->toBe([])
-        ->and($attributes->value(7, 'age_check'))->toBeNull();
+    expect($attributes->getColumn([7], 'age_check'))->toBe([])
+        ->and($attributes->getValue(7, 'age_check'))->toBeNull();
 });
 
 it('does not re-query a product the collection never returned', function () {
     // Deleted, or out of this store. Absent is an answer, not a miss to retry.
     $attributes = productAttributesFor([], $loads);
 
-    $attributes->value(7, 'age_check');
-    $attributes->value(7, 'age_check');
+    $attributes->getValue(7, 'age_check');
+    $attributes->getValue(7, 'age_check');
 
     expect($loads)->toHaveCount(1)
-        ->and($attributes->value(7, 'age_check'))->toBeNull();
+        ->and($attributes->getValue(7, 'age_check'))->toBeNull();
 });
