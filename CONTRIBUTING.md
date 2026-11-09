@@ -56,9 +56,11 @@ steps in this order:
 4. **Name it for the readers.** Add a constant without the `myparcel_` prefix to
    `Service\ProductAttributes`, and add it to `ATTRIBUTES`, so that one load reads it with the others.
 5. **Read it where it applies:**
-   - At export, the attribute decides the option on the shipment: read it in a rule on
-     `ShipmentOptionsResolver` (see "A rule that capabilities do not give"). `age_check` is the
-     example.
+   - For the shipment, the attribute sets the order's default for the option: read it in
+     `Model\Source\DefaultOptions::sourceOf()` and return `OptionSource::PRODUCT`, as `age_check`
+     does. The New Shipment form and the export both read `DefaultOptions`, so they show the same
+     default, and the exclusion ranking sees the product as the source. A rule on
+     `ShipmentOptionsResolver` is not enough: the form does not read it.
    - At checkout, the attribute decides what the consumer may choose: read it in
      `Service\CartShippingRules`. `priority_delivery` is the example.
 6. **Test it.** Test the reader with a product that has the attribute on, and with one that has it
