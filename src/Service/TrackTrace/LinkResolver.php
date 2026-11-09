@@ -16,9 +16,9 @@ use MyParcelNL\Sdk\Services\CountryCodes;
  * whose MyParcel tracks hold no real barcode falls back to the barcodes the status cron wrote to its
  * order row.
  *
- * A link the API issued is stored on the track. TrackTraceUrl builds one for a track without it and
- * for an order-row barcode. Its host follows the account's proposition, hence the store id in the
- * rows; that lookup is made only for a row that needs it.
+ * The API's link is stored on the track. For a track without one, and for an order-row barcode,
+ * TrackTraceUrl builds a link from the account's proposition, which is why the rows carry the store
+ * id. That lookup happens only for a row that needs it.
  */
 class LinkResolver
 {
