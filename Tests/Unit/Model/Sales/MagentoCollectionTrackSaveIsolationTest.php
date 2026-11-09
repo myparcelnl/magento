@@ -5,9 +5,9 @@ declare(strict_types=1);
 /**
  * One unsaveable track must not end the run.
  *
- * The status cron selects on the track's own status and excludes nothing that failed before, and it
- * sorts entity_id DESC — so a row that throws on save wins the same place next tick, and every
- * order behind it stalls for as long as the row stays broken.
+ * The status cron selects on the track's own status, excludes nothing that failed before, and sorts
+ * entity_id DESC. A row that throws on save gets the same place next tick, and every order behind it
+ * stalls while the row stays broken.
  *
  * partialOrderCollection(), recordingExportService(), consignmentIdsStub() and apiShipment() live
  * in Tests/Helpers/UpdateMagentoTrackFixtures.php; recordingTrack() in Tests/Helpers/ExportFixtures.php.

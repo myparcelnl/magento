@@ -36,6 +36,8 @@ class OrderGridColumns
     }
 
     /**
+     * Write track_status and track_number for a page of orders, only where they differ.
+     *
      * @param int[] $orderIds
      *
      * @return int how many orders were written
@@ -103,12 +105,9 @@ class OrderGridColumns
     }
 
     /**
-     * The two column values one order's tracks add up to; '' where they say nothing.
-     *
-     * Scoped here rather than trusted from the caller: writeFor() queries its own rows, but the
-     * shipment observer hands over $shipment->getTracksCollection(), which carries every carrier's.
-     * A manually added DHL barcode reaching sales_order.track_number is then offered a MyParcel
-     * portal link that portal never issued.
+     * Get the two column values one order's tracks add up to; '' where they say nothing.
+     * Filters to MyParcel tracks itself: the shipment observer passes every carrier's tracks, and a
+     * manual DHL barcode must not get a MyParcel portal link.
      *
      * @param iterable<array<string,mixed>|\Magento\Sales\Model\Order\Shipment\Track> $tracks
      *

@@ -52,8 +52,8 @@ function partialOrderCollection(array $shipmentList): MagentoOrderCollection
 /**
  * A ShipmentExportService double answering every fetch from one map, recording what was asked for.
  *
- * One map for every call: a test that wants the second fetch — the one fillColloLinks() makes — to
- * succeed puts the collo's own top-level shipment in it beside the parent.
+ * One map for every call. For the second fetch (the one fillColloLinks() makes) to succeed, put the
+ * collo's own top-level shipment in the map beside the parent.
  */
 function recordingExportService(array $latest, object $saved): ShipmentExportService
 {
@@ -96,8 +96,8 @@ function consignmentIdsStub(array $ownIds): Closure
 }
 
 /**
- * updateMagentoTrack() is what puts the consumer portal link on the track, and nothing covered it —
- * which is why PPS orders went without one unnoticed. There is no PPS-specific link path:
+ * updateMagentoTrack() is what puts the consumer portal link on the track, and nothing covered it.
+ * That is why PPS orders went without one unnoticed. There is no PPS-specific link path:
  * once a track carries myparcel_consignment_id it refreshes through here like any other.
  *
  * @param array<int,ShipmentDefsShipment> $latest keyed by MyParcel shipment id

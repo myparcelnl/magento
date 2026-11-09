@@ -16,42 +16,20 @@ use MyParcelNL\Magento\Service\LogContext;
 
 
 /**
- * Plugin for Magento Sales OrderRepository to add MyParcel delivery options as extension attributes.
+ * Adds the MyParcel delivery options as an extension attribute to orders from OrderRepository.
  *
- * This plugin ensures that MyParcel delivery options, stored as serialized data in the order's custom field,
- * are exposed as extension attributes on Order and OrderSearchResult objects returned by the API.
- *
- * Intended use:
- * - Allows external systems and API consumers to access MyParcel delivery options via the order extension attributes.
- * - Uses the old serialized format for backward compatibility, for modern API responses use the rest delivery-options endpoint which provides the new format.
- *
- * How it works:
- * - After an order is loaded via OrderRepository::get(), the plugin unserializes the MyParcel delivery options
- *   from the order data, creates a DeliveryOptions, and attaches the serialized options to the order's
- *   extension attributes.
- * - After a list of orders is loaded via OrderRepository::getList(), the plugin performs the same process for
- *   each order in the result, attaching the delivery options as an array to the extension attributes.
- * - This makes the delivery options available in API responses and for further processing in Magento.
+ * Applies to get() and getList(). The attribute keeps the old serialized format for backward
+ * compatibility; the REST delivery-options endpoint gives the new format.
  */
 class OrderInformationUpdate
 {
 
     const DELIVERY_OPTIONS = 'myparcel_delivery_options';
 
-    /**
-     * Order Extension Attributes Factory
-     *
-     * @var OrderExtensionFactory
-     */
+    /** @var OrderExtensionFactory */
     protected OrderExtensionFactory $extensionFactory;
     protected Json                  $jsonSerializer;
 
-    /**
-     * OrderRepositoryPlugin constructor
-     *
-     * @param OrderExtensionFactory $extensionFactory
-     * @param Json                  $jsonSerializer
-     */
     public function __construct(OrderExtensionFactory $extensionFactory, Json $jsonSerializer)
     {
         $this->extensionFactory = $extensionFactory;

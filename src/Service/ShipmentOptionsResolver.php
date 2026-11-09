@@ -123,12 +123,9 @@ class ShipmentOptionsResolver
             return $amount;
         }
 
-        // Zero is not an insured amount of nothing — it means the option is left out of the request
-        // entirely, which is why the encoders guard on it before writing anything. So it survives a
-        // contract whose minimum is above zero: that minimum bounds what an insured parcel may be
-        // insured for, not whether a parcel is insured at all. An order below the configured
-        // insurance_from_price still ships uninsured. A contract that compels insurance is the one
-        // case where it cannot.
+        // Zero means the option is left out of the request, so it survives a contract minimum above
+        // zero: the minimum bounds an insured parcel, not whether a parcel is insured. Only a
+        // contract that requires insurance overrides it.
         if (0 === $amount) {
             if (! $range->isRequired()) {
                 return 0;

@@ -9,7 +9,7 @@ use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use RuntimeException;
 
 /**
- * Records which API keys the PPS cron polled, and answers each with a prepared collection — or
+ * Records which API keys the PPS cron polled, and answers each with a prepared collection, or
  * throws for the keys named in $failingKeys, to stand in for one unreachable account.
  */
 class RecordingUpdateStatus extends UpdateStatus

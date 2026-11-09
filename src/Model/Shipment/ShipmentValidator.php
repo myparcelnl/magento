@@ -8,11 +8,10 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ModelInterface;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
 /**
- * Local pre-flight check of a Shipment and its nested models.
+ * Local pre-flight check of a Shipment and its nested models, because Shipment::valid() does not recurse.
  *
- * Needed because Shipment::valid() does not recurse: a missing recipient.cc would reach the API and
- * come back as a batch-level error instead of a per-order message. Customs is deliberately absent —
- * its items report a false invalid-country for every country we send (see CustomsDeclarationBuilder).
+ * Customs is left out on purpose: its items report a false invalid country for every country
+ * (see CustomsDeclarationBuilder).
  */
 class ShipmentValidator
 {

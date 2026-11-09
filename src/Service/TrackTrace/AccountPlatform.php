@@ -11,7 +11,7 @@ use MyParcelNL\Magento\Service\LogContext;
 use Throwable;
 
 /**
- * The platform id behind a store's api key, read from stored account settings — no API call.
+ * The platform id behind a store's api key, read from stored account settings, with no API call.
  *
  * Answers null when the store has no api key, its settings were never imported, or the stored row
  * cannot be read at all, which the fallback url reads as "use the default host". Never throws: the

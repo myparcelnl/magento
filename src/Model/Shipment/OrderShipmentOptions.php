@@ -26,18 +26,20 @@ use RuntimeException;
 /**
  * What one Magento order is to be shipped as: carrier, package type and the v11 ShipmentOptions.
  *
- * Both export paths ask an order the same questions — ShipmentBuilder for a label,
- * FulfilmentOrderBuilder for a PPS order — so the answers are given once here. Each builder keeps
+ * Both export paths ask an order the same questions (ShipmentBuilder for a label,
+ * FulfilmentOrderBuilder for a PPS order), so the answers are given once here. Each builder keeps
  * only what its own API shape needs: a recipient array against a Recipient, a RefShipmentPickup
  * against a PickupLocation, shipment item weights against order item weights.
  *
  * Generated-model traps: booleans must be a literal 1 or 0 (a PHP bool throws at serialization),
- * setLabelDescription() throws above its limit where the consignment silently truncated, and
- * setDeliveryType() takes a literal int — a string enum name throws.
+ * setLabelDescription() throws above its limit, and setDeliveryType() throws on a string enum name.
  */
 class OrderShipmentOptions
 {
-    /** Copy of the maxLength RefShipmentShipmentOptions::setLabelDescription() enforces; read it from the SDK once the generator exposes it. */
+    /**
+     * Copy of the maxLength RefShipmentShipmentOptions::setLabelDescription() enforces.
+     * Read it from the SDK once the generator exposes it.
+     */
     public const LABEL_DESCRIPTION_MAX_LENGTH = 45;
 
     private ObjectManagerInterface $objectManager;
@@ -126,7 +128,7 @@ class OrderShipmentOptions
 
     /**
      * Package type precedence: the explicit option, then what the checkout stored, then the
-     * configured default. Nothing here overrides a stored type — an option the type cannot carry
+     * configured default. Nothing here overrides a stored type: an option the type cannot carry
      * is the checkout's problem to avoid and the API's to refuse.
      *
      * The two sources fail differently, and deliberately. An explicit option is the admin form's own
@@ -214,7 +216,7 @@ class OrderShipmentOptions
 
     /**
      * The stored checkout data, with the carrier resolved and a pickup location dropped when the
-     * carrier was overridden — a pickup location is carrier-specific, so an inherited one is no
+     * carrier was overridden: a pickup location is carrier-specific, so an inherited one is no
      * longer reachable under a different carrier.
      */
     private function storedDeliveryOptions(): array

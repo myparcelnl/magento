@@ -149,7 +149,7 @@ class ConfigChange implements ObserverInterface
             $apiKey = trim((string) ($this->scopeConfig->getValue(Config::XML_PATH_API_KEY, $scope, $scopeId) ?? ''));
 
             // Whether the key changed is not worth detecting: an unchanged key already has its row, and
-            // a key that does not is exactly the case worth importing — including a brand new one. Note
+            // a key that does not is exactly the case worth importing, a brand new one included. Note
             // every field is posted on every save, so presence in $configData proves nothing.
             if ('' !== $apiKey && ! $this->accountSettingsImporter->hasSettingsFor($apiKey)) {
                 // Before reconcile(), which deletes rows for unconfigured keys.
@@ -167,9 +167,9 @@ class ConfigChange implements ObserverInterface
     }
 
     /**
-     * The first reason any validator gives to refuse this field, or null when every one that claims
-     * the path is satisfied. A path no validator claims is saved unexamined, which is every setting
-     * in the form but the few that have a validator.
+     * Get the first reason a validator gives to refuse this field, or null when none refuses.
+     *
+     * A path that no validator claims is saved unexamined.
      *
      * @param mixed $value
      */
@@ -190,11 +190,7 @@ class ConfigChange implements ObserverInterface
         return null;
     }
 
-    /**
-     * Failure is contained on purpose: an invalid key is no reason to refuse to store it, which would
-     * leave the admin unable to save anything at all. Warn, let the save succeed, let them retry with
-     * the button.
-     */
+    /** Import the account settings; on failure only warn, so the admin can still save the form. */
     private function importAccountSettings(string $apiKey): void
     {
         try {
@@ -233,17 +229,16 @@ class ConfigChange implements ObserverInterface
     /**
      * Reloads what this save wrote, and nothing else.
      *
-     * reinit() is the same call Magento's own config save makes: it drops the merged config values —
-     * cache tag `config_scopes` — and pre-warms them under a lock. cleanType('config') would empty
+     * reinit() is the same call Magento's own config save makes: it drops the merged config values
+     * (cache tag `config_scopes`) and pre-warms them under a lock. cleanType('config') would empty
      * the whole cache type instead, discarding the merged system.xml structure that lives in it, and
      * every following request would rebuild that from every module's system.xml.
      *
      * Capability entries are keyed on the api key and stored without expiry, so nothing but an api
      * key change can invalidate them; dropping them for any other setting buys an API round trip.
      *
-     * Rendered output can still hold a stale setting, so those types are marked invalid rather than
-     * flushed: a flag write costs nothing, and the admin gets Magento's own invalidated-cache notice
-     * to refresh them when it suits.
+     * Do not use cleanType('config'): it also drops the merged system.xml structure. Only an api key
+     * change drops the capabilities. Rendered output is marked invalid, not flushed.
      */
     private function reinitConfig(bool $apiKeyChanged): void
     {

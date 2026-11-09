@@ -457,7 +457,7 @@ class Checkout
 
     /**
      * The carrier has this package type, and it can carry every limiting option the order forces
-     * on — an 18+ order cannot go as a mailbox where the account has no age check on a mailbox.
+     * on: an 18+ order cannot go as a mailbox where the account has no age check on a mailbox.
      *
      * Options are listed per package type, so that second question is the narrowed one,
      * and it is only asked when something is forced. hasOption() answers true on a permissive set,

@@ -13,11 +13,10 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 use MyParcelNL\Magento\Service\IdList;
 
 /**
- * Every MyParcel track & trace link an admin sees, read for a whole page of orders in one query.
- * Only this carrier's tracks: an order can also carry manual ones, which belong to no portal here.
+ * Reads the MyParcel track & trace links for a page of orders in one query. Manual tracks are left out.
  *
  * The link the API issued is stored on the track; TrackTraceUrl only fills in for shipments exported
- * before that was so, and its host depends on the account's platform — hence the store id in the
+ * before that was so, and its host depends on the account's platform, hence the store id in the
  * rows. That lookup is made only when a row actually needs the fallback, so an install with nothing
  * but fresh exports never reads account settings while rendering a grid.
  */
@@ -96,9 +95,8 @@ class LinkResolver
     }
 
     /**
-     * Raw HTML on purpose: the grid renders it through a Knockout `html:` binding and
-     * order_view.phtml echoes it unescaped. Callers must NOT escape it — every interpolated value
-     * is escaped here.
+     * Render raw HTML on purpose: the grid binds it with Knockout `html:` and order_view.phtml echoes it.
+     * Callers must NOT escape it: every interpolated value is escaped here.
      *
      * @param array<int, array{number: string, url: string}> $links
      */

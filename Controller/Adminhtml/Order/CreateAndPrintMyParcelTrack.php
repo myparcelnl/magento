@@ -16,7 +16,7 @@ use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
  * The order grid's export: creates the MyParcel shipments for the selected orders.
  *
  * Track & trace emails are not sent here: a barcode only exists once the label request has run, so
- * PrintMyParcelLabels sends them — this controller asks for that with the notify flag.
+ * PrintMyParcelLabels sends them. This controller asks for that with the notify flag.
  *
  * If you want to add improvements, please create a fork in our GitHub:
  * https://github.com/myparcelnl
@@ -80,7 +80,7 @@ class CreateAndPrintMyParcelTrack extends LabelExportAction
 
         // Only a concept request stops here. Asking whether anything was *built* would skip a
         // selection of orders that already carry labels, which is a reprint rather than nothing to
-        // do — the labels below come from stored shipment ids, not from this run.
+        // do. The labels below come from stored shipment ids, not from this run.
         if (TrackAndTrace::VALUE_CONCEPT === $this->orderCollection->getOption('request_type')) {
             return null;
         }
