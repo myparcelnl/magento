@@ -491,7 +491,7 @@ class PackageRepository extends Package
             return null;
         }
 
-        $value = $this->attributes()->value($productId, $column);
+        $value = $this->attributes()->getValue($productId, $column);
 
         return null === $value ? null : (int) $value;
     }
@@ -527,7 +527,7 @@ class PackageRepository extends Package
             }
         }
 
-        $this->attributes()->warm($productIds);
+        $this->attributes()->preload($productIds);
     }
 
     /** Held for the instance's lifetime, which is what keeps the warmed batch warm. */
