@@ -16,13 +16,9 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentDefsCustomsShipmentTyp
 /**
  * Builds a v11 RefShipmentCustomsDeclaration for a ROW shipment. Stateless; shared across a batch.
  *
- * Deliberately separate from Helper\CustomsDeclarationFromOrder, which serves the Order v1
- * Order v1 path, a different API.
- *
- * Two traps this class exists to contain: country must go through the item constructor, because the
- * generated enum for setCountry() lists only '' and throws on every real country, which also makes
- * listInvalidProperties() report a false positive here; and descriptions must be truncated before
- * setting, because setDescription() throws where the old path truncated silently.
+ * Pass the country through the item constructor: the generated setCountry() enum lists only '' and
+ * throws on every real country, and listInvalidProperties() reports a false positive.
+ * Truncate a description before setDescription(), which throws above its limit.
  */
 class CustomsDeclarationBuilder
 {

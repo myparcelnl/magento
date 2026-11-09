@@ -118,10 +118,9 @@ it('leaves a track the response said nothing about untouched', function () {
 });
 
 it('reads the tracks from their own query, never from the shipment cache', function () {
-    // The guarantee, not the mechanism. A Shipment caches its own tracks in a private field with no
-    // way to reset it, so updateMagentoTrack() would read the tracks as they were before
-    // setOrderV1TrackData() wrote to them, and a track with a barcode leaves the cron's scope,
-    // so a link missed on that pass is missed for good.
+    // A Shipment caches its own tracks in a private field with no reset, so updateMagentoTrack()
+    // would read the tracks from before setOrderV1TrackData() wrote to them. A track with a barcode
+    // leaves the cron's scope, so a link missed on that pass is missed for good.
     //
     // The query answer is memoised: every writer mutates the Track objects it got, so an id written
     // in the same pass is visible without a second select. Adding a row clears the memo (see the

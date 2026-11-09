@@ -424,13 +424,8 @@ class MagentoOrderCollection extends MagentoCollection
      * Give every shipped Order v1 shipment its own Magento track: the barcode, and the MyParcel
      * shipment id when the response carries one.
      *
-     * The shipment path gets both from updateMagentoTrack(), which refreshes by
-     * myparcel_shipment_id. An Order v1 order has no id until this runs, so without it the track keeps
-     * its placeholder and never joins the status or track & trace refresh at all.
-     *
-     * The id is read defensively: it is not in the SDK's model (order_shipments passes through as
-     * a raw array), so an absent one is logged, because it is the one case where the status and the
-     * link can never arrive.
+     * Without the id, the track never joins the status and track & trace refresh. The SDK model does
+     * not type the id (order_shipments is a raw array), so an absent id is logged.
      *
      * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $orderV1ShipmentsByIncrementId
      */
@@ -454,9 +449,8 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Get the collection's Magento shipments grouped by their order's increment id.
      *
-     * Allocation is per order, never per Magento shipment. An order shipped partly by hand before
-     * Order v1 ran has two Magento shipments, and looking the Order v1 data up once per shipment wrote
-     * the same barcode and the same shipment id onto a placeholder track of each.
+     * Allocate per order, never per Magento shipment: an order shipped partly by hand has two
+     * Magento shipments, and each would get the same barcode and shipment id.
      *
      * @return array<string,Shipment[]>
      */
@@ -483,7 +477,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * One track per Order v1 shipment, for one Magento order.
+     * Give each Order v1 shipment of one Magento order one track.
      *
      * A shipment already on a track is left alone. Otherwise it takes a free placeholder track, and
      * only then a new one. A new track needs an id or a real barcode: without either, the shipment

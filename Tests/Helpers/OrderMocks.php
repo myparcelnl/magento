@@ -94,9 +94,8 @@ function createShipment(array $overrides = []): Shipment
 }
 
 /**
- * `deliveryOptions` (a JSON string, as actually stored on the order) backs
- * getData(Config::FIELD_DELIVERY_OPTIONS): the checkout payload
- * OrderExportOptions and DefaultOptions read from a real order this way.
+ * Create an order mock. `deliveryOptions` (a JSON string, as stored on the order) backs
+ * getData(Config::FIELD_DELIVERY_OPTIONS): the checkout payload OrderExportOptions and DefaultOptions read.
  */
 function createOrder(array $overrides = []): Order
 {

@@ -37,10 +37,7 @@ class ContractDefinitions
         $this->config      = $config;
     }
 
-    /**
-     * Get the capabilities stored with the account settings of this key, not a live lookup.
-     * Permissive when the key is empty or nothing is stored.
-     */
+    /** Get the stored capabilities of this key, or permissive when the key or the row is empty. */
     public function forApiKey(string $apiKey): CapabilitySet
     {
         if ('' === $apiKey) {

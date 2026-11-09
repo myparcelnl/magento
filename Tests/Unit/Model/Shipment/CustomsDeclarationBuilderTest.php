@@ -9,13 +9,8 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
 /**
- * The v11 customs stack is a second builder, unrelated to the Order v1 one the
- * Order v1 path uses. ConsignmentEncode::DEFAULT_CURRENCY named the
- * currency before; it is one of the classes beta.22 removed, so the same value
- * is now read off the generated money model.
- *
- * Product data (HS code, country of manufacture) is fetched in two batch
- * queries keyed by product id, never per item. That is what the mocks model.
+ * Create the shipment customs builder, which is separate from the Order v1 one. Product data
+ * (HS code, country of manufacture) comes from two batch queries keyed by product id, never per item.
  */
 function createCustomsDeclarationBuilder(string $classification = '61', int $productId = 99): CustomsDeclarationBuilder
 {

@@ -312,17 +312,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
     /**
      * Index sales_order.myparcel_uuid on its first 36 characters, a whole UUID.
      *
-     * Earns its place only where Order v1 is the exception: ordersAwaitingBarcode() then starts from the
-     * few orders carrying a uuid instead of every order of the last fortnight, which is all
-     * created_at can narrow it to. Where Order v1 is the normal export mode the condition matches almost
-     * every row and the optimiser ignores this index.
-     *
-     * `notnull` is a range MySQL can read from an index, so a prefix is enough; the column is never
-     * queried by equality.
-     *
-     * Raw DDL because addIndex() cannot express a prefix length, and a prefix is what a TEXT column
-     * needs. Retyping to varchar(36) would let addIndex() do it, but that rebuilds sales_order;
-     * ADD INDEX is in-place and non-locking in InnoDB.
+     * Raw DDL, because addIndex() cannot express the prefix length a TEXT column needs. Retyping to
+     * varchar(36) would rebuild sales_order; ADD INDEX is in-place and non-locking in InnoDB.
      */
     private function addUuidPrefixIndex(SchemaSetupInterface $setup, string $table): void
     {
