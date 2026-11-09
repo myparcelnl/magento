@@ -45,24 +45,24 @@ class ProductAttributes
         $this->objectManager = $objectManager;
     }
 
-    /** The value of `myparcel_<$column>` for one product, or null when it has none. */
-    public function value(int $productId, string $column): ?string
+    /** Get the value of `myparcel_<$column>` for one product, or null when it has none. */
+    public function getValue(int $productId, string $column): ?string
     {
-        $this->warm([$productId]);
+        $this->preload([$productId]);
 
         return $this->loaded[$productId][$column] ?? null;
     }
 
     /**
-     * One column across a batch. A product without a value is absent from the map, which is every
-     * caller's "no opinion" — do not fill it with an empty string.
+     * Get one column for a batch of products. A product without a value is not in the map: do not
+     * fill it with an empty string, because each caller reads a missing key as "no opinion".
      *
      * @param  int[] $productIds
      * @return array<int,string> product id => value
      */
-    public function column(array $productIds, string $column): array
+    public function getColumn(array $productIds, string $column): array
     {
-        $this->warm($productIds);
+        $this->preload($productIds);
 
         $values = [];
 
@@ -78,15 +78,12 @@ class ProductAttributes
     }
 
     /**
-     * Loads every attribute for the ids not seen yet. Nothing is read twice: a product attribute
-     * cannot change while one request runs.
-     *
-     * Public so a caller that already holds the whole batch can pay for one load before reading
-     * product by product.
+     * Load every attribute of the products not loaded yet, in one query. Call it with the whole batch
+     * before you read product by product.
      *
      * @param int[] $productIds
      */
-    public function warm(array $productIds): void
+    public function preload(array $productIds): void
     {
         $missing = [];
 
