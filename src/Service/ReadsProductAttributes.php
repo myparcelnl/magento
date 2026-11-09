@@ -20,7 +20,7 @@ trait ReadsProductAttributes
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
-    private function warmAttributes(array $items): void
+    private function preloadAttributes(array $items): void
     {
         $productIds = [];
 
@@ -32,7 +32,7 @@ trait ReadsProductAttributes
             }
         }
 
-        $this->attributes->warm($productIds);
+        $this->attributes->preload($productIds);
     }
 
     /**
@@ -46,7 +46,7 @@ trait ReadsProductAttributes
             return null;
         }
 
-        $value = $this->attributes->value($productId, $column);
+        $value = $this->attributes->getValue($productId, $column);
 
         return null === $value ? null : (int) $value;
     }

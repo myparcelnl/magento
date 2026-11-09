@@ -67,7 +67,7 @@ class CartShippingRules
     public function excludesParcelLockers(array $items, ?string $carrierPath, ?int $storeId = null): bool
     {
         try {
-            $this->warmAttributes($items);
+            $this->preloadAttributes($items);
 
             if ((bool) $this->config->getGeneralConfig('shipping_methods/exclude_parcel_lockers', $storeId)) {
                 return true;
@@ -94,7 +94,7 @@ class CartShippingRules
             return true;
         }
 
-        $this->warmAttributes($items);
+        $this->preloadAttributes($items);
 
         foreach ($items as $item) {
             if ((bool) $this->attributeOf($item, ProductAttributes::PRIORITY_DELIVERY)) {
@@ -115,7 +115,7 @@ class CartShippingRules
      */
     public function hidesDeliveryOptions(array $items): bool
     {
-        $this->warmAttributes($items);
+        $this->preloadAttributes($items);
 
         foreach ($items as $item) {
             if ((bool) $this->attributeOf($item, ProductAttributes::DISABLE_CHECKOUT)) {
@@ -133,7 +133,7 @@ class CartShippingRules
      */
     public function dropOffDelay(array $items): ?int
     {
-        $this->warmAttributes($items);
+        $this->preloadAttributes($items);
 
         $highest = null;
 
@@ -149,17 +149,14 @@ class CartShippingRules
     }
 
     /**
-     * Both tiers are always read. A future option may have only one of them: a product attribute
-     * that does not exist and a config path that does not exist both answer no.
-     *
-     * Compared against '1' rather than cast: an *_active path need not be a Yes/No. LargeFormatOptions
-     * offers 'price' and '0', and 'price' casts to true without ever meaning 1.
+     * Check whether a product in the cart or the carrier's default options switch the option on. A
+     * missing attribute or config path is off.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
     private function optionForcedOn(array $items, string $carrierPath, string $option, ?int $storeId): bool
     {
-        $this->warmAttributes($items);
+        $this->preloadAttributes($items);
 
         foreach ($items as $item) {
             if ((bool) $this->attributeOf($item, $option)) {
@@ -167,6 +164,7 @@ class CartShippingRules
             }
         }
 
+        // Not a cast: LargeFormatOptions stores 'price', which casts to true.
         return '1' === (string) $this->config->getConfigValue(
             $carrierPath . 'default_options/' . $option . '_active',
             $storeId

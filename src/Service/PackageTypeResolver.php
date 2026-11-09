@@ -67,7 +67,7 @@ class PackageTypeResolver
         // by it even when the mailbox was never a candidate.
         $maxMailboxWeight = $this->maxMailboxWeight($carrierPath, $storeId);
 
-        $this->warmAttributes($items);
+        $this->preloadAttributes($items);
 
         $weight       = 0.0;
         $percentage   = 0.0;

@@ -253,7 +253,7 @@ class ShipmentOptionsResolver
         // the New Shipment modal paid one load per carrier and package type it offered.
         $ageChecks   = ObjectManager::getInstance()
             ->get(ProductAttributes::class)
-            ->column($productIds, ProductAttributes::AGE_CHECK);
+            ->getColumn($productIds, ProductAttributes::AGE_CHECK);
         $hasAgeCheck = null;
 
         foreach ($productIds as $productId) {
