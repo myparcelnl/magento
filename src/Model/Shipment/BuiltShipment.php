@@ -65,7 +65,7 @@ class BuiltShipment
         return (string) $this->shipment->getReferenceIdentifier();
     }
 
-    /** Replaces the Shipment while keeping the pairing — multicollo returns a new object. */
+    /** Replace the Shipment and keep the pairing, because multicollo returns a new object. */
     public function withShipment(Shipment $shipment): self
     {
         $clone = new self($shipment, $this->track, $this->apiKey, $this->incrementId);

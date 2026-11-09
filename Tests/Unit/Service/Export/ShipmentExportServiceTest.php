@@ -129,7 +129,7 @@ it('reports an unattributable chunk rejection once, not once per order', functio
     // order in turn would be two accusations for one event. See
     // ShipmentExportFailureAttributionTest for where the blame lands when the body does point at one.
     //
-    // The spy fails with a plain RuntimeException, which is not a 422 — so the wording is the
+    // The spy fails with a plain RuntimeException, which is not a 422, so the wording is the
     // cautious one. Nothing here knows whether the call was processed.
     expect($report->hasFailures())->toBeTrue()
         ->and(array_map('strval', $report->collateral()))->toBe(['100000001', '100000002'])

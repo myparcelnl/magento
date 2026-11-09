@@ -3,14 +3,10 @@
 declare(strict_types=1);
 
 /**
- * A multicollo is created as one shipment carrying secondary_shipments, and the module keeps one
- * Track for the whole of it — the SDK's create response drops the secondaries, so colli 2..N never
- * had an id to store. The query response does carry them, so updateMagentoTrack() makes the missing
- * rows from what it already fetched. Both export modes go through here, so this is the one
- * place multicollo barcodes can appear.
+ * The SDK's create response drops a multicollo's secondary shipments, so colli 2..N have no track.
+ * updateMagentoTrack() makes those tracks from the query response, for both export modes.
  *
- * collectionRefreshing(), apiShipment(), apiShipmentWithColli() and apiCollo() live in
- * Tests/Helpers/UpdateMagentoTrackFixtures.php.
+ * Helpers live in Tests/Helpers/UpdateMagentoTrackFixtures.php.
  */
 
 it('gives every collo of a multicollo its own track', function () {
@@ -45,8 +41,8 @@ it('carries the status onto a collo track as well', function () {
 });
 
 it('adds no collo track on a second run', function () {
-    // The guard is the id already being on a track — the same key the refresh works by. Without it
-    // every run would add another row for the same collo.
+    // The guard is the id already on a track, the same key the refresh uses. Without it, every run
+    // would add another row for the same collo.
     [$collection, $saved] = collectionRefreshing(4243, [
         4243 => apiShipmentWithColli(4243, '3SCOLLO2', [apiCollo(4243, '3SCOLLO2')]),
     ]);

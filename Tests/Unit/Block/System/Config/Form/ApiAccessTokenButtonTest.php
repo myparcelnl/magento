@@ -19,7 +19,7 @@ final class FakeApiAccessTokenButton extends ApiAccessTokenButton
     public function __construct(array $stubScope)
     {
         $this->stubScope = $stubScope;
-        // intentionally skip parent::__construct — getScopeComment only needs getCurrentScope.
+        // Skip parent::__construct on purpose: getScopeComment only needs getCurrentScope.
     }
 
     public function getCurrentScope(): array

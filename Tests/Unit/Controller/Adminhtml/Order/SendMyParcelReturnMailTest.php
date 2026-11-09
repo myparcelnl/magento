@@ -8,8 +8,8 @@ use MyParcelNL\Magento\Controller\Adminhtml\LabelExportAction;
 use MyParcelNL\Magento\Controller\Adminhtml\Order\SendMyParcelReturnMail;
 
 it('answers POST only, because it makes a return label and mails the consumer', function () {
-    // It used to implement no marker at all, and HttpMethodValidator constrains only an action that
-    // implements one — so every method reached it, and a link-follower could bill a shipment.
+    // HttpMethodValidator constrains only an action that implements a marker. Without one, every
+    // method reaches it, and a link-follower could bill a shipment.
     expect(class_implements(SendMyParcelReturnMail::class))
         ->toContain(HttpPostActionInterface::class)
         ->not->toContain(HttpGetActionInterface::class);

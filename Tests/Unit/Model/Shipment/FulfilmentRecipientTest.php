@@ -12,7 +12,7 @@ use MyParcelNL\Sdk\Model\Recipient;
  * billing address, splitting by the carrier's own local country, and letting
  * a rejected address surface.
  *
- * No case asserts a literal the SDK's regex produced — those are its to change.
+ * No case asserts a literal the SDK's regex produced: those are its to change.
  */
 function recipientForAddress(
     array   $addressOverrides,
@@ -99,9 +99,7 @@ it('splits a Belgian address by the carrier\'s own country, not always by PostNL
 });
 
 it('lets a rejected address surface instead of swallowing it', function () {
-    // beta.31 deleted InvalidConsignmentException along with the consignment stack; SplitStreet now
-    // throws a plain InvalidArgumentException. What is asserted is unchanged — the address is not
-    // swallowed — only the class it arrives as.
+    // SplitStreet throws a plain InvalidArgumentException.
     $reject = fn () => recipientForAddress(['getCountryId' => 'NL', 'street' => '1234']);
 
     expect($reject)->toThrow(InvalidArgumentException::class, 'Invalid full street supplied');

@@ -26,7 +26,7 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
  * Carrier, package type and the option set come from OrderShipmentOptions, which the fulfilment
  * path shares. What is decided here is what only a label needs: the weight of these shipment items,
  * the recipient array and the pickup model. A shipment that cannot be built fails on its own,
- * naming the order — never by substituting a value the merchant did not choose.
+ * naming the order, never by substituting a value the merchant did not choose.
  */
 class ShipmentBuilder
 {
@@ -54,7 +54,7 @@ class ShipmentBuilder
      * Resolved once per shipment and option set, not once per collo: each instance re-reads the
      * order's delivery options and, for a label description that names a product, its items.
      *
-     * Keyed on the options too — the New Shipment form can hand a different set for one shipment.
+     * Keyed on the options too: the New Shipment form can hand a different set for one shipment.
      */
     private function shipmentOptionsFor(Order $order, array $options, int $shipmentId): OrderShipmentOptions
     {
@@ -114,14 +114,10 @@ class ShipmentBuilder
     }
 
     /**
-     * "<shipment entity id>-<collo number>", always suffixed.
+     * Get "<shipment entity id>-<collo number>", always suffixed.
      *
-     * The shipment entity id is unique per *shipment* but not per label: a
-     * label_amount above one makes several Magento tracks for one shipment, and create() answers
-     * [shipmentId => referenceIdentifier], so a shared reference would pair only one of them. The
-     * suffix is uniform rather than added only from the second collo, so there is one format to read
-     * and one prefix to match on. The API attaches no meaning to the value and nothing is stored
-     * locally under it, so the change costs nothing.
+     * A label_amount above one makes several tracks for one shipment, and create() pairs a response
+     * by this value, so each track needs its own.
      */
     public static function referenceIdentifierFor(int $shipmentEntityId, int $colloNumber): string
     {
@@ -129,8 +125,8 @@ class ShipmentBuilder
     }
 
     /**
-     * An unsaved Track carrying the fields the observer needs; it is added to the Magento shipment
-     * only once the export has given it a barcode.
+     * Create an unsaved Track with the fields the observer needs.
+     * It is added to the Magento shipment only when the export gives it a barcode.
      */
     public function createTrackForShipment(MagentoShipment $magentoShipment): Track
     {
@@ -207,7 +203,7 @@ class ShipmentBuilder
 
     /**
      * A digital stamp weight is always grams, whatever the weight unit setting says. A preset of
-     * zero — nothing posted and no default configured — falls through to the item weights, as the
+     * zero (nothing posted and no default configured) falls through to the item weights, as the
      * consignment path did; the API refuses a zero weight.
      */
     private function weightInGrams(Track $magentoTrack, array $options, int $packageType): int

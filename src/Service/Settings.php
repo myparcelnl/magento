@@ -127,8 +127,8 @@ class Settings
      *
      * Answered from one read of every path the settings file declares, warmed on the first ask per
      * scope: the form asks once per field and there are hundreds of them, so a COUNT each cost the
-     * page a query per field at website and store scope. A path the file does not declare — an API
-     * token, say — still costs its own.
+     * page a query per field at website and store scope. A path the file does not declare (an API
+     * token, say) still costs its own.
      */
     public function hasRowAtScope(string $path, string $scope, int $scopeId): bool
     {
@@ -178,14 +178,11 @@ class Settings
     }
 
     /**
-     * The values stored at exactly this (scope, scopeId), keyed by path.
+     * Get the values stored at exactly this (scope, scopeId), keyed by path, in one query.
      *
-     * Row coordinates, never inheritance: a path missing from the result has no row here, which is
-     * not the same as having no value. A save compares against this to skip fields nobody changed,
-     * and a cascaded read would answer "unchanged" for a scope that is only inheriting — which is
-     * precisely the case that has to be written.
-     *
-     * One query for the whole form, so the comparison costs less than the writes it avoids.
+     * No inheritance: a missing path has no row here, which is not the same as no value. A save
+     * compares against this to skip unchanged fields. A cascaded read answers "unchanged" for an
+     * inheriting scope, and that is exactly the case that must be written.
      *
      * @param  string[] $paths
      * @return array<string, string|null>

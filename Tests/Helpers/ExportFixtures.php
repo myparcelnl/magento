@@ -141,8 +141,8 @@ function builtShipmentFor(
 /**
  * The request object, wherever it sits in the argument list.
  *
- * postShipments() takes $user_agent first at beta.15 and sixth at beta.31, so a fixture that binds
- * to either position silently stops observing anything when the pin moves — it did.
+ * postShipments() takes $user_agent first at beta.15 and sixth at beta.31. A fixture that binds to
+ * one position silently stops observing anything when the SDK pin moves.
  *
  * @return \MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ShipmentPostShipmentsRequestV11
  */
@@ -212,9 +212,9 @@ function makeExportService(array $clientsByKey, $chunkSize = null): ShipmentExpo
 }
 
 /**
- * An api double that rejects the whole request with a 422, carrying the given body verbatim —
- * the shape the Core API spec allows for `errors` is what decides whether an error can be tied to
- * one order, so the tests supply real bodies rather than a message string.
+ * An api double that rejects the whole request with a 422 and the given body verbatim.
+ *
+ * The shape of `errors` decides whether an error can be tied to one order, so supply real bodies.
  */
 function makeRejectingShipmentApi(array $body, array &$calls): ShipmentApi
 {

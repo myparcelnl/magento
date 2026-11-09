@@ -74,7 +74,7 @@ function capabilitiesBody(array $results): string
     return (string) json_encode(['results' => $results]);
 }
 
-/** The contract-definitions envelope. `items`, not `results` — the one shape difference. */
+/** The contract-definitions envelope. It uses `items`, not `results`: the one shape difference. */
 function contractDefinitionsBody(array $items): string
 {
     return (string) json_encode(['items' => $items]);
@@ -83,8 +83,8 @@ function contractDefinitionsBody(array $items): string
 /**
  * The stored account settings row Importer writes and both readers decode.
  *
- * $overrides replaces whole top-level keys, so a caller can hand back a row missing or breaking one
- * of them — the shapes AccountSettings has to survive.
+ * $overrides replaces whole top-level keys, so a caller can hand back a row that misses or breaks
+ * one of them: the shapes AccountSettings must survive.
  *
  * @param array<string, mixed> $overrides
  */
@@ -220,14 +220,9 @@ function makeAcceptanceCapabilitiesClient(): CapabilitiesClient
 }
 
 /**
- * Asserts that every insurance option in a capabilities response carries the flat Money properties
- * InsuranceRange reads, and that InsuranceRange still parses them. Shared by the fixture case and the
- * live case so the two cannot drift.
+ * Assert that each insurance option carries the flat Money properties and that InsuranceRange parses them.
  *
- * The deprecated `insuredAmount` wrapper may ride along beside the flat properties; InsuranceRange
- * ignores it, so its presence is not a failure. A missing flat property is. Every message names the
- * carrier and the keys the option actually carried, because that is the whole diagnostic when the
- * shape moves.
+ * The deprecated `insuredAmount` wrapper can appear beside them; InsuranceRange ignores it.
  */
 function assertFlatInsuranceShape(array $results): void
 {
@@ -275,8 +270,8 @@ function assertFlatInsuranceShape(array $results): void
 }
 
 /**
- * A CapabilitiesLookup that already holds its answers, so the repository is never reached — reaching it
- * fatals, and that is the assertion that the code asked only the requests the test seeded.
+ * A CapabilitiesLookup that already holds its answers. Reaching the repository fatals: that is the
+ * assertion that the code asked only the requests the test seeded.
  *
  * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a
  * single CapabilitySet to seed every request at once, for a test the request distinction is not about.

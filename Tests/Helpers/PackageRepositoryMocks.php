@@ -25,7 +25,7 @@ function makePackageRepository(): PackageRepository
 }
 
 /**
- * A quote item carrying one catalogue product id — the minimum PackageRepository reads off an item
+ * A quote item carrying one catalogue product id: the minimum PackageRepository reads off an item
  * before it warms the product attributes.
  *
  * Pass null for an item whose product was deleted, which the repository has to survive.

@@ -6,11 +6,8 @@ use Magento\Framework\Exception\LocalizedException;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
- * Both cases short-circuit at the `empty($apiKey)` guard, before any
- * shipment exists, so nothing carrier-specific can change the outcome.
- *
- * Not asserted on purpose: that the key ends up on the shipment. The v11
- * Shipment has no setApiKey() — the key rides alongside on BuiltShipment.
+ * Both cases stop at the `empty($apiKey)` guard, before any shipment exists. The key is not
+ * asserted on the shipment: Shipment has no setApiKey(), and BuiltShipment carries the key.
  */
 function standardCheckoutOptions(): array
 {

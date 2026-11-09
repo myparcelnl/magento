@@ -8,7 +8,7 @@ use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
 
 /**
- * The module's own `myparcel_*` product attributes, read for a batch of products.
+ * Reads the module's own `myparcel_*` product attributes for a batch of products, all in one load.
  *
  * Through the product collection, never the EAV value tables directly. Adobe Commerce keys those
  * tables on `row_id` and holds one row per scheduled update, so a hand-built query needs both an
@@ -23,7 +23,7 @@ class ProductAttributes
 {
     private const PREFIX = 'myparcel_';
 
-    /** Every product attribute UpgradeData installs. Fetched together; see the class comment. */
+    /** Every product attribute UpgradeData installs. Fetched together. */
     private const ATTRIBUTES = [
         'age_check',
         'classification',
@@ -37,7 +37,7 @@ class ProductAttributes
 
     private ObjectManagerInterface $objectManager;
 
-    /** @var array<int,array<string,string>> product id => column => value. A loaded product with no values is an empty array, not absent. */
+    /** @var array<int,array<string,string>> product id => column => value; a loaded product without values is [] */
     private array $loaded = [];
 
     public function __construct(ObjectManagerInterface $objectManager)
@@ -99,8 +99,8 @@ class ProductAttributes
             return;
         }
 
-        // Seeded before the query, so a product the collection does not return — deleted, or out of
-        // this store — counts as loaded and is never asked for again.
+        // Seeded before the query, so a product the collection does not return (deleted, or out of
+        // this store) counts as loaded and is never asked for again.
         foreach ($missing as $productId) {
             $this->loaded[$productId] = [];
         }

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 
 info:
-  title: MyParcelNL Magento — Delivery Options API
+  title: "MyParcelNL Magento: Delivery Options API"
   version: 1.0.0
   description: |
     REST API for retrieving delivery options associated with a Magento order.
@@ -14,7 +14,7 @@ info:
     API version. When no version is specified the server defaults to version 1.
 
     **Error format:** Error responses follow
-    [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
+    [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
 
 servers:
   - url: /rest
@@ -302,7 +302,7 @@ components:
       type: object
       description: |
         Error response following
-        [RFC 9457 — Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
+        [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457).
       required:
         - type
         - status

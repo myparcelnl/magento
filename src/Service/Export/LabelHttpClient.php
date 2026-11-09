@@ -13,15 +13,11 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**
- * Repairs the labels request on the way out and explains the answer on the way back; the PSR client
- * is the only seam ShipmentLabelsService offers.
+ * Repairs the labels request on the way out and logs a bad answer on the way back (SDK issue 4).
  *
- * Outbound it restores the `;` separators — shipment ids in the path, A4 positions in the query —
- * that the generated client encodes to `%3B` (SDK issue 4 — the endpoint answers 500 to either).
- * Inbound it logs the shape of a non-PDF body before the SDK throws it away; the values are left out,
- * as they can quote recipient data. A real PDF is never copied: only the first bytes are read, and only
- * a response already known not to be a PDF is materialised. The Authorization header is never touched
- * or logged.
+ * Outbound it restores the `;` separators that the generated client encodes to `%3B`.
+ * Inbound it logs only the shape of a non-PDF body: the values can quote recipient data.
+ * It never copies a real PDF and never touches or logs the Authorization header.
  */
 class LabelHttpClient implements ClientInterface
 {
@@ -72,11 +68,9 @@ class LabelHttpClient implements ClientInterface
     }
 
     /**
-     * Puts the documented `;` back between shipment ids in the path, and between A4 positions in the
-     * query — the API's parser splits on the literal character before percent-decoding, so an
-     * encoded `%3B` anywhere in the URL answers HTTP 500. PSR-7 does not re-encode the repair: `;`
-     * is an allowed sub-delimiter in both path and query. No parameter of this endpoint carries a
-     * semicolon as data, so the replacement cannot corrupt a value.
+     * Put the literal `;` back between shipment ids in the path and A4 positions in the query.
+     * The API splits before it percent-decodes, so `%3B` answers HTTP 500. No parameter of this
+     * endpoint holds a semicolon as data, so the replacement cannot corrupt a value.
      */
     private function withRawSeparators(RequestInterface $request): RequestInterface
     {

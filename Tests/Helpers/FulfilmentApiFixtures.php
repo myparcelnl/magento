@@ -10,7 +10,7 @@ use MyParcelNL\Sdk\Model\Fulfilment\Order as FulfilmentOrder;
  * builds what we send, these build what comes back.
  *
  * order_shipments is a raw array in the SDK, so these mirror its wire shape rather than a model.
- * A fulfilment order can hold several shipments — extra colli for the same goods — which is what
+ * A fulfilment order can hold several shipments (extra colli for the same goods), which is what
  * apiOrderWithShipments() exists for; the single-shipment helpers are wrappers over it.
  */
 

@@ -110,7 +110,7 @@ it('answers per carrier, not once for the store', function () {
 
 it('rules out a package type that cannot carry an option the order forces on', function () {
     // An 18+ order cannot go as a mailbox when the account has no age check on a mailbox. The
-    // agnostic answer still lists mailbox — only the narrowed one knows.
+    // agnostic answer still lists mailbox. Only the narrowed one knows.
     $c = createCheckoutWith(
         [
             ''        => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['PACKAGE', 'MAILBOX']])]),
