@@ -10,8 +10,8 @@ use MyParcelNL\Magento\Service\Weight;
  * The constructor is skipped: these methods read only $order, the capability lookup and the
  * collaborators set below.
  *
- * capabilityLookupWith() seeds the shapes; see its doc block for the key shape and for what an
- * unseeded shape does.
+ * capabilityLookupWith() seeds the requests; see its doc block for the key format and for what an
+ * unseeded request does.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $capabilities
  * @param string[]                                   $contracted v2 carrier names in the order store's
@@ -33,7 +33,7 @@ function createShipmentOptionsFormWith($capabilities, array $orderOverrides = []
     ));
     setPrivateProperty($block, 'contractDefinitions', storedContractFor((int) $order->getStoreId(), $contracted));
 
-    // getFormCarriers() reaches these whenever a shape reports insurance, which a permissive shape
+    // getFormCarriers() reaches these whenever an answer reports insurance, which a permissive answer
     // always does.
     $defaults = Mockery::mock(DefaultOptions::class);
     $defaults->shouldReceive('getDefaultInsurance')->andReturn(0)->byDefault();

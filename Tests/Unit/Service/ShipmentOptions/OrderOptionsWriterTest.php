@@ -178,7 +178,7 @@ it('resets a pickup to home delivery when the carrier changes, and syncs the car
         ->and($did->saved[1][Config::FIELD_MYPARCEL_CARRIER])->toBe('dhlforyou');
 });
 
-it('refuses an option the account does not offer for the shape, and writes nothing', function () {
+it('refuses an option the account does not offer for the request, and writes nothing', function () {
     $order = writableOrder(['carrier' => 'postnl', 'deliveryType' => 'standard']);
 
     expect(fn() => writeOrderOptions([$order], ['options' => ['age_check' => '1']]))

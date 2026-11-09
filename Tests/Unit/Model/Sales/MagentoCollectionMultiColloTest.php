@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Sales\MagentoOrderCollection;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -16,7 +16,7 @@ use MyParcelNL\Sdk\Model\Shipment\Shipment;
  * The constructor is skipped: it builds half a dozen services, while canUseMultiCollo() reads only
  * the shipment, the API key it is handed, and the capabilities lookup.
  *
- * A real ShapeLookup over the stubbed repository, so the request this builds is the one asserted.
+ * A real CapabilitiesLookup over the stubbed repository, so the request this builds is the one asserted.
  *
  * @param \GuzzleHttp\Psr7\Response[] $responses
  */
@@ -25,7 +25,7 @@ function createCollectionAnswering(array $responses): array
     $repository = makeCapabilitiesRepository($responses);
 
     $collection = newInstanceWithoutConstructor(MagentoOrderCollection::class);
-    setPrivateProperty($collection, 'capabilityLookup', new ShapeLookup($repository['repository']));
+    setPrivateProperty($collection, 'capabilityLookup', new CapabilitiesLookup($repository['repository']));
 
     return ['collection' => $collection, 'history' => &$repository['history']];
 }

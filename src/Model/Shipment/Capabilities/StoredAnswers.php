@@ -10,7 +10,7 @@ use Magento\Framework\FlagManager;
 use MyParcelNL\Magento\Service\Hash\Fingerprint;
 
 /**
- * The last good capabilities answer per shape, kept in Magento's flag table.
+ * The last good capabilities answer per request, kept in Magento's flag table.
  *
  * Repository serves it when the cache has no answer and a fetch cannot run, so a cache:clean or a
  * Redis restart serves an old answer rather than everything. Not the config table: that one is
@@ -36,14 +36,14 @@ class StoredAnswers
     }
 
     /** @param array $results the response's `results` entries, as the cache holds them */
-    public function save(string $apiKey, string $shape, array $results): void
+    public function save(string $apiKey, string $requestKey, array $results): void
     {
-        $this->flagManager->saveFlag($this->code($apiKey, $shape), $results);
+        $this->flagManager->saveFlag($this->code($apiKey, $requestKey), $results);
     }
 
-    public function load(string $apiKey, string $shape): ?array
+    public function load(string $apiKey, string $requestKey): ?array
     {
-        $results = $this->flagManager->getFlagData($this->code($apiKey, $shape));
+        $results = $this->flagManager->getFlagData($this->code($apiKey, $requestKey));
 
         return is_array($results) ? $results : null;
     }
@@ -73,9 +73,9 @@ class StoredAnswers
     }
 
     /** The flag code holds the key's fingerprint, never the key, so reconcile can match it. */
-    private function code(string $apiKey, string $shape): string
+    private function code(string $apiKey, string $requestKey): string
     {
-        return self::CODE_PREFIX . $this->fingerprint->of($apiKey) . '_' . $shape;
+        return self::CODE_PREFIX . $this->fingerprint->of($apiKey) . '_' . $requestKey;
     }
 
     /** @return array<int, string> flag id => code, for this class's flags only */

@@ -13,7 +13,7 @@ use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Model\Shipment\Carrier as ShipmentCarrier;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -50,7 +50,7 @@ class Checkout
     private CartShippingRules     $cartRules;
     private Quote                 $quote;
     private StoreManagerInterface $storeManager;
-    private ShapeLookup           $capabilityLookup;
+    private CapabilitiesLookup           $capabilityLookup;
     private ContractDefinitions   $contractDefinitions;
     private StoredAccount         $storedAccount;
     private DropOffSettings       $dropOffSettings;
@@ -71,7 +71,7 @@ class Checkout
      * @param PackageTypeResolver   $packageTypes
      * @param CartShippingRules     $cartRules
      * @param StoreManagerInterface $storeManager
-     * @param ShapeLookup           $capabilityLookup
+     * @param CapabilitiesLookup           $capabilityLookup
      * @param ContractDefinitions   $contractDefinitions
      * @param StoredAccount         $storedAccount
      * @param DropOffSettings       $dropOffSettings
@@ -83,7 +83,7 @@ class Checkout
         PackageTypeResolver   $packageTypes,
         CartShippingRules     $cartRules,
         StoreManagerInterface $storeManager,
-        ShapeLookup           $capabilityLookup,
+        CapabilitiesLookup           $capabilityLookup,
         ContractDefinitions   $contractDefinitions,
         StoredAccount         $storedAccount,
         DropOffSettings       $dropOffSettings
@@ -321,13 +321,13 @@ class Checkout
     }
 
     /**
-     * @see ShapeLookup::forShape() for what a null package type asks, and what it must not be used for.
+     * @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for.
      *
      * @param string[] $forced the forced keepAtCheckout options, sent as a filter
      */
     private function getCapabilities(string $country, ?string $packageType = null, array $forced = []): CapabilitySet
     {
-        return $this->capabilityLookup->forShape((int) $this->quote->getStoreId(), $country, $packageType, null, null, $forced);
+        return $this->capabilityLookup->forRequest((int) $this->quote->getStoreId(), $country, $packageType, null, null, $forced);
     }
 
     /**

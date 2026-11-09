@@ -52,8 +52,8 @@ change takes to reach a shop. To get it sooner, flush the "MyParcel carrier capa
 
 `Capabilities\Client` gives up on an unreachable host after two seconds and on a silent one after
 ten. They differ because an unreachable host is the failure a waiting customer pays for. What a
-render pays is one connect timeout per *distinct* shape it asks about: `ShapeLookup` memoises per
-store, country, package type and carrier, and the Repository memoises per request shape on top of
+render pays is one connect timeout per *distinct* request it asks: `CapabilitiesLookup` memoises per
+store, country, package type and carrier, and the Repository memoises per request body on top of
 that.
 
 ## Deliberate divergences from `myparcelnl/pdk`

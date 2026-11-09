@@ -39,15 +39,15 @@ function makeStoredAnswers(array $codes = []): array
     ];
 }
 
-function storedAnswerCode(string $apiKey, string $shape = 'shape'): string
+function storedAnswerCode(string $apiKey, string $requestKey = 'request-key'): string
 {
-    return 'myparcel_capabilities_' . (new Fingerprint())->of($apiKey) . '_' . $shape;
+    return 'myparcel_capabilities_' . (new Fingerprint())->of($apiKey) . '_' . $requestKey;
 }
 
-it('names the flag by the key fingerprint and the shape, never the key itself', function () {
+it('names the flag by the key fingerprint and the request key, never the key itself', function () {
     $s = makeStoredAnswers();
 
-    $s['answers']->save(STORED_ANSWERS_KEY, 'shape', [['carrier' => 'POSTNL']]);
+    $s['answers']->save(STORED_ANSWERS_KEY, 'request-key', [['carrier' => 'POSTNL']]);
 
     $s['flags']->shouldHaveReceived('saveFlag')->once()->with(
         Mockery::on(static fn (string $code): bool => storedAnswerCode(STORED_ANSWERS_KEY) === $code
@@ -60,7 +60,7 @@ it('reads a flag that holds no answer as no answer', function ($data) {
     $s = makeStoredAnswers();
     $s['flags']->shouldReceive('getFlagData')->andReturn($data);
 
-    expect($s['answers']->load(STORED_ANSWERS_KEY, 'shape'))->toBeNull();
+    expect($s['answers']->load(STORED_ANSWERS_KEY, 'request-key'))->toBeNull();
 })->with([null, 'not an array']);
 
 it('deletes the answers of dead keys only, and leaves a lookalike code alone', function () {

@@ -11,7 +11,7 @@ use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\OptionSource;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -60,10 +60,10 @@ class ShipmentOptionsResolver
     /** @var array|null the label's product row, read at most once per resolver */
     private ?array $labelProductRows = null;
 
-    /** Whether shapeCapabilities() asked already; its answer may be null. */
-    private bool $shapeAsked = false;
+    /** Whether requestCapabilities() asked already; its answer may be null. */
+    private bool $requestAsked = false;
 
-    private ?CapabilitySet $shapeCapabilities = null;
+    private ?CapabilitySet $requestCapabilities = null;
 
     /**
      * @param DefaultOptions         $defaultOptions
@@ -160,7 +160,7 @@ class ShipmentOptionsResolver
 
     private function insuranceRange(): ?InsuranceRange
     {
-        $capabilities = $this->shapeCapabilities();
+        $capabilities = $this->requestCapabilities();
 
         if (null === $capabilities) {
             return null;
@@ -175,13 +175,13 @@ class ShipmentOptionsResolver
      * What the account allows for this exact shipment, or null when that cannot be asked. Shared by
      * the insurance clamp and the dependency passes, so one resolve() asks once.
      */
-    private function shapeCapabilities(): ?CapabilitySet
+    private function requestCapabilities(): ?CapabilitySet
     {
-        if ($this->shapeAsked) {
-            return $this->shapeCapabilities;
+        if ($this->requestAsked) {
+            return $this->requestCapabilities;
         }
 
-        $this->shapeAsked = true;
+        $this->requestAsked = true;
 
         // The exported type, not the stored one. An admin who switches a mailbox order to a package
         // would otherwise be clamped to the mailbox contract and ship under-insured. Both are needed
@@ -192,7 +192,7 @@ class ShipmentOptionsResolver
         }
 
         try {
-            $this->shapeCapabilities = $this->objectManager->get(ShapeLookup::class)->forShape(
+            $this->requestCapabilities = $this->objectManager->get(CapabilitiesLookup::class)->forRequest(
                 (int) $this->order->getStoreId(),
                 $this->cc,
                 $this->packageType,
@@ -203,7 +203,7 @@ class ShipmentOptionsResolver
             Logger::notice('Could not resolve the capabilities for this shipment', LogContext::of($e));
         }
 
-        return $this->shapeCapabilities;
+        return $this->requestCapabilities;
     }
 
     public function hasSameDayDelivery(): bool
@@ -401,7 +401,7 @@ class ShipmentOptionsResolver
             $values[$option] = $this->optionIsEnabled($option);
         }
 
-        $capabilities = $this->shapeCapabilities();
+        $capabilities = $this->requestCapabilities();
 
         if (null === $capabilities || $capabilities->isPermissive()) {
             return ShipmentOptions::resolved($values);

@@ -10,22 +10,14 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
 /**
- * Capabilities for one shipment shape, asked once per shape.
+ * Builds a capabilities request from module names, and remembers the answer per request.
  *
- * Repository answers for a request; this builds the request and remembers the answer, which is what
- * the admin New Shipment block and the checkout were each writing out in full.
+ * Without a package type, the API merges all package types of a carrier into one result with the
+ * union of their options. Ask options, insurance and the collo maximum per package type.
  *
- * **A package-type-agnostic response is a superset, not a matrix.** The endpoint answers for the
- * shipment shape it is given, and `packageType` is singular. Ask without one and the API groups
- * every package type of a carrier into a single result carrying the union of their options — so a
- * mailbox would inherit the options of a package. Options, insurance and the collo maximum
- * therefore have to be asked per package type; only the carrier and package-type lists come from
- * the broad call.
- *
- * The memo and answeredPermissively() are per instance, so each consumer holds its own and the
- * answer means "what this render asked".
+ * The memo is per instance: answeredPermissively() tells about what this instance asked.
  */
-class ShapeLookup
+class CapabilitiesLookup
 {
     private Repository $repository;
 
@@ -38,16 +30,13 @@ class ShapeLookup
     }
 
     /**
-     * Get the capabilities for this store, country and shipment. Pass null for the shape-agnostic
-     * question: which carriers, and which package types each has.
-     *
-     * An order with no shipping address has no country to ask about, so it gets the permissive set
-     * rather than a country we invented for it.
+     * Get the capabilities for this store and request. Without a package type, use the answer only
+     * for the carriers and their package types. An empty country gets the permissive set.
      *
      * @param string[] $options module names of the ticked options; capabilities then leave out what
      *                          they exclude, a delivery type included
      */
-    public function forShape(
+    public function forRequest(
         ?int    $storeId,
         string  $country,
         ?string $packageType = null,
@@ -70,12 +59,11 @@ class ShapeLookup
     }
 
     /**
-     * The same question against one account's key, for a path that resolved the key itself rather
-     * than a store — the export, which groups by key.
+     * Get the capabilities for this API key and request, for the export, which groups by key.
      *
      * @param string[] $options
      */
-    public function forApiKeyShape(
+    public function forApiKeyRequest(
         string  $apiKey,
         string  $country,
         ?string $packageType = null,
@@ -102,10 +90,8 @@ class ShapeLookup
     }
 
     /**
-     * Builds the request once per shape and remembers the answer.
-     *
-     * The memo is consulted before the request is built: Repository fingerprints the *serialized*
-     * body, so reaching it means a typed-model build and a hash for a question already answered.
+     * Build the request and ask it, once per set of inputs. The memo comes before the build, which
+     * costs a model and a hash.
      *
      * @param string[]                                       $options
      * @param callable(CapabilitiesRequest): CapabilitySet $ask
@@ -139,8 +125,7 @@ class ShapeLookup
             $v2 = PackageType::toV2Name($packageType);
 
             if (null === $v2) {
-                // Nothing to ask about: an unmappable package type cannot be sent, and the broad
-                // answer would over-report. Withhold rather than guess.
+                // The API cannot be asked about it, and the broad answer would offer too much.
                 return $this->answers[$key] = CapabilitySet::permissive();
             }
 
@@ -175,12 +160,7 @@ class ShapeLookup
         return $this->answers[$key] = $ask($request);
     }
 
-    /**
-     * Whether any answer this instance gave was a fallback rather than the account's own.
-     *
-     * A partial failure is the case that matters: some package types answered, others fell back and
-     * are therefore offering everything.
-     */
+    /** Check whether one of the answers of this instance was a fallback, not the account's own. */
     public function answeredPermissively(): bool
     {
         foreach ($this->answers as $set) {

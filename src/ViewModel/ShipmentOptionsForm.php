@@ -16,7 +16,7 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
@@ -42,7 +42,7 @@ class ShipmentOptionsForm implements ArgumentInterface
     private Order               $order;
     private DefaultOptions      $defaultOptions;
     private ?NewShipmentForm    $form = null;
-    private ShapeLookup         $capabilityLookup;
+    private CapabilitiesLookup         $capabilityLookup;
     private ContractDefinitions $contractDefinitions;
     private Weight              $weightService;
     private StoredAccount       $storedAccount;
@@ -58,7 +58,7 @@ class ShipmentOptionsForm implements ArgumentInterface
     ) {
         $this->order               = $order;
         // One lookup per form, not the shared one: hasUnverifiedCapabilities() reads its memo.
-        $this->capabilityLookup    = new ShapeLookup($capabilities);
+        $this->capabilityLookup    = new CapabilitiesLookup($capabilities);
         $this->contractDefinitions = $contractDefinitions;
         $this->defaultOptions      = new DefaultOptions($order);
         $this->weightService       = $weightService;
@@ -211,7 +211,7 @@ class ShipmentOptionsForm implements ArgumentInterface
     }
 
     /**
-     * @see ShapeLookup::forShape() for what a null package type asks, and what it must not be used for.
+     * @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for.
      *
      * In bulk the orders' countries differ, so the account's contract answers instead, and the save
      * checks each order against its own country.
@@ -222,7 +222,7 @@ class ShipmentOptionsForm implements ArgumentInterface
             return $this->contractDefinitions->forScope(ScopeInterface::SCOPE_STORES, (int) $this->order->getStoreId());
         }
 
-        return $this->capabilityLookup->forShape(
+        return $this->capabilityLookup->forRequest(
             (int) $this->order->getStoreId(),
             $this->getCountry(),
             $packageType
@@ -491,7 +491,7 @@ class ShipmentOptionsForm implements ArgumentInterface
             return $this->getCapabilities($packageType);
         }
 
-        return $this->capabilityLookup->forShape(
+        return $this->capabilityLookup->forRequest(
             (int) $this->order->getStoreId(),
             $this->getCountry(),
             $packageType,
@@ -588,12 +588,8 @@ class ShipmentOptionsForm implements ArgumentInterface
     }
 
     /**
-     * The amount field's bounds and starting value.
-     *
-     * Asked with the package type set, so the bound is this shape's rather than a union across
-     * package types. Null bounds render an unbounded field: the export path clamps against
-     * the real destination anyway, and refusing to offer insurance because a lookup failed is exactly
-     * what must not happen.
+     * Get the bounds and the start value of the amount field, asked per package type. Null bounds
+     * give a field without bounds: the export clamps the amount anyway.
      *
      * @return array{default: int, min: int|null, max: int|null, floor: int, required: bool}
      */

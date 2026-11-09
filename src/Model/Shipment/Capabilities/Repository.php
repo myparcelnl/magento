@@ -13,21 +13,11 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use Throwable;
 
 /**
- * Cache-aside access to capability answers, scoped to the API key of a given store.
+ * Gets capabilities through the cache, per API key and request. Three rules:
  *
- * The only class consumers touch. Three rules it must keep:
- *
- * - Fail open. Any failure — no API key, a transport error, a 429, a 500, an undecodable body —
- *   returns CapabilitySet::permissive() rather than throwing. A capability lookup must never stop a
- *   label being created, and a store with no key must still render its admin form; export fails
- *   loudly on its own path instead.
- * - Serve stale. Successful entries expire after SUCCESS_LIFETIME_SECONDS, and cache:clean, an API
- *   key change or a settings import removes them sooner. StoredAnswers keeps a copy outside the
- *   cache, so a shape whose refresh fails gets its last answer, and permissive only when it was
- *   never answered.
- * - Do not hammer a failing endpoint. A shape that failed is remembered as failed for
- *   FAILURE_LIFETIME_SECONDS, so a reload does not repeat the burst. Checked *after* the success
- *   entry, never before it, so a previous good answer always beats a recent failure.
+ * - Never throw. A failure gives the last stored answer, else CapabilitySet::permissive().
+ * - A request whose refresh fails gets its last answer from StoredAnswers.
+ * - A failed request is not asked again for FAILURE_LIFETIME_SECONDS. A good cached answer wins.
  */
 class Repository
 {
@@ -37,12 +27,7 @@ class Repository
     /** How long a good answer is cached: the longest a capabilities change takes to reach the shop. */
     private const SUCCESS_LIFETIME_SECONDS = 10800;
 
-    /**
-     * How long a failed shape is remembered as failed.
-     *
-     * Without it, an admin form that fans out over several package types repeats the whole burst on
-     * every reload, which is exactly the load a 429 asks us to stop applying.
-     */
+    /** How long a failed request is not asked again, so a reload does not repeat the burst. */
     private const FAILURE_LIFETIME_SECONDS = 60;
 
     private Client              $client;
@@ -95,7 +80,7 @@ class Repository
 
     /**
      * Get the capabilities for this request, from the cache or the API. When the API fails, or
-     * another request is fetching the same shape, use the last stored answer, else a permissive set.
+     * another request is fetching the same answer, use the last stored answer, else a permissive set.
      */
     public function forApiKey(string $apiKey, CapabilitiesRequest $request): CapabilitySet
     {
@@ -109,20 +94,20 @@ class Repository
             );
         }
 
-        $shape = $this->fingerprint->of($apiKey . '|' . $body);
+        $requestKey = $this->fingerprint->of($apiKey . '|' . $body);
 
         // The cache and the lock can throw too, and the first rule above covers them as well.
         try {
-            return $this->lookup($apiKey, $body, $shape);
+            return $this->lookup($apiKey, $body, $requestKey);
         } catch (Throwable $e) {
-            return $this->failed($apiKey, $e->getMessage(), $this->stored($apiKey, $shape));
+            return $this->failed($apiKey, $e->getMessage(), $this->stored($apiKey, $requestKey));
         }
     }
 
-    private function lookup(string $apiKey, string $body, string $shape): CapabilitySet
+    private function lookup(string $apiKey, string $body, string $requestKey): CapabilitySet
     {
-        $cacheId   = self::CACHE_ID_PREFIX . $shape;
-        $failureId = self::FAILURE_ID_PREFIX . $shape;
+        $cacheId   = self::CACHE_ID_PREFIX . $requestKey;
+        $failureId = self::FAILURE_ID_PREFIX . $requestKey;
 
         if (isset($this->memo[$cacheId])) {
             return $this->memo[$cacheId];
@@ -140,18 +125,16 @@ class Repository
 
         if (false !== $this->cache->load($failureId)) {
             // Asked recently and it failed. Do not ask again yet.
-            return $this->memo[$cacheId] = $this->stored($apiKey, $shape);
+            return $this->memo[$cacheId] = $this->stored($apiKey, $requestKey);
         }
 
-        // One fetch per shape at a time. After a deploy or cache:clean every concurrent checkout
-        // misses the same shape at once, and without this each one calls out. Waiting is not the
-        // alternative — that queues them all behind one request — so the rest answer from the
-        // stored copy, exactly as they would if the fetch had failed.
-        $lockName = self::CACHE_ID_PREFIX . 'fetch_' . $shape;
+        // One fetch per request at a time: after a cache:clean, every checkout misses at once. The
+        // others use the stored answer and do not wait.
+        $lockName = self::CACHE_ID_PREFIX . 'fetch_' . $requestKey;
 
         // 0: try once and move on. Waiting is the thing being avoided.
         if (! $this->lockManager->lock($lockName, 0)) {
-            return $this->memo[$cacheId] = $this->stored($apiKey, $shape);
+            return $this->memo[$cacheId] = $this->stored($apiKey, $requestKey);
         }
 
         try {
@@ -159,12 +142,12 @@ class Repository
         } catch (Throwable $e) {
             $this->cache->save('1', $failureId, [], self::FAILURE_LIFETIME_SECONDS);
 
-            return $this->memo[$cacheId] = $this->failed($apiKey, $e->getMessage(), $this->stored($apiKey, $shape));
+            return $this->memo[$cacheId] = $this->failed($apiKey, $e->getMessage(), $this->stored($apiKey, $requestKey));
         } finally {
             $this->lockManager->unlock($lockName);
         }
 
-        $this->store($apiKey, $shape, $results);
+        $this->store($apiKey, $requestKey, $results);
         $this->cache->save((string) json_encode($results), $cacheId, [], self::SUCCESS_LIFETIME_SECONDS);
 
         $set = CapabilitySet::fromApiResults($results);
@@ -173,11 +156,7 @@ class Repository
         return $this->memo[$cacheId] = $set;
     }
 
-    /**
-     * Values the module could not translate. Logged once per fetch rather than per read, and at
-     * notice, because this is the early-warning signal that the module needs updating rather than
-     * something wrong right now.
-     */
+    /** Log the values the module does not know, once per fetch, as a sign that it needs an update. */
     private function logUnknownValues(CapabilitySet $set): void
     {
         foreach ($set->unknownValues() as $kind => $values) {
@@ -191,11 +170,11 @@ class Repository
         }
     }
 
-    /** The last answer stored for this shape, or permissive when it was never answered. */
-    private function stored(string $apiKey, string $shape): CapabilitySet
+    /** Get the last stored answer for this request, or permissive when it was never answered. */
+    private function stored(string $apiKey, string $requestKey): CapabilitySet
     {
         try {
-            $results = $this->storedAnswers->load($apiKey, $shape);
+            $results = $this->storedAnswers->load($apiKey, $requestKey);
         } catch (Throwable $e) {
             $results = null;
         }
@@ -203,14 +182,11 @@ class Repository
         return null === $results ? CapabilitySet::permissive() : CapabilitySet::fromApiResults($results);
     }
 
-    /**
-     * Before the cache entry, so a cache backend that refuses the save still leaves the stored copy.
-     * A failed write only costs the fallback, never the answer in hand.
-     */
-    private function store(string $apiKey, string $shape, array $results): void
+    /** Store the answer before the cache entry, so a cache that refuses the save keeps the copy. */
+    private function store(string $apiKey, string $requestKey, array $results): void
     {
         try {
-            $this->storedAnswers->save($apiKey, $shape, $results);
+            $this->storedAnswers->save($apiKey, $requestKey, $results);
         } catch (Throwable $e) {
             Logger::warning(sprintf(
                 'Could not store the capabilities answer for account %s: %s',

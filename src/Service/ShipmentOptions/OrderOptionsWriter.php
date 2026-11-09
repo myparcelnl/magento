@@ -15,7 +15,7 @@ use MyParcelNL\Magento\Model\Sales\Repository\DeliveryRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
@@ -102,7 +102,7 @@ class OrderOptionsWriter
 
         $this->assertOneAccount($orders);
 
-        $lookup    = new ShapeLookup($this->capabilitiesRepository);
+        $lookup    = new CapabilitiesLookup($this->capabilitiesRepository);
         $validated = [];
 
         foreach ($orders as $order) {
@@ -317,7 +317,7 @@ class OrderOptionsWriter
      *
      * @throws LocalizedException
      */
-    private function assertOffered(Order $order, array $stored, OptionChanges $changes, ShapeLookup $lookup): void
+    private function assertOffered(Order $order, array $stored, OptionChanges $changes, CapabilitiesLookup $lookup): void
     {
         $address     = $order->getShippingAddress();
         $country     = $address ? (string) $address->getCountryId() : '';
@@ -328,7 +328,7 @@ class OrderOptionsWriter
             return new LocalizedException(__('%1: %2 is not available for this account.', $order->getIncrementId(), $what));
         };
 
-        $broad = $lookup->forShape($storeId, $country);
+        $broad = $lookup->forRequest($storeId, $country);
 
         if ($broad->isPermissive()) {
             return;
@@ -343,25 +343,25 @@ class OrderOptionsWriter
             throw $refuse((string) $packageType);
         }
 
-        $shape = $lookup->forShape($storeId, $country, $packageType, $carrier);
+        $narrow = $lookup->forRequest($storeId, $country, $packageType, $carrier);
 
         foreach (array_keys(array_filter($changes->options())) as $option) {
-            if (! $shape->hasOption($carrier, $packageType, $option)) {
+            if (! $narrow->hasOption($carrier, $packageType, $option)) {
                 throw $refuse($option);
             }
         }
 
-        $this->assertInsurance($shape, $carrier, $packageType, $changes->insurance(), $refuse);
+        $this->assertInsurance($narrow, $carrier, $packageType, $changes->insurance(), $refuse);
 
         if (null !== $changes->deliveryType()) {
             // The options that are on go with it: an age check rules out morning and evening.
             $ticked   = array_keys(array_filter((array) ($stored['shipmentOptions'] ?? []), static fn($on): bool => true === $on));
-            $delivery = $lookup->forShape($storeId, $country, $packageType, $carrier, null, $ticked);
+            $delivery = $lookup->forRequest($storeId, $country, $packageType, $carrier, null, $ticked);
 
             // No result for the carrier means the options that are on do not go together, which
             // is not the delivery type's fault: the answer without options decides, as in the modal.
             if (! $delivery->isPermissive() && ! in_array($carrier, $delivery->carriers(), true)) {
-                $delivery = $shape;
+                $delivery = $narrow;
             }
 
             if (! $delivery->hasDeliveryType($carrier, $packageType, $changes->deliveryType())) {
@@ -370,13 +370,13 @@ class OrderOptionsWriter
         }
     }
 
-    private function assertInsurance(CapabilitySet $shape, string $carrier, ?string $packageType, ?int $amount, callable $refuse): void
+    private function assertInsurance(CapabilitySet $capabilities, string $carrier, ?string $packageType, ?int $amount, callable $refuse): void
     {
         if (null === $amount) {
             return;
         }
 
-        $offered = $shape->hasOption($carrier, $packageType, ShipmentOption::INSURANCE);
+        $offered = $capabilities->hasOption($carrier, $packageType, ShipmentOption::INSURANCE);
 
         // Zero is "no insurance": always fine where it is not offered, and refused below when required.
         if (0 === $amount && ! $offered) {
@@ -387,7 +387,7 @@ class OrderOptionsWriter
             throw $refuse(ShipmentOption::INSURANCE);
         }
 
-        $range = InsuranceRange::fromOptionValue($shape->optionValue($carrier, $packageType, ShipmentOption::INSURANCE));
+        $range = InsuranceRange::fromOptionValue($capabilities->optionValue($carrier, $packageType, ShipmentOption::INSURANCE));
 
         if (null !== $range && ! $range->allows($amount)) {
             throw $refuse(sprintf('%s € %d', ShipmentOption::INSURANCE, $amount));

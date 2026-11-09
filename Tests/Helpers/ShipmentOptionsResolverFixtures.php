@@ -8,7 +8,7 @@ use Magento\Framework\ObjectManagerInterface;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptionsFactory;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
@@ -49,11 +49,11 @@ function createShipmentOptions(
     // Absent on purpose when no repository is supplied: the resolver must fall open on a capabilities
     // lookup it cannot make, and a test that stubs one would not prove that.
     if (null !== $capabilities) {
-        // A real ShapeLookup over the stubbed repository, so the request the resolver asks for is
+        // A real CapabilitiesLookup over the stubbed repository, so the request the resolver asks for is
         // the one the repository double asserts.
         $objectManager->shouldReceive('get')
-            ->with(ShapeLookup::class)
-            ->andReturn(new ShapeLookup($capabilities));
+            ->with(CapabilitiesLookup::class)
+            ->andReturn(new CapabilitiesLookup($capabilities));
     }
 
     $defaultOptions = $defaultOptions ?? Mockery::mock(DefaultOptions::class);

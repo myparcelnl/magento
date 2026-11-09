@@ -9,7 +9,7 @@ use Magento\Framework\Lock\LockManagerInterface;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\StoredAnswers;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
@@ -145,7 +145,7 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
         public array $unlockedNames = [];
         /** 'load', 'save', 'lock', 'storeLoad' or 'storeSave': that call throws, as an unreachable or full backend does. */
         public ?string $throwOn = null;
-        /** StoredAnswers' rows, keyed "apiKey|shape". */
+        /** StoredAnswers' rows, keyed "apiKey|requestKey". */
         public array $stored = [];
     };
 
@@ -183,14 +183,14 @@ function makeCapabilitiesRepository(array $responses = [], ?string $apiKey = CAP
     });
 
     $storedAnswers = Mockery::mock(StoredAnswers::class);
-    $storedAnswers->shouldReceive('load')->andReturnUsing(static function (string $key, string $shape) use ($store): ?array {
+    $storedAnswers->shouldReceive('load')->andReturnUsing(static function (string $key, string $requestKey) use ($store): ?array {
         failCapabilitiesBackendIfAsked($store, 'storeLoad');
 
-        return $store->stored["$key|$shape"] ?? null;
+        return $store->stored["$key|$requestKey"] ?? null;
     });
-    $storedAnswers->shouldReceive('save')->andReturnUsing(static function (string $key, string $shape, array $results) use ($store): void {
+    $storedAnswers->shouldReceive('save')->andReturnUsing(static function (string $key, string $requestKey, array $results) use ($store): void {
         failCapabilitiesBackendIfAsked($store, 'storeSave');
-        $store->stored["$key|$shape"] = $results;
+        $store->stored["$key|$requestKey"] = $results;
     });
 
     return [
@@ -324,17 +324,17 @@ function assertFlatInsuranceShape(array $results): void
 }
 
 /**
- * A ShapeLookup that already holds its answers, so the repository is never reached — reaching it
- * fatals, and that is the assertion that the code asked only the shapes the test seeded.
+ * A CapabilitiesLookup that already holds its answers, so the repository is never reached — reaching it
+ * fatals, and that is the assertion that the code asked only the requests the test seeded.
  *
- * Shapes are keyed by module package type name, with '' for the package-type-agnostic lookup, and
+ * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup, and
  * '<package type>|<option,option>|<delivery type>' for a lookup with an option filter or a delivery
- * type; options in sorted order. Pass a single CapabilitySet to seed every unfiltered shape at once,
- * for a test the shape distinction is not about.
+ * type; options in sorted order. Pass a single CapabilitySet to seed every unfiltered request at once,
+ * for a test the request distinction is not about.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $answers
  */
-function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1): ShapeLookup
+function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1): CapabilitiesLookup
 {
     if ($answers instanceof CapabilitySet) {
         $answers = array_fill_keys(array_merge([''], array_keys(PackageType::NAMES_IDS_MAP)), $answers);
@@ -342,15 +342,15 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
 
     $seeded = [];
 
-    foreach ($answers as $shape => $set) {
-        [$packageType, $options, $deliveryType] = array_pad(explode('|', (string) $shape, 3), 3, '');
+    foreach ($answers as $request => $set) {
+        [$packageType, $options, $deliveryType] = array_pad(explode('|', (string) $request, 3), 3, '');
 
-        // Same shape as ShapeLookup::answer() builds: scope, country, package type, carrier, delivery
+        // The same key as CapabilitiesLookup::answer() builds: scope, country, package type, carrier, delivery
         // type, options. Carrier stays empty.
         $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '||' . $deliveryType . '|' . $options] = $set;
     }
 
-    $lookup = newInstanceWithoutConstructor(ShapeLookup::class);
+    $lookup = newInstanceWithoutConstructor(CapabilitiesLookup::class);
     setPrivateProperty($lookup, 'answers', $seeded);
 
     return $lookup;

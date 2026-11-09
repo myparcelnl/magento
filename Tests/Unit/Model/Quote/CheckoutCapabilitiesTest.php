@@ -22,8 +22,8 @@ use MyParcelNL\Magento\Service\PackageTypeResolver;
  * The constructor is skipped: it reads the checkout session. checkPackageType() needs only the
  * quote, the config, the two cart services and the memoised capabilities.
  *
- * capabilityLookupWith() seeds the shapes; see its doc block for the key shape and for what an
- * unseeded shape does.
+ * capabilityLookupWith() seeds the requests; see its doc block for the key format and for what an
+ * unseeded request does.
  *
  * $forced is what the order carries whatever the shopper picks; an empty list is the ordinary
  * order, which asks without an option filter. A forced option is seeded as '<package type>|<option>'.
@@ -143,7 +143,7 @@ it('leaves the decision to configuration when capabilities could not be reached'
 });
 
 it('asks only the package-type-agnostic question when the order forces nothing', function () {
-    // Seeding only the agnostic shape proves nothing else is consulted: a narrowed lookup would
+    // Seeding only the agnostic request proves nothing else is consulted: a narrowed lookup would
     // reach the repository, which is not set here, and fatal. That is the ordinary order, and it
     // is what keeps the extra calls off the common path.
     $c = createCheckoutWith(['' => CapabilitySet::fromApiResults([capabilityResult()])]);
@@ -168,7 +168,7 @@ it('answers per carrier, not once for the store', function () {
 });
 
 it('offers no mailbox when the filtered answer leaves it out', function () {
-    // Seeding only the filtered shape also proves the forced option is sent, and nothing else is
+    // Seeding only the filtered request also proves the forced option is sent, and nothing else is
     // asked: any other lookup would reach the repository, which is not set here, and fatal.
     $c = createCheckoutWith(
         ['|age_check' => CapabilitySet::fromApiResults([capabilityResult(['packageTypes' => ['PACKAGE']])])],
@@ -260,7 +260,7 @@ it('does not offer a carrier that cannot carry a forced option on the resolved p
     // of failing later: widget v7 ignores allowDeliveryOptions.
     $capabilities = [
         // isPickupAllowed() re-resolves the package type, so the package-type-agnostic filtered
-        // shape is reached too.
+        // request is reached too.
         '|age_check'        => CapabilitySet::fromApiResults([
             capabilityResult(['packageTypes' => ['PACKAGE']]),
             capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['PACKAGE', 'MAILBOX']]),
