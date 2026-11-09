@@ -230,12 +230,10 @@ class DeliveryCosts
     }
 
     /**
-     * Half up, spelled out rather than left to round().
+     * Round half up, the same on every PHP version. round() changed in PHP 8.4: 1.005 * 100 gives
+     * 101 before 8.4 and 100 from 8.4.
      *
-     * round() pre-rounded a value within epsilon of a .5 boundary up to it until PHP 8.3 and no
-     * longer does, so 1.005 * 100, which is really 100.49999999999999, answered 101 on three PHP
-     * versions and 100 on the fourth. Money may not depend on the PHP version, so every cent the
-     * module rounds comes through here.
+     * @TODO Use round() when the minimum PHP version is 8.4.
      */
     public static function roundHalfUp(float $value): int
     {
