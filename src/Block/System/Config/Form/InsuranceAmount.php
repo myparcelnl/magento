@@ -15,14 +15,9 @@ use MyParcelNL\Magento\Service\Settings;
 /**
  * Renders one insurance amount as a number field bounded by the account's contract.
  *
- * It exists because a field's `validate` class is fixed in the Catalogue and the bound is per account
- * and per scope: `dynamic_settings.phtml` can only inject that fixed class, so a range like
- * `number-range-0-5000` has to be emitted at render time.
- *
- * The bound is **advisory**. Contract definitions carry no country, so this states what the
- * carrier's contract allows at all; the amount a given parcel is actually insured for is clamped
- * against its own destination in ShipmentOptionsResolver. With no bound resolvable the field still
- * accepts a number: insurance is not switched off because we could not confirm its limits.
+ * The bound is per account and scope, so it is emitted at render time, not fixed in the Catalogue.
+ * It is advisory: contract definitions carry no country, and ShipmentOptionsResolver clamps per
+ * destination. With no bound, the field still accepts a number and insurance stays on.
  */
 class InsuranceAmount extends Template implements NoteProviderInterface
 {
