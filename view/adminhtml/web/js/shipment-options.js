@@ -197,7 +197,7 @@ define(
             var distance = Number(location.distance);
             var away = 1000 <= distance ? (distance / 1000).toFixed(1) + ' km' : distance + ' m';
 
-            return location.location_name + ' — ' + location.street + ' ' + location.number + ', '
+            return location.location_name + ', ' + location.street + ' ' + location.number + ', '
                 + location.postal_code + ' ' + location.city + ' (' + away + ')';
         }
 

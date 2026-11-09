@@ -21,14 +21,9 @@ use MyParcelNL\Magento\Service\Tax;
 /**
  * Create a Checkout without its constructor, which reads the checkout session.
  *
- * capabilityLookupWith() seeds the requests; see its doc block for the key format and for what an
- * unseeded request does.
- *
- * $forced is what the order carries whatever the shopper picks; an empty list is the ordinary
- * order, which asks without an option filter. A forced option is seeded as '<package type>|<option>'.
- *
- * The cases read the PackageTypeCandidates that checkPackageType() hands to the resolver. The
- * resolver mock offers every package type the capabilities allow, as if every config toggle is on.
+ * capabilityLookupWith() seeds the requests. $forced is what the order carries whatever the shopper
+ * picks; an empty list asks without an option filter. Seed a forced option as '<package type>|<option>'.
+ * The resolver mock offers every package type the capabilities allow, as if every config toggle is on.
  *
  * @return array{checkout: Checkout, cartRules: CartShippingRules, calls: object}
  */
