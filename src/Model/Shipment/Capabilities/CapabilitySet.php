@@ -7,7 +7,7 @@ namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 use MyParcelNL\Magento\Facade\Logger;
 
 /**
- * A parsed capabilities response: what one MyParcel account may do for one request shape.
+ * A parsed capabilities response: what one MyParcel account may do for one request.
  *
  * A result matches a carrier and a set of package types, so a question about (carrier, package
  * type) is answered by the union of every result that matches both. A null package type means
@@ -36,11 +36,9 @@ final class CapabilitySet
 
         foreach ($results as $index => $result) {
             if (! is_array($result)) {
-                // Said out loud, like every other unreadable shape in this layer: silently dropping
-                // an entry would make an api that started answering differently look like an account
-                // that lost a carrier.
+                // Logged, so a changed API answer does not look like a lost carrier.
                 Logger::notice(sprintf(
-                    'MyParcel capabilities: entry %s is a %s, not an object — skipped',
+                    'MyParcel capabilities: entry %s is a %s, not an object, skipped',
                     (string) $index,
                     gettype($result)
                 ));

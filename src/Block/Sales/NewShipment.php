@@ -28,7 +28,7 @@ use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\DigitalStampWeight;
@@ -61,7 +61,7 @@ class NewShipment extends AbstractItems
      */
     private NewShipmentForm $form;
 
-    private ShapeLookup $capabilityLookup;
+    private CapabilitiesLookup $capabilityLookup;
 
     private Weight $weightService;
 
@@ -87,7 +87,7 @@ class NewShipment extends AbstractItems
         $this->configService = $objectManager->get(Config::class);
         $this->form          = new NewShipmentForm();
 
-        $this->capabilityLookup = new ShapeLookup($objectManager->get(CapabilitiesRepository::class));
+        $this->capabilityLookup = new CapabilitiesLookup($objectManager->get(CapabilitiesRepository::class));
 
         $this->defaultOptions = new DefaultOptions($this->order);
 
@@ -194,10 +194,10 @@ class NewShipment extends AbstractItems
         return $deliveryType;
     }
 
-    /** @see ShapeLookup::forShape() for what a null package type asks, and what it must not be used for. */
+    /** @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for. */
     private function getCapabilities(?string $packageType = null): CapabilitySet
     {
-        return $this->capabilityLookup->forShape(
+        return $this->capabilityLookup->forRequest(
             (int) $this->order->getStoreId(),
             $this->getCountry(),
             $packageType
@@ -371,7 +371,7 @@ class NewShipment extends AbstractItems
     /**
      * The amount field's bounds and starting value.
      *
-     * Asked with the package type set, so the bound is this shape's rather than a union across
+     * Asked with the package type set, so the bound is this request's rather than a union across
      * package types. Null bounds render an unbounded field: the export path clamps against
      * the real destination anyway, and refusing to offer insurance because a lookup failed is exactly
      * what must not happen.
