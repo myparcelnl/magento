@@ -6,12 +6,8 @@ use MyParcelNL\Magento\Model\Shipment\FulfilmentOrderBuilder;
 use MyParcelNL\Sdk\Model\Recipient;
 
 /**
- * The street splitting itself is the SDK's, so these test our wiring around
- * it: joining the lines, mapping the fields, taking the person from the
- * billing address, splitting by the account's home country, and letting
- * a rejected address surface.
- *
- * No case asserts a literal the SDK's regex produced: those are its to change.
+ * Build a recipient. The SDK splits the street, so these tests cover only the wiring around it.
+ * No case asserts a literal that the SDK's regex produced: the SDK can change those.
  */
 function recipientForAddress(
     array   $addressOverrides,

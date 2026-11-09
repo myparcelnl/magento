@@ -16,10 +16,9 @@ use MyParcelNL\Magento\Service\IdList;
 /**
  * Reads the MyParcel track & trace links for a page of orders in one query. Manual tracks are left out.
  *
- * The link the API issued is stored on the track; TrackTraceUrl only fills in for shipments exported
- * before that was so, and its host depends on the account's proposition, hence the store id in the
- * rows. That lookup is made only when a row actually needs the fallback, so an install with nothing
- * but fresh exports never reads account settings while rendering a grid.
+ * The API's link is stored on the track. For a track without one, TrackTraceUrl builds a link
+ * from the account's proposition, which is why the rows carry the store id. That lookup happens
+ * only for a row that needs it.
  */
 class LinkResolver
 {

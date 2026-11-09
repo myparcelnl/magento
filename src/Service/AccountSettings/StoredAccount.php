@@ -15,15 +15,11 @@ use MyParcelNL\Sdk\Client\Generated\IamApi\Model\Feature;
 use Throwable;
 
 /**
- * What the stored settings of the account behind an api key say about it — no API call.
+ * Reads what the stored settings of the account behind an api key say about it. Makes no API call.
  *
- * An account is null when its settings were never imported or cannot be read; a proposition is also
- * null when the account names one Proposition does not list, which logs a warning. Only
- * hasOrderV1ForExport() throws: the order grid asks per row, so an unusable row must not cost the page.
- *
- * Memoised per api key, because these are the account's: stores sharing a key cost one read, and a
- * null is memoised too, or one broken row logs once per grid row. The store methods only map a store
- * to its key for a caller that holds a store.
+ * Null when the settings are not imported or unreadable, or when the proposition is not listed.
+ * Only hasOrderV1ForExport() throws: the order grid asks per row and must not fail.
+ * Memoised per api key, null included, so a broken row logs once and not once per grid row.
  */
 class StoredAccount
 {
@@ -85,7 +81,7 @@ class StoredAccount
     }
 
     /**
-     * hasOrderV1ForStore() for an export, which refuses instead of guessing for a row without features.
+     * Check for order v1 like hasOrderV1ForStore(), but refuse a row without features instead of guessing.
      *
      * @throws LocalizedException when the store's account has no stored features
      */
