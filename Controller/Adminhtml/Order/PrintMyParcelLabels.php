@@ -142,9 +142,7 @@ class PrintMyParcelLabels extends Action implements HttpPostActionInterface
     /**
      * Build the PDF response: inline for a new tab, an attachment otherwise.
      *
-     * A batch can lose an account or a chunk of labels and still merge a PDF. The body is the
-     * document, so the failures travel in a header the download reads out loud, url-encoded,
-     * because API error text is not header-safe.
+     * Partial failures go in a url-encoded header, because API error text is not header-safe.
      *
      * @param string[] $errors one per account or chunk that returned no labels
      */

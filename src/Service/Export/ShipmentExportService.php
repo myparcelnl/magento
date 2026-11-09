@@ -138,9 +138,8 @@ class ShipmentExportService
     /**
      * Fetch one merged label PDF for the whole batch, across accounts, in the order of the ids.
      *
-     * A failing account or chunk never costs the others their labels: one shipment id the key does
-     * not own makes the API refuse its whole chunk. Each failure's error is returned alongside
-     * whatever merged, so the caller can say why the PDF is empty or incomplete instead of guessing.
+     * A failing account or chunk does not cost the others their labels. Each failure's error comes
+     * back with the PDF, so the caller can tell why it is empty or incomplete.
      *
      * @param array<string,int[]> $shipmentIdsByApiKey
      *
