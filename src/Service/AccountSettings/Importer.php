@@ -18,9 +18,7 @@ use Psr\Log\LoggerInterface;
 use Throwable;
 
 /**
- * Fetches a MyParcel account's settings and caches them under the api key's fingerprint (see
- * Config::XML_PATH_ACCOUNT_SETTINGS for why that is the key). Shared by the *Import MyParcel Backoffice
- * settings* button and the automatic import on an api key change.
+ * Fetches a MyParcel account's settings and caches them under the api key's fingerprint.
  *
  * Two sources, one row: the account and its shop come from the SDK's account web service, the
  * contract definitions from the capabilities client in a single unfiltered call.
@@ -65,9 +63,8 @@ class Importer
     }
 
     /**
-     * Fetches the account from the MyParcel API and stores it under the api key's fingerprint,
-     * replacing whatever was there. Costs one API call every time, so check hasSettingsFor() first
-     * when the goal is only to heal a missing row.
+     * Fetch the account and replace the stored row. Always costs an API call: to heal a missing row
+     * only, check hasSettingsFor() first.
      *
      * @throws \MyParcelNL\Sdk\Exception\ApiException
      * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
@@ -118,11 +115,8 @@ class Importer
     }
 
     /**
-     * Every carrier in one call: each item names its own carrier, so the stored list is exactly what
-     * CapabilitySet::fromContractDefinitionItems() reads.
-     *
-     * An account with no contracts at all must not fail the import, so a refusal degrades to the
-     * empty list and the admin screens fall open rather than lock shut.
+     * Fetch the contract definitions of every carrier in one call.
+     * A refusal gives an empty list, so the admin screens stay open instead of locked.
      *
      * @return array<int, array<string, mixed>>
      */

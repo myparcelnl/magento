@@ -12,7 +12,7 @@ use MyParcelNL\Magento\Service\Weight;
  * Object manager wired for CustomsItems' two batch lookups, shared by both customs paths.
  *
  * Product data (HS code, country of manufacture) is fetched in two batch queries keyed by product
- * id, never per item — that is what these mocks model.
+ * id, never per item. That is what these mocks model.
  *
  * @param array<int,string>      $classifications product id => HS code
  * @param array<int,string|null> $countries       product id => country of manufacture

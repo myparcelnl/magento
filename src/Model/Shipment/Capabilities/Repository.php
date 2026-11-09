@@ -17,7 +17,7 @@ use Throwable;
  *
  * The only class consumers touch. Three rules it must keep:
  *
- * - Fail open. Any failure — no API key, a transport error, a 429, a 500, an undecodable body —
+ * - Fail open. Any failure (no API key, a transport error, a 429, a 500, an undecodable body)
  *   returns CapabilitySet::permissive() rather than throwing. A capability lookup must never stop a
  *   label being created, and a store with no key must still render its admin form; export fails
  *   loudly on its own path instead.
@@ -133,7 +133,7 @@ class Repository
 
         // One fetch per request at a time. After a deploy or cache:clean every concurrent checkout
         // misses the same request at once, and without this each one calls out. Waiting is not the
-        // alternative — that queues them all behind one request — so the rest answer permissively,
+        // alternative (that queues them all behind one request), so the rest answer permissively,
         // exactly as they would if the fetch had failed.
         $lockName = self::CACHE_ID_PREFIX . 'fetch_' . $requestKey;
 

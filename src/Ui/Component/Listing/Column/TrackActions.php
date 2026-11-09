@@ -14,7 +14,7 @@ use MyParcelNL\Magento\Service\Export\LabelPositions;
  * The order grid's per-row MyParcel actions: export as a package type, create a concept, download
  * the labels of an exported order, send a return label.
  *
- * None of the export actions is a plain link — the controllers answer JSON, so following the href
+ * None of the export actions is a plain link: the controllers answer JSON, so following the href
  * would put that JSON on screen. Each carries a callback into the grid's own JS instead.
  */
 class TrackActions extends Column
@@ -135,7 +135,7 @@ class TrackActions extends Column
                 );
 
                 // Straight to the labels: this order already shipped, so there is nothing to create.
-                // Its own callback, not exportRow — the happy answer is a PDF stream, not JSON.
+                // Its own callback, not exportRow: the happy answer is a PDF stream, not JSON.
                 $actions['action-download_package_label'] = [
                     'href'     => $this->urlBuilder->getUrl(
                         'myparcel/order/PrintMyParcelLabels',

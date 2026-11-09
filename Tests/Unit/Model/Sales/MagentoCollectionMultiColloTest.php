@@ -31,8 +31,8 @@ function createCollectionAnswering(array $responses): array
 }
 
 /**
- * A real Shipment, not a double. The API key is no longer on it — v11 has no setApiKey() — so it is
- * passed to canUseMultiCollo() alongside, which is the whole shape change this phase makes here.
+ * A real Shipment, not a double. It has no setApiKey(), so the API key goes to canUseMultiCollo()
+ * as a separate argument.
  */
 function shipmentFor(string $carrier, ?string $country, ?int $packageType): Shipment
 {

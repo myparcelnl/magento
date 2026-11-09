@@ -6,13 +6,12 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 
 /*
- * Holds the one API promise InsuranceRange cannot check for itself: the insurance option carries the
- * flat min/max/default Money properties. The fallback to the deprecated insuredAmount wrapper is
- * gone, so a shape change would unbound every merchant's insurance field with no error anywhere.
+ * Holds the one API promise InsuranceRange cannot check itself: the insurance option carries the
+ * flat min/max/default Money properties. A shape change would unbound every merchant's insurance
+ * field with no error.
  *
- * The pinned beta.15 models cannot be the witness — they declare only the wrapper, and the read path
- * uses no generated model at all — so the witness is a captured acceptance response. Refresh it by
- * running the live case:
+ * The SDK models declare only the deprecated wrapper, so the witness is a captured acceptance
+ * response. Refresh it with the live case:
  *
  *     MYPARCEL_ACCEPTANCE_API_KEY=… vendor/bin/pest --test-directory=Tests --filter=InsuranceShape
  *

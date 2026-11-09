@@ -10,11 +10,10 @@ use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\UrlInterface;
 
 /**
- * The answer an export gives the grid: what happened, and where to fetch the labels it earned.
+ * Builds the JSON answer an export gives the order and shipment grids: messages and the label request.
  *
- * Shared by the order and shipment grids, which run the same export over different collections. The
- * export never redirects, so nothing renders its messages for it — they travel in this JSON and the
- * page puts them on screen itself.
+ * The export never redirects, so Magento does not render its messages. They travel in this JSON
+ * and the page shows them.
  */
 class ExportResponse
 {
@@ -51,21 +50,15 @@ class ExportResponse
     }
 
     /**
-     * Where the page should go for the PDF, or null when this export earned none.
+     * Get the label request for the PDF, or null when this export made no labels.
      *
-     * The labels are a second request because a response can be a PDF or JSON, not both. It names
-     * Magento *shipment* ids: order ids would also fetch the labels of a shipment exported in an
-     * earlier run, which the admin did not ask to reprint.
+     * It names Magento *shipment* ids: order ids also fetch labels of earlier exports. The ids go in
+     * `params` to POST, not in the URL: a large selection exceeds nginx's 8 KB header limit.
      *
      * @param int[] $shipmentIds Magento shipment entity ids that carry a MyParcel shipment id
      * @param mixed $positions   the export option as it stands, not converted
-     * @param bool  $notify      have the label request send the track & trace emails — it is the
-     *                           first moment a barcode exists to put in them
-     *
-     * The ids travel in `params` for the caller to POST rather than inside the URL. Selecting every
-     * order on a large grid put a four-figure id list into one admin URL, which nginx refuses at its
-     * 8 KB header limit — after the shipments were created and billed, so the admin saw only a
-     * failed download.
+     * @param bool  $notify      have the label request send the track & trace emails: the barcode
+     *                           exists from that moment
      *
      * @return array{url: string, params: array<string,string|int>, failureLabel: string}|null
      */
@@ -106,8 +99,7 @@ class ExportResponse
     }
 
     /**
-     * Taken and cleared. Messages left in the pool would surface on whatever page the admin opens
-     * next, long after the export they describe.
+     * Take and clear the queued messages, or they show on the next page the admin opens.
      *
      * @return array<int, array{type: string, text: string}>
      */

@@ -19,8 +19,8 @@ delivery types and option names are gone, and there are none to adopt.
 **Carriers are the exception.** `MyParcelNL\Sdk\Model\Carrier\` survived beta.22, so
 `Model\Shipment\Carrier` takes each name from the SDK class that owns it
 (`CarrierPostNL::NAME`) and its label from `CarrierFactory`, rather than repeating either. What
-stays the module's own is *which* carriers it supports — the eight it has admin settings and
-insurance virtual types for, against the SDK's thirteen — and the two maps the SDK has no
+stays the module's own is *which* carriers it supports (the eight it has admin settings and
+insurance virtual types for, against the SDK's thirteen) and the two maps the SDK has no
 equivalent of, `V2_NAMES_MAP` and `LOCAL_COUNTRY_MAP`. An account's real set comes from
 capabilities, never from either list.
 
@@ -47,7 +47,7 @@ Three rules run through the result:
 **When capabilities cannot be had, the module offers everything.** `Capabilities\Repository` answers
 a permissive set in five cases: a store with no API key, a request that will not serialise, a
 request that failed within the last 60 seconds, a failed fetch, and a request another one is already
-fetching. The last one is a lock taken with a zero wait, not a queue — after `cache:clean` every
+fetching. The last one is a lock taken with a zero wait, not a queue: after `cache:clean` every
 concurrent render misses the same request at once, and making them wait for one call is the cost being
 avoided, not the fix.
 
@@ -213,7 +213,7 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - **The loose-coupling trade** holds only while the API's error reaches the admin legibly. Anything
   that swallows or flattens a rejection breaks it. **The log is the deliberate exception**:
   `Rejection::shapeOf()` records the body's keys and field pointers and never its values, because
-  the API names the field it refused in text that quotes what was sent — on an address, the
+  the API names the field it refused in text that quotes what was sent: on an address, the
   consumer's own data. The admin's per-order message still comes from `Rejection::reasons()` and is
   unchanged.
 - **The SDK defects above** leave workaround code in place until they land.
@@ -221,7 +221,7 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   `ShipmentOptionsTransformerTest` asserts the `attributeMap()` keys verbatim.
 - **The PPS status poll asks for every order the account has.** `OrderCollection::query()` is given
   no parameters, so the API answers with its own default page and the increment ids are matched in
-  PHP afterwards — an order past that page never matches, and the call is made once per API key per
+  PHP afterwards: an order past that page never matches, and the call is made once per API key per
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
   spec names a filter for the external identifier, so the parameter name has to come from the API
   team before this can be narrowed. Defect 6 covers the user agent on the same call.

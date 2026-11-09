@@ -192,7 +192,7 @@ it('still reports a real barcode alongside a placeholder', function () {
 });
 
 /**
- * writeColumns() is the same write for a caller that already holds its tracks — the shipment
+ * writeColumns() is the same write for a caller that already holds its tracks: the shipment
  * observer, whose tracks have no entity id yet and so cannot be queried. It reads only the current
  * values, which is the fixture's first fetch.
  */

@@ -11,12 +11,8 @@ use MyParcelNL\Magento\Service\AccountSettings\ContractDefinitions;
 /**
  * Keeps a saved insurance amount to a whole number of euros inside the account's contract range.
  *
- * The browser states the same bound, but a direct POST bypasses it, so this is where it is enforced.
- * It rejects rather than clamps: clamping belongs to export, where the real destination is known, and
- * silently rewriting what an admin typed in front of them would be worse than telling them.
- *
- * A bound that cannot be resolved lets the value through — insurance is not switched off because we
- * could not confirm its limits.
+ * It rejects and does not clamp: export clamps, where the real destination is known.
+ * A bound that cannot be resolved lets the value through.
  */
 class InsuranceAmount implements SettingValidatorInterface
 {
@@ -42,9 +38,8 @@ class InsuranceAmount implements SettingValidatorInterface
 
         $entered = is_scalar($value) ? trim((string) $value) : '';
 
-        // A cleared field reads as 0 everywhere downstream, so it is judged as 0 rather than waved
-        // through — otherwise clearing the box would be a way around a contract that requires
-        // insurance.
+        // A cleared field reads as 0 downstream, so judge it as 0. Otherwise clearing the box is a way
+        // around a contract that requires insurance.
         $amount = '' === $entered ? '0' : $entered;
 
         if (! preg_match('/^\d+$/', $amount)) {

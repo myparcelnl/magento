@@ -83,10 +83,8 @@ it('raises on a body carrying no results array', function () {
 });
 
 it('logs an option the SDK request model cannot carry instead of dropping it silently', function () {
-    // fresh_food and frozen used to be the subject here: they had no setter on CapabilitiesOptionsV2,
-    // so a request could not ask about them. beta.31 added both, and no module option is unsendable
-    // any more. The mechanism still matters — a silent drop is the thing to prevent — so it is exercised
-    // with a name the mapper cannot place, which is what a future unknown option looks like.
+    // No module option is unsendable today. A name the mapper cannot place stands in for a future
+    // unknown option, which must not be dropped silently.
     $logger = mockLoggerFacade();
     $logger->shouldReceive('notice')
         ->once()

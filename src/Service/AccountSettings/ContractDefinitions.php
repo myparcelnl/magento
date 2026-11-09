@@ -14,13 +14,9 @@ use MyParcelNL\Magento\Service\Hash\Fingerprint;
 /**
  * Reads an account's contract definitions out of the stored account settings row.
  *
- * Contract definitions answer what an account's contract allows at all, with no shipment in hand.
- * They carry no country, so what comes back is a per-carrier answer and must never be read as a
- * per-destination one — a concrete shipment asks Capabilities\Repository instead.
- *
- * The row is fetched at import time, not here, so this makes no API call and can be asked once per
- * field on a settings page. Missing or unparseable answers permissive: a merchant
- * must still be able to configure insurance when we cannot confirm the bounds.
+ * The answer is per carrier and has no country. Never read it as a per-destination answer:
+ * for a concrete shipment, ask Capabilities\Repository. Makes no API call. A missing or
+ * unparseable row answers permissive, so a merchant can still configure insurance.
  */
 class ContractDefinitions
 {
@@ -56,10 +52,7 @@ class ContractDefinitions
         return $this->memo[$fingerprint];
     }
 
-    /**
-     * The account configured at one admin scope. Scope names are Magento's own — 'default',
-     * 'websites', 'stores' — as the dynamic settings form posts them.
-     */
+    /** Get the capabilities of the account at one admin scope ('default', 'websites' or 'stores'). */
     public function forScope(string $scopeName, ?int $scopeId): CapabilitySet
     {
         $apiKey = (string) $this->config->getScopedConfig(Config::XML_PATH_API_KEY, $scopeName, $scopeId);
@@ -68,11 +61,8 @@ class ContractDefinitions
     }
 
     /**
-     * The advisory insurance bound this account's contract sets for one carrier, or null when none
-     * could be resolved. It has no zone: contract definitions carry no country.
-     *
-     * The settings form and the save observer both ask through here, so what a field states and what
-     * a save enforces cannot drift apart.
+     * Get the advisory insurance bound for one carrier, or null when none resolves. It has no zone.
+     * The settings form and the save observer both use it, so the form and the save check agree.
      */
     public function insuranceRangeFor(string $carrier, string $scopeName, ?int $scopeId): ?InsuranceRange
     {
