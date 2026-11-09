@@ -33,7 +33,6 @@ define(
       renderDeliveryOptionsEvent: 'myparcel_render_delivery_options',
       showDeliveryOptionsEvent: 'myparcel_show_delivery_options',
       unselectDeliveryOptionsEvent: 'myparcel_unselect_delivery_options',
-      updateConfigEvent: 'myparcel_update_config',
       updateDeliveryOptionsEvent: 'myparcel_update_delivery_options',
       updatedDeliveryOptionsEvent: 'myparcel_updated_delivery_options',
       updatedAddressEvent: 'myparcel_updated_address',
@@ -321,8 +320,16 @@ define(
         deliveryOptions.isUsingMyParcelMethod = true;
       },
 
+      /**
+       * Remount the widget with the new config: widget 7.5.8 does not fetch again after myparcel_update_config.
+       * Before the first render there is nothing to remount, render() then reads the current config.
+       */
       updateConfig: function() {
-        deliveryOptions.triggerEvent(deliveryOptions.updateConfigEvent, deliveryOptions.getAddress(quote.shippingAddress()));
+        if (!deliveryOptions.rendered()) {
+          return;
+        }
+
+        deliveryOptions.triggerEvent(deliveryOptions.renderDeliveryOptionsEvent, deliveryOptions.getAddress(quote.shippingAddress()));
       },
     };
 
