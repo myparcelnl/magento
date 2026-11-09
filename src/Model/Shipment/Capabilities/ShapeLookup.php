@@ -37,7 +37,8 @@ class ShapeLookup
     }
 
     /**
-     * Pass null for the shape-agnostic question — which carriers, and which package types each has.
+     * Get the capabilities for this store, country and shipment. Pass null for the shape-agnostic
+     * question: which carriers, and which package types each has.
      *
      * An order with no shipping address has no country to ask about, so it gets the permissive set
      * rather than a country we invented for it.
