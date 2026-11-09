@@ -58,7 +58,7 @@ class CapabilitiesProvider
 
     /**
      * Get the capabilities for this request, from the cache or the API. When the API, the cache or
-     * the lock fails, or another request is fetching the same shape, use the last stored answer, else
+     * the lock fails, or another request is fetching the same answer, use the last stored answer, else
      * a permissive set.
      */
     public function forApiKey(string $apiKey, CapabilitiesRequest $request): CapabilitySet
