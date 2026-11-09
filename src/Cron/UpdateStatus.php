@@ -90,21 +90,7 @@ class UpdateStatus
     }
 
     /**
-     * Handles orders exported to Order v1 (legacy order management).
-     * Gets the eligible orders from Magento, gets the account's orders from the api. When the api
-     * order is one of them and it has shipped, adds the shipment in Magento.
-     *
-     * An Order v1 order can hold several shipments, and they are all created in one go: either as
-     * separate shipments side by side, which is one order_shipments entry each, or as one multicollo,
-     * which is one entry carrying secondary_shipments. This method handles the first shape by reading
-     * every entry; the second is expanded from the shipment API by updateMagentoTrack(), because the
-     * Order v1 response is not where a collo's own barcode is read.
-     *
-     * Each shipment gets its own track. There is no per-shipment item split to make a second Magento
-     * shipment out of: the colli hold the same goods.
-     *
-     * NOTE: the 'reference_identifier' as returned by the api in the order object is the increment_id of the order,
-     * the order_id in the track table however is the entity_id, these are not necessarily the same (number).
+     * Add a Magento shipment and track for each Order v1 order that has shipped.
      *
      * Each order_shipments entry gets its own track; updateMagentoTrack() expands a multicollo entry
      * from the shipment API. The API's reference is the increment_id, the track table holds entity_id.
@@ -232,7 +218,7 @@ class UpdateStatus
     }
 
     /**
-     * The Order v1 orders still waiting for a barcode.
+     * Get the Order v1 orders still waiting for a barcode.
      *
      * Keyed on the export marker and on the absence of a real barcode, on a track or on the order
      * row. Do not key on sales_order.track_number being null: a placeholder there is not a barcode.
@@ -295,12 +281,10 @@ class UpdateStatus
     }
 
     /**
-     * Every shipped shipment of one Order v1 order, in the order the API listed them.
+     * Get every shipped shipment of one Order v1 order, in the order the API listed them.
      *
-     * order_shipments passes through the SDK as a raw array with no model behind it, so each key is
-     * read defensively. The shipped check is per entry: an Order v1 order can hold a concept or a
-     * cancelled shipment beside shipped ones, and reading only the first entry is what hid an order
-     * whose second shipment had shipped while its first was still a concept.
+     * order_shipments is a raw SDK array, so each key is read defensively. The shipped check is per
+     * entry: a concept or cancelled shipment can sit beside shipped ones.
      *
      * @return array<int,array{barcode: string, shipmentId: int|null}>
      */
@@ -485,9 +469,8 @@ class UpdateStatus
     /**
      * Carry every exported shipment on to its next status, whatever export mode made it.
      *
-     * It selects on the track rather than on the order (a MyParcel shipment id and a status that
-     * is not final yet), and an Order v1 shipment answers to both. setOrdersToUpdate() replaces the
-     * collection the Order v1 pass left behind.
+     * It selects on the track (a shipment id and a status not final yet), which an Order v1
+     * shipment also has. setOrdersToUpdate() replaces the collection the Order v1 pass left behind.
      *
      * @throws LocalizedException
      * @throws Exception

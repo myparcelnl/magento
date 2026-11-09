@@ -10,8 +10,8 @@ use MyParcelNL\Sdk\Model\Fulfilment\Order as SdkOrderV1;
  * builds what we send, these build what comes back.
  *
  * order_shipments is a raw array in the SDK, so these mirror its wire shape rather than a model.
- * An Order v1 order can hold several shipments (extra colli for the same goods), which is what
- * apiOrderWithShipments() exists for; the single-shipment helpers are wrappers over it.
+ * An Order v1 order can hold several shipments (extra colli for the same goods). Use
+ * apiOrderWithShipments() for that; the single-shipment helpers wrap it.
  */
 
 /**
