@@ -291,13 +291,13 @@ class OrderOptionsWriter
         $this->assertInsurance($narrow, $carrier, $packageType, $changes->insurance(), $refuse);
     }
 
-    private function assertInsurance(CapabilitySet $narrow, string $carrier, ?string $packageType, ?int $amount, callable $refuse): void
+    private function assertInsurance(CapabilitySet $capabilities, string $carrier, ?string $packageType, ?int $amount, callable $refuse): void
     {
         if (null === $amount) {
             return;
         }
 
-        $offered = $narrow->hasOption($carrier, $packageType, ShipmentOption::INSURANCE);
+        $offered = $capabilities->hasOption($carrier, $packageType, ShipmentOption::INSURANCE);
 
         // Zero is "no insurance": always fine where it is not offered, and refused below when required.
         if (0 === $amount && ! $offered) {
@@ -308,7 +308,7 @@ class OrderOptionsWriter
             throw $refuse(ShipmentOption::INSURANCE);
         }
 
-        $range = InsuranceRange::fromOptionValue($narrow->optionValue($carrier, $packageType, ShipmentOption::INSURANCE));
+        $range = InsuranceRange::fromOptionValue($capabilities->optionValue($carrier, $packageType, ShipmentOption::INSURANCE));
 
         if (null !== $range && ! $range->allows($amount)) {
             throw $refuse(sprintf('%s € %d', ShipmentOption::INSURANCE, $amount));
