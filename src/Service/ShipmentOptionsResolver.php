@@ -10,7 +10,7 @@ use MyParcelNL\Magento\Adapter\DeliveryOptions\DeliveryOptions;
 use MyParcelNL\Magento\Adapter\DeliveryOptions\ShipmentOptions;
 use MyParcelNL\Magento\Facade\Logger;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use Throwable;
@@ -176,7 +176,7 @@ class ShipmentOptionsResolver
         }
 
         try {
-            $capabilities = $this->objectManager->get(ShapeLookup::class)->forShape(
+            $capabilities = $this->objectManager->get(CapabilitiesLookup::class)->forRequest(
                 (int) $this->order->getStoreId(),
                 $this->cc,
                 $packageType,

@@ -17,8 +17,8 @@ use MyParcelNL\Magento\Service\Config;
  * The constructor is skipped: it reads the checkout session. checkPackageType() needs only the
  * quote, the config, the package repository and the memoised capabilities.
  *
- * capabilityLookupWith() seeds the shapes; see its doc block for the key shape and for what an
- * unseeded shape does.
+ * capabilityLookupWith() seeds the requests; see its doc block for the key format and for what an
+ * unseeded request does.
  *
  * $forced is what the order carries whatever the shopper picks; an empty list is the ordinary
  * order, which never reaches a narrowed lookup.
@@ -84,7 +84,7 @@ it('leaves the decision to configuration when capabilities could not be reached'
 });
 
 it('asks only the package-type-agnostic question when the order forces nothing', function () {
-    // Seeding only the agnostic shape proves nothing else is consulted: a narrowed lookup would
+    // Seeding only the agnostic request proves nothing else is consulted: a narrowed lookup would
     // reach the repository, which is not set here, and fatal. That is the ordinary order, and it
     // is what keeps the extra calls off the common path.
     $c = createCheckoutWith(['' => CapabilitySet::fromApiResults([capabilityResult()])]);
@@ -175,7 +175,7 @@ it('answers the forced-option question per carrier', function () {
 it('restricts nothing when capabilities could not be reached, even with a forced option', function () {
     // Degrade, do not disappear: an unreachable capabilities service must not quietly reprice
     // every 18+ order as a package.
-    // Seeding only the agnostic shape also proves no narrowed call is made: a permissive answer
+    // Seeding only the agnostic request also proves no narrowed call is made: a permissive answer
     // means the service is unreachable, and asking it again per package type would only fail again.
     $c = createCheckoutWith(['' => CapabilitySet::permissive()], 'NL', [ShipmentOption::AGE_CHECK]);
 
@@ -217,7 +217,7 @@ it('does not offer a carrier that cannot carry a forced option on the resolved p
     // One package type serves the whole checkout, so DPD allowing an age check on a mailbox can
     // still land mailbox in front of a PostNL customer. PostNL is dropped instead of failing later.
     $capabilities = [
-        // isPickupAllowed() re-resolves the package type, so the agnostic shape is reached too.
+        // isPickupAllowed() re-resolves the package type, so the agnostic request is reached too.
         ''        => CapabilitySet::fromApiResults([
             capabilityResult(['packageTypes' => ['PACKAGE']]),
             capabilityResult(['carrier' => 'DPD', 'packageTypes' => ['PACKAGE']]),

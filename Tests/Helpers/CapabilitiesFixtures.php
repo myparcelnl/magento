@@ -9,7 +9,7 @@ use Magento\Framework\Lock\LockManagerInterface;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\Repository as CapabilitiesRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\InsuranceRange;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\Proxy\ProxyConfig;
@@ -275,15 +275,15 @@ function assertFlatInsuranceShape(array $results): void
 }
 
 /**
- * A ShapeLookup that already holds its answers, so the repository is never reached — reaching it
- * fatals, and that is the assertion that the code asked only the shapes the test seeded.
+ * A CapabilitiesLookup that already holds its answers, so the repository is never reached — reaching it
+ * fatals, and that is the assertion that the code asked only the requests the test seeded.
  *
- * Shapes are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a
- * single CapabilitySet to seed every shape at once, for a test the shape distinction is not about.
+ * Requests are keyed by module package type name, with '' for the package-type-agnostic lookup. Pass a
+ * single CapabilitySet to seed every request at once, for a test the request distinction is not about.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $answers
  */
-function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1): ShapeLookup
+function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1): CapabilitiesLookup
 {
     if ($answers instanceof CapabilitySet) {
         $answers = array_fill_keys(array_merge([''], array_keys(PackageType::NAMES_IDS_MAP)), $answers);
@@ -292,11 +292,11 @@ function capabilityLookupWith($answers, string $country = 'NL', int $storeId = 1
     $seeded = [];
 
     foreach ($answers as $packageType => $set) {
-        // Same shape as ShapeLookup::answer() builds: scope, country, package type, carrier.
+        // Same key as CapabilitiesLookup::answer() builds: scope, country, package type, carrier.
         $seeded['store:' . $storeId . '|' . $country . '|' . $packageType . '|'] = $set;
     }
 
-    $lookup = newInstanceWithoutConstructor(ShapeLookup::class);
+    $lookup = newInstanceWithoutConstructor(CapabilitiesLookup::class);
     setPrivateProperty($lookup, 'answers', $seeded);
 
     return $lookup;

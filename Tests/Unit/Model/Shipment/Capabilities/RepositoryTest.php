@@ -177,7 +177,7 @@ it('logs each kind of unrecognised value once per fetch', function () {
 
 // ---- not hammering a failing endpoint -------------------------------------
 
-it('remembers a failed shape briefly, so a reload does not repeat the burst', function () {
+it('remembers a failed request briefly, so a reload does not repeat the burst', function () {
     mockLoggerFacade()->shouldReceive('warning');
 
     $r       = makeCapabilitiesRepository([new GuzzleResponse(429, [], '')]);
@@ -220,12 +220,12 @@ it('prefers a previous good answer over a recent failure', function () {
 
     $request = CapabilitiesRequest::forCountry('NL');
 
-    // A store holding both a success and a failure entry for the same shape.
+    // A store holding both a success and a failure entry for the same request.
     $ok = makeCapabilitiesRepository([capabilitiesOk()]);
     $ok['repository']->forStore(1, $request);
 
     // The double stores ids exactly as the Repository passes them, so lower case and unprefixed by
-    // Magento. Add a failure marker beside the success entry for the same shape.
+    // Magento. Add a failure marker beside the success entry for the same request.
     [$okPrefix, $failurePrefix] = capabilitiesCacheIdPrefixes();
 
     $entries = $ok['store']->entries;
@@ -245,10 +245,10 @@ it('prefers a previous good answer over a recent failure', function () {
 });
 
 /**
- * After a deploy or cache:clean every concurrent request misses the same shape at once. Waiting for
+ * After a deploy or cache:clean every concurrent request misses the same request at once. Waiting for
  * the holder would queue them all behind one API call, so the rest answer as a failure would.
  */
-it('does not call out for a shape another request is already fetching', function () {
+it('does not call out for a request another request is already fetching', function () {
     $r = makeCapabilitiesRepository([capabilitiesOk()]);
     $r['store']->lockHeld = true;
 
