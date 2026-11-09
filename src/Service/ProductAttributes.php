@@ -16,7 +16,7 @@ use Magento\Framework\ObjectManagerInterface;
  * also knows each attribute's backend type, which retires the varchar-then-int probing the raw
  * reader needed.
  *
- * One load covers every attribute: asking for eight columns costs barely more than one, and the
+ * One load covers every attribute: asking for every column costs barely more than one, and the
  * callers read several per product.
  */
 class ProductAttributes

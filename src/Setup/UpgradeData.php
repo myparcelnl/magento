@@ -1171,12 +1171,14 @@ class UpgradeData implements UpgradeDataInterface
                 Product::ENTITY,
                 'myparcel_external_product_reference',
                 array_merge(self::DEFAULT_ATTRIBUTES, [
-                        'note'    => 'Enter the external product reference, for example the Zonos Catalog Item ID of this product.',
-                        'label'   => 'External product reference',
-                        'input'   => 'text',
-                        'type'    => 'varchar',
-                        'class'   => 'validate-length maximum-length-64',
-                        'default' => '',
+                        'note'                    => 'Enter the external product reference, for example the Zonos Catalog Item ID of this product.',
+                        'label'                   => 'External product reference',
+                        'input'                   => 'text',
+                        'type'                    => 'varchar',
+                        'class'                   => 'validate-length maximum-length-64',
+                        'default'                 => '',
+                        'comparable'              => false,
+                        'used_in_product_listing' => false,
                     ]
                 )
             );
