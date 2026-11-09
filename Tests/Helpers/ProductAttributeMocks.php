@@ -70,7 +70,7 @@ function productAttributesFor(array $rows, ?array &$loads = null): ProductAttrib
 
 /**
  * A quote item carrying one catalogue product id — the minimum a cart service reads off an item
- * before it warms the product attributes.
+ * before it preloads the product attributes.
  *
  * Pass null for an item whose product was deleted, which the repository has to survive.
  */
