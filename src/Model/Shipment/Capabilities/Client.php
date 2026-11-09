@@ -18,22 +18,10 @@ use RuntimeException;
 use Throwable;
 
 /**
- * Calls the Core API capabilities endpoints for one API key and returns the response body decoded.
+ * Calls the Core API capabilities and contract definitions endpoints for one API key.
  *
- * Two endpoints, one transport: shipment capabilities answer for a shipment shape, contract
- * definitions answer per carrier with no shipment in hand. They differ only in path, request body
- * and envelope key, so they share the retry ladder, auth and host override.
- *
- * The SDK builds the request — CapabilitiesRequest and CapabilitiesMapper carry domain knowledge we
- * would otherwise rediscover — but not the response: a generated response model reads only its own
- * declared properties, so it drops any key the SDK release does not know about. An unknown key has
- * to survive, so the body is decoded as-is and the module's own value objects read it.
- *
- * SDK\Services\Capabilities\CapabilitiesService is unusable here for two separate reasons: it can be
- * given no API key, and its mapper discards every per-option value including insurance bounds.
- *
- * serialize() and send() are separate because the request body is also what the cache id hashes.
- * Building it twice would map the request twice and log the dropped options twice.
+ * The SDK builds the request. The response body is decoded as is, because of SDK defects 1 to 3 in
+ * docs/sdk-v11.md. serialize() is separate from send() because the cache key hashes the body.
  */
 class Client
 {
