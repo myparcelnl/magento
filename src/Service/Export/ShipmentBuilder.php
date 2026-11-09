@@ -28,10 +28,8 @@ use MyParcelNL\Sdk\Services\CountryService;
 /**
  * Turns one Magento shipment track into a v11 Shipment, paired with its track and API key.
  *
- * Carrier, package type and the option set come from OrderExportOptions, which the Order v1
- * path shares. What is decided here is what only a label needs: the weight of these shipment items,
- * the recipient array and the pickup model. A shipment that cannot be built fails on its own, and
- * the caller names the order. An unknown stored carrier fails the shipment; it is never replaced.
+ * Carrier, package type and options come from OrderExportOptions. A shipment that cannot be built
+ * fails on its own and names the order. An unknown stored carrier fails the shipment; it is never replaced.
  */
 class ShipmentBuilder
 {
