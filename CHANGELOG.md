@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [5.10.5](https://github.com/myparcelnl/magento/compare/v5.10.4...v5.10.5) (2026-11-09)
+
+### :bug: Bug Fixes
+
+* prevent checkout crash when the shipping address has no postcode ([#1013](https://github.com/myparcelnl/magento/issues/1013)) ([c5574cc](https://github.com/myparcelnl/magento/commit/c5574ccd19276cc4bed284ae464a75579720ef57)), closes [#1011](https://github.com/myparcelnl/magento/issues/1011)
+
 ## [5.10.4](https://github.com/myparcelnl/magento/compare/v5.10.3...v5.10.4) (2026-10-13)
 
 ### :bug: Bug Fixes
