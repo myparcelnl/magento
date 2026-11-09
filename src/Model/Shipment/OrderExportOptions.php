@@ -27,9 +27,7 @@ use RuntimeException;
 
 /**
  * What one Magento order is to be shipped as: carrier, package type and the v11 ShipmentOptions.
- *
- * ShipmentBuilder (label) and OrderV1Builder (Order v1) ask an order the same questions, so the answers
- * live here. Each builder keeps only what its own API shape needs.
+ * ShipmentBuilder and OrderV1Builder both read it.
  *
  * Generated-model trap: setLabelDescription() throws above its limit.
  */

@@ -5,10 +5,9 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
- * An Order v1 order's barcode and shipment id must reach the track that would otherwise keep a
- * placeholder. An Order v1 order can hold several shipments, each needs its own track, and the
- * cron runs every minute, so a second run must write nothing. Multicollo colli are not this path:
- * updateMagentoTrack() expands them from the shipment API.
+ * An Order v1 order's barcode and shipment id must reach the track that holds a placeholder.
+ * Each of its shipments needs its own track, and the cron runs every minute, so a second run must
+ * write nothing. Multicollo colli do not use this path.
  */
 
 it('writes the barcode and the shipment id onto a track still holding a placeholder', function () {

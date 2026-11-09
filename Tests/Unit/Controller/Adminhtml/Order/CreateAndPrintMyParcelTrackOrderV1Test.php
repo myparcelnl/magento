@@ -13,10 +13,9 @@ use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 use MyParcelNL\Magento\Service\Export\ExportResponse;
 
 /**
- * The order grid's Order v1 export. The collection's constructor defaults are a mass action's, and
- * OrderExportOptions reads a carrier in them as the admin's override of the checkout carrier,
- * so the Order v1 branch has to run the request through setOptionsFromParameters() like every other
- * caller of exportAsOrderV1() does, or the modal's choice is ignored and a default is exported.
+ * The order grid's Order v1 export. OrderExportOptions reads a carrier in the collection's defaults
+ * as the admin's override, so the Order v1 branch must call setOptionsFromParameters(). If not, the
+ * modal's choice is ignored and a default is exported.
  *
  * Skips parent::__construct(Action) and shadows getRequest(): the Backend Action chain is a stub here.
  */

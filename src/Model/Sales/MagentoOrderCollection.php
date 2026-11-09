@@ -467,8 +467,8 @@ class MagentoOrderCollection extends MagentoCollection
     /**
      * Get the collection's Magento shipments grouped by their order's increment id.
      *
-     * Allocate per order, never per Magento shipment: an order shipped partly by hand before Order v1 ran
-     * has two Magento shipments, and only one Order v1 barcode per Order v1 shipment.
+     * Allocate per order, never per Magento shipment: an order shipped partly by hand has two
+     * Magento shipments, and each would get the same barcode and shipment id.
      *
      * @return array<string,Shipment[]>
      */
@@ -495,7 +495,7 @@ class MagentoOrderCollection extends MagentoCollection
     }
 
     /**
-     * One track per Order v1 shipment, for one Magento order.
+     * Give each Order v1 shipment of one Magento order one track.
      *
      * A shipment already on a track is left alone. Otherwise it takes a free placeholder track, and
      * only then a new one. A new track needs an id or a real barcode: without either, the shipment
