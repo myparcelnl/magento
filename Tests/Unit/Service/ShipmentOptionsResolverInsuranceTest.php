@@ -167,7 +167,7 @@ it('clamps against the type the admin switched to, not the one the checkout stor
     // Nothing is clamped, so nothing is logged. Asking with the stored type would clamp and notice.
     mockLoggerFacade()->shouldReceive('notice')->never();
 
-    // Two shapes in one answer, because the contracts differ: mailbox caps at EUR 100 where package
+    // Two results in one answer, because the contracts differ: mailbox caps at EUR 100 where package
     // caps at EUR 500. Asking with the stored type shipped a package insured for the mailbox bound.
     $repository = makeCapabilitiesRepository([
         new GuzzleResponse(200, [], capabilitiesBody([

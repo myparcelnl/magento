@@ -11,7 +11,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use MyParcelNL\Magento\Model\Carrier\Carrier;
 use MyParcelNL\Magento\Model\Sales\Repository\PackageRepository;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\Capabilities\ShapeLookup;
+use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitiesLookup;
 use MyParcelNL\Magento\Model\Shipment\CountryCode;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -41,7 +41,7 @@ class Checkout
     private PackageRepository     $package;
     private Quote                 $quote;
     private StoreManagerInterface $storeManager;
-    private ShapeLookup           $capabilityLookup;
+    private CapabilitiesLookup    $capabilityLookup;
 
     /** @var string[]|null the carriers with delivery or pickup on; getDeliveryOptions() asks three times */
     private ?array $activeCarriers = null;
@@ -54,7 +54,7 @@ class Checkout
      * @param DeliveryCosts         $deliveryCosts
      * @param PackageRepository     $package
      * @param StoreManagerInterface $storeManager
-     * @param ShapeLookup           $capabilityLookup
+     * @param CapabilitiesLookup    $capabilityLookup
      */
     public function __construct(
         Tax                   $tax,
@@ -62,7 +62,7 @@ class Checkout
         DeliveryCosts         $deliveryCosts,
         PackageRepository     $package, // TODO DEPRECATE / IMPROVE
         StoreManagerInterface $storeManager,
-        ShapeLookup           $capabilityLookup
+        CapabilitiesLookup    $capabilityLookup
     )
     {
         $this->tax                    = $tax;
@@ -290,10 +290,10 @@ class Checkout
         return $myParcelConfig;
     }
 
-    /** @see ShapeLookup::forShape() for what a null package type asks, and what it must not be used for. */
+    /** @see CapabilitiesLookup::forRequest() for what a null package type asks, and what it must not be used for. */
     private function getCapabilities(string $country, ?string $packageType = null): CapabilitySet
     {
-        return $this->capabilityLookup->forShape((int) $this->quote->getStoreId(), $country, $packageType);
+        return $this->capabilityLookup->forRequest((int) $this->quote->getStoreId(), $country, $packageType);
     }
 
     /**

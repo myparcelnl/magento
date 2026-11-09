@@ -11,8 +11,8 @@ use MyParcelNL\Magento\Service\Weight;
  * The constructor is skipped: it stands up a Magento backend block context and an ObjectManager
  * lookup, while these methods read only $order and the capability lookup.
  *
- * capabilityLookupWith() seeds the shapes; see its doc block for the key shape and for what an
- * unseeded shape does.
+ * capabilityLookupWith() seeds the requests; see its doc block for the key format and for what an
+ * unseeded request does.
  *
  * @param CapabilitySet|array<string,CapabilitySet> $capabilities
  */
@@ -32,7 +32,7 @@ function createNewShipmentBlockWith($capabilities, array $orderOverrides = []): 
     ));
     setPrivateProperty($block, 'form', new NewShipmentForm());
 
-    // getFormCarriers() reaches these whenever a shape reports insurance, which a permissive shape
+    // getFormCarriers() reaches these whenever an answer reports insurance, which a permissive answer
     // always does.
     $defaults = Mockery::mock(DefaultOptions::class);
     $defaults->shouldReceive('getDefaultInsurance')->andReturn(0)->byDefault();

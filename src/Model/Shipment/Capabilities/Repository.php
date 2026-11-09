@@ -13,7 +13,7 @@ use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesRequest;
 use Throwable;
 
 /**
- * Cache-aside access to capability answers, scoped to the API key of a given store.
+ * Gets capabilities through the cache, per API key and request. Three rules:
  *
  * The only class consumers touch. Three rules it must keep:
  *
@@ -23,7 +23,7 @@ use Throwable;
  *   loudly on its own path instead.
  * - Serve stale. Successful entries are written with no expiry and removed only by cache:clean, an
  *   API key change or a settings import, so a failed refresh finds the previous answer still there.
- * - Do not hammer a failing endpoint. A shape that failed is remembered as failed for
+ * - Do not hammer a failing endpoint. A request that failed is remembered as failed for
  *   FAILURE_LIFETIME_SECONDS, so a reload does not repeat the burst. Checked *after* the success
  *   entry, never before it, so a previous good answer always beats a recent failure.
  */
@@ -33,7 +33,7 @@ class Repository
     private const FAILURE_ID_PREFIX = 'myparcel_capabilities_failed_';
 
     /**
-     * How long a failed shape is remembered as failed.
+     * How long a failed request is remembered as failed.
      *
      * Successful entries never expire, but a failure must: without it, an admin form that fans out
      * over several package types repeats the whole burst on every reload, which is exactly the load
@@ -108,9 +108,9 @@ class Repository
 
     private function lookup(string $apiKey, string $body): CapabilitySet
     {
-        $shape     = $this->fingerprint->of($apiKey . '|' . $body);
-        $cacheId   = self::CACHE_ID_PREFIX . $shape;
-        $failureId = self::FAILURE_ID_PREFIX . $shape;
+        $requestKey = $this->fingerprint->of($apiKey . '|' . $body);
+        $cacheId    = self::CACHE_ID_PREFIX . $requestKey;
+        $failureId  = self::FAILURE_ID_PREFIX . $requestKey;
 
         if (isset($this->memo[$cacheId])) {
             return $this->memo[$cacheId];
@@ -131,11 +131,11 @@ class Repository
             return $this->memo[$cacheId] = CapabilitySet::permissive();
         }
 
-        // One fetch per shape at a time. After a deploy or cache:clean every concurrent checkout
-        // misses the same shape at once, and without this each one calls out. Waiting is not the
+        // One fetch per request at a time. After a deploy or cache:clean every concurrent checkout
+        // misses the same request at once, and without this each one calls out. Waiting is not the
         // alternative — that queues them all behind one request — so the rest answer permissively,
         // exactly as they would if the fetch had failed.
-        $lockName = self::CACHE_ID_PREFIX . 'fetch_' . $shape;
+        $lockName = self::CACHE_ID_PREFIX . 'fetch_' . $requestKey;
 
         // 0: try once and move on. Waiting is the thing being avoided.
         if (! $this->lockManager->lock($lockName, 0)) {
@@ -161,11 +161,7 @@ class Repository
         return $this->memo[$cacheId] = $set;
     }
 
-    /**
-     * Values the module could not translate. Logged once per fetch rather than per read, and at
-     * notice, because this is the early-warning signal that the module needs updating rather than
-     * something wrong right now.
-     */
+    /** Log the values the module does not know, once per fetch, as a sign that it needs an update. */
     private function logUnknownValues(CapabilitySet $set): void
     {
         foreach ($set->unknownValues() as $kind => $values) {
