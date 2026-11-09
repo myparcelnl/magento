@@ -27,8 +27,7 @@ class CartShippingRules
     }
 
     /**
-     * The keepAtCheckout options this cart carries whatever the shopper
-     * picks, by a product or by the carrier's default option setting.
+     * Get the keepAtCheckout options that a product or the carrier's default option setting forces on.
      *
      * @param  \Magento\Quote\Model\Quote\Item[] $items
      * @return string[]
