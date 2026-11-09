@@ -15,14 +15,9 @@ use MyParcelNL\Sdk\Model\BaseModel;
 /**
  * The account and its general settings, from a stored account settings row.
  *
- * The carrier half moved to contract definitions, read through
- * Service\AccountSettings\ContractDefinitions. What is left is the account's own general settings,
- * which no contract carries. getGeneralSettings() keeps them raw, because the SDK's GeneralSettings
- * drops a key it does not know, and a new `{carrier}_mailbox_international` flag is such a key.
- *
- * A row this class did not write may be missing anything, and the SDK's Account throws on a missing
- * key. getAccount() therefore answers null for every row it cannot use: it is read while the order
- * grid renders, where a throw is a 500.
+ * getGeneralSettings() stays raw: the SDK's GeneralSettings drops unknown keys such as a new
+ * `{carrier}_mailbox_international` flag. getAccount() answers null for a row it cannot use,
+ * because the order grid reads it and a throw there is a 500.
  */
 class AccountSettings extends BaseModel
 {
