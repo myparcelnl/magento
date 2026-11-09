@@ -12,8 +12,8 @@ use MyParcelNL\Magento\Service\Weight;
 /**
  * Object manager wired for CustomsItems' two batch lookups, shared by both customs paths.
  *
- * Product data (the myparcel_ attributes, country of manufacture) is fetched in batch queries keyed
- * by product id, never per item. That is what these mocks model. Only ids in $countries exist.
+ * Product data (the myparcel_ attributes, country of manufacture) comes from batch queries keyed by
+ * product id, never per item. Only ids in $countries exist.
  *
  * @param array<string,array<int,string>> $attributes  column without myparcel_ => product id => value
  * @param array<int,string|null>          $countries   product id => country of manufacture
