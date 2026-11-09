@@ -8,17 +8,11 @@ use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
 use Throwable;
 
 /**
- * What a cart's own items say about how it may ship: which options it forces on, whether it may be
- * offered delivery options at all, and how long it delays drop-off.
+ * Tells what a cart's own items say about how it may ship: forced options, delivery options, drop-off delay.
  *
- * Every method that reads configuration takes a carrier **path**, not a name. Checkout asks these
- * questions for the first active carrier, and falls back to the PostNL path when no carrier is
- * active at all — so the path can belong to no carrier. Do not harmonise this with
- * PackageTypeResolver, which takes a name.
- *
- * Nothing is remembered between calls. The predecessor memoised on the quote items because it was a
- * shared singleton and would otherwise answer one order from another order's products; without the
- * sharing there is nothing to defend against, and the product reads are batched anyway.
+ * Methods that read config take a carrier **path**, not a name. With no active carrier, checkout
+ * passes the PostNL path, so the path can belong to no carrier. Do not harmonise this with
+ * PackageTypeResolver, which takes a name. Stateless: it remembers nothing between calls.
  */
 class CartShippingRules
 {
@@ -105,10 +99,7 @@ class CartShippingRules
     }
 
     /**
-     * Whether any item in this cart forbids the delivery options widget.
-     *
-     * A predicate, not a flag. Its predecessor set a public boolean that was never reset, so on a
-     * shared instance one disabling cart silenced every later cart in the same request.
+     * Check whether any item in this cart forbids the delivery options widget.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
@@ -126,7 +117,7 @@ class CartShippingRules
     }
 
     /**
-     * The longest drop-off delay any item asks for, or null when none does.
+     * Get the longest drop-off delay any item asks for, or null when none does.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
@@ -148,8 +139,8 @@ class CartShippingRules
     }
 
     /**
-     * Check whether a product in the cart or the carrier's default options switch the option on. A
-     * missing attribute or config path is off.
+     * Check whether a product in the cart or the carrier's default options switch the option on.
+     * A missing attribute or config path is off.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
