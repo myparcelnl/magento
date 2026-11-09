@@ -66,6 +66,8 @@ class Repository
     }
 
     /**
+     * Get the capabilities for the API key of this store and this request.
+     *
      * @param int|null $storeId resolves the API key at that store's scope; never an ambient store
      */
     public function forStore(?int $storeId, CapabilitiesRequest $request): CapabilitySet
