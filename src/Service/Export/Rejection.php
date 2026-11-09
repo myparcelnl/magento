@@ -171,6 +171,7 @@ final class Rejection
         return $this->summary;
     }
 
+    /** Check whether the chunk can be sent again without the blamed orders. */
     public function isRetryable(): bool
     {
         return $this->retryable;

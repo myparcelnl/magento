@@ -70,9 +70,9 @@ class OrdersAction extends Template
 
 
     /**
-     * The grid's data source component, so the export can refresh the rows it changed without a page
-     * load. The name is <namespace>.<dataSource name>, and the namespace is the ui_component file's
-     * own name because those <listing> roots carry no name attribute.
+     * Get the grid's data source component, so the export can refresh the rows it changed without a
+     * page load. The name is <namespace>.<dataSource name>, and the namespace is the name of the
+     * ui_component file because those <listing> roots carry no name attribute.
      */
     public function getGridDataSource(): string
     {
