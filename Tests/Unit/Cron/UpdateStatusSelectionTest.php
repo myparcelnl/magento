@@ -8,9 +8,8 @@ use MyParcelNL\Magento\Cron\UpdateStatus;
 use MyParcelNL\Magento\Ui\Component\Listing\Column\TrackAndTrace;
 
 /**
- * The selector decides which orders the cron can ever see, and getting it wrong is what locked
- * every exported order out. These assert the conditions it puts on the query rather than
- * its SQL text — what matters is which facts it keys on, not how they are spelled.
+ * Capture the conditions the selector puts on the cron's query. The selector decides which orders
+ * the cron can see. Assert which facts it keys on, not its SQL text.
  *
  * @return array{filters: array, wheres: string[]}
  */
@@ -110,8 +109,8 @@ it('still selects an order whose grid column holds only a placeholder', function
 
 it('lets a barcode on the order row settle it only for an order with no track', function () {
     // The four orders that were shipped in Magento had a real barcode on the order row and a
-    // placeholder on the track. Reading the order row alone called them done and they never came
-    // back — the same mistake as the original bug, one level up.
+    // placeholder on the track. Reading the order row alone called them done, and they never came
+    // back.
     $wheres = implode(' ', capturedSelection()['wheres']);
 
     expect($wheres)->toContain('EXISTS')

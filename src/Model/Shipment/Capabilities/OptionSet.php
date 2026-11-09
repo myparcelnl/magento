@@ -49,7 +49,7 @@ final class OptionSet
     }
 
     /**
-     * The option's own properties, verbatim. The insurance range reads min/max through this.
+     * Get the option's own properties, verbatim.
      *
      * @return array<string,mixed>|null
      */

@@ -7,14 +7,10 @@ namespace MyParcelNL\Magento\Adapter\DeliveryOptions;
 use BadMethodCallException;
 
 /**
- * Picks which stored shape a DeliveryOptions should be read as: an order carries whatever the
- * checkout wrote when it was placed.
+ * Picks the stored shape to read a DeliveryOptions from, by its top-level keys only.
  *
- * Shape detection only. Each named constructor normalises its own nested keys, so this dispatches
- * on the top-level keys, which are camelCase in every shape.
- *
- * Keep throwing BadMethodCallException specifically — two call sites catch that class to fall back
- * to DeliveryOptions::fromOrderFallback().
+ * Each named constructor normalises its own nested keys. Keep throwing BadMethodCallException:
+ * two call sites catch that class to fall back to DeliveryOptions::fromOrderFallback().
  */
 final class DeliveryOptionsFactory
 {

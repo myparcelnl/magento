@@ -9,9 +9,8 @@ use InvalidArgumentException;
 /**
  * A stored package or delivery type, plus whatever it resolved to.
  *
- * A stored type may be one we do not know: it comes from the checkout widget or an old order, and
- * which types exist belongs to the merchant's account. So nothing here substitutes a default — each
- * accessor says what it answers for an unresolved value.
+ * A stored type may be one we do not know. Nothing here substitutes a default: each accessor says
+ * what it answers for an unresolved value.
  */
 final class TypeValue
 {
@@ -33,8 +32,7 @@ final class TypeValue
     }
 
     /**
-     * A numeric value is read as an id, because that is what the admin form posts. Anything else is
-     * read as a name.
+     * Read a numeric value as an id, because the admin form posts ids. Read anything else as a name.
      *
      * @param string|int|null $raw
      * @param class-string    $mapClass PackageType or DeliveryType
@@ -62,13 +60,13 @@ final class TypeValue
         return new self($raw, $mapClass::toIdOrNull($raw), $mapClass);
     }
 
-    /** Nothing was stored — not the same as a stored value we cannot resolve. */
+    /** Check whether nothing was stored. That is not the same as a stored value we cannot resolve. */
     public function isAbsent(): bool
     {
         return null === $this->raw;
     }
 
-    /** The module name when resolved, the raw value verbatim when not, null when absent. */
+    /** Get the module name when resolved, the raw value verbatim when not, null when absent. */
     public function name(): ?string
     {
         if (null === $this->raw) {
@@ -90,8 +88,8 @@ final class TypeValue
     }
 
     /**
-     * An unresolved *id* is passed through, because the API is what decides whether it exists. An
-     * unresolved *name* cannot be sent at all, so it throws rather than being replaced.
+     * Get the id to send. An unresolved *id* passes through: the API decides whether it exists.
+     * An unresolved *name* throws.
      *
      * @throws \InvalidArgumentException
      */

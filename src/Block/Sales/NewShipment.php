@@ -206,7 +206,7 @@ class NewShipment extends AbstractItems
 
     /**
      * Carriers to offer: those the account has a contract for, narrowed to those this module has
-     * settings for. A carrier the account has but we have no config path for cannot be offered —
+     * settings for. A carrier the account has but we have no config path for cannot be offered:
      * it would have no fee, no active flag and no drop-off days. The Repository already logs any
      * carrier name the module does not know, and V2NameMapTest pins the two lists to the same keys,
      * so there is no second gap to report here.

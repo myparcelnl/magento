@@ -13,12 +13,11 @@ use MyParcelNL\Sdk\Model\Account\Account;
 use MyParcelNL\Sdk\Model\BaseModel;
 
 /**
- * The account half of a stored account settings row: whose account it is and what its general
- * settings say.
+ * The account and its general settings, from a stored account settings row.
  *
  * The carrier half moved to contract definitions, read through
  * Service\AccountSettings\ContractDefinitions. What is left is the account's own general settings,
- * which no contract carries — hasPostnlMailboxInternational() is the one live reader.
+ * which no contract carries. hasPostnlMailboxInternational() is the one live reader.
  *
  * A row this class did not write may be missing anything, and the SDK's Account throws on a missing
  * key. getAccount() therefore answers null for every row it cannot use: it is read while the order

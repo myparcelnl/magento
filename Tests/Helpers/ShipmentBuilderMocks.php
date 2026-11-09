@@ -90,14 +90,11 @@ function mockExportObjectManager(Config $config): ObjectManagerInterface
 }
 
 /**
- * Drives the real constructor and the real build(), for the behaviours that
- * live inline in that method.
+ * Create a ShipmentBuilder that runs the real constructor and the real build().
  *
- * $checkoutDeliveryOptions must carry a `deliveryType` key, or
- * DeliveryOptionsFactory throws. The address is fixed to Germany, so
- * age-check and customs logic never activate here. $apiKeyStoreId null means
- * every store resolves to the key, as an inherited default does; pass one to
- * make only that store resolve.
+ * $checkoutDeliveryOptions must carry a `deliveryType` key, or DeliveryOptionsFactory throws.
+ * The address is in Germany, so age check and customs logic never activate. With $apiKeyStoreId
+ * null, every store resolves to the key; pass one to make only that store resolve.
  *
  * @return array{0: ShipmentBuilder, 1: \Magento\Sales\Model\Order\Shipment\Track}
  */
@@ -122,12 +119,11 @@ function createConvertibleShipmentBuilder(
 }
 
 /**
- * Stubs the static ObjectManager the product attribute reads resolve through — the static
- * singleton, never the instance one injected into the class under test.
+ * Stub the static ObjectManager singleton that the product attribute reads resolve through, not the
+ * instance injected into the class under test.
  *
- * Whatever ids ProductAttributes filters on come back as products, each answering $value for every
- * attribute. An empty string is a product that says nothing, which is how the "no opinion" tier is
- * exercised.
+ * Each filtered id comes back as a product that answers $value for every attribute. An empty string
+ * is a product that says nothing: the "no opinion" tier.
  *
  * @param array<class-string, mixed> $alsoBind extra bindings resolved from the same singleton
  */

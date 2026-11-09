@@ -7,8 +7,8 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\TypeValue;
 
 /**
- * The no-substitution rule stated as tests: a stored type we do not recognise survives as itself, and the
- * three answers a caller can get — absent, unresolved, resolved — stay distinguishable.
+ * The no-substitution rule: a stored type we do not recognise survives as itself, and the three
+ * answers a caller can get (absent, unresolved, resolved) stay distinguishable.
  *
  * Absent is name() === null; unresolved is a name() with no id(); resolved is both.
  */
