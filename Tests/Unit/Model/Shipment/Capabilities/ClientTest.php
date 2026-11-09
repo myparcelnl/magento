@@ -101,8 +101,9 @@ it('sends the serialized body unchanged through the generated client', function 
 
     $c['client']->send(CAPABILITIES_TEST_API_KEY, $body);
 
-    expect(json_decode((string) $c['history'][0]['request']->getBody(), true))
-        ->toBe(json_decode($body, true));
+    // As objects, so an option's {} does not pass as [].
+    expect(json_decode((string) $c['history'][0]['request']->getBody()))
+        ->toEqual(json_decode($body));
 });
 
 it('waits at most two seconds for a connection, so a checkout does not hang on an unreachable host', function () {

@@ -15,7 +15,6 @@ use MyParcelNL\Magento\Service\UserAgent;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ApiException;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Configuration;
-use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\CapabilitiesPostCapabilitiesRequestV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\CapabilitiesPostContractDefinitionsRequestV2;
 use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
 use MyParcelNL\Sdk\Model\Capabilities\CapabilitiesMapper;
@@ -88,9 +87,8 @@ class Client
     public function send(string $apiKey, string $body): array
     {
         return $this->call($apiKey, 'results', 'capabilities', static function (ShipmentApi $api) use ($body): void {
-            $api->postCapabilities(
-                ObjectSerializer::deserialize(json_decode($body), CapabilitiesPostCapabilitiesRequestV2::class)
-            );
+            // The decoded body as is: a model round trip turns an option's {} into [].
+            $api->postCapabilities(json_decode($body));
         });
     }
 
