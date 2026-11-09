@@ -52,7 +52,7 @@ class CustomsItems
      */
     public function classificationsFor(array $productIds): array
     {
-        return $this->attributes()->column($productIds, 'classification');
+        return $this->attributes()->getColumn($productIds, 'classification');
     }
 
     /** Held for the instance, which is what keeps a multi-item declaration to one product load. */
