@@ -11,8 +11,9 @@ use InvalidArgumentException;
  *
  * toArray() nests inside DeliveryOptions::toArray(), which is persisted and published.
  *
- * getRetailNetworkId() answers '' rather than null when unset. That is an SDK quirk the versioned
- * REST v1 contract depends on, so it is kept on purpose.
+ * getRetailNetworkId() answers '' rather than null when unset: the REST v1 contract depends on it.
+ *
+ * @TODO Use promoted readonly properties when the minimum PHP version is 8.1.
  */
 final class PickupLocation
 {
