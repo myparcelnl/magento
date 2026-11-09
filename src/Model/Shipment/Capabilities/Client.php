@@ -31,13 +31,7 @@ class Client
     private const CONTENT_TYPE    = 'application/json;charset=utf-8';
     private const TIMEOUT_SECONDS = 10;
 
-    /**
-     * Separate from the read timeout, and much shorter.
-     *
-     * An unreachable host is the outage that costs a customer real time: checkout asks two requests
-     * per request, so one budget each is what the page waits. A slow-but-answering API still gets
-     * the full read timeout.
-     */
+    /** Shorter than the read timeout: a checkout waits this long per request on an unreachable host. */
     private const CONNECT_TIMEOUT_SECONDS = 2;
 
     private GuzzleClient       $httpClient;
