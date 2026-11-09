@@ -163,7 +163,7 @@ class Checkout
         return [
             'platform'                          => $this->propositionName(),
             'currency'                          => $this->storeManager->getStore()->getCurrentCurrency()->getCode(),
-            'proxyCapabilities'                 => $this->storeManager->getStore()->getBaseUrl() . 'myparcel/proxy/core/shipments/capabilities',
+            'proxyCapabilities'                 => $this->proxyCapabilitiesUrl(),
             'showDeliveryDate'                  => $deliveryDaysWindow > 0,
             'deliveryDaysWindow'                => $deliveryDaysWindow,
             'dropOffDelay'                      => $this->getDropOffDelay(),
@@ -174,6 +174,16 @@ class Checkout
             'compactView'                       => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/compact_view'),
             'popUpMap'                          => $this->config->getBoolConfig(Config::XML_PATH_GENERAL, 'shipping_methods/pop_up_map'),
         ];
+    }
+
+    /** Carries the store in the URL, so the proxy uses this store's api key whatever the store cookie says. */
+    private function proxyCapabilitiesUrl(): string
+    {
+        return $this->storeManager->getStore()->getUrl('', [
+            '_direct'       => 'myparcel/proxy/core/shipments/capabilities',
+            '_scope_to_url' => true,
+            '_nosid'        => true,
+        ]);
     }
 
     /** The widget needs a proposition, so a store without a listed one gets the default. */
