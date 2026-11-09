@@ -28,9 +28,10 @@ class CustomsDeclarationBuilder
     }
 
     /**
-     * One customs item per shipped item. getAllItems() leaves out what ShipmentFactory marked deleted:
-     * before the save, the shipment still carries a configurable's variant as an item of its own.
-     * Product data comes from two batch queries, not one per item.
+     * Build the declaration with one item per shipped item.
+     *
+     * getAllItems() leaves out what ShipmentFactory marked deleted: before the save, the shipment
+     * still carries a configurable's variant as an item of its own.
      *
      * @throws \RuntimeException when the SDK refuses the declaration, for example no item or more than 100
      */
