@@ -29,14 +29,14 @@ final class OptionSet
         return new self($options);
     }
 
-    /** Whether capabilities offer the option. Takes the module name, not the wire key. */
+    /** Check whether capabilities offer the option. Takes the module name, not the wire key. */
     public function has(string $moduleOptionName): bool
     {
         return array_key_exists(ShipmentOption::toV2Name($moduleOptionName), $this->raw);
     }
 
     /**
-     * The option's own properties, verbatim. The insurance range reads min/max through this.
+     * Get the option's own properties, verbatim.
      *
      * @return array<string,mixed>|null
      */
@@ -52,7 +52,7 @@ final class OptionSet
     }
 
     /**
-     * Module names for every option the response listed.
+     * Get the module names of every option the response listed.
      *
      * @return string[]
      */
@@ -64,8 +64,8 @@ final class OptionSet
     }
 
     /**
-     * The companions the option needs, in module names. Single level: the caller must not follow a
-     * companion's own requires, see docs/sdk-v11.md.
+     * Get the companions the option needs, in module names.
+     * Single level: the caller must not follow a companion's own requires, see docs/sdk-v11.md.
      *
      * @return string[]
      */
@@ -89,7 +89,7 @@ final class OptionSet
         foreach (is_array($listed) ? $listed : [$listed] as $v2Name) {
             if (! is_string($v2Name) || '' === $v2Name) {
                 Logger::notice(sprintf(
-                    'MyParcel capabilities: %s of %s holds an entry that is not an option name — skipped',
+                    'MyParcel capabilities: %s of %s holds an entry that is not an option name, skipped',
                     $kind,
                     ShipmentOption::toV2Name($moduleOptionName)
                 ));

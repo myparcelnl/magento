@@ -2,7 +2,7 @@
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
+- **FR:** [FR-000005: Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
@@ -53,7 +53,7 @@ So that **I can revoke access for the previous token at that scope coordinate im
 **Given** I have just rotated the MyParcel token at any scope,
 **When** an admin user authenticates with a Magento admin token via `Authorization: Bearer <admin-token>`,
 **Or** another module's integration uses its own `Authorization: Bearer` token,
-**Then** those requests succeed exactly as before — the rotation only affects MyParcel's custom-scheme token at the rotated scope.
+**Then** those requests succeed exactly as before: the rotation only affects MyParcel's custom-scheme token at the rotated scope.
 
 ## Story Points
 

@@ -76,12 +76,8 @@ class Client
     }
 
     /**
-     * Every contract definition the account has, in one call.
-     *
-     * Sent through this client's own transport rather than the generated
-     * postCapabilitiesContractDefinitions(), so both capability calls share the error mapping and
-     * the timeouts. The generated method itself is fine: the reversed-argument defect is in
-     * HttpCapabilitiesClient, which has no contract-definitions method.
+     * Get every contract definition of the account, in one call, with the same error mapping and
+     * timeouts as send().
      *
      * @return array the response's `items` entries, verbatim
      * @throws \RuntimeException on a transport failure, a non-2xx status or an undecodable body
@@ -144,11 +140,7 @@ class Client
         }
     }
 
-    /**
-     * CapabilitiesMapper::mapOptions() skips an option with no setter on the request model without
-     * saying so, and a shipment asking about a dropped option gets an answer to a question it did
-     * not ask. V2NameMapTest pins which options currently survive the mapping.
-     */
+    /** Log the options that CapabilitiesMapper::mapOptions() drops without a message. */
     private function logDroppedOptions(CapabilitiesRequest $request, object $core): void
     {
         $sent = $request->getOptions();

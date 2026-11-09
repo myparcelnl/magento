@@ -27,10 +27,7 @@ it('reads the order items when there is no shipment yet, as on the Order v1 path
         ->and($select->columns)->toBe(['qty' => 'main_table.qty_ordered']);
 });
 
-/**
- * A label description is commonly configured and commonly names no product at all, and the query
- * ran anyway — once per built shipment, and once more per collo.
- */
+/** A label description often names no product, and then it must run no query. */
 it('runs no query for a template that names no product', function () {
     ['resolver' => $resolver, 'select' => $select] = createLabelDescriptionResolver(
         42,
@@ -43,8 +40,7 @@ it('runs no query for a template that names no product', function () {
 });
 
 it('reads one named row, not every column of every item', function () {
-    // Only row 0 is ever read, so the rest was fetched and thrown away — and without an order which
-    // row that was is the database's choice.
+    // Only row 0 is read. Without an order, the database chooses which row that is.
     ['resolver' => $resolver, 'select' => $select] = createLabelDescriptionResolver(
         42,
         '%product_name%',

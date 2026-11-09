@@ -15,22 +15,10 @@ use Psr\Log\LoggerInterface;
 /**
  * Single security choke point for the MyParcel storefront API proxy.
  *
- * Enforces, for every proxied call: HTTP method allow-list, upstream
- * host registry and per-host path allow-list ({@see ProxyConfig::HOSTS} —
- * sub-paths are rejected), inbound/outbound header drop-lists, 32 KB
- * body cap, 5 s timeout, no redirects, and server-side injection of the
- * MyParcel API key (inbound `Authorization` is dropped first). All
- * rejections return RFC 9457 `application/problem+json` and emit a
- * warning log. The acceptance environment flag is orthogonal to the
- * host: every host carries both a production and an acceptance URL,
- * and callers pick between them via the `/acceptance` URL segment.
- *
- * Chosen over a dedicated per-resource `AbstractEndpoint` to keep the
- * security policy auditable in one file and to unblock the checkout
- * widget. If a specific call later needs Magento-side semantics
- * (response reshaping, per-version negotiation, write traffic, or a
- * cross-origin headless storefront), promote that call to a dedicated
- * `AbstractEndpoint`; the two patterns coexist.
+ * Enforces a method allow-list, the host and exact-path allow-list ({@see ProxyConfig::HOSTS}),
+ * header drop-lists, a 32 KB body cap, a 5 s timeout and no redirects. It drops the inbound
+ * `Authorization` and injects the API key server-side. Every rejection is logged and returns
+ * RFC 9457 problem+json.
  */
 class Client
 {
@@ -224,11 +212,7 @@ class Client
         );
     }
 
-    /**
-     * Strip ASCII control characters from a string before it lands in a log
-     * line. Prevents log injection when the proxy logs caller-supplied path,
-     * host, or method fragments after a rejection.
-     */
+    /** Strip ASCII control characters from caller-supplied text before it is logged, against log injection. */
     private static function sanitizeForLog(string $s): string
     {
         return preg_replace('/[\x00-\x1F\x7F]/', '?', $s) ?? $s;

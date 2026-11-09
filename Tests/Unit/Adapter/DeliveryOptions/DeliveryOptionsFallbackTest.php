@@ -26,15 +26,9 @@ it('carries what the fallback shape can carry', function () {
         ->and($options->getPackageType())->toBe(PackageType::MAILBOX_NAME);
 });
 
-/**
- * Inherited, not intended: the class this replaced read both fields from an undefined variable.
- * Pinned so a later change to it is deliberate.
- */
+/** Pinned so a later change to it is deliberate. */
 it('carries the date and pickup location it is given', function () {
-    // The shape of a real stored pickup order. Until 2026-08 this returned null for
-    // both, because the class this replaced assigned them from an undefined variable
-    // ($originAdapter) that was never a constructor parameter — a bug from the file's
-    // first commit in 2020, not a decision. `??` kept it silent.
+    // The shape of a real stored pickup order.
     $options = DeliveryOptions::fromOrderFallback([
         'carrier'        => 'postnl',
         'date'           => '2026-09-05 10:00:00',
@@ -89,7 +83,7 @@ it('leaves the date and pickup location null when the stored data has neither', 
         ->and($options->isPickup())->toBeFalse();
 });
 
-/** Not posted means 'not chosen' here, so false — except the three the form never carries at all. */
+/** Not posted means 'not chosen' here, so false. The exceptions are the three the form never carries. */
 it('flattens the options an admin posts and leaves the rest unsaid', function () {
     $stored   = ShipmentOptions::fromMagentoOptions([])->toArray();
     $expected = [

@@ -6,12 +6,8 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Service\Config;
 
 /**
- * One table of package-type decisions.
- *
- * It was written against PackageRepository and run green there before PackageTypeResolver existed,
- * then run unchanged against the resolver. Because the expected values were never transcribed a
- * second time, the table records what the module did, not what the rewrite intended it to do. Treat
- * a change to an expected value as a behaviour change that needs saying out loud.
+ * One table of package-type decisions. The expected values record what the module did, so a change
+ * to one is a behaviour change.
  *
  * Each case:
  *   items      - qty, weight and the myparcel_* attributes the product carries. An attribute left
@@ -249,8 +245,8 @@ function packageTypeCarrierPath(string $carrier): string
 }
 
 /**
- * Every config path a case answers, group reads and child reads alike — Magento resolves both from
- * one tree, so a driver must too.
+ * Get every config path a case answers, group reads and child reads alike. Magento resolves both
+ * from one tree, so a driver must too.
  *
  * @return array<string, mixed>
  */

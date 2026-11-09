@@ -216,8 +216,8 @@ it('escapes a stored link before it reaches the href', function () {
 });
 
 /*
- * An order can carry tracks this module never made — a manual one, or another carrier's. They
- * belong to no MyParcel portal, so they must not reach this block at all.
+ * An order can carry tracks this module never made, such as a manual one or another carrier's.
+ * They belong to no MyParcel portal, so they must not reach this block.
  */
 
 it('asks the database for myparcel tracks only', function () {

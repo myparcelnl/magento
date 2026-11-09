@@ -35,11 +35,9 @@ class MyParcelTracks
     }
 
     /**
-     * Whether one already-loaded track row is ours, for a caller handed a collection it did not
-     * query — the shipment's own getTracksCollection() carries every carrier's.
-     *
-     * A row with no carrier_code at all counts as ours: the module's own in-memory tracks are built
-     * before the column is set, and dropping them would blank a barcode this pass just minted.
+     * Check whether one already-loaded track row is ours, for a collection that holds every carrier's.
+     * A row without carrier_code counts as ours: the module builds its in-memory tracks before
+     * that column is set, and dropping them blanks a new barcode.
      *
      * @param array<string,mixed>|\Magento\Framework\DataObject $track
      */

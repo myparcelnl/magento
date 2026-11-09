@@ -8,17 +8,12 @@ use MyParcelNL\Magento\Service\Config;
 use MyParcelNL\Magento\Service\UserAgent;
 
 /**
- * States config as what a scope *resolves to*, not where the row lives.
- * Magento's default → website → store cascade is Magento's, so modelling it
- * here would only assert this mock.
+ * Mock Config by what a scope resolves to, not where the row lives. Anything unlisted is not configured.
  *
- * - $values: paths every store resolves to
- * - $perStoreValues: [storeId][path] where one store resolves to something else
- * - $carrierValues: [carrier][code] for getCarrierConfig()
- * - $scopedValues: [scopeName][scopeId][fullPath] for getScopedConfig(), which takes whole paths
- *   rather than general-settings codes and therefore has its own key space
- *
- * Anything unlisted is "not configured" (null / []).
+ * @param array $values         paths every store resolves to
+ * @param array $carrierValues  [carrier][code] for getCarrierConfig()
+ * @param array $perStoreValues [storeId][path] where one store resolves to something else
+ * @param array $scopedValues   [scopeName][scopeId][fullPath] for getScopedConfig(), which takes whole paths
  */
 function createConfig(
     array $values = [],
@@ -68,9 +63,8 @@ function createConfig(
 }
 
 /**
- * The real UserAgent over two stubbed version sources — it is a pure mapping, so mocking it would
- * assert the mock. The two arguments are deliberately different values: a test that swaps them
- * should fail.
+ * The real UserAgent over two stubbed version sources. The two default versions differ on purpose:
+ * a test that swaps them must fail.
  */
 function createUserAgent(string $magentoVersion = '2.4.6', string $moduleVersion = '5.9.0'): UserAgent
 {

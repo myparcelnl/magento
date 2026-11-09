@@ -2,7 +2,7 @@
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
+- **FR:** [FR-000005: Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
@@ -24,7 +24,7 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 **Given** a Magento store with a generated token T,
 **When** the caller sends `GET /rest/V1/orders` with `Authorization: Bearer <T>` (or `Authorization: Bearer anything`),
 **Then** the response is `401 Unauthorized`,
-**And** the `MyParcel` UserContext returns `null` (does not match), allowing the native Bearer chain to handle the request — which itself rejects because T is not a valid Magento integration access token.
+**And** the `MyParcel` UserContext returns `null` (does not match), allowing the native Bearer chain to handle the request: which itself rejects because T is not a valid Magento integration access token.
 
 ### Scenario 3: Wrong token under the correct scheme is rejected
 
@@ -43,13 +43,13 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 
 **Given** a multi-store install with stores 1, 2, 3 and tokens `T_default` and `T_s2` (issued at store-view 2),
 **When** the caller sends `GET /rest/V1/orders?searchCriteria[pageSize]=100` with `Authorization: MyParcel <T_default>`,
-**Then** the response is `200 OK` with orders from stores 1 and 3 only — store 2's orders are not returned.
+**Then** the response is `200 OK` with orders from stores 1 and 3 only: store 2's orders are not returned.
 
 ### Scenario 4a-bis: Default-scope token excludes stores covered by a website-scope token (3-tier partition)
 
 **Given** a multi-website install with website W1 containing stores 1 and 2, and website W2 containing stores 3 and 4, and tokens `T_default` and `T_W1` (issued at website W1),
 **When** the caller sends `GET /rest/V1/orders?searchCriteria[pageSize]=100` with `Authorization: MyParcel <T_default>`,
-**Then** the response is `200 OK` with orders from stores 3 and 4 only — both of W1's stores are carved out by the website-tier row, even though no store-tier row exists.
+**Then** the response is `200 OK` with orders from stores 3 and 4 only: both of W1's stores are carved out by the website-tier row, even though no store-tier row exists.
 
 ### Scenario 4b: Store-view-scoped token returns only that store's records, regardless of URL prefix
 
@@ -64,7 +64,7 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 
 **Given** the multi-website install from Scenario 4a-bis, with `T_W1` already issued; and additionally a store-tier token `T_s2` issued at store-view 2 (s2 ∈ W1),
 **When** the caller sends `GET /rest/V1/orders` with `Authorization: MyParcel <T_W1>`,
-**Then** the response is `200 OK` with orders ONLY from store 1 — store 2 is owned by the more-specific store-tier row and is invisible to the website-tier token.
+**Then** the response is `200 OK` with orders ONLY from store 1: store 2 is owned by the more-specific store-tier row and is invisible to the website-tier token.
 
 **Given** the same setup,
 **When** the caller sends the same request with `Authorization: MyParcel <T_s2>`,
@@ -98,12 +98,12 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 
 **Given** the same setup,
 **When** an admin authenticates with a Magento admin token via `Authorization: Bearer <admin-token>` and calls the same endpoint,
-**Then** the response is `200 OK` — the allow-list applies only to MyParcel-scheme token-authenticated calls.
+**Then** the response is `200 OK`: the allow-list applies only to MyParcel-scheme token-authenticated calls.
 
 ### Scenario 6: Custom scheme is case-insensitive
 
 **Given** a Magento store with a generated token T,
-**When** the caller varies the scheme casing — `MyParcel`, `myparcel`, `MYPARCEL`, `MyPaRcEl` — with the same token T,
+**When** the caller varies the scheme casing (`MyParcel`, `myparcel`, `MYPARCEL`, `MyPaRcEl`) with the same token T,
 **Then** every variant returns `200 OK` for granted resources,
 **And** none of them accidentally match the literal string `Bearer`.
 
@@ -117,7 +117,7 @@ So that **I can read order and delivery-options data without an OAuth flow, toke
 
 **Given** the module also ships `GET /V1/myparcel/delivery-options` (delivered separately on `feat/dedicated-delivery-options-endpoint`) gated by `MyParcelNL_Magento::delivery_options_read`,
 **When** the merged module ships and the caller presents `Authorization: MyParcel <T_default>` to that endpoint for an order in a non-carved-out store,
-**Then** the response is `200 OK` with delivery options for the requested order — no separate token, no additional grant by the admin.
+**Then** the response is `200 OK` with delivery options for the requested order: no separate token, no additional grant by the admin.
 
 **Given** the same module,
 **When** the caller presents `Authorization: MyParcel <T_s2>` to that endpoint for an order whose `store_id` is 3 (not in scope),

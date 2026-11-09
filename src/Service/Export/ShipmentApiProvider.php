@@ -11,15 +11,11 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Api\ShipmentApi;
 use MyParcelNL\Sdk\Services\CoreApi\ShipmentApiFactory;
 
 /**
- * The module's only call site for ShipmentApiFactory::make(), and the only place an API key is
- * turned into a client.
+ * Turns an API key into a ShipmentApi client: the module's only call site for ShipmentApiFactory::make().
  *
- * It exists because an empty key does not fail in the SDK: ShipmentApiFactory::resolveApiKey()
- * falls back to getenv('API_KEY'), then API_KEY_NL, then API_KEY_BE, so a store with no key
- * configured silently ships to whatever account the environment names. The guard below has to run
- * before the factory, every time; a second call site reopens the hole.
- *
- * Clients are memoised per key so the six per-key services share one.
+ * The SDK does not fail on an empty key: it falls back to getenv('API_KEY'), API_KEY_NL and
+ * API_KEY_BE, and ships to that account. The guard must run before the factory every time, so do
+ * not add a second call site. Clients are memoised per key.
  */
 class ShipmentApiProvider
 {
@@ -57,7 +53,7 @@ class ShipmentApiProvider
         return $apiKey;
     }
 
-    /** The store's resolved key, or null — for callers that skip a keyless store rather than fail. */
+    /** Get the store's resolved key, or null for a caller that skips a keyless store. */
     public function apiKeyForStoreOrNull(?int $storeId): ?string
     {
         $apiKey = (string) $this->config->getGeneralConfig('api/key', $storeId);
@@ -66,8 +62,8 @@ class ShipmentApiProvider
     }
 
     /**
-     * MyParcel shipment ids grouped by each order's own resolved key — the shape every per-key call
-     * takes. A store without a key is skipped, never lent another store's key.
+     * Group MyParcel shipment ids by each order's own resolved key.
+     * A store without a key is skipped, never lent another store's key.
      *
      * @param iterable<\Magento\Sales\Model\Order\Shipment>                  $shipments
      * @param array<int,\Magento\Sales\Model\Order\Shipment\Track[]>          $tracksByShipmentId keyed by shipment

@@ -9,7 +9,7 @@ use Magento\Store\Model\ScopeInterface;
 use MyParcelNL\Magento\Tests\Helpers\MyParcelTokenLifecycleHarness;
 
 // ====================================================================
-// Scenario 1 — after revoke at scope S, the previously-issued token is rejected.
+// Scenario 1: after revoke at scope S, the previously-issued token is rejected.
 // ====================================================================
 
 it('after revocation the previous token is rejected at the same scope', function (string $scope, int $scopeId) {
@@ -32,7 +32,7 @@ it('after revocation the previous token is rejected at the same scope', function
 ]);
 
 // ====================================================================
-// Scenario 2a — revoking a store-scoped token releases its store back to the default
+// Scenario 2a: revoking a store-scoped token releases its store back to the default
 // token (which is the next-coarsest tier here, no website token in play),
 // and the old store-scoped token is rejected.
 // ====================================================================
@@ -59,7 +59,7 @@ it('revoking a store-scoped token releases its store back to the default token',
 });
 
 // ====================================================================
-// Scenario 2b — revoking the default-scope token does not affect a store-scoped token.
+// Scenario 2b: revoking the default-scope token does not affect a store-scoped token.
 // ====================================================================
 
 it('revoking the default-scope token does not affect a store-scoped token', function () {
@@ -82,7 +82,7 @@ it('revoking the default-scope token does not affect a store-scoped token', func
 });
 
 // ====================================================================
-// Scenario 3b — cascade-back into the website tier: with default + website + store rows,
+// Scenario 3b: cascade back into the website tier. With default + website + store rows,
 // revoking the store releases that store to the website token (NOT the default).
 // ====================================================================
 
@@ -109,7 +109,7 @@ it('cascade-back: revoking a store rejoins it to the parent website token, not d
 });
 
 // ====================================================================
-// Scenario 3c — revoking a website-scoped token releases its non-store-tokened stores
+// Scenario 3c: revoking a website-scoped token releases its non-store-tokened stores
 // to the default token, but stores still owned by their own token stay carved out.
 // ====================================================================
 
@@ -136,7 +136,7 @@ it('cascade-back: revoking a website rejoins its non-store-tokened stores to def
 });
 
 // ====================================================================
-// Scenario 4 — after a revoke, regenerating at the same scope issues a fresh token
+// Scenario 4: after a revoke, regenerating at the same scope issues a fresh token
 // that authenticates with the original owner coordinate.
 // ====================================================================
 
@@ -159,7 +159,7 @@ it('regenerating after a revoke issues a fresh token at the same scope', functio
 ]);
 
 // ====================================================================
-// Scenario 5 — native Bearer scheme is left to Magento's native chain
+// Scenario 5: native Bearer scheme is left to Magento's native chain
 // regardless of revocation state on the MyParcel scheme.
 // ====================================================================
 
@@ -176,7 +176,7 @@ it('the Bearer scheme is not intercepted by the MyParcel UserContext after a rev
 });
 
 // ====================================================================
-// TokenService::revokeForScope unit checks — scope validation, scopeId normalization,
+// TokenService::revokeForScope unit checks: scope validation, scopeId normalization,
 // idempotency, cache flush.
 // ====================================================================
 

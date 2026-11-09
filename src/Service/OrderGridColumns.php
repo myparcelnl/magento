@@ -12,16 +12,11 @@ use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 
 /**
- * Writes sales_order columns and keeps the order grid in step, for the tracks and for any other
- * MyParcel column (update()).
+ * Writes MyParcel sales_order columns with a column-level UPDATE and keeps the order grid in step.
  *
- * writeFor() writes track_status and track_number for a page of orders: one tracks query, one read
- * of the current values, and a column-level UPDATE only where they differ.
- *
- * Not $order->save(): that rewrote every column of a possibly stale order and re-synced the grid once
- * per shipment. The grid row is refreshed the way Magento's GridSyncInsertObserver does it: directly
- * when dev/grid/async_indexing is off, and through the updated_at bump refreshBySchedule() keys on
- * when it is on.
+ * Do not use $order->save(): it rewrites every column of a possibly stale order. The grid row is
+ * refreshed like GridSyncInsertObserver does: directly when dev/grid/async_indexing is off, and
+ * through the updated_at bump that refreshBySchedule() reads when it is on.
  */
 class OrderGridColumns
 {
@@ -39,6 +34,8 @@ class OrderGridColumns
     }
 
     /**
+     * Write track_status and track_number for a page of orders, only where they differ.
+     *
      * @param int[] $orderIds
      *
      * @return int how many orders were written
@@ -65,7 +62,7 @@ class OrderGridColumns
     }
 
     /**
-     * The same write for a caller that already holds the columns, from htmlForOrder().
+     * Write the columns for a caller that already holds them, from htmlForOrder().
      *
      * @param array{track_status: string, track_number: string} $columns
      *
@@ -97,7 +94,7 @@ class OrderGridColumns
     }
 
     /**
-     * Writes these sales_order columns of one order, then its grid row.
+     * Write these sales_order columns of one order, then its grid row.
      *
      * @param array<string,mixed> $columns
      */
@@ -115,11 +112,9 @@ class OrderGridColumns
     }
 
     /**
-     * The columns for one order from its stored tracks and the tracks of a shipment not saved yet.
-     *
-     * The shipment observer runs before its tracks have an entity id, so the stored ones are only the
-     * order's other shipments. From the new shipment alone, a second part shipment would replace the
-     * first one's barcode in the grid.
+     * Get the columns for one order from its stored tracks plus the tracks of an unsaved shipment.
+     * Both are needed: from the new shipment alone, a second part shipment replaces the first
+     * one's barcode in the grid.
      *
      * @param iterable<\Magento\Sales\Model\Order\Shipment\Track> $unsavedTracks
      *
@@ -140,12 +135,9 @@ class OrderGridColumns
     }
 
     /**
-     * The two column values one order's tracks add up to; '' where they say nothing.
-     *
-     * Scoped here rather than trusted from the caller: writeFor() queries its own rows, but the
-     * shipment observer hands over $shipment->getTracksCollection(), which carries every carrier's.
-     * A manually added DHL barcode reaching sales_order.track_number is then offered a MyParcel
-     * portal link that portal never issued.
+     * Get the two column values one order's tracks add up to; '' where they say nothing.
+     * Filters to MyParcel tracks itself: the shipment observer passes every carrier's tracks, and a
+     * manual DHL barcode must not get a MyParcel portal link.
      *
      * @param iterable<array<string,mixed>|\Magento\Sales\Model\Order\Shipment\Track> $tracks
      *

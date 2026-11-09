@@ -9,13 +9,9 @@ use MyParcelNL\Magento\Facade\Logger;
 /**
  * A parsed capabilities response: what one MyParcel account may do for one request.
  *
- * A result matches a carrier and a set of package types, so a question about (carrier, package
- * type) is answered by the union of every result that matches both. A null package type means
- * "any", which is how a page that has not chosen one yet asks.
- *
- * permissive() is the fail-open state and is not the same as an empty response: it answers yes to
- * every option and reports no carriers, so a caller can tell "the account cannot do this" from "we
- * could not find out" through isPermissive(). Never construct it to mean an account has nothing.
+ * A (carrier, package type) question gets the union of every matching result; a null package type
+ * means "any". permissive() is the fail-open state, not an empty response: never use it to mean
+ * that an account has nothing.
  */
 final class CapabilitySet
 {
@@ -54,10 +50,9 @@ final class CapabilitySet
     }
 
     /**
-     * A contract-definitions response. Its `items` entries are a strict subset of a capabilities
-     * `results` entry — same wire keys, minus `contract` and `physicalProperties` — so the same
-     * parser reads them. Named separately so a call site says which endpoint answered: contract
-     * definitions carry no country, so a set built from them must not be read as a shipment answer.
+     * Make the set from a contract-definitions response, which the same parser reads.
+     *
+     * Contract definitions carry no country, so do not read this set as a shipment answer.
      */
     public static function fromContractDefinitionItems(array $items): self
     {
@@ -77,8 +72,7 @@ final class CapabilitySet
     }
 
     /**
-     * Module carrier names the account has a contract for. Empty when permissive — the caller falls
-     * back to every configured carrier rather than showing none.
+     * Get the module carrier names the account has a contract for. Empty when permissive.
      *
      * @return string[]
      */
@@ -114,8 +108,7 @@ final class CapabilitySet
     }
 
     /**
-     * Every option offered, a newly added one included, so it reaches the form and the export
-     * without a module change.
+     * Get every option offered, a new one included.
      *
      * @return string[] module option names
      */
@@ -180,8 +173,7 @@ final class CapabilitySet
     }
 
     /**
-     * The option's own properties, from the first matching result that carries it. The insurance range reads
-     * min/max through this.
+     * Get the option's own properties, from the first matching result that carries it.
      *
      * @return array<string,mixed>|null
      */
@@ -215,8 +207,7 @@ final class CapabilitySet
     }
 
     /**
-     * Every v2 value the module could not translate, deduplicated by kind. The Repository logs this
-     * once per fetch — it is the early-warning signal that the module needs updating.
+     * Get every v2 value the module could not translate, deduplicated by kind.
      *
      * @return array<string,string[]>
      */

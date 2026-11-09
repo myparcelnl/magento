@@ -11,8 +11,7 @@ use MyParcelNL\Magento\Service\Config;
  * The insurance cap settings: which zones an account sets a cap for, which zone a destination falls
  * in, and which carrier a cap's config path configures.
  *
- * The zone in a field's name is a merchant's own cap per destination zone and carries no bound of its
- * own — contract definitions have no country — so the carrier is the whole answer to the last one.
+ * Contract definitions have no country, so the zone carries no bound of its own. Only the carrier does.
  */
 final class InsuranceAmountSetting
 {
@@ -27,7 +26,7 @@ final class InsuranceAmountSetting
             : self::ZONES;
     }
 
-    /** The cap field a destination reads. No destination is the account's own country. */
+    /** Get the cap field a destination reads. No destination is the account's own country. */
     public static function fieldFor(?string $destination, ?Proposition $proposition): string
     {
         $home = ($proposition ?? Proposition::default())->getCountryCode();
@@ -48,10 +47,7 @@ final class InsuranceAmountSetting
         return "insurance_{$zone}_amount";
     }
 
-    /**
-     * The carrier whose insurance this path configures, or null when the path configures something
-     * else entirely.
-     */
+    /** Get the carrier whose insurance this path configures, or null for any other path. */
     public static function carrierFor(string $path): ?string
     {
         $segments = explode('/', $path);

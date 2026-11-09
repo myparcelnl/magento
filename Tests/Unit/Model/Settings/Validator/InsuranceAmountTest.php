@@ -66,7 +66,7 @@ it('judges a cleared field as zero rather than waving it through', function () {
 });
 
 it('refuses a value that is not a number at all', function () {
-    // Without this it would save, and every reader coerces it to 0 — a typo that silently switches
+    // Without this it would save, and every reader coerces it to 0. A typo would silently switch
     // insurance off.
     expect(validateAmount('abc', contractRow()))->toContain('whole number');
 });

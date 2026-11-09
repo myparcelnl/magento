@@ -209,8 +209,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $tableTrack = $setup->getTable('sales_shipment_track');
 
         // Length above 255 makes this a TEXT column, not a varchar(1023): Magento maps TYPE_TEXT to
-        // varchar only up to 255. Deliberate — a tokenised portal link must not be truncated, and
-        // nothing indexes or filters on it.
+        // varchar only up to 255. This is deliberate: a tokenised portal link must not be truncated,
+        // and nothing indexes or filters on it.
         if (
             version_compare($context->getVersion(), '5.11.0', '<')
             && $setup->getConnection()->isTableExists($tableTrack)
@@ -247,8 +247,8 @@ class UpgradeSchema implements UpgradeSchemaInterface
         }
 
         // getOrderIdFromTrackToUpdate() selects order_id by carrier plus status on every cron tick,
-        // over the whole table — there is no order to narrow it first — and had no index to start
-        // from. carrier_code leads because it is the equality; myparcel_status is the IN().
+        // over the whole table (no order narrows it first), and had no index to start from.
+        // carrier_code leads because it is the equality; myparcel_status is the IN().
         //
         // No index on myparcel_shipment_id: that query already filters it, but only alongside
         // these two, and nothing else filters it at all. A second index would just be maintained.
@@ -319,19 +319,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
     }
 
     /**
-     * Indexes sales_order.myparcel_uuid on its first 36 characters, a whole UUID.
+     * Index sales_order.myparcel_uuid on its first 36 characters, a whole UUID.
      *
-     * Earns its place only where Order v1 is the exception: ordersAwaitingBarcode() then starts from the
-     * few orders carrying a uuid instead of every order of the last fortnight, which is all
-     * created_at can narrow it to. Where Order v1 is the normal export mode the condition matches almost
-     * every row and the optimiser ignores this index.
-     *
-     * `notnull` is a range MySQL can read from an index, so a prefix is enough; the column is never
-     * queried by equality.
-     *
-     * Raw DDL because addIndex() cannot express a prefix length, and a prefix is what a TEXT column
-     * needs. Retyping to varchar(36) would let addIndex() do it, but that rebuilds sales_order;
-     * ADD INDEX is in-place and non-locking in InnoDB.
+     * Raw DDL, because addIndex() cannot express the prefix length a TEXT column needs. Retyping to
+     * varchar(36) would rebuild sales_order; ADD INDEX is in-place and non-locking in InnoDB.
      */
     private function addUuidPrefixIndex(SchemaSetupInterface $setup, string $table): void
     {

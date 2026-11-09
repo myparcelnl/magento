@@ -71,11 +71,8 @@ function returnMailRun(
 }
 
 /**
- * The real type fetchLatest() answers with, not a double.
- *
- * A hand-rolled double let sendReturnLabelMails() call getCarrier(), which this class does not
- * have — the export builds a different shipment class that does. Building the real one is what
- * makes that a test failure rather than a fatal in the admin.
+ * The real type fetchLatest() answers with, not a double. This class has no getCarrier(); the
+ * export's shipment class does. The real type makes a wrong call a test failure, not an admin fatal.
  */
 /** A Magento shipment of the given order, as the collection iterates it. */
 function returnMailMagentoShipment(int $id, string $incrementId): object

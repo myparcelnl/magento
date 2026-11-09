@@ -11,16 +11,16 @@ The system must provide a dedicated REST endpoint that returns the complete deli
 
 Given a Magento order ID, the endpoint returns a JSON response containing:
 
-- **carrier** — carrier identifier in SCREAMING_SNAKE_CASE enum format (e.g., `POSTNL`, `DHL_FOR_YOU`, `UPS_STANDARD`)
-- **packageType** — package type in SCREAMING_SNAKE_CASE enum format (e.g., `PACKAGE`, `MAILBOX`, `UNFRANKED`, `DIGITAL_STAMP`, `SMALL_PACKAGE`)
-- **deliveryType** — delivery type in SCREAMING_SNAKE_CASE enum format with `_DELIVERY` suffix (e.g., `STANDARD_DELIVERY`, `MORNING_DELIVERY`, `PICKUP_DELIVERY`)
-- **shipmentOptions** — object containing only enabled options:
+- **carrier**: carrier identifier in SCREAMING_SNAKE_CASE enum format (e.g., `POSTNL`, `DHL_FOR_YOU`, `UPS_STANDARD`)
+- **packageType**: package type in SCREAMING_SNAKE_CASE enum format (e.g., `PACKAGE`, `MAILBOX`, `UNFRANKED`, `DIGITAL_STAMP`, `SMALL_PACKAGE`)
+- **deliveryType**: delivery type in SCREAMING_SNAKE_CASE enum format with `_DELIVERY` suffix (e.g., `STANDARD_DELIVERY`, `MORNING_DELIVERY`, `PICKUP_DELIVERY`)
+- **shipmentOptions**: object containing only enabled options:
   - Boolean options represented as empty objects `{}` (e.g., `"requiresSignature": {}`)
   - Insurance as micro-currency object (`{ "amount": 50000000, "currency": "EUR" }`)
   - Label description as text object (`{ "text": "..." }`)
   - Disabled/false options omitted entirely
-- **date** — delivery date in ISO 8601 format with timezone (`2025-03-15T00:00:00+01:00`), or `null` if not set
-- **pickupLocation** — structured pickup location object with address when delivery type is pickup, or `null` otherwise
+- **date**: delivery date in ISO 8601 format with timezone (`2025-03-15T00:00:00+01:00`), or `null` if not set
+- **pickupLocation**: structured pickup location object with address when delivery type is pickup, or `null` otherwise
 
 Orders that exist but have no MyParcel delivery options must return a valid response with all fields set to `null` (not an error).
 
@@ -54,12 +54,12 @@ The endpoint URL is `GET /V1/myparcel/delivery-options` with `orderId` as a quer
 
 ### Referenced Technical Requirements
 
-- [TR-000003 - V1 Response Schema Conformance](../technical-requirements/TR-000003-v1-response-schema-conformance.md) — PDK spec conformance for field formats, enum values, and data transformations
+- [TR-000003 - V1 Response Schema Conformance](../technical-requirements/TR-000003-v1-response-schema-conformance.md): PDK spec conformance for field formats, enum values, and data transformations
 
 ### Referenced Architectural Decisions
 
-- [ADR-0013 - Various API Design Rules](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0013-various-api-design-rules.md) — Empty object standard: boolean shipment options use `{}` instead of `true`
-- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md) — camelCase field naming, response structure conventions
+- [ADR-0013 - Various API Design Rules](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0013-various-api-design-rules.md): Empty object standard: boolean shipment options use `{}` instead of `true`
+- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md): camelCase field naming, response structure conventions
 
 ### Notes
 
@@ -76,13 +76,13 @@ The endpoint reads from the existing `sales_order.myparcel_delivery_options` JSO
 
 ### Downstream (depends on this FR)
 
-- FR-000002 (API Version Negotiation) — the endpoint uses versioning infrastructure
-- FR-000003 (Standardized Error Responses) — the endpoint uses error response infrastructure
-- FR-000004 (API Documentation) — documents this endpoint's contract
+- FR-000002 (API Version Negotiation): the endpoint uses versioning infrastructure
+- FR-000003 (Standardized Error Responses): the endpoint uses error response infrastructure
+- FR-000004 (API Documentation): documents this endpoint's contract
 
 ## Cross-References
 
-—
+None.
 
 ## Implementation Notes
 

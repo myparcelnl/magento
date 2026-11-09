@@ -500,7 +500,7 @@ define(
                 /**
                  * Shows what the export just changed.
                  *
-                 * On a grid, refresh: true is not optional — without it the provider serves its
+                 * On a grid, refresh: true is not optional. Without it the provider serves its
                  * cached rows and the export appears to have changed nothing.
                  *
                  * A single order or shipment page has no grid, so it reloads instead. Not after a

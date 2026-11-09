@@ -116,14 +116,11 @@ class Settings
     }
 
     /**
-     * The values stored at exactly this (scope, scopeId), keyed by path.
+     * Get the values stored at exactly this (scope, scopeId), keyed by path, in one query.
      *
-     * Row coordinates, never inheritance: a path missing from the result has no row here, which is
-     * not the same as having no value. A save compares against this to skip fields nobody changed,
-     * and a cascaded read would answer "unchanged" for a scope that is only inheriting — which is
-     * precisely the case that has to be written.
-     *
-     * One query for the whole form, so the comparison costs less than the writes it avoids.
+     * No inheritance: a missing path has no row here, which is not the same as no value. A save
+     * compares against this to skip unchanged fields. A cascaded read answers "unchanged" for an
+     * inheriting scope, and that is exactly the case that must be written.
      *
      * @param  string[] $paths
      * @return array<string, string|null>

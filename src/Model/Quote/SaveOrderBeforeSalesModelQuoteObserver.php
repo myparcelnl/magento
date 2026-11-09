@@ -3,9 +3,7 @@
 declare(strict_types=1);
 
 /**
- * Save delivery date and delivery options
- *
- * Plugin from Magento\Checkout\Model\ShippingInformationManagement
+ * Copy the delivery options, drop-off day and carrier from the quote to the order.
  *
  * LICENSE: This source file is subject to the Creative Commons License.
  * It is available through the world-wide-web at this URL:

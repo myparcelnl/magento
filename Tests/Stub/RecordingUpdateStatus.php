@@ -9,8 +9,8 @@ use MyParcelNL\Sdk\Collection\Fulfilment\OrderCollection;
 use RuntimeException;
 
 /**
- * Records which API keys the Order v1 cron polled, and answers each with a prepared collection — or
- * throws for the keys named in $failingKeys, to stand in for one unreachable account.
+ * Records which API keys the Order v1 cron polled, and answers each with a prepared collection.
+ * It throws for the keys in $failingKeys, to stand in for one unreachable account.
  */
 class RecordingUpdateStatus extends UpdateStatus
 {

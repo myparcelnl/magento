@@ -30,21 +30,12 @@ final class Rejection
     }
 
     /**
-     * Puts each error from a rejected chunk against the order it belongs to.
+     * Attach each error from a rejected chunk to the order it belongs to.
      *
-     * The API refuses a batch as a whole, so without this every order in the chunk gets the same
-     * message and the admin cannot tell which one is at fault.
-     *
-     * **The body is RFC 9457 Problem Details, which is not what the spec documents.** The Core API
-     * spec's `common_responses_user_error` declares `message` plus `errors[]` of
-     * `{status, code, title, message}`; what actually arrives is `{type, title, detail, instance}`
-     * per error, with the summary in `detail`. The generated model declares neither `detail` nor
-     * `instance`, so deserializing loses both the useful text and the only pointer to a shipment —
-     * hence json_decode on getResponseBody(). Both shapes are read, because the spec is what the
-     * next SDK regeneration will follow.
-     *
-     * `instance` is a JSON Pointer — `/data/shipments/0/recipient/postal_code` — and the index in it
-     * is the position in the request, which is this chunk's own order.
+     * **The body is RFC 9457 Problem Details, not the documented `message` plus `errors[]`.** The
+     * generated model drops `detail` and `instance`, so this decodes getResponseBody() itself.
+     * It reads both shapes, because the next SDK regeneration follows the spec. `instance` is a
+     * JSON Pointer such as `/data/shipments/0/recipient/postal_code`: the index is the request position.
      *
      * @param BuiltShipment[] $chunk in request order, which is what an index in a pointer refers to
      */
@@ -110,12 +101,8 @@ final class Rejection
     }
 
     /**
-     * The body's shape, without its values.
-     *
-     * The shape is not the documented one, so a divergence has to stay visible — but `title` and
-     * `detail` are free text from the API and quote the field they refused, which on an address is
-     * the consumer's. Keys and JSON Pointers name fields and carry no values, and they are what the
-     * next divergence is actually read from.
+     * Describe the body's shape (keys and JSON Pointers) without its values.
+     * `title` and `detail` are left out: they can quote the consumer's address.
      */
     public static function shapeOf(string $body): string
     {
@@ -180,11 +167,8 @@ final class Rejection
     }
 
     /**
-     * Whether the API refused the chunk outright, which is the difference between "these did not
-     * ship" and "nobody knows whether these shipped".
-     *
-     * False for a timeout or a 5xx: the call may have been processed, and the API deduplicates
-     * nothing, so an admin who reads it as a refusal and runs the action again pays twice.
+     * Check whether the API refused the chunk outright, so nothing shipped.
+     * False for a timeout or a 5xx: the call can have been processed, and a second run pays twice.
      */
     public function isRefusal(): bool
     {
@@ -192,19 +176,16 @@ final class Rejection
     }
 
     /**
-     * Whether re-sending is safe, which is a question about what the failed call left behind.
-     *
-     * A 422 means the API validated the request and refused it, so nothing was created. Anything else
-     * — a timeout, a 5xx, a transport error — may have been processed, and the API deduplicates
-     * nothing, so a retry would risk a second billable shipment. Widening this beyond 422
-     * needs that same argument made for the status being added.
+     * Check whether re-sending is safe. Only a 422 guarantees that nothing was created.
+     * Anything else can have been processed, and the API deduplicates nothing, so a retry risks a
+     * second billable shipment. Add a status only when the same is true for it.
      */
     private static function isSafeToRetry(Throwable $e): bool
     {
         return $e instanceof ApiException && 422 === $e->getCode();
     }
 
-    /** The index of the shipment a JSON Pointer points at, or null when it names no shipment. */
+    /** Get the index of the shipment a JSON Pointer points at, or null when it names no shipment. */
     private static function shipmentIndexIn(string $pointer): ?int
     {
         if (preg_match('#shipments\D{0,2}(\d+)#i', $pointer, $matches)) {
@@ -215,10 +196,8 @@ final class Rejection
     }
 
     /**
-     * The API's own wording, preferring the sentence that names the offending value.
-     *
-     * `detail` is RFC 9457's; `message` is what the spec declares. `title` alone is a category
-     * ("Invalid postal code") and only stands in when there is nothing better.
+     * Get the API's own wording, preferring `detail` or `message`, which name the offending value.
+     * `title` alone is a category ("Invalid postal code") and is used only as a fallback.
      *
      * @param mixed $error
      */
@@ -239,13 +218,10 @@ final class Rejection
             return $title;
         }
 
-        return '' === $title || $title === $detail ? $detail : $title . ' — ' . $detail;
+        return '' === $title || $title === $detail ? $detail : $title . ': ' . $detail;
     }
 
-    /**
-     * Keeps the field the API objected to visible, trimmed of the envelope the admin does not need:
-     * `/data/shipments/0/recipient/postal_code` reads as `recipient.postal_code`.
-     */
+    /** Append the refused field: `/data/shipments/0/recipient/postal_code` becomes `recipient.postal_code`. */
     private static function withField(string $pointer, string $text): string
     {
         // Slash for a JSON Pointer, dot for the dotted key the documented shape would use.

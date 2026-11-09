@@ -20,23 +20,18 @@ use Throwable;
 use MyParcelNL\Magento\Service\IdList;
 
 /**
- * Groups built shipments by resolved API key *value* (never store id — stores share keys), sends
+ * Groups built shipments by resolved API key *value* (never store id: stores share keys), sends
  * each group in chunks, and records what came back.
  *
- * Invariant: every chunk's shipment ids are stored before the next call is issued, and an order
- * already carrying an id is skipped — the API deduplicates nothing, so the stored id is all that
- * stands between a re-run and a second billable shipment.
+ * Invariant: each chunk's shipment ids are stored before the next call, and an order that already
+ * has an id is skipped. The API deduplicates nothing, so the stored id prevents a second billable shipment.
  */
 class ShipmentExportService
 {
-    /**
-     * The shipments-per-request default, which Config owns because the Order v1 export chunks by the
-     * same setting. The SDK's generated request model throws above 100, and the admin field will
-     * not accept more, so the bound is enforced there rather than here.
-     */
+    /** Shipments per request by default. The SDK throws above 100; the admin field enforces that bound. */
     public const DEFAULT_CHUNK_SIZE = Config::DEFAULT_EXPORT_CHUNK_SIZE;
 
-    /** Label ids per request. See ShipmentQuery::CHUNK_SIZE — same URL limit, same multiple of four. */
+    /** Label ids per request. Same URL limit and multiple of four as ShipmentQuery::CHUNK_SIZE. */
     private const LABEL_CHUNK_SIZE = 100;
 
     private ShipmentApiProvider $apiProvider;
@@ -88,11 +83,8 @@ class ShipmentExportService
     }
 
     /**
-     * Status and barcode for shipments that already exist, one call per key.
-     *
-     * For a caller that only refreshes what it can and lets the rest keep its stored values. A
-     * caller that acts on the answer wants fetchLatestWithErrors(): an unreachable account is
-     * indistinguishable from an empty answer here.
+     * Fetch status and barcode for shipments that already exist, one call per key.
+     * Here an unreachable account looks like an empty answer: to act on the answer, use fetchLatestWithErrors().
      *
      * @param array<string,int[]> $shipmentIdsByApiKey
      *
@@ -104,8 +96,7 @@ class ShipmentExportService
     }
 
     /**
-     * The same refresh, with the per-account failures alongside it.
-     *
+     * Fetch like fetchLatest(), and also return the per-account failures.
      * `failedApiKeys` tells a failed lookup apart from an account that answered without the shipment.
      *
      * @param array<string,int[]> $shipmentIdsByApiKey
@@ -141,14 +132,10 @@ class ShipmentExportService
     }
 
     /**
-     * One label PDF for the whole batch, whatever accounts it spans.
+     * Fetch one merged label PDF for the whole batch, across accounts, in the order of the ids.
      *
-     * ShipmentLabelsService keeps a single PDF string per instance, so each key gets its own service
-     * and the documents are merged here. Page order follows the order the ids are handed in.
-     *
-     * A failing account or chunk never costs the others their labels: one shipment id the key does
-     * not own makes the API refuse its whole chunk. Each failure's error is returned alongside
-     * whatever merged, so the caller can say why the PDF is empty or incomplete instead of guessing.
+     * A failing account or chunk does not cost the others their labels. Each failure's error comes
+     * back with the PDF, so the caller can tell why it is empty or incomplete.
      *
      * @param array<string,int[]> $shipmentIdsByApiKey
      *
@@ -220,10 +207,8 @@ class ShipmentExportService
     }
 
     /**
-     * Return shipments against each parent shipment's own account, each mailed to the customer.
-     *
-     * Each row must carry its parent id as `reference_identifier`: the answer names no parent, so
-     * the echoed reference is the only way to tell which shipment a return belongs to.
+     * Create return shipments against each parent shipment's own account, each mailed to the customer.
+     * Each row must carry its parent id as `reference_identifier`: the answer names no parent.
      *
      * @param array<string,array<int,array>> $rowsByApiKey rows as ReturnShipmentService takes them
      *
@@ -261,8 +246,7 @@ class ShipmentExportService
     }
 
     /**
-     * One client and one service per key, reused across that key's chunks. Building them per chunk
-     * would multiply the client construction the provider exists to do once.
+     * Create one key's shipments in chunks, with one client and one service for all of them.
      *
      * @param BuiltShipment[] $group
      */
@@ -287,13 +271,9 @@ class ShipmentExportService
     }
 
     /**
-     * Sends one chunk, and on a validation rejection sends the remainder once more without the
-     * orders the API named.
-     *
-     * The API refuses a chunk whole, so one bad order used to cost all twenty. It does report every
-     * faulty shipment in a single response, which is what makes **one** retry enough: after excluding
-     * everything the first response blamed, nothing faulty is left. A second rejection is therefore
-     * not expected, and is reported rather than retried again.
+     * Send one chunk, and on a validation rejection send it once more without the orders the API named.
+     * The API reports every faulty shipment in one response, so **one** retry is enough. A second
+     * rejection is reported, not retried.
      *
      * @param BuiltShipment[] $chunk
      */
@@ -335,7 +315,7 @@ class ShipmentExportService
     private function attempt(ShipmentCreateService $service, array $chunk, ExportReport $report, int $chunkNumber): ?Rejection
     {
         // Only the API call sits in this try: a failure while *recording* a successful call must
-        // never read as an API rejection — the shipments exist upstream and are billable.
+        // never read as an API rejection: the shipments exist upstream and are billable.
         try {
             $collection = new ShipmentCollection();
 
@@ -345,7 +325,7 @@ class ShipmentExportService
 
             $created = $service->create($collection);
         } catch (Throwable $e) {
-            // Earlier chunks stay recorded — they exist upstream and are billable.
+            // Earlier chunks stay recorded: they exist upstream and are billable.
             Logger::warning(sprintf('MyParcel export: chunk %d failed', $chunkNumber), LogContext::of($e));
 
             return $this->attributeFailure($e, $chunk, $report);
@@ -387,9 +367,7 @@ class ShipmentExportService
     }
 
     /**
-     * Turns one batch rejection into a reason per order, and records them.
-     *
-     * The parse itself is Rejection's; what stays here is writing the result to the report.
+     * Turn one batch rejection into a reason per order, and record them.
      *
      * @param BuiltShipment[] $chunk in request order, which is what an index in a pointer refers to
      */
@@ -420,8 +398,7 @@ class ShipmentExportService
 
 
     /**
-     * Correlates by reference identifier, never by position: the API is free to answer in any
-     * order, so result order must never be relied on.
+     * Record created shipments by reference identifier, never by position: the API answers in any order.
      *
      * @param array<int,string|null> $created shipment id => reference identifier
      * @param BuiltShipment[]        $chunk
@@ -473,11 +450,9 @@ class ShipmentExportService
     }
 
     /**
-     * Written per chunk, before the next call. This row is what makes a re-run safe.
-     *
-     * A track without an entity id cannot save itself: the observer flow builds its tracks before
-     * the shipment save that gives them a parent, and core's validator refuses a parentless track.
-     * There the data set here is persisted by that same shipment save, moments later.
+     * Store the shipment id per chunk, before the next call. This row makes a re-run safe.
+     * A track without an entity id is not saved here: core refuses a parentless track, so the
+     * observer flow's shipment save persists it moments later.
      */
     private function persist(BuiltShipment $built, int $shipmentId): void
     {
@@ -550,8 +525,7 @@ class ShipmentExportService
 
     /** @return int[] deduplicated, reindexed, without empties */
     /**
-     * The per-account loop every batch call shares: an empty group is skipped, and one account's
-     * failure costs only its own work.
+     * Run $call per account. An empty group is skipped, and one account's failure costs only its own work.
      *
      * @param array<string,array>            $byApiKey
      * @param string                         $failure what could not be done, for the log line
@@ -580,7 +554,7 @@ class ShipmentExportService
     }
 
     /**
-     * An SDK service for one account, carrying the module's user agents.
+     * Build an SDK service for one account, with the module's user agents.
      *
      * @param callable(string, mixed): object $make receives the key and that key's client
      *
@@ -597,7 +571,7 @@ class ShipmentExportService
         return IdList::ints($shipmentIds);
     }
 
-    /** Anything outside 1..100 — including a configured 0, which would loop forever — falls back. */
+    /** Get the chunk size. A value outside 1..100 (a configured 0 loops forever) falls back. */
     private function chunkSize(): int
     {
         return $this->config->getExportChunkSize();

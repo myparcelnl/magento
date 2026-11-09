@@ -2,13 +2,13 @@
 
 ## Parent Functional Requirement
 
-- **FR:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
+- **FR:** [FR-000005: Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
 
 ## Story
 
 As a **Magento shop admin running a multi-website install**,
 I want **to issue a single MyParcel API access token that covers all store-views in one website at once, while still letting me carve out individual store-views with their own dedicated tokens**,
-So that **I can hand a website's worth of stores to one MyParcel account without minting a token per store, and still keep the freedom to peel off any single store-view to a separate token later — without affecting my other websites or the default-scope token's view of them**.
+So that **I can hand a website's worth of stores to one MyParcel account without minting a token per store, and still keep the freedom to peel off any single store-view to a separate token later: without affecting my other websites or the default-scope token's view of them**.
 
 ## Acceptance Criteria
 
@@ -34,14 +34,14 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 **And** the config cache type covering `core_config_data` reads has been flushed (which the Generate flow does automatically),
 **When** the MyParcel backoffice presents `Authorization: MyParcel <T_default>` to `GET /rest/V1/orders?searchCriteria[pageSize]=100`,
 **Then** the response is `200 OK` with orders only from stores 3 and 4 (W2),
-**And** no order with `store_id ∈ {1, 2}` appears in the response — the entire W1 is owned by the website-tier row and is invisible to `T_default`.
+**And** no order with `store_id ∈ {1, 2}` appears in the response: the entire W1 is owned by the website-tier row and is invisible to `T_default`.
 
 ### Scenario 4: The website-scoped token returns its website's stores' data
 
 **Given** the same setup as Scenario 3,
 **When** the MyParcel backoffice presents `Authorization: MyParcel <T_W1>` to `GET /rest/V1/orders?searchCriteria[pageSize]=100`,
 **Then** the response is `200 OK` with orders from stores 1 and 2 only,
-**And** the same call against `GET /rest/default/V1/orders` and `GET /rest/<store_c_code>/V1/orders` (varying the URL store-code prefix to a store outside W1) returns an identical, W1-only result set — the URL prefix is decorative for token-authenticated calls.
+**And** the same call against `GET /rest/default/V1/orders` and `GET /rest/<store_c_code>/V1/orders` (varying the URL store-code prefix to a store outside W1) returns an identical, W1-only result set: the URL prefix is decorative for token-authenticated calls.
 
 ### Scenario 5: Single-record requests across the partition return 404, not 403
 
@@ -55,7 +55,7 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 **Given** Scenarios 3 and 4 have been verified (`T_default` and `T_W1` issued),
 **And** I switch the admin scope selector to "store_b" (store-view 2 ∈ W1) and click *Generate*, producing `T_s2`,
 **When** the MyParcel backoffice presents `Authorization: MyParcel <T_W1>` to `GET /rest/V1/orders`,
-**Then** the response contains orders only from store 1 — store 2 is owned by the more-specific store-tier row.
+**Then** the response contains orders only from store 1: store 2 is owned by the more-specific store-tier row.
 
 **Given** the same setup,
 **When** the MyParcel backoffice presents `Authorization: MyParcel <T_s2>` to the same endpoint,
@@ -63,14 +63,14 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 
 **Given** the same setup,
 **When** the MyParcel backoffice presents `Authorization: MyParcel <T_default>`,
-**Then** the response remains unchanged from Scenario 3 (only stores 3 and 4) — `T_default` never owned store 2 to begin with, so carving it out of W1 does not affect the default-tier view.
+**Then** the response remains unchanged from Scenario 3 (only stores 3 and 4): `T_default` never owned store 2 to begin with, so carving it out of W1 does not affect the default-tier view.
 
 ### Scenario 7: Revoking the website-scoped token releases its non-store-tokened stores back to the default token
 
 **Given** Scenarios 3 through 6 have been verified (`T_default`, `T_W1`, and `T_s2` all issued),
 **When** I clear `T_W1` (delete the `(websites, 1)` row, then flush the config cache type),
 **Then** `Authorization: MyParcel <T_W1>` against any granted endpoint returns `401 Unauthorized`,
-**And** the very next call with `T_default` returns orders from stores 1, 3, AND 4 — store 1 has rejoined `T_default`'s view (no website-tier row owns it any more, and it has no store-tier row),
+**And** the very next call with `T_default` returns orders from stores 1, 3, AND 4: store 1 has rejoined `T_default`'s view (no website-tier row owns it any more, and it has no store-tier row),
 **And** store 2 is still NOT in `T_default`'s view (it remains owned by `T_s2`'s `(stores, 2)` row).
 
 ### Scenario 8: Custom delivery-options endpoint respects the website-tier partition
@@ -89,7 +89,7 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 
 **Given** that setup,
 **When** the MyParcel backoffice presents `Authorization: MyParcel <T_W3>` to `GET /rest/V1/orders`,
-**Then** the response is `200 OK` with an empty result set — `permittedStoreIds()` is `[]` because W3 contains no store-views.
+**Then** the response is `200 OK` with an empty result set: `permittedStoreIds()` is `[]` because W3 contains no store-views.
 
 ### Scenario 10: Generating a website-tier token whose hash collides with another scope is rejected at write time
 
@@ -102,7 +102,7 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 ### Scenario 11: An unsupported scope (e.g. group) is still rejected with 400
 
 **Given** I have a valid admin session,
-**When** I POST directly to the Generate controller with `scope=group&scopeId=1` (Magento group scope is not supported by this feature) — or any other scope value outside `default`/`websites`/`stores`,
+**When** I POST directly to the Generate controller with `scope=group&scopeId=1` (Magento group scope is not supported by this feature), or any other scope value outside `default`/`websites`/`stores`,
 **Then** the response is `400 Bad Request`,
 **And** no `core_config_data` row is written.
 
@@ -115,7 +115,7 @@ So that **I can hand a website's worth of stores to one MyParcel account without
 
 - This story is the multi-website walkthrough for the website tier specifically. Companion story US-000005 covers the store-view tier; both stories share the row-coordinate ownership and hash-uniqueness invariants from TR-000004.
 - Implementation does not introduce new files beyond those listed in TR-000004 §Implementation notes; this story exists to trace the website-tier partition + 3-way carve-out semantics end-to-end as testable scenarios.
-- The "config cache flush" step in Scenarios 3 and 7 is performed by `TokenService::generateForScope()` and `revokeForScope()` respectively — see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead — partition lookup".
+- The "config cache flush" step in Scenarios 3 and 7 is performed by `TokenService::generateForScope()` and `revokeForScope()` respectively (see TR-000004 §Constraints "Three-tier partition" and §Performance Criteria "Per-request overhead: partition lookup").
 - Admin-visible copy in `<comment>` for the *API Access* group at website scope must mention that issuing a token at this scope removes every store-view in this website from the default-scope token's view, and that any store-view in this website with its own dedicated token is invisible to this website-tier token.
 - Scenario 10's "test seam" for forcing a hash collision should be a swap-in `RandomBytesGenerator` accepted via DI; production wiring uses `random_bytes(32)`.
 - Scenario 9 (empty-website token) is operationally surprising but valid; the admin UI does NOT require the website to have store-views before allowing generation. Documented as Assumption in TR-000004.

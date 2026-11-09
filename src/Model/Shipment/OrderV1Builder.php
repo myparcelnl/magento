@@ -118,11 +118,9 @@ class OrderV1Builder
     }
 
     /**
-     * The fields both recipients share. The shipping one then replaces the street with its split
-     * parts; everything above that is the same address read the same way.
+     * Get the fields both recipients share. The shipping one then replaces the street.
      *
-     * The person is the billing name for both, which is what the Order v1 path has always sent —
-     * a gift order therefore carries the buyer's name, not the recipient's.
+     * The person is the billing name for both, so a gift order carries the buyer's name.
      *
      * @param \Magento\Sales\Model\Order\Address $address
      */

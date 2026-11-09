@@ -161,7 +161,7 @@ it('issues one query per distinct API key', function () {
 });
 
 it('never polls a store that has no API key of its own', function () {
-    // Skipped, never lent another store's key — which would read one account's orders under
+    // Skipped, never lent another store's key. That would read one account's orders with
     // another account's credentials.
     [$cron] = runOrderV1Cron([
         ['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1],
@@ -234,9 +234,9 @@ it('leaves an order the backoffice has not shipped yet completely alone', functi
 });
 
 it('writes the barcode to the order row when the chain could give it no track', function () {
-    // No msi-source, or no shipment Magento would make. canShip() cannot tell us that in advance —
-    // createMagentoShipment() rolls its quantity change back on failure, so canShip() stays true —
-    // which is why the fallback is decided by what the chain produced.
+    // No msi-source, or no shipment Magento would make. canShip() cannot tell that in advance:
+    // createMagentoShipment() rolls its quantity change back on failure, so canShip() stays true.
+    // Thus what the chain produced decides the fallback.
     [, , $calls] = runOrderV1Cron(
         [['increment_id' => '100000001', 'entity_id' => 1, 'store_id' => 1]],
         ['KEY_A' => new OrderCollection([shippedApiOrder('100000001', '3SMYPA123')])],

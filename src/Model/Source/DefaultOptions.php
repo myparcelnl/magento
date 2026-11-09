@@ -216,12 +216,10 @@ class DefaultOptions
     }
 
     /**
-     * The insured value the order earns, never above the configured cap. Rounded up: under-insuring
-     * a parcel is the worse of the two errors.
+     * Get the insured value the order earns, rounded up and never above the configured cap.
      *
-     * A cap of 0 means insurance is off. It is indistinguishable from a contract minimum of 0, which
-     * is a pre-existing ambiguity kept on purpose — reading 0 as "insure at the minimum" would switch
-     * insurance on for every merchant who never configured it.
+     * A cap of 0 means insurance is off, also where a contract minimum of 0 is meant. Do not read 0
+     * as "insure at the minimum": that switches insurance on for every merchant who never set it.
      */
     private function getInsurance(string $carrierName, string $priceKey, bool $applyFromPrice): int
     {

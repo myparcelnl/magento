@@ -23,12 +23,12 @@ use Throwable;
  * Shared shell of the two grid export controllers (orders and shipments).
  *
  * Both answer the JSON that ExportResponse builds and neither redirects: the grid calls them over
- * AJAX so the page stays put and the labels are fetched by a second request — a response can be a
- * PDF or JSON, not both.
+ * AJAX so the page stays put, and a second request fetches the labels. A response can be a PDF or
+ * JSON, not both.
  */
 abstract class LabelExportAction extends Action implements HttpPostActionInterface
 {
-    /** Without this, Action falls back to Magento_Backend::admin — the ACL root, which any granted role passes. */
+    /** Without this, Action falls back to Magento_Backend::admin: the ACL root, which any role passes. */
     public const ADMIN_RESOURCE = 'Magento_Sales::shipment';
 
     protected ExportResponse $response;
@@ -89,8 +89,9 @@ abstract class LabelExportAction extends Action implements HttpPostActionInterfa
     }
 
     /**
-     * The labels this run earned, or null when nothing carries a shipment id — so a failed export
-     * never sends the page chasing a PDF that does not exist.
+     * Get the labels this run earned, or null when nothing carries a shipment id.
+     *
+     * The null keeps a failed export from sending the page after a PDF that does not exist.
      */
     protected function labelsFor(MagentoCollection $collection, bool $notify): ?array
     {

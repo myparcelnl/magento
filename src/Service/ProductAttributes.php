@@ -8,16 +8,10 @@ use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Framework\ObjectManagerInterface;
 
 /**
- * The module's own `myparcel_*` product attributes, read for a batch of products.
+ * Reads the module's own `myparcel_*` product attributes for a batch of products, all in one load.
  *
- * Through the product collection, never the EAV value tables directly. Adobe Commerce keys those
- * tables on `row_id` and holds one row per scheduled update, so a hand-built query needs both an
- * entity-id mapping and a live-version window to answer correctly; the collection does both. It
- * also knows each attribute's backend type, which retires the varchar-then-int probing the raw
- * reader needed.
- *
- * One load covers every attribute: asking for every column costs barely more than one, and the
- * callers read several per product.
+ * Read through the product collection, never the EAV value tables directly: Adobe Commerce keys
+ * those on `row_id` with one row per scheduled update, and the collection handles both.
  */
 class ProductAttributes
 {
@@ -35,7 +29,7 @@ class ProductAttributes
     public const FIT_IN_MAILBOX             = 'fit_in_mailbox';
     public const PRIORITY_DELIVERY          = 'priority_delivery';
 
-    /** Every product attribute UpgradeData installs. Fetched together; see the class comment. */
+    /** Every product attribute UpgradeData installs. Fetched together. */
     private const ATTRIBUTES = [
         self::AGE_CHECK,
         self::CLASSIFICATION,
@@ -50,7 +44,7 @@ class ProductAttributes
 
     private ObjectManagerInterface $objectManager;
 
-    /** @var array<int,array<string,string>> product id => column => value. A loaded product with no values is an empty array, not absent. */
+    /** @var array<int,array<string,string>> product id => column => value; a loaded product without values is [] */
     private array $loaded = [];
 
     public function __construct(ObjectManagerInterface $objectManager)
@@ -112,8 +106,8 @@ class ProductAttributes
             return;
         }
 
-        // Seeded before the query, so a product the collection does not return — deleted, or out of
-        // this store — counts as loaded and is never asked for again.
+        // Seeded before the query, so a product the collection does not return (deleted, or out of
+        // this store) counts as loaded and is never asked for again.
         foreach ($missing as $productId) {
             $this->loaded[$productId] = [];
         }

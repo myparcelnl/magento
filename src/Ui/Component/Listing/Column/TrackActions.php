@@ -13,7 +13,7 @@ use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
  * The order grid's per-row MyParcel actions: change the options, print the label, create a concept,
  * send a return label.
  *
- * None of the export actions is a plain link — the controllers answer JSON, so following the href
+ * None of the export actions is a plain link: the controllers answer JSON, so following the href
  * would put that JSON on screen. Each carries a callback into the grid's own JS instead.
  */
 class TrackActions extends Column

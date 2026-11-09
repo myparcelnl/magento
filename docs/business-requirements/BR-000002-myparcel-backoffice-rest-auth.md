@@ -2,7 +2,7 @@
 
 ## Business Context
 
-MyParcel operates a SaaS backoffice that needs read access to its customers' Magento store data — specifically order data and the delivery options associated with those orders — to power merchant-facing tooling (label generation, shipment tracking, fulfilment workflows).
+MyParcel operates a SaaS backoffice that needs read access to its customers' Magento store data (specifically order data and the delivery options associated with those orders) to power merchant-facing tooling (label generation, shipment tracking, fulfilment workflows).
 
 Today, granting that access requires the customer's Magento admin to either run CLI commands (`bin/magento config:set …`) or use OAuth 1.0a, which MyParcel does not support. Magento 2.4.4+ disabled the simpler bearer-token path by default (`oauth/consumer/enable_integration_as_bearer = 0`). We are not asking all our customers to run specific cli commands, this would require a lot of support.
 
@@ -26,9 +26,9 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 ### In Scope
 
 - API access tokens issued at **default scope**, **website scope**, and **store-view scope** (multi-tenant per scope coordinate). Each `(scopeType, scopeId)` coordinate has at most one active token.
-- **Three-tier partition semantics, not cascade:** per store, the most-specific row that *exists* (`stores > websites > default`) owns it; that store's data is visible to exactly the owning token. A merchant running multiple websites with multiple store-views per website can issue any combination of default / per-website / per-store tokens, with finer-grained tokens always overriding coarser ones at the row level — issuing a store-view token "carves" that store out of any parent website token's view, and issuing a website token shadows that website's stores from the default token's view.
+- **Three-tier partition semantics, not cascade:** per store, the most-specific row that *exists* (`stores > websites > default`) owns it; that store's data is visible to exactly the owning token. A merchant running multiple websites with multiple store-views per website can issue any combination of default / per-website / per-store tokens, with finer-grained tokens always overriding coarser ones at the row level: issuing a store-view token "carves" that store out of any parent website token's view, and issuing a website token shadows that website's stores from the default token's view.
 - **Allow-list of scope-aware REST resources.** Token-authenticated calls succeed only against REST resources for which the module has installed a per-store filter plugin. Initial coverage: `Magento_Sales::actions_view` (orders) and `MyParcelNL_Magento::delivery_options_read`. Resources that are granted to the integration but not in the allow-list return `401` for token-authenticated calls (admin and customer auth paths are unaffected).
-- Admin-driven generation, one-time display, rotation, and revocation from the existing MyParcel admin config screen — per scope. Each scope's token is managed independently.
+- Admin-driven generation, one-time display, rotation, and revocation from the existing MyParcel admin config screen: per scope. Each scope's token is managed independently.
 - REST-side authentication using a custom `Authorization` scheme.
 - Reuse of Magento's `authorization_role` / `authorization_rule` ACL tables for per-resource gating (install-wide), layered with the module's own per-store filter enforcement.
 
@@ -41,7 +41,7 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 
 ## Success Criteria
 
-- [ ] Median admin time-to-token (from opening the MyParcel admin config to a working token in the MyParcel backoffice) is under 30 seconds — at default, website, or store-view scope.
+- [ ] Median admin time-to-token (from opening the MyParcel admin config to a working token in the MyParcel backoffice) is under 30 seconds: at default, website, or store-view scope.
 - [ ] On a fresh install, a customer can complete connection without running a single CLI command and without opening *System → Extensions → Integrations*.
 - [ ] Rotating any scope's token invalidates that scope's previous token immediately, with no admin CLI step. Rotating one scope's token never invalidates tokens at other scope coordinates.
 - [ ] A store-view-scoped token reads only that store-view's data; a website-scoped token reads only that website's stores' data, **minus** any store-view in that website with its own dedicated token; the default-scope token reads data from all stores **minus** stores in any tokened website **minus** stores with their own dedicated token. Revoking a finer-grained token's row releases the affected store(s) back to the next-coarsest tier that still has a token (or to "no token covers this store" if there isn't one).
@@ -74,7 +74,7 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 | Risk | Likelihood | Impact | Mitigation |
 |---|---|---|---|
 | Magento bumps the bearer-gate flag default again or removes the integration auto-provisioning hook | Low | Medium | Pin the auto-provisioning behaviour in TR-000004 §Specifications; integration tests cover both flag values. |
-| Customer rotates Magento `crypt/key` and breaks existing tokens | N/A | None | Storage is hashed, not encrypted — `crypt/key` rotation has zero effect on any scope's token (see TR-000004 §Rationale). |
+| Customer rotates Magento `crypt/key` and breaks existing tokens | N/A | None | Storage is hashed, not encrypted: `crypt/key` rotation has zero effect on any scope's token (see TR-000004 §Rationale). |
 | Admin accidentally activates the auto-provisioned integration in *Integrations* | Low | Low | Admin config `<comment>` tells them not to; integration is harmless even if activated (no OAuth token issued). |
 | New ACL grant added to `etc/integration.xml` without a corresponding per-store filter plugin → cross-store data leak for token-authenticated calls | Medium | High | Allow-list (`ScopedResourceRegistry`) fails closed: granted-but-unregistered resources return `401` for token-authenticated calls. Code-review checklist + a regression test enumerate registry vs. integration.xml grants. See TR-000004. |
 | Adding/removing a store-scoped token does not propagate before next request because of `core_config_data` cache | Low | Medium | Generate / clear flow flushes the relevant config cache type explicitly. Verified end-to-end (see TR-000004 §Verification). |
@@ -89,6 +89,6 @@ The connection mechanism must reuse Magento's native ACL machinery so per-resour
 
 ## Traceability
 
-- **Implements:** —
-- **Decomposed into Functional Requirements:** [FR-000005 — Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
-- **Technical Requirements:** [TR-000004 — REST API Access Token Authentication](../technical-requirements/TR-000004-rest-api-access-token-authentication.md)
+- **Implements:** none
+- **Decomposed into Functional Requirements:** [FR-000005: Self-service API access token for MyParcel REST integration](../functional-requirements/FR-000005-self-service-api-access-token.md)
+- **Technical Requirements:** [TR-000004: REST API Access Token Authentication](../technical-requirements/TR-000004-rest-api-access-token-authentication.md)

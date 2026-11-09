@@ -7,16 +7,8 @@ use MyParcelNL\Magento\Model\Source\DefaultOptions;
 use MyParcelNL\Sdk\Model\Carrier\CarrierPostNL;
 
 /**
- * Age check resolves like every other option: an explicit choice, otherwise
- * DefaultOptions::hasOptionSet(), which asks the products and then the carrier
- * setting. That shared answer is what the New Shipment page pre-checks, so the
- * form and the export agree by construction.
- *
- * There is no country gate here. Which carrier carries an age check to which
- * destination is a capabilities fact: the form offers only what the
- * account has, and the API refuses the rest with a named error.
- *
- * The product tier itself is covered in DefaultOptionsAgeCheckTest.
+ * Resolve age check: an explicit choice, otherwise DefaultOptions::hasOptionSet(). There is no
+ * country gate here; capabilities decide which destinations get an age check.
  */
 function ageCheckFor(array $options, bool $carrierDefault): bool
 {

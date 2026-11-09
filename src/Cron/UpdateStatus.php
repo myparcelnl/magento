@@ -2,16 +2,6 @@
 
 declare(strict_types=1);
 /**
- * Update MyParcel data
- * Trigger actions:
- * - Update status in Track
- * - Update barcode in Track
- * - Update html status in order
- * - Update html barcode in order
- *
- * If you want to add improvements, please create a fork in our GitHub:
- * https://github.com/myparcelnl
- *
  * @author      Reindert Vetter <info@myparcel.nl>
  * @copyright   2010-2019 MyParcel
  * @license     http://creativecommons.org/licenses/by-nc-nd/3.0/nl/deed.en_US  CC BY-NC-ND 3.0 NL
@@ -49,7 +39,7 @@ use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
  * Brings MyParcel shipment status, barcode and track & trace back into Magento.
  *
  * Polls once per API key, grouped by each order's own store, and skips a store that has none: it
- * never lends one store another store's key. It only reads — nothing here creates a shipment
+ * never lends one store another store's key. It only reads: nothing here creates a shipment
  * upstream.
  */
 class UpdateStatus
@@ -100,31 +90,12 @@ class UpdateStatus
     }
 
     /**
-     * Handles orders exported to Order v1 (legacy order management).
-     * Gets the eligible orders from Magento, gets the account's orders from the api. When the api
-     * order is one of them and it has shipped, adds the shipment in Magento.
+     * Add a Magento shipment and track for each Order v1 order that has shipped.
      *
-     * An Order v1 order can hold several shipments, and they are all created in one go: either as
-     * separate shipments side by side, which is one order_shipments entry each, or as one multicollo,
-     * which is one entry carrying secondary_shipments. This method handles the first shape by reading
-     * every entry; the second is expanded from the shipment API by updateMagentoTrack(), because the
-     * Order v1 response is not where a collo's own barcode is read.
-     *
-     * Each shipment gets its own track. There is no per-shipment item split to make a second Magento
-     * shipment out of — the colli hold the same goods.
-     *
-     * NOTE: the 'reference_identifier' as returned by the api in the order object is the increment_id of the order,
-     * the order_id in the track table however is the entity_id, these are not necessarily the same (number).
-     *
-     * Every shipped order goes through the shipment routine, and what that could not do is what the
-     * fallback is for: an order left without a MyParcel track — no msi-source, or no shipment
-     * Magento would make — gets its barcode written to the order table instead. Decided by outcome,
-     * not by canShip(): createMagentoShipment() rolls its quantity change back on failure, so
-     * canShip() stays true and the old "it cannot be shipped anymore next run" recovery never
-     * happened.
-     *
-     * A trackless order can carry a barcode but never a link: myparcel_tracktrace_url is a column
-     * on sales_shipment_track.
+     * Each order_shipments entry gets its own track; updateMagentoTrack() expands a multicollo entry
+     * from the shipment API. The API's reference is the increment_id, the track table holds entity_id.
+     * An order left without a track gets its barcode on the order row, decided by outcome and not by
+     * canShip(): a failed shipment rolls back, so canShip() stays true.
      *
      * @return $this
      * @throws AlreadyExistsException
@@ -222,7 +193,7 @@ class UpdateStatus
         // setNewMyParcelTracks() is deliberately absent: it builds a v11 Shipment per track for a
         // create this cron never issues. What an Order v1 order needs is the id and barcode its
         // Order v1 order already has, after which updateMagentoTrack() refreshes it like any
-        // other shipment — status and track & trace link included.
+        // other shipment, status and track & trace link included.
         //
         // An order that already has a track reaches setMagentoTrack() now, so the mass-action
         // default that adds one anyway has to go, or every run would add another.
@@ -247,13 +218,10 @@ class UpdateStatus
     }
 
     /**
-     * The Order v1 orders still waiting for a barcode.
+     * Get the Order v1 orders still waiting for a barcode.
      *
-     * Keyed on the export marker and on the absence of a real barcode — not on
-     * sales_order.track_number being null. That column is a grid display value, and anything
-     * written to it, a placeholder included, used to lock an order out of this cron for good
-     *. A barcode can live in two places: on a track, or on the order itself for an order
-     * Magento could not ship.
+     * Keyed on the export marker and on the absence of a real barcode, on a track or on the order
+     * row. Do not key on sales_order.track_number being null: a placeholder there is not a barcode.
      *
      * @return array[] sales_order rows carrying increment_id, entity_id and store_id
      */
@@ -297,7 +265,7 @@ class UpdateStatus
         );
 
         // Done means a real barcode on a track. The order row only settles it for an order that has
-        // no track at all — a barcode there is the fallback's, and it used to mask a track still
+        // no track at all: a barcode there is the fallback's, and must not mask a track still
         // holding a placeholder.
         $orders->getSelect()
                ->where(sprintf('NOT EXISTS (%s)', $withRealBarcode))
@@ -313,12 +281,10 @@ class UpdateStatus
     }
 
     /**
-     * Every shipped shipment of one Order v1 order, in the order the API listed them.
+     * Get every shipped shipment of one Order v1 order, in the order the API listed them.
      *
-     * order_shipments passes through the SDK as a raw array with no model behind it, so each key is
-     * read defensively. The shipped check is per entry: an Order v1 order can hold a concept or a
-     * cancelled shipment beside shipped ones, and reading only the first entry is what hid an order
-     * whose second shipment had shipped while its first was still a concept.
+     * order_shipments is a raw SDK array, so each key is read defensively. The shipped check is per
+     * entry: a concept or cancelled shipment can sit beside shipped ones.
      *
      * @return array<int,array{barcode: string, shipmentId: int|null}>
      */
@@ -355,11 +321,9 @@ class UpdateStatus
     }
 
     /**
-     * The barcode for an order the chain could not give a track — no msi-source, or no shipment
-     * Magento would make. The order row is the only place left, and the grid falls back to it.
+     * Write the barcode to the order row for an order that could not get a track.
      *
-     * Such an order gets a barcode and never a link: myparcel_tracktrace_url is a column on
-     * sales_shipment_track.
+     * Such an order gets no link: myparcel_tracktrace_url is a column on sales_shipment_track.
      *
      * @param array<string,array<int,array{barcode: string, shipmentId: int|null}>> $orderV1ShipmentsByIncrementId
      *
@@ -403,7 +367,7 @@ class UpdateStatus
     }
 
     /**
-     * One collection, not a loadByIncrementId() each.
+     * Load the orders in one collection, not a loadByIncrementId() each.
      *
      * @param string[] $incrementIds
      *
@@ -424,8 +388,7 @@ class UpdateStatus
     }
 
     /**
-     * The orders carrying a MyParcel track with something other than a placeholder on it, in one
-     * query rather than one track collection per order.
+     * Get the orders whose MyParcel track carries a real barcode, in one query.
      *
      * @param array<string,Order> $orders
      *
@@ -462,8 +425,7 @@ class UpdateStatus
     }
 
     /**
-     * The one API call this cron makes. It sits in its own method because OrderCollection::query()
-     * is static, so nothing can stand in for it where it is called.
+     * Query the account's orders. A seam, because OrderCollection::query() is static.
      *
      * @throws \MyParcelNL\Sdk\Exception\AccountNotActiveException
      * @throws \MyParcelNL\Sdk\Exception\ApiException
@@ -475,8 +437,7 @@ class UpdateStatus
     }
 
     /**
-     * The increment ids to poll, grouped by their own store's API key, so no store is ever read out
-     * of another store's account. A store with no key configured is skipped, never lent one.
+     * Group the increment ids to poll by their own store's API key; skip a store without a key.
      *
      * @param array[] $orderRows sales_order rows carrying increment_id and store_id
      *
@@ -506,11 +467,10 @@ class UpdateStatus
     }
 
     /**
-     * Carries every exported shipment on to its next status, whatever export mode made it.
+     * Carry every exported shipment on to its next status, whatever export mode made it.
      *
-     * It selects on the track rather than on the order — a MyParcel shipment id and a status that
-     * is not final yet — and an Order v1 shipment answers to both. setOrdersToUpdate() replaces the
-     * collection the Order v1 pass left behind.
+     * It selects on the track (a shipment id and a status not final yet), which an Order v1
+     * shipment also has. setOrdersToUpdate() replaces the collection the Order v1 pass left behind.
      *
      * @throws LocalizedException
      * @throws Exception
@@ -518,7 +478,7 @@ class UpdateStatus
     private function pollShipmentStatuses(): self
     {
         // setNewMyParcelTracks() is deliberately absent, as it is in the Order v1 branch above: it
-        // builds a v11 Shipment per id-less track — capabilities, customs, validation — for a
+        // builds a v11 Shipment per id-less track (capabilities, customs, validation) for a
         // create this cron never issues, and nothing here reads what it collects.
         $this->setOrdersToUpdate();
         $this->orderCollection->updateMagentoTrack();
@@ -527,13 +487,10 @@ class UpdateStatus
     }
 
     /**
-     * @throws AlreadyExistsException
-     */
-    /**
-     * A plain overwrite, not a merge: every run recomputes the order's full barcode list, so the
-     * column ends up holding all of them either way.
+     * Overwrite the order's barcode list; every run recomputes the full list, so no merge is needed.
      *
      * @param string[] $barcodes
+     * @throws AlreadyExistsException
      */
     private function setShippedWithoutShipment(Order $magentoOrder, array $barcodes): void
     {

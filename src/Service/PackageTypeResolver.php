@@ -9,15 +9,11 @@ use MyParcelNL\Magento\Model\Shipment\PackageTypeCandidates;
 use MyParcelNL\Magento\Service\AccountSettings\StoredAccount;
 
 /**
- * Which package type one cart ships as with one carrier.
+ * Resolves the package type one cart ships as with one carrier.
  *
- * Takes a carrier **name**, unlike CartShippingRules, which takes a config path. The name is what
- * the PostNL international question needs, and resolve() is only ever asked about a carrier that is
- * active, so the name always maps to a path.
- *
- * Every answer comes from the arguments. Nothing is remembered between calls, which is what lets one
- * instance serve every carrier in a checkout without the previous carrier's weights leaking into the
- * next one.
+ * Takes a carrier **name**, unlike CartShippingRules, which takes a config path: the PostNL
+ * international check needs the name. Stateless, so one instance serves every carrier in a
+ * checkout without one carrier's weights leaking into the next.
  */
 class PackageTypeResolver
 {
@@ -135,8 +131,7 @@ class PackageTypeResolver
     }
 
     /**
-     * The cart's weight in the merchant's own unit, which is what the mailbox and package small
-     * ceilings are compared against.
+     * Get the cart's weight in the merchant's own unit, the unit of the mailbox and package small maximums.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */
@@ -191,9 +186,8 @@ class PackageTypeResolver
     }
 
     /**
-     * The group's own `active` decides whether a maximum weight exists at all — not the country, and
-     * not `international_active`. A carrier switched off at home therefore carries a maximum of zero
-     * abroad, and only a weightless cart fits it.
+     * Get the group when its own `active` is on, not the country or `international_active`.
+     * A group switched off at home thus has a maximum of zero abroad.
      */
     private function groupIfActive(string $path, ?int $storeId): ?array
     {

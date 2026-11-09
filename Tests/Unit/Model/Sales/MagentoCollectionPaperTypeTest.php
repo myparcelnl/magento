@@ -5,9 +5,8 @@ declare(strict_types=1);
 use MyParcelNL\Magento\Service\Export\LabelPositions;
 
 /**
- * The paper size an export ends up printing on. Only the modal picks one; every other flow — the
- * grid's direct mass action, a row action — sends no mypa_paper_size at all, and used to fall back
- * to a hard-coded A6 whatever the admin had configured.
+ * The paper size an export prints on. Only the modal picks one. Every other flow (the grid's direct
+ * mass action, a row action) sends no mypa_paper_size and must use the configured paper type.
  */
 
 it('prints a print with no chosen paper size on the configured paper type', function ($paperType, $expected) {

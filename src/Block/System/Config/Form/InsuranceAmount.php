@@ -15,14 +15,9 @@ use MyParcelNL\Magento\Service\Settings;
 /**
  * Renders one insurance amount as a number field bounded by the account's contract.
  *
- * It exists because a field's `validate` class is fixed in the Catalogue and the bound is per account
- * and per scope: `dynamic_settings.phtml` can only inject that fixed class, so a range like
- * `number-range-0-5000` has to be emitted at render time.
- *
- * The bound is **advisory**. Contract definitions carry no country, so this states what the
- * carrier's contract allows at all; the amount a given parcel is actually insured for is clamped
- * against its own destination in ShipmentOptionsResolver. With no bound resolvable the field still
- * accepts a number — insurance is not switched off because we could not confirm its limits.
+ * The bound is per account and scope, so it is emitted at render time, not fixed in the Catalogue.
+ * It is advisory: contract definitions carry no country, and ShipmentOptionsResolver clamps per
+ * destination. With no bound, the field still accepts a number and insurance stays on.
  */
 class InsuranceAmount extends Template implements NoteProviderInterface
 {
@@ -78,11 +73,7 @@ class InsuranceAmount extends Template implements NoteProviderInterface
         return (string) ($this->config->getScopedConfig($this->getPath(), $scopeName, $scopeId) ?? '');
     }
 
-    /**
-     * Mirrors what dynamic_settings.phtml does for its own controls: a scope inheriting its value
-     * shows it greyed out until the admin unticks *Use Default*. hasOwnValue() already answers true
-     * at default scope, so there is no special case here.
-     */
+    /** Check whether the field inherits its value, as dynamic_settings.phtml does for its controls. */
     public function isDisabled(): bool
     {
         [$scopeName, $scopeId] = $this->getCurrentScope();
@@ -102,12 +93,10 @@ class InsuranceAmount extends Template implements NoteProviderInterface
     }
 
     /**
-     * The Magento validation classes for this field.
+     * Get the Magento validation classes for this field.
      *
-     * `validate-number-range` expresses one span, and the permitted set is a span plus zero when
-     * insurance is optional. So the span starts at zero for an optional contract and the save
-     * observer catches the gap between zero and the minimum; for a compulsory one the span is the
-     * range itself and zero is refused in the browser.
+     * For optional insurance the span starts at zero; the save observer refuses the gap below the
+     * minimum, because `validate-number-range` can express only one span.
      */
     public function getValidationClass(): string
     {

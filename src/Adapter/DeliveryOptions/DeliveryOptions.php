@@ -131,10 +131,9 @@ final class DeliveryOptions
     }
 
     /**
-     * Stored data in no recognised shape.
+     * Read stored data in no recognised shape.
      *
-     * Reads whatever it is given, including a pickup location — unlike fromCheckoutData() it never
-     * refuses one that is absent, because this is the degrade path.
+     * This is the degrade path: unlike fromCheckoutData(), it never refuses an absent pickup location.
      */
     public static function fromOrderFallback(array $data): self
     {

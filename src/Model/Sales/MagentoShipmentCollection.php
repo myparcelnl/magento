@@ -82,11 +82,9 @@ class MagentoShipmentCollection extends MagentoCollection
 
 
     /**
-     * Send shipment email with Track and trace variable
+     * Send the shipment email with the track & trace link.
      *
-     * One failure is one shipment's: a bounced address or a refused SMTP handshake used to abort the
-     * loop, so every shipment after it went unmailed with nothing said. Whether a send blocks the
-     * request at all is Magento's own `sales_email/general/async_sending` — with it off, a large
+     * One failed send does not stop the loop. With `sales_email/general/async_sending` off, a large
      * batch pays one SMTP round trip per shipment before the label PDF reaches the admin.
      *
      * @return $this

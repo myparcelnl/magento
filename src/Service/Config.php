@@ -23,9 +23,8 @@ class Config extends AbstractHelper
     /**
      * Prefix; append the fingerprint of the api key the settings belong to.
      *
-     * Keyed by api key rather than scope: the settings describe a MyParcel account, several stores may
-     * share one key, and callers holding only a key must be able to resolve them. Always default scope
-     * (scope_id 0) — never pass a store/website scope here.
+     * Keyed by api key, not scope: the settings describe an account that several stores can share.
+     * Always default scope (scope_id 0). Never pass a store or website scope here.
      */
     public const XML_PATH_ACCOUNT_SETTINGS          = self::XML_PATH_GENERAL . 'account_settings_';
     public const XML_PATH_LOCALE_WEIGHT_UNIT        = 'general/locale/weight_unit';
@@ -111,11 +110,10 @@ class Config extends AbstractHelper
     }
 
     /**
-     * Every (scope, scopeId) a config value could be stored at, for reading a path across the whole
-     * installation.
+     * Get every (scope, scopeId) a config value can be stored at, except the admin store.
      *
-     * Excludes the admin store, and skips a website that has no stores. Throws whatever the store
-     * manager throws — callers decide whether an incomplete list beats none.
+     * Skips a website that has no stores. Throws what the store manager throws: the caller decides
+     * whether an incomplete list is better than none.
      *
      * @return array<int, array{0: string, 1: int}>
      */

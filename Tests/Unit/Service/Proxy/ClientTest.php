@@ -318,7 +318,7 @@ it('strips ASCII control characters from host and method in rejection logs', fun
         $captured[] = (string) $msg;
     });
 
-    // Unknown host with embedded NUL — triggers the 403 host-not-allowed path.
+    // Unknown host with embedded NUL: triggers the 403 host-not-allowed path.
     $c['client']->forward("evil\x00host", false, 'x', "GET\x01", [], '', '');
 
     expect($captured)->not->toBeEmpty();

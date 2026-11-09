@@ -3,14 +3,11 @@
 declare(strict_types=1);
 
 /**
- * The API refuses a chunk as a whole, and reports every faulty shipment in that one response. The
- * service uses that: it excludes the orders the response named and re-sends the rest once, so a bad
- * order costs itself rather than its whole chunk.
+ * The API refuses a chunk as a whole and names every faulty shipment. The service excludes those
+ * orders and re-sends the rest once.
  *
- * The bodies below are RFC 9457 Problem Details, which is what the API actually sends — not the
- * `common_responses_user_error` shape the Core API spec documents. The summary is `detail`, each
- * error carries `detail` and an `instance` JSON Pointer, and `errors` is a plain list. The generated
- * model declares neither `detail` nor `instance`, so none of this works through it.
+ * The bodies are RFC 9457 Problem Details, as the API sends them, not the shape the Core API spec
+ * documents. The generated model declares neither `detail` nor `instance`, so it cannot read them.
  */
 beforeEach(function () {
     mockLoggerFacade()->shouldReceive('notice')->byDefault()->shouldReceive('warning')->byDefault();
@@ -133,13 +130,13 @@ it('does not retry when the response blames nobody', function () {
         ->and($report->failureReasons())->toBeEmpty()
         ->and($report->collateral())->toBe(['000000116', '000000117'])
         ->and($report->failureMessages())->toBe([
-            'Orders that were not exported because MyParcel refused this batch: 2. Reason: Verzending validatiefout Account problem — your account is not active',
+            'Orders that were not exported because MyParcel refused this batch: 2. Reason: Verzending validatiefout Account problem: your account is not active',
         ]);
 });
 
 it('does not retry a failure that may have created shipments', function () {
     // A 422 means the API validated and refused, so nothing exists upstream. A timeout does not say
-    // that, and the API deduplicates nothing — re-sending could bill the merchant twice.
+    // that, and the API deduplicates nothing. Re-sending could bill the merchant twice.
     $calls   = [];
     $service = makeExportService(['key' => makeTimingOutShipmentApi($calls)]);
 

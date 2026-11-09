@@ -19,17 +19,10 @@ use MyParcelNL\Magento\Service\PackageTypeResolver;
 // capabilityResult() lives in Tests/Helpers/CapabilitiesFixtures.php.
 
 /**
- * The constructor is skipped: it reads the checkout session. checkPackageType() needs only the
- * quote, the config, the two cart services and the memoised capabilities.
+ * Create a Checkout without its constructor, which reads the checkout session.
  *
- * capabilityLookupWith() seeds the requests; see its doc block for the key format and for what an
- * unseeded request does.
- *
- * $forced is what the order carries whatever the shopper picks; an empty list is the ordinary
- * order, which asks without an option filter. A forced option is seeded as '<package type>|<option>'.
- *
- * What used to be three setters on a shared package object is now one PackageTypeCandidates handed
- * to the resolver, so the cases below read that instead.
+ * capabilityLookupWith() seeds the requests. $forced is what the order carries whatever the shopper
+ * picks; an empty list asks without an option filter. Seed a forced option as '<package type>|<option>'.
  *
  * @return array{checkout: Checkout, packageTypes: PackageTypeResolver, cartRules: CartShippingRules, calls: object}
  */

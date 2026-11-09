@@ -44,11 +44,11 @@ The documentation must cover:
 
 ### Referenced Technical Requirements
 
-— (No TRs created yet)
+None (no TRs created yet)
 
 ### Referenced Architectural Decisions
 
-- **API Design Reference 0014** — defines field naming conventions and response structure that the schema must reflect
+- **API Design Reference 0014**: defines field naming conventions and response structure that the schema must reflect
 
 ### Notes
 
@@ -58,19 +58,19 @@ The OpenAPI schema can be maintained as a YAML or JSON file in the `docs/` direc
 
 ### Upstream (this FR depends on)
 
-- FR-000001 (Retrieve Delivery Options) — must be implemented first to document
-- FR-000002 (API Version Negotiation) — versioning headers must be finalized
-- FR-000003 (Standardized Error Responses) — error format must be finalized
+- FR-000001 (Retrieve Delivery Options): must be implemented first to document
+- FR-000002 (API Version Negotiation): versioning headers must be finalized
+- FR-000003 (Standardized Error Responses): error format must be finalized
 
 ### Downstream (depends on this FR)
 
-— (No downstream dependencies)
+None (no downstream dependencies)
 
 ## Cross-References
 
-—
+None.
 
 ## Implementation Notes
 
-- **OpenAPI schema:** [`https://api.myparcel.nl/openapi.min.json`](https://api.myparcel.nl/openapi.min.json) — canonical OpenAPI spec covering request parameters, success response, error responses, and versioning headers.
-- **Design reference:** [implementation design document](../design/delivery-options-endpoint-design.md) — data mapping tables and response structure that the schema reflects.
+- **OpenAPI schema:** [`https://api.myparcel.nl/openapi.min.json`](https://api.myparcel.nl/openapi.min.json): canonical OpenAPI spec covering request parameters, success response, error responses, and versioning headers.
+- **Design reference:** [implementation design document](../design/delivery-options-endpoint-design.md): data mapping tables and response structure that the schema reflects.

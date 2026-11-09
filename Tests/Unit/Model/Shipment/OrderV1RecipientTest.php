@@ -6,12 +6,8 @@ use MyParcelNL\Magento\Model\Shipment\OrderV1Builder;
 use MyParcelNL\Sdk\Model\Recipient;
 
 /**
- * The street splitting itself is the SDK's, so these test our wiring around
- * it: joining the lines, mapping the fields, taking the person from the
- * billing address, splitting by the account's home country, and letting
- * a rejected address surface.
- *
- * No case asserts a literal the SDK's regex produced — those are its to change.
+ * Build a recipient. The SDK splits the street, so these tests cover only the wiring around it.
+ * No case asserts a literal that the SDK's regex produced: the SDK can change those.
  */
 function recipientForAddress(
     array   $addressOverrides,
@@ -98,9 +94,7 @@ it('splits a Belgian address by the account\'s home country, whatever the carrie
 });
 
 it('lets a rejected address surface instead of swallowing it', function () {
-    // beta.31 deleted InvalidConsignmentException along with the consignment stack; SplitStreet now
-    // throws a plain InvalidArgumentException. What is asserted is unchanged — the address is not
-    // swallowed — only the class it arrives as.
+    // SplitStreet throws a plain InvalidArgumentException.
     $reject = fn () => recipientForAddress(['getCountryId' => 'NL', 'street' => '1234']);
 
     expect($reject)->toThrow(InvalidArgumentException::class, 'Invalid full street supplied');

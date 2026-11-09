@@ -7,8 +7,8 @@
 
 ## Related ADRs
 
-- [ADR-0013 - Various API Design Rules](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0013-various-api-design-rules.md) — empty-object boolean standard (`{}` = enabled, key omitted = disabled) and Order Service enum naming
-- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md) — micro-currency format for monetary values and camelCase field naming
+- [ADR-0013 - Various API Design Rules](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0013-various-api-design-rules.md): empty-object boolean standard (`{}` = enabled, key omitted = disabled) and Order Service enum naming
+- [ADR-0014 - API Design Standards](https://github.com/mypadev/engineering-adr/blob/main/01-adr/0014-api-design-standards.md): micro-currency format for monetary values and camelCase field naming
 
 ## Category
 
@@ -20,7 +20,7 @@ V1 responses must conform to the `DeliveryOptions` schema defined in the [canoni
 
 ## Rationale
 
-Both FR-000001 and FR-000002 require that the delivery options response matches the PDK's canonical schema. This TR captures the specific field formats, enum conventions, and data transformations as standalone, measurable criteria. By defining schema conformance as a reusable TR, any endpoint that returns delivery options data (current or future) references the same specification — ensuring consistency and preventing drift from the PDK contract.
+Both FR-000001 and FR-000002 require that the delivery options response matches the PDK's canonical schema. This TR captures the specific field formats, enum conventions, and data transformations as standalone, measurable criteria. By defining schema conformance as a reusable TR, any endpoint that returns delivery options data (current or future) references the same specification: ensuring consistency and preventing drift from the PDK contract.
 
 ## Specifications
 
@@ -58,6 +58,6 @@ Unit tests for each transformer validate output format. A full integration test 
 
 ## Constraints
 
-- Enum values must match the Order Service API exactly — no custom or module-specific enum values
+- Enum values must match the Order Service API exactly: no custom or module-specific enum values
 - The micro-currency multiplier (1,000,000) is fixed and must not be configurable
 - Timezone for date formatting is always `Europe/Amsterdam`, not the Magento store's configured timezone

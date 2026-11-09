@@ -38,8 +38,8 @@ it('uses the preset weight and never touches the shipment', function () {
 });
 
 it('falls back to the item weights when no digital stamp weight is preset anywhere', function () {
-    // Nothing saved and no default configured casts to 0, and the API refuses a zero weight — the
-    // consignment path summed the items in that case, so this does too.
+    // Nothing saved and no default configured casts to 0, and the API refuses a zero weight. Thus
+    // the builder sums the item weights.
     $defaultOptions = Mockery::mock(MyParcelNL\Magento\Model\Source\DefaultOptions::class);
     $defaultOptions->shouldReceive('getDigitalStampDefaultWeight')->andReturn(0);
 

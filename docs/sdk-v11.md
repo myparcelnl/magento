@@ -238,7 +238,7 @@ The module stores what the merchant types, up to 18 characters, and sends digits
 - **The loose-coupling trade** holds only while the API's error reaches the admin legibly. Anything
   that swallows or flattens a rejection breaks it. **The log is the deliberate exception**:
   `Rejection::shapeOf()` records the body's keys and field pointers and never its values, because
-  the API names the field it refused in text that quotes what was sent — on an address, the
+  the API names the field it refused in text that quotes what was sent: on an address, the
   consumer's own data. The admin's per-order message still comes from `Rejection::reasons()` and is
   unchanged.
 - **The SDK defects above** leave workaround code in place until they land.
@@ -246,7 +246,7 @@ The module stores what the merchant types, up to 18 characters, and sends digits
   `ShipmentOptionsTransformerTest` asserts the `attributeMap()` keys verbatim.
 - **The Order v1 status poll asks for every order the account has.** `OrderCollection::query()` is given
   no parameters, so the API answers with its own default page and the increment ids are matched in
-  PHP afterwards — an order past that page never matches, and the call is made once per API key per
+  PHP afterwards: an order past that page never matches, and the call is made once per API key per
   tick. `query()` does accept a parameters array, but neither the SDK nor the published Order API
   spec names a filter for the external identifier, so the parameter name has to come from the API
   team before this can be narrowed. Defect 6 covers the user agent on the same call.

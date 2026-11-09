@@ -25,19 +25,17 @@ use RuntimeException;
 
 /**
  * What one Magento order is to be shipped as: carrier, package type and the v11 ShipmentOptions.
- *
- * Both export paths ask an order the same questions — ShipmentBuilder for a label,
- * OrderV1Builder for an Order v1 order — so the answers are given once here. Each builder keeps
- * only what its own API shape needs: a recipient array against a Recipient, a RefShipmentPickup
- * against a PickupLocation, shipment item weights against order item weights.
+ * ShipmentBuilder and OrderV1Builder both read it.
  *
  * Generated-model traps: booleans must be a literal 1 or 0 (a PHP bool throws at serialization),
- * setLabelDescription() throws above its limit where the consignment silently truncated, and
- * setDeliveryType() takes a literal int — a string enum name throws.
+ * setLabelDescription() throws above its limit, and setDeliveryType() throws on a string enum name.
  */
 class OrderExportOptions
 {
-    /** Copy of the maxLength RefShipmentShipmentOptions::setLabelDescription() enforces; read it from the SDK once the generator exposes it. */
+    /**
+     * Copy of the maxLength RefShipmentShipmentOptions::setLabelDescription() enforces.
+     * Read it from the SDK once the generator exposes it.
+     */
     public const LABEL_DESCRIPTION_MAX_LENGTH = 45;
 
     private const CARRIERS_WITHOUT_DELIVERY_DATE = ['DPD', 'BPOST'];

@@ -10,13 +10,8 @@ use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesMoney;
 use MyParcelNL\Sdk\Model\Shipment\Shipment;
 
 /**
- * The v11 customs stack is a second builder, unrelated to the Order v1 one the
- * Order v1 path uses. ConsignmentEncode::DEFAULT_CURRENCY named the
- * currency before; it is one of the classes beta.22 removed, so the same value
- * is now read off the generated money model.
- *
- * Product data (HS code, country of manufacture) is fetched in two batch
- * queries keyed by product id, never per item — that is what the mocks model.
+ * Create the shipment customs builder, which is separate from the Order v1 one. Product data
+ * (HS code, country of manufacture) comes from two batch queries keyed by product id, never per item.
  */
 function createCustomsDeclarationBuilder(string $classification = '61', int $productId = 99, array $attributes = []): CustomsDeclarationBuilder
 {
@@ -114,9 +109,7 @@ it('refuses a line above the API maximum rather than truncating it', function ()
 });
 
 it('adds each shipment item to the consignment exactly once', function () {
-    // convertDataForCdCountry() looped the shipment items twice — once via
-    // getData('items'), once via getItems() — and added every item on both
-    // passes. One loop now, so this is no longer a ->todo().
+    // getData('items') and getItems() return the same items. Reading both adds every item twice.
     $item = createShipmentItem(['name' => 'Widget', 'qty' => 1, 'weight' => 250.0, 'price' => 12.34, 'product_id' => 99]);
 
     [, $items] = buildCustomsFor([$item]);
