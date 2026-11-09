@@ -35,7 +35,7 @@ function pickupCheckoutOptions(): array
 it('clears an inherited pickup location when the carrier is overridden', function () {
     [$builder, $track] = createConvertibleShipmentBuilder(pickupCheckoutOptions());
 
-    $shipment = $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0])->shipment();
+    $shipment = $builder->build($track, ['carrier' => CarrierPostNL::NAME, 'insurance' => 0])->getShipment();
 
     expect(builtShipmentIsPickup($shipment))->toBeFalse();
     expect(builtShipmentPickupPostalCode($shipment))->toBeNull();
@@ -44,7 +44,7 @@ it('clears an inherited pickup location when the carrier is overridden', functio
 it('preserves an inherited pickup location when the carrier is not overridden', function () {
     [$builder, $track] = createConvertibleShipmentBuilder(pickupCheckoutOptions());
 
-    $shipment = $builder->build($track, ['carrier' => CarrierDHLForYou::NAME, 'insurance' => 0])->shipment();
+    $shipment = $builder->build($track, ['carrier' => CarrierDHLForYou::NAME, 'insurance' => 0])->getShipment();
 
     expect(builtShipmentIsPickup($shipment))->toBeTrue();
     expect(builtShipmentPickupPostalCode($shipment))->toBe('1000AA');

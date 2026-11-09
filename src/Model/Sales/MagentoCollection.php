@@ -638,12 +638,12 @@ abstract class MagentoCollection implements MagentoCollectionInterface
      */
     public function asMultiCollo(BuiltShipment $built, int $quantity): ?BuiltShipment
     {
-        if (1 >= $quantity || ! $this->canUseMultiCollo($built->shipment(), $built->apiKey())) {
+        if (1 >= $quantity || ! $this->canUseMultiCollo($built->getShipment(), $built->getApiKey())) {
             return null;
         }
 
         return $built->withShipment(
-            (new MultiColloShipmentService())->splitShipment($built->shipment(), $quantity)
+            (new MultiColloShipmentService())->splitShipment($built->getShipment(), $quantity)
         );
     }
 
