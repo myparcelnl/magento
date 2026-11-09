@@ -21,12 +21,9 @@ use Throwable;
 /**
  * Fetches a MyParcel account's settings and caches them under the api key's fingerprint.
  *
- * Three sources, one row: the account and its shop come from the SDK's account web service, the
- * contract definitions from the capabilities client in a single unfiltered call, and the features
- * from whoami.
- *
- * Throws whatever the SDK throws: an invalid key must surface, but must not abort a config save, so the
- * observer catches it.
+ * One row from three sources: the account web service, one unfiltered contract definitions call
+ * and whoami. Throws what the SDK throws: an invalid key must surface, so the observer catches it
+ * to keep a config save from failing.
  */
 class Importer
 {
@@ -57,9 +54,8 @@ class Importer
     }
 
     /**
-     * Whether this account's settings are already cached in full, so a caller can heal a missing row
-     * without paying for an API call on every save. A row without features counts as missing: the
-     * export reads them, so the next save completes the row.
+     * Check whether this account's settings are cached in full.
+     * A row without features counts as missing, because the export reads them.
      */
     public function hasSettingsFor(string $apiKey): bool
     {
@@ -158,8 +154,8 @@ class Importer
     }
 
     /**
-     * Null when whoami fails: the rest of the row is still worth storing, and createArray() keeps the
-     * features stored before, so a transient failure never changes the export.
+     * Fetch the account features, or null when whoami fails.
+     * On null, createArray() keeps the stored features, so a transient failure does not change the export.
      *
      * @return string[]|null
      */
@@ -191,7 +187,7 @@ class Importer
 
     /**
      * @param \MyParcelNL\Sdk\Support\Collection $settings
-     * @param string[]|null                      $storedFeatures of the row being replaced, kept when whoami answered nothing
+     * @param string[]|null                      $storedFeatures of the replaced row, kept when whoami failed
      *
      * @return array
      */
