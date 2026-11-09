@@ -205,8 +205,8 @@ class ShipmentBuilder
     }
 
     /**
-     * A digital stamp weight is always grams, whatever the weight unit setting says. A preset of
-     * zero (nothing saved and no default configured) falls through to the item weights: the API
+     * Get the weight in grams. A digital stamp weight is always grams, whatever the unit setting.
+     * A preset of zero (nothing saved, no default) falls through to the item weights: the API
      * refuses a zero weight.
      */
     private function weightInGrams(Track $magentoTrack, int $packageType): int
