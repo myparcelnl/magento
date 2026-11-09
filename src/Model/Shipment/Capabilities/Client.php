@@ -118,10 +118,11 @@ class Client
         try {
             $post($this->apiFor($apiKey));
         } catch (ApiException $e) {
-            // The SDK wraps a transport failure in an ApiException too, with code 0.
-            $message = 0 === $e->getCode()
-                ? sprintf('%s request failed: %s', $label, $e->getMessage())
-                : sprintf('%s responded %d', $label, $e->getCode());
+            // The SDK throws this for a transport failure (code 0) and an undecodable 2xx body (code 2xx) too.
+            $status  = $e->getCode();
+            $message = 0 !== $status && ($status < 200 || $status >= 300)
+                ? sprintf('%s responded %d', $label, $status)
+                : sprintf('%s request failed: %s', $label, $e->getMessage());
 
             throw new RuntimeException($message, 0, $e);
         } catch (Throwable $e) {

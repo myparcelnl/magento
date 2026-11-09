@@ -85,6 +85,20 @@ it('raises on a transport failure', function () {
         ->toThrow(RuntimeException::class);
 });
 
+it('names the decoding error for a 2xx body that is not JSON, not the status', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], 'not json')]);
+
+    try {
+        $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
+        $message = null;
+    } catch (RuntimeException $e) {
+        $message = $e->getMessage();
+    }
+
+    expect($message)->toContain('Error JSON decoding')
+        ->and($message)->not->toContain('responded 200');
+});
+
 it('raises on a body carrying no results array', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], '{"unexpected":true}')]);
 
