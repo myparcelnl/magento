@@ -11,16 +11,10 @@ use Magento\Eav\Model\Config as EavConfig;
 use Throwable;
 
 /**
- * The note under the weight type setting, saying why it has no scope.
+ * The note under the weight type setting, saying why it has default scope only.
  *
- * Magento's `weight` product attribute is global, so one product carries one weight number for every
- * store, and a unit that differs per scope would make that number mean two things at once. The
- * setting is therefore offered at default scope only.
- *
- * A merchant or another extension can make `weight` scoped. That assumption then stops holding, and
- * this block says so where it bites rather than leaving it in a release note.
- *
- * Renders no control: `note_model` feeds the template's note slot and leaves the field itself alone.
+ * Magento's `weight` attribute is global, so a unit per scope would give one number two meanings.
+ * When an installation makes `weight` scoped, the note warns about it. Renders no control.
  */
 class WeightUnitNote extends Template implements NoteProviderInterface
 {
@@ -43,11 +37,7 @@ class WeightUnitNote extends Template implements NoteProviderInterface
         return $note . ' ' . __('Careful: product weight is not a global attribute in this installation, so a product can weigh a different number per scope. MyParcel still reads every one of them with the unit above.');
     }
 
-    /**
-     * True is also the answer when the attribute cannot be read at all, which is what the catch is
-     * for. A note must never be the reason the settings screen fails, and warning about a problem we
-     * could not confirm is worse than saying nothing.
-     */
+    /** Check whether product weight is global; true when the attribute cannot be read, so the screen never fails. */
     private function productWeightIsGlobal(): bool
     {
         try {

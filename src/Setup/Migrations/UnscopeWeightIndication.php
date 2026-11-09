@@ -13,18 +13,10 @@ use MyParcelNL\Magento\Service\Config;
 use Psr\Log\LoggerInterface;
 
 /**
- * Collapses print/weight_indication to a single default-scope row.
+ * Collapses print/weight_indication to a single default-scope row, because `weight` is global.
  *
- * A product's weight is one number for every store — Magento's `weight` attribute is global — so a
- * unit that reads "grams" in one scope and "kilos" in another makes that one number mean two things
- * at once. Only one reading can be right, and the setting therefore has no scope.
- *
- * Deleting the scoped rows outright would silently change the unit for a merchant who only ever
- * configured it below default, and a wrong unit is a factor of 1000 on every mailbox decision. So a
- * unit that every store view reads, its inherited value included, is promoted to default first. When
- * the store views disagree, the rows are logged before they go, because no automatic choice between
- * them is defensible.
- *
+ * A unit that every store view reads is promoted to default before the scoped rows go: a wrong unit
+ * is a factor of 1000. When the store views disagree, the rows are logged before they go.
  * Idempotent: once no non-default row is left, a second run does nothing.
  */
 class UnscopeWeightIndication
@@ -108,8 +100,9 @@ class UnscopeWeightIndication
     }
 
     /**
-     * The unit each store view reads: its own row, else its website's, else the default. A row for a
-     * store or website that no longer exists is read by nobody, so it takes no part.
+     * Get the unit each store view reads: its own row, else its website's, else the default.
+     *
+     * A row for a store or website that no longer exists takes no part.
      *
      * @param  \Magento\Framework\DataObject[] $scoped
      * @return array<int, string>
