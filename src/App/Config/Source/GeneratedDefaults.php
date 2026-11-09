@@ -19,13 +19,9 @@ use Throwable;
 /**
  * The module's config defaults, generated from the field templates for every account on the install.
  *
- * Takes the place of etc/config.xml: it sits at sortOrder 5, below every other source, so a saved
- * row always wins. Default scope only, because a store-scope default would beat a merchant's
- * website row in the scope fallback.
- *
- * It runs while the config itself is being built, so nothing in its graph may read config. Its
- * dependencies are RuntimeConfigSource's, plus Fingerprint. ScopeConfigInterface or Service\Config
- * here recurses into this source.
+ * Sits at sortOrder 5, below every other source, so a saved row always wins. Default scope only:
+ * a store-scope default would beat a merchant's website row. It runs while config is built, so
+ * nothing in its graph may read config (ScopeConfigInterface or Service\Config here recurses).
  */
 class GeneratedDefaults implements ConfigSourceInterface
 {
@@ -86,8 +82,9 @@ class GeneratedDefaults implements ConfigSourceInterface
     }
 
     /**
-     * Every account's contract definitions, at every scope that holds an api key. Their union gives
-     * every carrier any store can ship with, and a carrier's defaults are the same for every account.
+     * Get the contract definitions of every account at every scope that holds an api key.
+     *
+     * The union is safe because a carrier's defaults are the same for every account.
      */
     private function contractDefinitionItems(): array
     {
