@@ -49,14 +49,18 @@ it('derives a dependency name the module does not know, rather than dropping it'
     expect($set->requiresFor('postnl', null, ShipmentOption::SIGNATURE))->toBe(['no_tracking']);
 });
 
-it('drops each unreadable dependency entry and says so', function () {
-    mockLoggerFacade()->shouldReceive('notice')->twice()->with(Mockery::pattern('/excludes of requiresSignature/'));
-
+it('drops a dependency entry that is not an option the SDK knows', function () {
     $set = CapabilitySet::fromApiResults([
-        capabilityResult(['options' => ['requiresSignature' => ['excludes' => ['recipientOnlyDelivery', 42, '']]]]),
+        capabilityResult(['options' => ['requiresSignature' => [
+            'requires' => ['teleport'],
+            'excludes' => ['recipientOnlyDelivery', 42, '', 'teleport'],
+        ]]]),
     ]);
 
-    expect($set->excludesFor('postnl', null, ShipmentOption::SIGNATURE))->toBe([ShipmentOption::ONLY_RECIPIENT]);
+    // The option stays offered: the merchant switches it off by hand until the SDK knows teleport.
+    expect($set->excludesFor('postnl', null, ShipmentOption::SIGNATURE))->toBe([ShipmentOption::ONLY_RECIPIENT])
+        ->and($set->requiresFor('postnl', null, ShipmentOption::SIGNATURE))->toBe([])
+        ->and($set->hasOption('postnl', null, ShipmentOption::SIGNATURE))->toBeTrue();
 });
 
 it('lists every offered option, including one the module has no constant for', function () {
@@ -64,5 +68,6 @@ it('lists every offered option, including one the module has no constant for', f
         capabilityResult(['options' => ['requiresSignature' => [], 'noTracking' => []]]),
     ]);
 
-    expect($set->optionsFor('postnl', null))->toBe([ShipmentOption::SIGNATURE, 'no_tracking']);
+    // In the SDK model's property order, not the response's.
+    expect($set->optionsFor('postnl', null))->toEqualCanonicalizing([ShipmentOption::SIGNATURE, 'no_tracking']);
 });

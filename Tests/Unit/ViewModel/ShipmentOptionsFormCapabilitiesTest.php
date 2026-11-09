@@ -122,7 +122,7 @@ it('renders an option only capabilities name, under a label read from its name',
     ]));
 
     expect($block->getShipmentOptions('postnl', PackageType::PACKAGE_NAME))
-        ->toBe([ShipmentOption::SIGNATURE, 'no_tracking'])
+        ->toEqualCanonicalizing([ShipmentOption::SIGNATURE, 'no_tracking'])
         ->and((new NewShipmentForm())->labelFor('no_tracking'))->toBe('No tracking')
         ->and((new NewShipmentForm())->labelFor(ShipmentOption::SIGNATURE))->toBe('Signature on receipt');
 });

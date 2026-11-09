@@ -5,58 +5,54 @@ declare(strict_types=1);
 namespace MyParcelNL\Magento\Model\Shipment\Capabilities;
 
 use MyParcelNL\Magento\Facade\Logger;
+use MyParcelNL\Magento\Model\Shipment\Carrier;
+use MyParcelNL\Magento\Model\Shipment\DeliveryType;
+use MyParcelNL\Magento\Model\Shipment\PackageType;
+use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ModelInterface;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesContractDefinitionsResponseContractDefinitionsV2;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesResponseCapabilityV2;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefCapabilitiesSharedCarrierV2;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefShipmentPackageTypeV2;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\RefTypesDeliveryTypeV2;
+use MyParcelNL\Sdk\Client\Generated\CoreApi\ObjectSerializer;
+use Throwable;
 
 /**
  * A parsed capabilities response: what one MyParcel account may do for one request.
  *
- * A (carrier, package type) question gets the union of every matching result; a null package type
- * means "any". permissive() is the fail-open state, not an empty response: never use it to mean
- * that an account has nothing.
+ * Reads the SDK's generated models, so the SDK decides which options exist. Never serialize a
+ * result: a model with an enum value the SDK does not know throws on json_encode(). permissive()
+ * is the fail-open state, not an empty response: never use it to mean that an account has nothing.
  */
 final class CapabilitySet
 {
-    /** @var CarrierCapability[] */
-    private array $capabilities;
+    /** @var RefCapabilitiesResponseCapabilityV2[]|RefCapabilitiesContractDefinitionsResponseContractDefinitionsV2[] */
+    private array $results;
 
     private bool $permissive;
 
-    private function __construct(array $capabilities, bool $permissive)
+    private function __construct(array $results, bool $permissive)
     {
-        $this->capabilities = $capabilities;
-        $this->permissive   = $permissive;
+        $this->results    = $results;
+        $this->permissive = $permissive;
     }
 
-    /** Make the set from a capabilities answer. An entry that is not an object is logged and skipped. */
+    /** Make the set from the raw `results` of a capabilities response. A bad entry is logged and skipped. */
     public static function fromApiResults(array $results): self
     {
-        $capabilities = [];
-
-        foreach ($results as $index => $result) {
-            if (! is_array($result)) {
-                // Logged, so a changed API answer does not look like a lost carrier.
-                Logger::notice(sprintf(
-                    'MyParcel capabilities: entry %s is a %s, not an object, skipped',
-                    (string) $index,
-                    gettype($result)
-                ));
-
-                continue;
-            }
-
-            $capabilities[] = CarrierCapability::fromResult($result);
-        }
-
-        return new self($capabilities, false);
+        return self::deserialize($results, RefCapabilitiesResponseCapabilityV2::class);
     }
 
     /**
-     * Make the set from a contract-definitions response, which the same parser reads.
+     * Make the set from the raw `items` of a contract-definitions response.
      *
-     * Contract definitions carry no country, so do not read this set as a shipment answer.
+     * Contract definitions carry no country and no requires or excludes, so do not read this set as
+     * a shipment answer.
      */
     public static function fromContractDefinitionItems(array $items): self
     {
-        return self::fromApiResults($items);
+        return self::deserialize($items, RefCapabilitiesContractDefinitionsResponseContractDefinitionsV2::class);
     }
 
     /** Make the set that allows everything, for when no answer is available. */
@@ -80,8 +76,8 @@ final class CapabilitySet
     {
         $carriers = [];
 
-        foreach ($this->capabilities as $capability) {
-            $carrier = $capability->carrier();
+        foreach ($this->results as $result) {
+            $carrier = self::carrierOf($result);
 
             if (null !== $carrier && ! in_array($carrier, $carriers, true)) {
                 $carriers[] = $carrier;
@@ -94,41 +90,49 @@ final class CapabilitySet
     /** @return string[] */
     public function packageTypesFor(string $carrier): array
     {
-        return $this->union($carrier, null, static function (CarrierCapability $c): array {
-            return $c->packageTypes();
+        return $this->union($carrier, null, static function (ModelInterface $result): array {
+            return self::packageTypesOf($result);
         });
     }
 
     /** @return string[] */
     public function deliveryTypesFor(string $carrier, ?string $packageType = null): array
     {
-        return $this->union($carrier, $packageType, static function (CarrierCapability $c): array {
-            return $c->deliveryTypes();
+        return $this->union($carrier, $packageType, static function (ModelInterface $result): array {
+            return self::translate($result->getDeliveryTypes(), [DeliveryType::class, 'fromV2Name']);
         });
     }
 
     /**
-     * Get every option offered, a new one included.
+     * Get every option offered that the SDK knows.
      *
      * @return string[] module option names
      */
     public function optionsFor(string $carrier, ?string $packageType = null): array
     {
-        return $this->union($carrier, $packageType, static function (CarrierCapability $c): array {
-            return $c->options()->moduleNames();
+        return $this->union($carrier, $packageType, static function (ModelInterface $result): array {
+            $options = $result->getOptions();
+            $names   = [];
+
+            foreach (null === $options ? [] : $options::getters() as $property => $getter) {
+                if (null !== $options->$getter()) {
+                    $names[] = ShipmentOption::fromV2Name($options::attributeMap()[$property]);
+                }
+            }
+
+            return $names;
         });
     }
 
     /**
+     * Single level: the caller must not follow a companion's own requires, see docs/sdk-v11.md.
      * Empty when permissive: an account we could not read forces no companion on.
      *
      * @return string[] module option names
      */
     public function requiresFor(string $carrier, ?string $packageType, string $option): array
     {
-        return $this->union($carrier, $packageType, static function (CarrierCapability $c) use ($option): array {
-            return $c->options()->requiresFor($option);
-        });
+        return $this->dependencies($carrier, $packageType, $option, 'getRequires');
     }
 
     /**
@@ -138,9 +142,7 @@ final class CapabilitySet
      */
     public function excludesFor(string $carrier, ?string $packageType, string $option): array
     {
-        return $this->union($carrier, $packageType, static function (CarrierCapability $c) use ($option): array {
-            return $c->options()->excludesFor($option);
-        });
+        return $this->dependencies($carrier, $packageType, $option, 'getExcludes');
     }
 
     /** Permissive answers yes, for the same reason hasOption() does. */
@@ -159,28 +161,18 @@ final class CapabilitySet
     /** Permissive answers yes: offer the option and let the API decide. */
     public function hasOption(string $carrier, ?string $packageType, string $option): bool
     {
-        if ($this->permissive) {
-            return true;
-        }
-
-        foreach ($this->matching($carrier, $packageType) as $capability) {
-            if ($capability->options()->has($option)) {
-                return true;
-            }
-        }
-
-        return false;
+        return $this->permissive || null !== $this->optionValue($carrier, $packageType, $option);
     }
 
     /**
-     * Get the option's own properties, from the first matching result that carries it.
+     * Get the option's generated model from the first matching result that carries it.
      *
-     * @return array<string,mixed>|null
+     * @return \MyParcelNL\Sdk\Client\Generated\CoreApi\Model\ModelInterface|null
      */
-    public function optionValue(string $carrier, ?string $packageType, string $option): ?array
+    public function optionValue(string $carrier, ?string $packageType, string $option): ?ModelInterface
     {
-        foreach ($this->matching($carrier, $packageType) as $capability) {
-            $value = $capability->options()->valueFor($option);
+        foreach ($this->matching($carrier, $packageType) as $result) {
+            $value = self::optionOf($result, $option);
 
             if (null !== $value) {
                 return $value;
@@ -195,11 +187,12 @@ final class CapabilitySet
     {
         $max = null;
 
-        foreach ($this->matching($carrier, $packageType) as $capability) {
-            $colloMax = $capability->colloMax();
+        foreach ($this->matching($carrier, $packageType) as $result) {
+            $collo    = $result->getCollo();
+            $colloMax = null === $collo ? null : $collo->getMax();
 
             if (null !== $colloMax) {
-                $max = null === $max ? $colloMax : max($max, $colloMax);
+                $max = null === $max ? (int) $colloMax : max($max, (int) $colloMax);
             }
         }
 
@@ -207,7 +200,7 @@ final class CapabilitySet
     }
 
     /**
-     * Get every v2 value the module could not translate, deduplicated by kind.
+     * Get every v2 value the SDK does not know, deduplicated by kind: a sign that the SDK needs an update.
      *
      * @return array<string,string[]>
      */
@@ -215,47 +208,153 @@ final class CapabilitySet
     {
         $unknown = ['carrier' => [], 'packageType' => [], 'deliveryType' => []];
 
-        foreach ($this->capabilities as $capability) {
-            foreach ($capability->unknownValues() as $kind => $values) {
-                $unknown[$kind] = array_merge($unknown[$kind], $values);
+        foreach ($this->results as $result) {
+            $unknown['carrier'][]      = self::notIn([$result->getCarrier()], RefCapabilitiesSharedCarrierV2::getAllowableEnumValues());
+            $unknown['packageType'][]  = self::notIn($result->getPackageTypes(), RefShipmentPackageTypeV2::getAllowableEnumValues());
+            $unknown['deliveryType'][] = self::notIn($result->getDeliveryTypes(), RefTypesDeliveryTypeV2::getAllowableEnumValues());
+        }
+
+        return array_map([self::class, 'flattenUnique'], $unknown);
+    }
+
+    /** @param class-string<ModelInterface> $class */
+    private static function deserialize(array $entries, string $class): self
+    {
+        $results = [];
+
+        foreach ($entries as $index => $entry) {
+            try {
+                if (! is_array($entry)) {
+                    throw new \InvalidArgumentException(sprintf('a %s, not an object', gettype($entry)));
+                }
+
+                $results[] = ObjectSerializer::deserialize($entry, $class);
+            } catch (Throwable $e) {
+                // Logged, so a changed API answer does not look like a lost carrier.
+                Logger::notice(sprintf(
+                    'MyParcel capabilities: entry %s skipped: %s',
+                    (string) $index,
+                    $e->getMessage()
+                ));
             }
         }
 
-        return array_map(static function (array $values): array {
-            return array_values(array_unique($values));
-        }, $unknown);
+        return new self($results, false);
+    }
+
+    /** @return string[] module option names, without a name the SDK does not know */
+    private function dependencies(string $carrier, ?string $packageType, string $option, string $getter): array
+    {
+        return $this->union($carrier, $packageType, static function (ModelInterface $result) use ($option, $getter): array {
+            $value   = self::optionOf($result, $option);
+            $options = $result->getOptions();
+
+            if (null === $value || ! method_exists($value, $getter)) {
+                return [];
+            }
+
+            $known = array_values($options::attributeMap());
+            $names = [];
+
+            foreach ($value->$getter() ?? [] as $v2Name) {
+                if (is_string($v2Name) && in_array($v2Name, $known, true)) {
+                    $names[] = ShipmentOption::fromV2Name($v2Name);
+                }
+            }
+
+            return $names;
+        });
+    }
+
+    private static function optionOf(ModelInterface $result, string $option): ?ModelInterface
+    {
+        $options  = $result->getOptions();
+        $property = null === $options
+            ? false
+            : array_search(ShipmentOption::toV2Name($option), $options::attributeMap(), true);
+
+        if (false === $property) {
+            return null;
+        }
+
+        $getter = $options::getters()[$property];
+
+        return $options->$getter();
+    }
+
+    private static function carrierOf(ModelInterface $result): ?string
+    {
+        $v2Carrier = (string) $result->getCarrier();
+
+        return '' === $v2Carrier ? null : Carrier::fromV2Name($v2Carrier);
+    }
+
+    /** @return string[] */
+    private static function packageTypesOf(ModelInterface $result): array
+    {
+        return self::translate($result->getPackageTypes(), [PackageType::class, 'fromV2Name']);
     }
 
     /**
-     * @param  callable(CarrierCapability):string[] $extract
+     * @param  callable(string):?string $resolve
+     * @return string[] the module names; a value the module cannot translate is left out
+     */
+    private static function translate(?array $values, callable $resolve): array
+    {
+        $names = [];
+
+        foreach ($values ?? [] as $value) {
+            $name = is_string($value) ? $resolve($value) : null;
+
+            if (null !== $name) {
+                $names[] = $name;
+            }
+        }
+
+        return $names;
+    }
+
+    /** @return string[] */
+    private static function notIn(?array $values, array $allowed): array
+    {
+        return array_values(array_filter($values ?? [], static function ($value) use ($allowed): bool {
+            return is_string($value) && '' !== $value && ! in_array($value, $allowed, true);
+        }));
+    }
+
+    /**
+     * @param  callable(ModelInterface):string[] $extract
      * @return string[]
      */
     private function union(string $carrier, ?string $packageType, callable $extract): array
     {
-        $values = [];
-
-        foreach ($this->matching($carrier, $packageType) as $capability) {
-            $values = array_merge($values, $extract($capability));
-        }
-
-        return array_values(array_unique($values));
+        return self::flattenUnique(array_map($extract, $this->matching($carrier, $packageType)));
     }
 
-    /** @return CarrierCapability[] */
+    /**
+     * @param  string[][] $lists
+     * @return string[] every value once, in first-seen order
+     */
+    private static function flattenUnique(array $lists): array
+    {
+        return array_values(array_unique(array_merge([], ...$lists)));
+    }
+
+    /** @return ModelInterface[] */
     private function matching(string $carrier, ?string $packageType): array
     {
         $matching = [];
 
-        foreach ($this->capabilities as $capability) {
-            if ($carrier !== $capability->carrier()) {
+        foreach ($this->results as $result) {
+            if ($carrier !== self::carrierOf($result)) {
                 continue;
             }
 
-            if (null !== $packageType && ! $capability->hasPackageType($packageType)) {
+            if (null !== $packageType && ! in_array($packageType, self::packageTypesOf($result), true)) {
                 continue;
             }
 
-            $matching[] = $capability;
+            $matching[] = $result;
         }
 
         return $matching;

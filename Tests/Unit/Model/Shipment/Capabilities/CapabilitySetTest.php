@@ -49,7 +49,7 @@ it('answers nothing for a carrier the account has no contract for', function () 
         ->and($set->hasOption('dpd', null, ShipmentOption::SIGNATURE))->toBeFalse();
 });
 
-it('keeps an unrecognised value and reports it instead of dropping it, and offers a new option', function () {
+it('reports a value the SDK does not know, and offers no option the SDK does not know', function () {
     $set = CapabilitySet::fromApiResults([
         capabilityResult([
             'packageTypes'  => ['PACKAGE', 'HOVERCRAFT'],
@@ -66,7 +66,7 @@ it('keeps an unrecognised value and reports it instead of dropping it, and offer
         ->and($unknown)->not->toHaveKey('option')
         ->and($unknown['carrier'])->toBe(['FUTURE_CARRIER'])
         ->and($set->packageTypesFor('postnl'))->toBe([PackageType::PACKAGE_NAME])
-        ->and($set->optionsFor('postnl'))->toBe([ShipmentOption::SIGNATURE, 'a_brand_new_option']);
+        ->and($set->optionsFor('postnl'))->toBe([ShipmentOption::SIGNATURE]);
 });
 
 it('names a carrier it has no settings for, and still reports it', function () {

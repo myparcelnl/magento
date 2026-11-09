@@ -92,7 +92,7 @@ class ShipmentOptionsForm implements ArgumentInterface
     {
         $value = $this->getCapabilities($packageType)->optionValue($carrier, $packageType, $option);
 
-        return true === ($value['isRequired'] ?? false);
+        return null !== $value && method_exists($value, 'getIsRequired') && true === $value->getIsRequired();
     }
 
     /** @throws \Exception */

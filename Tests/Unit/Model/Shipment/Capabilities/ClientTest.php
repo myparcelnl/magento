@@ -61,7 +61,7 @@ it('returns the results array verbatim, keys the SDK does not declare included',
         ->and($results[0]['options']['aBrandNewOption'])->toBe(['isRequired' => true]);
 });
 
-it('keeps the insurance bounds a generated response model would have dropped', function () {
+it('keeps the insurance bounds in the raw results', function () {
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()]))]);
 
     $results = $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
@@ -92,32 +92,32 @@ it('raises on a body carrying no results array', function () {
         ->toThrow(RuntimeException::class, 'no results array');
 });
 
-it('logs an option the SDK request model cannot carry instead of dropping it silently', function () {
-    // No module option is unsendable today. A name the mapper cannot place stands in for a future
-    // unknown option, which must not be dropped silently.
-    $logger = mockLoggerFacade();
-    $logger->shouldReceive('notice')
-        ->once()
-        ->with(Mockery::pattern('/dropped option\(s\).*not_a_known_option/'));
+it('sends the serialized body unchanged through the generated client', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([]))]);
 
-    $c    = makeCapabilitiesClient();
-    $body = json_decode($c['client']->serialize(
-        CapabilitiesRequest::forCountry('NL')->withOptions(['not_a_known_option' => true])
-    ), true);
+    $body = $c['client']->serialize(
+        CapabilitiesRequest::forCountry('NL')->withOptions([ShipmentOption::SIGNATURE => null])
+    );
 
-    expect($body['options'] ?? [])->not->toHaveKey('not_a_known_option');
+    $c['client']->send(CAPABILITIES_TEST_API_KEY, $body);
+
+    expect(json_decode((string) $c['history'][0]['request']->getBody(), true))
+        ->toBe(json_decode($body, true));
 });
 
-it('does not log when every option survives mapping', function () {
-    $logger = mockLoggerFacade();
-    $logger->shouldReceive('notice')->never();
+it('waits at most two seconds for a connection, so a checkout does not hang on an unreachable host', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([]))]);
 
-    $c    = makeCapabilitiesClient();
-    $body = json_decode($c['client']->serialize(
-        CapabilitiesRequest::forCountry('NL')->withOptions([ShipmentOption::SIGNATURE => true])
-    ), true);
+    $c['client']->send(CAPABILITIES_TEST_API_KEY, '{}');
 
-    expect($body['options'])->toHaveKey('requiresSignature');
+    expect($c['history'][0]['options']['connect_timeout'])->toBe(2);
+});
+
+it('refuses an empty API key before the SDK can read one from the environment', function () {
+    $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([]))]);
+
+    expect(fn () => $c['client']->send('', '{}'))->toThrow(RuntimeException::class, 'no API key')
+        ->and($c['history'])->toBeEmpty();
 });
 
 // ---- failures -------------------------------------------------------------
