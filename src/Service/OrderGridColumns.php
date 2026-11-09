@@ -12,16 +12,11 @@ use MyParcelNL\Magento\Service\IdList;
 use MyParcelNL\Magento\Service\TrackTrace\MyParcelTracks;
 
 /**
- * Writes sales_order columns and keeps the order grid in step, for the tracks and for any other
- * MyParcel column (update()).
+ * Writes MyParcel sales_order columns with a column-level UPDATE and keeps the order grid in step.
  *
- * writeFor() writes track_status and track_number for a page of orders: one tracks query, one read
- * of the current values, and a column-level UPDATE only where they differ.
- *
- * Not $order->save(): that rewrote every column of a possibly stale order and re-synced the grid once
- * per shipment. The grid row is refreshed the way Magento's GridSyncInsertObserver does it: directly
- * when dev/grid/async_indexing is off, and through the updated_at bump refreshBySchedule() keys on
- * when it is on.
+ * Do not use $order->save(): it rewrites every column of a possibly stale order. The grid row is
+ * refreshed like GridSyncInsertObserver does: directly when dev/grid/async_indexing is off, and
+ * through the updated_at bump that refreshBySchedule() reads when it is on.
  */
 class OrderGridColumns
 {
@@ -99,7 +94,7 @@ class OrderGridColumns
     }
 
     /**
-     * Writes these sales_order columns of one order, then its grid row.
+     * Write these sales_order columns of one order, then its grid row.
      *
      * @param array<string,mixed> $columns
      */
