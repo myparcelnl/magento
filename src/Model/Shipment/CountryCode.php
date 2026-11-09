@@ -19,11 +19,13 @@ final class CountryCode
 
     public const EU_COUNTRIES = CountryCodes::EU_COUNTRIES;
 
+    /** Check whether the country is in the EU. Null is not. */
     public static function isEu(?string $countryCode): bool
     {
         return null !== $countryCode && in_array($countryCode, self::EU_COUNTRIES, true);
     }
 
+    /** Check whether the country is outside the EU. Null counts as outside. */
     public static function isRow(?string $countryCode): bool
     {
         return ! self::isEu($countryCode);
