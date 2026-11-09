@@ -27,13 +27,10 @@ use MyParcelNL\Sdk\Support\Collection;
 use RuntimeException;
 
 /**
- * Turns one Magento order into an Order v1 order for the v11 SDK, tagged with its own store's API key.
+ * Turns one Magento order into an Order v1 order, with the API key of its store.
  *
- * The counterpart of ShipmentBuilder: carrier, package type and the option set come from the
- * OrderExportOptions both share, and what is decided here is what only an Order v1 order needs: the
- * two Recipients, the order lines and the order weight.
- *
- * Always call setCarrierId(): AbstractOrder::getCarrier() throws when the carrier was never set.
+ * Carrier, package type and options come from OrderExportOptions, as in ShipmentBuilder. This class
+ * adds the two recipients, the order lines and the order weight.
  */
 class OrderV1Builder
 {
@@ -65,6 +62,7 @@ class OrderV1Builder
         $order = (new SdkOrderV1())
             ->setApiKey($apiKey)
             ->setStatus((string) $magentoOrder->getStatus())
+            // Required: AbstractOrder::getCarrier() throws when it is not set.
             ->setCarrierId($orderOptions->carrierIdToShip())
             ->setDeliveryOptions($orderOptions->sdkShipmentOptions())
             ->setInvoiceAddress($this->billingRecipient($magentoOrder))
