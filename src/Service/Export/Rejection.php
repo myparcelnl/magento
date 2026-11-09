@@ -78,7 +78,7 @@ final class Rejection
             if (null !== $index && isset($chunk[$index])) {
                 // Several rules can break at once, and the merchant has to fix all of them, so the
                 // reasons accumulate instead of the last one winning.
-                $reasons[$chunk[$index]->incrementId()][] = self::withField($pointer, $text);
+                $reasons[$chunk[$index]->getIncrementId()][] = self::withField($pointer, $text);
                 continue;
             }
 

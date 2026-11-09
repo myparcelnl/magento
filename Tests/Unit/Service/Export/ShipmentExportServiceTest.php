@@ -110,8 +110,8 @@ it('persists each chunk before issuing the next, and keeps earlier chunks when a
 
     $report = $service->createConcepts($built);
 
-    expect($built[0]->track()->getData('myparcel_consignment_id'))->not->toBeNull()
-        ->and($built[1]->track()->getData('myparcel_consignment_id'))->not->toBeNull()
+    expect($built[0]->getTrack()->getData('myparcel_consignment_id'))->not->toBeNull()
+        ->and($built[1]->getTrack()->getData('myparcel_consignment_id'))->not->toBeNull()
         ->and($report->succeeded())->toHaveCount(3)
         ->and($report->hasFailures())->toBeFalse();
 });
@@ -179,8 +179,8 @@ it('correlates by reference identifier rather than by result order', function ()
 
     $report = $service->createConcepts($built);
 
-    expect($report->succeeded()['100000001'])->toBe($built[0]->track()->getData('myparcel_consignment_id'))
-        ->and($report->succeeded()['100000002'])->toBe($built[1]->track()->getData('myparcel_consignment_id'))
+    expect($report->succeeded()['100000001'])->toBe($built[0]->getTrack()->getData('myparcel_consignment_id'))
+        ->and($report->succeeded()['100000002'])->toBe($built[1]->getTrack()->getData('myparcel_consignment_id'))
         ->and($report->succeeded()['100000001'])->not->toBe($report->succeeded()['100000002']);
 });
 
@@ -253,7 +253,7 @@ it('keeps a failure visible when a sibling collo of the same order succeeded', f
 
     $colloOne = builtShipmentFor('key', '100000001');
     $colloTwo = builtShipmentFor('key', '100000001');
-    $colloTwo->shipment()->setReferenceIdentifier('100000001-2');
+    $colloTwo->getShipment()->setReferenceIdentifier('100000001-2');
 
     $report = makeExportService(['key' => $api])->createConcepts([$colloOne, $colloTwo]);
 
