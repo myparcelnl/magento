@@ -15,8 +15,9 @@ use MyParcelNL\Magento\Service\Settings;
 /**
  * Renders one insurance amount as a number field bounded by the account's contract.
  *
- * The bound is advisory: contract definitions carry no country. ShipmentOptionsResolver clamps the
- * amount against each parcel's destination.
+ * The bound is per account and scope, so it is emitted at render time, not fixed in the Catalogue.
+ * It is advisory: contract definitions carry no country, and ShipmentOptionsResolver clamps per
+ * destination. With no bound, the field still accepts a number and insurance stays on.
  */
 class InsuranceAmount extends Template implements NoteProviderInterface
 {

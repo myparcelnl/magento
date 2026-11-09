@@ -49,11 +49,9 @@ class CartShippingRules
     }
 
     /**
-     * Parcel lockers are excluded by the general setting, by a product that says so, or by a forced
-     * age check (on a product or in the carrier's default options).
-     * A null carrier path skips the last rule: there is no carrier to read the age check from.
-     *
-     * Anything that goes wrong answers "do not exclude", so a failed read never hides pickup locations.
+     * Check whether parcel lockers are excluded: by the general setting, a product, or a forced age
+     * check (on a product or in the carrier's default options). A null carrier path skips the age
+     * check rule. An error answers "do not exclude", so a failed read never hides pickup locations.
      *
      * @param \Magento\Quote\Model\Quote\Item[] $items
      */

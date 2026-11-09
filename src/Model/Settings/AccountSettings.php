@@ -15,9 +15,9 @@ use MyParcelNL\Sdk\Model\BaseModel;
 /**
  * The account and its general settings, from a stored account settings row.
  *
- * getAccount() answers null for a row it cannot use: the order grid reads it while it renders, and the
- * SDK's Account throws on a missing key. getGeneralSettings() keeps the general settings raw: the
- * SDK's GeneralSettings drops a key it does not know, such as a new `{carrier}_mailbox_international`.
+ * getGeneralSettings() stays raw: the SDK's GeneralSettings drops unknown keys such as a new
+ * `{carrier}_mailbox_international` flag. getAccount() answers null for a row it cannot use,
+ * because the order grid reads it and a throw there is a 500.
  */
 class AccountSettings extends BaseModel
 {
