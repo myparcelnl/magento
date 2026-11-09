@@ -141,10 +141,8 @@ class Repository
             return $this->memo[$cacheId] = $this->stored($apiKey, $requestKey);
         }
 
-        // One fetch per request at a time. After a deploy or cache:clean every concurrent checkout
-        // misses the same request at once, and without this each one calls out. Waiting is not the
-        // alternative (that queues them all behind one request), so the rest answer from the
-        // stored copy, exactly as they would if the fetch had failed.
+        // One fetch per request at a time: after a cache:clean, every checkout misses at once. The
+        // others use the stored answer and do not wait.
         $lockName = self::CACHE_ID_PREFIX . 'fetch_' . $requestKey;
 
         // 0: try once and move on. Waiting is the thing being avoided.
@@ -185,7 +183,7 @@ class Repository
         }
     }
 
-    /** The last answer stored for this request, or permissive when it was never answered. */
+    /** Get the last stored answer for this request, or permissive when it was never answered. */
     private function stored(string $apiKey, string $requestKey): CapabilitySet
     {
         try {
@@ -197,10 +195,7 @@ class Repository
         return null === $results ? CapabilitySet::permissive() : CapabilitySet::fromApiResults($results);
     }
 
-    /**
-     * Before the cache entry, so a cache backend that refuses the save still leaves the stored copy.
-     * A failed write only costs the fallback, never the answer in hand.
-     */
+    /** Store the answer before the cache entry, so a cache that refuses the save keeps the copy. */
     private function store(string $apiKey, string $requestKey, array $results): void
     {
         try {
