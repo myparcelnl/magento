@@ -125,6 +125,7 @@ class ExportReport
         return array_keys($this->collateral);
     }
 
+    /** Check whether an order did not ship, blamed or not. */
     public function hasFailures(): bool
     {
         return [] !== $this->blamed || [] !== $this->collateral;

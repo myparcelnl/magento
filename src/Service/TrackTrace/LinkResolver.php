@@ -92,7 +92,7 @@ class LinkResolver
     }
 
     /**
-     * The track & trace links of one order, as html() renders them. Empty when it has no MyParcel
+     * Render the track & trace links of one order, as html() does. Empty when it has no MyParcel
      * track.
      */
     public function htmlForOrder(int $orderId): string

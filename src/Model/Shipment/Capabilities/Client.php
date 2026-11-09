@@ -57,7 +57,9 @@ class Client
     }
 
     /**
-     * @throws \InvalidArgumentException for a value the SDK refuses to send — write strictly
+     * Make the JSON body of a capabilities request.
+     *
+     * @throws \InvalidArgumentException for a value the SDK refuses to send
      */
     public function serialize(CapabilitiesRequest $request): string
     {
@@ -69,6 +71,8 @@ class Client
     }
 
     /**
+     * Post a capabilities body for this API key.
+     *
      * @return array the response's `results` entries, verbatim
      * @throws \RuntimeException on a transport failure, a non-2xx status or an undecodable body
      */

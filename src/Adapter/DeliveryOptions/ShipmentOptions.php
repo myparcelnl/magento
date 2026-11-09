@@ -121,6 +121,7 @@ final class ShipmentOptions
         return null === $value ? null : (bool) $value;
     }
 
+    /** Get the insured amount in whole euros, not cents. Null is inherit. */
     public function getInsurance(): ?int
     {
         return $this->values[ShipmentOption::INSURANCE];

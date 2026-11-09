@@ -71,11 +71,13 @@ final class InsuranceRange
         return new self($min, $maximum, true === ($raw['isRequired'] ?? false));
     }
 
+    /** Get the lowest insured amount, in whole euros. */
     public function min(): int
     {
         return $this->min;
     }
 
+    /** Get the highest insured amount, in whole euros. */
     public function max(): int
     {
         return $this->max;
@@ -87,10 +89,7 @@ final class InsuranceRange
         return $this->required;
     }
 
-    /**
-     * Whether the amount is within the bounds, both included. allows() also accepts zero when
-     * insurance is optional.
-     */
+    /** Check whether the amount is within the bounds, both included. allows() also accepts zero. */
     public function contains(int $euros): bool
     {
         return $euros >= $this->min && $euros <= $this->max;

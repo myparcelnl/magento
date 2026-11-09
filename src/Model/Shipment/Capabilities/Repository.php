@@ -73,6 +73,8 @@ class Repository
     }
 
     /**
+     * Get the capabilities for the API key of this store and this request.
+     *
      * @param int|null $storeId resolves the API key at that store's scope; never an ambient store
      */
     public function forStore(?int $storeId, CapabilitiesRequest $request): CapabilitySet
@@ -92,8 +94,8 @@ class Repository
     }
 
     /**
-     * The capabilities for this request, from the cache or the API. When the API fails, or another
-     * request is fetching the same shape, the last stored answer, else a permissive set.
+     * Get the capabilities for this request, from the cache or the API. When the API fails, or
+     * another request is fetching the same shape, use the last stored answer, else a permissive set.
      */
     public function forApiKey(string $apiKey, CapabilitiesRequest $request): CapabilitySet
     {

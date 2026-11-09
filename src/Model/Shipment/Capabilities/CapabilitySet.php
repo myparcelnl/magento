@@ -30,7 +30,7 @@ final class CapabilitySet
         $this->permissive   = $permissive;
     }
 
-    /** The set from a capabilities answer. An entry that is not an object is logged and skipped. */
+    /** Make the set from a capabilities answer. An entry that is not an object is logged and skipped. */
     public static function fromApiResults(array $results): self
     {
         $capabilities = [];
@@ -66,11 +66,13 @@ final class CapabilitySet
         return self::fromApiResults($items);
     }
 
+    /** Make the set that allows everything, for when no answer is available. */
     public static function permissive(): self
     {
         return new self([], true);
     }
 
+    /** Check whether this set allows everything because no answer was available. */
     public function isPermissive(): bool
     {
         return $this->permissive;
