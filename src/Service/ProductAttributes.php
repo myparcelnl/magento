@@ -10,14 +10,8 @@ use Magento\Framework\ObjectManagerInterface;
 /**
  * Reads the module's own `myparcel_*` product attributes for a batch of products, all in one load.
  *
- * Through the product collection, never the EAV value tables directly. Adobe Commerce keys those
- * tables on `row_id` and holds one row per scheduled update, so a hand-built query needs both an
- * entity-id mapping and a live-version window to answer correctly; the collection does both. It
- * also knows each attribute's backend type, which retires the varchar-then-int probing the raw
- * reader needed.
- *
- * One load covers every attribute: asking for every column costs barely more than one, and the
- * callers read several per product.
+ * Read through the product collection, never the EAV value tables directly: Adobe Commerce keys
+ * those on `row_id` with one row per scheduled update, and the collection handles both.
  */
 class ProductAttributes
 {
