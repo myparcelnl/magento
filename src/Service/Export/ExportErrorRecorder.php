@@ -74,11 +74,11 @@ class ExportErrorRecorder
         $orders = [];
 
         foreach ($builtShipments as $built) {
-            $shipment = $built->track()->getShipment();
+            $shipment = $built->getTrack()->getShipment();
             $order    = $shipment ? $shipment->getOrder() : null;
 
             if ($order instanceof Order) {
-                $orders[$built->incrementId()] = $order;
+                $orders[$built->getIncrementId()] = $order;
             }
         }
 

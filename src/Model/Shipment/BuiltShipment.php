@@ -39,28 +39,28 @@ class BuiltShipment
         $this->incrementId = $incrementId;
     }
 
-    public function shipment(): Shipment
+    public function getShipment(): Shipment
     {
         return $this->shipment;
     }
 
-    public function track(): Track
+    public function getTrack(): Track
     {
         return $this->track;
     }
 
-    public function apiKey(): string
+    public function getApiKey(): string
     {
         return $this->apiKey;
     }
 
-    public function incrementId(): string
+    public function getIncrementId(): string
     {
         return $this->incrementId;
     }
 
     /** What create() echoes back, and therefore how a response row finds its way home. */
-    public function referenceIdentifier(): string
+    public function getReferenceIdentifier(): string
     {
         return (string) $this->shipment->getReferenceIdentifier();
     }
@@ -84,7 +84,7 @@ class BuiltShipment
     }
 
     /** @return Track[] */
-    public function spareTracks(): array
+    public function getSpareTracks(): array
     {
         return $this->spareTracks;
     }

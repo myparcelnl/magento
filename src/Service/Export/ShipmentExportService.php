@@ -340,7 +340,7 @@ class ShipmentExportService
             $collection = new ShipmentCollection();
 
             foreach ($chunk as $built) {
-                $collection->push($built->shipment());
+                $collection->push($built->getShipment());
             }
 
             $created = $service->create($collection);
@@ -368,7 +368,7 @@ class ShipmentExportService
     {
         return array_values(array_filter(
             $chunk,
-            static fn(BuiltShipment $built): bool => ! $rejection->blames($built->incrementId())
+            static fn(BuiltShipment $built): bool => ! $rejection->blames($built->getIncrementId())
         ));
     }
 
@@ -378,11 +378,11 @@ class ShipmentExportService
     private function reportCollateral(array $chunk, Rejection $rejection, ExportReport $report): void
     {
         foreach ($chunk as $built) {
-            if ($rejection->blames($built->incrementId())) {
+            if ($rejection->blames($built->getIncrementId())) {
                 continue;
             }
 
-            $report->failCollateral($built->incrementId(), $rejection->summary(), $rejection->isRefusal());
+            $report->failCollateral($built->getIncrementId(), $rejection->summary(), $rejection->isRefusal());
         }
     }
 
@@ -431,7 +431,7 @@ class ShipmentExportService
         $byReference = [];
 
         foreach ($chunk as $built) {
-            $byReference[$built->referenceIdentifier()] = $built;
+            $byReference[$built->getReferenceIdentifier()] = $built;
         }
 
         foreach ($created as $shipmentId => $referenceIdentifier) {
@@ -446,11 +446,11 @@ class ShipmentExportService
                 continue;
             }
 
-            unset($byReference[$built->referenceIdentifier()]);
+            unset($byReference[$built->getReferenceIdentifier()]);
 
             try {
                 $this->persist($built, (int) $shipmentId);
-                $report->succeed($built->incrementId(), (int) $shipmentId);
+                $report->succeed($built->getIncrementId(), (int) $shipmentId);
             } catch (Throwable $e) {
                 // The shipment exists and is billable; only our record of it failed. Said as such,
                 // so the admin does not re-export a shipment that is already there.
@@ -458,7 +458,7 @@ class ShipmentExportService
                     sprintf('MyParcel export: shipment %d created but its id could not be stored', $shipmentId),
                     LogContext::of($e)
                 );
-                $report->fail($built->incrementId(), sprintf(
+                $report->fail($built->getIncrementId(), sprintf(
                     'created as MyParcel shipment %d, but the id could not be stored: %s',
                     $shipmentId,
                     $e->getMessage()
@@ -468,7 +468,7 @@ class ShipmentExportService
 
         // Anything the response did not name did not ship, whatever the call's status was.
         foreach ($byReference as $built) {
-            $report->fail($built->incrementId(), (string) __('The MyParcel API did not return a shipment for this order.'));
+            $report->fail($built->getIncrementId(), (string) __('The MyParcel API did not return a shipment for this order.'));
         }
     }
 
@@ -481,12 +481,12 @@ class ShipmentExportService
      */
     private function persist(BuiltShipment $built, int $shipmentId): void
     {
-        $this->stamp($built->track(), $shipmentId);
+        $this->stamp($built->getTrack(), $shipmentId);
 
         // A multicollo's remaining rows take the same id: non-zero is what keeps them out of the
         // next export, and updateMagentoTrack() replaces it with each collo's own id once the
         // query response names them.
-        foreach ($built->spareTracks() as $spare) {
+        foreach ($built->getSpareTracks() as $spare) {
             $this->stamp($spare, $shipmentId);
         }
     }
@@ -511,10 +511,10 @@ class ShipmentExportService
         $pending = [];
 
         foreach ($builtShipments as $built) {
-            $existing = (int) $built->track()->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
+            $existing = (int) $built->getTrack()->getData(Config::FIELD_MYPARCEL_SHIPMENT_ID);
 
             if (0 < $existing) {
-                $report->succeed($built->incrementId(), $existing);
+                $report->succeed($built->getIncrementId(), $existing);
                 continue;
             }
 
@@ -534,7 +534,7 @@ class ShipmentExportService
         $groups = [];
 
         foreach ($builtShipments as $built) {
-            $groups[$built->apiKey()][] = $built;
+            $groups[$built->getApiKey()][] = $built;
         }
 
         return $groups;
@@ -544,7 +544,7 @@ class ShipmentExportService
     private function failAll(array $builtShipments, ExportReport $report, string $reason): void
     {
         foreach ($builtShipments as $built) {
-            $report->fail($built->incrementId(), $reason);
+            $report->fail($built->getIncrementId(), $reason);
         }
     }
 

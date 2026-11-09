@@ -34,7 +34,7 @@ function pickupCheckoutOptions(): array
 it('keeps the pickup location of the stored carrier', function () {
     [$builder, $track] = createConvertibleShipmentBuilder(pickupCheckoutOptions());
 
-    $shipment = $builder->build($track)->shipment();
+    $shipment = $builder->build($track)->getShipment();
 
     expect(builtShipmentIsPickup($shipment))->toBeTrue();
     expect(builtShipmentPickupPostalCode($shipment))->toBe('1000AA');
