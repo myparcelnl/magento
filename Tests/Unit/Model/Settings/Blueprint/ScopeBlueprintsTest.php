@@ -13,12 +13,12 @@ use MyParcelNL\Magento\Service\MailboxInternational;
  *
  * @param string[] $contracted v2 carrier names in the stored row of 'live-key'; none reads permissive
  */
-function scopeBlueprintsFor(array $contracted, MailboxInternational $mailbox): ScopeBlueprints
+function scopeBlueprintsFor(array $contracted, MailboxInternational $mailbox, string $homeCountry = 'NL'): ScopeBlueprints
 {
     $config   = createConfig([], [], [], ['websites' => [2 => [Config::XML_PATH_API_KEY => 'live-key']]]);
     $contract = new ContractDefinitions(mockScopeConfig(contractRowsFor($contracted)), new Fingerprint(), $config);
 
-    return new ScopeBlueprints($contract, $config, $mailbox);
+    return new ScopeBlueprints($contract, $config, $mailbox, storedAccountAt($homeCountry));
 }
 
 /** @param string[] $carriers the carriers the account flag names for 'live-key' */
@@ -72,3 +72,10 @@ it('leaves a default-only field out of a website scope, so a save there cannot w
     expect($blueprints->forScope('default', null)->paths())->toContain($weightType)
         ->and($blueprints->forScope('websites', 2)->paths())->not->toContain($weightType);
 });
+
+it('offers a Belgian insurance cap to a Dutch account only', function (string $homeCountry, bool $offered) {
+    $paths = scopeBlueprintsFor(['POSTNL'], mailboxFlagging([]), $homeCountry)->forScope('websites', 2)->paths();
+
+    expect(in_array(Config::carrierPath('postnl') . 'default_options/insurance_belgium_amount', $paths, true))->toBe($offered)
+        ->and($paths)->toContain(Config::carrierPath('postnl') . 'default_options/insurance_local_amount');
+})->with([['NL', true], ['BE', false]]);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Model\Settings\Blueprint\Blueprint;
 use MyParcelNL\Magento\Model\Settings\Blueprint\Generator;
+use MyParcelNL\Magento\Model\Settings\Proposition;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
@@ -45,5 +46,5 @@ function legacyContractItems(): array
 /** The generated form for LEGACY_CONTRACT, with international mailbox on for PostNL. */
 function legacyShapedBlueprint(): Blueprint
 {
-    return Generator::for(CapabilitySet::fromContractDefinitionItems(legacyContractItems()), ['postnl']);
+    return Generator::for(CapabilitySet::fromContractDefinitionItems(legacyContractItems()), ['postnl'], Proposition::default());
 }
