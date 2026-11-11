@@ -19,8 +19,11 @@ final class ShipmentOptions
 {
     private const DEFAULT_INSURANCE = 0;
 
-    /** The stored keys that are not toggles. label_description is not a shipment option. */
-    private const OTHER_KEYS = [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY, 'label_description'];
+    /** A stored key that is not a shipment option: the label text. */
+    public const LABEL_DESCRIPTION = 'label_description';
+
+    /** The stored shipment options that are not toggles. */
+    private const OTHER_OPTIONS = [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY];
 
     /** @var array<string,mixed> every keys() entry; null where nothing was stored */
     private $values = [];
@@ -43,9 +46,15 @@ final class ShipmentOptions
         }
     }
 
+    /** Every stored key that is a shipment option. */
+    public static function optionKeys(): array
+    {
+        return array_merge(ShipmentOption::having('toggle'), self::OTHER_OPTIONS);
+    }
+
     private static function keys(): array
     {
-        return array_merge(ShipmentOption::having('toggle'), self::OTHER_KEYS);
+        return array_merge(self::optionKeys(), [self::LABEL_DESCRIPTION]);
     }
 
     /**
@@ -81,10 +90,10 @@ final class ShipmentOptions
     {
         return new self(
             [
-                ShipmentOption::SIGNATURE         => ($options['signature'] ?? null) ?: null,
-                ShipmentOption::ONLY_RECIPIENT    => ($options['only_recipient'] ?? null) ?: null,
+                ShipmentOption::SIGNATURE         => ($options['signature'] ?? null) ? true : null,
+                ShipmentOption::ONLY_RECIPIENT    => ($options['only_recipient'] ?? null) ? true : null,
                 ShipmentOption::INSURANCE         => ($options['insurance'] ?? null) ?: null,
-                ShipmentOption::PRIORITY_DELIVERY => ($options['priority_delivery'] ?? null) ?: null,
+                ShipmentOption::PRIORITY_DELIVERY => ($options['priority_delivery'] ?? null) ? true : null,
             ]
         );
     }
@@ -119,7 +128,7 @@ final class ShipmentOptions
 
     public function getLabelDescription(): ?string
     {
-        return $this->values['label_description'];
+        return $this->values[self::LABEL_DESCRIPTION];
     }
 
     /**

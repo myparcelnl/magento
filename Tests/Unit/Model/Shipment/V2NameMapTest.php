@@ -71,17 +71,10 @@ it('round-trips every stored option name through its wire key', function () {
     }
 });
 
-it('keeps an alias only for a stored name the rule cannot produce', function () {
-    foreach (ShipmentOption::DEFINITIONS as $moduleName => $row) {
-        if (! isset($row['v2Name'])) {
-            continue;
-        }
-
-        $v2Key   = $row['v2Name'];
-        $derived = strtolower((string) preg_replace('/(?<!^)[A-Z]/', '_$0', $v2Key));
-
-        expect($derived)->not->toBe($moduleName, "'$moduleName' derives from '$v2Key' and needs no alias");
-    }
+it('takes the aliases from the SDK', function () {
+    expect(ShipmentOption::toV2Name(ShipmentOption::RETURN))->toBe('returnOnFirstFailedDelivery')
+        ->and(ShipmentOption::toV2Name(ShipmentOption::PRINTERLESS_RETURN))->toBe('printReturnLabelAtDropOff')
+        ->and(ShipmentOption::fromV2Name('requiresSignature'))->toBe(ShipmentOption::SIGNATURE);
 });
 
 it('derives an option name in both directions for a wire key it has never seen', function () {

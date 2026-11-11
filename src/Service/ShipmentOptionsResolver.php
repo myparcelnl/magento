@@ -26,17 +26,6 @@ use Throwable;
  */
 class ShipmentOptionsResolver
 {
-    // Not a ShipmentOption: a label field, not a toggle the carrier offers.
-    private const LABEL_DESCRIPTION = 'label_description';
-
-    /**
-     * The checkboxes with a rule of their own; every other toggle in ShipmentOption::DEFINITIONS is
-     * taken as chosen. Add an entry only when an option needs one.
-     */
-    private const RULES = [
-        ShipmentOption::RECEIPT_CODE => 'hasReceiptCode',
-    ];
-
     private const ORDER_NUMBER      = '%order_nr%';
     private const DELIVERY_DATE     = '%delivery_date%';
     private const PRODUCT_ID        = '%product_id%';
@@ -217,30 +206,9 @@ class ShipmentOptionsResolver
         return $this->shapeCapabilities;
     }
 
-    public function hasCollect(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::COLLECT);
-    }
-
-    /** Which carrier and delivery type offer receipt code is a capabilities fact (dropNotOffered()). */
-    public function hasReceiptCode(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::RECEIPT_CODE);
-    }
-
-    public function hasOnlyRecipient(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::ONLY_RECIPIENT);
-    }
-
     public function hasSameDayDelivery(): bool
     {
         return $this->optionIsEnabled(ShipmentOption::SAME_DAY_DELIVERY);
-    }
-
-    public function hasReturn(): bool
-    {
-        return $this->optionIsEnabled(ShipmentOption::RETURN);
     }
 
     /** No country gate: which carrier carries an age check where is a capabilities fact. */
@@ -424,15 +392,13 @@ class ShipmentOptionsResolver
     public function resolve(): ShipmentOptions
     {
         $values = [
-            ShipmentOption::INSURANCE         => $this->getInsurance(),
-            self::LABEL_DESCRIPTION           => $this->getLabelDescription(),
-            ShipmentOption::SAME_DAY_DELIVERY => $this->hasSameDayDelivery(),
+            ShipmentOption::INSURANCE          => $this->getInsurance(),
+            ShipmentOptions::LABEL_DESCRIPTION => $this->getLabelDescription(),
+            ShipmentOption::SAME_DAY_DELIVERY  => $this->hasSameDayDelivery(),
         ];
 
         foreach (ShipmentOption::having('toggle') as $option) {
-            $values[$option] = isset(self::RULES[$option])
-                ? $this->{self::RULES[$option]}()
-                : $this->optionIsEnabled($option);
+            $values[$option] = $this->optionIsEnabled($option);
         }
 
         $capabilities = $this->shapeCapabilities();
@@ -465,7 +431,7 @@ class ShipmentOptionsResolver
      */
     private function dropNotOffered(array $offered, array $values): array
     {
-        $options = array_merge(ShipmentOption::having('toggle'), [ShipmentOption::INSURANCE, ShipmentOption::SAME_DAY_DELIVERY]);
+        $options = ShipmentOptions::optionKeys();
 
         foreach (array_keys($this->optionsOn($values)) as $option) {
             if (! in_array($option, $options, true) || in_array($option, $offered, true)) {
@@ -587,7 +553,7 @@ class ShipmentOptionsResolver
     /** @return array<string,mixed> the entries of $values that are shipment options and on */
     private function optionsOn(array $values): array
     {
-        unset($values[self::LABEL_DESCRIPTION]);
+        unset($values[ShipmentOptions::LABEL_DESCRIPTION]);
 
         return array_filter($values, function (string $option) use ($values): bool {
             return $this->isOn($values, $option);

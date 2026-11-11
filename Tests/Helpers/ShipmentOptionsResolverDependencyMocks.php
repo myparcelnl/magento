@@ -8,7 +8,7 @@ use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Source\DefaultOptions;
 
 /**
- * A resolver for a PostNL NL package, with requires and excludes from $capabilityOptions.
+ * A resolver for a PostNL package, to NL unless $countryId says otherwise, with requires and excludes from $capabilityOptions.
  *
  * @param array<string,int> $sources         option => OptionSource tier, for what DefaultOptions switches on
  * @param array|null        $capabilityOptions null for a lookup that fails, which falls open
@@ -18,7 +18,8 @@ function dependencyResolver(
     ?array $capabilityOptions,
     array  $sources = [],
     int    $requiredInsurance = 0,
-    int    $insurance = 0
+    int    $insurance = 0,
+    string $countryId = 'NL'
 ) {
     $repository = null;
 
@@ -31,7 +32,7 @@ function dependencyResolver(
     }
 
     return createShipmentOptions(
-        'NL',
+        $countryId,
         'postnl',
         [],
         false,

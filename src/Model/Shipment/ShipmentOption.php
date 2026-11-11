@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace MyParcelNL\Magento\Model\Shipment;
 
+use MyParcelNL\Sdk\Client\Generated\CoreApi\Model\CapabilitiesOptionsV2;
+use MyParcelNL\Sdk\Services\Mapping\ShipmentOptionMapper;
+
 /**
  * Shipment option and extra option keys, and the facts the module owns about each option.
  *
@@ -27,27 +30,27 @@ final class ShipmentOption
     public const FRESH_FOOD         = 'fresh_food';
     public const FROZEN             = 'frozen';
 
-    /** The yes/no facts having() takes. A missing one is false. */
+    /**
+     * The yes/no facts having() takes; a missing one is false. toggle: shown when capabilities could
+     * not be read, and a stored key. checkout: in the widget, with a fee. fromPrice(Tooltip): automated
+     * above an order total. mailbox: set in the mailbox group. keepAtCheckout: a forced cart option the
+     * checkout sends to capabilities as a filter; never a default such as signature, which the PostNL
+     * mailbox excludes.
+     */
     private const FLAGS = ['toggle', 'checkout', 'fromPrice', 'fromPriceTooltip', 'mailbox', 'keepAtCheckout'];
 
-    /** The text facts fact() takes. A missing one is null. */
-    private const TEXTS = ['label', 'settingsLabel', 'tooltip', 'v2Name'];
+    /** The text facts fact() takes; a missing one is null. label is English and the i18n msgid. */
+    private const TEXTS = ['label', 'settingsLabel', 'tooltip'];
+
+    /** @var array<string,string[]> having() per flag */
+    private static $having = [];
+
+    /** @var array<string,string> toV2Name() per name */
+    private static $v2Names = [];
 
     /**
-     * What the module knows about an option that capabilities do not say, one row per option. Row
-     * order is the order of the settings form. An option that capabilities offer needs no row.
-     *
-     * - toggle: the form shows it when capabilities could not be read, and it is a stored key.
-     * - checkout: the checkout widget renders it, with a fee in the settings.
-     * - fromPrice, fromPriceTooltip: the settings automate it above an order total.
-     * - mailbox: its settings go in the mailbox group instead of default_options.
-     * - keepAtCheckout: when the cart forces it, the checkout sends it to capabilities as a filter,
-     *   so it offers nothing that cannot carry it. A default such as signature must not be one:
-     *   the PostNL mailbox excludes it, so mailbox would disappear for every cart.
-     * - label: English, also the msgid in i18n/. Without one, the name is the label.
-     * - settingsLabel, tooltip: the settings form's own label and tooltip.
-     * - v2Name: the wire key, only when it does not derive from the name. V2NameMapTest pins each one
-     *   to the SDK.
+     * What the module knows about an option that capabilities do not say, one row per option, in
+     * settings form order. An option that capabilities offer needs no row.
      */
     public const DEFINITIONS
         = [
@@ -57,14 +60,12 @@ final class ShipmentOption
                 'fromPrice'        => true,
                 'fromPriceTooltip' => true,
                 'label'            => 'Signature on receipt',
-                'v2Name'           => 'requiresSignature',
             ],
             self::RECEIPT_CODE       => [
                 'toggle'    => true,
                 'checkout'  => true,
                 'fromPrice' => true,
                 'label'     => 'Receipt code',
-                'v2Name'    => 'requiresReceiptCode',
             ],
             self::ONLY_RECIPIENT     => [
                 'toggle'           => true,
@@ -72,14 +73,12 @@ final class ShipmentOption
                 'fromPrice'        => true,
                 'fromPriceTooltip' => true,
                 'label'            => 'Only recipient',
-                'v2Name'           => 'recipientOnlyDelivery',
             ],
             self::RETURN             => [
                 'toggle'           => true,
                 'fromPrice'        => true,
                 'fromPriceTooltip' => true,
                 'label'            => 'Return if no answer',
-                'v2Name'           => 'returnOnFirstFailedDelivery',
             ],
             self::LARGE_FORMAT       => [
                 'toggle'           => true,
@@ -87,20 +86,17 @@ final class ShipmentOption
                 'fromPriceTooltip' => true,
                 'label'            => 'Large package',
                 'settingsLabel'    => 'Large format',
-                'v2Name'           => 'oversizedPackage',
             ],
             self::COLLECT            => [
                 'toggle'    => true,
                 'fromPrice' => true,
                 'label'     => 'Collect package',
-                'v2Name'    => 'scheduledCollection',
             ],
             self::AGE_CHECK          => [
                 'toggle'         => true,
                 'keepAtCheckout' => true,
                 'label'          => 'Age check 18+',
                 'tooltip'        => 'The age check is intended for parcel shipments for which the recipient must show 18+ by means of a proof of identity. With this shipping option Signature on receipt and Only recipient are included. The age 18+ is further excluded from the delivery options morning and evening delivery.',
-                'v2Name'         => 'requiresAgeVerification',
             ],
             self::HIDE_SENDER        => [
                 'toggle'  => true,
@@ -127,7 +123,6 @@ final class ShipmentOption
             ],
             self::PRINTERLESS_RETURN => [
                 'label'  => 'Printerless return',
-                'v2Name' => 'printReturnLabelAtDropOff',
             ],
         ];
 
@@ -142,7 +137,9 @@ final class ShipmentOption
             throw new \InvalidArgumentException("Unknown shipment option fact '$flag'");
         }
 
-        return array_keys(array_filter(self::DEFINITIONS, static fn(array $row): bool => $row[$flag] ?? false));
+        return self::$having[$flag] ??= array_keys(
+            array_filter(self::DEFINITIONS, static fn(array $row): bool => $row[$flag] ?? false)
+        );
     }
 
     /** A text fact of an option, or null when its row does not set it. */
@@ -161,16 +158,25 @@ final class ShipmentOption
         return is_string($value) && 1 === preg_match('/^[a-z][a-z0-9_]*$/', $value);
     }
 
-    /** Module option name to the camelCase key a capabilities response uses. */
+    /** Module option name to the camelCase key a capabilities response uses. The SDK names the aliases. */
     public static function toV2Name(string $name): string
     {
-        return self::fact($name, 'v2Name') ?? lcfirst(str_replace('_', '', ucwords($name, '_')));
+        if (! isset(self::$v2Names[$name])) {
+            $property = (new ShipmentOptionMapper())->v2PropertyFromName($name);
+
+            self::$v2Names[$name] = null === $property
+                ? lcfirst(str_replace('_', '', ucwords($name, '_')))
+                : CapabilitiesOptionsV2::attributeMap()[$property];
+        }
+
+        return self::$v2Names[$name];
     }
 
+    /** A wire key back to the module name: an option with a row by its alias, any other by snake_case. */
     public static function fromV2Name(string $v2Name): string
     {
-        foreach (self::DEFINITIONS as $name => $row) {
-            if (($row['v2Name'] ?? null) === $v2Name) {
+        foreach (array_keys(self::DEFINITIONS) as $name) {
+            if (self::toV2Name($name) === $v2Name) {
                 return $name;
             }
         }

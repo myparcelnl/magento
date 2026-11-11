@@ -67,5 +67,5 @@ it('treats an order without stored delivery options as chosen', function () {
         ShipmentOption::RECEIPT_CODE => true,
     ]);
 
-    expect($shipmentOptions->hasReceiptCode())->toBeTrue();
+    expect($shipmentOptions->resolve()->toArray()[ShipmentOption::RECEIPT_CODE])->toBeTrue();
 });

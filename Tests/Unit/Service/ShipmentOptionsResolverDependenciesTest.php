@@ -124,6 +124,36 @@ it('changes nothing when the capabilities cannot be read', function () {
         ->and($resolved[ShipmentOption::SIGNATURE])->toBeFalse();
 });
 
+it('leaves signature off a BE shipment when capabilities say only recipient excludes it', function () {
+    captureNotices();
+
+    $resolved = dependencyResolver(
+        acceptanceOptionsFor('POSTNL', ['requiresSignature' => ['requires' => [], 'excludes' => ['recipientOnlyDelivery']]]),
+        [ShipmentOption::SIGNATURE => OptionSource::CONFIGURATION, ShipmentOption::ONLY_RECIPIENT => OptionSource::CHECKOUT],
+        0,
+        0,
+        'BE'
+    )->resolve()->toArray();
+
+    expect($resolved[ShipmentOption::ONLY_RECIPIENT])->toBeTrue()
+        ->and($resolved[ShipmentOption::SIGNATURE])->toBeFalse();
+});
+
+it('leaves large format off when capabilities do not offer it for the country', function () {
+    $notices = captureNotices();
+
+    $offered = acceptanceOptionsFor('POSTNL');
+    unset($offered['oversizedPackage']);
+
+    $resolved = dependencyResolver($offered, [ShipmentOption::LARGE_FORMAT => OptionSource::CONFIGURATION], 0, 0, 'US')
+        ->resolve()->toArray();
+
+    expect($resolved[ShipmentOption::LARGE_FORMAT])->toBeFalse()
+        ->and($notices->getArrayCopy())->toContain(
+            'Shipment option large_format left off order 100000001: postnl does not offer it for this shipment.'
+        );
+});
+
 it('insures a required companion at the contract minimum when nothing is configured', function () {
     captureNotices();
 

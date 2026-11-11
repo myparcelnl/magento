@@ -39,7 +39,7 @@ class CustomsDeclarationBuilder
      * the save, the shipment still carries a configurable's variant as an item of its own. Product
      * data is fetched in two batch queries, not per item.
      *
-     * @throws \RuntimeException when the shipment carries no item, or more than the API accepts
+     * @throws \RuntimeException when the SDK refuses the declaration, for example no item or more than 100
      */
     public function build(Shipment $shipment, int $totalWeightInGrams, string $invoice): RefShipmentCustomsDeclaration
     {

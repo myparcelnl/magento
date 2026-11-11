@@ -64,7 +64,6 @@ class CustomsItems
      * The first product with a value wins. A country falls back to the store's `print/country_of_origin`
      * setting, then to the account's home country; an HS code has no fallback and a reference is null.
      *
-     * @throws \RuntimeException when a line's reference is longer than the API accepts
      * @return array<int|string, array{classification: string, country: string, external_product_reference: ?string}>
      */
     public function customsDataFor(array $productIdsByLine, int $storeId): array
@@ -85,12 +84,10 @@ class CustomsItems
         $data = [];
 
         foreach ($productIdsByLine as $line => $ids) {
-            $referenceId = self::firstIdOf($ids, $references);
-
             $data[$line] = [
                 'classification'             => self::firstOf($ids, $classifications) ?? '',
                 'country'                    => self::firstOf($ids, $countries) ?? $fallback,
-                'external_product_reference' => null === $referenceId ? null : $references[$referenceId],
+                'external_product_reference' => self::firstOf($ids, $references),
             ];
         }
 
@@ -118,20 +115,12 @@ class CustomsItems
         return $countries;
     }
 
-    /** The SDK throws on a longer reference without naming the product, so the check is made here. */
+    /** The value of the first id in $ids that has a non-empty one. */
     private static function firstOf(array $ids, array $values): ?string
-    {
-        $id = self::firstIdOf($ids, $values);
-
-        return null === $id ? null : (string) $values[$id];
-    }
-
-    /** The first id in $ids that has a non-empty value in $values. */
-    private static function firstIdOf(array $ids, array $values): ?int
     {
         foreach ($ids as $id) {
             if ('' !== (string) ($values[$id] ?? '')) {
-                return (int) $id;
+                return (string) $values[$id];
             }
         }
 
