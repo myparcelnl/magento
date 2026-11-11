@@ -170,7 +170,7 @@ class NewShipment implements ObserverInterface
             $this->messageManager->addErrorMessage($message);
         }
 
-        // Each built shipment carries its own track, so nothing is paired by position any more.
+        // Each built shipment carries its own track, so nothing is paired by position.
         foreach ($builtShipments as $built) {
             if (! $built->getTrack()->getData('myparcel_consignment_id')) {
                 continue;
