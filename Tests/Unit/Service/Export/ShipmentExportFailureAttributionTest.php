@@ -130,7 +130,7 @@ it('does not retry when the response blames nobody', function () {
         ->and($report->failureReasons())->toBeEmpty()
         ->and($report->collateral())->toBe(['000000116', '000000117'])
         ->and($report->failureMessages())->toBe([
-            'Orders that were not exported because MyParcel refused this batch: 2. Reason: Verzending validatiefout Account problem: your account is not active',
+            'Orders that were not exported because MyParcel refused this batch: 2. Reason: Verzending validatiefout Account problem (your account is not active)',
         ]);
 });
 

@@ -83,7 +83,7 @@ abstract class MagentoCollection implements MagentoCollectionInterface
     protected OrderGridColumns       $gridColumns;
     protected ShipmentApiProvider    $apiProvider;
     protected UserAgent              $userAgent;
-    protected CapabilitiesLookup            $capabilityLookup;
+    protected CapabilitiesLookup     $capabilityLookup;
 
     /** @var array<int,ShipmentBuilder> one per order, built on first use */
     private array $shipmentBuilders = [];
