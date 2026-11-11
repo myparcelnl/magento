@@ -16,7 +16,7 @@ it('sends the request the API expects: v2 keys, the SDK version=2.0 accept, the 
     $c = makeCapabilitiesClient([new GuzzleResponse(200, [], capabilitiesBody([capabilityResult()]))]);
 
     $request = CapabilitiesRequest::forCountry('NL')
-        ->withCarrier(Carrier::toV2Name(Carrier::POSTNL))
+        ->withCarrier(Carrier::toV2Name('postnl'))
         ->withPackageType(PackageType::toV2Name(PackageType::PACKAGE_NAME));
 
     $c['client']->send(CAPABILITIES_TEST_API_KEY, $c['client']->serialize($request));

@@ -53,3 +53,13 @@ it('is a no-op on a second run', function () {
 
     expect($harness->rows)->toBe([]);
 });
+
+it('leaves a path that matches only because `_` is a LIKE wildcard', function () {
+    $harness = new MyParcelTokenLifecycleHarness();
+    $harness->save('myparcelnlXmagentoYfooZsettings/mailbox/pickup_mailbox', '1', 'default', 0);
+    $harness->save('myparcelnl_magento_postnl_settings/mailbox/pickupXmailbox', '1', 'default', 0);
+
+    removePickupMailboxRows($harness)->run();
+
+    expect($harness->rows)->toHaveCount(2);
+});

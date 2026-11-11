@@ -15,17 +15,16 @@ use MyParcelNL\Sdk\Model\BaseModel;
 /**
  * The account and its general settings, from a stored account settings row.
  *
- * The carrier half moved to contract definitions, read through
- * Service\AccountSettings\ContractDefinitions. What is left is the account's own general settings,
- * which no contract carries. hasPostnlMailboxInternational() is the one live reader.
- *
- * A row this class did not write may be missing anything, and the SDK's Account throws on a missing
- * key. getAccount() therefore answers null for every row it cannot use: it is read while the order
- * grid renders, where a throw is a 500.
+ * getGeneralSettings() stays raw: the SDK's GeneralSettings drops unknown keys such as a new
+ * `{carrier}_mailbox_international` flag. getAccount() answers null for a row it cannot use,
+ * because the order grid reads it and a throw there is a 500.
  */
 class AccountSettings extends BaseModel
 {
     protected Account $account;
+
+    /** @var array<string, mixed> */
+    private array $generalSettings = [];
 
     /**
      * @var string $apiKey the api key (shop identifier) to get the account settings for
@@ -60,7 +59,16 @@ class AccountSettings extends BaseModel
             return;
         }
 
-        $this->account = $account;
+        $this->account         = $account;
+        $this->generalSettings = is_array($decoded['account']['general_settings'] ?? null)
+            ? $decoded['account']['general_settings']
+            : [];
+    }
+
+    /** @return array<string, mixed> the stored `account.general_settings`, empty for an unusable row */
+    public function getGeneralSettings(): array
+    {
+        return $this->generalSettings;
     }
 
     /**

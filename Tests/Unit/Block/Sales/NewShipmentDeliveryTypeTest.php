@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 use MyParcelNL\Magento\Block\Sales\NewShipment;
 use MyParcelNL\Magento\Model\Shipment\Capabilities\CapabilitySet;
-use MyParcelNL\Magento\Model\Shipment\Carrier;
 use MyParcelNL\Magento\Model\Shipment\DeliveryType;
 use MyParcelNL\Magento\Model\Shipment\PackageType;
 use MyParcelNL\Magento\Model\Shipment\ShipmentOption;
@@ -64,9 +63,9 @@ it('withholds the receipt code option when the delivery type is unrecognised', f
     // beating the capability answer rather than agreeing with it.
     setPrivateProperty($block, 'capabilityLookup', capabilityLookupWith(CapabilitySet::permissive(), '', 1));
 
-    expect($block->hasShipmentOption(Carrier::POSTNL, PackageType::PACKAGE_NAME, ShipmentOption::RECEIPT_CODE))
+    expect($block->hasShipmentOption('postnl', PackageType::PACKAGE_NAME, ShipmentOption::RECEIPT_CODE))
         ->toBeFalse()
-        ->and($block->hasShipmentOption(Carrier::POSTNL, PackageType::PACKAGE_NAME, ShipmentOption::SIGNATURE))
+        ->and($block->hasShipmentOption('postnl', PackageType::PACKAGE_NAME, ShipmentOption::SIGNATURE))
         ->toBeTrue();
 });
 
