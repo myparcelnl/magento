@@ -111,11 +111,12 @@ final class InsuranceRange
     /**
      * Only the Money shape. A bare number states no scale, and guessing one is how an amount
      * silently becomes a hundredth of itself. The SDK reads a bare number as Money without an amount.
+     * The SDK already cast the amount to int, so "100000oops" arrives as 100000: this checks only presence.
      */
     private static function cents($money): ?int
     {
-        return $money instanceof RefTypesMoney && is_numeric($money->getAmount())
-            ? (int) $money->getAmount()
-            : null;
+        $amount = $money instanceof RefTypesMoney ? $money->getAmount() : null;
+
+        return is_int($amount) ? $amount : null;
     }
 }
