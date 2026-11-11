@@ -56,7 +56,7 @@ offered until an SDK update; the export could not send it anyway. A new carrier,
 delivery type reads as a plain string (`EnumFallback`), but a model that holds one throws on
 `json_encode()`. So the cache and the stored answers keep the raw entries, never a model.
 
-A cached answer lives three hours. Then the next lookup of that shape fetches again, and a failed
+A cached answer lives three hours. Then the next lookup of that request fetches again, and a failed
 refresh serves the stored answer. That is the longest a capabilities change, a bugfix included, takes
 to reach a shop. To get it sooner, flush the "MyParcel carrier capabilities" cache type.
 
